@@ -1,0 +1,23 @@
+{
+  "version": 2,
+  "dependencies": {
+    "net8.0": {
+      "dbnotifier.application": {
+        "type": "Project",
+        "dependencies": {
+          "DBNotifier.Domain": "[1.0.0, )",
+          "DBNotifier.Provider.Abstractions": "[1.0.0, )"
+        }
+      },
+      "dbnotifier.domain": {
+        "type": "Project"
+      },
+      "dbnotifier.provider.abstractions": {
+        "type": "Project",
+        "dependencies": {
+          "DBNotifier.Domain": "[1.0.0, )"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,9 @@
+<Window x:Class="DBNotifier.Desktop.Wpf.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="DB-Notifier setup" Height="240" Width="420">
+  <Grid>
+    <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center"
+               Text="DB-Notifier project scaffold" />
+  </Grid>
+</Window>

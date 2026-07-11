@@ -1,0 +1,52 @@
+# Build and distribution output
+dist/
+*.exe
+*.msi
+*.zip
+*.7z
+*.nupkg
+*.bundle.ps1
+packaging/**/dist/
+packaging/**/Output/
+
+# Runtime data
+logs/
+*.log
+*.etl
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.orig
+*.swp
+~$*
+
+# Test and coverage output
+TestResults/
+coverage/
+*.coverage
+
+# .NET build and local tooling
+**/bin/
+**/obj/
+.dotnet/
+artifacts/
+
+# Node.js and web build
+node_modules/
+**/node_modules/
+**/.vite/
+**/dist/
+*.tsbuildinfo
+
+# PowerShell/editor/user state
+*.user
+*.suo
+.vs/
+.vscode/
+.idea/
+
+# Windows noise
+Thumbs.db
+Desktop.ini

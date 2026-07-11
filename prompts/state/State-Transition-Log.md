@@ -1,0 +1,94 @@
+# Log de Transições de Estado
+
+## Regras
+
+- Append-only: correções são novas entradas.
+- Usar datas ISO 8601.
+- Registrar apenas transições ou decisões reais.
+- Evidências devem existir e estar sanitizadas.
+- Relatório, auditoria ou recomendação não alteram estado sozinhos.
+
+## 2026-07-11 — Entrada inicial
+
+- Estado anterior: não declarado
+- Estado resultante: `STATE-00 DISCOVERY_MIGRATION`
+- Decisão: registrar o PgNotifier como legado e preparar a transformação DB-Notifier.
+- Evidências: README do PgNotifier, inventário do workspace e baseline documental.
+- Resultado: documentação preparada; arquitetura multi-provider não declarada como implementada.
+
+## 2026-07-11 — Migração do corpus
+
+- Estado anterior: `STATE-00 DISCOVERY_MIGRATION`
+- Estado resultante: sem transição
+- Decisão: adaptar 75 prompts herdados para o domínio DB-Notifier.
+- Resultado: 77 arquivos de controle/instrução coerentes, sem implementação de produto.
+
+## 2026-07-11 — Consolidação do corpus
+
+- Estado anterior: `STATE-00 DISCOVERY_MIGRATION`
+- Estado resultante: sem transição
+- Decisão: reorganizar os 77 arquivos em 12 documentos temáticos.
+- Motivo: reduzir boilerplate, wrappers por fase e custo de manutenção, preservando estado e histórico separados.
+- Resultado: hierarquia consolidada e referências atualizadas.
+
+## 2026-07-11 — Inclusão do módulo AIOps/IA
+
+- Estado anterior: `STATE-00 DISCOVERY_MIGRATION`
+- Estado resultante: sem transição
+- Decisão: incluir `MOD-12 AIOPS_AI` como especificação de longo prazo.
+- Escopo: arquitetura em camadas, modos operacionais, risco, aprovação, execução tipada, governança de modelos e integração documental.
+- Resultado: módulo documentado como roadmap; nenhuma IA ou automação declarada como implementada.
+
+## 2026-07-11 — Fechamento técnico da descoberta
+
+- Estado anterior: `STATE-00 DISCOVERY_MIGRATION`
+- Estado resultante: sem transição
+- Decisão: concluir o inventário verificável e submeter o plano incremental PgNotifier → DB-Notifier ao Human Gate.
+- Escopo: comportamento legado, compatibilidade de configuração, marcos M0-M8, riscos, rollback e proposta de baseline tecnológica.
+- Gates: auditoria automática recomendou `STATE-01 PROJECT_SETUP`; Human Gate permanece `PENDENTE`.
+- Evidências: `docs/Legacy-Inventory.md`, `docs/Legacy-Migration-Plan.md`, `docs/STATE-00-Discovery-Report.md` e 8 testes Pester aprovados.
+- Riscos/ressalvas: build legado não reproduzível por ausência de `build/build.ps1`; workspace sem Git; runtime real e controles de serviço não testados.
+
+## 2026-07-11 — Transição para Project Setup
+
+- Estado anterior: `STATE-00 DISCOVERY_MIGRATION`
+- Estado solicitado: `STATE-01 PROJECT_SETUP`
+- Decisão: `APROVADO` pelo usuário após revisão do handoff apresentado.
+- Escopo: baseline .NET 8/WPF/ASP.NET Core + React, PostgreSQL como primeiro provider, migração side-by-side e inicialização de Git.
+- Gates: auditoria automática de `STATE-00` concluída; Human Gate aprovado explicitamente.
+- Evidências: `docs/STATE-00-Discovery-Report.md`, `docs/Legacy-Inventory.md`, `docs/Legacy-Migration-Plan.md` e resposta do usuário na sessão.
+- Riscos/ressalvas: SDK .NET 8 ainda ausente; runtime real, packaging e controles administrativos permanecem não autorizados/não testados.
+- Aprovador: Bruno, 2026-07-11.
+- Estado resultante: `STATE-01 PROJECT_SETUP`.
+
+## 2026-07-11 — Scaffold inicial de Project Setup
+
+- Estado anterior: `STATE-01 PROJECT_SETUP`
+- Estado resultante: sem transição
+- Decisão: materializar o scaffold aprovado sem introduzir regras funcionais de fases futuras.
+- Escopo: Git/main, solução modular, convenções, Agent/API/WPF bootstrap, Dashboard, testes e CI.
+- Gates: Dashboard, legado e checks estruturais aprovados; gate .NET bloqueado porque há runtimes, mas nenhum SDK instalado.
+- Evidências: `docs/STATE-01-Setup-Report.md`, lockfile npm, 8 testes Pester aprovados e auditoria npm com 0 vulnerabilidades.
+- Riscos/ressalvas: código C# ainda não compilado; CI remota não executada; Human Gate de `STATE-01` pendente.
+
+## 2026-07-11 — Validação local de Project Setup
+
+- Estado anterior: `STATE-01 PROJECT_SETUP`
+- Estado resultante: sem transição
+- Decisão: instalar o SDK .NET 8 isolado no workspace após autorização explícita e concluir a auditoria automática.
+- Escopo: restore por lockfile, build Release, testes, format, auditoria NuGet e amostra de liveness da API.
+- Gates: auditoria automática aprovada; Human Gate permanece `PENDENTE`.
+- Evidências: SDK `8.0.422`, 10 projetos compilados com 0 avisos/erros, 2 testes aprovados, format limpo, nenhum pacote NuGet vulnerável e `/health/live` respondendo `Alive`.
+- Riscos/ressalvas: CI remota não executada; nenhum provider funcional, banco real ou comando administrativo testado.
+
+## Template de nova entrada
+
+- Data:
+- Estado anterior:
+- Estado solicitado:
+- Decisão:
+- Escopo:
+- Gates:
+- Evidências:
+- Riscos/ressalvas:
+- Aprovador:

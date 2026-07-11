@@ -1,0 +1,20 @@
+[
+  {
+    "name": "Local PostgreSQL 18",
+    "service": "postgresql-x64-18",
+    "status": "Running",
+    "pid": "12345"
+  },
+  {
+    "name": "Analytics DB",
+    "service": "postgresql-analytics",
+    "status": "Restarted",
+    "pid": "23456"
+  },
+  {
+    "name": "Reporting DB",
+    "service": "postgresql-reporting",
+    "status": "Stopped",
+    "pid": "-"
+  }
+]

@@ -1,0 +1,6 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <ProjectReference Include="..\DBNotifier.Application\DBNotifier.Application.csproj" />
+    <ProjectReference Include="..\DBNotifier.Domain\DBNotifier.Domain.csproj" />
+  </ItemGroup>
+</Project>

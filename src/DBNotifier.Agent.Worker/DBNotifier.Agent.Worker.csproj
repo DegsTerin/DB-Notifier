@@ -1,0 +1,8 @@
+<Project Sdk="Microsoft.NET.Sdk.Worker">
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Hosting" />
+    <ProjectReference Include="..\DBNotifier.Application\DBNotifier.Application.csproj" />
+    <ProjectReference Include="..\DBNotifier.Infrastructure\DBNotifier.Infrastructure.csproj" />
+    <ProjectReference Include="..\DBNotifier.Providers.PostgreSql\DBNotifier.Providers.PostgreSql.csproj" />
+  </ItemGroup>
+</Project>
