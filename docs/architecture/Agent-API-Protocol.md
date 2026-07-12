@@ -1,4 +1,6 @@
-# Agent/API Protocol v1 — Conceptual Specification
+# Agent/API Protocol v1
+
+Observation batching and the receipt-only command polling/ack subset are implemented in `STATE-04`. Enrollment, heartbeat, configuration, event batching, command execution/result and SignalR remain conceptual targets.
 
 ## Transport and trust
 
@@ -74,19 +76,21 @@ Configuration contains only authorized non-secret values and credential referenc
 ## Command retrieval and lifecycle
 
 ```text
-GET  /api/v1/agents/{agentId}/commands?after=<cursor>&limit=<bounded>
-POST /api/v1/agents/{agentId}/commands/{commandId}:ack
+POST /api/v1/agents/{agentId}/commands:poll
+POST /api/v1/agents/{agentId}/commands:ack
 POST /api/v1/agents/{agentId}/commands/{commandId}:result
 ```
 
 1. Server authorizes and persists a command before it becomes available.
-2. Agent retrieves by durable cursor, verifies target, expiry, cancellation, versions, capability, and local policy.
-3. Agent acknowledges receipt idempotently.
-4. Agent executes one typed attempt under timeout/cancellation rules.
+2. Agent polls with its durable command-protocol sequence and exact Agent/provider version inventory; the Server filters target, expiry and compatibility before returning a bounded batch.
+3. Agent persists an exact-idempotent inbox entry and acknowledges receipt as a bounded batch. Conflicting command/idempotency replay is rejected.
+4. A future, separately gated executor may execute one typed attempt under timeout/cancellation rules.
 5. Agent performs the required independent post-probe.
 6. Agent submits a terminal or `UnknownOutcome` result idempotently.
 
 SignalR may notify `commandsAvailable(agentId, cursor)` only. It never carries executable parameters and never changes command state.
+
+The implemented receipt-only path stops at `Acknowledged`: it creates no `CommandAttempt`, never calls a provider, and never submits a result. Command polling is disabled by default independently of observation synchronization.
 
 ## Cancellation and expiry
 

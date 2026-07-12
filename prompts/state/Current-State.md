@@ -6,7 +6,7 @@
 
 ## Situação factual
 
-Seis incrementos de `STATE-04 BACKEND_IMPLEMENTATION` implementam contratos neutros, registro aberto, readiness/health autenticado PostgreSQL, scheduler, SQLite local, vault, sincronização, eventos/alertas, APIs Agent/humana, RBAC/auditoria, comandos `Pending`, retenção limitada e delivery durável. Workers mutáveis permanecem desabilitados por default; nenhum banco, IdP, certificado, credencial ou canal real foi testado e nenhum provider está homologado.
+Sete incrementos de `STATE-04 BACKEND_IMPLEMENTATION` implementam contratos neutros, registro aberto, readiness/health autenticado PostgreSQL, scheduler, SQLite local, vault, sincronização, eventos/alertas, APIs Agent/humana, RBAC/auditoria, entrega/ack de comandos sem execução, retenção limitada, delivery durável e discovery/verificação assinada de pacotes sem carregar código. Workers mutáveis permanecem desabilitados por default; nenhum banco, IdP, certificado, credencial ou canal real foi testado e nenhum provider está homologado.
 
 ## Produto atual
 
@@ -54,7 +54,7 @@ Seis incrementos de `STATE-04 BACKEND_IMPLEMENTATION` implementam contratos neut
 - ADR-0002 a ADR-0006 e pacote arquitetural completo aceitos no Human Gate de `STATE-02`.
 - Modelo lógico documentado para catálogo, Agents, health, eventos, incidentes, alertas, comandos, RBAC, auditoria, outbox e configuração local.
 - Persistência isolada em `DBNotifier.Persistence.Agent.Sqlite` e `DBNotifier.Persistence.Server.PostgreSql`; cada runtime carrega somente seu provider.
-- Quatro migrations provider-specific não produtivas, com constraints, índices, concorrência, idempotência e referências opacas de credencial.
+- Seis migrations provider-specific não produtivas, com constraints, índices, concorrência, idempotência, envelope de compatibilidade e referências opacas de credencial.
 - SQLite validado em memória do initial ao latest e rollback latest → previous → zero; PostgreSQL validado por scripts forward/rollback offline.
 - Retenção e deleção segura documentadas; audit PostgreSQL protegido contra update/delete por trigger.
 - Solução .NET 10 com 12 projetos: restore locked, build Release (0 avisos/erros), 5 testes, format e auditoria NuGet aprovados.
@@ -78,20 +78,20 @@ Seis incrementos de `STATE-04 BACKEND_IMPLEMENTATION` implementam contratos neut
 - Autenticação humana separada usa OIDC/JWT externo, exige `sub`, aplica rate limit sem fila e falha fechada sem Authority/Audience seguros.
 - RBAC server-side filtra catálogo por `instances.read` e escopos Global/Environment/Instance não expirados.
 - Criação de comando exige `commands.create`, Agent/capability/version exatos, validação segura, idempotência e auditoria sanitizada.
-- Comandos permanecem `Pending`, sem outbox/attempt/Agent/executor ou ação administrativa real.
+- Poll/ack de comandos exige mTLS, Agent da rota, versão exata e sequência durável; o inbox aceita replay idêntico, rejeita conflito e não cria attempt/resultado/executor.
+- Discovery de pacotes valida `net10.0`, chave pública confiável, assinatura RSA-PSS/SHA-256, hashes, limites e paths sem carregar assembly ou registrar provider automaticamente.
 - Retenção Agent/central implementada em lotes, com dry-run default, preservação de audit/referências e workers opt-in.
 - Server-outbox e notification delivery possuem runners duráveis, backoff limitado e IDs estáveis; adapters externos não são registrados.
 - Consulta de auditoria exige `audit.read` Global, paginação estável por snapshot/filtros limitados e audita acesso permitido/negado.
 - Controles administrativos permanecem explicitamente `Unsupported`.
 - Agent registra catálogo/provider, persistência, vault e scheduler por DI; monitoring permanece desabilitado por default, sem conexão real ou UI.
-- 80 testes .NET aprovados (76 unit/model/provider + 4 arquitetura); build Release e format aprovados em .NET 10 com 0 avisos/erros.
+- 86 testes .NET aprovados (82 unit/model/provider + 4 arquitetura); build Release e format aprovados em .NET 10 com 0 avisos/erros.
 
 ## Pendente
 
-- Implementar protocolo de entrega/ack de comandos sem executor administrativo e discovery seguro de pacotes de provider.
-- Completar o vertical slice PostgreSQL com discovery e execução sandbox habilitada usando credencial descartável autorizada.
+- Completar o vertical slice PostgreSQL com ativação sandbox do pacote verificado e execução administrativa somente após autorização específica.
 - Integrar legal hold/backup e adapters reais de notificação somente em sandbox autorizado.
-- Implementar descoberta/carregamento seguro de pacotes de provider além do registro DI em processo.
+- Implementar carregamento/isolamento de lifecycle somente para pacotes previamente verificados, sem autoativação.
 - Integrar IdP/MFA real, provisionamento de usuários/papéis e mutations de catálogo em ambiente autorizado.
 - Cobrir falhas isoladas, autorização negativa, idempotência, retries, timeout, `UnknownOutcome` e testes do provider.
 - Auditar `STATE-04` e submeter seus entregáveis ao Human Gate antes de qualquer transição para UI.
@@ -108,6 +108,6 @@ Seis incrementos de `STATE-04 BACKEND_IMPLEMENTATION` implementam contratos neut
 
 ## Próximo gate
 
-Planejar o sétimo incremento de `STATE-04 BACKEND_IMPLEMENTATION`: protocolo de entrega/ack de comandos sem executor e discovery/verificação segura de pacotes de provider, sem antecipar UI funcional de `STATE-05` ou executar ação administrativa real.
+Executar a auditoria automática de encerramento de `STATE-04 BACKEND_IMPLEMENTATION`, verificando entregáveis, quality gates e riscos residuais antes de solicitar o Human Gate; não iniciar `STATE-05` nem ativar executor/provider automaticamente.
 
 Este documento descreve somente o presente. Histórico pertence a `State-Transition-Log.md`.

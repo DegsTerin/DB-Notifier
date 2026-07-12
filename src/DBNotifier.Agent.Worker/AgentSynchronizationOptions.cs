@@ -6,6 +6,8 @@ public sealed class AgentSynchronizationOptions
 
     public bool Enabled { get; set; }
 
+    public bool CommandPollingEnabled { get; set; }
+
     public string? ServerBaseAddress { get; set; }
 
     public string? ClientCertificateThumbprint { get; set; }
@@ -15,6 +17,10 @@ public sealed class AgentSynchronizationOptions
     public int DispatchIntervalSeconds { get; set; } = 10;
 
     public int MaximumBatchSize { get; set; } = 50;
+
+    public int CommandPollIntervalSeconds { get; set; } = 15;
+
+    public Dictionary<string, string> ProviderVersions { get; set; } = new(StringComparer.Ordinal);
 
     public Uri ValidateAndGetServerBaseAddress()
     {
@@ -38,7 +44,9 @@ public sealed class AgentSynchronizationOptions
             throw new InvalidOperationException("Agent synchronization requires a bounded Agent version.");
         }
 
-        if (DispatchIntervalSeconds is < 1 or > 300 || MaximumBatchSize is < 1 or > 100)
+        if (DispatchIntervalSeconds is < 1 or > 300 || MaximumBatchSize is < 1 or > 100 ||
+            CommandPollIntervalSeconds is < 1 or > 300 ||
+            ProviderVersions.Any(item => string.IsNullOrWhiteSpace(item.Key) || string.IsNullOrWhiteSpace(item.Value)))
         {
             throw new InvalidOperationException("Agent synchronization cadence or batch size is outside policy.");
         }

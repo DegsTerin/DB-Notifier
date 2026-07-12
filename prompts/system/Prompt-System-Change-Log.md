@@ -2,7 +2,7 @@
 
 ## Versão atual
 
-- Versão: `3.11.0`
+- Versão: `3.12.0`
 - Data: 2026-07-12
 - Status: corpus DB-Notifier consolidado
 - Escopo: 13 arquivos ativos
@@ -16,6 +16,12 @@ A versão do corpus é independente da versão do software.
 - PATCH: clareza, correção ou referência sem mudança de autoridade.
 
 Toda alteração atualiza este arquivo e, quando necessário, `../Start-Here.md`.
+
+## 3.12.0 — 2026-07-12
+
+- Sétimo incremento de `STATE-04`: polling/ack mTLS, idempotente, versionado e limitado, com inbox durável e sem executor administrativo.
+- Discovery de pacotes fail-closed com manifesto `net10.0`, chave pública confiável, assinatura RSA-PSS/SHA-256, hashes, limites e rejeição de paths/links inseguros; nenhum código é carregado automaticamente.
+- 86 testes .NET aprovados; nenhum `CommandAttempt`, Start/Stop/Restart, assembly externo, banco, certificado real ou provider homologado foi exercitado.
 
 ## 3.11.0 — 2026-07-12
 

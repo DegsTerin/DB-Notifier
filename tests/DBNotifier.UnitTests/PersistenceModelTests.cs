@@ -24,7 +24,7 @@ public sealed class PersistenceModelTests
         await context.Database.MigrateAsync();
 
         string[] appliedMigrations = (await context.Database.GetAppliedMigrationsAsync()).ToArray();
-        Assert.Equal(2, appliedMigrations.Length);
+        Assert.Equal(3, appliedMigrations.Length);
 
         context.InstanceAssignments.Add(new AgentInstanceAssignmentRow
         {

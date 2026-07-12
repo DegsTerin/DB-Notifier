@@ -43,6 +43,7 @@ builder.Services.AddDbContextFactory<ServerDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("ServerDatabase")));
 builder.Services.AddScoped<IObservationIngestionStore, ServerObservationIngestionStore>();
 builder.Services.AddScoped<ObservationBatchIngestor>();
+builder.Services.AddScoped<IServerCommandDeliveryStore, ServerCommandDeliveryStore>();
 builder.Services.AddScoped<IAuthorizedOperationsStore, AuthorizedOperationsStore>();
 builder.Services.AddScoped<AuthorizedOperationsService>();
 builder.Services.AddSingleton(serverOperationsOptions);
@@ -133,6 +134,12 @@ builder.Services
 builder.Services.AddSingleton<IAuthorizationHandler, AgentRouteAuthorizationHandler>();
 builder.Services.AddAuthorizationBuilder()
     .AddPolicy("AgentObservationIngestion", policy =>
+    {
+        policy.AddAuthenticationSchemes(CertificateAuthenticationDefaults.AuthenticationScheme);
+        policy.RequireAuthenticatedUser();
+        policy.AddRequirements(new AgentRouteRequirement());
+    })
+    .AddPolicy("AgentApi", policy =>
     {
         policy.AddAuthenticationSchemes(CertificateAuthenticationDefaults.AuthenticationScheme);
         policy.RequireAuthenticatedUser();
@@ -261,6 +268,69 @@ app.MapGet(
     .RequireAuthorization("HumanApi")
     .RequireRateLimiting("HumanApiRateLimit");
 app.MapPost(
+        "/api/v1/agents/{agentId:guid}/commands:poll",
+        async Task<IResult> (
+            Guid agentId,
+            CommandPollRequest request,
+            IServerCommandDeliveryStore store,
+            TimeProvider timeProvider,
+            HttpContext httpContext,
+            CancellationToken cancellationToken) =>
+        {
+            if (!HasCommandProtocolVersion(httpContext, request.SchemaVersion) || request.AgentId != agentId ||
+                !string.Equals(httpContext.Request.Headers["DBN-Agent-Version"], request.AgentVersion, StringComparison.Ordinal))
+            {
+                return ProtocolOrPayloadProblem(request.AgentId == agentId);
+            }
+
+            try
+            {
+                DateTimeOffset now = timeProvider.GetUtcNow();
+                IReadOnlyList<CommandEnvelope> commands = await store
+                    .PollAsync(request, now, cancellationToken)
+                    .ConfigureAwait(false);
+                return Results.Ok(new CommandPollResponse(
+                    Guid.NewGuid(), 1, agentId, request.Sequence, now, timeProvider.GetUtcNow(), commands));
+            }
+            catch (ArgumentException)
+            {
+                return Results.Problem(statusCode: StatusCodes.Status400BadRequest,
+                    title: "Invalid command poll", extensions: new Dictionary<string, object?>
+                    { ["code"] = "command.poll_invalid" });
+            }
+        })
+    .RequireAuthorization("AgentApi");
+app.MapPost(
+        "/api/v1/agents/{agentId:guid}/commands:ack",
+        async Task<IResult> (
+            Guid agentId,
+            CommandAcknowledgementRequest request,
+            IServerCommandDeliveryStore store,
+            TimeProvider timeProvider,
+            HttpContext httpContext,
+            CancellationToken cancellationToken) =>
+        {
+            if (!HasCommandProtocolVersion(httpContext, request.SchemaVersion) || request.AgentId != agentId)
+            {
+                return ProtocolOrPayloadProblem(request.AgentId == agentId);
+            }
+
+            try
+            {
+                IReadOnlyList<CommandAcknowledgementResult> results = await store
+                    .AcknowledgeAsync(request, timeProvider.GetUtcNow(), cancellationToken)
+                    .ConfigureAwait(false);
+                return Results.Ok(new CommandAcknowledgementResponse(results));
+            }
+            catch (ArgumentException)
+            {
+                return Results.Problem(statusCode: StatusCodes.Status400BadRequest,
+                    title: "Invalid command acknowledgement", extensions: new Dictionary<string, object?>
+                    { ["code"] = "command.ack_invalid" });
+            }
+        })
+    .RequireAuthorization("AgentApi");
+app.MapPost(
         "/api/v1/agents/{agentId:guid}/observations:batch",
         async Task<IResult> (
             Guid agentId,
@@ -309,5 +379,22 @@ app.MapPost(
     .RequireAuthorization("AgentObservationIngestion");
 
 app.Run();
+
+static bool HasCommandProtocolVersion(HttpContext context, int schemaVersion) =>
+    schemaVersion == 1 &&
+    context.Request.Headers.TryGetValue("DBN-Protocol-Version", out var protocol) &&
+    protocol.Count == 1 && protocol[0] == "1" &&
+    context.Request.Headers.TryGetValue("DBN-Message-Schema", out var schema) &&
+    schema.Count == 1 && schema[0] == "1" &&
+    context.Request.Headers.TryGetValue("DBN-Agent-Version", out var agentVersion) &&
+    agentVersion.Count == 1 && !string.IsNullOrWhiteSpace(agentVersion[0]);
+
+static IResult ProtocolOrPayloadProblem(bool agentMatches) => agentMatches
+    ? Results.Problem(statusCode: StatusCodes.Status426UpgradeRequired,
+        title: "Unsupported DB-Notifier command protocol version",
+        extensions: new Dictionary<string, object?> { ["code"] = "protocol.command_version_unsupported" })
+    : Results.Problem(statusCode: StatusCodes.Status400BadRequest,
+        title: "Command Agent does not match the authorized route",
+        extensions: new Dictionary<string, object?> { ["code"] = "command.agent_mismatch" });
 
 public partial class Program;

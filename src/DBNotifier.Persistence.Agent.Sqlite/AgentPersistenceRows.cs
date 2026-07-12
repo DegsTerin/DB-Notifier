@@ -66,11 +66,14 @@ public sealed class AgentInboxCommandRow
     public Guid CommandId { get; set; }
     public required string IdempotencyKey { get; set; }
     public Guid InstanceId { get; set; }
+    public required string ProviderId { get; set; }
     public required string CapabilityId { get; set; }
     public required string TypedParametersJson { get; set; }
     public required string State { get; set; }
     public DateTimeOffset RequestedAt { get; set; }
     public DateTimeOffset ExpiresAt { get; set; }
+    public required string ExpectedAgentVersion { get; set; }
+    public required string ExpectedProviderVersion { get; set; }
     public DateTimeOffset? AcknowledgedAt { get; set; }
     public DateTimeOffset? CompletedAt { get; set; }
     public string? ResultJson { get; set; }

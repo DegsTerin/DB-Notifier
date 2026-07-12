@@ -88,9 +88,12 @@ public sealed class AgentDbContext(DbContextOptions<AgentDbContext> options) : D
             entity.Property(row => row.IdempotencyKey).HasMaxLength(200).IsRequired();
             entity.HasIndex(row => row.IdempotencyKey).IsUnique();
             entity.HasIndex(row => new { row.State, row.ExpiresAt });
+            entity.Property(row => row.ProviderId).HasMaxLength(64).IsRequired();
             entity.Property(row => row.CapabilityId).HasMaxLength(100).IsRequired();
             entity.Property(row => row.TypedParametersJson).IsRequired();
             entity.Property(row => row.State).HasMaxLength(32).IsRequired();
+            entity.Property(row => row.ExpectedAgentVersion).HasMaxLength(64).IsRequired();
+            entity.Property(row => row.ExpectedProviderVersion).HasMaxLength(64).IsRequired();
             entity.Property(row => row.ConcurrencyToken).IsConcurrencyToken();
         });
 

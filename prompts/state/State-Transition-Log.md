@@ -260,6 +260,16 @@
 - Evidências: `docs/STATE-04-Backend-Implementation-Report.md`, subset maintenance/delivery/audit 13/13, dry-run/aplicação efêmera e workers desabilitados por default.
 - Riscos/ressalvas: nenhuma deleção produtiva, legal hold/backup real, publisher/canal externo, PostgreSQL, IdP, command delivery/execution, homologação ou UI.
 
+## 2026-07-12 — Sétimo incremento de Backend Implementation
+
+- Estado anterior: `STATE-04 BACKEND_IMPLEMENTATION`
+- Estado resultante: sem transição
+- Decisão: implementar protocolo mTLS de entrega/ack sem executor e discovery/verificação de pacotes sem carregamento automático.
+- Escopo: mensagens v1, sequência durável, compatibilidade exata, expiração, idempotência/replay, inbox local, assinatura RSA-PSS/SHA-256, hashes, limites e paths seguros.
+- Gates: build/format aprovados em .NET 10 com 0 avisos/erros e 86 testes; Human Gate de encerramento de `STATE-04` permanece pendente.
+- Evidências: `docs/STATE-04-Backend-Implementation-Report.md`, subset command/package 6/6, nenhum command attempt/resultado e nenhum assembly carregado.
+- Riscos/ressalvas: sem mTLS E2E real, ativação sandbox de package, execução/post-probe, PostgreSQL, certificado/chave de produção, homologação ou UI.
+
 ## Template de nova entrada
 
 - Data:

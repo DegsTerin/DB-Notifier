@@ -40,6 +40,7 @@ builder.Services.AddSingleton(services => new AgentStoreInitializer(
 builder.Services.AddSingleton<IMonitoringAssignmentSource, AgentMonitoringAssignmentSource>();
 builder.Services.AddSingleton<IHealthObservationSink, AgentObservationOutboxSink>();
 builder.Services.AddSingleton<IAgentOutboxStore, AgentOutboxStore>();
+builder.Services.AddSingleton<IAgentCommandInboxStore, AgentCommandInboxStore>();
 builder.Services.AddSingleton<IAgentRetentionStore, AgentRetentionStore>();
 builder.Services.AddSingleton<IPostgreSqlReadinessExecutor, PostgreSqlReadinessExecutor>();
 builder.Services.AddSingleton<IPostgreSqlAuthenticatedExecutor, NpgsqlAuthenticatedExecutor>();
@@ -63,9 +64,17 @@ builder.Services.AddSingleton<IObservationBatchTransport>(services =>
             ? synchronizationOptions.ValidateAndGetServerBaseAddress()
             : new Uri("https://disabled.invalid/", UriKind.Absolute),
         synchronizationOptions.AgentVersion));
+builder.Services.AddSingleton<ICommandDeliveryTransport>(services =>
+    new HttpCommandDeliveryTransport(
+        services.GetRequiredService<HttpClient>(),
+        synchronizationOptions.Enabled
+            ? synchronizationOptions.ValidateAndGetServerBaseAddress()
+            : new Uri("https://disabled.invalid/", UriKind.Absolute),
+        synchronizationOptions.AgentVersion));
 builder.Services.AddSingleton<ProbeInstanceHandler>();
 builder.Services.AddHostedService<AgentMonitoringWorker>();
 builder.Services.AddHostedService<AgentOutboxDispatchWorker>();
+builder.Services.AddHostedService<AgentCommandPollingWorker>();
 builder.Services.AddHostedService<AgentRetentionWorker>();
 
 using IHost host = builder.Build();
