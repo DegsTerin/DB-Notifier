@@ -1,8 +1,8 @@
 # DB-Notifier
 
-DB-Notifier is the successor to PgNotifier: a multi-provider platform being built around an Agent, Desktop/Tray client, central API, and Web Dashboard.
+DB-Notifier is the successor to PgNotifier: an open multi-provider platform designed to accept any database engine through versioned providers/plugins, built around an Agent, Desktop/Tray client, central API, and Web Dashboard.
 
-The workspace is currently in `STATE-01 PROJECT_SETUP`. The renamed PowerShell compatibility application remains the only functional monitoring implementation and is not the final architecture. PostgreSQL is the only engine with observed legacy behavior; other engines are roadmap items until their providers are implemented and homologated.
+The workspace is currently in `STATE-03 DATABASE_MODELING`, with its automatic audit approved and Human Gate pending. The renamed PowerShell compatibility application remains the only functional monitoring implementation and is not the final architecture. PostgreSQL is the only engine with observed legacy behavior; every other engine remains a roadmap item until its provider is implemented and homologated.
 
 ## Start here
 
@@ -15,7 +15,7 @@ The discovery outputs for the transformation are:
 - [`docs/Legacy-Compatibility.md`](docs/Legacy-Compatibility.md): canonical names and explicit deprecated shims.
 - [`docs/STATE-00-Discovery-Report.md`](docs/STATE-00-Discovery-Report.md): discovery evidence and the approved Human Gate.
 
-The discovery gate has since been approved and the repository is now in `STATE-01 PROJECT_SETUP`. See [`docs/Development.md`](docs/Development.md) for the scaffold and onboarding commands.
+The project has completed the approved discovery, setup, and architecture gates. See [`prompts/state/Current-State.md`](prompts/state/Current-State.md) for the factual state and [`docs/Development.md`](docs/Development.md) for onboarding commands.
 
 ## Current legacy application
 
@@ -59,7 +59,7 @@ The bundle composition can be checked without packaging dependencies:
 
 ## Target direction
 
-The mandatory project baseline uses .NET 10 LTS/C# for Domain, Application, providers, Agent, API, and WPF Desktop, plus React/TypeScript for the Dashboard. No active project targets an earlier .NET version. SQLite for authorized local Agent state, PostgreSQL for central persistence, protocol details, and other architectural commitments remain subject to ADRs in `STATE-02`.
+The mandatory project baseline uses .NET 10 LTS/C# for Domain, Application, providers, Agent, API, and WPF Desktop, plus React/TypeScript for the Dashboard. No active project targets an earlier .NET version. Accepted ADRs define SQLite for authorized local Agent state, PostgreSQL for central persistence, versioned provider contracts, and an open provider catalog.
 
 The migration is deliberately incremental. The legacy application stays runnable while contracts and scaffolding are introduced, PostgreSQL behavior is placed behind a provider boundary, configuration is migrated with backup and validation, and each milestone has an explicit rollback path.
 

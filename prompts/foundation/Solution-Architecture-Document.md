@@ -12,6 +12,7 @@ Baseline aceita no Human Gate de `STATE-02 ARCHITECTURE`. ADR-0001 a ADR-0006 e 
 - Operação local continua durante indisponibilidade da API.
 - Protocolos, eventos e comandos são versionados e idempotentes.
 - Dados desconhecidos ou vencidos nunca aparecem como saudáveis.
+- O catálogo de providers é aberto: nenhum enum fechado ou lista compilada no núcleo limita os motores integráveis.
 
 ## Componentes
 
@@ -25,6 +26,9 @@ src/
   DBNotifier.Providers.SqlServer/
   DBNotifier.Providers.Oracle/
   DBNotifier.Providers.MongoDb/
+  DBNotifier.Providers.SapHana/
+  DBNotifier.Providers.Sqlite/
+  DBNotifier.Providers.<Engine>/
   DBNotifier.Infrastructure/
   DBNotifier.Persistence.Agent.Sqlite/
   DBNotifier.Persistence.Server.PostgreSql/
@@ -52,6 +56,8 @@ IDatabaseProvider
 ```
 
 Cada provider declara capacidades, limitações, requisitos de privilégio e plataformas homologadas. Ausência de capacidade retorna `Unsupported`, nunca uma tentativa improvisada.
+
+Novos providers são descobertos por registro/plugin versionado e possuem identificador estável, configuração não secreta tipada, referências de credencial, probes, capabilities, normalização de erro e fixtures próprios. Domain e Application não recebem condicionais por nome de engine. O objetivo de cobertura é universal, com entrega incremental e homologação independente por engine/versão/plataforma.
 
 Start, Stop e Restart podem usar SQL administrativo, utilitário nativo, API do fornecedor ou serviço do sistema operacional apenas por adaptador e política explícitos.
 

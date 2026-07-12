@@ -2,7 +2,7 @@
 
 ## Versão atual
 
-- Versão: `3.3.0`
+- Versão: `3.4.0`
 - Data: 2026-07-11
 - Status: corpus DB-Notifier consolidado
 - Escopo: 13 arquivos ativos
@@ -16,6 +16,13 @@ A versão do corpus é independente da versão do software.
 - PATCH: clareza, correção ou referência sem mudança de autoridade.
 
 Toda alteração atualiza este arquivo e, quando necessário, `../Start-Here.md`.
+
+## 3.4.0 — 2026-07-11
+
+- Objetivo do produto ampliado explicitamente para aceitar qualquer motor de banco por provider/plugin versionado.
+- Priorização inicial dos bancos mais utilizados e conhecidos, incluindo SAP HANA e SQLite como futuros alvos monitoráveis.
+- Catálogo declarado aberto a engines relacionais, NoSQL, distribuídas, embarcadas, especializadas, cloud-managed e futuras.
+- Separação preservada entre presença no roadmap, implementação, homologação e suporte público; estado mantido em `STATE-03`.
 
 ## 3.3.0 — 2026-07-11
 

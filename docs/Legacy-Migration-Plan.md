@@ -13,6 +13,7 @@ Proposed in `STATE-00 DISCOVERY_MIGRATION`. Approval of this plan and the target
 - Preserve existing PgNotifier configuration as input until migration is verified; never overwrite it in place.
 - Use side-by-side artifacts and reversible cutovers until the new Desktop/Agent path is homologated.
 - Announce only the provider/platform combinations proven by tests and homologation.
+- Keep the provider catalog open to every database engine while implementing and homologating one bounded provider slice at a time.
 
 ## Proposed technical baseline for the gate
 
@@ -129,7 +130,8 @@ Exit: local monitoring survives API outage and reconciliation does not duplicate
 Deliverables:
 
 - PostgreSQL engine/platform/role matrix with functional, security, recovery, load, and accessibility evidence.
-- One subsequent provider at a time, each with its own capability matrix, fixtures/environment, licensing review, and limitations.
+- One subsequent provider at a time, prioritizing MySQL/MariaDB, SQL Server, Oracle, MongoDB, SAP HANA, SQLite and other widely adopted engines, each with its own capability matrix, fixtures/environment, licensing review, and limitations.
+- Open provider/plugin onboarding for additional relational, NoSQL, distributed, embedded, cloud-managed and future engines without changes to the core domain.
 
 Exit: only proven provider/platform combinations are marked supported.
 

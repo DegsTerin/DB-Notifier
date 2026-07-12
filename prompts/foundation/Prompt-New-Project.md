@@ -4,7 +4,7 @@
 
 O workspace contém o PgNotifier, um monitor PostgreSQL para Windows implementado principalmente em PowerShell. Ele é o legado executável e a base de aprendizado, não a arquitetura final.
 
-O DB-Notifier será uma plataforma profissional para monitorar e administrar múltiplas instâncias de bancos de dados locais, remotas, corporativas, híbridas ou em cloud.
+O DB-Notifier será uma plataforma profissional para monitorar e administrar múltiplas instâncias de bancos de dados locais, remotas, corporativas, híbridas ou em cloud. O produto deve aceitar qualquer motor de banco de dados por meio de providers/plugins, sem uma lista fechada ou condicionais de engine no núcleo.
 
 ## Objetivos
 
@@ -14,17 +14,23 @@ O DB-Notifier será uma plataforma profissional para monitorar e administrar mú
 - Permitir ações administrativas controladas de Start, Stop e Restart quando a engine e o ambiente oferecerem uma capacidade segura.
 - Manter aplicação Tray/Desktop simples e preparar Dashboard Web centralizado.
 - Evoluir incrementalmente o PgNotifier sem uma reescrita big bang.
+- Priorizar os motores mais utilizados e conhecidos mundialmente, preservando uma extensão documentada para motores novos, especializados e proprietários.
 
-## Motores previstos
+## Cobertura universal por providers
 
-- PostgreSQL
-- MySQL e MariaDB
-- SQL Server
-- Oracle
-- MongoDB
-- Novos motores por providers/plugins
+O catálogo de destino é aberto. As ondas iniciais priorizam:
 
-Presença nesta lista representa objetivo arquitetural. Suporte só pode ser anunciado depois de implementação e homologação próprias.
+- Relacionais/SQL: PostgreSQL, MySQL, MariaDB, Microsoft SQL Server/Azure SQL, Oracle, SAP HANA, SQLite, IBM Db2, Firebird e CockroachDB.
+- Documento/NoSQL: MongoDB, Couchbase e CouchDB.
+- Distribuídos/wide-column: Apache Cassandra e ScyllaDB.
+- Key-value/data platforms: Redis e Valkey.
+- Busca, séries temporais e grafos: Elasticsearch, OpenSearch, InfluxDB e Neo4j.
+- Serviços gerenciados/cloud: variantes compatíveis e APIs próprias de AWS, Azure, Google Cloud, Oracle Cloud e outros fornecedores.
+- Novos motores, forks e produtos proprietários por providers/plugins futuros.
+
+Essa relação é uma priorização, não um limite. Um provider deve poder registrar um identificador estável, schema de endpoint, capabilities e normalização próprios sem alterar o núcleo. Presença na visão representa objetivo arquitetural; suporte público só pode ser anunciado depois de implementação e homologação específicas do conjunto engine, versão, plataforma e operação.
+
+SQLite possui dois papéis independentes: armazenamento interno local do Agent e possível alvo monitorado por um provider SQLite. Um papel não comprova nem substitui o outro.
 
 ## Informações de uma instância
 
@@ -101,6 +107,7 @@ A baseline preferencial, sujeita a ADR, é:
 ## Critérios de sucesso
 
 - Arquitetura extensível sem condicionais de engine no núcleo.
+- Novo provider integrável por contrato/plugin sem alterar Domain ou contratos canônicos existentes.
 - Falhas parciais não tornam o sistema inteiro indisponível.
 - Status inclui horário e indicador de dado obsoleto.
 - Controle administrativo é explícito, seguro, auditável e opcional.

@@ -18,6 +18,7 @@ O modelo interno de `STATE-03 DATABASE_MODELING` foi entregue e aprovado pela au
 ## Produto-alvo
 
 - Plataforma multi-provider.
+- Catálogo aberto para qualquer banco por provider/plugin, priorizando os motores mais usados e conhecidos mundialmente.
 - Agent, Tray/Desktop, API e Dashboard.
 - Provider SDK, eventos, alertas, RBAC e auditoria.
 - SQLite local e persistência central, conforme ADR.
@@ -56,6 +57,7 @@ O modelo interno de `STATE-03 DATABASE_MODELING` foi entregue e aprovado pela au
 - Solução .NET 10 com 12 projetos: restore locked, build Release (0 avisos/erros), 5 testes, format e auditoria NuGet aprovados.
 - Dependência nativa SQLite vulnerável inicialmente resolvida por pin central seguro, sem supressão; auditoria final sem vulnerabilidades.
 - Auditoria automática de `STATE-03` aprovada e relatório de evidências emitido.
+- Objetivo universal de providers aceito: PostgreSQL primeiro, seguido por ondas priorizadas e extensão aberta sem condicionais de engine no núcleo.
 
 ## Pendente
 

@@ -37,16 +37,23 @@
 
 No row implies universal control. UI/API must display `Unsupported`, `Unavailable`, `Unknown`, and `Denied` separately.
 
-## Other engines
+## Open provider catalog
 
-| Provider | Architecture registration | Implementation | Homologation | Public support claim |
-|---|---|---|---|---|
-| MySQL/MariaDB | Roadmap | Not implemented | None | No |
-| SQL Server | Roadmap | Not implemented | None | No |
-| Oracle | Roadmap | Not implemented | None | No |
-| MongoDB | Roadmap | Not implemented | None | No |
+The product objective is to accept any database engine through a versioned provider/plugin. The catalog is deliberately open: adding an engine must not require an engine conditional or closed enum in Domain/Application.
 
-An engine moves from roadmap to implementation only with provider contract fixtures, license/environment availability, error/capability mapping, security review, and its own homologation matrix.
+| Priority wave | Providers | Architecture registration | Implementation | Homologation | Public support claim |
+|---|---|---|---|---|---|
+| First vertical slice | PostgreSQL | Accepted target | Not implemented | None | No |
+| Mainstream relational/document | MySQL/MariaDB, SQL Server/Azure SQL, Oracle, MongoDB | Priority roadmap | Not implemented | None | No |
+| Enterprise/embedded relational | SAP HANA, SQLite, IBM Db2, Firebird, CockroachDB | Priority roadmap | Not implemented | None | No |
+| Distributed/data platforms | Cassandra, ScyllaDB, Redis/Valkey, Couchbase/CouchDB | Open roadmap | Not implemented | None | No |
+| Search/time-series/graph | Elasticsearch/OpenSearch, InfluxDB, Neo4j | Open roadmap | Not implemented | None | No |
+| Managed/cloud variants | AWS, Azure, Google Cloud, Oracle Cloud, and future vendor services | Engine-compatible or dedicated cloud adapter | Not implemented | None | No |
+| Any other engine/fork | Versioned third-party or first-party plugin | Open extension point | Not implemented | None | No |
+
+SQLite internal Agent persistence is separate from a future SQLite monitoring provider and is not evidence of SQLite monitoring support.
+
+An engine moves from roadmap to implementation only with provider contract fixtures, license/environment availability, error/capability mapping, security review, and its own homologation matrix. Homologation is scoped to an engine/version/platform/capability combination; universal catalog acceptance never implies universal administrative control.
 
 ## Required PostgreSQL fixtures
 
