@@ -12,10 +12,10 @@ catch {
 
 $root = Split-Path -Path $PSScriptRoot -Parent
 $distDir = Join-Path -Path $root -ChildPath "dist\desktop"
-$sourceScript = Join-Path -Path $PSScriptRoot -ChildPath "PgNotifier.Desktop.ps1"
+$sourceScript = Join-Path -Path $PSScriptRoot -ChildPath "DBNotifier.Desktop.ps1"
 $xamlSource = Join-Path -Path $PSScriptRoot -ChildPath "App.xaml"
 $mockSource = Join-Path -Path $PSScriptRoot -ChildPath "mock.instances.json"
-$exePath = Join-Path -Path $distDir -ChildPath "PgNotifierDesktop.exe"
+$exePath = Join-Path -Path $distDir -ChildPath "DBNotifierDesktop.exe"
 
 if (Test-Path -LiteralPath $distDir) {
     Remove-Item -LiteralPath $distDir -Recurse -Force
@@ -35,9 +35,9 @@ Invoke-PS2EXE `
     -OutputFile $exePath `
     -NoConsole `
     -STA `
-    -Title "PgNotifier Desktop" `
-    -Description "PgNotifier desktop WPF preview" `
-    -Product "PgNotifier Desktop" `
+    -Title "DB-Notifier Desktop" `
+    -Description "DB-Notifier desktop WPF preview" `
+    -Product "DB-Notifier Desktop" `
     -Company "Open Source" `
     -Version "1.0.0" `
     -RequireAdmin:$false

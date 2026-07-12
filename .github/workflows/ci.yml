@@ -20,13 +20,13 @@ jobs:
       - run: dotnet build DBNotifier.sln --configuration Release --no-restore
       - run: dotnet test DBNotifier.sln --configuration Release --no-build
 
-  legacy-powershell:
+  legacy-compatibility:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Run PgNotifier characterization tests
+      - name: Run DB-Notifier legacy compatibility tests
         shell: powershell
-        run: Invoke-Pester .\tests\PgNotifier.Tests.ps1
+        run: Invoke-Pester .\tests\DBNotifier.Legacy.Tests.ps1
 
   dashboard:
     runs-on: ubuntu-latest

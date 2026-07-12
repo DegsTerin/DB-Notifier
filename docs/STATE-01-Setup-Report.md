@@ -20,7 +20,20 @@
 - React/TypeScript Dashboard build scaffold with an npm lockfile.
 - GitHub Actions jobs for .NET, legacy Pester, and Dashboard.
 - Development onboarding and secret-handling instructions.
-- Legacy PgNotifier implementation and tests preserved without renaming or deletion.
+- Legacy behavior preserved through canonical DB-Notifier paths plus explicit deprecated shims.
+
+## Naming migration follow-up
+
+After the validated baseline was committed as `ad8baf6`, legacy product artifacts were migrated to canonical DB-Notifier names without a blind global replacement:
+
+- Canonical PowerShell app/module, test suite, WPF prototype, installer definition, and output names now use `DBNotifier`/`DB-Notifier`.
+- Deprecated PgNotifier entry points remain as thin warning/delegation shims only.
+- Existing explicitly supplied PgNotifier display names, log paths, and configuration files remain accepted and are never overwritten by a shim.
+- The new installer uses a distinct application ID and configuration root for side-by-side rollback.
+- `build/build.ps1 -ValidateOnly` proves that the canonical app and module form a syntactically valid bundle without requiring packaging tools.
+- Actual EXE/installer packaging remains not executed because `ps2exe` and Inno Setup are not installed.
+
+Follow-up evidence: 10/10 Pester compatibility tests passed; deprecated module export resolved; PowerShell bundle validation passed; .NET build/test remained green; Dashboard check/build/audit remained green.
 
 ## Checks and evidence
 
@@ -39,7 +52,8 @@
 | Dashboard static check | `npm run check` | APROVADO | TypeScript completed with exit code 0 |
 | Dashboard production build | `npm run build` | APROVADO | Vite 8.1.4 built 13 modules successfully |
 | Dashboard dependency audit | `npm audit --audit-level=high` | APROVADO | 0 vulnerabilities after upgrading Vite/plugin |
-| Legacy PowerShell | Parser plus Pester | APROVADO | Syntax valid; 8/8 tests passed |
+| Legacy compatibility | Parser plus Pester | APROVADO | Syntax valid; 10/10 tests passed, including old configuration preservation |
+| Compatibility bundle | `build/build.ps1 -ValidateOnly` | APROVADO | Canonical app/module bundle parsed successfully |
 | Markdown/corpus | Internal links, count, whitespace | APROVADO | 23 Markdown files, 0 broken links, 13 prompt files, 0 trailing whitespace |
 | Secret pattern review | Scoped assigned-secret scan | APROVADO COM RESSALVAS | 0 matching assignments; repository history does not yet exist |
 | CI execution | Remote workflow | NÃO APLICÁVEL | Workflow defined locally; no remote repository/run authorized |
@@ -55,6 +69,7 @@ The first Dashboard audit found two esbuild/Vite advisories, including one high-
 - `/health/live` reports only process liveness and does not claim Agent, provider, database, or dependency health.
 - No secret, real database action, service control, installer, deploy, or publication was performed.
 - The SDK was installed only in the Git-ignored workspace `.dotnet/` directory under explicit authorization.
+- PgNotifier names that remain executable are documented deprecated shims; historical documents retain the old name as evidence.
 
 ## Automatic audit
 

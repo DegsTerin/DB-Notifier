@@ -11,7 +11,7 @@ $app = Join-Path -Path $PSScriptRoot -ChildPath "app.py"
 $distRoot = Join-Path -Path $root -ChildPath "dist\pixel-ui"
 $workPath = Join-Path -Path $root -ChildPath "build\pixel-ui-pyinstaller"
 $specPath = Join-Path -Path $root -ChildPath "build\pixel-ui-spec"
-$exePath = Join-Path -Path $distRoot -ChildPath "PgNotifierPixelUI.exe"
+$exePath = Join-Path -Path $distRoot -ChildPath "DBNotifierPixelUI.exe"
 
 if (-not (Test-Path -LiteralPath $Python -PathType Leaf)) {
     throw "Python executable not found: $Python"
@@ -30,7 +30,7 @@ New-Item -Path $specPath -ItemType Directory -Force | Out-Null
     --clean `
     --onefile `
     --windowed `
-    --name PgNotifierPixelUI `
+    --name DBNotifierPixelUI `
     --distpath $distRoot `
     --workpath $workPath `
     --specpath $specPath `

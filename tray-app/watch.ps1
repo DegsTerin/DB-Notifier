@@ -56,7 +56,7 @@ $subscriptions += Register-ObjectEvent -InputObject $watcher -EventName Created 
 $subscriptions += Register-ObjectEvent -InputObject $watcher -EventName Deleted -Action $action
 $subscriptions += Register-ObjectEvent -InputObject $watcher -EventName Renamed -Action $action
 
-Write-Host "PgNotifier tray live preview is running."
+Write-Host "DB-Notifier tray live preview is running."
 Write-Host "Edit tray-app/app.py or assets to restart automatically."
 Write-Host "Press Ctrl+C to stop."
 

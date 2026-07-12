@@ -2,7 +2,7 @@
 
 ## Versão atual
 
-- Versão: `3.1.4`
+- Versão: `3.1.5`
 - Data: 2026-07-11
 - Status: corpus DB-Notifier consolidado
 - Escopo: 13 arquivos ativos
@@ -16,6 +16,12 @@ A versão do corpus é independente da versão do software.
 - PATCH: clareza, correção ou referência sem mudança de autoridade.
 
 Toda alteração atualiza este arquivo e, quando necessário, `../Start-Here.md`.
+
+## 3.1.5 — 2026-07-11
+
+- Registro do commit inicial e da migração canônica PgNotifier → DB-Notifier.
+- Preservação explícita de shims, configuração antiga e rollback side-by-side.
+- Inclusão do build canônico e das evidências de compatibilidade, sem promover o estado.
 
 ## 3.1.4 — 2026-07-11
 

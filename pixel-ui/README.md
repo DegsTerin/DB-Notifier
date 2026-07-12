@@ -1,6 +1,6 @@
-# PgNotifier Pixel UI
+# DB-Notifier Pixel UI
 
-This is a fresh desktop UI recreation focused on visual fidelity to the supplied reference image.
+This is a legacy desktop UI prototype retained as a DB-Notifier visual reference.
 
 Technology: Python + Tkinter Canvas. No external Python packages are required.
 

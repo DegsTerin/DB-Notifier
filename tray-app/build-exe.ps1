@@ -11,9 +11,9 @@ $app = Join-Path -Path $PSScriptRoot -ChildPath "app.py"
 $assetsDir = Join-Path -Path $PSScriptRoot -ChildPath "assets"
 $iconPath = Join-Path -Path $assetsDir -ChildPath "postgres.png"
 $distRoot = Join-Path -Path $root -ChildPath "dist\tray-app"
-$workPath = Join-Path -Path ([System.IO.Path]::GetTempPath()) -ChildPath ("pgnotifier-tray-pyinstaller-{0}" -f ([guid]::NewGuid().ToString("N")))
+$workPath = Join-Path -Path ([System.IO.Path]::GetTempPath()) -ChildPath ("dbnotifier-tray-pyinstaller-{0}" -f ([guid]::NewGuid().ToString("N")))
 $specPath = Join-Path -Path $root -ChildPath "build\tray-app-spec"
-$exePath = Join-Path -Path $distRoot -ChildPath "PgNotifierTray.exe"
+$exePath = Join-Path -Path $distRoot -ChildPath "DBNotifierTray.exe"
 
 if (-not (Test-Path -LiteralPath $iconPath -PathType Leaf)) {
     & (Join-Path $PSScriptRoot "download-postgres-icon.ps1")
@@ -25,7 +25,7 @@ if (-not (Test-Path -LiteralPath $Python -PathType Leaf)) {
 
 & $Python -m PyInstaller --version | Out-Null
 if ($LASTEXITCODE -ne 0) {
-    & $Python -m pip install pyinstaller
+    throw "PyInstaller is required. Install it explicitly in the selected Python environment before building."
 }
 
 if (Test-Path -LiteralPath $distRoot) {
@@ -40,7 +40,7 @@ New-Item -Path $specPath -ItemType Directory -Force | Out-Null
     --clean `
     --onefile `
     --windowed `
-    --name PgNotifierTray `
+    --name DBNotifierTray `
     --add-data "$assetsDir;assets" `
     --distpath $distRoot `
     --workpath $workPath `

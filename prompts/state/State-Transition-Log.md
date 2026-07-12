@@ -81,6 +81,16 @@
 - Evidências: SDK `8.0.422`, 10 projetos compilados com 0 avisos/erros, 2 testes aprovados, format limpo, nenhum pacote NuGet vulnerável e `/health/live` respondendo `Alive`.
 - Riscos/ressalvas: CI remota não executada; nenhum provider funcional, banco real ou comando administrativo testado.
 
+## 2026-07-11 — Migração canônica de nomes legados
+
+- Estado anterior: `STATE-01 PROJECT_SETUP`
+- Estado resultante: sem transição
+- Decisão: tornar DB-Notifier o nome canônico dos artefatos executáveis, preservando compatibilidade por shims PgNotifier finos e documentados.
+- Escopo: app/módulo PowerShell, configuração default, testes, protótipos, packaging, build e documentação.
+- Gates: 10 testes Pester aprovados, shim exportado, configuração antiga preservada, bundle válido, .NET e Dashboard sem regressão.
+- Evidências: `docs/Legacy-Compatibility.md`, `docs/STATE-01-Setup-Report.md` e commit inicial `ad8baf6`.
+- Riscos/ressalvas: EXE/installer não gerados porque `ps2exe` e Inno Setup não estão instalados; remoção dos shims depende do gate documentado.
+
 ## Template de nova entrada
 
 - Data:

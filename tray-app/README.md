@@ -1,6 +1,6 @@
-# PgNotifier Tray App
+# DB-Notifier Tray App
 
-This is a fresh system tray implementation focused on the supplied reference image.
+This is a legacy system tray prototype retained as a DB-Notifier visual reference.
 
 Technology:
 
@@ -59,7 +59,7 @@ The watcher restarts the tray app when `app.py` or assets change.
 Output:
 
 ```text
-dist/tray-app/PgNotifierTray.exe
+dist/tray-app/DBNotifierTray.exe
 ```
 
 ## UI Contents

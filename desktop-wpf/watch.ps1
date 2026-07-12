@@ -5,7 +5,7 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
 $root = Split-Path -Path $PSCommandPath -Parent
-$app = Join-Path -Path $root -ChildPath "PgNotifier.Desktop.ps1"
+$app = Join-Path -Path $root -ChildPath "DBNotifier.Desktop.ps1"
 $script:watchFiles = @("*.xaml", "*.ps1", "*.json")
 
 function Start-Preview {
@@ -71,8 +71,8 @@ $subscriptions += Register-ObjectEvent -InputObject $watcher -EventName Created 
 $subscriptions += Register-ObjectEvent -InputObject $watcher -EventName Deleted -Action $action
 $subscriptions += Register-ObjectEvent -InputObject $watcher -EventName Renamed -Action $action
 
-Write-Host "PgNotifier WPF live preview is running."
-Write-Host "Edit App.xaml, PgNotifier.Desktop.ps1, or mock.instances.json to reload automatically."
+Write-Host "DB-Notifier WPF live preview is running."
+Write-Host "Edit App.xaml, DBNotifier.Desktop.ps1, or mock.instances.json to reload automatically."
 Write-Host "Press Ctrl+C to stop."
 
 try {

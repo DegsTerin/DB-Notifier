@@ -6,7 +6,7 @@
 
 ## Situação factual
 
-O Human Gate de `STATE-00` aprovou a baseline, a migração incremental PostgreSQL-first e a inicialização de Git. O scaffold modular, o Dashboard mínimo, as convenções, os testes iniciais e a CI foram preparados e validados em `STATE-01`; a aplicação PgNotifier continua sendo o único monitor funcional. A auditoria automática está aprovada e o Human Gate de saída permanece pendente.
+O Human Gate de `STATE-00` aprovou a baseline, a migração incremental PostgreSQL-first e a inicialização de Git. O scaffold modular, o Dashboard mínimo, as convenções, os testes iniciais e a CI foram preparados e validados em `STATE-01`. O monitor PowerShell legado foi migrado para nomes canônicos DB-Notifier com shims PgNotifier explícitos; ele continua sendo o único monitor funcional. A auditoria automática está aprovada e o Human Gate de saída permanece pendente.
 
 ## Produto atual
 
@@ -27,25 +27,28 @@ O Human Gate de `STATE-00` aprovou a baseline, a migração incremental PostgreS
 - Inventário verificável do legado, incluindo comportamento, protótipos, limitações e riscos.
 - Visão e baseline arquitetural propostas.
 - Plano incremental de migração, compatibilidade de configuração, marcos e rollback.
-- Caracterização não mutável do legado: 8 testes Pester aprovados em Windows PowerShell 5.1.
+- Caracterização e compatibilidade do legado: 10 testes Pester aprovados em Windows PowerShell 5.1.
 - Sistema de instruções adaptado e consolidado.
 - Human Gate de `STATE-00` aprovado em 2026-07-11.
-- Repositório Git inicializado com branch `main`; ainda sem commit inicial.
+- Repositório Git inicializado com branch `main` e commit inicial criado.
 - Solução `DBNotifier.sln` com limites modulares e projetos de teste sem regras funcionais prematuras.
 - Dashboard React/TypeScript com lockfile, check, build e auditoria de dependências aprovados.
-- CI inicial para .NET, Dashboard e caracterização PgNotifier.
+- CI inicial para .NET, Dashboard e compatibilidade legada.
 - SDK .NET `8.0.422` instalado localmente em `.dotnet/` e ignorado pelo Git.
 - Restore bloqueado por lockfile, build Release (0 avisos/erros), 2 testes, format e auditoria NuGet aprovados.
 - Liveness da API comprovada localmente e processo encerrado após o teste.
+- Commit inicial `ad8baf6` criado na branch `main`.
+- App, módulo, testes, protótipos e packaging legados renomeados canonicamente para DB-Notifier.
+- Entradas PgNotifier antigas preservadas como shims documentados e cobertas por testes de compatibilidade.
+- `build/build.ps1` criado com validação de bundle e sem instalação automática de dependências.
 
 ## Pendente
 
 - ADR definitivo de stack.
 - Matriz de capacidades por engine.
 - Arquitetura de dados, avaliações e políticas para MOD-12 AIOPS_AI.
-- Human Gate de `STATE-01` e primeiro commit do repositório.
+- Human Gate de `STATE-01`.
 - Implementação e homologação de qualquer provider além do comportamento PostgreSQL legado.
-- Build reproduzível do legado ou scaffold, pois `build/build.ps1` citado pela documentação antiga não existe.
 
 ## Riscos
 

@@ -164,11 +164,11 @@ def icon_exit(canvas: tk.Canvas, x: int, y: int, color: str = TEXT):
     canvas.create_line(x + 15, y + 13, x + 18, y + 10, fill=color, width=1.5)
 
 
-class PgNotifierTrayApp:
+class DBNotifierTrayApp:
     def __init__(self):
         self.root = tk.Tk()
         self.root.withdraw()
-        self.root.title("PgNotifier")
+        self.root.title("DB-Notifier")
 
         self.popup: tk.Toplevel | None = None
         self.canvas: tk.Canvas | None = None
@@ -177,9 +177,9 @@ class PgNotifierTrayApp:
         self.tray_icon_image = load_official_icon(64, green=True)
 
         self.tray_icon = pystray.Icon(
-            "PgNotifier",
+            "DB-Notifier",
             self.tray_icon_image,
-            "PgNotifier",
+            "DB-Notifier",
             menu=Menu(
                 MenuItem("Show", self._tray_show, default=True, visible=False),
                 MenuItem("Exit", self._tray_exit),
@@ -312,7 +312,7 @@ class PgNotifierTrayApp:
 
 
 def main():
-    app = PgNotifierTrayApp()
+    app = DBNotifierTrayApp()
     app.run()
 
 
