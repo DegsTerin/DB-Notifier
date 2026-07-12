@@ -4,7 +4,7 @@ DB-Notifier is the successor to PgNotifier, which was conceptually inspired by M
 
 Agents are designed to monitor local, remote, datacenter, hybrid, and cloud databases from Windows, Linux, containers, or cloud workloads. Monitoring credentials, database administration credentials, OS service identities, and cloud control-plane identities remain separate and vault-backed.
 
-The workspace is currently in `STATE-04 BACKEND_IMPLEMENTATION` after approval of the database-modeling Human Gate. Eight neutral backend increments now provide the open Provider SDK, PostgreSQL discovery/readiness/authenticated adapters, hosted scheduling, controlled SQLite initialization/assignments/outbox, read-only Windows/Linux vault adapters, idempotent synchronization, canonical events/alerts, certificate-authorized Agent ingestion, OIDC/JWT human RBAC/audit, command delivery/ack without execution, bounded retention/delivery, signed provider-package verification without loading, and a safe PgNotifier configuration migrator. The remediation re-audit is `APROVADO`; Human Gate and transition remain pending. No real database/vault/channel was exercised and no provider is homologated.
+The workspace is currently in `STATE-05 FRONTEND_IMPLEMENTATION` after approval of the backend Human Gate on 2026-07-12. Eight neutral backend increments provide the open Provider SDK, PostgreSQL discovery/readiness/authenticated adapters, hosted scheduling, controlled SQLite initialization/assignments/outbox, read-only Windows/Linux vault adapters, idempotent synchronization, canonical events/alerts, certificate-authorized Agent ingestion, OIDC/JWT human RBAC/audit, command delivery/ack without execution, bounded retention/delivery, signed provider-package verification without loading, and a safe PgNotifier configuration migrator. Tray/Desktop and Dashboard implementation is now authorized, but no functional UI increment has been completed yet. No real database/vault/channel was exercised and no provider is homologated.
 
 ## Start here
 
@@ -17,7 +17,7 @@ The discovery outputs for the transformation are:
 - [`docs/Legacy-Compatibility.md`](docs/Legacy-Compatibility.md): canonical names and explicit deprecated shims.
 - [`docs/STATE-00-Discovery-Report.md`](docs/STATE-00-Discovery-Report.md): discovery evidence and the approved Human Gate.
 
-The project has completed the approved discovery, setup, and architecture gates. See [`prompts/state/Current-State.md`](prompts/state/Current-State.md) for the factual state and [`docs/Development.md`](docs/Development.md) for onboarding commands.
+The project has completed the approved discovery, setup, architecture, database-modeling, and backend gates. See [`prompts/state/Current-State.md`](prompts/state/Current-State.md) for the factual state and [`docs/Development.md`](docs/Development.md) for onboarding commands.
 
 ## Current legacy application
 

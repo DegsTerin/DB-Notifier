@@ -2,7 +2,7 @@
 
 ## Decision
 
-**APROVADO** on 2026-07-12. The remediation increment resolves every blocking finding recorded by the earlier automatic audit at commit `a3574df`. This approval makes `STATE-04` eligible for Human Gate review; it does not transition the project, authorize `STATE-05`, execute an administrative command, or homologate PostgreSQL.
+**APROVADO** on 2026-07-12. The remediation increment resolves every blocking finding recorded by the earlier automatic audit at commit `a3574df`. The automatic result was subsequently accepted by the Human Gate on 2026-07-12, authorizing transition to `STATE-05`; it does not execute an administrative command, authorize external integration, or homologate PostgreSQL.
 
 Audited workspace: .NET SDK `10.0.301`, 13 .NET projects, Windows-hosted .NET/PowerShell processes and local Node.js tooling. No monitored database, real credential, certificate, IdP, external channel, deployment or remote migration was used.
 
@@ -55,6 +55,16 @@ Audited workspace: .NET SDK `10.0.301`, 13 .NET projects, Windows-hosted .NET/Po
 - The migrator blocks legacy secrets instead of provisioning a vault reference automatically. The sanitized report requires manual remediation through an approved secret store.
 - Administrative opt-in imports only as `ManualActionRequired`; it never enables Start/Stop/Restart.
 
+## Human Gate
+
+- Phase: `STATE-04 BACKEND_IMPLEMENTATION`.
+- Validator: Bruno, 2026-07-12.
+- Evidence reviewed: this automatic re-audit, including representative provider discovery/transport/credential failures, negative Agent and human authorization fixtures, and the sanitized ConfigMigrator apply/idempotency/rollback smoke.
+- Human sample boundary: the gate reviewed and accepted the repeated deterministic samples above; no separate live database, real credential, certificate, IdP, external channel or administrative execution was claimed.
+- Decision: **APROVADO**.
+- Result: `STATE-04` closed and transition to `STATE-05 FRONTEND_IMPLEMENTATION` authorized.
+- Reservations: PostgreSQL public support remains `No`, homologation remains `None`, and integration, provider activation, administrative execution/post-probe and real-environment evidence remain assigned to later authorized phases.
+
 ## Recommendation
 
-Submit this report and the remediation evidence to the `STATE-04` Human Gate. The human sample must repeat representative provider failure and authorization-negative behavior, confirm that migration reports contain no secrets, and preserve the distinction between implemented PostgreSQL monitoring and unhomologated public support. Only an explicit approved Human Gate may transition to `STATE-05 FRONTEND_IMPLEMENTATION`.
+Begin `STATE-05 FRONTEND_IMPLEMENTATION` with shared presentation contracts and a read-only inventory/status vertical slice for Dashboard and WPF. Preserve empty/loading/offline/error/stale/denied states, accessibility requirements and the distinction between implemented behavior and unhomologated provider support; do not enable external integration or administrative execution in this increment.

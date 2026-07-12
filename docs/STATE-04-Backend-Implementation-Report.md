@@ -4,9 +4,9 @@
 
 Eight `STATE-04 BACKEND_IMPLEMENTATION` increments are implemented in .NET 10. They establish a provider-neutral Domain/Application slice, an open provider registry/SDK, PostgreSQL discovery/readiness/authenticated probes, hosted monitoring/outbox/maintenance workers, transactional local persistence, platform vault readers, idempotent central ingestion, canonical event/alert derivation, Agent/human authorization, command delivery/ack without execution, bounded retention, durable delivery state machines, authorized audit reads, fail-closed provider-package verification and isolated legacy configuration migration.
 
-This is incremental evidence, not closure of `STATE-04`, provider homologation, or public PostgreSQL support.
+This evidence supported closure of `STATE-04`; it is not provider homologation or public PostgreSQL support.
 
-The initial automatic closure audit was **REPROVADO** and remains preserved in [`STATE-04-Backend-Implementation-Audit.md`](STATE-04-Backend-Implementation-Audit.md). The remediation re-audit is now **APROVADO**; see [`STATE-04-Backend-Implementation-Reaudit.md`](STATE-04-Backend-Implementation-Reaudit.md). Human Gate and state transition remain pending.
+The initial automatic closure audit was **REPROVADO** and remains preserved in [`STATE-04-Backend-Implementation-Audit.md`](STATE-04-Backend-Implementation-Audit.md). The remediation re-audit is **APROVADO**; see [`STATE-04-Backend-Implementation-Reaudit.md`](STATE-04-Backend-Implementation-Reaudit.md). Bruno approved the Human Gate on 2026-07-12, closing `STATE-04` and authorizing transition to `STATE-05 FRONTEND_IMPLEMENTATION` with all stated limitations preserved.
 
 ## Delivered scope
 
@@ -165,12 +165,12 @@ Executed from the repository root with workspace-local .NET SDK `10.0.301`:
 
 Test samples additionally cover ordered dispatch/ack/retry, blocked head-of-line ordering, terminal tombstones, malformed responses, timeout, Agent/instance scope, sequence conflict, canonical transitions, alert deliveries, scoped catalog filtering, expired/missing permissions, capability denial, exact idempotency, sanitized audit, dry-run/apply retention, referenced/unpublished preservation, server-outbox retry, missing notification adapter/backoff, successful delivery and paginated audit reads.
 
-## Limits and next increment
+## Accepted limits and next phase
 
 - No non-ephemeral database, external service, remote network endpoint, vault, production migration, notification channel, or administrative action was contacted or changed. Only the local API liveness/denial smoke used loopback HTTP.
 - Provider activation, real OIDC/MFA/token integration, role/user/catalog mutations, audit export, command execution/post-probe, real notification adapters, legal-hold/backup integration, metrics/traces, enrollment workflow, and a real mTLS Agent/API exchange remain pending.
 - Platform vault readers have no live-secret evidence. Windows expects a Generic Credential UTF-8 blob; Linux requires `secret-tool`/Secret Service and the documented two-line secret convention.
 - Npgsql necessarily consumes a managed password string from its password-provider callback for the connection lifetime; the password is excluded from the connection string, pooling is disabled, and the disposable source character buffer is zeroed, but runtime secret review remains required.
 - Runtime package discovery/signature/hash verification is implemented without loading; sandboxed activation and lifecycle isolation remain pending.
-- UI remains reserved for `STATE-05`.
-- `STATE-04` Human Gate remains pending until the phase deliverables and negative provider/authorization evidence are complete.
+- Functional UI work is authorized only within `STATE-05`; this backend report does not claim that it is implemented.
+- The `STATE-04` Human Gate was approved on 2026-07-12 after the remediation evidence and negative provider/authorization fixtures were reviewed.

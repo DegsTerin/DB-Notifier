@@ -2,11 +2,11 @@
 
 ## Estado
 
-`STATE-04 BACKEND_IMPLEMENTATION`
+`STATE-05 FRONTEND_IMPLEMENTATION`
 
 ## Situação factual
 
-Oito incrementos de `STATE-04 BACKEND_IMPLEMENTATION` implementam contratos neutros, registro aberto, discovery/readiness/health autenticado PostgreSQL, scheduler, SQLite local, vault, sincronização, eventos/alertas, APIs Agent/humana, RBAC/auditoria, entrega/ack de comandos sem execução, retenção/delivery, verificação assinada de pacotes sem carregar código e migrador seguro de configuração legada. A reauditoria automática é `APROVADO`; Human Gate e transição permanecem pendentes. Workers mutáveis permanecem desabilitados por default; nenhum banco, IdP, certificado, credencial ou canal real foi testado e nenhum provider está homologado.
+O `STATE-04 BACKEND_IMPLEMENTATION` foi encerrado após reauditoria automática `APROVADO` e Human Gate aprovado explicitamente em 2026-07-12. O projeto está em `STATE-05 FRONTEND_IMPLEMENTATION`, autorizado a implementar Tray/Desktop e Dashboard sobre os contratos existentes. Nenhuma UI funcional desta fase foi implementada ainda. Workers mutáveis permanecem desabilitados por default; nenhum banco, IdP, certificado, credencial ou canal real foi testado e nenhum provider está homologado.
 
 ## Produto atual
 
@@ -89,15 +89,17 @@ Oito incrementos de `STATE-04 BACKEND_IMPLEMENTATION` implementam contratos neut
 - Discovery PostgreSQL tipado cobre path, sibling de `postgres.exe`, `PATH` e instalações Program Files sem shell/reparse; credencial expirada falha antes de chamar provider.
 - 104 testes .NET aprovados (99 unit/model/provider + 5 arquitetura); build Release e format aprovados em .NET 10 com 0 avisos/erros.
 - Auditoria inicial reprovada preservada em `docs/STATE-04-Backend-Implementation-Audit.md`; remediação reauditada como `APROVADO` em `docs/STATE-04-Backend-Implementation-Reaudit.md`.
+- Human Gate de `STATE-04` aprovado em 2026-07-12 após revisão das evidências de falha de provider, autorização negativa e sanitização do migrador.
+- Transição factual para `STATE-05 FRONTEND_IMPLEMENTATION`, sem autorizar integração externa, execução administrativa ou homologação de provider.
 
 ## Pendente
 
-- Completar o vertical slice PostgreSQL com ativação sandbox do pacote verificado e execução administrativa somente após autorização específica, em fase/gate apropriado.
-- Integrar legal hold/backup e adapters reais de notificação somente em sandbox autorizado.
-- Implementar carregamento/isolamento de lifecycle somente para pacotes previamente verificados, sem autoativação.
-- Integrar IdP/MFA real, provisionamento de usuários/papéis e mutations de catálogo em ambiente autorizado.
-- Cobrir falhas isoladas, autorização negativa, idempotência, retries, timeout, `UnknownOutcome` e testes do provider.
-- Submeter a reauditoria aprovada ao Human Gate de `STATE-04` antes de qualquer transição para UI.
+- Implementar Tray/Desktop e Dashboard para inventário, status, histórico, alertas, configuração e ações autorizadas sobre contratos versionados.
+- Cobrir estados vazio, loading, offline, error, stale e denied, com timestamps de dados e mensagens operacionais claras.
+- Validar acessibilidade, responsividade, navegação por teclado, contraste e ausência de dependência exclusiva de cor.
+- Manter adapters de apresentação determinísticos até `STATE-06`; não integrar silenciosamente banco, IdP, certificado, canal ou provider real durante a fase de UI.
+- Representar capabilities e suporte de modo factual: ação ausente/negada/unsupported não pode aparecer como executável ou homologada.
+- Preservar as pendências posteriores de ativação sandbox de pacotes, integração real, execução/post-probe de comandos, legal hold/backup e adapters externos.
 - Implementação e homologação dos demais providers por ondas independentes.
 
 ## Riscos
@@ -111,6 +113,6 @@ Oito incrementos de `STATE-04 BACKEND_IMPLEMENTATION` implementam contratos neut
 
 ## Próximo gate
 
-Revisar `docs/STATE-04-Backend-Implementation-Reaudit.md` e decidir o Human Gate de encerramento de `STATE-04`. A decisão deve repetir amostras de falha de provider, autorização negativa e sanitização do migrador; nenhuma transição para `STATE-05` ocorre sem aprovação explícita.
+Executar o primeiro incremento de `STATE-05`: fundação visual e contratos de apresentação compartilhados, seguida de um vertical slice somente leitura de inventário/status no Dashboard e no shell WPF, incluindo estados vazio/loading/offline/error/stale/denied e critérios de acessibilidade. Integração externa e ações administrativas reais permanecem fora deste incremento.
 
 Este documento descreve somente o presente. Histórico pertence a `State-Transition-Log.md`.

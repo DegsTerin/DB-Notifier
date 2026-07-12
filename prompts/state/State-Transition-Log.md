@@ -290,6 +290,18 @@
 - Evidências: `docs/STATE-04-Backend-Implementation-Reaudit.md`; `Applied` → `AlreadyCurrent` → `RolledBack`, núcleo sem nome de engine e PostgreSQL ainda não homologado.
 - Riscos/ressalvas: sem banco/credential/certificado/IdP/canal real, command executor/post-probe, provider loading, deploy, migration remota, homologação ou UI funcional.
 
+## 2026-07-12 — Transição para Frontend Implementation
+
+- Estado anterior: `STATE-04 BACKEND_IMPLEMENTATION`
+- Estado solicitado: `STATE-05 FRONTEND_IMPLEMENTATION`
+- Decisão: `APROVADO` pelo usuário para encerrar o backend após revisão explícita da reauditoria e de suas limitações.
+- Escopo: aceitar o núcleo provider-neutral, Provider SDK aberto, persistência, APIs autorizadas, RBAC/auditoria, entrega sem execução, retenção/delivery, verificação de pacotes e migrador seguro como baseline para Tray/Desktop e Dashboard.
+- Gates: reauditoria automática de `STATE-04` `APROVADO`; Human Gate aprovado explicitamente.
+- Evidências: `docs/STATE-04-Backend-Implementation-Reaudit.md`, 104 testes .NET, fixtures representativas de falha de provider e autorização negativa, smoke sanitizado do migrador e resposta do usuário na sessão.
+- Riscos/ressalvas: as amostras aceitas são determinísticas e não substituem banco/credential/certificado/IdP/canal real; integração externa, ativação de provider, execução/post-probe de comandos e homologação permanecem não autorizadas nesta transição.
+- Aprovador: Bruno, 2026-07-12.
+- Estado resultante: `STATE-05 FRONTEND_IMPLEMENTATION`.
+
 ## Template de nova entrada
 
 - Data:

@@ -2,7 +2,7 @@
 
 ## Versão atual
 
-- Versão: `3.14.0`
+- Versão: `3.15.0`
 - Data: 2026-07-12
 - Status: corpus DB-Notifier consolidado
 - Escopo: 13 arquivos ativos
@@ -16,6 +16,12 @@ A versão do corpus é independente da versão do software.
 - PATCH: clareza, correção ou referência sem mudança de autoridade.
 
 Toda alteração atualiza este arquivo e, quando necessário, `../Start-Here.md`.
+
+## 3.15.0 — 2026-07-12
+
+- Human Gate de `STATE-04 BACKEND_IMPLEMENTATION` aprovado explicitamente após revisão da reauditoria, das falhas representativas de provider, da autorização negativa e da sanitização do migrador.
+- Transição factual para `STATE-05 FRONTEND_IMPLEMENTATION`, autorizando Tray/Desktop e Dashboard sem antecipar integração externa, execução administrativa ou homologação.
+- Primeiro incremento de UI definido como fundação visual/contratos de apresentação e vertical slice somente leitura de inventário/status com estados operacionais e acessibilidade.
 
 ## 3.14.0 — 2026-07-12
 
