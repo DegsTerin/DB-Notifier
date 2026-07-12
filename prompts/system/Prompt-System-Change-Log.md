@@ -2,7 +2,7 @@
 
 ## Versão atual
 
-- Versão: `3.5.0`
+- Versão: `3.5.1`
 - Data: 2026-07-11
 - Status: corpus DB-Notifier consolidado
 - Escopo: 13 arquivos ativos
@@ -16,6 +16,12 @@ A versão do corpus é independente da versão do software.
 - PATCH: clareza, correção ou referência sem mudança de autoridade.
 
 Toda alteração atualiza este arquivo e, quando necessário, `../Start-Here.md`.
+
+## 3.5.1 — 2026-07-11
+
+- Linhagem histórica registrada pelo product owner: MySQL Notifier inspirou conceitualmente o PgNotifier, sucedido pelo DB-Notifier.
+- Inspiração separada explicitamente de código reutilizado, compatibilidade técnica, afiliação ou dependência.
+- Estado preservado em `STATE-03`; nenhuma mudança de implementação ou gate.
 
 ## 3.5.0 — 2026-07-11
 

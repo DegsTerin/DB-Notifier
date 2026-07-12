@@ -6,6 +6,10 @@ This inventory records the behavior observed in the workspace on 2026-07-11. It 
 
 No real database, Windows service action, installer, deployment, or remote environment was exercised during discovery.
 
+## Product lineage
+
+The product owner records the conceptual lineage as `MySQL Notifier` → inspiration for `PgNotifier` → successor `DB-Notifier`. This is product-history context supplied by the owner, not a conclusion derived from source inspection. No MySQL Notifier source, binary, configuration compatibility, technical dependency, or affiliation is claimed by this inventory.
+
 ## Executable assets
 
 | Area | Asset | Observed role | Classification |

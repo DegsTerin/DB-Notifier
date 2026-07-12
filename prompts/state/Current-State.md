@@ -10,6 +10,7 @@ O modelo interno de `STATE-03 DATABASE_MODELING` foi entregue e aprovado pela au
 
 ## Produto atual
 
+- Linhagem registrada: MySQL Notifier inspirou conceitualmente o PgNotifier; DB-Notifier é o sucessor independente do PgNotifier.
 - Monitor PostgreSQL local/remoto para Windows.
 - PowerShell, Windows Forms/WPF, scripts Python experimentais e Inno Setup.
 - Probes por `pg_isready` com fallback TCP.

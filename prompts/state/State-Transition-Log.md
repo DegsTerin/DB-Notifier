@@ -167,6 +167,17 @@
 - Riscos/ressalvas: DB-Notifier não abre firewall, não cria endpoint público e não presume que credencial do banco controle Windows, Linux, container ou cloud.
 - Aprovador: Bruno, 2026-07-11.
 
+## 2026-07-11 — Linhagem conceitual do produto
+
+- Estado anterior: `STATE-03 DATABASE_MODELING`
+- Estado resultante: sem transição
+- Decisão: registrar que o PgNotifier foi inspirado conceitualmente no MySQL Notifier e que o DB-Notifier é o sucessor independente do PgNotifier.
+- Escopo: contexto histórico e inspiração da experiência de monitor/Tray.
+- Gates: não aplicável; nenhuma implementação, transição ou compatibilidade técnica aprovada por este registro.
+- Evidências: declaração explícita do product owner e documentação de visão/inventário atualizada.
+- Riscos/ressalvas: não declarar reutilização de código, dependência, afiliação ou compatibilidade com o MySQL Notifier sem evidência própria.
+- Aprovador: Bruno, 2026-07-11.
+
 ## Template de nova entrada
 
 - Data:
