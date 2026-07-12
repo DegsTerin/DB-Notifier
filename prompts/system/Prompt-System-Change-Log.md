@@ -2,7 +2,7 @@
 
 ## Versão atual
 
-- Versão: `3.9.0`
+- Versão: `3.9.1`
 - Data: 2026-07-12
 - Status: corpus DB-Notifier consolidado
 - Escopo: 13 arquivos ativos
@@ -16,6 +16,12 @@ A versão do corpus é independente da versão do software.
 - PATCH: clareza, correção ou referência sem mudança de autoridade.
 
 Toda alteração atualiza este arquivo e, quando necessário, `../Start-Here.md`.
+
+## 3.9.1 — 2026-07-12
+
+- Auditoria de certificação do quarto incremento com 67 testes .NET aprovados e subset de sincronização 21/21.
+- Respostas `2xx` inválidas, timeouts e resultados ausentes permanecem retryable e não tombstonam dados locais prematuramente.
+- Cobertura ampliada para ordem monotônica, tombstone, Agent/instance scope, transições canônicas e autorização positiva/negativa.
 
 ## 3.9.0 — 2026-07-12
 

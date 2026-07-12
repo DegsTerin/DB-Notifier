@@ -83,13 +83,28 @@ public sealed class HttpObservationBatchTransport : IObservationBatchTransport
                 .ConfigureAwait(false);
             if (response.IsSuccessStatusCode)
             {
-                ObservationBatchResult? result = await response.Content
-                    .ReadFromJsonAsync<ObservationBatchResult>(SerializerOptions, cancellationToken)
-                    .ConfigureAwait(false);
-                if (result?.Items is not null)
+                try
                 {
-                    return new ObservationBatchResult([.. localResults, .. result.Items], result.HighestContiguousSequence);
+                    ObservationBatchResult? result = await response.Content
+                        .ReadFromJsonAsync<ObservationBatchResult>(SerializerOptions, cancellationToken)
+                        .ConfigureAwait(false);
+                    if (result?.Items is not null)
+                    {
+                        return new ObservationBatchResult(
+                            [.. localResults, .. result.Items],
+                            result.HighestContiguousSequence);
+                    }
                 }
+                catch (Exception exception) when (exception is JsonException or NotSupportedException)
+                {
+                    // A successful status with an invalid contract must never terminally acknowledge local data.
+                }
+
+                localResults.AddRange(valid.Select(message => new ObservationItemResult(
+                    message.MessageId,
+                    ObservationIngestionDisposition.Retryable,
+                    "sync.response_invalid")));
+                return new ObservationBatchResult(localResults, 0);
             }
 
             ObservationIngestionDisposition disposition = IsRetryable(response.StatusCode)
@@ -109,6 +124,14 @@ public sealed class HttpObservationBatchTransport : IObservationBatchTransport
                 message.MessageId,
                 ObservationIngestionDisposition.Retryable,
                 "sync.transport_unavailable")));
+            return new ObservationBatchResult(localResults, 0);
+        }
+        catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
+        {
+            localResults.AddRange(valid.Select(message => new ObservationItemResult(
+                message.MessageId,
+                ObservationIngestionDisposition.Retryable,
+                "sync.transport_timeout")));
             return new ObservationBatchResult(localResults, 0);
         }
     }

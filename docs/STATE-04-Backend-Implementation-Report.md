@@ -66,6 +66,7 @@ Application         PostgreSql provider
 - `AgentOutboxDispatchWorker` is disabled by default, shares race-safe SQLite initialization, emits structured counts, and isolates transient dispatch failure.
 - `HttpObservationBatchTransport` sends versioned JSON only to an absolute HTTPS base address; enabled runtime requires a valid private-key client certificate and keeps normal server certificate validation/revocation enabled.
 - The HTTPS transport rejects user-info/query/fragment base addresses even when instantiated outside the Agent composition root; Kestrel requests optional client certificates and the ingestion policy still denies requests without a validated Agent identity.
+- HTTP timeout, unavailable transport, missing item result, and malformed successful response remain retryable; an invalid `2xx` contract never terminally acknowledges local data.
 - `ServerObservationIngestionStore` rejects inactive Agents and unassigned instances, deduplicates message/observation IDs, rejects conflicting Agent sequences terminally, and persists the sample, event, server outbox and matching alert deliveries atomically.
 - Status transitions derive bounded canonical `Connected`, `Recovered`, `Disconnected`, `Timeout`, `AuthenticationFailed`, or `Degraded` events; unchanged status emits no duplicate event.
 - PostgreSQL migration `EnforceAgentObservationSequence` adds unique `(agent_id, sequence)` enforcement with a reversible down path.
@@ -100,10 +101,11 @@ Executed from the repository root with workspace-local .NET SDK `10.0.301`:
 |---|---|
 | Forced restore and lockfile refresh | Approved for all 12 projects |
 | Release build with warnings as errors | Approved; 0 warnings, 0 errors |
-| Unit/model/provider tests | Approved; 52/52 |
+| Unit/model/provider tests | Approved; 63/63 |
 | Architecture tests | Approved; 4/4 |
-| Total .NET tests | Approved; 56/56 |
-| Additional negative tests | Approved for HTTPS constructor enforcement, sequence conflict, inactive Agent and matching route authorization |
+| Total .NET tests | Approved; 67/67 |
+| Synchronization certification subset | Approved; 21/21 |
+| Additional negative tests | Approved for monotonic head blocking, rejected tombstone, missing/invalid response, timeout, HTTPS enforcement, sequence conflict, Agent/instance scope and route authorization |
 | `dotnet format --verify-no-changes` | Approved |
 | Locked restore | Approved for all 12 projects |
 | NuGet direct/transitive vulnerability audit | Approved; no vulnerable packages reported |
@@ -111,7 +113,7 @@ Executed from the repository root with workspace-local .NET SDK `10.0.301`:
 | Disabled Agent startup smoke | Process remained alive after DI/host build, was terminated, and created no SQLite file or probe |
 | Local API authorization smoke | Liveness returned 200; observation ingestion without a client certificate returned 403 |
 
-Test samples additionally cover ordered dispatch/ack/retry, HTTPS protocol headers, invalid synchronization configuration, Agent mismatch rejection before persistence, route authorization denial, central duplicate ingestion, contiguous cursor, canonical events, matching alert deliveries, server outbox and migration rollback.
+Test samples additionally cover ordered dispatch/ack/retry, blocked head-of-line ordering, terminal tombstone retention, missing and malformed server responses, client timeout, HTTPS protocol headers, invalid synchronization configuration, Agent/instance mismatch rejection before persistence, route authorization allow/deny, central duplicate ingestion, sequence conflict, contiguous cursor, all implemented canonical transition mappings, matching alert deliveries, server outbox and migration rollback.
 
 ## Limits and next increment
 

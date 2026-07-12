@@ -77,7 +77,7 @@ Quatro incrementos de `STATE-04 BACKEND_IMPLEMENTATION` implementam contratos ne
 - Terceira migration PostgreSQL adiciona unicidade `(agent_id, sequence)` com rollback offline verificável.
 - Controles administrativos permanecem explicitamente `Unsupported`.
 - Agent registra catálogo/provider, persistência, vault e scheduler por DI; monitoring permanece desabilitado por default, sem conexão real ou UI.
-- 56 testes .NET aprovados (52 unit/model/provider + 4 arquitetura); build Release e format aprovados em .NET 10 com 0 avisos/erros.
+- 67 testes .NET aprovados (63 unit/model/provider + 4 arquitetura); build Release e format aprovados em .NET 10 com 0 avisos/erros.
 
 ## Pendente
 

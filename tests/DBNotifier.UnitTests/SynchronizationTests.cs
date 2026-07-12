@@ -55,6 +55,61 @@ public sealed class SynchronizationTests
     }
 
     [Fact]
+    public async Task OutboxBlocksLaterSequenceUntilHeadIsDueAndRetainsRejectedTombstone()
+    {
+        await using SqliteConnection connection = new("Data Source=:memory:");
+        await connection.OpenAsync();
+        DbContextOptions<AgentDbContext> options = new DbContextOptionsBuilder<AgentDbContext>()
+            .UseSqlite(connection)
+            .Options;
+        AgentOutboxMessageRow head = Outbox(1);
+        head.AvailableAt = Now.AddMinutes(1);
+        AgentOutboxMessageRow next = Outbox(2);
+        await using (AgentDbContext setup = new(options))
+        {
+            await setup.Database.MigrateAsync();
+            setup.OutboxMessages.AddRange(head, next);
+            await setup.SaveChangesAsync();
+        }
+
+        AgentOutboxStore store = new(new TestAgentContextFactory(options));
+
+        Assert.Empty(await store.GetPendingAsync(Now, 50, CancellationToken.None));
+        await store.ApplyResultsAsync(
+            [new ObservationItemResult(head.MessageId, ObservationIngestionDisposition.Rejected)],
+            Now,
+            CancellationToken.None);
+        AgentOutboxEnvelope released = Assert.Single(
+            await store.GetPendingAsync(Now, 50, CancellationToken.None));
+
+        Assert.Equal(next.MessageId, released.MessageId);
+        await using AgentDbContext verification = new(options);
+        AgentOutboxMessageRow tombstone = await verification.OutboxMessages.SingleAsync(
+            row => row.MessageId == head.MessageId);
+        Assert.Equal(Now, tombstone.AcknowledgedAt);
+    }
+
+    [Fact]
+    public async Task DispatchRunnerRetriesItemMissingFromServerResponse()
+    {
+        AgentOutboxMessageRow row = Outbox(1);
+        InMemoryOutboxStore store = new(row);
+        AgentOutboxDispatchRunner runner = new(
+            Guid.NewGuid(),
+            store,
+            new EmptyResponseTransport(),
+            new FixedTimeProvider(Now));
+
+        AgentOutboxDispatchResult result = await runner.RunOnceAsync(50);
+
+        Assert.Equal(1, result.RetryableCount);
+        ObservationItemResult applied = Assert.Single(store.AppliedResults);
+        Assert.Equal(row.MessageId, applied.MessageId);
+        Assert.Equal(ObservationIngestionDisposition.Retryable, applied.Disposition);
+        Assert.Equal("sync.response_missing", applied.ErrorCode);
+    }
+
+    [Fact]
     public async Task ServerIngestionIsIdempotentAndCreatesCanonicalEventsAndAlertDeliveries()
     {
         await using SqliteConnection connection = new("Data Source=:memory:");
@@ -181,6 +236,32 @@ public sealed class SynchronizationTests
     }
 
     [Fact]
+    public async Task ServerIngestionRejectsInstanceNotAssignedToAgent()
+    {
+        await using SqliteConnection connection = new("Data Source=:memory:");
+        await connection.OpenAsync();
+        DbContextOptions<ServerDbContext> options = new DbContextOptionsBuilder<ServerDbContext>()
+            .UseSqlite(connection)
+            .Options;
+        Guid agentId = Guid.NewGuid();
+        await using (ServerDbContext setup = new(options))
+        {
+            await setup.Database.EnsureCreatedAsync();
+            setup.Agents.Add(Agent(agentId));
+            await setup.SaveChangesAsync();
+        }
+
+        ServerObservationIngestionStore store = new(new TestServerContextFactory(options));
+        ObservationItemResult result = await store.IngestAsync(
+            Message(agentId, Guid.NewGuid(), 1, "Healthy"),
+            Now,
+            CancellationToken.None);
+
+        Assert.Equal(ObservationIngestionDisposition.Rejected, result.Disposition);
+        Assert.Equal("observation.instance_not_assigned", result.ErrorCode);
+    }
+
+    [Fact]
     public async Task BatchIngestorRejectsAgentMismatchBeforePersistence()
     {
         Guid routeAgentId = Guid.NewGuid();
@@ -263,6 +344,46 @@ public sealed class SynchronizationTests
     }
 
     [Fact]
+    public async Task HttpTransportRetriesSuccessfulResponseWithInvalidContract()
+    {
+        AgentOutboxMessageRow row = Outbox(1);
+        using HttpClient httpClient = new(new InvalidJsonHttpHandler());
+        HttpObservationBatchTransport transport = new(
+            httpClient,
+            new Uri("https://server.example.test/"),
+            "0.1.0");
+
+        ObservationBatchResult result = await transport.SendAsync(
+            Guid.Parse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"),
+            [Envelope(row)],
+            CancellationToken.None);
+
+        ObservationItemResult item = Assert.Single(result.Items);
+        Assert.Equal(ObservationIngestionDisposition.Retryable, item.Disposition);
+        Assert.Equal("sync.response_invalid", item.ErrorCode);
+    }
+
+    [Fact]
+    public async Task HttpTransportMapsClientTimeoutToRetryableOutcome()
+    {
+        AgentOutboxMessageRow row = Outbox(1);
+        using HttpClient httpClient = new(new TimeoutHttpHandler());
+        HttpObservationBatchTransport transport = new(
+            httpClient,
+            new Uri("https://server.example.test/"),
+            "0.1.0");
+
+        ObservationBatchResult result = await transport.SendAsync(
+            Guid.Parse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"),
+            [Envelope(row)],
+            CancellationToken.None);
+
+        ObservationItemResult item = Assert.Single(result.Items);
+        Assert.Equal(ObservationIngestionDisposition.Retryable, item.Disposition);
+        Assert.Equal("sync.transport_timeout", item.ErrorCode);
+    }
+
+    [Fact]
     public void SynchronizationConfigurationRejectsNonHttpsServer()
     {
         AgentSynchronizationOptions options = new()
@@ -284,6 +405,26 @@ public sealed class SynchronizationTests
             httpClient,
             new Uri("http://server.example.test/"),
             "0.1.0"));
+    }
+
+    [Theory]
+    [InlineData(null, HealthStatus.Healthy, "Connected", "Info")]
+    [InlineData(HealthStatus.Timeout, HealthStatus.Healthy, "Recovered", "Info")]
+    [InlineData(HealthStatus.Healthy, HealthStatus.Unavailable, "Disconnected", "Error")]
+    [InlineData(HealthStatus.Healthy, HealthStatus.Timeout, "Timeout", "Error")]
+    [InlineData(HealthStatus.Healthy, HealthStatus.AuthFailed, "AuthenticationFailed", "Error")]
+    [InlineData(HealthStatus.Healthy, HealthStatus.Degraded, "Degraded", "Warning")]
+    public void EventDeriverMapsCanonicalHealthTransitions(
+        HealthStatus? previous,
+        HealthStatus current,
+        string eventType,
+        string severity)
+    {
+        CanonicalEventCandidate candidate = Assert.IsType<CanonicalEventCandidate>(
+            ObservationEventDeriver.Derive(previous, current));
+
+        Assert.Equal(eventType, candidate.EventType);
+        Assert.Equal(severity, candidate.Severity);
     }
 
     private static AgentOutboxMessageRow Outbox(long sequence)
@@ -340,6 +481,16 @@ public sealed class SynchronizationTests
             null,
             null,
             []);
+
+    private static AgentOutboxEnvelope Envelope(AgentOutboxMessageRow row) =>
+        new(
+            row.MessageId,
+            row.Sequence,
+            row.MessageType,
+            row.SchemaVersion,
+            row.PayloadJson,
+            row.OccurredAt,
+            row.AttemptCount);
 
     private static RegisteredAgentRow Agent(Guid agentId) => new()
     {
@@ -402,6 +553,35 @@ public sealed class SynchronizationTests
             1));
     }
 
+    private sealed class EmptyResponseTransport : IObservationBatchTransport
+    {
+        public ValueTask<ObservationBatchResult> SendAsync(
+            Guid agentId,
+            IReadOnlyList<AgentOutboxEnvelope> messages,
+            CancellationToken cancellationToken) =>
+            ValueTask.FromResult(new ObservationBatchResult([], 0));
+    }
+
+    private sealed class InMemoryOutboxStore(AgentOutboxMessageRow row) : IAgentOutboxStore
+    {
+        public IReadOnlyList<ObservationItemResult> AppliedResults { get; private set; } = [];
+
+        public ValueTask<IReadOnlyList<AgentOutboxEnvelope>> GetPendingAsync(
+            DateTimeOffset now,
+            int maximumCount,
+            CancellationToken cancellationToken) =>
+            ValueTask.FromResult<IReadOnlyList<AgentOutboxEnvelope>>([Envelope(row)]);
+
+        public ValueTask ApplyResultsAsync(
+            IReadOnlyList<ObservationItemResult> results,
+            DateTimeOffset now,
+            CancellationToken cancellationToken)
+        {
+            AppliedResults = results;
+            return ValueTask.CompletedTask;
+        }
+    }
+
     private sealed class RecordingIngestionStore : IObservationIngestionStore
     {
         public int IngestCalls { get; private set; }
@@ -445,5 +625,24 @@ public sealed class SynchronizationTests
                     "application/json"),
             };
         }
+    }
+
+    private sealed class InvalidJsonHttpHandler : HttpMessageHandler
+    {
+        protected override Task<HttpResponseMessage> SendAsync(
+            HttpRequestMessage request,
+            CancellationToken cancellationToken) =>
+            Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent("{not-json", Encoding.UTF8, "application/json"),
+            });
+    }
+
+    private sealed class TimeoutHttpHandler : HttpMessageHandler
+    {
+        protected override Task<HttpResponseMessage> SendAsync(
+            HttpRequestMessage request,
+            CancellationToken cancellationToken) =>
+            Task.FromException<HttpResponseMessage>(new TaskCanceledException("Fixture timeout."));
     }
 }

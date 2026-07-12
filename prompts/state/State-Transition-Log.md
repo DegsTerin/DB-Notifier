@@ -230,6 +230,16 @@
 - Evidências: `docs/STATE-04-Backend-Implementation-Report.md`, 52 testes unit/model/provider, 4 testes de arquitetura e smoke local 200/403.
 - Riscos/ressalvas: synchronization default off; sem PostgreSQL, certificado/mTLS E2E, vault, notification delivery, RBAC humano, comando real, homologação ou UI.
 
+## 2026-07-12 — Auditoria de certificação do quarto incremento
+
+- Estado anterior: `STATE-04 BACKEND_IMPLEMENTATION`
+- Estado resultante: sem transição
+- Decisão: revisar integralmente dispatch/ack, ingestão idempotente, eventos/alertas e autorização da primeira API antes de aceitar o incremento como tecnicamente fechado.
+- Escopo: ordem monotônica, tombstone, retry/backoff, resposta parcial/inválida, timeout, Agent/instance scope, sequência, transação, transições canônicas e autorização positiva/negativa.
+- Gates: build/format aprovados em .NET 10 com 0 avisos/erros, 67 testes aprovados, restore locked, auditoria NuGet, Pester 10/10 e smoke local 200/403.
+- Evidências: `docs/STATE-04-Backend-Implementation-Report.md`, subset de sincronização 21/21 e correção que impede `2xx` malformado de reconhecer dados terminalmente.
+- Riscos/ressalvas: sem PostgreSQL real, certificado/mTLS E2E ou entrega externa de notificação; esses itens continuam explicitamente fora da certificação deste incremento.
+
 ## Template de nova entrada
 
 - Data:
