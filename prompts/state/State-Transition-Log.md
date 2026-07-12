@@ -91,6 +91,18 @@
 - Evidências: `docs/Legacy-Compatibility.md`, `docs/STATE-01-Setup-Report.md` e commit inicial `ad8baf6`.
 - Riscos/ressalvas: EXE/installer não gerados porque `ps2exe` e Inno Setup não estão instalados; remoção dos shims depende do gate documentado.
 
+## 2026-07-11 — Transição para Architecture
+
+- Estado anterior: `STATE-01 PROJECT_SETUP`
+- Estado solicitado: `STATE-02 ARCHITECTURE`
+- Decisão: `APROVADO` pelo usuário após revisão do handoff apresentado.
+- Escopo: encerrar scaffold, checks, CI inicial e migração canônica de nomes; autorizar ADRs, contratos, threat model, protocolo conceitual e matriz de capacidades.
+- Gates: auditoria automática de `STATE-01` aprovada; Human Gate aprovado explicitamente.
+- Evidências: `docs/STATE-01-Setup-Report.md`, commits `ad8baf6` e `98891fd`, 10 testes Pester, build .NET sem avisos/erros, 2 testes .NET, format e auditorias de dependência aprovados.
+- Riscos/ressalvas: CI remota e packaging real não executados; nenhum provider DB-Notifier, banco real ou comando administrativo homologado.
+- Aprovador: Bruno, 2026-07-11.
+- Estado resultante: `STATE-02 ARCHITECTURE`.
+
 ## Template de nova entrada
 
 - Data:

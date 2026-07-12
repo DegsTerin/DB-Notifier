@@ -2,11 +2,11 @@
 
 ## Estado
 
-`STATE-01 PROJECT_SETUP`
+`STATE-02 ARCHITECTURE`
 
 ## Situação factual
 
-O Human Gate de `STATE-00` aprovou a baseline, a migração incremental PostgreSQL-first e a inicialização de Git. O scaffold modular, o Dashboard mínimo, as convenções, os testes iniciais e a CI foram preparados e validados em `STATE-01`. O monitor PowerShell legado foi migrado para nomes canônicos DB-Notifier com shims PgNotifier explícitos; ele continua sendo o único monitor funcional. A auditoria automática está aprovada e o Human Gate de saída permanece pendente.
+O Human Gate de `STATE-01` aprovou o scaffold, os checks e a migração canônica de nomes. O workspace entrou em `STATE-02 ARCHITECTURE`; o monitor PowerShell de compatibilidade continua sendo o único monitor funcional enquanto ADRs, contratos, threat model, protocolo e matriz de capacidades são definidos.
 
 ## Produto atual
 
@@ -41,13 +41,15 @@ O Human Gate de `STATE-00` aprovou a baseline, a migração incremental PostgreS
 - App, módulo, testes, protótipos e packaging legados renomeados canonicamente para DB-Notifier.
 - Entradas PgNotifier antigas preservadas como shims documentados e cobertas por testes de compatibilidade.
 - `build/build.ps1` criado com validação de bundle e sem instalação automática de dependências.
+- Human Gate de `STATE-01` aprovado em 2026-07-11.
 
 ## Pendente
 
-- ADR definitivo de stack.
-- Matriz de capacidades por engine.
+- ADRs de stack/migração, cofre, identidade de Agent, protocolo, persistência/retenção e atualização/assinatura.
+- Contratos canônicos de health, eventos, erros, capabilities e compatibilidade Agent/API.
+- Threat model das trust boundaries e controles de SSRF, command injection, impersonation, replay e secrets.
+- Matriz de capacidades PostgreSQL e política para providers futuros.
 - Arquitetura de dados, avaliações e políticas para MOD-12 AIOPS_AI.
-- Human Gate de `STATE-01`.
 - Implementação e homologação de qualquer provider além do comportamento PostgreSQL legado.
 
 ## Riscos
@@ -61,6 +63,6 @@ O Human Gate de `STATE-00` aprovou a baseline, a migração incremental PostgreS
 
 ## Próximo gate
 
-Revisar `docs/STATE-01-Setup-Report.md` e registrar o Human Gate antes de `STATE-02 ARCHITECTURE`.
+Concluir os entregáveis arquiteturais de `STATE-02`, executar a auditoria automática e submeter o walkthrough de ameaças/cenários híbridos ao Human Gate antes de `STATE-03 DATABASE_MODELING`.
 
 Este documento descreve somente o presente. Histórico pertence a `State-Transition-Log.md`.

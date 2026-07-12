@@ -2,7 +2,7 @@
 
 ## Versão atual
 
-- Versão: `3.1.5`
+- Versão: `3.1.6`
 - Data: 2026-07-11
 - Status: corpus DB-Notifier consolidado
 - Escopo: 13 arquivos ativos
@@ -16,6 +16,12 @@ A versão do corpus é independente da versão do software.
 - PATCH: clareza, correção ou referência sem mudança de autoridade.
 
 Toda alteração atualiza este arquivo e, quando necessário, `../Start-Here.md`.
+
+## 3.1.6 — 2026-07-11
+
+- Registro da aprovação explícita do Human Gate de Project Setup.
+- Transição factual de `STATE-01 PROJECT_SETUP` para `STATE-02 ARCHITECTURE`.
+- Atualização do próximo gate e dos entregáveis arquiteturais pendentes, sem antecipar implementação.
 
 ## 3.1.5 — 2026-07-11
 

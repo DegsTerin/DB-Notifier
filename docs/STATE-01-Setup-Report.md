@@ -84,11 +84,13 @@ The first Dashboard audit found two esbuild/Vite advisories, including one high-
 ## Human Gate
 
 - Phase: `STATE-01 PROJECT_SETUP`
-- Validator and date: PENDENTE
-- Clean onboarding sample: PENDENTE
+- Validator and date: Bruno, 2026-07-11
+- Automatic report reviewed: accepted through explicit approval in the project session
+- Clean onboarding sample: not independently repeated by the validator; automatic local bootstrap evidence accepted for transition
 - .NET build/static analysis/tests: automatic evidence approved
 - Dashboard and legacy checks: automatic evidence approved
-- Decision: `PENDENTE`
-- Required decision: approve, approve with reservations, or reject the setup handoff before `STATE-02`
+- Security/authorization: no secrets, deployment, real database, or administrative action included in the approval
+- Decision: `APROVADO`
+- Evidence: explicit user response “Sim” to the `STATE-01` closure and `STATE-02` transition question
 
-The project remains in `STATE-01`; this report does not authorize `STATE-02 ARCHITECTURE`.
+This gate authorizes `STATE-02 ARCHITECTURE`. It does not pre-approve product implementation, database migrations, deployment, or later-phase gates.
