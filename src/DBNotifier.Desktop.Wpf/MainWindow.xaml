@@ -86,6 +86,7 @@
             <ComboBox x:Name="ViewSelector" Width="155" Margin="0,0,18,0" SelectedIndex="0" SelectionChanged="ViewSelectionChanged" AutomationProperties.Name="Selecionar visão">
               <ComboBoxItem Content="Inventário" Tag="Inventory" />
               <ComboBoxItem Content="Histórico e alertas" Tag="HistoryAlerts" />
+              <ComboBoxItem Content="Configuração" Tag="Configuration" />
             </ComboBox>
             <TextBlock Text="Cenário acessível:" VerticalAlignment="Center" Margin="0,0,10,0" />
             <ComboBox x:Name="ScenarioSelector"
@@ -220,6 +221,23 @@
                   <DataGridTextColumn Header="Resumo" Binding="{Binding Summary}" Width="2*" />
                 </DataGrid.Columns>
               </DataGrid>
+            </Grid>
+          </Border>
+        </Grid>
+
+        <Grid x:Name="ConfigurationSurface" Grid.Row="1" Margin="0,22,0,0" Visibility="Collapsed">
+          <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+          <Border Background="White" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="10">
+            <Grid><Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+              <Grid Margin="18,14"><Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions><StackPanel><TextBlock Text="Configuração não secreta" FontSize="16" FontWeight="SemiBold" /><TextBlock Text="Financeiro principal · postgresql" Foreground="{StaticResource MutedBrush}" Margin="0,4,0,0" /></StackPanel><TextBlock Grid.Column="1" Text="configuration-capabilities.v1 · Não persistido" Foreground="{StaticResource MutedBrush}" /></Grid>
+              <DataGrid x:Name="ConfigurationGrid" Grid.Row="1" AutoGenerateColumns="False" IsReadOnly="True" CanUserAddRows="False" HeadersVisibility="Column" BorderThickness="0" RowHeight="46" AutomationProperties.Name="Configuração somente leitura"><DataGrid.Columns><DataGridTextColumn Header="Campo" Binding="{Binding Label}" Width="1.3*" /><DataGridTextColumn Header="Valor seguro" Binding="{Binding SafeValue}" Width="*" /><DataGridTextColumn Header="Descrição" Binding="{Binding Description}" Width="2*" /></DataGrid.Columns></DataGrid>
+            </Grid>
+          </Border>
+          <Border Grid.Row="1" Background="White" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="10" Margin="0,18,0,0">
+            <Grid><Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+              <Grid Margin="18,14"><Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions><StackPanel><TextBlock Text="Controle administrativo" FontSize="16" FontWeight="SemiBold" /><TextBlock Text="Nenhuma ação pode ser executada nesta tela." Foreground="{StaticResource MutedBrush}" Margin="0,4,0,0" /></StackPanel><ComboBox x:Name="PermissionSelector" Grid.Column="1" Width="170" SelectedIndex="0" AutomationProperties.Name="Cenário de permissão"><ComboBoxItem Content="Autorizado" Tag="Authorized" /><ComboBoxItem Content="Negado" Tag="Denied" /></ComboBox></Grid>
+              <DataGrid x:Name="CapabilityGrid" Grid.Row="1" AutoGenerateColumns="False" IsReadOnly="True" CanUserAddRows="False" HeadersVisibility="Column" BorderThickness="0" RowHeight="46" SelectionMode="Single" AutomationProperties.Name="Capabilities administrativas"><DataGrid.Columns><DataGridTextColumn Header="Ação" Binding="{Binding DisplayName}" Width="*" /><DataGridTextColumn Header="Capability" Binding="{Binding CapabilityId}" Width="1.2*" /><DataGridTextColumn Header="Estado" Binding="{Binding StateLabel}" Width="*" /><DataGridTextColumn Header="Motivo" Binding="{Binding ReasonCode}" Width="1.5*" /></DataGrid.Columns></DataGrid>
+              <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="18,12"><Button Content="Revisar decisão selecionada" Click="ReviewCapabilityClick" Margin="0,0,10,0" /><Button Content="Visualizar confirmação segura" Click="PreviewConfirmationClick" /></StackPanel>
             </Grid>
           </Border>
         </Grid>

@@ -13,17 +13,22 @@ public partial class MainWindow : Window
     private readonly ObservableCollection<InventoryRow> rows = [];
     private readonly ObservableCollection<TimelineRow> timelineRows = [];
     private readonly ObservableCollection<AlertRow> alertRows = [];
+    private readonly ObservableCollection<CapabilityRow> capabilityRows = [];
     private readonly InventorySnapshot snapshot;
     private readonly TimelineAlertSnapshot timelineSnapshot;
+    private readonly ConfigurationCapabilitySnapshot configurationSnapshot;
 
     public MainWindow()
     {
         InitializeComponent();
         snapshot = CreateDemonstrationSnapshot(TimeProvider.System.GetUtcNow());
         timelineSnapshot = CreateTimelineSnapshot(TimeProvider.System.GetUtcNow());
+        configurationSnapshot = CreateConfigurationSnapshot();
         InventoryGrid.ItemsSource = rows;
         HistoryGrid.ItemsSource = timelineRows;
         AlertsGrid.ItemsSource = alertRows;
+        ConfigurationGrid.ItemsSource = configurationSnapshot.Fields;
+        CapabilityGrid.ItemsSource = capabilityRows;
         PresentReadyState();
     }
 
@@ -64,6 +69,35 @@ public partial class MainWindow : Window
         ScenarioSelector.Focus();
     }
 
+    private void ReviewCapabilityClick(object sender, RoutedEventArgs e)
+    {
+        if (CapabilityGrid.SelectedItem is not CapabilityRow selected)
+        {
+            MessageBox.Show(this, "Selecione uma capability para revisar.", "DB-Notifier", MessageBoxButton.OK, MessageBoxImage.Information);
+            return;
+        }
+
+        bool authorized = PermissionSelector.SelectedItem is ComboBoxItem permission &&
+            string.Equals(permission.Tag?.ToString(), "Authorized", StringComparison.Ordinal);
+        ShowPreview(configurationSnapshot.Preview(selected.CapabilityId, authorized));
+    }
+
+    private void PreviewConfirmationClick(object sender, RoutedEventArgs e) =>
+        ShowPreview(ActionPreviewDisposition.ConfirmationRequired);
+
+    private void ShowPreview(ActionPreviewDisposition disposition)
+    {
+        (string title, string message) = disposition switch
+        {
+            ActionPreviewDisposition.ConfirmationRequired => ("Confirmação obrigatória", "Uma operação suportada exigiria motivo, expiração e confirmação final. Executar permanece desabilitado."),
+            ActionPreviewDisposition.Denied => ("Permissão negada", "A identidade demonstrativa não possui a permissão específica no escopo."),
+            ActionPreviewDisposition.Unsupported => ("Operação não suportada", "O provider não declara esta capability. Nenhuma tentativa foi realizada."),
+            ActionPreviewDisposition.Unavailable => ("Operação indisponível", "Os pré-requisitos da capability não estão disponíveis."),
+            _ => ("Capability desconhecida", "O estado falha fechado e nenhuma ação é disponibilizada."),
+        };
+        MessageBox.Show(this, message, title, MessageBoxButton.OK, MessageBoxImage.Information);
+    }
+
     private void PresentReadyState()
     {
         DateTimeOffset now = TimeProvider.System.GetUtcNow();
@@ -72,6 +106,13 @@ public partial class MainWindow : Window
         if (showHistory)
         {
             PresentHistoryAndAlerts(now);
+            return;
+        }
+        bool showConfiguration = ViewSelector.SelectedItem is ComboBoxItem configurationView &&
+            string.Equals(configurationView.Tag?.ToString(), "Configuration", StringComparison.Ordinal);
+        if (showConfiguration)
+        {
+            PresentConfiguration(now);
             return;
         }
 
@@ -92,6 +133,7 @@ public partial class MainWindow : Window
         StaleCountText.Text = summary.Stale.ToString(CultureInfo.InvariantCulture);
         ReadySurface.Visibility = Visibility.Visible;
         HistoryAlertSurface.Visibility = Visibility.Collapsed;
+        ConfigurationSurface.Visibility = Visibility.Collapsed;
         StateSurface.Visibility = Visibility.Collapsed;
     }
 
@@ -118,6 +160,25 @@ public partial class MainWindow : Window
             $"Atualizado em {now:yyyy-MM-dd HH:mm:ss} UTC · adapters locais");
         ReadySurface.Visibility = Visibility.Collapsed;
         HistoryAlertSurface.Visibility = Visibility.Visible;
+        ConfigurationSurface.Visibility = Visibility.Collapsed;
+        StateSurface.Visibility = Visibility.Collapsed;
+    }
+
+    private void PresentConfiguration(DateTimeOffset now)
+    {
+        capabilityRows.Clear();
+        foreach (CapabilityPresentation capability in configurationSnapshot.Capabilities)
+        {
+            capabilityRows.Add(CapabilityRow.From(capability));
+        }
+        if (capabilityRows.Count > 0)
+        {
+            CapabilityGrid.SelectedIndex = 0;
+        }
+        UpdatedAtText.Text = string.Create(CultureInfo.InvariantCulture, $"Prévia local em {now:yyyy-MM-dd HH:mm:ss} UTC · nenhuma mutation");
+        ReadySurface.Visibility = Visibility.Collapsed;
+        HistoryAlertSurface.Visibility = Visibility.Collapsed;
+        ConfigurationSurface.Visibility = Visibility.Visible;
         StateSurface.Visibility = Visibility.Collapsed;
     }
 
@@ -141,6 +202,7 @@ public partial class MainWindow : Window
 
         ReadySurface.Visibility = Visibility.Collapsed;
         HistoryAlertSurface.Visibility = Visibility.Collapsed;
+        ConfigurationSurface.Visibility = Visibility.Collapsed;
         StateSurface.Visibility = Visibility.Visible;
         LoadingIndicator.Visibility = loading ? Visibility.Visible : Visibility.Collapsed;
         StateSymbolText.Text = symbol;
@@ -175,6 +237,24 @@ public partial class MainWindow : Window
                 CreateAlert("00000000-0000-0000-0002-000000000001", "Analytics", "sql-server", EventSeverity.Critical, AlertPresentationState.Active, "Timeout contínuo", "Três timeouts na janela demonstrativa.", now.AddMinutes(-3)),
                 CreateAlert("00000000-0000-0000-0002-000000000002", "Pedidos regional", "mysql", EventSeverity.Warning, AlertPresentationState.Acknowledged, "Latência elevada", "Alerta reconhecido somente na fixture local.", now.AddMinutes(-8)),
                 CreateAlert("00000000-0000-0000-0002-000000000003", "Catálogo", "mongodb", EventSeverity.Information, AlertPresentationState.Silenced, "Manutenção programada", "Silenciamento demonstrativo; nenhum canal foi contatado.", now.AddMinutes(-24)),
+            ]);
+
+    private static ConfigurationCapabilitySnapshot CreateConfigurationSnapshot() =>
+        new(
+            ConfigurationCapabilitySnapshot.CurrentSchemaVersion,
+            Guid.Parse("00000000-0000-0000-0000-000000000001"),
+            "Financeiro principal",
+            "postgresql",
+            [
+                new("monitoring.interval", "Intervalo de monitoramento", "60 segundos", "Política demonstrativa; não persistida."),
+                new("monitoring.timeout", "Timeout", "5 segundos", "Limite demonstrativo do probe."),
+                new("monitoring.retry", "Tentativas", "3", "Retry limitado com backoff."),
+                new("credential.reference", "Credencial", "Referência protegida", "Identificador e segredo não são exibidos."),
+            ],
+            [
+                new("service.start", "Start", CapabilityPresentationState.Unsupported, "provider.control_unsupported", true),
+                new("service.stop", "Stop", CapabilityPresentationState.Unsupported, "provider.control_unsupported", true),
+                new("service.restart", "Restart", CapabilityPresentationState.Unsupported, "provider.control_unsupported", true),
             ]);
 
     private static TimelineEventItem CreateEvent(string id, string name, string provider, string type, EventSeverity severity, string summary, DateTimeOffset occurredAt) =>
@@ -259,5 +339,20 @@ public partial class MainWindow : Window
             item.Severity switch { EventSeverity.Critical => "■ Crítico", EventSeverity.Warning => "▲ Aviso", _ => "● Informativo" },
             item.State switch { AlertPresentationState.Active => "Ativo", AlertPresentationState.Acknowledged => "Reconhecido", AlertPresentationState.Silenced => "Silenciado", _ => "Resolvido" },
             item.RuleName, item.InstanceName, item.ProviderType, item.Summary);
+    }
+
+    private sealed record CapabilityRow(string CapabilityId, string DisplayName, string StateLabel, string ReasonCode)
+    {
+        public static CapabilityRow From(CapabilityPresentation item) => new(
+            item.CapabilityId,
+            item.DisplayName,
+            item.State switch
+            {
+                CapabilityPresentationState.Supported => "Suportado",
+                CapabilityPresentationState.Unsupported => "— Não suportado",
+                CapabilityPresentationState.Unavailable => "↯ Indisponível",
+                _ => "? Desconhecido",
+            },
+            item.ReasonCode);
     }
 }

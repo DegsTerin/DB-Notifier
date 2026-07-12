@@ -2,7 +2,7 @@
 
 ## Versão atual
 
-- Versão: `3.17.0`
+- Versão: `3.18.0`
 - Data: 2026-07-12
 - Status: corpus DB-Notifier consolidado
 - Escopo: 13 arquivos ativos
@@ -16,6 +16,12 @@ A versão do corpus é independente da versão do software.
 - PATCH: clareza, correção ou referência sem mudança de autoridade.
 
 Toda alteração atualiza este arquivo e, quando necessário, `../Start-Here.md`.
+
+## 3.18.0 — 2026-07-12
+
+- Terceiro incremento de `STATE-05`: contrato `configuration-capabilities.v1` e configuração/capabilities no Dashboard e WPF .NET 10.
+- Previews distinguem confirmation/denied/unsupported/unavailable/unknown; nenhuma configuração, secret, mutation ou ação administrativa é executada.
+- 114 testes .NET e 5 testes Dashboard aprovados; próximo incremento definido como Tray/notification area e reforço de acessibilidade.
 
 ## 3.17.0 — 2026-07-12
 

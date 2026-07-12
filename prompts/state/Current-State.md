@@ -6,7 +6,7 @@
 
 ## Situação factual
 
-O projeto está em `STATE-05 FRONTEND_IMPLEMENTATION`. Dois incrementos implementam contratos `inventory.v1`/`history-alerts.v1` e visões somente leitura de inventário, status, histórico e alertas no Dashboard React e Desktop WPF .NET 10, com adapters determinísticos e estados operacionais incluindo manutenção. Nenhuma integração, mutation, entrega externa ou ação administrativa foi ativada; nenhum provider está homologado.
+O projeto está em `STATE-05 FRONTEND_IMPLEMENTATION`. Três incrementos implementam inventário/status, histórico/alertas e configuração/capabilities no Dashboard React e Desktop WPF .NET 10. Adapters são determinísticos, configuração não exibe secrets e previews administrativos falham fechados sem persistir ou executar; nenhum provider está homologado.
 
 ## Produto atual
 
@@ -98,10 +98,12 @@ O projeto está em `STATE-05 FRONTEND_IMPLEMENTATION`. Dois incrementos implemen
 - Contrato `history-alerts.v1`, timeline pesquisável/filtrável e alertas com severidade/estado/timestamps implementados sem condicionais de engine.
 - Dashboard e WPF apresentam histórico/alertas somente leitura; acknowledge/silence permanecem desabilitados e manutenção é um estado explícito.
 - 109 testes .NET e 4 testes Dashboard aprovados no segundo incremento; builds e amostras visuais desktop/compacta aprovados.
+- Contrato `configuration-capabilities.v1` e visões Dashboard/WPF implementam configuração não secreta e decisões confirmation/denied/unsupported/unavailable/unknown.
+- Start/Stop/Restart PostgreSQL permanecem `Unsupported`; confirmação é apenas exemplo rotulado e o controle final de execução permanece desabilitado.
+- 114 testes .NET e 5 testes Dashboard aprovados no terceiro incremento; builds e amostras visuais desktop/compacta aprovados.
 
 ## Pendente
 
-- Implementar configuração e apresentação capability-aware de confirmação/denied/unsupported sem antecipar execução administrativa.
 - Completar validação de acessibilidade com leitor de tela, contraste automatizado, zoom, teclado e viewports representativos.
 - Definir comportamento de Tray/notification area preservando offline, stale e suporte factual.
 - Manter adapters de apresentação determinísticos até `STATE-06`; não integrar silenciosamente banco, IdP, certificado, canal ou provider real durante a fase de UI.
@@ -120,6 +122,6 @@ O projeto está em `STATE-05 FRONTEND_IMPLEMENTATION`. Dois incrementos implemen
 
 ## Próximo gate
 
-Executar o terceiro incremento de `STATE-05`: configuração provider-neutral e apresentação capability-aware de confirmação/denied/unsupported no Dashboard e WPF, sem persistir mutations, despachar comandos ou habilitar Start/Stop/Restart.
+Executar o quarto incremento de `STATE-05`: comportamento Tray/notification area e reforço das evidências automatizadas/manuais de acessibilidade no Dashboard e WPF, preservando offline/stale e mantendo integrações/execução administrativa desabilitadas.
 
 Este documento descreve somente o presente. Histórico pertence a `State-Transition-Log.md`.

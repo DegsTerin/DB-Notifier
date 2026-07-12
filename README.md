@@ -4,7 +4,7 @@ DB-Notifier is the successor to PgNotifier, which was conceptually inspired by M
 
 Agents are designed to monitor local, remote, datacenter, hybrid, and cloud databases from Windows, Linux, containers, or cloud workloads. Monitoring credentials, database administration credentials, OS service identities, and cloud control-plane identities remain separate and vault-backed.
 
-The workspace is currently in `STATE-05 FRONTEND_IMPLEMENTATION`. Two frontend increments provide provider-neutral `inventory.v1` and `history-alerts.v1` contracts plus functional, read-only inventory/status/history/alert views in React and .NET 10 WPF, including deterministic operational states, explicit provider support, accessible severity and maintenance. These views use demonstration adapters only: no real database/vault/channel was exercised, no mutation or administrative action is enabled, and no provider is homologated.
+The workspace is currently in `STATE-05 FRONTEND_IMPLEMENTATION`. Three frontend increments provide provider-neutral inventory, history/alerts and configuration/capability views in React and .NET 10 WPF. Configuration renders no secrets; administrative previews distinguish confirmation, denial, unsupported, unavailable and unknown while Start/Stop/Restart remain disabled. All views use demonstration adapters only: no external integration, mutation, command execution or provider homologation is claimed.
 
 ## Start here
 

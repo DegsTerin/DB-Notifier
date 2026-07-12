@@ -128,3 +128,68 @@ public sealed record AlertStatusSummary(
     int Acknowledged,
     int Silenced,
     int UnresolvedCritical);
+
+public enum CapabilityPresentationState
+{
+    Supported,
+    Unsupported,
+    Unavailable,
+    Unknown,
+}
+
+public enum ActionPreviewDisposition
+{
+    ConfirmationRequired,
+    Denied,
+    Unsupported,
+    Unavailable,
+    Unknown,
+}
+
+public sealed record ConfigurationFieldPresentation(
+    string Key,
+    string Label,
+    string SafeValue,
+    string Description);
+
+public sealed record CapabilityPresentation(
+    string CapabilityId,
+    string DisplayName,
+    CapabilityPresentationState State,
+    string ReasonCode,
+    bool RequiresConfirmation);
+
+public sealed record ConfigurationCapabilitySnapshot(
+    string SchemaVersion,
+    Guid InstanceId,
+    string InstanceName,
+    string ProviderType,
+    IReadOnlyList<ConfigurationFieldPresentation> Fields,
+    IReadOnlyList<CapabilityPresentation> Capabilities)
+{
+    public const string CurrentSchemaVersion = "configuration-capabilities.v1";
+
+    public ActionPreviewDisposition Preview(string capabilityId, bool authorized)
+    {
+        CapabilityPresentation? capability = Capabilities.FirstOrDefault(item =>
+            string.Equals(item.CapabilityId, capabilityId, StringComparison.Ordinal));
+        if (capability is null)
+        {
+            return ActionPreviewDisposition.Unknown;
+        }
+
+        if (!authorized)
+        {
+            return ActionPreviewDisposition.Denied;
+        }
+
+        return capability.State switch
+        {
+            CapabilityPresentationState.Supported when capability.RequiresConfirmation =>
+                ActionPreviewDisposition.ConfirmationRequired,
+            CapabilityPresentationState.Unsupported => ActionPreviewDisposition.Unsupported,
+            CapabilityPresentationState.Unavailable => ActionPreviewDisposition.Unavailable,
+            _ => ActionPreviewDisposition.Unknown,
+        };
+    }
+}

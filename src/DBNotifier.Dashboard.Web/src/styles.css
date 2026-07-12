@@ -116,6 +116,27 @@ code { color: #153f62; background: #edf4fa; border-radius: 4px; padding: .18rem 
 .alert-card dl div { display: flex; justify-content: space-between; gap: 1rem; font-size: .76rem; }
 .alert-card dt { color: var(--muted); }
 .alert-card dd { margin: 0; text-align: right; }
+.configuration-layout { display: grid; gap: 1rem; }
+.configuration-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .8rem; padding: 1rem; background: #f7f9fb; }
+.configuration-fields article { padding: 1rem; border: 1px solid var(--border); border-radius: 8px; background: #fff; }
+.configuration-fields span { color: var(--muted); font-size: .74rem; font-weight: 700; }
+.configuration-fields strong { display: block; margin-top: .35rem; }
+.configuration-fields p, .capability-list p, .confirmation-example p { margin: .4rem 0 0; color: var(--muted); font-size: .78rem; }
+.permission-toggle { display: grid; gap: .25rem; min-width: 170px; color: var(--muted); font-size: .72rem; font-weight: 700; }
+.capability-list { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .8rem; padding: 1rem; }
+.capability-list article { padding: 1rem; border: 1px solid var(--border); border-radius: 8px; }
+.capability-list h3 { margin: 0 0 .3rem; }
+.capability-list button, .confirmation-example button, .dialog-actions button { min-height: 40px; padding: .55rem .8rem; border: 1px solid #9aacbc; border-radius: 7px; background: #fff; color: #173b59; font-weight: 700; cursor: pointer; }
+.capability-state { display: inline-flex; margin-top: .8rem; padding: .25rem .45rem; border-radius: 999px; font-size: .72rem; font-weight: 800; }
+.capability-state.unsupported { color: #4e5c69; background: #edf0f2; }
+.confirmation-example { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin: 0 1rem 1rem; padding: 1rem; border: 1px dashed #8297a9; border-radius: 8px; background: #f8fbfd; }
+.dialog-backdrop { position: fixed; inset: 0; z-index: 50; display: grid; place-items: center; padding: 1rem; background: rgba(8, 25, 38, .68); }
+.confirmation-dialog { width: min(520px, 100%); padding: 1.5rem; border-radius: 10px; background: #fff; box-shadow: 0 20px 60px rgba(0,0,0,.3); text-align: center; }
+.confirmation-dialog .state-symbol { margin: auto; }
+.confirmation-dialog h2 { margin: 1rem 0 .5rem; }
+.confirmation-dialog p { color: var(--muted); line-height: 1.55; }
+.dialog-actions { display: flex; justify-content: center; gap: .7rem; margin-top: 1.2rem; }
+.dialog-actions button:disabled { color: #7c8791; background: #e7eaed; cursor: not-allowed; }
 
 .operational-state { min-height: 410px; margin-top: 1.25rem; padding: 3rem 1rem; display: grid; align-content: center; justify-items: center; text-align: center; background: #fff; border: 1px solid var(--border); border-radius: 10px; }
 .state-symbol { display: grid; place-items: center; width: 62px; height: 62px; color: var(--brand); background: #edf6fe; border-radius: 50%; font-size: 2rem; font-weight: 700; }
@@ -137,6 +158,7 @@ footer { padding: .8rem 2rem; color: #526273; background: #fff; border-top: 1px 
   .sidebar-note { text-align: center; }
   .summary-grid { grid-template-columns: repeat(3, 1fr); }
   .alert-list { grid-template-columns: 1fr; }
+  .capability-list { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 760px) {
@@ -153,6 +175,8 @@ footer { padding: .8rem 2rem; color: #526273; background: #fff; border-top: 1px 
   .scenario-control { width: 100%; }
   .summary-grid { grid-template-columns: repeat(2, 1fr); }
   .alert-summary { grid-template-columns: 1fr; }
+  .configuration-fields { grid-template-columns: 1fr; }
+  .confirmation-example, .capability-panel .panel-header { align-items: stretch; flex-direction: column; }
   .summary-card:last-child { grid-column: 1 / -1; }
   .filters { grid-template-columns: 1fr; }
   .table-wrap { display: none; }

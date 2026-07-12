@@ -2,7 +2,7 @@
 
 ## Outcome
 
-Two `STATE-05 FRONTEND_IMPLEMENTATION` increments implement provider-neutral, read-only inventory/status and history/alert slices in both the React Dashboard and the .NET 10 WPF Desktop shell. The surfaces use versioned `inventory.v1` and `history-alerts.v1` presentation semantics with deterministic local adapters; neither calls the API, Agent, database, vault, IdP, notification channel or administrative executor.
+Three `STATE-05 FRONTEND_IMPLEMENTATION` increments implement provider-neutral inventory/status, history/alert and configuration/capability slices in both the React Dashboard and the .NET 10 WPF Desktop shell. The surfaces use versioned `inventory.v1`, `history-alerts.v1` and `configuration-capabilities.v1` presentation semantics with deterministic local adapters; neither calls the API, Agent, database, vault, IdP, notification channel or administrative executor.
 
 This is an authorized implementation increment, not closure of `STATE-05`, external integration, provider activation or homologation. PostgreSQL remains implemented but unhomologated; MySQL, SQL Server and MongoDB appear only as clearly labelled planned demonstration rows and do not represent working providers.
 
@@ -39,12 +39,12 @@ This is an authorized implementation increment, not closure of `STATE-05`, exter
 |---|---|
 | .NET SDK/target | .NET SDK `10.0.301`; active projects remain `net10.0`/`net10.0-windows` |
 | Release solution build | Approved; 13 projects, 0 warnings, 0 errors |
-| .NET tests | Approved; 104 unit/model/provider tests + 5 architecture tests = 109/109 |
+| .NET tests | Approved; 109 unit/model/provider tests + 5 architecture tests = 114/114 |
 | Presentation-policy tests | Approved; summary, stale boundary and invalid policy covered in the .NET suite |
 | .NET format | Approved; no changes required after formatting and verification |
 | Dashboard clean install | Approved; 26 packages installed from lockfile |
 | Dashboard typecheck | Approved |
-| Dashboard presentation tests | Approved; 4/4 for inventory summary/stale/filter and provider-neutral timeline filtering |
+| Dashboard presentation tests | Approved; 5/5 for inventory, timeline and capability-preview semantics |
 | Dashboard production build | Approved; Vite build emitted production assets |
 | npm audit | Approved; 0 vulnerabilities |
 | WPF runtime smoke | Approved; process created the interactive `DB-Notifier — Inventário` main window and was then stopped |
@@ -62,6 +62,16 @@ Temporary screenshots were stored outside the repository and were not committed.
 - Maintenance is available as an explicit presentation scenario and canonical demonstration event.
 - Desktop history and compact alerts views were visually reviewed with temporary sanitized captures; no material clipping or horizontal overflow was observed.
 
+## Increment 3 — Configuration and capabilities
+
+- `configuration-capabilities.v1` presents only safe monitoring policy values and a protected credential label; no identifier, connection string or secret is rendered.
+- Capability state, authorization and runtime availability remain distinct and fail closed as confirmation-required, denied, unsupported, unavailable or unknown.
+- PostgreSQL Start/Stop/Restart remain factually `Unsupported`; reviewing a decision never dispatches a command or attempts a fallback.
+- Dashboard provides a responsive configuration view, permission scenario and accessible decision dialog whose execution button is permanently disabled.
+- WPF provides read-only configuration/capability grids and local decision/confirmation previews through informational dialogs only.
+- A separately labelled confirmation example demonstrates the future UX anatomy without changing the factual provider capability state.
+- Desktop and compact Dashboard configuration views were visually reviewed with temporary sanitized captures; no material clipping or horizontal overflow was observed.
+
 ## Security and phase boundaries
 
 - Demonstration data contains no connection string, credential reference, secret, token or real infrastructure identifier.
@@ -72,11 +82,10 @@ Temporary screenshots were stored outside the repository and were not committed.
 
 ## Remaining STATE-05 scope
 
-- Implement configuration flows and capability-aware administrative confirmation/denied/unsupported presentation without executing commands.
 - Extend automated accessibility checks and repeat keyboard, screen-reader, contrast, zoom and representative viewport samples.
 - Define Tray behaviour and notification-area interactions while preserving offline/stale truth.
 - Run the automatic closure audit and Human Gate only after all phase deliverables are complete.
 
 ## Recommendation
 
-Execute the third `STATE-05` increment: implement provider-neutral configuration and capability-aware administrative confirmation/denied/unsupported presentation in Dashboard and WPF, without persisting mutations, dispatching commands or enabling Start/Stop/Restart.
+Execute the fourth `STATE-05` increment: implement Tray/notification-area behaviour and strengthen automated/manual accessibility evidence across Dashboard and WPF, preserving offline/stale truth and keeping integrations and administrative execution disabled.

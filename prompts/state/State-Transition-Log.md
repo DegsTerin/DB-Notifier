@@ -322,6 +322,16 @@
 - Evidências: `docs/STATE-05-Frontend-Implementation-Report.md`; nenhuma mutation, entrega externa, comando administrativo, conexão real ou homologação.
 - Riscos/ressalvas: acknowledge/silence são somente estados demonstrativos; leitor de tela, contraste automatizado, zoom e WPF visual permanecem pendentes.
 
+## 2026-07-12 — Terceiro incremento de Frontend Implementation
+
+- Estado anterior: `STATE-05 FRONTEND_IMPLEMENTATION`
+- Estado resultante: sem transição
+- Decisão: implementar configuração provider-neutral e preview capability-aware sem persistência ou execução.
+- Escopo: contrato `configuration-capabilities.v1`, campos não secretos, estados confirmation/denied/unsupported/unavailable/unknown e confirmação demonstrativa desabilitada.
+- Gates: builds .NET 10/Vite, 114 testes .NET, 5 testes Dashboard, smoke WPF e amostras visuais desktop/compacta aprovados; Human Gate de `STATE-05` permanece pendente.
+- Evidências: `docs/STATE-05-Frontend-Implementation-Report.md`; PostgreSQL Start/Stop/Restart permanecem `Unsupported` e nenhum comando foi criado/despachado.
+- Riscos/ressalvas: confirmação é exemplo de UX, não capability suportada; acessibilidade completa, Tray e integração permanecem pendentes.
+
 ## Template de nova entrada
 
 - Data:

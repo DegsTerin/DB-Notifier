@@ -1,16 +1,19 @@
 import { useMemo, useState } from "react";
 import {
   buildDemonstrationSnapshot,
+  buildConfigurationSnapshot,
   buildTimelineAlertSnapshot,
   filterInventory,
   filterTimeline,
   type AlertItem,
+  type ActionPreview,
   type EventSeverity,
   type HealthStatus,
   type InventoryItem,
   type InventoryState,
   type TimelineEventItem,
   isStale,
+  previewAction,
   staleAfterMilliseconds,
   summarizeInventory,
 } from "./presentation";
@@ -34,11 +37,12 @@ const stateMessages: Record<Exclude<InventoryState, "ready">, { symbol: string; 
   maintenance: { symbol: "◆", title: "Janela de manutenção", message: "A visão está em manutenção planejada. Dados anteriores permanecem identificados como não atuais.", retry: false },
 };
 
-type DashboardView = "inventory" | "history" | "alerts";
+type DashboardView = "inventory" | "history" | "alerts" | "configuration";
 const viewCopy: Record<DashboardView, { eyebrow: string; title: string; description: string }> = {
   inventory: { eyebrow: "Visão da frota", title: "Inventário de instâncias", description: "Estado operacional, atualização e suporte declarado por provider." },
   history: { eyebrow: "Eventos canônicos", title: "Histórico operacional", description: "Timeline somente leitura com severidade, origem e timestamps UTC." },
   alerts: { eyebrow: "Atenção operacional", title: "Alertas", description: "Estado de alertas e regras demonstrativas sem entrega externa ou mutation." },
+  configuration: { eyebrow: "Política e capabilities", title: "Configuração", description: "Valores não secretos e decisões administrativas sem persistência ou execução." },
 };
 
 const statusPresentation: Record<HealthStatus, { symbol: string; label: string; className: string }> = {
@@ -69,13 +73,14 @@ function StatusBadge({ item, now }: { item: InventoryItem; now: Date }) {
 
 export function App() {
   const [view, setView] = useState<DashboardView>(() =>
-    window.location.hash === "#history" ? "history" : window.location.hash === "#alerts" ? "alerts" : "inventory");
+    window.location.hash === "#history" ? "history" : window.location.hash === "#alerts" ? "alerts" : window.location.hash === "#configuration" ? "configuration" : "inventory");
   const [state, setState] = useState<InventoryState>("ready");
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | HealthStatus | "stale">("all");
   const [now] = useState(() => new Date());
   const snapshot = useMemo(() => buildDemonstrationSnapshot(now), [now]);
   const timelineSnapshot = useMemo(() => buildTimelineAlertSnapshot(now), [now]);
+  const configurationSnapshot = useMemo(() => buildConfigurationSnapshot(), []);
   const summary = useMemo(() => summarizeInventory(snapshot, now), [snapshot, now]);
   const filteredItems = useMemo(
     () => filterInventory(snapshot.items, query, statusFilter, now),
@@ -104,7 +109,7 @@ export function App() {
             <button type="button" className={`nav-item ${view === "inventory" ? "active" : ""}`} aria-current={view === "inventory" ? "page" : undefined} onClick={() => navigate("inventory")}><span aria-hidden="true">▦</span> Inventário</button>
             <button type="button" className={`nav-item ${view === "history" ? "active" : ""}`} aria-current={view === "history" ? "page" : undefined} onClick={() => navigate("history")}><span aria-hidden="true">◷</span> Histórico</button>
             <button type="button" className={`nav-item ${view === "alerts" ? "active" : ""}`} aria-current={view === "alerts" ? "page" : undefined} onClick={() => navigate("alerts")}><span aria-hidden="true">△</span> Alertas</button>
-            <span className="nav-item unavailable" aria-disabled="true"><span aria-hidden="true">⚙</span> Configuração <small>Próximo incremento</small></span>
+            <button type="button" className={`nav-item ${view === "configuration" ? "active" : ""}`} aria-current={view === "configuration" ? "page" : undefined} onClick={() => navigate("configuration")}><span aria-hidden="true">⚙</span> Configuração</button>
           </nav>
           <div className="sidebar-note"><strong>STATE-05</strong><span>Interface somente leitura</span></div>
         </aside>
@@ -139,6 +144,8 @@ export function App() {
             <HistoryView snapshot={timelineSnapshot} />
           ) : state === "ready" && view === "alerts" ? (
             <AlertsView alerts={timelineSnapshot.alerts} generatedAt={timelineSnapshot.generatedAt} />
+          ) : state === "ready" && view === "configuration" ? (
+            <ConfigurationView snapshot={configurationSnapshot} />
           ) : (
             <OperationalState state={state as Exclude<InventoryState, "ready">} onRetry={() => setState("ready")} />
           )}
@@ -182,6 +189,25 @@ function AlertsView({ alerts, generatedAt }: { alerts: readonly AlertItem[]; gen
   const active = alerts.filter((alert) => alert.state === "active").length;
   const critical = alerts.filter((alert) => alert.severity === "critical" && alert.state !== "resolved").length;
   return <section aria-labelledby="alerts-title"><p className="updated-at">Atualizado em <time dateTime={generatedAt}>{formatUtc(generatedAt)} UTC</time></p><div className="summary-grid alert-summary"><article className="summary-card critical"><span><i aria-hidden="true">■</i> Críticos abertos</span><strong>{critical}</strong></article><article className="summary-card degraded"><span><i aria-hidden="true">▲</i> Ativos</span><strong>{active}</strong></article><article className="summary-card"><span><i aria-hidden="true">✓</i> Total visível</span><strong>{alerts.length}</strong></article></div><div className="inventory-panel"><div className="panel-header"><div><h2 id="alerts-title">Alertas demonstrativos</h2><p>Reconhecer e silenciar não estão habilitados neste incremento.</p></div><span className="read-only-label">Somente leitura</span></div><div className="alert-list">{alerts.map((alert) => <article className="alert-card" key={alert.alertId}><div className="alert-card-heading"><SeverityBadge severity={alert.severity} /><span className="alert-state">{alert.state === "active" ? "Ativo" : alert.state === "acknowledged" ? "Reconhecido" : alert.state === "silenced" ? "Silenciado" : "Resolvido"}</span></div><h3>{alert.ruleName}</h3><p>{alert.summary}</p><dl><div><dt>Instância</dt><dd>{alert.instanceName}</dd></div><div><dt>Provider</dt><dd><code>{alert.providerType}</code></dd></div><div><dt>Atualizado</dt><dd><time dateTime={alert.updatedAt}>{formatUtc(alert.updatedAt)} UTC</time></dd></div></dl></article>)}</div></div></section>;
+}
+
+const previewCopy: Record<ActionPreview, { symbol: string; title: string; message: string }> = {
+  confirmationRequired: { symbol: "?", title: "Confirmação obrigatória", message: "Uma operação suportada exigiria motivo, expiração e confirmação final. A execução está desabilitada nesta demonstração." },
+  denied: { symbol: "⊘", title: "Permissão negada", message: "A identidade demonstrativa não possui a permissão específica no escopo da instância." },
+  unsupported: { symbol: "—", title: "Operação não suportada", message: "O provider não declara esta capability. Nenhuma tentativa ou fallback foi realizado." },
+  unavailable: { symbol: "↯", title: "Operação indisponível", message: "A capability existe, mas seus pré-requisitos não estão disponíveis neste momento." },
+  unknown: { symbol: "?", title: "Capability desconhecida", message: "O estado não é comprovado e falha fechado, sem apresentar a ação como disponível." },
+};
+
+function ConfigurationView({ snapshot }: { snapshot: ReturnType<typeof buildConfigurationSnapshot> }) {
+  const [authorized, setAuthorized] = useState(true);
+  const [preview, setPreview] = useState<ActionPreview | null>(null);
+  const openPreview = (capabilityId: string) => setPreview(previewAction(snapshot, capabilityId, authorized));
+  return <section className="configuration-layout" aria-labelledby="configuration-title">
+    <div className="inventory-panel configuration-panel"><div className="panel-header"><div><h2 id="configuration-title">{snapshot.instanceName}</h2><p><code>{snapshot.providerType}</code> · configuration-capabilities.v1</p></div><span className="read-only-label">Não persistido</span></div><div className="configuration-fields">{snapshot.fields.map((field) => <article key={field.key}><span>{field.label}</span><strong>{field.safeValue}</strong><p>{field.description}</p></article>)}</div></div>
+    <div className="inventory-panel capability-panel"><div className="panel-header"><div><h2>Controle administrativo</h2><p>Capability, autorização e disponibilidade são avaliadas separadamente.</p></div><label className="permission-toggle"><span>Cenário de permissão</span><select value={authorized ? "authorized" : "denied"} onChange={(event) => setAuthorized(event.target.value === "authorized")}><option value="authorized">Autorizado</option><option value="denied">Negado</option></select></label></div><div className="capability-list">{snapshot.capabilities.map((capability) => <article key={capability.capabilityId}><div><h3>{capability.displayName}</h3><code>{capability.capabilityId}</code></div><span className={`capability-state ${capability.state}`}>{capability.state === "unsupported" ? "— Não suportado" : capability.state}</span><p>{capability.reasonCode}</p><button type="button" onClick={() => openPreview(capability.capabilityId)}>Revisar decisão</button></article>)}</div><div className="confirmation-example"><div><strong>Exemplo de confirmação segura</strong><p>Prévia de UX para uma capability futura suportada; não altera o estado factual acima.</p></div><button type="button" onClick={() => setPreview("confirmationRequired")}>Visualizar confirmação</button></div></div>
+    {preview && <div className="dialog-backdrop"><section className="confirmation-dialog" role="dialog" aria-modal="true" aria-labelledby="preview-title"><span className="state-symbol" aria-hidden="true">{previewCopy[preview].symbol}</span><h2 id="preview-title">{previewCopy[preview].title}</h2><p>{previewCopy[preview].message}</p><div className="dialog-actions"><button type="button" onClick={() => setPreview(null)}>Fechar</button><button type="button" disabled>Executar — desabilitado</button></div></section></div>}
+  </section>;
 }
 
 function FilteredEmpty({ message }: { message: string }) {

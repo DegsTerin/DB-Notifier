@@ -4,6 +4,8 @@ export const staleAfterMilliseconds = 5 * 60 * 1000;
 export type InventoryState = "ready" | "loading" | "empty" | "offline" | "error" | "denied" | "maintenance";
 export type EventSeverity = "information" | "warning" | "critical";
 export type AlertState = "active" | "acknowledged" | "silenced" | "resolved";
+export type CapabilityState = "supported" | "unsupported" | "unavailable" | "unknown";
+export type ActionPreview = "confirmationRequired" | "denied" | "unsupported" | "unavailable" | "unknown";
 export type HealthStatus =
   | "healthy"
   | "degraded"
@@ -54,6 +56,12 @@ export interface AlertItem {
 export interface TimelineAlertSnapshot {
   schemaVersion: "history-alerts.v1"; generatedAt: string;
   events: readonly TimelineEventItem[]; alerts: readonly AlertItem[];
+}
+
+export interface ConfigurationCapabilitySnapshot {
+  schemaVersion: "configuration-capabilities.v1"; instanceId: string; instanceName: string; providerType: string;
+  fields: readonly { key: string; label: string; safeValue: string; description: string }[];
+  capabilities: readonly { capabilityId: string; displayName: string; state: CapabilityState; reasonCode: string; requiresConfirmation: boolean }[];
 }
 
 export function isStale(item: InventoryItem, now: Date): boolean {
@@ -159,4 +167,33 @@ export function filterTimeline(
     (severity === "all" || event.severity === severity) &&
     (normalized.length === 0 || [event.instanceName, event.providerType, event.eventType, event.summary]
       .join(" ").toLocaleLowerCase("pt-BR").includes(normalized)));
+}
+
+export function buildConfigurationSnapshot(): ConfigurationCapabilitySnapshot {
+  return {
+    schemaVersion: "configuration-capabilities.v1",
+    instanceId: "demo-001", instanceName: "Financeiro principal", providerType: "postgresql",
+    fields: [
+      { key: "monitoring.interval", label: "Intervalo de monitoramento", safeValue: "60 segundos", description: "Política demonstrativa; não persistida." },
+      { key: "monitoring.timeout", label: "Timeout", safeValue: "5 segundos", description: "Limite demonstrativo do probe." },
+      { key: "monitoring.retry", label: "Tentativas", safeValue: "3", description: "Retry limitado com backoff." },
+      { key: "credential.reference", label: "Credencial", safeValue: "Referência protegida", description: "O identificador e o segredo não são exibidos." },
+    ],
+    capabilities: [
+      { capabilityId: "service.start", displayName: "Start", state: "unsupported", reasonCode: "provider.control_unsupported", requiresConfirmation: true },
+      { capabilityId: "service.stop", displayName: "Stop", state: "unsupported", reasonCode: "provider.control_unsupported", requiresConfirmation: true },
+      { capabilityId: "service.restart", displayName: "Restart", state: "unsupported", reasonCode: "provider.control_unsupported", requiresConfirmation: true },
+    ],
+  };
+}
+
+export function previewAction(
+  snapshot: ConfigurationCapabilitySnapshot, capabilityId: string, authorized: boolean,
+): ActionPreview {
+  const capability = snapshot.capabilities.find((item) => item.capabilityId === capabilityId);
+  if (!capability) return "unknown";
+  if (!authorized) return "denied";
+  if (capability.state === "supported" && capability.requiresConfirmation) return "confirmationRequired";
+  if (capability.state === "unsupported" || capability.state === "unavailable") return capability.state;
+  return "unknown";
 }

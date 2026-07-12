@@ -3,9 +3,11 @@ import test from "node:test";
 import {
   buildDemonstrationSnapshot,
   buildTimelineAlertSnapshot,
+  buildConfigurationSnapshot,
   filterInventory,
   filterTimeline,
   isStale,
+  previewAction,
   staleAfterMilliseconds,
   summarizeInventory,
 } from "../src/presentation.ts";
@@ -17,6 +19,13 @@ test("summary does not report stale data as freshly healthy", () => {
   const summary = summarizeInventory(snapshot, now);
 
   assert.deepEqual(summary, { total: 4, healthy: 1, degraded: 1, attentionRequired: 1, stale: 1 });
+});
+
+test("administrative preview distinguishes denied, unsupported and unknown", () => {
+  const snapshot = buildConfigurationSnapshot();
+  assert.equal(previewAction(snapshot, "service.start", true), "unsupported");
+  assert.equal(previewAction(snapshot, "service.start", false), "denied");
+  assert.equal(previewAction(snapshot, "missing", true), "unknown");
 });
 
 test("timeline filters severity without provider-specific branches", () => {

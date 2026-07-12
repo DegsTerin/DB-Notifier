@@ -74,6 +74,32 @@ public sealed class InventoryPresentationTests
         Assert.True(item.IsStale(Now.AddTicks(1), TimeSpan.FromMinutes(5)));
     }
 
+    [Theory]
+    [InlineData("service.start", true, ActionPreviewDisposition.ConfirmationRequired)]
+    [InlineData("service.start", false, ActionPreviewDisposition.Denied)]
+    [InlineData("service.stop", true, ActionPreviewDisposition.Unsupported)]
+    [InlineData("service.restart", true, ActionPreviewDisposition.Unavailable)]
+    [InlineData("missing", true, ActionPreviewDisposition.Unknown)]
+    public void CapabilityPreviewFailsClosedWithoutExecuting(
+        string capabilityId,
+        bool authorized,
+        ActionPreviewDisposition expected)
+    {
+        ConfigurationCapabilitySnapshot snapshot = new(
+            ConfigurationCapabilitySnapshot.CurrentSchemaVersion,
+            Guid.NewGuid(),
+            "Fixture",
+            "sample-provider",
+            [],
+            [
+                new("service.start", "Start", CapabilityPresentationState.Supported, "fixture.confirm", true),
+                new("service.stop", "Stop", CapabilityPresentationState.Unsupported, "provider.unsupported", true),
+                new("service.restart", "Restart", CapabilityPresentationState.Unavailable, "agent.offline", true),
+            ]);
+
+        Assert.Equal(expected, snapshot.Preview(capabilityId, authorized));
+    }
+
     private static InstanceInventoryItem CreateItem(HealthStatus status, DateTimeOffset receivedAt) =>
         new(
             Guid.NewGuid(),
