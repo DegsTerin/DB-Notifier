@@ -48,9 +48,9 @@ Aceite: núcleo independente de engine, falhas isoladas, autorização server-si
 
 Objetivo: implementar Tray/Desktop e Dashboard.
 
-Entregáveis: inventário, status, histórico, alertas, configuração e ações autorizadas; estados vazio/loading/offline/error/stale/denied.
+Entregáveis: inventário, status, histórico, alertas, configuração, ações autorizadas e Design System oficial com paridade React/WPF; estados vazio/loading/offline/error/stale/denied.
 
-Aceite: acessibilidade, responsividade, teclado, contraste, timestamp de dados e ausência de dependência exclusiva de cor.
+Aceite: acessibilidade WCAG AA, responsividade, teclado, contraste, temas Light/Dark/System, persistência, paridade React/WPF, timestamp de dados e ausência de dependência exclusiva de cor.
 
 ## STATE-06 INTEGRATION
 

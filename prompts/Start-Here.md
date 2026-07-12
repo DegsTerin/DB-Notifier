@@ -23,6 +23,7 @@ Este é o ponto de entrada obrigatório para trabalhos orientados pelo corpus do
 | Evidências, auditoria, DoD e Human Gate | `governance/Quality-Gates.md` |
 | Credenciais, autenticação, RBAC e auditoria | `governance/Security-And-Access.md` |
 | Auditoria completa, ajustes, UI/UX e reestruturação | `operations/Operational-Playbooks.md` |
+| Design System, temas, tokens e componentes React/WPF | `../docs/design/DB-Notifier-Design-System.md` |
 | Situação atual | `state/Current-State.md` |
 | Histórico de transições | `state/State-Transition-Log.md` |
 | Handoff, relatórios, auditoria e ADR | `templates/Templates.md` |
@@ -51,6 +52,7 @@ Conflitos que ampliem materialmente o escopo, exijam ação externa irreversíve
 - Separar credenciais de monitoramento das credenciais administrativas.
 - Preservar mudanças preexistentes e limitar alterações ao escopo autorizado.
 - Documentar código e configuração exclusivamente em inglês britânico (`en-GB`), conforme `../docs/Code-Documentation-Standards.md`, mantendo comentários concisos e sincronizados.
+- Aplicar `../docs/design/DB-Notifier-Design-System.md` a todo frontend novo ou alterado; não criar temas, tokens ou componentes paralelos fora do contrato oficial.
 - Consultar o estado antes de executar uma fase ou playbook.
 - Atualizar estado e histórico somente quando houver mudança factual.
 

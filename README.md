@@ -4,13 +4,15 @@ DB-Notifier is the successor to PgNotifier, which was conceptually inspired by M
 
 Agents are designed to monitor local, remote, datacenter, hybrid, and cloud databases from Windows, Linux, containers, or cloud workloads. Monitoring credentials, database administration credentials, OS service identities, and cloud control-plane identities remain separate and vault-backed.
 
-The workspace is currently in `STATE-05 FRONTEND_IMPLEMENTATION`. Four frontend increments provide provider-neutral inventory, history/alerts, configuration/capabilities and a safe Windows Tray in React/.NET 10 WPF. Mobile-overflow and modal-focus blockers are remediated and the automatic closure re-audit is approved; human screen-reader/zoom samples and the Human Gate remain pending before `STATE-06`. The Tray controls only the DB-Notifier window, and all views remain demonstration-only, with no external integration, mutation, database/service control or provider homologation.
+The workspace is currently in `STATE-05 FRONTEND_IMPLEMENTATION`. Four frontend increments provide provider-neutral inventory, history/alerts, configuration/capabilities and a safe Windows Tray in React/.NET 10 WPF. Mobile-overflow and modal-focus blockers are remediated; that re-audit remains valid evidence for the existing UI, while the newly approved Design System implementation and a fresh theme-aware re-audit are now required before the Human Gate and `STATE-06`. The Tray controls only the DB-Notifier window, and all views remain demonstration-only, with no external integration, mutation, database/service control or provider homologation.
 
 ## Start here
 
 All work governed by this repository starts at [`prompts/Start-Here.md`](prompts/Start-Here.md). It defines the required reading order, current state, authority, lifecycle, quality gates, and safety limits.
 
 Code and configuration documentation follows [`docs/Code-Documentation-Standards.md`](docs/Code-Documentation-Standards.md): comments use British English, document intent and remain synchronised with implementation. Run `npm run comments:verify` from `src/DBNotifier.Dashboard.Web` to check the project-wide module inventory.
+
+All frontend work follows the official [`DB-Notifier Design System`](docs/design/DB-Notifier-Design-System.md): a restrained modern enterprise identity, shared React/WPF semantic tokens, WCAG 2.2 AA and Light, Dark and System theme contracts. The specification is approved; implementation remains in `STATE-05` before its Human Gate.
 
 The discovery outputs for the transformation are:
 

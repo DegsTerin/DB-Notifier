@@ -34,11 +34,13 @@ Quando usar: pedido explícito de revisão ponta a ponta.
 
 ## Auditoria UI/UX
 
+- Tratar `docs/design/DB-Notifier-Design-System.md` como fonte normativa de tokens, temas, componentes e identidade visual.
 - Cobrir vazio, loading, offline, erro, stale, manutenção e permissão negada.
 - Verificar muitas instâncias, latência/status sem depender apenas de cor.
 - Percorrer alerta, configuração, logs e comando administrativo.
 - Testar Desktop Windows e web em viewports representativos.
 - Validar teclado, foco, leitor de tela, contraste, escala e overflow.
+- Validar Light, Dark e System, persistência, troca sem perda de estado e paridade semântica React/WPF.
 - Produzir evidência visual apenas quando materialmente útil.
 
 ## Sistematização

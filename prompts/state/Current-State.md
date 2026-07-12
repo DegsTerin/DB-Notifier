@@ -108,9 +108,11 @@ O projeto está em `STATE-05 FRONTEND_IMPLEMENTATION`. Quatro incrementos implem
 - Auditoria automática de encerramento de `STATE-05` executada e `REPROVADA`: overflow horizontal global em 390/320 px e diálogo modal sem entrada/contenção/restauração de foco ou fechamento por Escape bloqueiam o Human Gate.
 - Bloqueadores `S05-AUD-001` e `S05-AUD-002` remediados: viewports/rotas sem overflow global e diálogo nativo com foco inicial, Tab/Shift+Tab contidos, Escape e restauração ao acionador.
 - Reauditoria automática de `STATE-05` `APROVADA` com 125 testes .NET, 8 testes Dashboard, 10 Pester, builds/format/bundle/dependências e amostras Chrome/WPF aprovadas; Human Gate permanece pendente.
+- Design System `1.0.0` formalizado como especificação oficial: identidade empresarial moderna/contida, tokens canônicos, componentes, WCAG 2.2 AA, temas Light/Dark/System, persistência e paridade React/WPF.
 
 ## Pendente
 
+- Implementar o Design System oficial em React/WPF, substituir valores visuais locais por tokens, adicionar ThemeSelector/persistência/System e repetir a reauditoria automática.
 - Após a reauditoria automática aprovada, completar amostras humanas com leitor de tela e zoom nativo conforme inventário do relatório.
 - Manter adapters de apresentação determinísticos até `STATE-06`; não integrar silenciosamente banco, IdP, certificado, canal ou provider real durante a fase de UI.
 - Representar capabilities e suporte de modo factual: ação ausente/negada/unsupported não pode aparecer como executável ou homologada.
@@ -128,6 +130,6 @@ O projeto está em `STATE-05 FRONTEND_IMPLEMENTATION`. Quatro incrementos implem
 
 ## Próximo gate
 
-Executar as amostras humanas de leitor de tela e zoom nativo descritas em `docs/STATE-05-Frontend-Implementation-Reaudit.md` e submeter a reauditoria aprovada ao Human Gate. `STATE-06` e o laboratório multi-banco permanecem bloqueados até decisão humana explícita.
+Implementar `docs/design/DB-Notifier-Design-System.md` em React/WPF e reexecutar os gates Light/Dark/System antes das amostras humanas e do Human Gate. `STATE-06` e o laboratório multi-banco permanecem bloqueados.
 
 Este documento descreve somente o presente. Histórico pertence a `State-Transition-Log.md`.

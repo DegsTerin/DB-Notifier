@@ -8,6 +8,7 @@ Current discovery and migration artifacts:
 - [`STATE-00-Discovery-Report.md`](STATE-00-Discovery-Report.md): checks, findings, limitations, and accepted Human Gate.
 - [`Development.md`](Development.md): `STATE-01` scaffold, tool baseline, checks, and onboarding.
 - [`Code-Documentation-Standards.md`](Code-Documentation-Standards.md): project-wide British English documentation policy, review requirements, automated gate, and narrow format exceptions.
+- [`design/DB-Notifier-Design-System.md`](design/DB-Notifier-Design-System.md): official modern enterprise visual language, shared tokens, Light/Dark/System architecture, component contracts and STATE-05 re-audit criteria.
 - [`STATE-01-Setup-Report.md`](STATE-01-Setup-Report.md): approved setup evidence, dependency remediation, compatibility migration, and Human Gate.
 - [`architecture/README.md`](architecture/README.md): accepted `STATE-02` architecture pack and decision index.
 - [`STATE-02-Architecture-Report.md`](STATE-02-Architecture-Report.md): architecture audit, material decisions, walkthrough, and accepted Human Gate.
@@ -18,7 +19,7 @@ Current discovery and migration artifacts:
 - [`STATE-04-Backend-Implementation-Reaudit.md`](STATE-04-Backend-Implementation-Reaudit.md): approved remediation re-audit, accepted Human Gate, reservations, and transition evidence.
 - [`STATE-05-Frontend-Implementation-Report.md`](STATE-05-Frontend-Implementation-Report.md): Dashboard/WPF inventory-status increment, presentation semantics, accessibility evidence, checks, and remaining UI scope.
 - [`STATE-05-Frontend-Implementation-Audit.md`](STATE-05-Frontend-Implementation-Audit.md): rejected automatic closure audit, mobile/modal blockers, automated evidence and pending human screen-reader inventory.
-- [`STATE-05-Frontend-Implementation-Reaudit.md`](STATE-05-Frontend-Implementation-Reaudit.md): approved blocker remediation, repeated automatic evidence and remaining Human Gate samples.
+- [`STATE-05-Frontend-Implementation-Reaudit.md`](STATE-05-Frontend-Implementation-Reaudit.md): approved mobile/modal remediation evidence, now preceding the expanded Design System implementation and theme-aware re-audit.
 
 The governing instruction corpus starts at [`../prompts/Start-Here.md`](../prompts/Start-Here.md).
 

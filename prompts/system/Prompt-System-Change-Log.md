@@ -2,7 +2,7 @@
 
 ## Versão atual
 
-- Versão: `3.22.0`
+- Versão: `3.23.0`
 - Data: 2026-07-12
 - Status: corpus DB-Notifier consolidado
 - Escopo: 13 arquivos ativos
@@ -16,6 +16,12 @@ A versão do corpus é independente da versão do software.
 - PATCH: clareza, correção ou referência sem mudança de autoridade.
 
 Toda alteração atualiza este arquivo e, quando necessário, `../Start-Here.md`.
+
+## 3.23.0 — 2026-07-12
+
+- Design System oficial `1.0.0` formalizado antes do Human Gate com identidade moderna, limpa, profissional e sem estética sci-fi/neon.
+- Arquitetura canônica de tokens e temas Light/Dark/System, persistência, componentes, WCAG 2.2 AA e paridade React/WPF especificadas.
+- Implementação e nova reauditoria adicionadas ao escopo pendente de `STATE-05`; nenhuma transição ou integração externa autorizada.
 
 ## 3.22.0 — 2026-07-12
 

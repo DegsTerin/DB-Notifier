@@ -100,4 +100,4 @@ Temporary screenshots were stored outside the repository and were not committed.
 
 ## Recommendation
 
-Perform the human screen-reader/native-zoom samples listed in `STATE-05-Frontend-Implementation-Reaudit.md` and present the approved automatic re-audit for the Human Gate. Do not transition to `STATE-06` before explicit Human Gate approval.
+Implement the official Design System, repeat the Light/Dark/System automatic re-audit, then perform the human screen-reader/native-zoom/theme samples. Do not transition to `STATE-06` before explicit Human Gate approval.

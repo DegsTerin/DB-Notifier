@@ -362,6 +362,16 @@
 - Evidências: `docs/STATE-05-Frontend-Implementation-Reaudit.md`; 390 px `375/375`, 320 px `305/305`, modal contido e foco restaurado.
 - Riscos/ressalvas: leitor de tela e zoom nativo permanecem amostras humanas; nenhuma integração, execução administrativa ou homologação foi autorizada.
 
+## 2026-07-12 — Formalização do Design System
+
+- Estado anterior: `STATE-05 FRONTEND_IMPLEMENTATION`
+- Estado resultante: sem transição
+- Decisão: formalizar antes do Human Gate a identidade moderna empresarial e os temas Light/Dark/System com paridade React/WPF.
+- Escopo: arquitetura de tokens, paletas semânticas, tipografia, espaçamento, elevação, motion, componentes, ícones, responsividade, WCAG 2.2 AA, persistência, validação e governança.
+- Gates: especificação oficial `1.0.0` com valores contrastados e critérios objetivos de implementação/reauditoria; nenhuma alteração visual funcional neste incremento documental.
+- Evidências: `docs/design/DB-Notifier-Design-System.md`.
+- Riscos/ressalvas: implementação, testes de tema e nova reauditoria ainda pendentes; Human Gate, `STATE-06` e laboratório multi-banco permanecem bloqueados.
+
 ## Template de nova entrada
 
 - Data:

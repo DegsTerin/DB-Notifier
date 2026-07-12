@@ -6,6 +6,8 @@
 
 `STATE-05 FRONTEND_IMPLEMENTATION` remains active. This automatic approval does not approve the Human Gate, start `STATE-06 INTEGRATION`, activate the multi-database laboratory or homologate any provider.
 
+After this re-audit, the user expanded `STATE-05` to require the official DB-Notifier Design System before the Human Gate. This report remains approved evidence for the mobile/modal remediation, but it is no longer the final closure audit. Light/Dark/System implementation and a new theme-aware re-audit are required.
+
 ## Remediation outcome
 
 ### S05-AUD-001 — Mobile overflow — Resolved
@@ -73,4 +75,4 @@ Record assistive technology/browser versions, Windows scaling, path, announcemen
 
 ## Recommendation
 
-Perform the listed human samples and present this re-audit for the `STATE-05` Human Gate. Do not transition to `STATE-06` or start the multi-database laboratory before explicit Human Gate approval.
+Implement `design/DB-Notifier-Design-System.md`, repeat the complete automatic audit across Light/Dark/System, then perform the listed human samples and present the new evidence for the `STATE-05` Human Gate. Do not transition to `STATE-06` or start the multi-database laboratory before explicit Human Gate approval.
