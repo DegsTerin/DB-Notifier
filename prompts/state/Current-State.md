@@ -6,7 +6,7 @@
 
 ## Situação factual
 
-O Human Gate de `STATE-01` aprovou o scaffold, os checks e a migração canônica de nomes. O workspace entrou em `STATE-02 ARCHITECTURE`; o monitor PowerShell de compatibilidade continua sendo o único monitor funcional enquanto ADRs, contratos, threat model, protocolo e matriz de capacidades são definidos.
+O Human Gate de `STATE-01` aprovou o scaffold, os checks e a migração canônica de nomes. Em `STATE-02 ARCHITECTURE`, o pacote de ADRs, contratos, threat model, protocolo, matriz PostgreSQL e guardrails AIOps foi proposto e aprovado com ressalvas na auditoria automática; o Human Gate permanece pendente. O monitor PowerShell de compatibilidade continua sendo o único monitor funcional.
 
 ## Produto atual
 
@@ -42,14 +42,15 @@ O Human Gate de `STATE-01` aprovou o scaffold, os checks e a migração canônic
 - Entradas PgNotifier antigas preservadas como shims documentados e cobertas por testes de compatibilidade.
 - `build/build.ps1` criado com validação de bundle e sem instalação automática de dependências.
 - Human Gate de `STATE-01` aprovado em 2026-07-11.
+- Pacote arquitetural `docs/architecture/` com seis ADRs propostos e limites de componentes/falhas.
+- Contratos canônicos de health, eventos, erros, capabilities, comandos, heartbeat e credenciais.
+- Protocolo Agent/API v1 conceitual com operação offline, idempotência, reconciliação e compatibilidade.
+- Threat model, matriz de capacidades PostgreSQL e guardrails de dados/risco/evals para MOD-12.
 
 ## Pendente
 
-- ADRs de stack/migração, cofre, identidade de Agent, protocolo, persistência/retenção e atualização/assinatura.
-- Contratos canônicos de health, eventos, erros, capabilities e compatibilidade Agent/API.
-- Threat model das trust boundaries e controles de SSRF, command injection, impersonation, replay e secrets.
-- Matriz de capacidades PostgreSQL e política para providers futuros.
-- Arquitetura de dados, avaliações e políticas para MOD-12 AIOPS_AI.
+- Human Gate de `STATE-02` para aceitar/rejeitar os ADRs propostos.
+- Walkthrough humano de ameaças e cenários standalone/on-premises/híbridos.
 - Implementação e homologação de qualquer provider além do comportamento PostgreSQL legado.
 
 ## Riscos
@@ -63,6 +64,6 @@ O Human Gate de `STATE-01` aprovou o scaffold, os checks e a migração canônic
 
 ## Próximo gate
 
-Concluir os entregáveis arquiteturais de `STATE-02`, executar a auditoria automática e submeter o walkthrough de ameaças/cenários híbridos ao Human Gate antes de `STATE-03 DATABASE_MODELING`.
+Validar o pacote arquitetural, revisar as decisões materiais de `docs/STATE-02-Architecture-Report.md` e registrar o Human Gate antes de `STATE-03 DATABASE_MODELING`.
 
 Este documento descreve somente o presente. Histórico pertence a `State-Transition-Log.md`.

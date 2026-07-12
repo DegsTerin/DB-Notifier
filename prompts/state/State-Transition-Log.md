@@ -103,6 +103,16 @@
 - Aprovador: Bruno, 2026-07-11.
 - Estado resultante: `STATE-02 ARCHITECTURE`.
 
+## 2026-07-11 — Pacote arquitetural proposto
+
+- Estado anterior: `STATE-02 ARCHITECTURE`
+- Estado resultante: sem transição
+- Decisão: propor seis ADRs e contratos transversais para revisão/auditoria antes do Human Gate.
+- Escopo: limites, stack/migração, secrets/Agent identity, protocolo, persistência/retenção, packaging/update, provider capabilities, threat model, matriz PostgreSQL e AIOps.
+- Gates: decisão humana ainda `PENDENTE`; ADRs permanecem `proposed`.
+- Evidências: `docs/architecture/` e `docs/STATE-02-Architecture-Report.md`.
+- Riscos/ressalvas: proposta retargeta produto futuro para .NET 10; WiX, mTLS/vault, EF/migrations e retenção ainda não foram implementados/homologados.
+
 ## Template de nova entrada
 
 - Data:

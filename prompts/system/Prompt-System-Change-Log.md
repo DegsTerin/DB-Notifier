@@ -2,7 +2,7 @@
 
 ## Versão atual
 
-- Versão: `3.1.6`
+- Versão: `3.2.0`
 - Data: 2026-07-11
 - Status: corpus DB-Notifier consolidado
 - Escopo: 13 arquivos ativos
@@ -16,6 +16,13 @@ A versão do corpus é independente da versão do software.
 - PATCH: clareza, correção ou referência sem mudança de autoridade.
 
 Toda alteração atualiza este arquivo e, quando necessário, `../Start-Here.md`.
+
+## 3.2.0 — 2026-07-11
+
+- Proposta do pacote arquitetural completo de `STATE-02` com seis ADRs.
+- Definição de contratos canônicos, protocolo Agent/API, threat model e matriz PostgreSQL.
+- Inclusão de guardrails de dados, risco, avaliações e promoção de modos para MOD-12 AIOPS_AI.
+- Atualização factual do estado sem pré-aprovar ADRs nem avançar para modelagem.
 
 ## 3.1.6 — 2026-07-11
 

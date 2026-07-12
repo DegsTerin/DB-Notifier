@@ -2,7 +2,7 @@
 
 ## Status
 
-Baseline proposta. Deve ser confirmada em `STATE-02 ARCHITECTURE` por ADRs antes de ser tratada como arquitetura implementada.
+Baseline refinada em `STATE-02 ARCHITECTURE`. Os ADRs e contratos foram propostos em `../../docs/architecture/` e só podem ser tratados como aceitos após o Human Gate; nenhum deles representa arquitetura implementada.
 
 ## Princípios
 
@@ -137,11 +137,14 @@ Regras determinísticas, análise estatística, correlação, base de conhecimen
 - Observabilidade inclui logs estruturados, métricas, traces e health checks reais.
 - Rollback separa binário, configuração, schema interno e protocolo.
 
-## ADRs pendentes
+## Pacote arquitetural proposto
 
-- Stack definitiva e estratégia PowerShell → .NET.
-- Cofre por plataforma e modelo de provisionamento do Agent.
-- Formato e compatibilidade do protocolo Agent/API.
-- ORM/migrations e retenção de telemetria.
-- Atualização e assinatura de Agent/Desktop.
-- Matriz de capacidades/licenças por engine.
+- ADR-0001: stack de runtime e migração incremental, com decisão explícita .NET 8 scaffold → .NET 10 product target.
+- ADR-0002: cofre, referências opacas, identidade mTLS e provisionamento de Agent.
+- ADR-0003: protocolo HTTP durável, SignalR não autoritativo e compatibilidade.
+- ADR-0004: EF Core, SQLite local, PostgreSQL central, migrations separadas e retenção.
+- ADR-0005: packaging, assinatura, atualização em anéis e rollback.
+- ADR-0006: capabilities de provider e controle administrativo tipado.
+- Contratos canônicos, protocolo conceitual, threat model, matriz PostgreSQL e guardrails AIOps/IA.
+
+Índice: `../../docs/architecture/README.md`. Status: `proposed` até decisão humana registrada.
