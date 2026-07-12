@@ -1,3 +1,4 @@
+// Module purpose: Implements Program for isolated, fail-closed legacy configuration migration.
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using DBNotifier.ConfigMigrator;

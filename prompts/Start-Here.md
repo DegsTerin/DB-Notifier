@@ -50,6 +50,7 @@ Conflitos que ampliem materialmente o escopo, exijam ação externa irreversíve
 - Não executar deploy, migration remota, instalação, publicação ou controle de banco real sem autorização específica.
 - Separar credenciais de monitoramento das credenciais administrativas.
 - Preservar mudanças preexistentes e limitar alterações ao escopo autorizado.
+- Documentar código e configuração exclusivamente em inglês britânico (`en-GB`), conforme `../docs/Code-Documentation-Standards.md`, mantendo comentários concisos e sincronizados.
 - Consultar o estado antes de executar uma fase ou playbook.
 - Atualizar estado e histórico somente quando houver mudança factual.
 

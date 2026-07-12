@@ -1,3 +1,4 @@
+// Module purpose: Implements Postgre Sql Database Provider inside the isolated PostgreSQL provider; the core remains engine-neutral.
 using System.Globalization;
 using DBNotifier.Domain;
 using DBNotifier.Provider.Abstractions;

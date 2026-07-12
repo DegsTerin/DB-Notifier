@@ -1,3 +1,4 @@
+// Module purpose: Implements Server Maintenance Store for central PostgreSQL persistence with transactional and authorisation boundaries.
 using DBNotifier.Application.Operations;
 using Microsoft.EntityFrameworkCore;
 

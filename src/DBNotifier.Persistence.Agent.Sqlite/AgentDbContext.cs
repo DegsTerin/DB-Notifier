@@ -1,3 +1,4 @@
+// Module purpose: Implements Agent Db Context for the Agent-local SQLite boundary without exposing monitored database secrets.
 using DBNotifier.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 

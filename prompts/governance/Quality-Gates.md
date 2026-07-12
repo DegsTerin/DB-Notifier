@@ -29,9 +29,10 @@ Banner de sucesso, compilação isolada ou ausência de erro aparente não prova
 2. Conferir diff e entregáveis esperados.
 3. Descobrir e executar comandos reais do repositório.
 4. Validar build, testes, análise estática, secrets e dependências aplicáveis.
-5. Verificar providers, separação monitor/admin e comportamento sem conectividade.
-6. Classificar cada gate como APROVADO, REPROVADO, BLOQUEADO ou NÃO APLICÁVEL.
-7. Registrar achados com severidade, impacto, reprodução e correção recomendada.
+5. Executar `npm run comments:verify` no Dashboard e revisar documentação de código alterado em inglês britânico.
+6. Verificar providers, separação monitor/admin e comportamento sem conectividade.
+7. Classificar cada gate como APROVADO, REPROVADO, BLOQUEADO ou NÃO APLICÁVEL.
+8. Registrar achados com severidade, impacto, reprodução e correção recomendada.
 
 Auditoria não corrige silenciosamente falhas, não inventa evidência e não promove estado.
 

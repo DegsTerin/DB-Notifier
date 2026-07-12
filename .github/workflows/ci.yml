@@ -1,3 +1,4 @@
+# Module purpose: Runs the continuous-integration gates for builds, tests, dependencies and documentation.
 name: CI
 
 on:
@@ -42,5 +43,6 @@ jobs:
           cache-dependency-path: src/DBNotifier.Dashboard.Web/package-lock.json
       - run: npm ci
       - run: npm run check
+      - run: npm run comments:verify
       - run: npm run test
       - run: npm run build

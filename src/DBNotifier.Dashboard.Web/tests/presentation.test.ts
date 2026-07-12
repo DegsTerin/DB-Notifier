@@ -1,3 +1,4 @@
+/** Module purpose: Verifies presentation test behaviour and protects the documented project contract. */
 import assert from "node:assert/strict";
 import test from "node:test";
 import { readFileSync } from "node:fs";

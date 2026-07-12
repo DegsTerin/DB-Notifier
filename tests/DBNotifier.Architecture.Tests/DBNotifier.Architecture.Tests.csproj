@@ -1,3 +1,4 @@
+<!-- Module purpose: Verifies DBNotifier Architecture Tests behaviour and protects the documented project contract. -->
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <IsPackable>false</IsPackable>

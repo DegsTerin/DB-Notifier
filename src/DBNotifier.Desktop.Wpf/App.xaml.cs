@@ -1,3 +1,4 @@
+// Module purpose: Implements App xaml for the Windows desktop shell without controlling database services implicitly.
 using System.Windows;
 
 namespace DBNotifier.Desktop.Wpf;

@@ -1,1 +1,2 @@
+<!-- Module purpose: Defines .NET 10 build settings and dependencies for DBNotifier Domain. -->
 <Project Sdk="Microsoft.NET.Sdk" />

@@ -1,3 +1,4 @@
+// Module purpose: Verifies Authorized Operations Tests behaviour and protects the documented project contract.
 using System.Security.Claims;
 using System.Text.Json;
 using DBNotifier.Application.Access;

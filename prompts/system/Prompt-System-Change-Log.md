@@ -2,7 +2,7 @@
 
 ## Versão atual
 
-- Versão: `3.19.0`
+- Versão: `3.20.0`
 - Data: 2026-07-12
 - Status: corpus DB-Notifier consolidado
 - Escopo: 13 arquivos ativos
@@ -16,6 +16,12 @@ A versão do corpus é independente da versão do software.
 - PATCH: clareza, correção ou referência sem mudança de autoridade.
 
 Toda alteração atualiza este arquivo e, quando necessário, `../Start-Here.md`.
+
+## 3.20.0 — 2026-07-12
+
+- Padrão global de documentação de código em inglês britânico incorporado às regras universais e aos gates de qualidade.
+- Cabeçalhos de módulo aplicados aos fontes manuais; exceções permanecem explícitas para formatos estritos, código gerado e migrations já aplicadas.
+- Gate `comments:verify` integrado ao Dashboard e ao CI, sem alterar o estado `STATE-05` nem antecipar o Human Gate.
 
 ## 3.19.0 — 2026-07-12
 

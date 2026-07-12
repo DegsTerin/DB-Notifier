@@ -1,3 +1,4 @@
+// Module purpose: Implements Postgre Sql Endpoint inside the isolated PostgreSQL provider; the core remains engine-neutral.
 using System.Globalization;
 using DBNotifier.Provider.Abstractions;
 

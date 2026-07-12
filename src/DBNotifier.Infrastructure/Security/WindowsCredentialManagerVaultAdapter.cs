@@ -1,3 +1,4 @@
+// Module purpose: Implements Windows Credential Manager Vault Adapter as an outer adapter behind application or provider contracts.
 using System.ComponentModel;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;

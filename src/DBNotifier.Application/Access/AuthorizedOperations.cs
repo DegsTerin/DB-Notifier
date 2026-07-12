@@ -1,3 +1,4 @@
+// Module purpose: Defines Authorized Operations application behaviour without depending on concrete providers or user interfaces.
 using System.Text.Json;
 
 namespace DBNotifier.Application.Access;

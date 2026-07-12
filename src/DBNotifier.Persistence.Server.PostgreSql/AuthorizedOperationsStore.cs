@@ -1,3 +1,4 @@
+// Module purpose: Implements Authorized Operations Store for central PostgreSQL persistence with transactional and authorisation boundaries.
 using System.Text.Json;
 using DBNotifier.Application.Access;
 using Microsoft.EntityFrameworkCore;

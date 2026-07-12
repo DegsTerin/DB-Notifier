@@ -1,3 +1,4 @@
+// Module purpose: Implements Human Identity Security for the authorised server API without direct monitored-database access.
 using System.Security.Claims;
 using DBNotifier.Application.Access;
 

@@ -1,3 +1,4 @@
+// Module purpose: Implements Snake Case Model Convention as an outer adapter behind application or provider contracts.
 using System.Text;
 using Microsoft.EntityFrameworkCore;
 

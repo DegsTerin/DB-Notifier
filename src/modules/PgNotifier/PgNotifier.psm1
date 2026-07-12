@@ -1,3 +1,4 @@
+# Module purpose: Provides Pg Notifier for the legacy-compatible DB-Notifier tooling without changing database services implicitly.
 Set-StrictMode -Version Latest
 
 $canonicalModule = Join-Path -Path $PSScriptRoot -ChildPath "..\DBNotifier\DBNotifier.psm1"

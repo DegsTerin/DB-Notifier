@@ -1,3 +1,4 @@
+/** Module purpose: Implements App for the provider-neutral DB-Notifier Dashboard without direct database access. */
 import { useMemo, useState } from "react";
 import {
   buildDemonstrationSnapshot,

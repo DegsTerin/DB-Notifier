@@ -1,3 +1,4 @@
+<!-- Module purpose: Defines the accessible visual structure for App; behaviour remains in its code-behind module. -->
 <Application x:Class="DBNotifier.Desktop.Wpf.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"

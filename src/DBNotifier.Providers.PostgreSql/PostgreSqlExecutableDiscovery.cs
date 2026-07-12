@@ -1,3 +1,4 @@
+// Module purpose: Implements Postgre Sql Executable Discovery inside the isolated PostgreSQL provider; the core remains engine-neutral.
 namespace DBNotifier.Providers.PostgreSql;
 
 public enum PostgreSqlExecutableDiscoveryState

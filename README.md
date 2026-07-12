@@ -10,6 +10,8 @@ The workspace is currently in `STATE-05 FRONTEND_IMPLEMENTATION`. Four frontend 
 
 All work governed by this repository starts at [`prompts/Start-Here.md`](prompts/Start-Here.md). It defines the required reading order, current state, authority, lifecycle, quality gates, and safety limits.
 
+Code and configuration documentation follows [`docs/Code-Documentation-Standards.md`](docs/Code-Documentation-Standards.md): comments use British English, document intent and remain synchronised with implementation. Run `npm run comments:verify` from `src/DBNotifier.Dashboard.Web` to check the project-wide module inventory.
+
 The discovery outputs for the transformation are:
 
 - [`docs/Legacy-Inventory.md`](docs/Legacy-Inventory.md): verified behavior, assets, limitations, and risks in PgNotifier.

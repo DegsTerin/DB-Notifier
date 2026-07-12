@@ -1,3 +1,4 @@
+// Module purpose: Defines Command Delivery application behaviour without depending on concrete providers or user interfaces.
 namespace DBNotifier.Application.Synchronization;
 
 public sealed record CommandPollRequest(

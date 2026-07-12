@@ -1,3 +1,4 @@
+// Module purpose: Defines Inventory Presentation application behaviour without depending on concrete providers or user interfaces.
 using DBNotifier.Domain;
 
 namespace DBNotifier.Application.Presentation;

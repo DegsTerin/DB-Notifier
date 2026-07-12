@@ -1,3 +1,4 @@
+// Module purpose: Defines Provider Registry as an engine-neutral provider contract shared by Application and adapters.
 using System.Collections.ObjectModel;
 using DBNotifier.Domain;
 

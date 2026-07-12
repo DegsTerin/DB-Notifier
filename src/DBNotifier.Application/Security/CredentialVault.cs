@@ -1,3 +1,4 @@
+// Module purpose: Defines Credential Vault application behaviour without depending on concrete providers or user interfaces.
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using DBNotifier.Domain;

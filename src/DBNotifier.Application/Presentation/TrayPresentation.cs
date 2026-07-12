@@ -1,3 +1,4 @@
+// Module purpose: Defines Tray Presentation application behaviour without depending on concrete providers or user interfaces.
 namespace DBNotifier.Application.Presentation;
 
 public enum TrayWindowIntent

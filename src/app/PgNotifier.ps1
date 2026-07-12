@@ -1,3 +1,4 @@
+# Module purpose: Provides Pg Notifier for the legacy-compatible DB-Notifier tooling without changing database services implicitly.
 [CmdletBinding()]
 param(
     [string]$ConfigPath = (Join-Path -Path $PSScriptRoot -ChildPath "..\..\config\appsettings.json")

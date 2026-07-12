@@ -1,3 +1,4 @@
+# Module purpose: Verifies DBNotifier Legacy Tests behaviour and protects the documented project contract.
 Set-StrictMode -Version Latest
 
 Describe "DB-Notifier legacy compatibility" {

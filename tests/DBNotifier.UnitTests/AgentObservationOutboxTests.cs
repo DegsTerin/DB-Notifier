@@ -1,3 +1,4 @@
+// Module purpose: Verifies Agent Observation Outbox Tests behaviour and protects the documented project contract.
 using DBNotifier.Domain;
 using DBNotifier.Persistence.Agent.Sqlite;
 using Microsoft.Data.Sqlite;

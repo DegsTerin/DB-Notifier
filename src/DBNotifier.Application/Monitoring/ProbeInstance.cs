@@ -1,3 +1,4 @@
+// Module purpose: Defines Probe Instance application behaviour without depending on concrete providers or user interfaces.
 using System.Diagnostics;
 using DBNotifier.Application.Security;
 using DBNotifier.Domain;

@@ -1,3 +1,4 @@
+<!-- Module purpose: Defines .NET 10 build settings and dependencies for DBNotifier Provider Abstractions. -->
 <Project Sdk="Microsoft.NET.Sdk">
   <ItemGroup>
     <ProjectReference Include="..\DBNotifier.Domain\DBNotifier.Domain.csproj" />

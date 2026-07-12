@@ -1,3 +1,4 @@
+// Module purpose: Implements Agent Outbox Dispatch Worker for the opt-in Agent runtime while preserving fail-closed defaults.
 using DBNotifier.Application.Synchronization;
 using DBNotifier.Persistence.Agent.Sqlite;
 using Microsoft.Extensions.Hosting;

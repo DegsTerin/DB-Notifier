@@ -1,3 +1,4 @@
+/** Module purpose: Implements presentation for the provider-neutral DB-Notifier Dashboard without direct database access. */
 export const inventorySchemaVersion = "inventory.v1" as const;
 export const staleAfterMilliseconds = 5 * 60 * 1000;
 

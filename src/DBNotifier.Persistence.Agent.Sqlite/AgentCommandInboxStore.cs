@@ -1,3 +1,4 @@
+// Module purpose: Implements Agent Command Inbox Store for the Agent-local SQLite boundary without exposing monitored database secrets.
 using DBNotifier.Application.Synchronization;
 using Microsoft.EntityFrameworkCore;
 

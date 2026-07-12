@@ -1,3 +1,4 @@
+// Module purpose: Verifies Persistence Model Tests behaviour and protects the documented project contract.
 using DBNotifier.Persistence.Agent.Sqlite;
 using DBNotifier.Persistence.Server.PostgreSql;
 using Microsoft.Data.Sqlite;

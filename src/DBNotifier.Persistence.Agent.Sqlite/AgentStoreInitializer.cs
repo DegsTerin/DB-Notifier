@@ -1,3 +1,4 @@
+// Module purpose: Implements Agent Store Initializer for the Agent-local SQLite boundary without exposing monitored database secrets.
 using Microsoft.EntityFrameworkCore;
 
 namespace DBNotifier.Persistence.Agent.Sqlite;

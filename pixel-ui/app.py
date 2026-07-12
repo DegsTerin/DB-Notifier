@@ -1,3 +1,5 @@
+"""Prototype a pixel-accurate DB-Notifier interface using deterministic demonstration data."""
+
 import math
 import tkinter as tk
 from dataclasses import dataclass

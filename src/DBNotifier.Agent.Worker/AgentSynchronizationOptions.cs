@@ -1,3 +1,4 @@
+// Module purpose: Implements Agent Synchronization Options for the opt-in Agent runtime while preserving fail-closed defaults.
 namespace DBNotifier.Agent.Worker;
 
 public sealed class AgentSynchronizationOptions

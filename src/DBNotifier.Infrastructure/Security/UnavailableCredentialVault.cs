@@ -1,3 +1,4 @@
+// Module purpose: Implements Unavailable Credential Vault as an outer adapter behind application or provider contracts.
 using DBNotifier.Application.Security;
 using DBNotifier.Domain;
 using DBNotifier.Provider.Abstractions;

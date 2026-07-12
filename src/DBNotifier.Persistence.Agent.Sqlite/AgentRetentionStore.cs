@@ -1,3 +1,4 @@
+// Module purpose: Implements Agent Retention Store for the Agent-local SQLite boundary without exposing monitored database secrets.
 using DBNotifier.Application.Operations;
 using Microsoft.EntityFrameworkCore;
 

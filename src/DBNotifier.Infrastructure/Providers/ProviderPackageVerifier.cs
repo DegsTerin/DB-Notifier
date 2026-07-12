@@ -1,3 +1,4 @@
+// Module purpose: Implements Provider Package Verifier as an outer adapter behind application or provider contracts.
 using System.Security.Cryptography;
 using System.Text.Json;
 

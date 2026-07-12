@@ -1,3 +1,4 @@
+// Module purpose: Implements Program for the opt-in Agent runtime while preserving fail-closed defaults.
 using System.Security.Cryptography.X509Certificates;
 using DBNotifier.Agent.Worker;
 using DBNotifier.Application.Monitoring;

@@ -1,3 +1,4 @@
+// Module purpose: Implements Agent Monitoring Worker for the opt-in Agent runtime while preserving fail-closed defaults.
 using DBNotifier.Application.Monitoring;
 using DBNotifier.Persistence.Agent.Sqlite;
 using Microsoft.Extensions.Hosting;

@@ -1,3 +1,4 @@
+// Module purpose: Verifies Provider Package Verification Tests behaviour and protects the documented project contract.
 using System.Security.Cryptography;
 using System.Text.Json;
 using DBNotifier.Infrastructure.Providers;

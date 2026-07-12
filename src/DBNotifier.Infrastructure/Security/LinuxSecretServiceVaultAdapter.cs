@@ -1,3 +1,4 @@
+// Module purpose: Implements Linux Secret Service Vault Adapter as an outer adapter behind application or provider contracts.
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Runtime.InteropServices;

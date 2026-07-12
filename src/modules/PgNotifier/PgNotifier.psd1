@@ -1,3 +1,4 @@
+# Module purpose: Provides Pg Notifier for the legacy-compatible DB-Notifier tooling without changing database services implicitly.
 @{
     RootModule        = 'PgNotifier.psm1'
     ModuleVersion     = '1.1.0'

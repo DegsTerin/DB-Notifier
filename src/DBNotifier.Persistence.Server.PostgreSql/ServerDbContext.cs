@@ -1,3 +1,4 @@
+// Module purpose: Implements Server Db Context for central PostgreSQL persistence with transactional and authorisation boundaries.
 using DBNotifier.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 

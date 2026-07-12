@@ -1,3 +1,4 @@
+// Module purpose: Implements Agent Retention Worker for the opt-in Agent runtime while preserving fail-closed defaults.
 using DBNotifier.Application.Operations;
 using DBNotifier.Persistence.Agent.Sqlite;
 using Microsoft.Extensions.Hosting;

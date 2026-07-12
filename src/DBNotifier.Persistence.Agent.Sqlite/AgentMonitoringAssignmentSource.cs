@@ -1,3 +1,4 @@
+// Module purpose: Implements Agent Monitoring Assignment Source for the Agent-local SQLite boundary without exposing monitored database secrets.
 using System.Text.Json;
 using DBNotifier.Application.Monitoring;
 using DBNotifier.Domain;

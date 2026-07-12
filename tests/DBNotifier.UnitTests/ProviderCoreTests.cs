@@ -1,3 +1,4 @@
+// Module purpose: Verifies Provider Core Tests behaviour and protects the documented project contract.
 using DBNotifier.Application.Monitoring;
 using DBNotifier.Application.Security;
 using DBNotifier.Domain;

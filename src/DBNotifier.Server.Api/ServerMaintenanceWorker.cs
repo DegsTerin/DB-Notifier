@@ -1,3 +1,4 @@
+// Module purpose: Implements Server Maintenance Worker for the authorised server API without direct monitored-database access.
 using DBNotifier.Application.Operations;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;

@@ -1,3 +1,4 @@
+// Module purpose: Implements Npgsql Authenticated Executor inside the isolated PostgreSQL provider; the core remains engine-neutral.
 using System.Diagnostics;
 using Npgsql;
 

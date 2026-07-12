@@ -1,3 +1,4 @@
+// Module purpose: Verifies Synchronization Tests behaviour and protects the documented project contract.
 using System.Net;
 using System.Security.Claims;
 using System.Text;

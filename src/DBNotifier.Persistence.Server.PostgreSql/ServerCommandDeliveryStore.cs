@@ -1,3 +1,4 @@
+// Module purpose: Implements Server Command Delivery Store for central PostgreSQL persistence with transactional and authorisation boundaries.
 using DBNotifier.Application.Synchronization;
 using Microsoft.EntityFrameworkCore;
 

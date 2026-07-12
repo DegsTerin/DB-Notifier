@@ -1,3 +1,4 @@
+// Module purpose: Verifies Maintenance Delivery Tests behaviour and protects the documented project contract.
 using DBNotifier.Application.Operations;
 using DBNotifier.Persistence.Agent.Sqlite;
 using DBNotifier.Persistence.Server.PostgreSql;

@@ -1,3 +1,4 @@
+// Module purpose: Implements Server Db Context Factory for central PostgreSQL persistence with transactional and authorisation boundaries.
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 

@@ -1,3 +1,4 @@
+# Module purpose: Coordinates build build validation without installing dependencies implicitly.
 [CmdletBinding()]
 param(
     [switch]$SkipInstaller,

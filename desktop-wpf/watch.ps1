@@ -1,3 +1,4 @@
+# Module purpose: Provides watch for the legacy-compatible DB-Notifier tooling without changing database services implicitly.
 [CmdletBinding()]
 param()
 

@@ -1,3 +1,4 @@
+// Module purpose: Verifies Postgre Sql Provider Tests behaviour and protects the documented project contract.
 using DBNotifier.Application.Security;
 using DBNotifier.Domain;
 using DBNotifier.Provider.Abstractions;

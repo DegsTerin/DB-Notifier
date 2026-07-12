@@ -1,3 +1,4 @@
+// Module purpose: Verifies Agent Runtime Tests behaviour and protects the documented project contract.
 using System.Text.Json;
 using DBNotifier.Agent.Worker;
 using DBNotifier.Domain;

@@ -1,3 +1,4 @@
+// Module purpose: Defines Monitoring Cycle Runner application behaviour without depending on concrete providers or user interfaces.
 using DBNotifier.Domain;
 using DBNotifier.Provider.Abstractions;
 

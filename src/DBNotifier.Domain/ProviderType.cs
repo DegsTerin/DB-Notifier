@@ -1,3 +1,4 @@
+// Module purpose: Defines Provider Type domain semantics independently of providers, persistence and presentation.
 namespace DBNotifier.Domain;
 
 public readonly record struct ProviderType

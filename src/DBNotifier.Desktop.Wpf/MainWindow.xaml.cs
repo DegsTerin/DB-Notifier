@@ -1,3 +1,4 @@
+// Module purpose: Implements Main Window xaml for the Windows desktop shell without controlling database services implicitly.
 using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Windows;

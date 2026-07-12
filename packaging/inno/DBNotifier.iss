@@ -1,3 +1,4 @@
+; Module purpose: Defines DBNotifier packaging metadata for DB-Notifier artefacts.
 #define AppName "DB-Notifier"
 #ifndef SourceDir
   #define SourceDir "..\..\dist\package"

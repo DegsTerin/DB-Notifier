@@ -1,3 +1,5 @@
+"""Prototype the legacy-compatible DB-Notifier tray interface without database control side effects."""
+
 import math
 import os
 import sys

@@ -104,6 +104,7 @@ O projeto está em `STATE-05 FRONTEND_IMPLEMENTATION`. Quatro incrementos implem
 - Tray Windows real implementado com abrir, status factual e sair; minimizar/fechar recolhe a janela sem tocar banco ou serviço, com descarte explícito do ícone/menu.
 - Guards automatizados validam contraste WCAG AA, semântica, foco e reduced-motion no Dashboard, além de contraste textual WPF e política provider-neutral do Tray.
 - 125 testes .NET e 7 testes Dashboard aprovados no quarto incremento; smoke close-to-Tray comprovou processo vivo sem janela visível e cleanup posterior.
+- Padrão global de documentação de código em inglês britânico formalizado, com cabeçalhos de módulo nos fontes manuais, exceções estreitas para formatos estritos/gerados/imutáveis e gate `comments:verify` integrado ao CI.
 
 ## Pendente
 

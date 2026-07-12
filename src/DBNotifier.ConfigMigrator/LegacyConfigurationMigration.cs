@@ -1,3 +1,4 @@
+// Module purpose: Implements Legacy Configuration Migration for isolated, fail-closed legacy configuration migration.
 using System.Security.Cryptography;
 using System.Text.Json;
 using System.Text.Json.Serialization;

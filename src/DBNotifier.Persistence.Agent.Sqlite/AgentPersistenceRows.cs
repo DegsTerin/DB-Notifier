@@ -1,3 +1,4 @@
+// Module purpose: Implements Agent Persistence Rows for the Agent-local SQLite boundary without exposing monitored database secrets.
 namespace DBNotifier.Persistence.Agent.Sqlite;
 
 public sealed class AgentRegistrationRow

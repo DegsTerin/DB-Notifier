@@ -1,3 +1,4 @@
+// Module purpose: Verifies Dependency Direction Tests behaviour and protects the documented project contract.
 namespace DBNotifier.Architecture.Tests;
 
 public sealed class DependencyDirectionTests

@@ -1,3 +1,4 @@
+// Module purpose: Implements Postgre Sql Readiness Executor inside the isolated PostgreSQL provider; the core remains engine-neutral.
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Globalization;

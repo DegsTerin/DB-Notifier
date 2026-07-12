@@ -1,3 +1,4 @@
+// Module purpose: Defines Maintenance And Delivery application behaviour without depending on concrete providers or user interfaces.
 namespace DBNotifier.Application.Operations;
 
 public sealed record RetentionExecutionRequest(

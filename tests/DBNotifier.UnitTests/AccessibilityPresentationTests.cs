@@ -1,3 +1,4 @@
+// Module purpose: Verifies Accessibility Presentation Tests behaviour and protects the documented project contract.
 using DBNotifier.Application.Presentation;
 
 namespace DBNotifier.UnitTests;

@@ -1,3 +1,4 @@
+// Module purpose: Defines Provider Contracts as an engine-neutral provider contract shared by Application and adapters.
 using DBNotifier.Domain;
 
 namespace DBNotifier.Provider.Abstractions;

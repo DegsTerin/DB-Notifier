@@ -1,3 +1,4 @@
+// Module purpose: Implements Server Persistence Rows for central PostgreSQL persistence with transactional and authorisation boundaries.
 namespace DBNotifier.Persistence.Server.PostgreSql;
 
 public sealed class DatabaseInstanceRow

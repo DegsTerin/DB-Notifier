@@ -1,3 +1,4 @@
+# Module purpose: Provides DBNotifier for the legacy-compatible DB-Notifier tooling without changing database services implicitly.
 Set-StrictMode -Version Latest
 
 Add-Type -AssemblyName System.Windows.Forms

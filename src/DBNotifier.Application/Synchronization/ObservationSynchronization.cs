@@ -1,3 +1,4 @@
+// Module purpose: Defines Observation Synchronization application behaviour without depending on concrete providers or user interfaces.
 using DBNotifier.Domain;
 
 namespace DBNotifier.Application.Synchronization;

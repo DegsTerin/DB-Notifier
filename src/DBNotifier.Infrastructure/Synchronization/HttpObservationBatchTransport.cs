@@ -1,3 +1,4 @@
+// Module purpose: Implements Http Observation Batch Transport as an outer adapter behind application or provider contracts.
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;

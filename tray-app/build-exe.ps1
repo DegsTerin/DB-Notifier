@@ -1,3 +1,4 @@
+# Module purpose: Provides build exe for the legacy-compatible DB-Notifier tooling without changing database services implicitly.
 [CmdletBinding()]
 param(
     [string]$Python = "C:\Users\brunn\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe"

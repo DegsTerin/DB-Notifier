@@ -1,3 +1,4 @@
+// Module purpose: Verifies Legacy Configuration Migration Tests behaviour and protects the documented project contract.
 using System.Security.Cryptography;
 using System.Text.Json;
 using DBNotifier.ConfigMigrator;

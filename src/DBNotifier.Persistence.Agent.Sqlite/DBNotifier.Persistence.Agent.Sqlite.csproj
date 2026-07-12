@@ -1,3 +1,4 @@
+<!-- Module purpose: Defines .NET 10 build settings and dependencies for DBNotifier Persistence Agent Sqlite. -->
 <Project Sdk="Microsoft.NET.Sdk">
   <ItemGroup>
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design">

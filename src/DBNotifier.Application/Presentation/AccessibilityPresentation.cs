@@ -1,3 +1,4 @@
+// Module purpose: Defines Accessibility Presentation application behaviour without depending on concrete providers or user interfaces.
 using System.Globalization;
 
 namespace DBNotifier.Application.Presentation;

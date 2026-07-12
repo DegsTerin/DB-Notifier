@@ -1,3 +1,4 @@
+// Module purpose: Defines Health Observation domain semantics independently of providers, persistence and presentation.
 namespace DBNotifier.Domain;
 
 public enum HealthStatus

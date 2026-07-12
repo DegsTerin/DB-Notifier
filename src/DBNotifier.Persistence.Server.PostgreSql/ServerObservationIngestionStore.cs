@@ -1,3 +1,4 @@
+// Module purpose: Implements Server Observation Ingestion Store for central PostgreSQL persistence with transactional and authorisation boundaries.
 using System.Text.Json;
 using DBNotifier.Application.Synchronization;
 using DBNotifier.Domain;

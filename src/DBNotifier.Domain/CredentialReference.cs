@@ -1,3 +1,4 @@
+// Module purpose: Defines Credential Reference domain semantics independently of providers, persistence and presentation.
 namespace DBNotifier.Domain;
 
 public enum CredentialPurpose
