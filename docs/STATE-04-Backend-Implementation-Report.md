@@ -2,7 +2,7 @@
 
 ## Outcome
 
-The first four `STATE-04 BACKEND_IMPLEMENTATION` increments are implemented in .NET 10. They establish a provider-neutral Domain/Application slice, an open provider registry/SDK, PostgreSQL readiness/authenticated probes, hosted monitoring and outbox workers, transactional local persistence, platform vault readers, idempotent central ingestion, canonical event/alert derivation, and a certificate-authorized Agent API.
+The first five `STATE-04 BACKEND_IMPLEMENTATION` increments are implemented in .NET 10. They establish a provider-neutral Domain/Application slice, an open provider registry/SDK, PostgreSQL readiness/authenticated probes, hosted monitoring and outbox workers, transactional local persistence, platform vault readers, idempotent central ingestion, canonical event/alert derivation, certificate-authorized Agent ingestion, and a separately authenticated human API with scoped RBAC/audit and pending-command creation.
 
 This is incremental evidence, not closure of `STATE-04`, provider homologation, or public PostgreSQL support.
 
@@ -72,6 +72,16 @@ Application         PostgreSql provider
 - PostgreSQL migration `EnforceAgentObservationSequence` adds unique `(agent_id, sequence)` enforcement with a reversible down path.
 - `POST /api/v1/agents/{agentId}/observations:batch` requires a valid enrolled client certificate and an identity claim exactly matching the route; protocol v1 and 1 MiB request limits fail closed.
 
+## Increment 5
+
+- Human API authentication uses a distinct `HumanBearer` JWT scheme backed by an external absolute-HTTPS OIDC authority/audience; repository defaults contain no issuer, signing key, token, password, or bootstrap administrator and therefore fail closed. Human endpoints apply a fixed per-client-IP rate limit with no queue.
+- The authenticated JWT `sub` resolves only to an active platform user. RBAC is evaluated server-side through role assignments and exact permission codes with non-expired `Global`, `Environment`, or `Instance` scope.
+- `GET /api/v1/catalog/instances` returns only minimal non-secret instance projections authorized by `instances.read`; endpoint JSON and credential references are not exposed.
+- `POST /api/v1/instances/{instanceId}/commands` requires `commands.create`, an active assigned Agent, an exact `Supported` capability/version claim, bounded expiry, stable identifiers, reason, and object-shaped parameters without secret/free-form SQL/shell fields.
+- Command creation is idempotent: an exact retry returns the existing command, while reuse of the key with different intent returns conflict.
+- Created commands remain `Pending`; no server outbox, Agent inbox, command attempt, Start/Stop/Restart adapter, or administrative execution is invoked by this increment.
+- Created, duplicate, denied, unavailable-capability, conflicting, and semantically invalid requests emit sanitized append-only audit entries without copying reason, parameters, credentials, tokens, or the idempotency key.
+
 ## Capability truth
 
 | Capability | Implementation | Homologation/public support |
@@ -90,6 +100,9 @@ Application         PostgreSql provider
 | Central observation ingestion | Implemented idempotently with Agent/instance scope validation | Logic tested on ephemeral SQLite; no PostgreSQL instance contacted |
 | Canonical events/alerts | Implemented for health transitions and matching alert delivery preparation | No external notification channel delivered |
 | Agent ingestion API | Implemented with certificate authentication and route-bound authorization | Negative live smoke only; no real certificate enrollment/mTLS E2E |
+| Human authentication | External OIDC/JWT bearer scheme, fail-closed defaults | No real identity provider/token/MFA flow exercised |
+| Scoped RBAC/catalog | Active-user, permission, expiry and Global/Environment/Instance scope enforced | Read-only catalog slice; no role/catalog administration API |
+| Administrative command creation | Idempotent, audited, capability/version gated and `Pending` only | No delivery, attempt, adapter execution, post-probe, or homologation |
 | Start/Stop/Restart | Explicitly `Unsupported` | Not implemented or authorized |
 | Other database providers | Registry accepts arbitrary identifiers | Adapters not implemented |
 
@@ -101,10 +114,11 @@ Executed from the repository root with workspace-local .NET SDK `10.0.301`:
 |---|---|
 | Forced restore and lockfile refresh | Approved for all 12 projects |
 | Release build with warnings as errors | Approved; 0 warnings, 0 errors |
-| Unit/model/provider tests | Approved; 63/63 |
+| Unit/model/provider tests | Approved; 71/71 |
 | Architecture tests | Approved; 4/4 |
-| Total .NET tests | Approved; 67/67 |
+| Total .NET tests | Approved; 75/75 |
 | Synchronization certification subset | Approved; 21/21 |
+| Human access/RBAC subset | Approved; 8/8 |
 | Additional negative tests | Approved for monotonic head blocking, rejected tombstone, missing/invalid response, timeout, HTTPS enforcement, sequence conflict, Agent/instance scope and route authorization |
 | `dotnet format --verify-no-changes` | Approved |
 | Locked restore | Approved for all 12 projects |
@@ -112,13 +126,14 @@ Executed from the repository root with workspace-local .NET SDK `10.0.301`:
 | Legacy compatibility Pester suite | Approved; 10/10 |
 | Disabled Agent startup smoke | Process remained alive after DI/host build, was terminated, and created no SQLite file or probe |
 | Local API authorization smoke | Liveness returned 200; observation ingestion without a client certificate returned 403 |
+| Human API fail-closed smoke | Catalog and command creation without a bearer token returned 401 |
 
-Test samples additionally cover ordered dispatch/ack/retry, blocked head-of-line ordering, terminal tombstone retention, missing and malformed server responses, client timeout, HTTPS protocol headers, invalid synchronization configuration, Agent/instance mismatch rejection before persistence, route authorization allow/deny, central duplicate ingestion, sequence conflict, contiguous cursor, all implemented canonical transition mappings, matching alert deliveries, server outbox and migration rollback.
+Test samples additionally cover ordered dispatch/ack/retry, blocked head-of-line ordering, terminal tombstone retention, missing and malformed server responses, client timeout, HTTPS protocol headers, invalid synchronization configuration, Agent/instance mismatch rejection before persistence, route authorization allow/deny, central duplicate ingestion, sequence conflict, contiguous cursor, canonical transitions, alert deliveries, scoped catalog filtering, expired/missing permission denial, capability denial, exact idempotency, invalid-parameter rejection, sanitized audit, no command dispatch/attempt, and human subject resolution.
 
 ## Limits and next increment
 
 - No non-ephemeral database, external service, remote network endpoint, vault, production migration, notification channel, or administrative action was contacted or changed. Only the local API liveness/denial smoke used loopback HTTP.
-- PostgreSQL discovery, human authentication/RBAC, catalog mutations, commands, notification delivery, retention, metrics/traces, enrollment workflow, and a real mTLS Agent/API exchange remain pending.
+- PostgreSQL discovery, real OIDC/MFA/token integration, role/user/catalog mutations, audit query/export, command delivery/execution/post-probe, notification delivery, retention, metrics/traces, enrollment workflow, and a real mTLS Agent/API exchange remain pending.
 - Platform vault readers have no live-secret evidence. Windows expects a Generic Credential UTF-8 blob; Linux requires `secret-tool`/Secret Service and the documented two-line secret convention.
 - Npgsql necessarily consumes a managed password string from its password-provider callback for the connection lifetime; the password is excluded from the connection string, pooling is disabled, and the disposable source character buffer is zeroed, but runtime secret review remains required.
 - Runtime plugin package discovery/signature/loading remains pending; this increment provides the open in-process contract and registry.

@@ -2,7 +2,7 @@
 
 ## Versão atual
 
-- Versão: `3.9.1`
+- Versão: `3.10.0`
 - Data: 2026-07-12
 - Status: corpus DB-Notifier consolidado
 - Escopo: 13 arquivos ativos
@@ -16,6 +16,13 @@ A versão do corpus é independente da versão do software.
 - PATCH: clareza, correção ou referência sem mudança de autoridade.
 
 Toda alteração atualiza este arquivo e, quando necessário, `../Start-Here.md`.
+
+## 3.10.0 — 2026-07-12
+
+- Quinto incremento de `STATE-04`: autenticação humana OIDC/JWT externa, fail-closed e rate-limited, separada do certificado de Agent.
+- RBAC server-side por usuário ativo, permission code, expiração e escopos Global/Environment/Instance; catálogo mínimo sem credentials/endpoints.
+- Criação de comandos idempotentes e auditados somente em `Pending`, exigindo capability/version exatos e sem dispatch, attempt ou execução administrativa.
+- 75 testes .NET aprovados; nenhum IdP, token, PostgreSQL, certificado, comando real ou provider homologado foi exercitado.
 
 ## 3.9.1 — 2026-07-12
 

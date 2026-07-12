@@ -1,12 +1,17 @@
 using System.Security.Claims;
 using System.Security.Cryptography.X509Certificates;
+using System.Threading.RateLimiting;
+using DBNotifier.Application.Access;
 using DBNotifier.Application.Synchronization;
 using DBNotifier.Persistence.Server.PostgreSql;
 using DBNotifier.Server.Api.Security;
 using Microsoft.AspNetCore.Authentication.Certificate;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.AspNetCore.Server.Kestrel.Https;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 builder.WebHost.ConfigureKestrel(options =>
@@ -16,11 +21,28 @@ builder.WebHost.ConfigureKestrel(options =>
         httpsOptions.ClientCertificateMode = ClientCertificateMode.AllowCertificate);
 });
 builder.Services.AddProblemDetails();
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+    options.AddPolicy("HumanApiRateLimit", httpContext =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown-client",
+            _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 60,
+                Window = TimeSpan.FromMinutes(1),
+                QueueLimit = 0,
+                AutoReplenishment = true,
+            }));
+});
 builder.Services.AddDbContextFactory<ServerDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("ServerDatabase")));
 builder.Services.AddScoped<IObservationIngestionStore, ServerObservationIngestionStore>();
 builder.Services.AddScoped<ObservationBatchIngestor>();
+builder.Services.AddScoped<IAuthorizedOperationsStore, AuthorizedOperationsStore>();
+builder.Services.AddScoped<AuthorizedOperationsService>();
 builder.Services.AddScoped<AgentCertificateIdentityValidator>();
+builder.Services.AddSingleton<HumanActorResolver>();
 builder.Services
     .AddAuthentication(CertificateAuthenticationDefaults.AuthenticationScheme)
     .AddCertificate(options =>
@@ -62,20 +84,128 @@ builder.Services
                 }
             },
         };
+    })
+    .AddJwtBearer(HumanAuthenticationDefaults.Scheme, options =>
+    {
+        string? authority = builder.Configuration["HumanAuthentication:Authority"];
+        if (!string.IsNullOrWhiteSpace(authority))
+        {
+            if (!Uri.TryCreate(authority, UriKind.Absolute, out Uri? authorityUri) ||
+                authorityUri.Scheme != Uri.UriSchemeHttps ||
+                !string.IsNullOrEmpty(authorityUri.UserInfo) ||
+                !string.IsNullOrEmpty(authorityUri.Query) ||
+                !string.IsNullOrEmpty(authorityUri.Fragment))
+            {
+                throw new InvalidOperationException(
+                    "Human authentication authority must be an absolute HTTPS URI without user info, query, or fragment.");
+            }
+
+            options.Authority = authorityUri.AbsoluteUri.TrimEnd('/');
+        }
+
+        string? audience = builder.Configuration["HumanAuthentication:Audience"];
+        options.Audience = string.IsNullOrWhiteSpace(audience) ? null : audience;
+        options.RequireHttpsMetadata = true;
+        options.MapInboundClaims = false;
+        options.SaveToken = false;
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ClockSkew = TimeSpan.FromMinutes(1),
+            NameClaimType = "name",
+            RoleClaimType = "role",
+        };
     });
 builder.Services.AddSingleton<IAuthorizationHandler, AgentRouteAuthorizationHandler>();
 builder.Services.AddAuthorizationBuilder()
     .AddPolicy("AgentObservationIngestion", policy =>
     {
+        policy.AddAuthenticationSchemes(CertificateAuthenticationDefaults.AuthenticationScheme);
         policy.RequireAuthenticatedUser();
         policy.AddRequirements(new AgentRouteRequirement());
+    })
+    .AddPolicy("HumanApi", policy =>
+    {
+        policy.AddAuthenticationSchemes(HumanAuthenticationDefaults.Scheme);
+        policy.RequireAuthenticatedUser();
+        policy.RequireClaim("sub");
     });
 
 WebApplication app = builder.Build();
 app.UseAuthentication();
+app.UseRateLimiter();
 app.UseAuthorization();
 
 app.MapGet("/health/live", () => Results.Ok(new { status = "Alive" }));
+app.MapGet(
+        "/api/v1/catalog/instances",
+        async Task<IResult> (
+            AuthorizedOperationsService operations,
+            HumanActorResolver actorResolver,
+            HttpContext httpContext,
+            CancellationToken cancellationToken) =>
+        {
+            HumanActor? actor = actorResolver.Resolve(httpContext.User);
+            if (actor is null)
+            {
+                return Results.Unauthorized();
+            }
+
+            IReadOnlyList<AuthorizedInstance> instances = await operations
+                .GetCatalogAsync(actor, cancellationToken)
+                .ConfigureAwait(false);
+            return Results.Ok(instances);
+        })
+    .RequireAuthorization("HumanApi")
+    .RequireRateLimiting("HumanApiRateLimit");
+app.MapPost(
+        "/api/v1/instances/{instanceId:guid}/commands",
+        async Task<IResult> (
+            Guid instanceId,
+            CreateAdministrativeCommandRequest request,
+            AuthorizedOperationsService operations,
+            HumanActorResolver actorResolver,
+            HttpContext httpContext,
+            CancellationToken cancellationToken) =>
+        {
+            HumanActor? actor = actorResolver.Resolve(httpContext.User);
+            if (actor is null)
+            {
+                return Results.Unauthorized();
+            }
+
+            CommandCreationResult result = await operations
+                .CreateCommandAsync(actor, instanceId, request, cancellationToken)
+                .ConfigureAwait(false);
+            return result.Disposition switch
+            {
+                CommandCreationDisposition.Created => Results.Created(
+                    $"/api/v1/commands/{result.Command!.CommandId:D}",
+                    result.Command),
+                CommandCreationDisposition.Duplicate => Results.Ok(result.Command),
+                CommandCreationDisposition.Denied => Results.Problem(
+                    statusCode: StatusCodes.Status403Forbidden,
+                    title: "Command creation denied",
+                    extensions: new Dictionary<string, object?> { ["code"] = result.ErrorCode }),
+                CommandCreationDisposition.IdempotencyConflict => Results.Problem(
+                    statusCode: StatusCodes.Status409Conflict,
+                    title: "Command idempotency conflict",
+                    extensions: new Dictionary<string, object?> { ["code"] = result.ErrorCode }),
+                CommandCreationDisposition.CapabilityUnavailable => Results.Problem(
+                    statusCode: StatusCodes.Status409Conflict,
+                    title: "Administrative capability unavailable",
+                    extensions: new Dictionary<string, object?> { ["code"] = result.ErrorCode }),
+                _ => Results.Problem(
+                    statusCode: StatusCodes.Status400BadRequest,
+                    title: "Invalid command request",
+                    extensions: new Dictionary<string, object?> { ["code"] = result.ErrorCode }),
+            };
+        })
+    .RequireAuthorization("HumanApi")
+    .RequireRateLimiting("HumanApiRateLimit");
 app.MapPost(
         "/api/v1/agents/{agentId:guid}/observations:batch",
         async Task<IResult> (

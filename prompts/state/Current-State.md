@@ -6,7 +6,7 @@
 
 ## Situação factual
 
-Quatro incrementos de `STATE-04 BACKEND_IMPLEMENTATION` implementam contratos neutros, registro aberto, readiness/health autenticado PostgreSQL, scheduler, SQLite local, readers de vault, sincronização idempotente, eventos/alertas e a primeira API autorizada para Agents. Monitoring e synchronization permanecem desabilitados por default; nenhum banco, certificado ou credencial real foi testado e nenhum provider está homologado.
+Cinco incrementos de `STATE-04 BACKEND_IMPLEMENTATION` implementam contratos neutros, registro aberto, readiness/health autenticado PostgreSQL, scheduler, SQLite local, readers de vault, sincronização idempotente, eventos/alertas, API autorizada para Agents e API humana OIDC/JWT com RBAC/auditoria e comandos apenas `Pending`. Monitoring e synchronization permanecem desabilitados por default; nenhum banco, IdP, certificado ou credencial real foi testado e nenhum provider está homologado.
 
 ## Produto atual
 
@@ -75,17 +75,21 @@ Quatro incrementos de `STATE-04 BACKEND_IMPLEMENTATION` implementam contratos ne
 - Ingestão central valida Agent/instância, deduplica IDs, rejeita conflito de sequência e persiste sample/event/server-outbox/alert deliveries atomicamente.
 - API de observation batch exige certificado de Agent ativo e autorização exata do `agentId` na rota; chamada local sem certificado negada com 403.
 - Terceira migration PostgreSQL adiciona unicidade `(agent_id, sequence)` com rollback offline verificável.
+- Autenticação humana separada usa OIDC/JWT externo, exige `sub`, aplica rate limit sem fila e falha fechada sem Authority/Audience seguros.
+- RBAC server-side filtra catálogo por `instances.read` e escopos Global/Environment/Instance não expirados.
+- Criação de comando exige `commands.create`, Agent/capability/version exatos, validação segura, idempotência e auditoria sanitizada.
+- Comandos permanecem `Pending`, sem outbox/attempt/Agent/executor ou ação administrativa real.
 - Controles administrativos permanecem explicitamente `Unsupported`.
 - Agent registra catálogo/provider, persistência, vault e scheduler por DI; monitoring permanece desabilitado por default, sem conexão real ou UI.
-- 67 testes .NET aprovados (63 unit/model/provider + 4 arquitetura); build Release e format aprovados em .NET 10 com 0 avisos/erros.
+- 75 testes .NET aprovados (71 unit/model/provider + 4 arquitetura); build Release e format aprovados em .NET 10 com 0 avisos/erros.
 
 ## Pendente
 
-- Expandir Domain/Application com autenticação humana, RBAC, auditoria, retenção e comandos idempotentes autorizados.
+- Expandir Domain/Application com retenção, delivery de notificações, consulta de auditoria e protocolo de entrega de comandos sem executor administrativo.
 - Completar o vertical slice PostgreSQL com discovery e execução sandbox habilitada usando credencial descartável autorizada.
 - Implementar retenção local/central e delivery real de notificações com backpressure/deduplicação.
 - Implementar descoberta/carregamento seguro de pacotes de provider além do registro DI em processo.
-- Implementar autenticação humana, RBAC server-side, auditoria e comandos administrativos tipados conforme autorização.
+- Integrar IdP/MFA real, provisionamento de usuários/papéis e mutations de catálogo em ambiente autorizado.
 - Cobrir falhas isoladas, autorização negativa, idempotência, retries, timeout, `UnknownOutcome` e testes do provider.
 - Auditar `STATE-04` e submeter seus entregáveis ao Human Gate antes de qualquer transição para UI.
 - Implementação e homologação dos demais providers por ondas independentes.
@@ -101,6 +105,6 @@ Quatro incrementos de `STATE-04 BACKEND_IMPLEMENTATION` implementam contratos ne
 
 ## Próximo gate
 
-Planejar o quinto incremento de `STATE-04 BACKEND_IMPLEMENTATION` com autenticação humana/RBAC, auditoria, catálogo autorizado e criação idempotente de comandos sem execução administrativa real, sem antecipar UI funcional de `STATE-05`.
+Planejar o sexto incremento de `STATE-04 BACKEND_IMPLEMENTATION`: retenção local/central, server-outbox e delivery de notificações com backpressure/deduplicação, além de consulta autorizada de auditoria, sem antecipar UI funcional de `STATE-05` ou execução administrativa real.
 
 Este documento descreve somente o presente. Histórico pertence a `State-Transition-Log.md`.

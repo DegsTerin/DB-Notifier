@@ -240,6 +240,16 @@
 - Evidências: `docs/STATE-04-Backend-Implementation-Report.md`, subset de sincronização 21/21 e correção que impede `2xx` malformado de reconhecer dados terminalmente.
 - Riscos/ressalvas: sem PostgreSQL real, certificado/mTLS E2E ou entrega externa de notificação; esses itens continuam explicitamente fora da certificação deste incremento.
 
+## 2026-07-12 — Quinto incremento de Backend Implementation
+
+- Estado anterior: `STATE-04 BACKEND_IMPLEMENTATION`
+- Estado resultante: sem transição
+- Decisão: implementar autenticação humana externa, RBAC server-side, catálogo autorizado, auditoria e criação idempotente de comandos sem executor administrativo.
+- Escopo: JWT/OIDC fail-closed, subject ativo, permissions/scopes não expirados, catálogo mínimo, capability/version gate, comando `Pending`, conflito idempotente e auditoria sanitizada.
+- Gates: build/format aprovados em .NET 10 com 0 avisos/erros e 75 testes; Human Gate de encerramento de `STATE-04` permanece pendente.
+- Evidências: `docs/STATE-04-Backend-Implementation-Report.md`, subset humano/RBAC 8/8, nenhum command attempt/outbox e negação de permissão/capability/expiração testada.
+- Riscos/ressalvas: sem IdP/token/MFA real, PostgreSQL, mutations de usuário/papel/catálogo, command delivery/execution/post-probe, homologação ou UI.
+
 ## Template de nova entrada
 
 - Data:
