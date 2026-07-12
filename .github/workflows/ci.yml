@@ -42,4 +42,5 @@ jobs:
           cache-dependency-path: src/DBNotifier.Dashboard.Web/package-lock.json
       - run: npm ci
       - run: npm run check
+      - run: npm run test
       - run: npm run build

@@ -6,7 +6,7 @@
 
 ## Situação factual
 
-O `STATE-04 BACKEND_IMPLEMENTATION` foi encerrado após reauditoria automática `APROVADO` e Human Gate aprovado explicitamente em 2026-07-12. O projeto está em `STATE-05 FRONTEND_IMPLEMENTATION`, autorizado a implementar Tray/Desktop e Dashboard sobre os contratos existentes. Nenhuma UI funcional desta fase foi implementada ainda. Workers mutáveis permanecem desabilitados por default; nenhum banco, IdP, certificado, credencial ou canal real foi testado e nenhum provider está homologado.
+O projeto está em `STATE-05 FRONTEND_IMPLEMENTATION`. O primeiro incremento implementa contratos de apresentação `inventory.v1` e inventário/status somente leitura no Dashboard React e no Desktop WPF .NET 10, usando adapters locais determinísticos e estados loading/empty/offline/error/stale/denied. Nenhuma integração externa ou ação administrativa foi ativada; workers mutáveis permanecem desabilitados por default, nenhum banco, IdP, certificado, credencial ou canal real foi testado e nenhum provider está homologado.
 
 ## Produto atual
 
@@ -91,12 +91,17 @@ O `STATE-04 BACKEND_IMPLEMENTATION` foi encerrado após reauditoria automática 
 - Auditoria inicial reprovada preservada em `docs/STATE-04-Backend-Implementation-Audit.md`; remediação reauditada como `APROVADO` em `docs/STATE-04-Backend-Implementation-Reaudit.md`.
 - Human Gate de `STATE-04` aprovado em 2026-07-12 após revisão das evidências de falha de provider, autorização negativa e sanitização do migrador.
 - Transição factual para `STATE-05 FRONTEND_IMPLEMENTATION`, sem autorizar integração externa, execução administrativa ou homologação de provider.
+- Contrato provider-neutral de apresentação `inventory.v1` com status canônico, timestamps, stale após cinco minutos e resumo que nunca conta dado vencido como saudável atual.
+- Dashboard responsivo com inventário/status, busca/filtro, tabela/cards, labels de suporte e estados ready/loading/empty/offline/error/stale/denied/filtered-empty.
+- Shell WPF .NET 10 com o mesmo inventário/status e cenários operacionais, `DataGrid` read-only, AutomationProperties e navegação por teclado.
+- 107 testes .NET e 3 testes de apresentação Dashboard aprovados; builds Release/Vite, typecheck, format, npm audit, smoke da janela WPF e amostras visuais desktop/compacta aprovados.
 
 ## Pendente
 
-- Implementar Tray/Desktop e Dashboard para inventário, status, histórico, alertas, configuração e ações autorizadas sobre contratos versionados.
-- Cobrir estados vazio, loading, offline, error, stale e denied, com timestamps de dados e mensagens operacionais claras.
-- Validar acessibilidade, responsividade, navegação por teclado, contraste e ausência de dependência exclusiva de cor.
+- Implementar histórico/timeline e alertas no Tray/Desktop e Dashboard sobre contratos provider-neutral.
+- Implementar configuração e apresentação capability-aware de confirmação/denied/unsupported sem antecipar execução administrativa.
+- Completar validação de acessibilidade com leitor de tela, contraste automatizado, zoom, teclado e viewports representativos.
+- Definir comportamento de Tray/notification area preservando offline, stale e suporte factual.
 - Manter adapters de apresentação determinísticos até `STATE-06`; não integrar silenciosamente banco, IdP, certificado, canal ou provider real durante a fase de UI.
 - Representar capabilities e suporte de modo factual: ação ausente/negada/unsupported não pode aparecer como executável ou homologada.
 - Preservar as pendências posteriores de ativação sandbox de pacotes, integração real, execução/post-probe de comandos, legal hold/backup e adapters externos.
@@ -113,6 +118,6 @@ O `STATE-04 BACKEND_IMPLEMENTATION` foi encerrado após reauditoria automática 
 
 ## Próximo gate
 
-Executar o primeiro incremento de `STATE-05`: fundação visual e contratos de apresentação compartilhados, seguida de um vertical slice somente leitura de inventário/status no Dashboard e no shell WPF, incluindo estados vazio/loading/offline/error/stale/denied e critérios de acessibilidade. Integração externa e ações administrativas reais permanecem fora deste incremento.
+Executar o segundo incremento de `STATE-05`: histórico/timeline e alertas provider-neutral no Dashboard e WPF, com adapters determinísticos, filtros, severidade acessível e estados empty/loading/offline/error/stale/denied/maintenance. Mutations, canais externos e ações administrativas reais permanecem desabilitados.
 
 Este documento descreve somente o presente. Histórico pertence a `State-Transition-Log.md`.

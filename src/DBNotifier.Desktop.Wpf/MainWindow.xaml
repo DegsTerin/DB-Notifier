@@ -1,9 +1,208 @@
 <Window x:Class="DBNotifier.Desktop.Wpf.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="DB-Notifier setup" Height="240" Width="420">
+        Title="DB-Notifier — Inventário"
+        Width="1180"
+        Height="760"
+        MinWidth="820"
+        MinHeight="620"
+        Background="#F5F7FA"
+        Foreground="#17202A"
+        FontFamily="Segoe UI"
+        WindowStartupLocation="CenterScreen"
+        KeyboardNavigation.TabNavigation="Cycle">
+  <Window.Resources>
+    <SolidColorBrush x:Key="BrandBrush" Color="#0B5CAD" />
+    <SolidColorBrush x:Key="InkBrush" Color="#17202A" />
+    <SolidColorBrush x:Key="MutedBrush" Color="#526273" />
+    <SolidColorBrush x:Key="BorderBrush" Color="#D9E0E7" />
+    <Style TargetType="Button">
+      <Setter Property="MinHeight" Value="38" />
+      <Setter Property="Padding" Value="16,8" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="BorderBrush" Value="#B8C5D1" />
+      <Setter Property="Background" Value="White" />
+      <Setter Property="Foreground" Value="{StaticResource InkBrush}" />
+      <Setter Property="Cursor" Value="Hand" />
+    </Style>
+    <Style TargetType="ComboBox">
+      <Setter Property="MinHeight" Value="38" />
+      <Setter Property="Padding" Value="10,5" />
+      <Setter Property="VerticalContentAlignment" Value="Center" />
+    </Style>
+    <Style x:Key="SummaryCard" TargetType="Border">
+      <Setter Property="Background" Value="White" />
+      <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="10" />
+      <Setter Property="Padding" Value="16" />
+      <Setter Property="Margin" Value="0,0,12,0" />
+    </Style>
+  </Window.Resources>
+
   <Grid>
-    <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center"
-               Text="DB-Notifier project scaffold" />
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="*" />
+      <RowDefinition Height="Auto" />
+    </Grid.RowDefinitions>
+
+    <Border Grid.Row="0" Background="#0D2538" Padding="28,20">
+      <Grid>
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="*" />
+          <ColumnDefinition Width="Auto" />
+        </Grid.ColumnDefinitions>
+        <StackPanel>
+          <TextBlock Text="DB-NOTIFIER" Foreground="#8CC8FF" FontWeight="SemiBold" FontSize="12" />
+          <TextBlock Text="Inventário de instâncias" Foreground="White" FontWeight="SemiBold" FontSize="26" Margin="0,4,0,0" />
+          <TextBlock Text="Visão local somente leitura · contrato inventory.v1" Foreground="#C7D7E5" FontSize="13" Margin="0,5,0,0" />
+        </StackPanel>
+        <Border Grid.Column="1" Background="#263F52" CornerRadius="14" Padding="12,6" VerticalAlignment="Center">
+          <TextBlock Text="DADOS DE DEMONSTRAÇÃO" Foreground="White" FontSize="11" FontWeight="SemiBold" />
+        </Border>
+      </Grid>
+    </Border>
+
+    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+      <Grid Margin="28,24">
+        <Grid.RowDefinitions>
+          <RowDefinition Height="Auto" />
+          <RowDefinition Height="Auto" />
+          <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <Grid Grid.Row="0">
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="Auto" />
+          </Grid.ColumnDefinitions>
+          <StackPanel>
+            <TextBlock Text="Saúde da frota" FontSize="20" FontWeight="SemiBold" />
+            <TextBlock x:Name="UpdatedAtText" Foreground="{StaticResource MutedBrush}" Margin="0,5,0,0" />
+          </StackPanel>
+          <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+            <TextBlock Text="Cenário acessível:" VerticalAlignment="Center" Margin="0,0,10,0" />
+            <ComboBox x:Name="ScenarioSelector"
+                      Width="180"
+                      SelectedIndex="0"
+                      SelectionChanged="ScenarioSelectionChanged"
+                      AutomationProperties.Name="Selecionar cenário de apresentação">
+              <ComboBoxItem Content="Inventário carregado" Tag="Ready" />
+              <ComboBoxItem Content="Carregando" Tag="Loading" />
+              <ComboBoxItem Content="Inventário vazio" Tag="Empty" />
+              <ComboBoxItem Content="Agent offline" Tag="Offline" />
+              <ComboBoxItem Content="Erro ao carregar" Tag="Error" />
+              <ComboBoxItem Content="Permissão negada" Tag="Denied" />
+            </ComboBox>
+          </StackPanel>
+        </Grid>
+
+        <Grid x:Name="ReadySurface" Grid.Row="1" Margin="0,22,0,0">
+          <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+          </Grid.RowDefinitions>
+          <UniformGrid Columns="5">
+            <Border Style="{StaticResource SummaryCard}">
+              <StackPanel>
+                <TextBlock Text="TOTAL" Foreground="{StaticResource MutedBrush}" FontSize="11" FontWeight="SemiBold" />
+                <TextBlock x:Name="TotalCountText" FontSize="26" FontWeight="SemiBold" Margin="0,5,0,0" />
+              </StackPanel>
+            </Border>
+            <Border Style="{StaticResource SummaryCard}" BorderBrush="#81B89A">
+              <StackPanel>
+                <TextBlock Text="● SAUDÁVEIS" Foreground="#17633A" FontSize="11" FontWeight="SemiBold" />
+                <TextBlock x:Name="HealthyCountText" FontSize="26" FontWeight="SemiBold" Margin="0,5,0,0" />
+              </StackPanel>
+            </Border>
+            <Border Style="{StaticResource SummaryCard}" BorderBrush="#E3B75E">
+              <StackPanel>
+                <TextBlock Text="▲ DEGRADADAS" Foreground="#805300" FontSize="11" FontWeight="SemiBold" />
+                <TextBlock x:Name="DegradedCountText" FontSize="26" FontWeight="SemiBold" Margin="0,5,0,0" />
+              </StackPanel>
+            </Border>
+            <Border Style="{StaticResource SummaryCard}" BorderBrush="#E29A9A">
+              <StackPanel>
+                <TextBlock Text="■ ATENÇÃO" Foreground="#982B2B" FontSize="11" FontWeight="SemiBold" />
+                <TextBlock x:Name="AttentionCountText" FontSize="26" FontWeight="SemiBold" Margin="0,5,0,0" />
+              </StackPanel>
+            </Border>
+            <Border Style="{StaticResource SummaryCard}" Margin="0">
+              <StackPanel>
+                <TextBlock Text="◷ DESATUALIZADAS" Foreground="#4E5C69" FontSize="11" FontWeight="SemiBold" />
+                <TextBlock x:Name="StaleCountText" FontSize="26" FontWeight="SemiBold" Margin="0,5,0,0" />
+              </StackPanel>
+            </Border>
+          </UniformGrid>
+
+          <Border Grid.Row="1" Background="White" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="10" Margin="0,18,0,0">
+            <Grid>
+              <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+              </Grid.RowDefinitions>
+              <Grid Grid.Row="0" Margin="18,14">
+                <Grid.ColumnDefinitions>
+                  <ColumnDefinition Width="*" />
+                  <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <TextBlock Text="Instâncias monitoradas" FontSize="16" FontWeight="SemiBold" />
+                <TextBlock Grid.Column="1" Text="Somente leitura" Foreground="{StaticResource MutedBrush}" />
+              </Grid>
+              <DataGrid x:Name="InventoryGrid"
+                        Grid.Row="1"
+                        AutoGenerateColumns="False"
+                        IsReadOnly="True"
+                        CanUserAddRows="False"
+                        CanUserDeleteRows="False"
+                        CanUserReorderColumns="False"
+                        HeadersVisibility="Column"
+                        GridLinesVisibility="Horizontal"
+                        BorderThickness="0"
+                        RowHeight="48"
+                        ColumnHeaderHeight="42"
+                        AlternatingRowBackground="#F8FAFC"
+                        SelectionMode="Single"
+                        AutomationProperties.Name="Inventário de instâncias somente leitura">
+                <DataGrid.Columns>
+                  <DataGridTextColumn Header="Instância" Binding="{Binding DisplayName}" Width="1.25*" />
+                  <DataGridTextColumn Header="Provider" Binding="{Binding ProviderType}" Width="*" />
+                  <DataGridTextColumn Header="Suporte" Binding="{Binding SupportLabel}" Width="1.35*" />
+                  <DataGridTextColumn Header="Ambiente" Binding="{Binding Environment}" Width="*" />
+                  <DataGridTextColumn Header="Status" Binding="{Binding StatusLabel}" Width="*" />
+                  <DataGridTextColumn Header="Observado em (UTC)" Binding="{Binding ObservedAtLabel}" Width="1.2*" />
+                  <DataGridTextColumn Header="Latência" Binding="{Binding LatencyLabel}" Width="0.7*" />
+                </DataGrid.Columns>
+              </DataGrid>
+            </Grid>
+          </Border>
+        </Grid>
+
+        <Border x:Name="StateSurface"
+                Grid.Row="1"
+                Visibility="Collapsed"
+                Background="White"
+                BorderBrush="{StaticResource BorderBrush}"
+                BorderThickness="1"
+                CornerRadius="10"
+                Padding="44"
+                Margin="0,22,0,0"
+                MinHeight="300"
+                AutomationProperties.LiveSetting="Polite">
+          <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" MaxWidth="560">
+            <ProgressBar x:Name="LoadingIndicator" IsIndeterminate="True" Width="220" Height="6" Margin="0,0,0,24" />
+            <TextBlock x:Name="StateSymbolText" TextAlignment="Center" FontSize="32" FontWeight="SemiBold" Foreground="{StaticResource BrandBrush}" />
+            <TextBlock x:Name="StateTitleText" TextAlignment="Center" FontSize="22" FontWeight="SemiBold" Margin="0,12,0,0" />
+            <TextBlock x:Name="StateMessageText" TextAlignment="Center" TextWrapping="Wrap" Foreground="{StaticResource MutedBrush}" FontSize="14" LineHeight="22" Margin="0,10,0,0" />
+            <Button x:Name="RetryButton" Content="Tentar novamente" Margin="0,22,0,0" Click="RetryButtonClick" AutomationProperties.HelpText="Retorna à demonstração de inventário carregado" />
+          </StackPanel>
+        </Border>
+      </Grid>
+    </ScrollViewer>
+
+    <Border Grid.Row="2" Background="White" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,1,0,0" Padding="28,12">
+      <TextBlock Foreground="{StaticResource MutedBrush}" FontSize="12" Text="Nenhuma conexão externa é realizada nesta tela. Providers planejados não representam suporte público ou homologação." />
+    </Border>
   </Grid>
 </Window>

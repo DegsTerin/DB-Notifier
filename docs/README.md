@@ -15,6 +15,7 @@ Current discovery and migration artifacts:
 - [`STATE-04-Backend-Implementation-Report.md`](STATE-04-Backend-Implementation-Report.md): completed Domain/Application, open Provider SDK, PostgreSQL backend-slice evidence, and accepted limitations.
 - [`STATE-04-Backend-Implementation-Audit.md`](STATE-04-Backend-Implementation-Audit.md): automatic closure-gate evidence, findings, limitations, and remediation required before the Human Gate.
 - [`STATE-04-Backend-Implementation-Reaudit.md`](STATE-04-Backend-Implementation-Reaudit.md): approved remediation re-audit, accepted Human Gate, reservations, and transition evidence.
+- [`STATE-05-Frontend-Implementation-Report.md`](STATE-05-Frontend-Implementation-Report.md): Dashboard/WPF inventory-status increment, presentation semantics, accessibility evidence, checks, and remaining UI scope.
 
 The governing instruction corpus starts at [`../prompts/Start-Here.md`](../prompts/Start-Here.md).
 

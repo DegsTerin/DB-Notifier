@@ -302,6 +302,16 @@
 - Aprovador: Bruno, 2026-07-12.
 - Estado resultante: `STATE-05 FRONTEND_IMPLEMENTATION`.
 
+## 2026-07-12 — Primeiro incremento de Frontend Implementation
+
+- Estado anterior: `STATE-05 FRONTEND_IMPLEMENTATION`
+- Estado resultante: sem transição
+- Decisão: implementar fundação visual e vertical slice provider-neutral de inventário/status somente leitura no Dashboard e WPF.
+- Escopo: contrato `inventory.v1`, adapters determinísticos, resumo/status/stale, busca/filtro, timestamps, suporte factual e estados ready/loading/empty/offline/error/denied.
+- Gates: builds .NET 10/Vite, typecheck, format, 107 testes .NET, 3 testes Dashboard, npm audit, smoke da janela WPF e amostras visuais desktop/compacta aprovados; Human Gate de encerramento de `STATE-05` permanece pendente.
+- Evidências: `docs/STATE-05-Frontend-Implementation-Report.md`; nenhuma conexão externa, credential, mutation, canal, comando administrativo ou provider homologado.
+- Riscos/ressalvas: leitor de tela, contraste automatizado, zoom, WPF visual e matriz completa de viewports permanecem para os próximos incrementos/gate da fase.
+
 ## Template de nova entrada
 
 - Data:

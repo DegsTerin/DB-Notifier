@@ -2,7 +2,7 @@
 
 ## Versão atual
 
-- Versão: `3.15.0`
+- Versão: `3.16.0`
 - Data: 2026-07-12
 - Status: corpus DB-Notifier consolidado
 - Escopo: 13 arquivos ativos
@@ -16,6 +16,12 @@ A versão do corpus é independente da versão do software.
 - PATCH: clareza, correção ou referência sem mudança de autoridade.
 
 Toda alteração atualiza este arquivo e, quando necessário, `../Start-Here.md`.
+
+## 3.16.0 — 2026-07-12
+
+- Primeiro incremento de `STATE-05`: contrato de apresentação `inventory.v1` e inventário/status somente leitura no Dashboard React e Desktop WPF .NET 10.
+- Estados ready/loading/empty/offline/error/stale/denied, suporte factual, timestamps, stale, foco/teclado, semântica e responsividade implementados com adapters determinísticos sem integração externa.
+- 107 testes .NET e 3 testes Dashboard aprovados; próximo incremento definido como histórico/timeline e alertas provider-neutral, sem mutations ou execução administrativa.
 
 ## 3.15.0 — 2026-07-12
 
