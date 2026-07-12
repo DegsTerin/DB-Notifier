@@ -178,6 +178,18 @@
 - Riscos/ressalvas: não declarar reutilização de código, dependência, afiliação ou compatibilidade com o MySQL Notifier sem evidência própria.
 - Aprovador: Bruno, 2026-07-11.
 
+## 2026-07-11 — Transição para Backend Implementation
+
+- Estado anterior: `STATE-03 DATABASE_MODELING`
+- Estado solicitado: `STATE-04 BACKEND_IMPLEMENTATION`
+- Decisão: `APROVADO` pelo usuário para encerrar a modelagem e avançar após consolidar, na ordem, roadmap universal, SAP HANA/SQLite, conectividade/credenciais e linhagem do produto.
+- Escopo: aceitar modelo lógico, separação SQLite/PostgreSQL, constraints, índices, retenção, quatro migrations, rollback e recuperação como baseline do backend.
+- Gates: auditoria automática de `STATE-03` `APROVADO`; Human Gate aprovado explicitamente.
+- Evidências: `docs/STATE-03-Database-Modeling-Report.md`, `docs/data/`, commits `c0beac1`, `52bd9c8`, `1e76f08` e `7c4626a`.
+- Riscos/ressalvas: nenhuma migration aplicada a PostgreSQL/produção; Domain/Application, Provider SDK, vault/mTLS, RBAC, providers, comandos e integração ainda não implementados.
+- Aprovador: Bruno, 2026-07-11.
+- Estado resultante: `STATE-04 BACKEND_IMPLEMENTATION`.
+
 ## Template de nova entrada
 
 - Data:

@@ -2,7 +2,7 @@
 
 ## Versão atual
 
-- Versão: `3.5.1`
+- Versão: `3.5.2`
 - Data: 2026-07-11
 - Status: corpus DB-Notifier consolidado
 - Escopo: 13 arquivos ativos
@@ -16,6 +16,13 @@ A versão do corpus é independente da versão do software.
 - PATCH: clareza, correção ou referência sem mudança de autoridade.
 
 Toda alteração atualiza este arquivo e, quando necessário, `../Start-Here.md`.
+
+## 3.5.2 — 2026-07-11
+
+- Human Gate de `STATE-03 DATABASE_MODELING` aprovado explicitamente pelo product owner, com as ressalvas técnicas preservadas.
+- Ordem consolidada: roadmap universal e SAP HANA/SQLite, conectividade/credenciais e linhagem já formalizados antes do gate.
+- Transição factual para `STATE-04 BACKEND_IMPLEMENTATION`, sem iniciar silenciosamente backend, migration produtiva, deploy ou ação real.
+- Próximo incremento definido como núcleo provider-neutral e vertical slice PostgreSQL em .NET 10.
 
 ## 3.5.1 — 2026-07-11
 

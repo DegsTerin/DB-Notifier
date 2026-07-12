@@ -2,7 +2,7 @@
 
 ## Outcome
 
-Automatic audit result: **APPROVED**. The internal DB-Notifier data model, provider-specific migrations, retention policy, and recovery guidance are ready for the `STATE-03` Human Gate. This does not authorize a production migration or transition to `STATE-04`.
+Automatic audit result: **APPROVED**. The internal DB-Notifier data model, provider-specific migrations, retention policy, and recovery guidance passed the `STATE-03` Human Gate on 2026-07-11. The gate authorizes transition to `STATE-04`; it does not authorize a production migration, deployment, or real administrative action.
 
 ## Delivered scope
 
@@ -75,4 +75,6 @@ Review samples:
 4. Confirm that monitored databases are never DB-Notifier persistence targets.
 5. Confirm that the listed later-phase limitations remain unauthorized.
 
-Human Gate decision: **PENDING**.
+Human Gate decision: **APPROVED** by Bruno on 2026-07-11.
+
+Accepted reservations: no PostgreSQL/production migration was executed; retention workers, vault/mTLS, authentication, RBAC enforcement, providers, and command execution remain later-phase implementation/integration work.

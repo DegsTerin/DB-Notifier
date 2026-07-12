@@ -4,7 +4,7 @@ DB-Notifier is the successor to PgNotifier, which was conceptually inspired by M
 
 Agents are designed to monitor local, remote, datacenter, hybrid, and cloud databases from Windows, Linux, containers, or cloud workloads. Monitoring credentials, database administration credentials, OS service identities, and cloud control-plane identities remain separate and vault-backed.
 
-The workspace is currently in `STATE-03 DATABASE_MODELING`, with its automatic audit approved and Human Gate pending. The renamed PowerShell compatibility application remains the only functional monitoring implementation and is not the final architecture. PostgreSQL is the only engine with observed legacy behavior; every other engine remains a roadmap item until its provider is implemented and homologated.
+The workspace is currently in `STATE-04 BACKEND_IMPLEMENTATION` after approval of the database-modeling Human Gate. The renamed PowerShell compatibility application remains the only functional monitoring implementation and is not the final architecture. PostgreSQL is the only engine with observed legacy behavior; every other engine remains a roadmap item until its provider is implemented and homologated.
 
 ## Start here
 

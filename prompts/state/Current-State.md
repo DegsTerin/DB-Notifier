@@ -2,11 +2,11 @@
 
 ## Estado
 
-`STATE-03 DATABASE_MODELING`
+`STATE-04 BACKEND_IMPLEMENTATION`
 
 ## Situação factual
 
-O modelo interno de `STATE-03 DATABASE_MODELING` foi entregue e aprovado pela auditoria automática; o Human Gate de leitura do modelo, migrations e recuperação permanece pendente. O monitor PowerShell de compatibilidade continua sendo o único monitor funcional, e nenhuma migration foi aplicada a PostgreSQL, produção ou banco monitorado.
+O modelo interno de `STATE-03 DATABASE_MODELING` e suas ressalvas foram aprovados no Human Gate, e o workspace entrou em `STATE-04 BACKEND_IMPLEMENTATION`. O monitor PowerShell de compatibilidade continua sendo o único monitor funcional; o novo Domain/Application, Provider SDK, provider PostgreSQL, persistência operacional e API ainda não foram implementados.
 
 ## Produto atual
 
@@ -62,12 +62,16 @@ O modelo interno de `STATE-03 DATABASE_MODELING` foi entregue e aprovado pela au
 - Auditoria automática de `STATE-03` aprovada e relatório de evidências emitido.
 - Objetivo universal de providers aceito: PostgreSQL primeiro, seguido por ondas priorizadas e extensão aberta sem condicionais de engine no núcleo.
 - Topologias local, remota, Windows, Linux, híbrida e cloud aceitas como objetivo, sem autorizar abertura automática de rede ou reutilização insegura de credenciais.
+- Human Gate de `STATE-03` aprovado em 2026-07-11 após modelagem, migrations, rollback, retenção e recuperação revisados.
 
 ## Pendente
 
-- Human Gate de `STATE-03`: leitura de modelo, migrations e recuperação.
-- Aprovação explícita antes de transicionar para `STATE-04 BACKEND_IMPLEMENTATION`.
-- Implementação e homologação de qualquer provider além do comportamento PostgreSQL legado.
+- Implementar Domain e Application provider-neutral, ports, casos de uso e regras canônicas.
+- Implementar o Provider SDK/registro aberto e o primeiro vertical slice PostgreSQL preservando a caracterização legada.
+- Integrar persistência operacional do Agent/API, eventos, alertas, RBAC e comandos administrativos tipados conforme autorização.
+- Cobrir falhas isoladas, autorização negativa, idempotência, retries, timeout, `UnknownOutcome` e testes do provider.
+- Auditar `STATE-04` e submeter seus entregáveis ao Human Gate antes de qualquer transição para UI.
+- Implementação e homologação dos demais providers por ondas independentes.
 
 ## Riscos
 
@@ -80,6 +84,6 @@ O modelo interno de `STATE-03 DATABASE_MODELING` foi entregue e aprovado pela au
 
 ## Próximo gate
 
-Revisar `docs/STATE-03-Database-Modeling-Report.md` e o pacote `docs/data/`, então decidir o Human Gate de `STATE-03` antes de `STATE-04 BACKEND_IMPLEMENTATION`.
+Planejar e executar o primeiro incremento de `STATE-04 BACKEND_IMPLEMENTATION`: núcleo neutro e vertical slice PostgreSQL em .NET 10, sem antecipar UI funcional de `STATE-05`.
 
 Este documento descreve somente o presente. Histórico pertence a `State-Transition-Log.md`.
