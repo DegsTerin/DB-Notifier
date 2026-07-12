@@ -54,6 +54,8 @@ public interface IProviderCredential : IDisposable
     string? UserName { get; }
 
     ReadOnlyMemory<char> Secret { get; }
+
+    DateTimeOffset? ExpiresAt { get; }
 }
 
 public sealed record ProviderProbeResult(

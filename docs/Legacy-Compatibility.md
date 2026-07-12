@@ -21,9 +21,9 @@ Compatibility code must forward to the canonical implementation, emit a deprecat
 
 - The canonical default uses display name `DB-Notifier` and `%LocalAppData%\DB-Notifier\logs\dbnotifier.log`.
 - Existing PgNotifier JSON is still accepted when its path is passed explicitly through either entry point.
-- Legacy field names such as `pgIsReady` are PostgreSQL provider settings, not product branding, and remain unchanged until a versioned configuration migrator exists.
+- Legacy field names such as `pgIsReady` remain valid only as explicit input to the versioned configuration migrator; generated DB-Notifier configuration uses canonical typed fields.
 - No shim moves, edits, or deletes a legacy configuration file.
-- The future migration tool must dry-run, back up, validate, report, and write only a new DB-Notifier configuration.
+- `DBNotifier.ConfigMigrator` dry-runs by default, backs up before target writes, validates/reports, blocks secrets and writes only a new DB-Notifier configuration.
 
 ## Packaging compatibility
 

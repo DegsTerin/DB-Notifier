@@ -41,6 +41,14 @@ public sealed class DependencyDirectionTests
         Assert.Contains("DBNotifier.Provider.Abstractions", references);
     }
 
+    [Fact]
+    public void ConfigurationMigratorCliIsIsolatedFromProductRuntimeAssemblies()
+    {
+        string[] references = GetDBNotifierReferences(typeof(DBNotifier.ConfigMigrator.AssemblyMarker).Assembly);
+
+        Assert.Empty(references);
+    }
+
     private static string[] GetDBNotifierReferences(System.Reflection.Assembly assembly) =>
         assembly.GetReferencedAssemblies()
             .Select(reference => reference.Name ?? string.Empty)

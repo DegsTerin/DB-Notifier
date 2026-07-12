@@ -166,6 +166,26 @@ public sealed class ProviderCoreTests
                 Guid.NewGuid(), Guid.NewGuid(), endpoint, reference, Policy())));
     }
 
+    [Fact]
+    public async Task ExpiredMonitoringCredentialFailsBeforeProviderCall()
+    {
+        DateTimeOffset now = new(2026, 7, 12, 21, 0, 0, TimeSpan.Zero);
+        CountingProvider provider = new();
+        ProbeInstanceHandler handler = new(
+            new ProviderRegistry([provider]),
+            new ExpiredVault(now.AddSeconds(-1)),
+            new FixedTimeProvider(now));
+        CredentialReference reference = new(Guid.NewGuid(), "test-vault", "monitoring/expired", CredentialPurpose.Monitoring);
+        ProviderEndpoint endpoint = new(provider.ProviderType, [new KeyValuePair<string, string>("host", "localhost")]);
+
+        HealthObservation observation = await handler.ExecuteAsync(new ProbeInstanceCommand(
+            Guid.NewGuid(), Guid.NewGuid(), endpoint, reference, Policy()));
+
+        Assert.Equal(HealthStatus.AuthFailed, observation.Status);
+        Assert.Equal("credential.expired", observation.Error?.Code);
+        Assert.Equal(0, provider.CallCount);
+    }
+
     private static ProbePolicy Policy(int maxAttempts = 1) =>
         new(TimeSpan.FromSeconds(1), maxAttempts, TimeSpan.Zero, TimeSpan.Zero);
 
@@ -290,6 +310,20 @@ public sealed class ProviderCoreTests
             CredentialReference reference,
             CancellationToken cancellationToken) =>
             throw new InvalidOperationException("sensitive-vault-detail");
+    }
+
+    private sealed class ExpiredVault(DateTimeOffset expiresAt) : ICredentialVault
+    {
+        public ValueTask<IProviderCredential> ResolveAsync(
+            CredentialReference reference,
+            CancellationToken cancellationToken) =>
+            ValueTask.FromResult<IProviderCredential>(
+                new ProviderCredentialLease("monitor", "expired-fixture".AsSpan(), expiresAt));
+    }
+
+    private sealed class FixedTimeProvider(DateTimeOffset now) : TimeProvider
+    {
+        public override DateTimeOffset GetUtcNow() => now;
     }
 
     private sealed class CountingProvider : IDatabaseProvider

@@ -280,6 +280,16 @@
 - Evidências: `docs/STATE-04-Backend-Implementation-Audit.md`; ausência verificável do migrador de configuração, discovery caracterizado parcial e fixtures negativas incompletas.
 - Riscos/ressalvas: Human Gate não solicitado; nenhum banco, credential, certificado, IdP, canal, executor administrativo, deploy ou migration remota foi exercitado.
 
+## 2026-07-12 — Remediação e reauditoria de Backend Implementation
+
+- Estado anterior: `STATE-04 BACKEND_IMPLEMENTATION`
+- Estado resultante: sem transição
+- Decisão: implementar bloqueadores M4 e reexecutar auditoria automática; resultado `APROVADO`, Human Gate ainda `PENDENTE`.
+- Escopo: migrador PgNotifier → DB-Notifier isolado, dry-run/backup/atomicidade/idempotência/rollback, discovery PostgreSQL tipado, fallback/credencial expirada, fixtures e matriz factual.
+- Gates: .NET 10 build/format aprovados com 0 avisos/erros, 104 testes, Dashboard/Pester/bundle/dependency scans e CLI smoke aprovados.
+- Evidências: `docs/STATE-04-Backend-Implementation-Reaudit.md`; `Applied` → `AlreadyCurrent` → `RolledBack`, núcleo sem nome de engine e PostgreSQL ainda não homologado.
+- Riscos/ressalvas: sem banco/credential/certificado/IdP/canal real, command executor/post-probe, provider loading, deploy, migration remota, homologação ou UI funcional.
+
 ## Template de nova entrada
 
 - Data:

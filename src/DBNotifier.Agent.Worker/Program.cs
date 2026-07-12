@@ -42,6 +42,9 @@ builder.Services.AddSingleton<IHealthObservationSink, AgentObservationOutboxSink
 builder.Services.AddSingleton<IAgentOutboxStore, AgentOutboxStore>();
 builder.Services.AddSingleton<IAgentCommandInboxStore, AgentCommandInboxStore>();
 builder.Services.AddSingleton<IAgentRetentionStore, AgentRetentionStore>();
+builder.Services.AddSingleton<IPostgreSqlDiscoveryFileSystem, PostgreSqlDiscoveryFileSystem>();
+builder.Services.AddSingleton<IPostgreSqlExecutableDiscovery, PostgreSqlExecutableDiscovery>();
+builder.Services.AddSingleton<IPostgreSqlTransportProbe, TcpPostgreSqlTransportProbe>();
 builder.Services.AddSingleton<IPostgreSqlReadinessExecutor, PostgreSqlReadinessExecutor>();
 builder.Services.AddSingleton<IPostgreSqlAuthenticatedExecutor, NpgsqlAuthenticatedExecutor>();
 builder.Services.AddSingleton<IDatabaseProvider, PostgreSqlDatabaseProvider>();

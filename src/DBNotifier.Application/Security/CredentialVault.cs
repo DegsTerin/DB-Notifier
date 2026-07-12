@@ -25,13 +25,19 @@ public sealed class ProviderCredentialLease : IProviderCredential
 {
     private char[]? secret;
 
-    public ProviderCredentialLease(string? userName, ReadOnlySpan<char> secret)
+    public ProviderCredentialLease(
+        string? userName,
+        ReadOnlySpan<char> secret,
+        DateTimeOffset? expiresAt = null)
     {
         UserName = userName;
         this.secret = secret.ToArray();
+        ExpiresAt = expiresAt;
     }
 
     public string? UserName { get; }
+
+    public DateTimeOffset? ExpiresAt { get; }
 
     public ReadOnlyMemory<char> Secret => secret ?? throw new ObjectDisposedException(nameof(ProviderCredentialLease));
 

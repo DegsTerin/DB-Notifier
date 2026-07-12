@@ -2,7 +2,7 @@
 
 ## Versão atual
 
-- Versão: `3.13.0`
+- Versão: `3.14.0`
 - Data: 2026-07-12
 - Status: corpus DB-Notifier consolidado
 - Escopo: 13 arquivos ativos
@@ -16,6 +16,12 @@ A versão do corpus é independente da versão do software.
 - PATCH: clareza, correção ou referência sem mudança de autoridade.
 
 Toda alteração atualiza este arquivo e, quando necessário, `../Start-Here.md`.
+
+## 3.14.0 — 2026-07-12
+
+- Oitavo incremento/remediação de `STATE-04`: migrador isolado .NET 10 com dry-run, backups, escrita atômica, relatório/manifesto, idempotência, rollback por hash e bloqueio de secrets.
+- Discovery tipado de `pg_isready`, fallback de transporte, expiração de credencial e fixtures negativas implementados sem shell ou controle administrativo.
+- Reauditoria automática `APROVADO` com 104 testes .NET; homologação PostgreSQL permanece `None`, suporte público `No` e Human Gate pendente.
 
 ## 3.13.0 — 2026-07-12
 

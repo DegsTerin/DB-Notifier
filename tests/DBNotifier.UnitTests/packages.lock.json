@@ -506,6 +506,9 @@
           "DBNotifier.Provider.Abstractions": "[1.0.0, )"
         }
       },
+      "dbnotifier.configmigrator": {
+        "type": "Project"
+      },
       "dbnotifier.domain": {
         "type": "Project"
       },

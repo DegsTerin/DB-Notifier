@@ -21,10 +21,10 @@
 | Latency measurement | Process duration not canonicalized | Process duration not canonicalized | Implemented for readiness duration | None |
 | Version discovery | Not implemented | Not implemented | Planned | None |
 | Core metrics | Not implemented | Not implemented | Planned incrementally | None |
-| Event/history persistence | Not implemented | Not implemented | Planned via canonical events | None |
+| Event/history persistence | Not implemented | Not implemented | Implemented for canonical health transitions and central event/outbox persistence | None |
 | Start/Stop/Restart Windows service | Legacy observed in code; not exercised in discovery | Unsupported | Planned separate admin adapter | None |
 | SQL/native administrative operations | Unsupported | Unsupported | Unsupported until separate capability ADR/evidence | None |
-| Offline Agent outbox | Not implemented | Not implemented | Partial: transactional local observation/outbox sink | None |
+| Offline Agent outbox | Not implemented | Not implemented | Implemented: transactional sink, ordered dispatch/ack, tombstones and bounded retry | None |
 
 ## Administrative platform matrix
 
@@ -56,7 +56,7 @@ The product objective is to accept any database engine through a versioned provi
 
 | Priority wave | Providers | Architecture registration | Implementation | Homologation | Public support claim |
 |---|---|---|---|---|---|
-| First vertical slice | PostgreSQL | Accepted target | Partial: endpoint/readiness adapter | None | No |
+| First vertical slice | PostgreSQL | Accepted target | Implemented backend slice: endpoint, typed discovery, readiness/TCP, authenticated health and canonical mapping | None | No |
 | Mainstream relational/document | MySQL/MariaDB, SQL Server/Azure SQL, Oracle, MongoDB | Priority roadmap | Not implemented | None | No |
 | Enterprise/embedded relational | SAP HANA, SQLite, IBM Db2, Firebird, CockroachDB | Priority roadmap | Not implemented | None | No |
 | Distributed/data platforms | Cassandra, ScyllaDB, Redis/Valkey, Couchbase/CouchDB | Open roadmap | Not implemented | None | No |
@@ -70,10 +70,11 @@ An engine moves from roadmap to implementation only with provider contract fixtu
 
 ## Required PostgreSQL fixtures
 
-- Valid readiness, startup/recovery/rejection, unreachable host, refused port, timeout, DNS failure, and missing utility.
-- Valid/invalid/expired monitoring credential for authenticated probe.
-- Local service missing/stopped/running/PID changed/access denied.
-- Special-character paths/arguments without shell interpretation.
-- Remote endpoint with administrative control unavailable.
-- Provider/Agent version incompatibility and missing capability.
-- Post-command probe success, failure, timeout, and ambiguous outcome.
+- Readiness accepting/rejecting/no-response/timeout/invalid and TCP reachable/unreachable mappings: implemented as deterministic provider fixtures.
+- Missing utility with typed TCP fallback plus DNS/refused/timeout/reachable transport outcomes: implemented through discovery/executor fixtures without external network dependency.
+- Valid/invalid/expired monitoring credential: implemented through authenticated outcome fixtures and pre-provider expiry enforcement.
+- Local service missing/stopped/running/PID changed/access denied: explicitly `Unsupported` in this backend slice; capability-negative tests prove no adapter or attempt is selected.
+- Special-character paths/arguments without shell interpretation: implemented with `ProcessStartInfo.ArgumentList` fixture.
+- Remote endpoint with administrative control unavailable: implemented through `Unsupported` control capabilities and command-creation denial.
+- Provider/Agent version incompatibility and missing capability: implemented in command delivery/authorization tests.
+- Post-command probe success/failure/timeout/ambiguous outcome: not applicable while control capabilities are `Unsupported`; execution and `UnknownOutcome` E2E remain gated to authorized integration/homologation.

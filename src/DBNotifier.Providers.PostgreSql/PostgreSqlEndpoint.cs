@@ -8,6 +8,7 @@ public sealed record PostgreSqlEndpoint(
     int Port,
     string? Database,
     string PgIsReadyPath,
+    string? PostgreSqlExecutablePath,
     string SslMode)
 {
     public const string DefaultExecutable = "pg_isready";
@@ -20,11 +21,12 @@ public sealed record PostgreSqlEndpoint(
         string executable = endpoint.TryGetValue("pgIsReadyPath", out string? configuredPath)
             ? configuredPath
             : DefaultExecutable;
+        endpoint.TryGetValue("postgresExecutablePath", out string? postgresExecutablePath);
         string sslMode = endpoint.TryGetValue("sslMode", out string? configuredSslMode)
             ? configuredSslMode
             : "verify-full";
 
-        return new PostgreSqlEndpoint(host, port, database, executable, sslMode);
+        return new PostgreSqlEndpoint(host, port, database, executable, postgresExecutablePath, sslMode);
     }
 }
 
@@ -46,6 +48,22 @@ public sealed record PostgreSqlReadinessResult(
 public interface IPostgreSqlReadinessExecutor
 {
     ValueTask<PostgreSqlReadinessResult> ExecuteAsync(
+        PostgreSqlEndpoint endpoint,
+        TimeSpan timeout,
+        CancellationToken cancellationToken);
+}
+
+public enum PostgreSqlTransportState
+{
+    Reachable,
+    NoResponse,
+    TimedOut,
+    Invalid,
+}
+
+public interface IPostgreSqlTransportProbe
+{
+    ValueTask<PostgreSqlTransportState> ProbeAsync(
         PostgreSqlEndpoint endpoint,
         TimeSpan timeout,
         CancellationToken cancellationToken);

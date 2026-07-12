@@ -16,6 +16,7 @@ public sealed class PostgreSqlDatabaseProvider(
         "port",
         "database",
         "pgIsReadyPath",
+        "postgresExecutablePath",
         "sslMode",
     };
 
@@ -73,6 +74,14 @@ public sealed class PostgreSqlDatabaseProvider(
             (string.IsNullOrWhiteSpace(executable) || executable.Length > 1024))
         {
             errors.Add(new("postgresql.executable_invalid", "pgIsReadyPath", "The pg_isready path is invalid."));
+        }
+
+        if (endpoint.TryGetValue("postgresExecutablePath", out string postgresExecutable) &&
+            (string.IsNullOrWhiteSpace(postgresExecutable) || postgresExecutable.Length > 1024 ||
+             postgresExecutable.Contains('\0') || !Path.IsPathFullyQualified(postgresExecutable)))
+        {
+            errors.Add(new("postgresql.postgres_executable_invalid", "postgresExecutablePath",
+                "PostgreSQL executable path must be fully qualified when configured."));
         }
 
         if (endpoint.TryGetValue("sslMode", out string sslMode) &&

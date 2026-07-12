@@ -104,6 +104,8 @@ Deliverables:
 
 Exit: the PostgreSQL compatibility suite and negative security tests pass; no other engine is advertised.
 
+Implementation note (2026-07-12): the backend remediation increment implements the versioned configuration migration service/CLI, typed Windows `pg_isready` discovery and deterministic negative fixtures. This note records implementation only; PostgreSQL homologation and public support remain `None`/`No`.
+
 ### M5 — Desktop transition (`STATE-05`)
 
 Deliverables:

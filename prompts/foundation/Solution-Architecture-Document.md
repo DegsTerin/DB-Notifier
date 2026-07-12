@@ -35,6 +35,7 @@ src/
   DBNotifier.Agent.Worker/
   DBNotifier.Desktop.Wpf/
   DBNotifier.Server.Api/
+  DBNotifier.ConfigMigrator/
   DBNotifier.Dashboard.Web/
 tests/
 ```

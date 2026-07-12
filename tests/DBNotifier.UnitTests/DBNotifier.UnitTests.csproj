@@ -16,6 +16,7 @@
     </PackageReference>
     <ProjectReference Include="..\..\src\DBNotifier.Domain\DBNotifier.Domain.csproj" />
     <ProjectReference Include="..\..\src\DBNotifier.Application\DBNotifier.Application.csproj" />
+    <ProjectReference Include="..\..\src\DBNotifier.ConfigMigrator\DBNotifier.ConfigMigrator.csproj" />
     <ProjectReference Include="..\..\src\DBNotifier.Agent.Worker\DBNotifier.Agent.Worker.csproj" />
     <ProjectReference Include="..\..\src\DBNotifier.Infrastructure\DBNotifier.Infrastructure.csproj" />
     <ProjectReference Include="..\..\src\DBNotifier.Persistence.Agent.Sqlite\DBNotifier.Persistence.Agent.Sqlite.csproj" />

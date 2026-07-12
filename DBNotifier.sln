@@ -22,6 +22,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DBNotifier.Server.Api", "sr
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DBNotifier.Desktop.Wpf", "src\DBNotifier.Desktop.Wpf\DBNotifier.Desktop.Wpf.csproj", "{A4D87440-D733-4318-BAC7-6EC41CDA7D5F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DBNotifier.ConfigMigrator", "src\DBNotifier.ConfigMigrator\DBNotifier.ConfigMigrator.csproj", "{B87633AC-75CF-45E2-B3E2-36D773CCF267}"
+EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DBNotifier.UnitTests", "tests\DBNotifier.UnitTests\DBNotifier.UnitTests.csproj", "{187D919A-84A0-4354-A984-D44B03BD9974}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DBNotifier.Architecture.Tests", "tests\DBNotifier.Architecture.Tests\DBNotifier.Architecture.Tests.csproj", "{CA12D3BB-7CB8-4A21-AFA6-A41CEBB8441A}"
@@ -72,6 +74,10 @@ Global
 		{A4D87440-D733-4318-BAC7-6EC41CDA7D5F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A4D87440-D733-4318-BAC7-6EC41CDA7D5F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A4D87440-D733-4318-BAC7-6EC41CDA7D5F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B87633AC-75CF-45E2-B3E2-36D773CCF267}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B87633AC-75CF-45E2-B3E2-36D773CCF267}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B87633AC-75CF-45E2-B3E2-36D773CCF267}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B87633AC-75CF-45E2-B3E2-36D773CCF267}.Release|Any CPU.Build.0 = Release|Any CPU
 		{187D919A-84A0-4354-A984-D44B03BD9974}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{187D919A-84A0-4354-A984-D44B03BD9974}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{187D919A-84A0-4354-A984-D44B03BD9974}.Release|Any CPU.ActiveCfg = Release|Any CPU

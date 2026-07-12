@@ -72,6 +72,7 @@ public sealed class PostgreSqlProviderTests
             5433,
             "inventory database",
             "C:\\Program Files\\PostgreSQL\\bin\\pg_isready.exe",
+            null,
             "require");
 
         System.Diagnostics.ProcessStartInfo startInfo =
@@ -97,6 +98,88 @@ public sealed class PostgreSqlProviderTests
         Assert.All(
             provider.Capabilities.Where(capability => capability.CapabilityId.StartsWith("control.", StringComparison.Ordinal)),
             capability => Assert.Equal(CapabilityState.Unsupported, capability.State));
+    }
+
+    [Fact]
+    public void DiscoveryFindsNewestStandardWindowsInstallationWithoutUsingShell()
+    {
+        const string root = "C:\\Program Files\\PostgreSQL";
+        const string version96 = "C:\\Program Files\\PostgreSQL\\9.6";
+        const string version17 = "C:\\Program Files\\PostgreSQL\\17";
+        const string version18 = "C:\\Program Files\\PostgreSQL\\18";
+        const string expected = "C:\\Program Files\\PostgreSQL\\18\\bin\\pg_isready.exe";
+        PostgreSqlExecutableDiscovery discovery = new(new DiscoveryFileSystem(
+            new Dictionary<string, IReadOnlyList<string>>(StringComparer.OrdinalIgnoreCase)
+            {
+                [root] = [version96, version17, version18],
+            },
+            [expected]));
+
+        PostgreSqlExecutableDiscoveryResult result = discovery.Resolve(new(
+            "pg_isready.exe", null, [], [root]));
+
+        Assert.Equal(PostgreSqlExecutableDiscoveryState.Found, result.State);
+        Assert.Equal(expected, result.ExecutablePath, ignoreCase: true);
+    }
+
+    [Fact]
+    public void DiscoveryRejectsUnrootedPathTraversalInsteadOfFallingBack()
+    {
+        PostgreSqlExecutableDiscovery discovery = new(new DiscoveryFileSystem(
+            new Dictionary<string, IReadOnlyList<string>>(), []));
+
+        PostgreSqlExecutableDiscoveryResult result = discovery.Resolve(new(
+            "..\\pg_isready.exe", null, [], []));
+
+        Assert.Equal(PostgreSqlExecutableDiscoveryState.Invalid, result.State);
+    }
+
+    [Fact]
+    public void DiscoveryUsesConfiguredPostgresExecutableSiblingBeforeInstallationRoots()
+    {
+        const string postgres = "C:\\Custom PostgreSQL\\bin\\postgres.exe";
+        const string expected = "C:\\Custom PostgreSQL\\bin\\pg_isready.exe";
+        PostgreSqlExecutableDiscovery discovery = new(new DiscoveryFileSystem(
+            new Dictionary<string, IReadOnlyList<string>>(), [expected]));
+
+        PostgreSqlExecutableDiscoveryResult result = discovery.Resolve(new(
+            "pg_isready.exe", postgres, [], []));
+
+        Assert.Equal(PostgreSqlExecutableDiscoveryState.Found, result.State);
+        Assert.Equal(expected, result.ExecutablePath, ignoreCase: true);
+    }
+
+    [Theory]
+    [InlineData(PostgreSqlTransportState.NoResponse, PostgreSqlReadinessState.NoResponse)]
+    [InlineData(PostgreSqlTransportState.TimedOut, PostgreSqlReadinessState.TimedOut)]
+    [InlineData(PostgreSqlTransportState.Reachable, PostgreSqlReadinessState.TransportReachable)]
+    public async Task MissingUtilityFallsBackToTypedDnsRefusedOrReachableTransportFixture(
+        PostgreSqlTransportState transportState,
+        PostgreSqlReadinessState expected)
+    {
+        PostgreSqlReadinessExecutor executor = new(
+            new StubDiscovery(PostgreSqlExecutableDiscoveryState.NotFound),
+            new StubTransportProbe(transportState));
+
+        PostgreSqlReadinessResult result = await executor.ExecuteAsync(
+            PostgreSqlEndpoint.FromProviderEndpoint(Endpoint()), TimeSpan.FromSeconds(2), CancellationToken.None);
+
+        Assert.Equal(expected, result.State);
+        Assert.Equal("tcp", result.Method);
+    }
+
+    [Fact]
+    public async Task InvalidDiscoveryFailsClosedWithoutTransportProbe()
+    {
+        StubTransportProbe transport = new(PostgreSqlTransportState.Reachable);
+        PostgreSqlReadinessExecutor executor = new(
+            new StubDiscovery(PostgreSqlExecutableDiscoveryState.Invalid), transport);
+
+        PostgreSqlReadinessResult result = await executor.ExecuteAsync(
+            PostgreSqlEndpoint.FromProviderEndpoint(Endpoint()), TimeSpan.FromSeconds(2), CancellationToken.None);
+
+        Assert.Equal(PostgreSqlReadinessState.InvalidConfiguration, result.State);
+        Assert.Equal(0, transport.CallCount);
     }
 
     [Theory]
@@ -153,5 +236,35 @@ public sealed class PostgreSqlProviderTests
             TimeSpan timeout,
             CancellationToken cancellationToken) =>
             ValueTask.FromResult(new PostgreSqlAuthenticatedResult(state, TimeSpan.FromMilliseconds(15)));
+    }
+
+    private sealed class StubDiscovery(PostgreSqlExecutableDiscoveryState state) : IPostgreSqlExecutableDiscovery
+    {
+        public PostgreSqlExecutableDiscoveryResult Resolve(PostgreSqlExecutableDiscoveryRequest request) =>
+            new(state, state == PostgreSqlExecutableDiscoveryState.Found ? request.ConfiguredPgIsReadyPath : null, "fixture");
+    }
+
+    private sealed class StubTransportProbe(PostgreSqlTransportState state) : IPostgreSqlTransportProbe
+    {
+        public int CallCount { get; private set; }
+
+        public ValueTask<PostgreSqlTransportState> ProbeAsync(
+            PostgreSqlEndpoint endpoint,
+            TimeSpan timeout,
+            CancellationToken cancellationToken)
+        {
+            CallCount++;
+            return ValueTask.FromResult(state);
+        }
+    }
+
+    private sealed class DiscoveryFileSystem(
+        IReadOnlyDictionary<string, IReadOnlyList<string>> directories,
+        IReadOnlyCollection<string> files) : IPostgreSqlDiscoveryFileSystem
+    {
+        public bool IsOrdinaryFile(string path) => files.Contains(path, StringComparer.OrdinalIgnoreCase);
+
+        public IReadOnlyList<string> GetDirectories(string path) =>
+            directories.TryGetValue(path, out IReadOnlyList<string>? result) ? result : [];
     }
 }

@@ -4,6 +4,8 @@
 
 **REPROVADO** on 2026-07-12. The implemented backend increments are buildable, tested, provider-neutral and fail closed, but the accepted `STATE-04`/M4 deliverable set is not complete. This result does not transition the project and does not invalidate the increments already delivered.
 
+Historical status: the findings below were subsequently remediated. The follow-up [`STATE-04-Backend-Implementation-Reaudit.md`](STATE-04-Backend-Implementation-Reaudit.md) is `APROVADO`; this report remains unchanged as evidence of the initial failed gate.
+
 Audited baseline: commit `ed20903` on `main`, workspace-local .NET SDK `10.0.301`, Windows-hosted .NET/PowerShell processes and local Node.js tooling. No monitored database, real credential, certificate, IdP, external channel, remote migration, deployment or administrative action was used.
 
 ## Expected deliverables

@@ -78,6 +78,26 @@ public sealed class ProbeInstanceHandler(
                     "The monitoring credential could not be resolved."));
         }
 
+        if (credential?.ExpiresAt is DateTimeOffset expiresAt && expiresAt <= observedAt)
+        {
+            credential.Dispose();
+            return CreateObservation(
+                command,
+                provider,
+                observedAt,
+                HealthStatus.AuthFailed,
+                "credential-vault",
+                TimeSpan.Zero,
+                EvidenceLevel.Unknown,
+                1,
+                ["credential-expired"],
+                new NormalizedError(
+                    "credential.expired",
+                    ErrorCategory.Authentication,
+                    Retryability.AfterConfigurationChange,
+                    "The monitoring credential has expired."));
+        }
+
         using (credential)
         {
             return await ExecuteWithRetryAsync(command, provider, credential, cancellationToken).ConfigureAwait(false);

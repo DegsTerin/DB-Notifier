@@ -2,11 +2,11 @@
 
 ## Outcome
 
-The first seven `STATE-04 BACKEND_IMPLEMENTATION` increments are implemented in .NET 10. They establish a provider-neutral Domain/Application slice, an open provider registry/SDK, PostgreSQL readiness/authenticated probes, hosted monitoring/outbox/maintenance workers, transactional local persistence, platform vault readers, idempotent central ingestion, canonical event/alert derivation, Agent/human authorization, command delivery/ack without execution, bounded retention, durable delivery state machines, authorized audit reads, and fail-closed provider-package verification.
+Eight `STATE-04 BACKEND_IMPLEMENTATION` increments are implemented in .NET 10. They establish a provider-neutral Domain/Application slice, an open provider registry/SDK, PostgreSQL discovery/readiness/authenticated probes, hosted monitoring/outbox/maintenance workers, transactional local persistence, platform vault readers, idempotent central ingestion, canonical event/alert derivation, Agent/human authorization, command delivery/ack without execution, bounded retention, durable delivery state machines, authorized audit reads, fail-closed provider-package verification and isolated legacy configuration migration.
 
 This is incremental evidence, not closure of `STATE-04`, provider homologation, or public PostgreSQL support.
 
-The automatic closure audit is currently **REPROVADO** because the accepted M4 configuration migrator, characterized PostgreSQL discovery behavior and required negative fixture matrix are incomplete. See [`STATE-04-Backend-Implementation-Audit.md`](STATE-04-Backend-Implementation-Audit.md). The seven increments below remain valid implementation evidence.
+The initial automatic closure audit was **REPROVADO** and remains preserved in [`STATE-04-Backend-Implementation-Audit.md`](STATE-04-Backend-Implementation-Audit.md). The remediation re-audit is now **APROVADO**; see [`STATE-04-Backend-Implementation-Reaudit.md`](STATE-04-Backend-Implementation-Reaudit.md). Human Gate and state transition remain pending.
 
 ## Delivered scope
 
@@ -104,6 +104,14 @@ Application         PostgreSql provider
 - Verification requires schema v1, `net10.0`, a trusted RSA public-key ID, RSA-PSS/SHA-256 signature over the exact manifest bytes, SHA-256 for every declared file, entry-assembly hash coverage, bounded files/counts/sizes, and rejects traversal, links and reparse points.
 - No trusted key or package root is configured by default, and no private signing material is stored in the repository.
 
+## Remediation increment
+
+- `DBNotifier.ConfigMigrator` is an isolated .NET 10 CLI/service with dry-run default, strict bounded JSON, typed PgNotifier mapping, secret/unknown-field rejection, source/target backups, atomic target/report/manifest writes, exact idempotency and hash-guarded rollback.
+- The compatibility migrator contains the PostgreSQL-specific legacy mapping outside Domain/Application; the architecture test proves it has no product-runtime assembly dependency.
+- PostgreSQL executable discovery now checks configured path, `PATH`, `postgres.exe` sibling and bounded standard Program Files installations without shell use or reparse traversal.
+- Missing utility falls back through a typed TCP probe. Fixtures cover unavailable/timed-out/reachable transport, invalid discovery and expired monitoring credentials before provider invocation.
+- Capability documentation now reflects authenticated health, canonical events and durable outbox while retaining `Homologation: None` and public support `No`.
+
 ## Capability truth
 
 | Capability | Implementation | Homologation/public support |
@@ -137,18 +145,18 @@ Executed from the repository root with workspace-local .NET SDK `10.0.301`:
 
 | Check | Result |
 |---|---|
-| Forced restore and lockfile refresh | Approved for all 12 projects |
+| Forced restore and lockfile refresh | Approved for all 13 projects |
 | Release build with warnings as errors | Approved; 0 warnings, 0 errors |
-| Unit/model/provider tests | Approved; 82/82 |
-| Architecture tests | Approved; 4/4 |
-| Total .NET tests | Approved; 86/86 |
+| Unit/model/provider tests | Approved; 99/99 |
+| Architecture tests | Approved; 5/5 |
+| Total .NET tests | Approved; 104/104 |
 | Synchronization certification subset | Approved; 21/21 |
 | Human access/RBAC subset | Approved; 8/8 |
 | Maintenance/delivery/audit subset | Approved; 13/13 |
 | Command/package verification subset | Approved; 6/6 |
 | Additional negative tests | Approved for monotonic head blocking, rejected tombstone, missing/invalid response, timeout, HTTPS enforcement, sequence conflict, Agent/instance scope and route authorization |
 | `dotnet format --verify-no-changes` | Approved |
-| Locked restore | Approved for all 12 projects |
+| Locked restore | Approved for all 13 projects |
 | NuGet direct/transitive vulnerability audit | Approved; no vulnerable packages reported |
 | Legacy compatibility Pester suite | Approved; 10/10 |
 | Disabled Agent startup smoke | Process remained alive after DI/host build, logged command polling/monitoring/sync/retention disabled, was terminated, and created no SQLite file or probe |

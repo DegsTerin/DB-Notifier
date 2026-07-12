@@ -5,7 +5,9 @@ using System.Net.Sockets;
 
 namespace DBNotifier.Providers.PostgreSql;
 
-public sealed class PostgreSqlReadinessExecutor : IPostgreSqlReadinessExecutor
+public sealed class PostgreSqlReadinessExecutor(
+    IPostgreSqlExecutableDiscovery discovery,
+    IPostgreSqlTransportProbe transportProbe) : IPostgreSqlReadinessExecutor
 {
     public async ValueTask<PostgreSqlReadinessResult> ExecuteAsync(
         PostgreSqlEndpoint endpoint,
@@ -16,6 +18,19 @@ public sealed class PostgreSqlReadinessExecutor : IPostgreSqlReadinessExecutor
         ArgumentOutOfRangeException.ThrowIfLessThanOrEqual(timeout, TimeSpan.Zero);
 
         Stopwatch stopwatch = Stopwatch.StartNew();
+        PostgreSqlExecutableDiscoveryResult discovered = discovery.Resolve(
+            PostgreSqlExecutableDiscovery.CreateRuntimeRequest(endpoint));
+        if (discovered.State == PostgreSqlExecutableDiscoveryState.Invalid)
+        {
+            return new PostgreSqlReadinessResult(
+                PostgreSqlReadinessState.InvalidConfiguration, "pg_isready", stopwatch.Elapsed);
+        }
+        if (discovered.State == PostgreSqlExecutableDiscoveryState.NotFound)
+        {
+            return await ProbeTransportAsync(endpoint, timeout, stopwatch, cancellationToken).ConfigureAwait(false);
+        }
+
+        endpoint = endpoint with { PgIsReadyPath = discovered.ExecutablePath! };
         try
         {
             ProcessStartInfo startInfo = CreateStartInfo(endpoint, timeout);
@@ -90,45 +105,21 @@ public sealed class PostgreSqlReadinessExecutor : IPostgreSqlReadinessExecutor
         return startInfo;
     }
 
-    private static async ValueTask<PostgreSqlReadinessResult> ProbeTransportAsync(
+    private async ValueTask<PostgreSqlReadinessResult> ProbeTransportAsync(
         PostgreSqlEndpoint endpoint,
         TimeSpan timeout,
         Stopwatch stopwatch,
         CancellationToken cancellationToken)
     {
-        if (endpoint.Host.StartsWith('/'))
+        PostgreSqlTransportState state = await transportProbe.ProbeAsync(endpoint, timeout, cancellationToken)
+            .ConfigureAwait(false);
+        return new PostgreSqlReadinessResult(state switch
         {
-            return new PostgreSqlReadinessResult(
-                PostgreSqlReadinessState.InvalidConfiguration,
-                "tcp",
-                stopwatch.Elapsed);
-        }
-
-        using CancellationTokenSource deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-        deadline.CancelAfter(timeout);
-        using TcpClient client = new();
-        try
-        {
-            await client.ConnectAsync(endpoint.Host, endpoint.Port, deadline.Token).ConfigureAwait(false);
-            return new PostgreSqlReadinessResult(
-                PostgreSqlReadinessState.TransportReachable,
-                "tcp",
-                stopwatch.Elapsed);
-        }
-        catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
-        {
-            return new PostgreSqlReadinessResult(
-                PostgreSqlReadinessState.TimedOut,
-                "tcp",
-                stopwatch.Elapsed);
-        }
-        catch (SocketException)
-        {
-            return new PostgreSqlReadinessResult(
-                PostgreSqlReadinessState.NoResponse,
-                "tcp",
-                stopwatch.Elapsed);
-        }
+            PostgreSqlTransportState.Reachable => PostgreSqlReadinessState.TransportReachable,
+            PostgreSqlTransportState.NoResponse => PostgreSqlReadinessState.NoResponse,
+            PostgreSqlTransportState.TimedOut => PostgreSqlReadinessState.TimedOut,
+            _ => PostgreSqlReadinessState.InvalidConfiguration,
+        }, "tcp", stopwatch.Elapsed);
     }
 
     private static void TryKill(Process process)
@@ -140,6 +131,37 @@ public sealed class PostgreSqlReadinessExecutor : IPostgreSqlReadinessExecutor
         catch (Exception exception) when (exception is InvalidOperationException or Win32Exception or NotSupportedException)
         {
             // The process exited between timeout observation and termination.
+        }
+    }
+}
+
+public sealed class TcpPostgreSqlTransportProbe : IPostgreSqlTransportProbe
+{
+    public async ValueTask<PostgreSqlTransportState> ProbeAsync(
+        PostgreSqlEndpoint endpoint,
+        TimeSpan timeout,
+        CancellationToken cancellationToken)
+    {
+        if (endpoint.Host.StartsWith('/'))
+        {
+            return PostgreSqlTransportState.Invalid;
+        }
+
+        using CancellationTokenSource deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        deadline.CancelAfter(timeout);
+        using TcpClient client = new();
+        try
+        {
+            await client.ConnectAsync(endpoint.Host, endpoint.Port, deadline.Token).ConfigureAwait(false);
+            return PostgreSqlTransportState.Reachable;
+        }
+        catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
+        {
+            return PostgreSqlTransportState.TimedOut;
+        }
+        catch (SocketException)
+        {
+            return PostgreSqlTransportState.NoResponse;
         }
     }
 }

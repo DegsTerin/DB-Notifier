@@ -23,6 +23,7 @@ src/
   DBNotifier.Persistence.Server.PostgreSql/
   DBNotifier.Agent.Worker/
   DBNotifier.Server.Api/
+  DBNotifier.ConfigMigrator/
   DBNotifier.Desktop.Wpf/
   DBNotifier.Dashboard.Web/
 tests/
@@ -31,7 +32,7 @@ tests/
   DBNotifier.Legacy.Tests.ps1
 ```
 
-The projects created in `STATE-01` began as infrastructure-only bootstrap code and assembly markers. `STATE-03` added isolated persistence assemblies so the Agent carries SQLite without PostgreSQL and the Server carries PostgreSQL without SQLite. The first seven `STATE-04` increments add provider-neutral health contracts, an open provider registry, bounded probes, a hosted scheduler, PostgreSQL readiness/authenticated adapters, controlled SQLite assignments/outbox, read-only platform vault adapters, idempotent synchronization, canonical events/alert deliveries, certificate-authorized Agent ingestion, OIDC/JWT human RBAC/audit, command delivery/ack without execution, bounded retention, durable delivery runners, authorized audit queries, and signed/hash-verified provider-package discovery without loading code or adding UI.
+The projects created in `STATE-01` began as infrastructure-only bootstrap code and assembly markers. `STATE-03` added isolated persistence assemblies so the Agent carries SQLite without PostgreSQL and the Server carries PostgreSQL without SQLite. Eight `STATE-04` increments add provider-neutral health contracts, an open provider registry, bounded probes, a hosted scheduler, PostgreSQL discovery/readiness/authenticated adapters, controlled SQLite assignments/outbox, read-only platform vault adapters, idempotent synchronization, canonical events/alert deliveries, certificate-authorized Agent ingestion, OIDC/JWT human RBAC/audit, command delivery/ack without execution, bounded retention, durable delivery runners, authorized audit queries, signed/hash-verified provider-package discovery without loading code, and an isolated legacy configuration migrator without adding UI.
 
 Agent monitoring remains `false` in `src/DBNotifier.Agent.Worker/appsettings.json`. Enabling it requires an explicit non-empty Agent ID and may initialize/migrate the configured absolute SQLite path. Credential references use `windows-credential-manager` or `linux-secret-service`; no plaintext file/environment vault fallback exists.
 
@@ -40,6 +41,25 @@ Agent synchronization also remains disabled by default, and command polling has 
 Human API endpoints use the separate `HumanBearer` JWT scheme. Configure an absolute HTTPS OIDC authority and audience through `HumanAuthentication`; absent or invalid configuration fails closed. The JWT `sub` must map to an active platform user with a non-expired role assignment and the exact permission/scope. No password, signing key, token, or bootstrap administrator is stored in repository configuration.
 
 Agent retention and Server retention/outbox/notification workers are separately opt-in. Defaults are disabled, and retention defaults to dry-run even when enabled. No external publisher or notification adapter is configured by the repository; enabling delivery without one records bounded retry state rather than contacting a channel.
+
+## Legacy configuration migration
+
+The .NET 10 configuration migrator is dry-run by default and requires absolute source/target paths:
+
+```powershell
+& $dotnet run --project .\src\DBNotifier.ConfigMigrator -c Release -- `
+  migrate --source "C:\path\to\PgNotifier\appsettings.json" `
+  --target "C:\path\to\DB-Notifier\appsettings.json"
+```
+
+Add `--apply` only after reviewing the sanitized report. Apply preserves the source, creates timestamped source/previous-target backups, writes target/report/manifest atomically, and exact reruns return `AlreadyCurrent`. Rollback refuses a target whose hash changed:
+
+```powershell
+& $dotnet run --project .\src\DBNotifier.ConfigMigrator -c Release -- `
+  rollback "C:\path\to\DB-Notifier\appsettings.json.migration-manifest.json"
+```
+
+Secret-shaped or unsupported fields reject the entire migration and produce no target or backup.
 
 ## .NET checks
 
