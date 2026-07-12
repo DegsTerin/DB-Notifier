@@ -18,7 +18,7 @@ Proposed in `STATE-00 DISCOVERY_MIGRATION`. Approval of this plan and the target
 
 The baseline proposed by the project vision is suitable for project setup:
 
-- .NET 8/C# solution for Domain, Application, provider abstractions, PostgreSQL provider, infrastructure, Agent Worker, ASP.NET Core API, and WPF Desktop.
+- .NET 10 LTS/C# solution for Domain, Application, provider abstractions, PostgreSQL provider, infrastructure, Agent Worker, ASP.NET Core API, and WPF Desktop.
 - React/TypeScript for a later Web Dashboard.
 - SQLite for authorized local Agent state and outbox.
 - PostgreSQL for later central persistence.
@@ -207,7 +207,7 @@ Every milestone must define owner, trigger, tested target version, RTO, RPO, and
 Recommend `STATE-01 PROJECT_SETUP` after an explicit Human Gate approves:
 
 - The incremental, non-big-bang strategy.
-- The proposed .NET 8/WPF/ASP.NET Core plus React baseline for scaffolding.
+- The mandatory .NET 10 LTS/WPF/ASP.NET Core plus React baseline for all active projects.
 - PostgreSQL as the only first provider.
 - Side-by-side configuration migration and rollback.
 - Deferral of functional code until its owning state.

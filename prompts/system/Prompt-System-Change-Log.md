@@ -2,7 +2,7 @@
 
 ## Versão atual
 
-- Versão: `3.2.0`
+- Versão: `3.2.1`
 - Data: 2026-07-11
 - Status: corpus DB-Notifier consolidado
 - Escopo: 13 arquivos ativos
@@ -16,6 +16,13 @@ A versão do corpus é independente da versão do software.
 - PATCH: clareza, correção ou referência sem mudança de autoridade.
 
 Toda alteração atualiza este arquivo e, quando necessário, `../Start-Here.md`.
+
+## 3.2.1 — 2026-07-11
+
+- Aceitação explícita do ADR-0001 com baseline única .NET 10 LTS.
+- Atualização da visão, arquitetura e estado para proibir targets ativos anteriores sem novo ADR.
+- Retarget dos 10 projetos e renovação de restore, build, testes, format, auditoria e liveness em .NET 10.
+- Preservação das menções .NET 8 somente como histórico factual supersedido.
 
 ## 3.2.0 — 2026-07-11
 

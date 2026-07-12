@@ -113,6 +113,16 @@
 - Evidências: `docs/architecture/` e `docs/STATE-02-Architecture-Report.md`.
 - Riscos/ressalvas: proposta retargeta produto futuro para .NET 10; WiX, mTLS/vault, EF/migrations e retenção ainda não foram implementados/homologados.
 
+## 2026-07-11 — Baseline única .NET 10 LTS
+
+- Estado anterior: `STATE-02 ARCHITECTURE`
+- Estado resultante: sem transição
+- Decisão: aceitar ADR-0001 com .NET 10 LTS obrigatório desde a baseline ativa até o fim do projeto.
+- Escopo: SDK, target frameworks, C#, dependências Microsoft, lockfiles, build, testes, CI e documentação.
+- Autoridade: instrução explícita do product owner; versões anteriores permanecem apenas no histórico append-only.
+- Gates: ADR-0001 `accepted`; ADR-0002 a ADR-0006 e Human Gate final de `STATE-02` permanecem pendentes.
+- Evidências: SDK `10.0.301`, targets `net10.0`/`net10.0-windows`, 10 projetos compilados com 0 avisos/erros, 2 testes aprovados, format limpo, auditoria NuGet sem vulnerabilidades, API `Alive`, lockfiles e ADR-0001.
+
 ## Template de nova entrada
 
 - Data:

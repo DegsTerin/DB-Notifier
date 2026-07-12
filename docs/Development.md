@@ -3,7 +3,7 @@
 ## Supported setup baseline
 
 - Git with the default branch `main`.
-- .NET SDK `8.0.422` selected through `global.json` and installed locally in the ignored `.dotnet/` directory for this workspace.
+- .NET 10 LTS SDK `10.0.301` selected through `global.json` and installed locally in the ignored `.dotnet/` directory for this workspace.
 - Windows is required to run the WPF Desktop and the renamed DB-Notifier compatibility application.
 - Node.js 24 is used for the Dashboard scaffold; dependencies are locked in `package-lock.json`.
 - Windows PowerShell 5.1 with Pester is used for legacy characterization.
@@ -44,7 +44,7 @@ $dotnet = ".\.dotnet\dotnet.exe"
 & $dotnet format .\DBNotifier.sln --verify-no-changes --no-restore
 ```
 
-Warnings are treated as errors, nullable analysis and .NET analyzers are enabled, and the Domain dependency direction has a baseline architecture test.
+All active projects target `net10.0` or `net10.0-windows`. Warnings are treated as errors, nullable analysis and .NET analyzers are enabled, and the Domain dependency direction has a baseline architecture test.
 
 ## Legacy checks
 

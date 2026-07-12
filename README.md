@@ -59,7 +59,7 @@ The bundle composition can be checked without packaging dependencies:
 
 ## Target direction
 
-The approved setup baseline uses .NET 8/C# for Domain, Application, providers, Agent, API, and WPF Desktop, plus React/TypeScript for the Dashboard. SQLite for authorized local Agent state, PostgreSQL for central persistence, protocol details, and other architectural commitments remain subject to ADRs in `STATE-02`.
+The mandatory project baseline uses .NET 10 LTS/C# for Domain, Application, providers, Agent, API, and WPF Desktop, plus React/TypeScript for the Dashboard. No active project targets an earlier .NET version. SQLite for authorized local Agent state, PostgreSQL for central persistence, protocol details, and other architectural commitments remain subject to ADRs in `STATE-02`.
 
 The migration is deliberately incremental. The legacy application stays runnable while contracts and scaffolding are introduced, PostgreSQL behavior is placed behind a provider boundary, configuration is migrated with backup and validation, and each milestone has an explicit rollback path.
 

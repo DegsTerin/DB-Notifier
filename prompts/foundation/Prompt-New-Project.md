@@ -82,7 +82,7 @@ O Agent executa em background, realiza probes próximos das instâncias, mantém
 
 A baseline preferencial, sujeita a ADR, é:
 
-- .NET 8/C# para Core, Agent, serviços e Desktop WPF.
+- .NET 10 LTS/C# para Core, Agent, serviços e Desktop WPF durante todo o projeto.
 - ASP.NET Core e SignalR para API e atualizações em tempo real.
 - React/TypeScript para Dashboard.
 - SQLite para estado local do Agent.

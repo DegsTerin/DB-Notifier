@@ -28,7 +28,7 @@
 
 ## Material decisions for Human Gate
 
-1. Retain the validated .NET 8 scaffold as history/evidence but target .NET 10 LTS before backend implementation because .NET 8 support ends on 2026-11-10.
+1. `ACCEPTED`: use .NET 10 LTS exclusively across all active projects, builds, tests, CI, and future implementation; the earlier .NET 8 commit is historical evidence only.
 2. Use outbound HTTPS/mTLS Agent identity after one-time enrollment; secret material remains in platform/external vault adapters behind opaque references.
 3. Use durable JSON/HTTP `/api/v1` with at-least-once idempotent batches and command polling; SignalR is a non-authoritative hint only.
 4. Use separate EF Core SQLite-Agent and PostgreSQL-server models/migration sets; initial retention values guide design but do not authorize production deletion.
@@ -72,13 +72,25 @@
 - Product build/tests: not required by architecture-only changes; baseline evidence remains in `STATE-01-Setup-Report.md`.
 - External factual check: official .NET lifecycle page reviewed for .NET 8/.NET 10 support dates.
 
-Automatic audit result: `APROVADO COM RESSALVAS`. The package covers the required architecture concerns; acceptance of proposed runtime, identity, persistence/retention, and packaging decisions remains a Human Gate responsibility.
+### Accepted ADR-0001 implementation evidence
+
+- Workspace SDK: .NET 10 LTS `10.0.301` selected by `global.json`.
+- Active targets: `net10.0` and `net10.0-windows` only; no active .NET 8/9 target.
+- Microsoft hosting package: `10.0.9`; test/coverage toolchain lockfiles regenerated from current stable packages.
+- Locked restore: all 10 projects approved.
+- Release build: all 10 projects, 0 warnings, 0 errors.
+- Tests: 2 passed, 0 failed, 0 skipped under .NET 10.
+- `dotnet format --verify-no-changes`: approved.
+- NuGet transitive vulnerability audit: no vulnerable package reported.
+- API runtime sample: `/health/live` returned `{"status":"Alive"}` under .NET 10 and the process was stopped cleanly.
+
+Automatic audit result: `APROVADO COM RESSALVAS`. ADR-0001 and its .NET 10 implementation evidence are approved. Acceptance of identity, persistence/retention, packaging, provider-control, and final architecture decisions remains a Human Gate responsibility.
 
 ## Human Gate
 
 - Phase: `STATE-02 ARCHITECTURE`
 - Validator and date: PENDENTE
-- ADRs accepted/rejected: PENDENTE
+- ADRs accepted/rejected: ADR-0001 accepted explicitly; ADR-0002 through ADR-0006 pending
 - Threat/hybrid walkthrough: PENDENTE
 - Retention defaults reviewed: PENDENTE
 - Packaging/signing choice reviewed: PENDENTE

@@ -1,19 +1,20 @@
 # ADR-0001 — Runtime Stack and Incremental Migration
 
-- Status: proposed
+- Status: accepted
 - Date: 2026-07-11
 - Owners: DB-Notifier architecture / product owner
 
 ## Context
 
-The approved project scaffold targets .NET 8, WPF, ASP.NET Core, and React/TypeScript. The product must support a long implementation and homologation runway. According to the official [.NET support policy](https://dotnet.microsoft.com/en-us/platform/support/policy/dotnet-core), .NET 8 support ends on 2026-11-10, while .NET 10 LTS support extends to 2028-11-14. Starting production implementation on a runtime near end of support would create immediate upgrade debt.
+The first setup evidence temporarily targeted .NET 8. The product owner subsequently required .NET 10 LTS from the active project baseline through the end of the project. According to the official [.NET support policy](https://dotnet.microsoft.com/en-us/platform/support/policy/dotnet-core), .NET 8 support ends on 2026-11-10, while .NET 10 LTS support extends to 2028-11-14. The historical commit is preserved for audit, but it is not an active supported baseline.
 
 The PowerShell compatibility monitor must remain runnable while boundaries and replacement slices are introduced. A big-bang rewrite would remove the only executable behavior before equivalent evidence exists.
 
 ## Decision
 
-- Keep the current .NET 8 scaffold reproducible as `STATE-01` evidence.
-- Before `STATE-04 BACKEND_IMPLEMENTATION`, retarget new DB-Notifier product projects to .NET 10 LTS, regenerate lockfiles, and repeat build/test/analyzer evidence. This retarget is conditional on Human Gate acceptance of this ADR.
+- Use .NET 10 LTS for every active .NET project, test project, build, CI job, package baseline, and future project added to this repository.
+- Pin the workspace SDK in `global.json`; no active project may target .NET 8/9 or multi-target an earlier runtime without a new explicit ADR and product-owner approval.
+- Retarget the existing scaffold immediately, regenerate lockfiles, and repeat restore/build/test/format/dependency evidence before further architecture work is closed.
 - Use C#/.NET for Domain, Application, provider abstractions, providers, infrastructure, Agent, API, and WPF Desktop.
 - Use ASP.NET Core for the HTTP API and SignalR only for real-time hints.
 - Use React + TypeScript for the Web Dashboard; exact library versions remain lockfile-managed and replaceable behind API contracts.
@@ -29,8 +30,8 @@ The PowerShell compatibility monitor must remain runnable while boundaries and r
 
 ## Consequences
 
-- The repository will temporarily contain a validated .NET 8 scaffold and a proposed .NET 10 product target. Documentation must state that distinction.
-- Retargeting is a controlled setup/architecture action, not a feature implementation.
+- Git history retains the earlier setup evidence, but the working baseline and all future implementation use only .NET 10 LTS.
+- Runtime upgrades after .NET 10 require an explicit ADR, compatibility plan, and full validation; silent framework drift is prohibited.
 - Windows remains required for WPF and Windows service adapters; Domain/Application/provider tests should remain cross-platform where possible.
 - The PostgreSQL compatibility app stays available until replacement criteria and rollback tests pass.
 
@@ -40,8 +41,8 @@ The PowerShell compatibility monitor must remain runnable while boundaries and r
 - CI must test Windows for WPF and PowerShell plus a non-Windows job for cross-platform assemblies when introduced.
 - No runtime upgrade may silently change config, protocol, secret storage, or service identity.
 
-## Acceptance checks
+## Compliance checks
 
-- Human Gate explicitly chooses the .NET 10 product target or records a supported alternative.
-- Retarget plan includes lockfile regeneration, analyzer/build/test evidence, and rollback to the last scaffold commit.
+- `global.json` selects a .NET 10 LTS SDK and every active target framework is `net10.0`/`net10.0-windows`.
+- Lockfiles, analyzer/build/test/format evidence, and dependency audits are regenerated under .NET 10.
 - No legacy entry point is removed as a side effect.

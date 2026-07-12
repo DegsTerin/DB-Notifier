@@ -6,7 +6,7 @@
 
 ## Situação factual
 
-O Human Gate de `STATE-01` aprovou o scaffold, os checks e a migração canônica de nomes. Em `STATE-02 ARCHITECTURE`, o pacote de ADRs, contratos, threat model, protocolo, matriz PostgreSQL e guardrails AIOps foi proposto e aprovado com ressalvas na auditoria automática; o Human Gate permanece pendente. O monitor PowerShell de compatibilidade continua sendo o único monitor funcional.
+O Human Gate de `STATE-01` aprovou o scaffold, os checks e a migração canônica de nomes. Em `STATE-02 ARCHITECTURE`, ADR-0001 foi aceito por decisão explícita: .NET 10 LTS é obrigatório em todos os projetos ativos do início ao fim. Os demais ADRs, contratos, threat model, protocolo, matriz PostgreSQL e guardrails AIOps permanecem propostos; o Human Gate de encerramento está pendente. O monitor PowerShell de compatibilidade continua sendo o único monitor funcional.
 
 ## Produto atual
 
@@ -34,8 +34,8 @@ O Human Gate de `STATE-01` aprovou o scaffold, os checks e a migração canônic
 - Solução `DBNotifier.sln` com limites modulares e projetos de teste sem regras funcionais prematuras.
 - Dashboard React/TypeScript com lockfile, check, build e auditoria de dependências aprovados.
 - CI inicial para .NET, Dashboard e compatibilidade legada.
-- SDK .NET `8.0.422` instalado localmente em `.dotnet/` e ignorado pelo Git.
-- Restore bloqueado por lockfile, build Release (0 avisos/erros), 2 testes, format e auditoria NuGet aprovados.
+- SDK .NET 10 LTS `10.0.301` instalado localmente em `.dotnet/` e ignorado pelo Git.
+- Todos os 10 projetos ativos retargeteados para `net10.0`/`net10.0-windows`: restore, build Release (0 avisos/erros), 2 testes, format, auditoria NuGet e liveness aprovados.
 - Liveness da API comprovada localmente e processo encerrado após o teste.
 - Commit inicial `ad8baf6` criado na branch `main`.
 - App, módulo, testes, protótipos e packaging legados renomeados canonicamente para DB-Notifier.
@@ -46,6 +46,7 @@ O Human Gate de `STATE-01` aprovou o scaffold, os checks e a migração canônic
 - Contratos canônicos de health, eventos, erros, capabilities, comandos, heartbeat e credenciais.
 - Protocolo Agent/API v1 conceitual com operação offline, idempotência, reconciliação e compatibilidade.
 - Threat model, matriz de capacidades PostgreSQL e guardrails de dados/risco/evals para MOD-12.
+- ADR-0001 aceito: baseline única .NET 10 LTS durante todo o projeto.
 
 ## Pendente
 

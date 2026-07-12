@@ -2,7 +2,7 @@
 
 ## Status
 
-Baseline refinada em `STATE-02 ARCHITECTURE`. Os ADRs e contratos foram propostos em `../../docs/architecture/` e só podem ser tratados como aceitos após o Human Gate; nenhum deles representa arquitetura implementada.
+Baseline refinada em `STATE-02 ARCHITECTURE`. ADR-0001 foi aceito por autoridade explícita do product owner; ADR-0002 a ADR-0006 e os contratos permanecem propostos até o Human Gate. Nenhum deles representa arquitetura implementada.
 
 ## Princípios
 
@@ -139,7 +139,7 @@ Regras determinísticas, análise estatística, correlação, base de conhecimen
 
 ## Pacote arquitetural proposto
 
-- ADR-0001: stack de runtime e migração incremental, com decisão explícita .NET 8 scaffold → .NET 10 product target.
+- ADR-0001 (`accepted`): .NET 10 LTS obrigatório em todos os projetos ativos, builds, testes, CI e implementação futura.
 - ADR-0002: cofre, referências opacas, identidade mTLS e provisionamento de Agent.
 - ADR-0003: protocolo HTTP durável, SignalR não autoritativo e compatibilidade.
 - ADR-0004: EF Core, SQLite local, PostgreSQL central, migrations separadas e retenção.
@@ -147,4 +147,4 @@ Regras determinísticas, análise estatística, correlação, base de conhecimen
 - ADR-0006: capabilities de provider e controle administrativo tipado.
 - Contratos canônicos, protocolo conceitual, threat model, matriz PostgreSQL e guardrails AIOps/IA.
 
-Índice: `../../docs/architecture/README.md`. Status: `proposed` até decisão humana registrada.
+Índice: `../../docs/architecture/README.md`. Status: ADR-0001 `accepted`; demais ADRs `proposed` até decisão humana registrada.

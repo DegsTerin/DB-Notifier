@@ -6,7 +6,7 @@
 - Corpus version: `3.1.4`
 - Branch: `main`, no initial commit
 - Environment: WSL2 orchestration, Windows PowerShell 5.1, Pester 3.4.0, Node.js 24.18.0
-- .NET environment: workspace-local SDK `8.0.422`, runtime `8.0.28`
+- .NET environment at original `STATE-01` validation: workspace-local SDK `8.0.422`, runtime `8.0.28`; superseded in `STATE-02` by the mandatory .NET 10 LTS baseline
 - Date and executor: 2026-07-11, Codex
 - Scope: Git initialization, modular solution scaffold, conventions, tests, Dashboard scaffold, safe configuration, and CI definition
 
