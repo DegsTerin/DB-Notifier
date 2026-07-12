@@ -1,5 +1,5 @@
 /** Module purpose: Implements App for the provider-neutral DB-Notifier Dashboard without direct database access. */
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   buildDemonstrationSnapshot,
   buildConfigurationSnapshot,
@@ -200,14 +200,77 @@ const previewCopy: Record<ActionPreview, { symbol: string; title: string; messag
   unknown: { symbol: "?", title: "Capability desconhecida", message: "O estado não é comprovado e falha fechado, sem apresentar a ação como disponível." },
 };
 
+/**
+ * Presents non-secret configuration and capability decisions without dispatching operations.
+ * The native modal dialogue contains keyboard focus and restores it to the invoking control when closed.
+ */
 function ConfigurationView({ snapshot }: { snapshot: ReturnType<typeof buildConfigurationSnapshot> }) {
   const [authorized, setAuthorized] = useState(true);
   const [preview, setPreview] = useState<ActionPreview | null>(null);
-  const openPreview = (capabilityId: string) => setPreview(previewAction(snapshot, capabilityId, authorized));
+  const dialogRef = useRef<HTMLDialogElement>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const openerRef = useRef<HTMLButtonElement | null>(null);
+
+  useEffect(() => {
+    const dialog = dialogRef.current;
+    if (!preview || !dialog) return undefined;
+
+    // showModal provides platform-level background inertness; explicit focus handling makes entry and restoration deterministic.
+    if (!dialog.open) dialog.showModal();
+    closeButtonRef.current?.focus();
+
+    /** Contains keyboard traversal and handles the modal dismissal shortcut. */
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        setPreview(null);
+        return;
+      }
+      if (event.key !== "Tab") return;
+
+      const focusable = [...dialog.querySelectorAll<HTMLElement>("button:not(:disabled), [href], input:not(:disabled), select:not(:disabled), textarea:not(:disabled), [tabindex]:not([tabindex='-1'])")];
+      if (focusable.length === 0) {
+        event.preventDefault();
+        dialog.focus();
+        return;
+      }
+
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+
+    dialog.addEventListener("keydown", handleKeyDown);
+    return () => {
+      dialog.removeEventListener("keydown", handleKeyDown);
+      if (dialog.open) dialog.close();
+      openerRef.current?.focus();
+    };
+  }, [preview]);
+
+  /** Opens a capability decision while retaining its invoking control for focus restoration. */
+  const openPreview = (capabilityId: string, opener: HTMLButtonElement) => {
+    openerRef.current = opener;
+    setPreview(previewAction(snapshot, capabilityId, authorized));
+  };
+  /** Opens the non-executable confirmation example from the supplied control. */
+  const openConfirmationExample = (opener: HTMLButtonElement) => {
+    openerRef.current = opener;
+    setPreview("confirmationRequired");
+  };
+  /** Closes the current preview; the effect cleanup restores focus safely. */
+  const closePreview = () => setPreview(null);
+
   return <section className="configuration-layout" aria-labelledby="configuration-title">
     <div className="inventory-panel configuration-panel"><div className="panel-header"><div><h2 id="configuration-title">{snapshot.instanceName}</h2><p><code>{snapshot.providerType}</code> · configuration-capabilities.v1</p></div><span className="read-only-label">Não persistido</span></div><div className="configuration-fields">{snapshot.fields.map((field) => <article key={field.key}><span>{field.label}</span><strong>{field.safeValue}</strong><p>{field.description}</p></article>)}</div></div>
-    <div className="inventory-panel capability-panel"><div className="panel-header"><div><h2>Controle administrativo</h2><p>Capability, autorização e disponibilidade são avaliadas separadamente.</p></div><label className="permission-toggle"><span>Cenário de permissão</span><select value={authorized ? "authorized" : "denied"} onChange={(event) => setAuthorized(event.target.value === "authorized")}><option value="authorized">Autorizado</option><option value="denied">Negado</option></select></label></div><div className="capability-list">{snapshot.capabilities.map((capability) => <article key={capability.capabilityId}><div><h3>{capability.displayName}</h3><code>{capability.capabilityId}</code></div><span className={`capability-state ${capability.state}`}>{capability.state === "unsupported" ? "— Não suportado" : capability.state}</span><p>{capability.reasonCode}</p><button type="button" onClick={() => openPreview(capability.capabilityId)}>Revisar decisão</button></article>)}</div><div className="confirmation-example"><div><strong>Exemplo de confirmação segura</strong><p>Prévia de UX para uma capability futura suportada; não altera o estado factual acima.</p></div><button type="button" onClick={() => setPreview("confirmationRequired")}>Visualizar confirmação</button></div></div>
-    {preview && <div className="dialog-backdrop"><section className="confirmation-dialog" role="dialog" aria-modal="true" aria-labelledby="preview-title"><span className="state-symbol" aria-hidden="true">{previewCopy[preview].symbol}</span><h2 id="preview-title">{previewCopy[preview].title}</h2><p>{previewCopy[preview].message}</p><div className="dialog-actions"><button type="button" onClick={() => setPreview(null)}>Fechar</button><button type="button" disabled>Executar — desabilitado</button></div></section></div>}
+    <div className="inventory-panel capability-panel"><div className="panel-header"><div><h2>Controle administrativo</h2><p>Capability, autorização e disponibilidade são avaliadas separadamente.</p></div><label className="permission-toggle"><span>Cenário de permissão</span><select value={authorized ? "authorized" : "denied"} onChange={(event) => setAuthorized(event.target.value === "authorized")}><option value="authorized">Autorizado</option><option value="denied">Negado</option></select></label></div><div className="capability-list">{snapshot.capabilities.map((capability) => <article key={capability.capabilityId}><div><h3>{capability.displayName}</h3><code>{capability.capabilityId}</code></div><span className={`capability-state ${capability.state}`}>{capability.state === "unsupported" ? "— Não suportado" : capability.state}</span><p>{capability.reasonCode}</p><button type="button" onClick={(event) => openPreview(capability.capabilityId, event.currentTarget)}>Revisar decisão</button></article>)}</div><div className="confirmation-example"><div><strong>Exemplo de confirmação segura</strong><p>Prévia de UX para uma capability futura suportada; não altera o estado factual acima.</p></div><button type="button" onClick={(event) => openConfirmationExample(event.currentTarget)}>Visualizar confirmação</button></div></div>
+    {preview && <dialog ref={dialogRef} className="confirmation-dialog" role="dialog" aria-modal="true" aria-labelledby="preview-title" onCancel={(event) => { event.preventDefault(); closePreview(); }}><span className="state-symbol" aria-hidden="true">{previewCopy[preview].symbol}</span><h2 id="preview-title">{previewCopy[preview].title}</h2><p>{previewCopy[preview].message}</p><div className="dialog-actions"><button ref={closeButtonRef} type="button" onClick={closePreview}>Fechar</button><button type="button" disabled>Executar — desabilitado</button></div></dialog>}
   </section>;
 }
 

@@ -6,7 +6,7 @@ import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 
-const endpoint = "http://127.0.0.1:9224";
+const endpoint = "http://localhost:9224";
 const dashboardUrl = "http://127.0.0.1:4173/";
 const evidenceDirectory = join(tmpdir(), "DBNotifier-State05-Audit");
 mkdirSync(evidenceDirectory, { recursive: true });
@@ -161,6 +161,7 @@ async function auditOperationalStates(call) {
 
 /** Exercises the confirmation dialogue and checks focus containment and Escape behaviour. */
 async function auditModal(call) {
+  await call("Emulation.setDeviceMetricsOverride", { width: 390, height: 844, deviceScaleFactor: 1, mobile: false });
   await call("Page.navigate", { url: `${dashboardUrl}#configuration` });
   await call("Page.reload", { ignoreCache: true });
   await settle();
@@ -175,6 +176,9 @@ async function auditModal(call) {
     const dialog = document.querySelector('[role="dialog"]');
     return { open: Boolean(dialog), focusInside: Boolean(dialog?.contains(document.activeElement)), activeText: document.activeElement?.textContent?.trim() };
   })()`);
+  const screenshot = await call("Page.captureScreenshot", { format: "png", captureBeyondViewport: false });
+  const screenshotPath = join(evidenceDirectory, "configuration-modal-mobile-390x844.png");
+  writeFileSync(screenshotPath, Buffer.from(screenshot.data, "base64"));
   const tabSequence = [];
   for (let index = 0; index < 4; index += 1) {
     await call("Input.dispatchKeyEvent", { type: "keyDown", key: "Tab", code: "Tab", windowsVirtualKeyCode: 9 });
@@ -184,10 +188,17 @@ async function auditModal(call) {
       return { focusInside: Boolean(dialog?.contains(document.activeElement)), activeText: document.activeElement?.textContent?.trim().replace(/\\s+/g, " ").slice(0, 90) };
     })()`));
   }
+  await call("Input.dispatchKeyEvent", { type: "keyDown", key: "Tab", code: "Tab", modifiers: 8, windowsVirtualKeyCode: 9 });
+  await call("Input.dispatchKeyEvent", { type: "keyUp", key: "Tab", code: "Tab", modifiers: 8, windowsVirtualKeyCode: 9 });
+  const reverseTabInside = await evaluate(call, "Boolean(document.querySelector('[role=dialog]')?.contains(document.activeElement))");
   await call("Input.dispatchKeyEvent", { type: "keyDown", key: "Escape", code: "Escape", windowsVirtualKeyCode: 27 });
   await call("Input.dispatchKeyEvent", { type: "keyUp", key: "Escape", code: "Escape", windowsVirtualKeyCode: 27 });
-  const closesWithEscape = !(await evaluate(call, "Boolean(document.querySelector('[role=dialog]'))"));
-  return { initial, tabSequence, closesWithEscape };
+  const afterEscape = await evaluate(call, `(() => ({
+    closesWithEscape: !document.querySelector('[role="dialog"]'),
+    focusRestored: document.activeElement?.textContent?.includes("Visualizar confirmação") ?? false,
+    activeText: document.activeElement?.textContent?.trim(),
+  }))()`);
+  return { initial, tabSequence, reverseTabInside, screenshotPath, ...afterEscape };
 }
 
 /** Runs the complete browser audit and writes a machine-readable evidence bundle. */

@@ -106,11 +106,11 @@ O projeto está em `STATE-05 FRONTEND_IMPLEMENTATION`. Quatro incrementos implem
 - 125 testes .NET e 7 testes Dashboard aprovados no quarto incremento; smoke close-to-Tray comprovou processo vivo sem janela visível e cleanup posterior.
 - Padrão global de documentação de código em inglês britânico formalizado, com cabeçalhos de módulo nos fontes manuais, exceções estreitas para formatos estritos/gerados/imutáveis e gate `comments:verify` integrado ao CI.
 - Auditoria automática de encerramento de `STATE-05` executada e `REPROVADA`: overflow horizontal global em 390/320 px e diálogo modal sem entrada/contenção/restauração de foco ou fechamento por Escape bloqueiam o Human Gate.
+- Bloqueadores `S05-AUD-001` e `S05-AUD-002` remediados: viewports/rotas sem overflow global e diálogo nativo com foco inicial, Tab/Shift+Tab contidos, Escape e restauração ao acionador.
+- Reauditoria automática de `STATE-05` `APROVADA` com 125 testes .NET, 8 testes Dashboard, 10 Pester, builds/format/bundle/dependências e amostras Chrome/WPF aprovadas; Human Gate permanece pendente.
 
 ## Pendente
 
-- Corrigir overflow horizontal global do Dashboard em 390/320 px e cobrir todas as rotas implementadas com regressão de viewport.
-- Implementar entrada, contenção e restauração de foco, fechamento por Escape e bloqueio do fundo no diálogo de confirmação.
 - Após a reauditoria automática aprovada, completar amostras humanas com leitor de tela e zoom nativo conforme inventário do relatório.
 - Manter adapters de apresentação determinísticos até `STATE-06`; não integrar silenciosamente banco, IdP, certificado, canal ou provider real durante a fase de UI.
 - Representar capabilities e suporte de modo factual: ação ausente/negada/unsupported não pode aparecer como executável ou homologada.
@@ -128,6 +128,6 @@ O projeto está em `STATE-05 FRONTEND_IMPLEMENTATION`. Quatro incrementos implem
 
 ## Próximo gate
 
-Remediar `S05-AUD-001` (overflow mobile) e `S05-AUD-002` (foco/teclado do diálogo), adicionar regressões e executar a reauditoria automática de `STATE-05`. O Human Gate, `STATE-06` e o laboratório multi-banco permanecem bloqueados até reauditoria aprovada e decisão humana explícita.
+Executar as amostras humanas de leitor de tela e zoom nativo descritas em `docs/STATE-05-Frontend-Implementation-Reaudit.md` e submeter a reauditoria aprovada ao Human Gate. `STATE-06` e o laboratório multi-banco permanecem bloqueados até decisão humana explícita.
 
 Este documento descreve somente o presente. Histórico pertence a `State-Transition-Log.md`.

@@ -8,6 +8,8 @@ The functional, security and build baselines pass, but the browser audit found t
 
 No transition to `STATE-06 INTEGRATION`, provider laboratory, real connection, administrative execution or provider homologation occurred.
 
+The subsequent remediation and approved automatic re-audit are preserved in `STATE-05-Frontend-Implementation-Reaudit.md`. This rejected report remains the immutable record of the original findings.
+
 ## Scope and environment
 
 - Workspace: DB-Notifier `main`, Windows/WSL, 2026-07-12.

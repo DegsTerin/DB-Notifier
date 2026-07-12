@@ -18,6 +18,7 @@ Current discovery and migration artifacts:
 - [`STATE-04-Backend-Implementation-Reaudit.md`](STATE-04-Backend-Implementation-Reaudit.md): approved remediation re-audit, accepted Human Gate, reservations, and transition evidence.
 - [`STATE-05-Frontend-Implementation-Report.md`](STATE-05-Frontend-Implementation-Report.md): Dashboard/WPF inventory-status increment, presentation semantics, accessibility evidence, checks, and remaining UI scope.
 - [`STATE-05-Frontend-Implementation-Audit.md`](STATE-05-Frontend-Implementation-Audit.md): rejected automatic closure audit, mobile/modal blockers, automated evidence and pending human screen-reader inventory.
+- [`STATE-05-Frontend-Implementation-Reaudit.md`](STATE-05-Frontend-Implementation-Reaudit.md): approved blocker remediation, repeated automatic evidence and remaining Human Gate samples.
 
 The governing instruction corpus starts at [`../prompts/Start-Here.md`](../prompts/Start-Here.md).
 

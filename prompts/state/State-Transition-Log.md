@@ -352,6 +352,16 @@
 - Evidências: `docs/STATE-05-Frontend-Implementation-Audit.md`, `scripts/audit-state05-dashboard.mjs`, `scripts/audit-state05-wpf.ps1`; JSON/PNG sanitizados temporários fora do Git.
 - Riscos/ressalvas: overflow global em 390/320 px e `aria-modal` sem entrada/contenção/restauração de foco ou Escape; amostra humana de leitor de tela pendente.
 
+## 2026-07-12 — Remediação e reauditoria de Frontend Implementation
+
+- Estado anterior: `STATE-05 FRONTEND_IMPLEMENTATION`
+- Estado resultante: sem transição
+- Decisão: reauditoria automática `APROVADA`; Human Gate permanece pendente.
+- Escopo: contenção intrínseca mobile, diálogo nativo, foco inicial, Tab/Shift+Tab, Escape, restauração, regressões e repetição completa dos gates.
+- Gates: 125 testes .NET, 8 testes Dashboard, 10 Pester, build/format/bundle/npm audit, nove amostras Chrome e WPF/UI Automation aprovados.
+- Evidências: `docs/STATE-05-Frontend-Implementation-Reaudit.md`; 390 px `375/375`, 320 px `305/305`, modal contido e foco restaurado.
+- Riscos/ressalvas: leitor de tela e zoom nativo permanecem amostras humanas; nenhuma integração, execução administrativa ou homologação foi autorizada.
+
 ## Template de nova entrada
 
 - Data:

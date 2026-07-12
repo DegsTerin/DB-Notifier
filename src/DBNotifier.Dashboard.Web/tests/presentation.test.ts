@@ -49,6 +49,18 @@ test("semantic and motion accessibility guards remain in source", () => {
   assert.match(css, /:focus-visible/);
 });
 
+test("modal and mobile regression guards remain in source", () => {
+  const app = readFileSync(new URL("../src/App.tsx", import.meta.url), "utf8");
+  const css = readFileSync(new URL("../src/styles.css", import.meta.url), "utf8");
+
+  assert.match(app, /dialog\.showModal\(\)/);
+  assert.match(app, /event\.key === "Escape"/);
+  assert.match(app, /event\.shiftKey/);
+  assert.match(app, /openerRef\.current\?\.focus\(\)/);
+  assert.match(css, /\.app-shell \{ width: 100%; min-width: 0;/);
+  assert.match(css, /\.sidebar nav \{ width: 100%; min-width: 0; display: flex; overflow-x: auto;/);
+});
+
 test("timeline filters severity without provider-specific branches", () => {
   const snapshot = buildTimelineAlertSnapshot(now);
   assert.equal(filterTimeline(snapshot.events, "", "critical").length, 1);

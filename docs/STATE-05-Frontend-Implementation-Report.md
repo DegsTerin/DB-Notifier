@@ -6,7 +6,7 @@ Four `STATE-05 FRONTEND_IMPLEMENTATION` increments implement provider-neutral in
 
 This is an authorized implementation increment, not closure of `STATE-05`, external integration, provider activation or homologation. PostgreSQL remains implemented but unhomologated; MySQL, SQL Server and MongoDB appear only as clearly labelled planned demonstration rows and do not represent working providers.
 
-The later automatic closure audit is recorded separately in `STATE-05-Frontend-Implementation-Audit.md` and is `REJECTED` pending mobile-overflow and modal-focus remediation. Its measured evidence supersedes the earlier scaled compact visual sample for closure purposes.
+The rejected automatic closure audit and its later approved re-audit are recorded separately in `STATE-05-Frontend-Implementation-Audit.md` and `STATE-05-Frontend-Implementation-Reaudit.md`. The measured re-audit evidence supersedes the earlier scaled compact visual sample for closure purposes; the Human Gate remains pending.
 
 ## Delivered scope
 
@@ -100,4 +100,4 @@ Temporary screenshots were stored outside the repository and were not committed.
 
 ## Recommendation
 
-Remediate the two blockers in `STATE-05-Frontend-Implementation-Audit.md`, add regression coverage and execute the automatic re-audit. Do not open the Human Gate or transition to `STATE-06` before the re-audit is approved.
+Perform the human screen-reader/native-zoom samples listed in `STATE-05-Frontend-Implementation-Reaudit.md` and present the approved automatic re-audit for the Human Gate. Do not transition to `STATE-06` before explicit Human Gate approval.

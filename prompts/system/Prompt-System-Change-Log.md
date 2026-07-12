@@ -2,7 +2,7 @@
 
 ## Versão atual
 
-- Versão: `3.21.0`
+- Versão: `3.22.0`
 - Data: 2026-07-12
 - Status: corpus DB-Notifier consolidado
 - Escopo: 13 arquivos ativos
@@ -16,6 +16,12 @@ A versão do corpus é independente da versão do software.
 - PATCH: clareza, correção ou referência sem mudança de autoridade.
 
 Toda alteração atualiza este arquivo e, quando necessário, `../Start-Here.md`.
+
+## 3.22.0 — 2026-07-12
+
+- `S05-AUD-001` remediado com contenção intrínseca do layout; todas as rotas/viewports da reauditoria passaram sem overflow global.
+- `S05-AUD-002` remediado com diálogo nativo, foco inicial, Tab/Shift+Tab contidos, Escape e restauração ao acionador.
+- Reauditoria automática `APROVADA` com 125 testes .NET, 8 Dashboard e 10 Pester; Human Gate, `STATE-06` e laboratório multi-banco permanecem pendentes.
 
 ## 3.21.0 — 2026-07-12
 
