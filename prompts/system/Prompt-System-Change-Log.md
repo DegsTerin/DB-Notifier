@@ -2,7 +2,7 @@
 
 ## Versão atual
 
-- Versão: `3.20.0`
+- Versão: `3.21.0`
 - Data: 2026-07-12
 - Status: corpus DB-Notifier consolidado
 - Escopo: 13 arquivos ativos
@@ -16,6 +16,12 @@ A versão do corpus é independente da versão do software.
 - PATCH: clareza, correção ou referência sem mudança de autoridade.
 
 Toda alteração atualiza este arquivo e, quando necessário, `../Start-Here.md`.
+
+## 3.21.0 — 2026-07-12
+
+- Auditoria automática de encerramento de `STATE-05` executada com Chrome/CDP, viewports, teclado, árvore acessível, estados/reduced-motion e Windows UI Automation.
+- Gate `REPROVADO` por overflow horizontal em 390/320 px e diálogo modal sem gestão de foco/Escape; inventário humano de leitor de tela permanece pendente.
+- Estado preservado em `STATE-05`; Human Gate, `STATE-06` e laboratório multi-banco continuam bloqueados até remediação e reauditoria aprovada.
 
 ## 3.20.0 — 2026-07-12
 

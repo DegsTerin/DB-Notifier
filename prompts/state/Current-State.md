@@ -105,10 +105,13 @@ O projeto está em `STATE-05 FRONTEND_IMPLEMENTATION`. Quatro incrementos implem
 - Guards automatizados validam contraste WCAG AA, semântica, foco e reduced-motion no Dashboard, além de contraste textual WPF e política provider-neutral do Tray.
 - 125 testes .NET e 7 testes Dashboard aprovados no quarto incremento; smoke close-to-Tray comprovou processo vivo sem janela visível e cleanup posterior.
 - Padrão global de documentação de código em inglês britânico formalizado, com cabeçalhos de módulo nos fontes manuais, exceções estreitas para formatos estritos/gerados/imutáveis e gate `comments:verify` integrado ao CI.
+- Auditoria automática de encerramento de `STATE-05` executada e `REPROVADA`: overflow horizontal global em 390/320 px e diálogo modal sem entrada/contenção/restauração de foco ou fechamento por Escape bloqueiam o Human Gate.
 
 ## Pendente
 
-- Completar validação de acessibilidade com leitor de tela, contraste automatizado, zoom, teclado e viewports representativos.
+- Corrigir overflow horizontal global do Dashboard em 390/320 px e cobrir todas as rotas implementadas com regressão de viewport.
+- Implementar entrada, contenção e restauração de foco, fechamento por Escape e bloqueio do fundo no diálogo de confirmação.
+- Após a reauditoria automática aprovada, completar amostras humanas com leitor de tela e zoom nativo conforme inventário do relatório.
 - Manter adapters de apresentação determinísticos até `STATE-06`; não integrar silenciosamente banco, IdP, certificado, canal ou provider real durante a fase de UI.
 - Representar capabilities e suporte de modo factual: ação ausente/negada/unsupported não pode aparecer como executável ou homologada.
 - Preservar as pendências posteriores de ativação sandbox de pacotes, integração real, execução/post-probe de comandos, legal hold/backup e adapters externos.
@@ -125,6 +128,6 @@ O projeto está em `STATE-05 FRONTEND_IMPLEMENTATION`. Quatro incrementos implem
 
 ## Próximo gate
 
-Executar a auditoria automática de encerramento de `STATE-05`, incluindo amostras de teclado/zoom/viewports e inventário explícito da evidência humana de leitor de tela ainda pendente. Nenhuma transição para `STATE-06` ocorre sem auditoria e Human Gate aprovados.
+Remediar `S05-AUD-001` (overflow mobile) e `S05-AUD-002` (foco/teclado do diálogo), adicionar regressões e executar a reauditoria automática de `STATE-05`. O Human Gate, `STATE-06` e o laboratório multi-banco permanecem bloqueados até reauditoria aprovada e decisão humana explícita.
 
 Este documento descreve somente o presente. Histórico pertence a `State-Transition-Log.md`.

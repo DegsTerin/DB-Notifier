@@ -342,6 +342,16 @@
 - Evidências: `docs/STATE-05-Frontend-Implementation-Report.md`; fechar ocultou a janela e manteve apenas o processo DB-Notifier vivo até o cleanup de validação.
 - Riscos/ressalvas: ícone Tray ainda usa asset genérico do sistema; leitor de tela, zoom e amostras humanas completas permanecem para auditoria/Human Gate.
 
+## 2026-07-12 — Auditoria automática de encerramento de Frontend Implementation
+
+- Estado anterior: `STATE-05 FRONTEND_IMPLEMENTATION`
+- Estado resultante: sem transição
+- Decisão: `REPROVADO`; Human Gate não aberto.
+- Escopo: Chrome/CDP em nove amostras de viewport/rota, teclado, árvore acessível, estados/reduced-motion, diálogo, WPF/UI Automation, builds, testes, dependências e limites de segurança.
+- Gates: 125 testes .NET, 7 testes Dashboard e 10 Pester aprovados; build/format/bundle/npm audit aprovados; layout mobile e teclado do diálogo reprovados.
+- Evidências: `docs/STATE-05-Frontend-Implementation-Audit.md`, `scripts/audit-state05-dashboard.mjs`, `scripts/audit-state05-wpf.ps1`; JSON/PNG sanitizados temporários fora do Git.
+- Riscos/ressalvas: overflow global em 390/320 px e `aria-modal` sem entrada/contenção/restauração de foco ou Escape; amostra humana de leitor de tela pendente.
+
 ## Template de nova entrada
 
 - Data:

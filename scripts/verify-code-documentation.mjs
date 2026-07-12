@@ -9,7 +9,8 @@ import { fileURLToPath } from "node:url";
 const root = resolve(fileURLToPath(new URL("..", import.meta.url)));
 const scannedRoots = [".github", "build", "packaging", "scripts", "src", "tests", "desktop-wpf", "pixel-ui", "tray-app"];
 const commentSyntax = new Map([
-  [".cs", /^\s*(?:\/\/\/|\/\/|\/\*)/m], [".ts", /^\s*(?:\/\/|\/\*|\*\/)/m],
+  [".cs", /^\s*(?:\/\/\/|\/\/|\/\*)/m], [".js", /^\s*(?:\/\/|\/\*|\*\/)/m],
+  [".mjs", /^\s*(?:\/\/|\/\*|\*\/)/m], [".cjs", /^\s*(?:\/\/|\/\*|\*\/)/m], [".ts", /^\s*(?:\/\/|\/\*|\*\/)/m],
   [".tsx", /^\s*(?:\/\/|\/\*|\*\/)/m], [".css", /^\s*\/\*/m], [".html", /^\s*<!--/m],
   [".xaml", /^\s*<!--/m], [".xml", /^\s*<!--/m], [".props", /^\s*<!--/m], [".csproj", /^\s*<!--/m],
   [".ps1", /^\s*#/m], [".psm1", /^\s*#/m], [".psd1", /^\s*#/m], [".sh", /^\s*#/m],
