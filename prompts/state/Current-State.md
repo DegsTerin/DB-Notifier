@@ -6,7 +6,7 @@
 
 ## Situação factual
 
-Sete incrementos de `STATE-04 BACKEND_IMPLEMENTATION` implementam contratos neutros, registro aberto, readiness/health autenticado PostgreSQL, scheduler, SQLite local, vault, sincronização, eventos/alertas, APIs Agent/humana, RBAC/auditoria, entrega/ack de comandos sem execução, retenção limitada, delivery durável e discovery/verificação assinada de pacotes sem carregar código. Workers mutáveis permanecem desabilitados por default; nenhum banco, IdP, certificado, credencial ou canal real foi testado e nenhum provider está homologado.
+Sete incrementos de `STATE-04 BACKEND_IMPLEMENTATION` implementam contratos neutros, registro aberto, readiness/health autenticado PostgreSQL, scheduler, SQLite local, vault, sincronização, eventos/alertas, APIs Agent/humana, RBAC/auditoria, entrega/ack de comandos sem execução, retenção limitada, delivery durável e discovery/verificação assinada de pacotes sem carregar código. A auditoria automática de encerramento foi `REPROVADO` por incompletude do M4; o estado não mudou. Workers mutáveis permanecem desabilitados por default; nenhum banco, IdP, certificado, credencial ou canal real foi testado e nenhum provider está homologado.
 
 ## Produto atual
 
@@ -86,15 +86,19 @@ Sete incrementos de `STATE-04 BACKEND_IMPLEMENTATION` implementam contratos neut
 - Controles administrativos permanecem explicitamente `Unsupported`.
 - Agent registra catálogo/provider, persistência, vault e scheduler por DI; monitoring permanece desabilitado por default, sem conexão real ou UI.
 - 86 testes .NET aprovados (82 unit/model/provider + 4 arquitetura); build Release e format aprovados em .NET 10 com 0 avisos/erros.
+- Auditoria automática de encerramento de `STATE-04` executada em 2026-07-12: checks técnicos aprovados, mas gate geral `REPROVADO` por entregáveis M4 ausentes; relatório em `docs/STATE-04-Backend-Implementation-Audit.md`.
 
 ## Pendente
 
-- Completar o vertical slice PostgreSQL com ativação sandbox do pacote verificado e execução administrativa somente após autorização específica.
+- Implementar migrador PgNotifier → DB-Notifier com dry-run, preservação da origem, backup timestamped, validação/relatório sanitizado, rejeição de secrets, escrita atômica e rerun idempotente.
+- Implementar/testar discovery Windows tipado de `pg_isready` e completar fixtures negativas M4 sem shell ou execução administrativa real.
+- Corrigir o drift factual da matriz de capacidades mantendo homologação `None` e suporte público `No`.
+- Completar o vertical slice PostgreSQL com ativação sandbox do pacote verificado e execução administrativa somente após autorização específica, em fase/gate apropriado.
 - Integrar legal hold/backup e adapters reais de notificação somente em sandbox autorizado.
 - Implementar carregamento/isolamento de lifecycle somente para pacotes previamente verificados, sem autoativação.
 - Integrar IdP/MFA real, provisionamento de usuários/papéis e mutations de catálogo em ambiente autorizado.
 - Cobrir falhas isoladas, autorização negativa, idempotência, retries, timeout, `UnknownOutcome` e testes do provider.
-- Auditar `STATE-04` e submeter seus entregáveis ao Human Gate antes de qualquer transição para UI.
+- Reexecutar a auditoria automática de `STATE-04`; somente resultado aprovado permite solicitar o Human Gate antes de qualquer transição para UI.
 - Implementação e homologação dos demais providers por ondas independentes.
 
 ## Riscos
@@ -108,6 +112,6 @@ Sete incrementos de `STATE-04 BACKEND_IMPLEMENTATION` implementam contratos neut
 
 ## Próximo gate
 
-Executar a auditoria automática de encerramento de `STATE-04 BACKEND_IMPLEMENTATION`, verificando entregáveis, quality gates e riscos residuais antes de solicitar o Human Gate; não iniciar `STATE-05` nem ativar executor/provider automaticamente.
+Executar o incremento de remediação do `STATE-04 BACKEND_IMPLEMENTATION`: migrador seguro de configuração legada, discovery PostgreSQL caracterizado, fixtures negativas e sincronização factual da matriz; depois reexecutar a auditoria automática. Não solicitar Human Gate nem iniciar `STATE-05` enquanto o gate estiver reprovado.
 
 Este documento descreve somente o presente. Histórico pertence a `State-Transition-Log.md`.

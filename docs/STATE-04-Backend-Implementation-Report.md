@@ -6,6 +6,8 @@ The first seven `STATE-04 BACKEND_IMPLEMENTATION` increments are implemented in 
 
 This is incremental evidence, not closure of `STATE-04`, provider homologation, or public PostgreSQL support.
 
+The automatic closure audit is currently **REPROVADO** because the accepted M4 configuration migrator, characterized PostgreSQL discovery behavior and required negative fixture matrix are incomplete. See [`STATE-04-Backend-Implementation-Audit.md`](STATE-04-Backend-Implementation-Audit.md). The seven increments below remain valid implementation evidence.
+
 ## Delivered scope
 
 - Open `ProviderType` value object with canonical stable identifiers and no closed engine enum.

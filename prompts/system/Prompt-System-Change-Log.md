@@ -2,7 +2,7 @@
 
 ## Versão atual
 
-- Versão: `3.12.0`
+- Versão: `3.13.0`
 - Data: 2026-07-12
 - Status: corpus DB-Notifier consolidado
 - Escopo: 13 arquivos ativos
@@ -16,6 +16,12 @@ A versão do corpus é independente da versão do software.
 - PATCH: clareza, correção ou referência sem mudança de autoridade.
 
 Toda alteração atualiza este arquivo e, quando necessário, `../Start-Here.md`.
+
+## 3.13.0 — 2026-07-12
+
+- Auditoria automática de encerramento de `STATE-04` executada sem transição; build/testes/segurança/dependências aprovados, gate geral `REPROVADO` por incompletude do M4.
+- Bloqueadores registrados: migrador seguro PgNotifier → DB-Notifier ausente, discovery PostgreSQL caracterizado incompleto e fixtures negativas M4 insuficientes.
+- Drift da matriz de capacidades registrado; próximo passo alterado para incremento de remediação seguido de nova auditoria, antes do Human Gate.
 
 ## 3.12.0 — 2026-07-12
 

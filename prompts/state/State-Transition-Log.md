@@ -270,6 +270,16 @@
 - Evidências: `docs/STATE-04-Backend-Implementation-Report.md`, subset command/package 6/6, nenhum command attempt/resultado e nenhum assembly carregado.
 - Riscos/ressalvas: sem mTLS E2E real, ativação sandbox de package, execução/post-probe, PostgreSQL, certificado/chave de produção, homologação ou UI.
 
+## 2026-07-12 — Auditoria automática de encerramento de Backend Implementation
+
+- Estado anterior: `STATE-04 BACKEND_IMPLEMENTATION`
+- Estado resultante: sem transição
+- Decisão: `REPROVADO`; os sete incrementos permanecem evidência válida, mas o conjunto M4 aceito está incompleto.
+- Escopo: entregáveis/lifecycle, arquitetura, provider PostgreSQL, migração legada, autorização, idempotência, persistência, secrets, dependências, runtime seguro e documentação.
+- Gates: .NET 10 build/format e 86 testes aprovados; Dashboard/Pester/bundle/dependency scans aprovados; gate de completude reprovado.
+- Evidências: `docs/STATE-04-Backend-Implementation-Audit.md`; ausência verificável do migrador de configuração, discovery caracterizado parcial e fixtures negativas incompletas.
+- Riscos/ressalvas: Human Gate não solicitado; nenhum banco, credential, certificado, IdP, canal, executor administrativo, deploy ou migration remota foi exercitado.
+
 ## Template de nova entrada
 
 - Data:
