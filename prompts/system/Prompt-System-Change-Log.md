@@ -2,7 +2,7 @@
 
 ## Versão atual
 
-- Versão: `3.23.0`
+- Versão: `3.24.0`
 - Data: 2026-07-12
 - Status: corpus DB-Notifier consolidado
 - Escopo: 13 arquivos ativos
@@ -16,6 +16,12 @@ A versão do corpus é independente da versão do software.
 - PATCH: clareza, correção ou referência sem mudança de autoridade.
 
 Toda alteração atualiza este arquivo e, quando necessário, `../Start-Here.md`.
+
+## 3.24.0 — 2026-07-12
+
+- Primeiro incremento do Design System: schema e tokens core/semânticos/componentes canônicos com geração determinística CSS/XAML.
+- Contratos System/Light/Dark equivalentes em TypeScript e .NET 10, com valores estáveis de persistência e falha segura para System.
+- Gates de drift, paridade e contraste aprovados com 133 testes .NET e 12 Dashboard; aplicação visual React/WPF permanece pendente.
 
 ## 3.23.0 — 2026-07-12
 

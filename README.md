@@ -12,7 +12,7 @@ All work governed by this repository starts at [`prompts/Start-Here.md`](prompts
 
 Code and configuration documentation follows [`docs/Code-Documentation-Standards.md`](docs/Code-Documentation-Standards.md): comments use British English, document intent and remain synchronised with implementation. Run `npm run comments:verify` from `src/DBNotifier.Dashboard.Web` to check the project-wide module inventory.
 
-All frontend work follows the official [`DB-Notifier Design System`](docs/design/DB-Notifier-Design-System.md): a restrained modern enterprise identity, shared React/WPF semantic tokens, WCAG 2.2 AA and Light, Dark and System theme contracts. The specification is approved; implementation remains in `STATE-05` before its Human Gate.
+All frontend work follows the official [`DB-Notifier Design System`](docs/design/DB-Notifier-Design-System.md): a restrained modern enterprise identity, shared React/WPF semantic tokens, WCAG 2.2 AA and Light, Dark and System theme contracts. The canonical token/generation foundation is implemented; React/WPF application remains in `STATE-05` before its Human Gate.
 
 The discovery outputs for the transformation are:
 

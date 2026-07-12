@@ -109,10 +109,12 @@ O projeto está em `STATE-05 FRONTEND_IMPLEMENTATION`. Quatro incrementos implem
 - Bloqueadores `S05-AUD-001` e `S05-AUD-002` remediados: viewports/rotas sem overflow global e diálogo nativo com foco inicial, Tab/Shift+Tab contidos, Escape e restauração ao acionador.
 - Reauditoria automática de `STATE-05` `APROVADA` com 125 testes .NET, 8 testes Dashboard, 10 Pester, builds/format/bundle/dependências e amostras Chrome/WPF aprovadas; Human Gate permanece pendente.
 - Design System `1.0.0` formalizado como especificação oficial: identidade empresarial moderna/contida, tokens canônicos, componentes, WCAG 2.2 AA, temas Light/Dark/System, persistência e paridade React/WPF.
+- Primeiro incremento do Design System concluído: schema/tokens canônicos, geração CSS/XAML determinística, contratos System/Light/Dark em TypeScript/.NET 10 e gates de drift/contraste.
+- 133 testes .NET e 12 testes Dashboard aprovados no incremento; tokens ainda não aplicados às telas e preferência ainda não persistida em runtime.
 
 ## Pendente
 
-- Implementar o Design System oficial em React/WPF, substituir valores visuais locais por tokens, adicionar ThemeSelector/persistência/System e repetir a reauditoria automática.
+- Integrar tokens e ciclo completo Light/Dark/System no React e WPF, substituir valores visuais locais, adicionar ThemeSelector/persistência e repetir a reauditoria automática.
 - Após a reauditoria automática aprovada, completar amostras humanas com leitor de tela e zoom nativo conforme inventário do relatório.
 - Manter adapters de apresentação determinísticos até `STATE-06`; não integrar silenciosamente banco, IdP, certificado, canal ou provider real durante a fase de UI.
 - Representar capabilities e suporte de modo factual: ação ausente/negada/unsupported não pode aparecer como executável ou homologada.
@@ -130,6 +132,6 @@ O projeto está em `STATE-05 FRONTEND_IMPLEMENTATION`. Quatro incrementos implem
 
 ## Próximo gate
 
-Implementar `docs/design/DB-Notifier-Design-System.md` em React/WPF e reexecutar os gates Light/Dark/System antes das amostras humanas e do Human Gate. `STATE-06` e o laboratório multi-banco permanecem bloqueados.
+Executar o segundo incremento do Design System no Dashboard React: bootstrap sem flash, observação System, persistência resiliente, ThemeSelector e migração para tokens gerados. WPF permanece para o incremento seguinte; `STATE-06` e laboratório continuam bloqueados.
 
 Este documento descreve somente o presente. Histórico pertence a `State-Transition-Log.md`.

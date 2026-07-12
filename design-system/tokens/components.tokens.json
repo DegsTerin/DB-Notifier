@@ -1,0 +1,33 @@
+{
+  "$schema": "../schema/design-tokens.schema.json",
+  "schemaVersion": "dbnotifier.design-tokens.v1",
+  "tokenSet": "components",
+  "tokens": {
+    "component.app.background": { "type": "color", "value": "{colour.canvas}" },
+    "component.card.background": { "type": "color", "value": "{colour.surface.default}" },
+    "component.card.border": { "type": "color", "value": "{colour.border.default}" },
+    "component.button.primary.background.default": { "type": "color", "value": "{colour.action.primary.background}" },
+    "component.button.primary.background.hover": { "type": "color", "value": "{colour.action.primary.hover}" },
+    "component.button.primary.background.active": { "type": "color", "value": "{colour.action.primary.active}" },
+    "component.button.primary.foreground": { "type": "color", "value": "{colour.action.primary.foreground}" },
+    "component.button.secondary.background": { "type": "color", "value": "{colour.surface.default}" },
+    "component.button.secondary.foreground": { "type": "color", "value": "{colour.text.primary}" },
+    "component.button.secondary.border": { "type": "color", "value": "{colour.border.strong}" },
+    "component.input.background": { "type": "color", "value": "{colour.surface.default}" },
+    "component.input.foreground": { "type": "color", "value": "{colour.text.primary}" },
+    "component.input.border": { "type": "color", "value": "{colour.border.strong}" },
+    "component.focus.ring": { "type": "color", "value": "{colour.focus.ring}" },
+    "component.status.healthy.foreground": { "type": "color", "value": "{colour.status.healthy.foreground}" },
+    "component.status.healthy.background": { "type": "color", "value": "{colour.status.healthy.background}" },
+    "component.status.degraded.foreground": { "type": "color", "value": "{colour.status.degraded.foreground}" },
+    "component.status.degraded.background": { "type": "color", "value": "{colour.status.degraded.background}" },
+    "component.status.critical.foreground": { "type": "color", "value": "{colour.status.critical.foreground}" },
+    "component.status.critical.background": { "type": "color", "value": "{colour.status.critical.background}" },
+    "component.status.information.foreground": { "type": "color", "value": "{colour.status.information.foreground}" },
+    "component.status.information.background": { "type": "color", "value": "{colour.status.information.background}" },
+    "component.status.maintenance.foreground": { "type": "color", "value": "{colour.status.maintenance.foreground}" },
+    "component.status.maintenance.background": { "type": "color", "value": "{colour.status.maintenance.background}" },
+    "component.status.neutral.foreground": { "type": "color", "value": "{colour.status.neutral.foreground}" },
+    "component.status.neutral.background": { "type": "color", "value": "{colour.status.neutral.background}" }
+  }
+}

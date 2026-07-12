@@ -75,4 +75,4 @@ Record assistive technology/browser versions, Windows scaling, path, announcemen
 
 ## Recommendation
 
-Implement `design/DB-Notifier-Design-System.md`, repeat the complete automatic audit across Light/Dark/System, then perform the listed human samples and present the new evidence for the `STATE-05` Human Gate. Do not transition to `STATE-06` or start the multi-database laboratory before explicit Human Gate approval.
+Continue the React/WPF integration increments from `STATE-05-Design-System-Implementation-Report.md`, repeat the complete automatic audit across Light/Dark/System, then perform the listed human samples and present the new evidence for the `STATE-05` Human Gate. Do not transition to `STATE-06` or start the multi-database laboratory before explicit Human Gate approval.

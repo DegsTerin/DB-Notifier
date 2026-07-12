@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://db-notifier.local/schemas/design-tokens.schema.json",
+  "title": "DB-Notifier design token set",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["$schema", "schemaVersion", "tokenSet", "tokens"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "schemaVersion": { "const": "dbnotifier.design-tokens.v1" },
+    "tokenSet": { "enum": ["core", "semantic.light", "semantic.dark", "components"] },
+    "tokens": {
+      "type": "object",
+      "minProperties": 1,
+      "propertyNames": { "pattern": "^[a-z][a-z0-9]*(\\.[a-z0-9]+)*$" },
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["type", "value"],
+        "properties": {
+          "type": {
+            "enum": ["color", "dimension", "duration", "fontFamily", "fontWeight", "shadow", "cubicBezier", "number"]
+          },
+          "value": { "type": ["string", "number"] }
+        }
+      }
+    }
+  }
+}

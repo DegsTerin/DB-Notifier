@@ -372,6 +372,16 @@
 - Evidências: `docs/design/DB-Notifier-Design-System.md`.
 - Riscos/ressalvas: implementação, testes de tema e nova reauditoria ainda pendentes; Human Gate, `STATE-06` e laboratório multi-banco permanecem bloqueados.
 
+## 2026-07-12 — Primeiro incremento do Design System
+
+- Estado anterior: `STATE-05 FRONTEND_IMPLEMENTATION`
+- Estado resultante: sem transição
+- Decisão: implementar fonte canônica e contratos antes de migrar visualmente React/WPF.
+- Escopo: schema `dbnotifier.design-tokens.v1`, core/semantic/component tokens, gerador/verificador CSS/XAML e contratos System/Light/Dark TypeScript/.NET 10.
+- Gates: geração/drift, paridade Light/Dark, contraste canônico, build .NET 10, 133 testes .NET, 12 Dashboard e documentação aprovados.
+- Evidências: `docs/STATE-05-Design-System-Implementation-Report.md`; saídas CSS/XAML geradas deterministicamente.
+- Riscos/ressalvas: telas ainda usam estilos atuais; ThemeSelector, bootstrap, observadores e persistência runtime permanecem pendentes.
+
 ## Template de nova entrada
 
 - Data:

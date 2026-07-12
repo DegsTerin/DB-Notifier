@@ -8,6 +8,8 @@ This is an authorized implementation increment, not closure of `STATE-05`, exter
 
 The rejected automatic closure audit and its later approved re-audit are recorded separately in `STATE-05-Frontend-Implementation-Audit.md` and `STATE-05-Frontend-Implementation-Reaudit.md`. The measured re-audit evidence supersedes the earlier scaled compact visual sample for closure purposes; the Human Gate remains pending.
 
+The subsequent Design System scope expansion and implementation foundation are recorded in `design/DB-Notifier-Design-System.md` and `STATE-05-Design-System-Implementation-Report.md`. Theme application remains pending before a new closure re-audit.
+
 ## Delivered scope
 
 ### Shared presentation semantics
@@ -100,4 +102,4 @@ Temporary screenshots were stored outside the repository and were not committed.
 
 ## Recommendation
 
-Implement the official Design System, repeat the Light/Dark/System automatic re-audit, then perform the human screen-reader/native-zoom/theme samples. Do not transition to `STATE-06` before explicit Human Gate approval.
+Continue with React and WPF integration of the generated Design System tokens and theme lifecycle, repeat the Light/Dark/System automatic re-audit, then perform the human screen-reader/native-zoom/theme samples. Do not transition to `STATE-06` before explicit Human Gate approval.
