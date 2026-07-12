@@ -31,7 +31,9 @@ tests/
   DBNotifier.Legacy.Tests.ps1
 ```
 
-The projects created in `STATE-01` began as infrastructure-only bootstrap code and assembly markers. `STATE-03` added isolated persistence assemblies so the Agent carries SQLite without PostgreSQL and the Server carries PostgreSQL without SQLite. The first two `STATE-04` increments add provider-neutral health contracts, an open provider registry, bounded probe/scheduling policies, PostgreSQL readiness/authenticated adapters, and transactional local observation/outbox persistence without adding UI.
+The projects created in `STATE-01` began as infrastructure-only bootstrap code and assembly markers. `STATE-03` added isolated persistence assemblies so the Agent carries SQLite without PostgreSQL and the Server carries PostgreSQL without SQLite. The first three `STATE-04` increments add provider-neutral health contracts, an open provider registry, bounded probes, a hosted scheduler, PostgreSQL readiness/authenticated adapters, controlled SQLite assignments/outbox, and read-only platform vault adapters without adding UI.
+
+Agent monitoring remains `false` in `src/DBNotifier.Agent.Worker/appsettings.json`. Enabling it requires an explicit non-empty Agent ID and may initialize/migrate the configured absolute SQLite path. Credential references use `windows-credential-manager` or `linux-secret-service`; no plaintext file/environment vault fallback exists.
 
 ## .NET checks
 

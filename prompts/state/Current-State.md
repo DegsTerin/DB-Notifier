@@ -6,7 +6,7 @@
 
 ## Situação factual
 
-Dois incrementos de `STATE-04 BACKEND_IMPLEMENTATION` implementam contratos neutros, registro aberto, readiness/health autenticado PostgreSQL, retry/ciclo isolado e persistência local observation/outbox. Não há scheduler recorrente, vault real, banco real testado ou provider homologado; o monitor PowerShell de compatibilidade continua sendo o único runtime funcional para usuário final.
+Três incrementos de `STATE-04 BACKEND_IMPLEMENTATION` implementam contratos neutros, registro aberto, readiness/health autenticado PostgreSQL, scheduler hospedado, SQLite local e readers de vault Windows/Linux. Monitoring permanece desabilitado por default; nenhum banco, rede ou credencial real foi testado e nenhum provider está homologado.
 
 ## Produto atual
 
@@ -69,14 +69,17 @@ Dois incrementos de `STATE-04 BACKEND_IMPLEMENTATION` implementam contratos neut
 - Health PostgreSQL autenticado implementado com Npgsql, TLS configurável seguro, query fixa e mapeamento canônico; ainda sem evidência contra banco real.
 - Retry/backoff limitado, credential lease descartável, purpose enforcement e isolamento de falha por instância implementados.
 - Sink SQLite grava observation, checkpoint monotônico e outbox atomicamente; rollback e ausência de secret no payload testados.
+- Initializer/assignment source e worker recorrente implementados com intervalo limitado, filtering seguro e telemetria estruturada.
+- Readers `windows-credential-manager` e `linux-secret-service` implementados sem shell/fallback plaintext e selecionados por provider exato.
 - Controles administrativos permanecem explicitamente `Unsupported`.
-- Agent registra o catálogo/provider por DI, sem iniciar scheduler, conexão real ou UI.
-- 40 testes .NET aprovados (36 unit/model/provider + 4 arquitetura); build Release e format com 0 avisos/erros.
+- Agent registra catálogo/provider, persistência, vault e scheduler por DI; monitoring permanece desabilitado por default, sem conexão real ou UI.
+- 46 testes .NET aprovados (42 unit/model/provider + 4 arquitetura); build Release e format com 0 avisos/erros.
 
 ## Pendente
 
-- Expandir Domain/Application além do probe inicial: scheduler, políticas, eventos, alertas, autorização e transações.
-- Completar o vertical slice PostgreSQL com discovery, vault real, scheduler recorrente/assignment source e inicialização segura do store.
+- Expandir Domain/Application além do probe inicial: eventos, alertas, autorização, retenção e transações.
+- Completar o vertical slice PostgreSQL com discovery e execução sandbox habilitada usando credencial descartável autorizada.
+- Implementar outbox dispatch/ack, central ingestion, derivação de eventos/alertas e retenção local.
 - Implementar descoberta/carregamento seguro de pacotes de provider além do registro DI em processo.
 - Integrar persistência operacional do Agent/API, eventos, alertas, RBAC e comandos administrativos tipados conforme autorização.
 - Cobrir falhas isoladas, autorização negativa, idempotência, retries, timeout, `UnknownOutcome` e testes do provider.
@@ -94,6 +97,6 @@ Dois incrementos de `STATE-04 BACKEND_IMPLEMENTATION` implementam contratos neut
 
 ## Próximo gate
 
-Planejar e executar o primeiro incremento de `STATE-04 BACKEND_IMPLEMENTATION`: núcleo neutro e vertical slice PostgreSQL em .NET 10, sem antecipar UI funcional de `STATE-05`.
+Planejar e executar o quarto incremento de `STATE-04 BACKEND_IMPLEMENTATION`: dispatch/ack do outbox, ingestão central idempotente, eventos/alertas e primeira superfície API autorizada, sem antecipar UI funcional de `STATE-05`.
 
 Este documento descreve somente o presente. Histórico pertence a `State-Transition-Log.md`.

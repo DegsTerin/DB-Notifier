@@ -48,3 +48,7 @@ Agents need provider credentials without exposing secret material to the API, Da
 - Threat-model walkthrough covers stolen token, cloned Agent, revoked certificate, vault unavailable, and rotation failure.
 - Negative contracts prove monitoring credentials cannot execute an administrative command.
 - Recovery procedure distinguishes restoring DB-Notifier metadata from restoring external secrets.
+
+## Implementation progress
+
+`STATE-04` now includes an exact-match composite vault, a read-only Windows Credential Manager adapter, and a read-only Linux Secret Service/`secret-tool` adapter. Monitoring is disabled by default and no real credential has been exercised. Cloud/workload identity, credential provisioning/rotation, live platform validation, and mTLS enrollment remain pending.

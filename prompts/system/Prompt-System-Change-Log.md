@@ -2,7 +2,7 @@
 
 ## Versão atual
 
-- Versão: `3.7.0`
+- Versão: `3.8.0`
 - Data: 2026-07-11
 - Status: corpus DB-Notifier consolidado
 - Escopo: 13 arquivos ativos
@@ -16,6 +16,13 @@ A versão do corpus é independente da versão do software.
 - PATCH: clareza, correção ou referência sem mudança de autoridade.
 
 Toda alteração atualiza este arquivo e, quando necessário, `../Start-Here.md`.
+
+## 3.8.0 — 2026-07-11
+
+- Terceiro incremento de `STATE-04`: initializer SQLite controlado, assignment source, worker recorrente e telemetria estruturada.
+- Readers reais e read-only para Windows Credential Manager e Linux Secret Service, selecionados por composite sem fallback plaintext.
+- Monitoring desabilitado por default; habilitação exige AgentId e pode migrar somente o store SQLite interno configurado.
+- 46 testes .NET aprovados; nenhum banco, rede ou credential real executado e nenhum provider homologado.
 
 ## 3.7.0 — 2026-07-11
 

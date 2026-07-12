@@ -12,6 +12,13 @@ public interface ICredentialVault
         CancellationToken cancellationToken);
 }
 
+public interface ICredentialVaultAdapter
+{
+    string ProviderId { get; }
+
+    ValueTask<IProviderCredential> ResolveAsync(string locator, CancellationToken cancellationToken);
+}
+
 public sealed class CredentialUnavailableException(string safeMessage) : Exception(safeMessage);
 
 public sealed class ProviderCredentialLease : IProviderCredential
