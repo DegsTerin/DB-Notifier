@@ -40,6 +40,8 @@ Avaliar SSRF em endpoints configuráveis, command injection em utilitários, imp
 ## Segredos
 
 - Windows: Credential Manager/DPAPI ou cofre corporativo aprovado.
+- Linux: cofre do sistema/corporativo ou secret manager aprovado, vinculado à identidade do serviço/workload.
+- Cloud: workload/federated identity e referência ao secret manager do provedor quando disponíveis; evitar chaves estáticas de longa duração.
 - Servidor: secret manager externo ou mecanismo equivalente.
 - Banco central armazena referência opaca, não senha em claro.
 - Chave de criptografia fica fora do dado cifrado e do repositório.
@@ -80,6 +82,8 @@ Start, Stop e Restart exigem:
 - Auditoria completa
 
 Controle de serviço do sistema operacional é apenas um adaptador possível, nunca pressuposto universal.
+
+Credencial do banco não concede implicitamente controle do serviço Windows, systemd, container/orquestrador ou recurso cloud. Cada plano de controle exige referência, autorização, capability e auditoria próprias.
 
 ## Auditoria
 

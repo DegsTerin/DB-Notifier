@@ -32,6 +32,15 @@ Essa relação é uma priorização, não um limite. Um provider deve poder regi
 
 SQLite possui dois papéis independentes: armazenamento interno local do Agent e possível alvo monitorado por um provider SQLite. Um papel não comprova nem substitui o outro.
 
+## Ambientes e formas de conexão
+
+- Bancos locais ou remotos, em Windows, Linux, containers, datacenter, ambientes híbridos e cloud devem ser representáveis no catálogo.
+- O Agent conecta ao banco pelo driver, protocolo, socket, utilitário nativo ou API homologada do provider; a API central não acessa diretamente o banco monitorado.
+- Monitoramento autenticado usa credencial de menor privilégio própria para leitura de health/metrics.
+- Controle administrativo usa outra identidade e somente quando a capability for segura: credencial administrativa do banco, identidade do serviço Windows/Linux, identidade de workload ou API do fornecedor/cloud.
+- Conectividade pode usar rede local, VPN, private endpoint, proxy/túnel aprovado ou endpoint público protegido por TLS e política. O produto não cria exposição de rede automaticamente.
+- Cofres e identidade devem funcionar em Windows, Linux e serviços cloud/corporativos sem persistir segredo em configuração, banco interno, log ou UI.
+
 ## Informações de uma instância
 
 - ID e nome amigável

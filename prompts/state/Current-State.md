@@ -19,6 +19,8 @@ O modelo interno de `STATE-03 DATABASE_MODELING` foi entregue e aprovado pela au
 
 - Plataforma multi-provider.
 - Catálogo aberto para qualquer banco por provider/plugin, priorizando os motores mais usados e conhecidos mundialmente.
+- Monitoramento-alvo local/remoto/cloud por Agents Windows, Linux, containers ou workloads cloud, com conectividade e credentials provider-specific.
+- Identidades separadas para monitoramento, administração do banco, controle do serviço do SO e APIs cloud.
 - Agent, Tray/Desktop, API e Dashboard.
 - Provider SDK, eventos, alertas, RBAC e auditoria.
 - SQLite local e persistência central, conforme ADR.
@@ -58,6 +60,7 @@ O modelo interno de `STATE-03 DATABASE_MODELING` foi entregue e aprovado pela au
 - Dependência nativa SQLite vulnerável inicialmente resolvida por pin central seguro, sem supressão; auditoria final sem vulnerabilidades.
 - Auditoria automática de `STATE-03` aprovada e relatório de evidências emitido.
 - Objetivo universal de providers aceito: PostgreSQL primeiro, seguido por ondas priorizadas e extensão aberta sem condicionais de engine no núcleo.
+- Topologias local, remota, Windows, Linux, híbrida e cloud aceitas como objetivo, sem autorizar abertura automática de rede ou reutilização insegura de credenciais.
 
 ## Pendente
 

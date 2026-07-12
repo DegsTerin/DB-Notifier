@@ -143,6 +143,10 @@ Regras determinísticas, análise estatística, correlação, base de conhecimen
 
 - Desktop/Agent assinados e atualizáveis de modo controlado.
 - API e Dashboard podem ser on-premises ou cloud.
+- Agents podem operar em Windows, Linux, containers ou hosts/workloads cloud, próximos ao banco local ou remoto.
+- O Agent, nunca o Dashboard ou a API central, estabelece a conexão de monitoramento com a instância usando o adaptador provider homologado.
+- Rede corporativa, VPN, private endpoint, proxy/túnel aprovado ou TLS público são topologias suportáveis por configuração e política; DB-Notifier não abre firewall nem publica banco automaticamente.
+- Monitoramento, administração do banco, controle de serviço do SO e API cloud usam identidades/referências separadas conforme a capability.
 - Configurações por ambiente, sem secrets no pacote.
 - Observabilidade inclui logs estruturados, métricas, traces e health checks reais.
 - Rollback separa binário, configuração, schema interno e protocolo.

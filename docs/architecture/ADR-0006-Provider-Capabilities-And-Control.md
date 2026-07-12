@@ -15,6 +15,8 @@ Database engines and platforms expose different readiness, metric, discovery, an
 - Capability state is `Supported`, `Unsupported`, `Unavailable`, or `Unknown`, with reason, prerequisites, platform scope, provider version, and observation time.
 - Absence or uncertainty returns `Unsupported`/`Unknown`; the core never improvises an engine or OS command.
 - Separate `IMonitoringCredential` and `IAdministrativeCredential` references and provider sessions.
+- Provider connectivity may be local or remote from a Windows, Linux, container, or cloud Agent through a typed driver/protocol, local socket, native utility, or vendor API. Each mechanism is a declared capability with its own prerequisites.
+- OS service control and cloud resource control use dedicated typed adapters and identities; database credentials are never assumed to authorize Windows SCM, systemd, Kubernetes, or a cloud control plane.
 - Administrative execution requires a typed command adapter chosen by provider/platform capability, server-side RBAC, target scope, reason, confirmation, idempotency, expiry, maintenance policy, and immutable audit.
 - A command is successful only after the adapter result and an independent post-command probe satisfy the command's verification policy. Timeout or ambiguous effect returns `UnknownOutcome`, not success.
 - The legacy PowerShell Windows service path is characterization evidence only. The target PostgreSQL provider will use a dedicated Windows-service adapter for local services; remote service control is unsupported until a separately homologated mechanism exists.

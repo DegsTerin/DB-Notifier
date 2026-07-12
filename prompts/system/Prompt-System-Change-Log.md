@@ -2,7 +2,7 @@
 
 ## Versão atual
 
-- Versão: `3.4.0`
+- Versão: `3.5.0`
 - Data: 2026-07-11
 - Status: corpus DB-Notifier consolidado
 - Escopo: 13 arquivos ativos
@@ -16,6 +16,13 @@ A versão do corpus é independente da versão do software.
 - PATCH: clareza, correção ou referência sem mudança de autoridade.
 
 Toda alteração atualiza este arquivo e, quando necessário, `../Start-Here.md`.
+
+## 3.5.0 — 2026-07-11
+
+- Cobertura de monitoramento formalizada para bancos locais, remotos, Windows, Linux, containers, datacenter, híbridos e cloud.
+- Conexão provider-specific atribuída ao Agent, sem transformar API/Dashboard em proxy genérico de banco.
+- Identidades separadas para monitoramento, administração do banco, serviço do sistema operacional e plano de controle cloud.
+- Cofres Linux e identidade federada/workload cloud incluídos, sem autorizar segredo em claro ou abertura automática de rede.
 
 ## 3.4.0 — 2026-07-11
 

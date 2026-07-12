@@ -73,6 +73,7 @@ Infrastructure / Providers / Agent / API / Desktop
 ## Deployment shapes
 
 - Standalone: Agent + Desktop on Windows, local SQLite, no central command path.
+- Distributed Agent: headless Agent on Windows, Linux, container, or cloud workload, using authorized local/remote provider connectivity; WPF Desktop remains Windows-specific.
 - On-premises: Agents connect outbound to an API/Dashboard deployment inside the organization.
 - Cloud/hybrid: Agents connect outbound through approved proxies/firewalls; monitored databases do not need inbound access from the cloud service.
 - Central API and Dashboard scale independently. PostgreSQL central storage, queue/backpressure mechanisms, and notification adapters remain server-side.

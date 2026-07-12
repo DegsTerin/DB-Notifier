@@ -156,6 +156,17 @@
 - Riscos/ressalvas: objetivo universal não implica entrega simultânea, suporte imediato ou controle administrativo disponível para toda engine.
 - Aprovador: Bruno, 2026-07-11.
 
+## 2026-07-11 — Cobertura de conexão e credenciais
+
+- Estado anterior: `STATE-03 DATABASE_MODELING`
+- Estado resultante: sem transição
+- Decisão: aceitar monitoramento e controle provider-specific para bancos locais, remotos e cloud a partir de Agents Windows, Linux, containers ou workloads cloud.
+- Escopo: drivers/protocolos/sockets/utilitários/APIs homologados, rede autorizada e referências distintas para monitoramento, administração, serviço do SO e plano de controle cloud.
+- Gates: conectividade, identidade e cada capability exigem implementação, testes de segurança e homologação por provider/plataforma.
+- Evidências: visão, arquitetura, ADR-0002, ADR-0006, matriz de conectividade e política de segurança atualizadas.
+- Riscos/ressalvas: DB-Notifier não abre firewall, não cria endpoint público e não presume que credencial do banco controle Windows, Linux, container ou cloud.
+- Aprovador: Bruno, 2026-07-11.
+
 ## Template de nova entrada
 
 - Data:

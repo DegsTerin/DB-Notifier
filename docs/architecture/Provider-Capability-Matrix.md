@@ -37,6 +37,19 @@
 
 No row implies universal control. UI/API must display `Unsupported`, `Unavailable`, `Unknown`, and `Denied` separately.
 
+## Monitoring connectivity matrix
+
+| Database location | Agent placement | Connection mechanism | Credential/reference |
+|---|---|---|---|
+| Local Windows | Same Windows host or approved nearby Agent | driver/protocol, local socket where supported, or native provider utility | monitoring credential reference; optional separate Windows service identity |
+| Remote from Windows | Windows Agent with authorized network path | provider protocol/driver over TLS where supported | monitoring credential reference |
+| Local Linux | Same Linux host, container, or approved nearby Agent | driver/protocol, Unix socket, or native provider utility | monitoring credential reference; optional separate systemd/workload identity |
+| Remote from Linux | Linux/container Agent with authorized network path | provider protocol/driver over TLS where supported | monitoring credential reference |
+| Private datacenter/hybrid | Agent inside the authorized network segment | LAN, VPN, private link, approved proxy/tunnel | vault-resolved monitoring reference |
+| Cloud-managed | Agent/workload with private or policy-approved endpoint access | engine protocol and, when required, separate vendor/cloud API | workload/federated identity or cloud-vault reference; distinct control-plane identity |
+
+The central API and Dashboard never become a generic database proxy. The Agent performs provider access, and the product does not open firewalls, create public endpoints, or weaken TLS automatically.
+
 ## Open provider catalog
 
 The product objective is to accept any database engine through a versioned provider/plugin. The catalog is deliberately open: adding an engine must not require an engine conditional or closed enum in Domain/Application.

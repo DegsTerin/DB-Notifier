@@ -2,6 +2,8 @@
 
 DB-Notifier is the successor to PgNotifier: an open multi-provider platform designed to accept any database engine through versioned providers/plugins, built around an Agent, Desktop/Tray client, central API, and Web Dashboard.
 
+Agents are designed to monitor local, remote, datacenter, hybrid, and cloud databases from Windows, Linux, containers, or cloud workloads. Monitoring credentials, database administration credentials, OS service identities, and cloud control-plane identities remain separate and vault-backed.
+
 The workspace is currently in `STATE-03 DATABASE_MODELING`, with its automatic audit approved and Human Gate pending. The renamed PowerShell compatibility application remains the only functional monitoring implementation and is not the final architecture. PostgreSQL is the only engine with observed legacy behavior; every other engine remains a roadmap item until its provider is implemented and homologated.
 
 ## Start here

@@ -13,7 +13,10 @@ Agents need provider credentials without exposing secret material to the API, Da
 - Represent every provider credential as an opaque `CredentialReference`; ordinary config and databases never contain a plaintext password or complete connection string.
 - On Windows standalone/Agent deployments, use a vault adapter backed by DPAPI-protected machine/user scope or Windows Credential Manager according to the service identity selected during installation.
 - On servers, use an external secret-manager adapter. The central database stores only provider, locator/reference, metadata, and rotation state.
+- On Linux Agents, use an approved OS/corporate vault adapter bound to the service/workload identity; never fall back to plaintext environment files as durable storage.
+- For cloud workloads, support workload/federated identity and cloud secret-manager references where the provider/platform permits it; long-lived access keys are not the default.
 - Separate monitoring and administrative references. Absence of an administrative reference means administrative capability is unavailable.
+- Keep database monitoring, database administration, OS service control, and vendor/cloud API identities as distinct references even when a deployment chooses to bind some of them to the same external principal.
 - Provision each Agent with a unique identity. Enrollment uses a one-time, short-lived, scope-bound token delivered out of band; the token cannot publish observations or receive commands.
 - After enrollment, use a client certificate for mTLS. Certificates are short-lived relative to installation lifetime, rotated before expiry, and revocable by Agent ID/certificate thumbprint.
 - Bind Agent identity to tenant/environment scope and declared platform version. Capabilities sent by an Agent are claims that the server validates against policy and registered provider metadata.
