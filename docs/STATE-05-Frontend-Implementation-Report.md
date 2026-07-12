@@ -2,7 +2,7 @@
 
 ## Outcome
 
-Three `STATE-05 FRONTEND_IMPLEMENTATION` increments implement provider-neutral inventory/status, history/alert and configuration/capability slices in both the React Dashboard and the .NET 10 WPF Desktop shell. The surfaces use versioned `inventory.v1`, `history-alerts.v1` and `configuration-capabilities.v1` presentation semantics with deterministic local adapters; neither calls the API, Agent, database, vault, IdP, notification channel or administrative executor.
+Four `STATE-05 FRONTEND_IMPLEMENTATION` increments implement provider-neutral inventory/status, history/alert, configuration/capability and Tray/accessibility slices in React and .NET 10 WPF. All surfaces use deterministic local adapters; none calls the API, Agent, database, vault, IdP, notification channel or administrative executor.
 
 This is an authorized implementation increment, not closure of `STATE-05`, external integration, provider activation or homologation. PostgreSQL remains implemented but unhomologated; MySQL, SQL Server and MongoDB appear only as clearly labelled planned demonstration rows and do not represent working providers.
 
@@ -39,12 +39,12 @@ This is an authorized implementation increment, not closure of `STATE-05`, exter
 |---|---|
 | .NET SDK/target | .NET SDK `10.0.301`; active projects remain `net10.0`/`net10.0-windows` |
 | Release solution build | Approved; 13 projects, 0 warnings, 0 errors |
-| .NET tests | Approved; 109 unit/model/provider tests + 5 architecture tests = 114/114 |
+| .NET tests | Approved; 120 unit/model/provider/presentation tests + 5 architecture tests = 125/125 |
 | Presentation-policy tests | Approved; summary, stale boundary and invalid policy covered in the .NET suite |
 | .NET format | Approved; no changes required after formatting and verification |
 | Dashboard clean install | Approved; 26 packages installed from lockfile |
 | Dashboard typecheck | Approved |
-| Dashboard presentation tests | Approved; 5/5 for inventory, timeline and capability-preview semantics |
+| Dashboard presentation tests | Approved; 7/7 including WCAG contrast pairs and semantic/motion guards |
 | Dashboard production build | Approved; Vite build emitted production assets |
 | npm audit | Approved; 0 vulnerabilities |
 | WPF runtime smoke | Approved; process created the interactive `DB-Notifier — Inventário` main window and was then stopped |
@@ -72,6 +72,16 @@ Temporary screenshots were stored outside the repository and were not committed.
 - A separately labelled confirmation example demonstrates the future UX anatomy without changing the factual provider capability state.
 - Desktop and compact Dashboard configuration views were visually reviewed with temporary sanitized captures; no material clipping or horizontal overflow was observed.
 
+## Increment 4 — Tray and accessibility hardening
+
+- WPF owns a real Windows notification-area icon with explicit Open, factual local-demonstration status and Exit commands.
+- Minimize or window-close hides only the DB-Notifier window; it never starts, stops or restarts a database/service. Explicit Exit disposes the menu/icon and shuts down the application.
+- Runtime close-to-Tray smoke proved the visible window closed while the DB-Notifier process remained alive; the isolated validation process was then stopped.
+- Tray intent policy is provider-neutral and unit-tested for minimize, close request, show and explicit exit.
+- Dashboard automated guards verify all declared normal-text colour pairs at WCAG AA ratio `>= 4.5`, `pt-BR`, skip link, main landmark, modal semantics, visible focus and reduced-motion handling.
+- WPF colour pairs are independently verified at WCAG AA normal-text contrast; AutomationProperties, native controls, keyboard cycle and textual/symbolic states remain present.
+- No external toast/channel was registered and no monitoring status was fabricated; Tray text says `Demonstração local · sem dados externos`.
+
 ## Security and phase boundaries
 
 - Demonstration data contains no connection string, credential reference, secret, token or real infrastructure identifier.
@@ -82,10 +92,10 @@ Temporary screenshots were stored outside the repository and were not committed.
 
 ## Remaining STATE-05 scope
 
-- Extend automated accessibility checks and repeat keyboard, screen-reader, contrast, zoom and representative viewport samples.
-- Define Tray behaviour and notification-area interactions while preserving offline/stale truth.
+- Complete human keyboard, screen-reader, zoom and representative viewport samples for the closure gate.
+- Replace the generic system Tray icon with a signed branded asset during packaging/release preparation.
 - Run the automatic closure audit and Human Gate only after all phase deliverables are complete.
 
 ## Recommendation
 
-Execute the fourth `STATE-05` increment: implement Tray/notification-area behaviour and strengthen automated/manual accessibility evidence across Dashboard and WPF, preserving offline/stale truth and keeping integrations and administrative execution disabled.
+Execute the automatic closure audit for `STATE-05`, including keyboard/zoom/viewport samples and an explicit inventory of the remaining human screen-reader evidence. Do not transition to `STATE-06` before an approved audit and Human Gate.

@@ -73,7 +73,7 @@ public partial class MainWindow : Window
     {
         if (CapabilityGrid.SelectedItem is not CapabilityRow selected)
         {
-            MessageBox.Show(this, "Selecione uma capability para revisar.", "DB-Notifier", MessageBoxButton.OK, MessageBoxImage.Information);
+            System.Windows.MessageBox.Show(this, "Selecione uma capability para revisar.", "DB-Notifier", MessageBoxButton.OK, MessageBoxImage.Information);
             return;
         }
 
@@ -95,7 +95,7 @@ public partial class MainWindow : Window
             ActionPreviewDisposition.Unavailable => ("Operação indisponível", "Os pré-requisitos da capability não estão disponíveis."),
             _ => ("Capability desconhecida", "O estado falha fechado e nenhuma ação é disponibilizada."),
         };
-        MessageBox.Show(this, message, title, MessageBoxButton.OK, MessageBoxImage.Information);
+        System.Windows.MessageBox.Show(this, message, title, MessageBoxButton.OK, MessageBoxImage.Information);
     }
 
     private void PresentReadyState()

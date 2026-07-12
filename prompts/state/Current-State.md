@@ -6,7 +6,7 @@
 
 ## Situação factual
 
-O projeto está em `STATE-05 FRONTEND_IMPLEMENTATION`. Três incrementos implementam inventário/status, histórico/alertas e configuração/capabilities no Dashboard React e Desktop WPF .NET 10. Adapters são determinísticos, configuração não exibe secrets e previews administrativos falham fechados sem persistir ou executar; nenhum provider está homologado.
+O projeto está em `STATE-05 FRONTEND_IMPLEMENTATION`. Quatro incrementos implementam inventário/status, histórico/alertas, configuração/capabilities e Tray seguro no Dashboard React/Desktop WPF .NET 10. O Tray controla somente a janela DB-Notifier; adapters continuam determinísticos, sem integração, secret, mutation, controle de banco/serviço ou provider homologado.
 
 ## Produto atual
 
@@ -101,11 +101,13 @@ O projeto está em `STATE-05 FRONTEND_IMPLEMENTATION`. Três incrementos impleme
 - Contrato `configuration-capabilities.v1` e visões Dashboard/WPF implementam configuração não secreta e decisões confirmation/denied/unsupported/unavailable/unknown.
 - Start/Stop/Restart PostgreSQL permanecem `Unsupported`; confirmação é apenas exemplo rotulado e o controle final de execução permanece desabilitado.
 - 114 testes .NET e 5 testes Dashboard aprovados no terceiro incremento; builds e amostras visuais desktop/compacta aprovados.
+- Tray Windows real implementado com abrir, status factual e sair; minimizar/fechar recolhe a janela sem tocar banco ou serviço, com descarte explícito do ícone/menu.
+- Guards automatizados validam contraste WCAG AA, semântica, foco e reduced-motion no Dashboard, além de contraste textual WPF e política provider-neutral do Tray.
+- 125 testes .NET e 7 testes Dashboard aprovados no quarto incremento; smoke close-to-Tray comprovou processo vivo sem janela visível e cleanup posterior.
 
 ## Pendente
 
 - Completar validação de acessibilidade com leitor de tela, contraste automatizado, zoom, teclado e viewports representativos.
-- Definir comportamento de Tray/notification area preservando offline, stale e suporte factual.
 - Manter adapters de apresentação determinísticos até `STATE-06`; não integrar silenciosamente banco, IdP, certificado, canal ou provider real durante a fase de UI.
 - Representar capabilities e suporte de modo factual: ação ausente/negada/unsupported não pode aparecer como executável ou homologada.
 - Preservar as pendências posteriores de ativação sandbox de pacotes, integração real, execução/post-probe de comandos, legal hold/backup e adapters externos.
@@ -122,6 +124,6 @@ O projeto está em `STATE-05 FRONTEND_IMPLEMENTATION`. Três incrementos impleme
 
 ## Próximo gate
 
-Executar o quarto incremento de `STATE-05`: comportamento Tray/notification area e reforço das evidências automatizadas/manuais de acessibilidade no Dashboard e WPF, preservando offline/stale e mantendo integrações/execução administrativa desabilitadas.
+Executar a auditoria automática de encerramento de `STATE-05`, incluindo amostras de teclado/zoom/viewports e inventário explícito da evidência humana de leitor de tela ainda pendente. Nenhuma transição para `STATE-06` ocorre sem auditoria e Human Gate aprovados.
 
 Este documento descreve somente o presente. Histórico pertence a `State-Transition-Log.md`.

@@ -332,6 +332,16 @@
 - Evidências: `docs/STATE-05-Frontend-Implementation-Report.md`; PostgreSQL Start/Stop/Restart permanecem `Unsupported` e nenhum comando foi criado/despachado.
 - Riscos/ressalvas: confirmação é exemplo de UX, não capability suportada; acessibilidade completa, Tray e integração permanecem pendentes.
 
+## 2026-07-12 — Quarto incremento de Frontend Implementation
+
+- Estado anterior: `STATE-05 FRONTEND_IMPLEMENTATION`
+- Estado resultante: sem transição
+- Decisão: implementar Tray/notification area seguro e reforçar evidências automatizadas de acessibilidade.
+- Escopo: abrir/ocultar/sair do WPF, status local factual, descarte de recursos, contraste WCAG AA, semântica, foco e reduced-motion.
+- Gates: 125 testes .NET, 7 testes Dashboard, builds .NET 10/Vite e smoke close-to-Tray aprovados; Human Gate de `STATE-05` permanece pendente.
+- Evidências: `docs/STATE-05-Frontend-Implementation-Report.md`; fechar ocultou a janela e manteve apenas o processo DB-Notifier vivo até o cleanup de validação.
+- Riscos/ressalvas: ícone Tray ainda usa asset genérico do sistema; leitor de tela, zoom e amostras humanas completas permanecem para auditoria/Human Gate.
+
 ## Template de nova entrada
 
 - Data:

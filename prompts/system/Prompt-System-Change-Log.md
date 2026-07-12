@@ -2,7 +2,7 @@
 
 ## Versão atual
 
-- Versão: `3.18.0`
+- Versão: `3.19.0`
 - Data: 2026-07-12
 - Status: corpus DB-Notifier consolidado
 - Escopo: 13 arquivos ativos
@@ -16,6 +16,12 @@ A versão do corpus é independente da versão do software.
 - PATCH: clareza, correção ou referência sem mudança de autoridade.
 
 Toda alteração atualiza este arquivo e, quando necessário, `../Start-Here.md`.
+
+## 3.19.0 — 2026-07-12
+
+- Quarto incremento de `STATE-05`: Tray Windows seguro para a janela DB-Notifier, sem controle de banco/serviço e com saída/descarte explícitos.
+- Guards automatizados de contraste WCAG AA, semântica, foco, reduced-motion e política provider-neutral do Tray adicionados.
+- 125 testes .NET e 7 testes Dashboard aprovados; próximo passo definido como auditoria automática de encerramento de `STATE-05` antes do Human Gate.
 
 ## 3.18.0 — 2026-07-12
 
