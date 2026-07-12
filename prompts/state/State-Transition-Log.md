@@ -123,6 +123,18 @@
 - Gates: ADR-0001 `accepted`; ADR-0002 a ADR-0006 e Human Gate final de `STATE-02` permanecem pendentes.
 - Evidências: SDK `10.0.301`, targets `net10.0`/`net10.0-windows`, 10 projetos compilados com 0 avisos/erros, 2 testes aprovados, format limpo, auditoria NuGet sem vulnerabilidades, API `Alive`, lockfiles e ADR-0001.
 
+## 2026-07-11 — Transição para Database Modeling
+
+- Estado anterior: `STATE-02 ARCHITECTURE`
+- Estado solicitado: `STATE-03 DATABASE_MODELING`
+- Decisão: `APROVADO` pelo usuário para ADR-0001 a ADR-0006 e encerramento da arquitetura.
+- Escopo: aceitar limites, .NET 10, secrets/Agent identity, protocolo, persistência/retenção, packaging/update, provider capabilities, contracts, threat model e AIOps guardrails.
+- Gates: auditoria automática `APROVADO COM RESSALVAS`; Human Gate aprovado explicitamente.
+- Evidências: `docs/STATE-02-Architecture-Report.md`, `docs/architecture/`, commit `4e6dbcc` e retarget .NET 10 `dd5f558`.
+- Riscos/ressalvas: implementação, migrations, WiX/signing, vault/mTLS real, providers e pentest permanecem não executados; retenção não autoriza deleção produtiva.
+- Aprovador: Bruno, 2026-07-11.
+- Estado resultante: `STATE-03 DATABASE_MODELING`.
+
 ## Template de nova entrada
 
 - Data:

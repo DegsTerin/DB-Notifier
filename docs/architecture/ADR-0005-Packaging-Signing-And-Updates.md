@@ -1,6 +1,6 @@
 # ADR-0005 — Packaging, Signing, and Updates
 
-- Status: proposed
+- Status: accepted
 - Date: 2026-07-11
 - Owners: release and Windows platform architecture
 

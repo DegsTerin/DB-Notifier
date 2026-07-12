@@ -2,11 +2,11 @@
 
 ## Estado
 
-`STATE-02 ARCHITECTURE`
+`STATE-03 DATABASE_MODELING`
 
 ## Situação factual
 
-O Human Gate de `STATE-01` aprovou o scaffold, os checks e a migração canônica de nomes. Em `STATE-02 ARCHITECTURE`, ADR-0001 foi aceito por decisão explícita: .NET 10 LTS é obrigatório em todos os projetos ativos do início ao fim. Os demais ADRs, contratos, threat model, protocolo, matriz PostgreSQL e guardrails AIOps permanecem propostos; o Human Gate de encerramento está pendente. O monitor PowerShell de compatibilidade continua sendo o único monitor funcional.
+O Human Gate de `STATE-02` aprovou ADR-0001 a ADR-0006, contratos, threat model, protocolo, matriz PostgreSQL e guardrails AIOps. O workspace entrou em `STATE-03 DATABASE_MODELING`; o monitor PowerShell de compatibilidade continua sendo o único monitor funcional enquanto os modelos internos SQLite/PostgreSQL, constraints, índices, retenção e migrations não produtivas são definidos.
 
 ## Produto atual
 
@@ -47,11 +47,14 @@ O Human Gate de `STATE-01` aprovou o scaffold, os checks e a migração canônic
 - Protocolo Agent/API v1 conceitual com operação offline, idempotência, reconciliação e compatibilidade.
 - Threat model, matriz de capacidades PostgreSQL e guardrails de dados/risco/evals para MOD-12.
 - ADR-0001 aceito: baseline única .NET 10 LTS durante todo o projeto.
+- ADR-0002 a ADR-0006 e pacote arquitetural completo aceitos no Human Gate de `STATE-02`.
 
 ## Pendente
 
-- Human Gate de `STATE-02` para aceitar/rejeitar os ADRs propostos.
-- Walkthrough humano de ameaças e cenários standalone/on-premises/híbridos.
+- Modelo lógico/físico interno para catálogo, Agents, health, eventos, incidentes, alertas, outbox, comandos, RBAC e auditoria.
+- Constraints, índices, concorrência, idempotência e retenção para SQLite local e PostgreSQL central.
+- DbContexts/migrations provider-specific não produtivas, com criação, upgrade e rollback verificados.
+- Referências opacas de credencial sem secret no modelo comum.
 - Implementação e homologação de qualquer provider além do comportamento PostgreSQL legado.
 
 ## Riscos
@@ -65,6 +68,6 @@ O Human Gate de `STATE-01` aprovou o scaffold, os checks e a migração canônic
 
 ## Próximo gate
 
-Validar o pacote arquitetural, revisar as decisões materiais de `docs/STATE-02-Architecture-Report.md` e registrar o Human Gate antes de `STATE-03 DATABASE_MODELING`.
+Concluir e auditar os entregáveis de modelagem de `STATE-03`, então submeter modelo/migrations/recuperação ao Human Gate antes de `STATE-04 BACKEND_IMPLEMENTATION`.
 
 Este documento descreve somente o presente. Histórico pertence a `State-Transition-Log.md`.

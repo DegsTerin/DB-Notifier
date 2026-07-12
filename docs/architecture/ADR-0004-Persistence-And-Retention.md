@@ -1,6 +1,6 @@
 # ADR-0004 — Persistence, Migrations, and Retention
 
-- Status: proposed
+- Status: accepted
 - Date: 2026-07-11
 - Owners: data and platform architecture
 

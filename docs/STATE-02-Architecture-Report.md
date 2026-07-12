@@ -14,17 +14,17 @@
 | Deliverable | Artifact | Status |
 |---|---|---|
 | Architecture/context/boundaries | `architecture/README.md` | Proposed and internally reviewed |
-| Runtime and migration decision | `ADR-0001` | Proposed; Human Gate choice required |
-| Secrets and Agent identity | `ADR-0002` | Proposed; Human Gate choice required |
-| Agent/API compatibility | `ADR-0003` | Proposed; Human Gate choice required |
-| Persistence and retention | `ADR-0004` | Proposed; retention values are design defaults only |
-| Packaging/signing/update | `ADR-0005` | Proposed; toolchain not installed/validated |
-| Provider/admin capability policy | `ADR-0006` | Proposed |
-| Canonical health/event/error/command contracts | `Canonical-Contracts.md` | Proposed |
-| Durable protocol and offline semantics | `Agent-API-Protocol.md` | Proposed |
-| Trust boundaries/threats/controls | `Threat-Model.md` | Proposed; no penetration-test claim |
-| PostgreSQL capability truth | `Provider-Capability-Matrix.md` | Proposed; zero DB-Notifier provider homologation |
-| MOD-12 data/risk/evaluation constraints | `AIOps-Architecture-Guardrails.md` | Proposed; roadmap only |
+| Runtime and migration decision | `ADR-0001` | Accepted |
+| Secrets and Agent identity | `ADR-0002` | Accepted |
+| Agent/API compatibility | `ADR-0003` | Accepted |
+| Persistence and retention | `ADR-0004` | Accepted; retention values remain design defaults, not production deletion authority |
+| Packaging/signing/update | `ADR-0005` | Accepted; toolchain still requires later implementation/validation |
+| Provider/admin capability policy | `ADR-0006` | Accepted |
+| Canonical health/event/error/command contracts | `Canonical-Contracts.md` | Accepted architecture contract |
+| Durable protocol and offline semantics | `Agent-API-Protocol.md` | Accepted conceptual protocol |
+| Trust boundaries/threats/controls | `Threat-Model.md` | Accepted architecture model; no penetration-test claim |
+| PostgreSQL capability truth | `Provider-Capability-Matrix.md` | Accepted capability baseline; zero DB-Notifier provider homologation |
+| MOD-12 data/risk/evaluation constraints | `AIOps-Architecture-Guardrails.md` | Accepted guardrails; roadmap only |
 
 ## Material decisions for Human Gate
 
@@ -84,18 +84,19 @@
 - NuGet transitive vulnerability audit: no vulnerable package reported.
 - API runtime sample: `/health/live` returned `{"status":"Alive"}` under .NET 10 and the process was stopped cleanly.
 
-Automatic audit result: `APROVADO COM RESSALVAS`. ADR-0001 and its .NET 10 implementation evidence are approved. Acceptance of identity, persistence/retention, packaging, provider-control, and final architecture decisions remains a Human Gate responsibility.
+Automatic audit result: `APROVADO COM RESSALVAS`. The Human Gate subsequently accepted all six ADRs. Remaining reservations concern later implementation/homologation evidence, not the architecture decision set.
 
 ## Human Gate
 
 - Phase: `STATE-02 ARCHITECTURE`
-- Validator and date: PENDENTE
-- ADRs accepted/rejected: ADR-0001 accepted explicitly; ADR-0002 through ADR-0006 pending
-- Threat/hybrid walkthrough: PENDENTE
-- Retention defaults reviewed: PENDENTE
-- Packaging/signing choice reviewed: PENDENTE
-- AIOps boundaries reviewed: PENDENTE
-- Decision: `PENDENTE`
-- Required outcome: accept the ADR set (optionally with explicit reservations) before retargeting the scaffold or entering `STATE-03 DATABASE_MODELING`
+- Validator and date: Bruno, 2026-07-11
+- Automatic report reviewed: accepted through explicit approval in the project session
+- ADRs accepted/rejected: ADR-0001 through ADR-0006 `accepted`
+- Threat/hybrid walkthrough: architecture scenarios accepted; independent operational/security execution remains required in later phases
+- Retention defaults reviewed: accepted as modeling defaults, not production deletion authority
+- Packaging/signing choice reviewed: accepted architecturally; WiX/signing implementation remains unvalidated
+- AIOps boundaries reviewed: accepted with MOD-12 remaining roadmap/`OBSERVER`-first
+- Decision: `APROVADO`
+- Evidence: explicit user response “Sim” to acceptance of all six ADRs, closure of `STATE-02`, and transition to `STATE-03`
 
-The project remains in `STATE-02`; this report does not pre-approve schema implementation or product code.
+This gate authorizes `STATE-03 DATABASE_MODELING`. It does not authorize production migrations, provider/backend implementation, deployment, or later-phase gates.

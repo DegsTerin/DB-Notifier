@@ -1,6 +1,6 @@
 # ADR-0006 — Provider Capabilities and Administrative Control
 
-- Status: proposed
+- Status: accepted
 - Date: 2026-07-11
 - Owners: provider and security architecture
 

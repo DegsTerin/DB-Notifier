@@ -2,7 +2,7 @@
 
 ## Versão atual
 
-- Versão: `3.2.1`
+- Versão: `3.2.2`
 - Data: 2026-07-11
 - Status: corpus DB-Notifier consolidado
 - Escopo: 13 arquivos ativos
@@ -16,6 +16,12 @@ A versão do corpus é independente da versão do software.
 - PATCH: clareza, correção ou referência sem mudança de autoridade.
 
 Toda alteração atualiza este arquivo e, quando necessário, `../Start-Here.md`.
+
+## 3.2.2 — 2026-07-11
+
+- Aceitação explícita de ADR-0001 a ADR-0006 e do pacote arquitetural completo.
+- Encerramento do Human Gate de `STATE-02 ARCHITECTURE`.
+- Transição factual para `STATE-03 DATABASE_MODELING`, sem autorizar migrations produtivas ou backend.
 
 ## 3.2.1 — 2026-07-11
 

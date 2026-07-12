@@ -2,7 +2,7 @@
 
 ## Status
 
-Baseline refinada em `STATE-02 ARCHITECTURE`. ADR-0001 foi aceito por autoridade explícita do product owner; ADR-0002 a ADR-0006 e os contratos permanecem propostos até o Human Gate. Nenhum deles representa arquitetura implementada.
+Baseline aceita no Human Gate de `STATE-02 ARCHITECTURE`. ADR-0001 a ADR-0006 e os contratos governam as fases seguintes até serem substituídos formalmente. Aceitação arquitetural não representa implementação ou homologação.
 
 ## Princípios
 
@@ -147,4 +147,4 @@ Regras determinísticas, análise estatística, correlação, base de conhecimen
 - ADR-0006: capabilities de provider e controle administrativo tipado.
 - Contratos canônicos, protocolo conceitual, threat model, matriz PostgreSQL e guardrails AIOps/IA.
 
-Índice: `../../docs/architecture/README.md`. Status: ADR-0001 `accepted`; demais ADRs `proposed` até decisão humana registrada.
+Índice: `../../docs/architecture/README.md`. Status: ADR-0001 a ADR-0006 `accepted`.

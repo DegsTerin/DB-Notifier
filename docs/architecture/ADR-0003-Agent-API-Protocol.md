@@ -1,6 +1,6 @@
 # ADR-0003 — Agent/API Protocol and Compatibility
 
-- Status: proposed
+- Status: accepted
 - Date: 2026-07-11
 - Owners: Agent and API architecture
 

@@ -1,6 +1,6 @@
 # ADR-0002 — Secrets and Agent Identity
 
-- Status: proposed
+- Status: accepted
 - Date: 2026-07-11
 - Owners: security and platform architecture
 
