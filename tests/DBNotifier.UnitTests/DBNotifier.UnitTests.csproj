@@ -15,5 +15,8 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <ProjectReference Include="..\..\src\DBNotifier.Domain\DBNotifier.Domain.csproj" />
+    <ProjectReference Include="..\..\src\DBNotifier.Infrastructure\DBNotifier.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\DBNotifier.Persistence.Agent.Sqlite\DBNotifier.Persistence.Agent.Sqlite.csproj" />
+    <ProjectReference Include="..\..\src\DBNotifier.Persistence.Server.PostgreSql\DBNotifier.Persistence.Server.PostgreSql.csproj" />
   </ItemGroup>
 </Project>

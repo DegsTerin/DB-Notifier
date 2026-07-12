@@ -28,3 +28,7 @@ indent_size = 2
 
 [*.md]
 trim_trailing_whitespace = true
+
+[**/Migrations/*.cs]
+# EF Core generates inline column arrays that trigger CA1861; keep the rule enabled elsewhere.
+dotnet_diagnostic.CA1861.severity = none

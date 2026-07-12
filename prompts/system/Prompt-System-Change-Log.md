@@ -2,7 +2,7 @@
 
 ## Versão atual
 
-- Versão: `3.2.2`
+- Versão: `3.3.0`
 - Data: 2026-07-11
 - Status: corpus DB-Notifier consolidado
 - Escopo: 13 arquivos ativos
@@ -16,6 +16,13 @@ A versão do corpus é independente da versão do software.
 - PATCH: clareza, correção ou referência sem mudança de autoridade.
 
 Toda alteração atualiza este arquivo e, quando necessário, `../Start-Here.md`.
+
+## 3.3.0 — 2026-07-11
+
+- Registro factual da modelagem interna SQLite/PostgreSQL concluída e auditada em `STATE-03`.
+- Separação explícita dos assemblies de persistência do Agent e Server, sem provider cruzado nos runtimes.
+- Inclusão de modelo, constraints, índices, retenção, migrations e recuperação como evidências; nenhuma migration produtiva autorizada.
+- Human Gate de `STATE-03` mantido pendente antes de qualquer transição para backend.
 
 ## 3.2.2 — 2026-07-11
 

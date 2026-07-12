@@ -26,6 +26,8 @@ src/
   DBNotifier.Providers.Oracle/
   DBNotifier.Providers.MongoDb/
   DBNotifier.Infrastructure/
+  DBNotifier.Persistence.Agent.Sqlite/
+  DBNotifier.Persistence.Server.PostgreSql/
   DBNotifier.Agent.Worker/
   DBNotifier.Desktop.Wpf/
   DBNotifier.Server.Api/
@@ -76,6 +78,8 @@ Requisitos de modelagem:
 - Soft delete somente onde o histórico permitir.
 - Segredos representados por referências opacas.
 - Migrations compatíveis com SQLite local e PostgreSQL central, quando aplicável.
+
+O modelo entregue em `STATE-03` separa os providers por assembly: o Agent referencia apenas SQLite, o Server apenas PostgreSQL, e Infrastructure mantém somente convenções relacionais compartilhadas. Modelo, retenção e recuperação estão em `../../docs/data/README.md`; entrega não equivale a aplicação produtiva de migration.
 
 ## Módulos
 

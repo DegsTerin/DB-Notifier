@@ -12,6 +12,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DBNotifier.Providers.Postgr
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DBNotifier.Infrastructure", "src\DBNotifier.Infrastructure\DBNotifier.Infrastructure.csproj", "{74AC8994-D2D1-4A62-9343-DA07307AE803}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DBNotifier.Persistence.Agent.Sqlite", "src\DBNotifier.Persistence.Agent.Sqlite\DBNotifier.Persistence.Agent.Sqlite.csproj", "{70E7BAA5-4B84-4005-B8BF-A355D2D6290C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DBNotifier.Persistence.Server.PostgreSql", "src\DBNotifier.Persistence.Server.PostgreSql\DBNotifier.Persistence.Server.PostgreSql.csproj", "{63ECA460-78DE-4887-8883-00A0865A72E6}"
+EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DBNotifier.Agent.Worker", "src\DBNotifier.Agent.Worker\DBNotifier.Agent.Worker.csproj", "{27EDE2D7-CFE7-4B76-AFD1-1C671C979F8E}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DBNotifier.Server.Api", "src\DBNotifier.Server.Api\DBNotifier.Server.Api.csproj", "{5CCAF3BF-E41E-42F8-9A12-C757E88B5378}"
@@ -48,6 +52,14 @@ Global
 		{74AC8994-D2D1-4A62-9343-DA07307AE803}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{74AC8994-D2D1-4A62-9343-DA07307AE803}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{74AC8994-D2D1-4A62-9343-DA07307AE803}.Release|Any CPU.Build.0 = Release|Any CPU
+		{70E7BAA5-4B84-4005-B8BF-A355D2D6290C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{70E7BAA5-4B84-4005-B8BF-A355D2D6290C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{70E7BAA5-4B84-4005-B8BF-A355D2D6290C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{70E7BAA5-4B84-4005-B8BF-A355D2D6290C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{63ECA460-78DE-4887-8883-00A0865A72E6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{63ECA460-78DE-4887-8883-00A0865A72E6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{63ECA460-78DE-4887-8883-00A0865A72E6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{63ECA460-78DE-4887-8883-00A0865A72E6}.Release|Any CPU.Build.0 = Release|Any CPU
 		{27EDE2D7-CFE7-4B76-AFD1-1C671C979F8E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{27EDE2D7-CFE7-4B76-AFD1-1C671C979F8E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{27EDE2D7-CFE7-4B76-AFD1-1C671C979F8E}.Release|Any CPU.ActiveCfg = Release|Any CPU

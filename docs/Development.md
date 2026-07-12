@@ -19,6 +19,8 @@ src/
   DBNotifier.Provider.Abstractions/
   DBNotifier.Providers.PostgreSql/
   DBNotifier.Infrastructure/
+  DBNotifier.Persistence.Agent.Sqlite/
+  DBNotifier.Persistence.Server.PostgreSql/
   DBNotifier.Agent.Worker/
   DBNotifier.Server.Api/
   DBNotifier.Desktop.Wpf/
@@ -29,7 +31,7 @@ tests/
   DBNotifier.Legacy.Tests.ps1
 ```
 
-The new projects contain infrastructure-only bootstrap code and assembly markers. Provider contracts, domain rules, persistence, monitoring, and product UI do not belong to `STATE-01`.
+The projects created in `STATE-01` began as infrastructure-only bootstrap code and assembly markers. `STATE-03` adds isolated persistence assemblies so the Agent carries SQLite without PostgreSQL and the Server carries PostgreSQL without SQLite.
 
 ## .NET checks
 

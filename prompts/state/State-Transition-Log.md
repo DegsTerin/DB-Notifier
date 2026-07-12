@@ -135,6 +135,16 @@
 - Aprovador: Bruno, 2026-07-11.
 - Estado resultante: `STATE-03 DATABASE_MODELING`.
 
+## 2026-07-11 — Modelagem interna concluída
+
+- Estado anterior: `STATE-03 DATABASE_MODELING`
+- Estado resultante: sem transição
+- Decisão: concluir a implementação e auditoria automática dos entregáveis de modelagem, mantendo o Human Gate pendente.
+- Escopo: modelos SQLite/PostgreSQL, constraints, índices, concorrência, idempotência, referências opacas de credencial, retenção, quatro migrations e recuperação.
+- Gates: auditoria automática `APROVADO`; Human Gate `PENDENTE`.
+- Evidências: `docs/STATE-03-Database-Modeling-Report.md`, `docs/data/`, build .NET 10 de 12 projetos sem avisos/erros, 5 testes, scripts PostgreSQL offline, format e auditoria NuGet sem vulnerabilidades.
+- Riscos/ressalvas: nenhuma migration aplicada a PostgreSQL, produção ou banco monitorado; retenção, vault/mTLS, autenticação, RBAC e backend continuam não implementados.
+
 ## Template de nova entrada
 
 - Data:

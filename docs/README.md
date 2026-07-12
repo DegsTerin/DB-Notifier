@@ -10,6 +10,8 @@ Current discovery and migration artifacts:
 - [`STATE-01-Setup-Report.md`](STATE-01-Setup-Report.md): approved setup evidence, dependency remediation, compatibility migration, and Human Gate.
 - [`architecture/README.md`](architecture/README.md): proposed `STATE-02` architecture pack and decision index.
 - [`STATE-02-Architecture-Report.md`](STATE-02-Architecture-Report.md): architecture audit, material decisions, walkthrough, and pending Human Gate.
+- [`data/README.md`](data/README.md): `STATE-03` logical model, retention, migrations, and recovery guidance.
+- [`STATE-03-Database-Modeling-Report.md`](STATE-03-Database-Modeling-Report.md): automatic audit evidence, migration verification, limits, and pending Human Gate.
 
 The governing instruction corpus starts at [`../prompts/Start-Here.md`](../prompts/Start-Here.md).
 

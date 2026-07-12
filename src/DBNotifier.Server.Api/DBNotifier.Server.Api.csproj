@@ -2,5 +2,6 @@
   <ItemGroup>
     <ProjectReference Include="..\DBNotifier.Application\DBNotifier.Application.csproj" />
     <ProjectReference Include="..\DBNotifier.Infrastructure\DBNotifier.Infrastructure.csproj" />
+    <ProjectReference Include="..\DBNotifier.Persistence.Server.PostgreSql\DBNotifier.Persistence.Server.PostgreSql.csproj" />
   </ItemGroup>
 </Project>

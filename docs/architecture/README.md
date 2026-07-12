@@ -46,6 +46,7 @@ Infrastructure / Providers / Agent / API / Desktop
 - Provider abstractions own typed engine capabilities and normalized results.
 - Application owns use cases, ports, authorization requirements, and transaction boundaries.
 - Infrastructure and interfaces implement adapters.
+- Provider-specific persistence is split into Agent/SQLite and Server/PostgreSQL assemblies; neither runtime carries the other runtime's database provider.
 - Dashboard consumes versioned API contracts and never accesses central storage directly.
 - A provider may depend on abstractions and Application integration points; Domain never depends on a provider.
 

@@ -6,7 +6,7 @@
 
 ## Situação factual
 
-O Human Gate de `STATE-02` aprovou ADR-0001 a ADR-0006, contratos, threat model, protocolo, matriz PostgreSQL e guardrails AIOps. O workspace entrou em `STATE-03 DATABASE_MODELING`; o monitor PowerShell de compatibilidade continua sendo o único monitor funcional enquanto os modelos internos SQLite/PostgreSQL, constraints, índices, retenção e migrations não produtivas são definidos.
+O modelo interno de `STATE-03 DATABASE_MODELING` foi entregue e aprovado pela auditoria automática; o Human Gate de leitura do modelo, migrations e recuperação permanece pendente. O monitor PowerShell de compatibilidade continua sendo o único monitor funcional, e nenhuma migration foi aplicada a PostgreSQL, produção ou banco monitorado.
 
 ## Produto atual
 
@@ -48,13 +48,19 @@ O Human Gate de `STATE-02` aprovou ADR-0001 a ADR-0006, contratos, threat model,
 - Threat model, matriz de capacidades PostgreSQL e guardrails de dados/risco/evals para MOD-12.
 - ADR-0001 aceito: baseline única .NET 10 LTS durante todo o projeto.
 - ADR-0002 a ADR-0006 e pacote arquitetural completo aceitos no Human Gate de `STATE-02`.
+- Modelo lógico documentado para catálogo, Agents, health, eventos, incidentes, alertas, comandos, RBAC, auditoria, outbox e configuração local.
+- Persistência isolada em `DBNotifier.Persistence.Agent.Sqlite` e `DBNotifier.Persistence.Server.PostgreSql`; cada runtime carrega somente seu provider.
+- Quatro migrations provider-specific não produtivas, com constraints, índices, concorrência, idempotência e referências opacas de credencial.
+- SQLite validado em memória do initial ao latest e rollback latest → previous → zero; PostgreSQL validado por scripts forward/rollback offline.
+- Retenção e deleção segura documentadas; audit PostgreSQL protegido contra update/delete por trigger.
+- Solução .NET 10 com 12 projetos: restore locked, build Release (0 avisos/erros), 5 testes, format e auditoria NuGet aprovados.
+- Dependência nativa SQLite vulnerável inicialmente resolvida por pin central seguro, sem supressão; auditoria final sem vulnerabilidades.
+- Auditoria automática de `STATE-03` aprovada e relatório de evidências emitido.
 
 ## Pendente
 
-- Modelo lógico/físico interno para catálogo, Agents, health, eventos, incidentes, alertas, outbox, comandos, RBAC e auditoria.
-- Constraints, índices, concorrência, idempotência e retenção para SQLite local e PostgreSQL central.
-- DbContexts/migrations provider-specific não produtivas, com criação, upgrade e rollback verificados.
-- Referências opacas de credencial sem secret no modelo comum.
+- Human Gate de `STATE-03`: leitura de modelo, migrations e recuperação.
+- Aprovação explícita antes de transicionar para `STATE-04 BACKEND_IMPLEMENTATION`.
 - Implementação e homologação de qualquer provider além do comportamento PostgreSQL legado.
 
 ## Riscos
@@ -68,6 +74,6 @@ O Human Gate de `STATE-02` aprovou ADR-0001 a ADR-0006, contratos, threat model,
 
 ## Próximo gate
 
-Concluir e auditar os entregáveis de modelagem de `STATE-03`, então submeter modelo/migrations/recuperação ao Human Gate antes de `STATE-04 BACKEND_IMPLEMENTATION`.
+Revisar `docs/STATE-03-Database-Modeling-Report.md` e o pacote `docs/data/`, então decidir o Human Gate de `STATE-03` antes de `STATE-04 BACKEND_IMPLEMENTATION`.
 
 Este documento descreve somente o presente. Histórico pertence a `State-Transition-Log.md`.
