@@ -38,7 +38,7 @@ Invoke-PS2EXE `
     -Title "DB-Notifier Desktop" `
     -Description "DB-Notifier desktop WPF preview" `
     -Product "DB-Notifier Desktop" `
-    -Company "Open Source" `
+    -Company "DegsTerin" `
     -Version "1.0.0" `
     -RequireAdmin:$false
 

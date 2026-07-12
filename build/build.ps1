@@ -64,7 +64,7 @@ try {
         -Title "DB-Notifier" `
         -Description "DB-Notifier PostgreSQL compatibility monitor" `
         -Product "DB-Notifier" `
-        -Company "Open Source" `
+        -Company "DegsTerin" `
         -Version "1.1.0" `
         -RequireAdmin:$false
 }

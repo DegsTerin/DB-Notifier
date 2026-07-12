@@ -10,5 +10,9 @@
     <Deterministic>true</Deterministic>
     <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
     <ContinuousIntegrationBuild Condition="'$(CI)' == 'true'">true</ContinuousIntegrationBuild>
+    <Authors>Bruno Araújo Ávila</Authors>
+    <Company>DegsTerin</Company>
+    <Copyright>Copyright (c) 2026 Bruno Araújo Ávila - DegsTerin</Copyright>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>
 </Project>

@@ -10,7 +10,7 @@
 AppId={{7B133F29-9D33-4F17-A07E-69FB64685EFE}
 AppName={#AppName}
 AppVersion=1.1.0
-AppPublisher=Open Source
+AppPublisher=DegsTerin
 DefaultDirName={autopf}\{#AppName}
 DefaultGroupName={#AppName}
 OutputDir={#OutputDir}
