@@ -4,6 +4,8 @@
 
 Este é o ponto de entrada obrigatório para trabalhos orientados pelo corpus do DB-Notifier. O sistema separa visão, arquitetura, governança, segurança, ciclo de desenvolvimento, qualidade, playbooks, estado corrente, histórico e templates.
 
+Agentes que operam no repositório começam também por [`../AGENTS.md`](../AGENTS.md), fonte operacional principal das instruções permanentes e reutilizáveis. O `AGENTS.md` consolida regras transversais e encaminha para este corpus; não substitui a autoridade temática detalhada, os ADRs aceitos nem a evidência factual.
+
 ## Ordem mínima de leitura
 
 1. [`foundation/Prompt-New-Project.md`](foundation/Prompt-New-Project.md): visão e limites do produto.
@@ -15,6 +17,7 @@ Este é o ponto de entrada obrigatório para trabalhos orientados pelo corpus do
 
 | Necessidade | Documento |
 |---|---|
+| Instruções permanentes e comportamento operacional de agentes | `../AGENTS.md` |
 | Visão, escopo e objetivos | `foundation/Prompt-New-Project.md` |
 | Arquitetura, dados, providers e módulos | `foundation/Solution-Architecture-Document.md` |
 | MOD-12 AIOPS_AI, modelos estatísticos, LLM e automação controlada | `foundation/AIOps-And-AI-Module.md` |

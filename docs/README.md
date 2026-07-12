@@ -1,5 +1,7 @@
 # DB-Notifier Documentation
 
+Permanent repository-agent behaviour is consolidated in [`../AGENTS.md`](../AGENTS.md). The detailed governing instruction corpus remains routed by [`../prompts/Start-Here.md`](../prompts/Start-Here.md); reports in this directory provide specifications or historical evidence according to their stated status.
+
 Current discovery and migration artifacts:
 
 - [`Legacy-Inventory.md`](Legacy-Inventory.md): verified PgNotifier behavior, limitations, and capability truth.

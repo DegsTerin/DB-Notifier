@@ -33,6 +33,7 @@ O projeto está em `STATE-05 FRONTEND_IMPLEMENTATION`. Quatro incrementos implem
 - Plano incremental de migração, compatibilidade de configuração, marcos e rollback.
 - Caracterização e compatibilidade do legado: 10 testes Pester aprovados em Windows PowerShell 5.1.
 - Sistema de instruções adaptado e consolidado.
+- `AGENTS.md` raiz consolidado como fonte operacional das instruções permanentes, com roteamento para o corpus temático e sem substituir ADRs, gates ou evidências.
 - Human Gate de `STATE-00` aprovado em 2026-07-11.
 - Repositório Git inicializado com branch `main` e commit inicial criado.
 - Solução `DBNotifier.sln` com limites modulares e projetos de teste sem regras funcionais prematuras.

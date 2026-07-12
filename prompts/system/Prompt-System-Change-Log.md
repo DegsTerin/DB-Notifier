@@ -2,7 +2,7 @@
 
 ## Versão atual
 
-- Versão: `3.24.0`
+- Versão: `3.25.0`
 - Data: 2026-07-12
 - Status: corpus DB-Notifier consolidado
 - Escopo: 13 arquivos ativos
@@ -16,6 +16,13 @@ A versão do corpus é independente da versão do software.
 - PATCH: clareza, correção ou referência sem mudança de autoridade.
 
 Toda alteração atualiza este arquivo e, quando necessário, `../Start-Here.md`.
+
+## 3.25.0 — 2026-07-12
+
+- `AGENTS.md` raiz criado como fonte operacional principal das instruções permanentes e reutilizáveis do repositório.
+- Regras transversais de .NET 10 LTS, providers abertos, segurança, comentários en-GB, compatibilidade, Design System, qualidade, Docker e commits consolidadas sem substituir autoridades temáticas.
+- `Start-Here.md` e índices atualizados para o novo roteamento; os 13 prompts ativos, ADRs, especificações e relatórios históricos permanecem separados por autoridade e ciclo de vida.
+- Nenhum arquivo de instrução removido ou renomeado; nenhuma fase, Human Gate ou autorização externa alterada.
 
 ## 3.24.0 — 2026-07-12
 
