@@ -2,6 +2,12 @@
   "version": 2,
   "dependencies": {
     "net10.0": {
+      "Microsoft.AspNetCore.Authentication.Certificate": {
+        "type": "Direct",
+        "requested": "[10.0.9, )",
+        "resolved": "10.0.9",
+        "contentHash": "gifJfIBw3ql/sjPKuDSqCKQg7ChTJ780niNEdcgIQqzL+sRICbL4mF+6kUuuDO6rmvTlxxNGGToKFuUFbiaJiQ=="
+      },
       "Microsoft.EntityFrameworkCore.Abstractions": {
         "type": "Transitive",
         "resolved": "10.0.9",
@@ -34,6 +40,7 @@
       "dbnotifier.persistence.server.postgresql": {
         "type": "Project",
         "dependencies": {
+          "DBNotifier.Application": "[1.0.0, )",
           "DBNotifier.Infrastructure": "[1.0.0, )",
           "Npgsql.EntityFrameworkCore.PostgreSQL": "[10.0.3, )"
         }

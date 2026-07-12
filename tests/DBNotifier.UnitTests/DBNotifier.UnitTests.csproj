@@ -22,5 +22,6 @@
     <ProjectReference Include="..\..\src\DBNotifier.Persistence.Server.PostgreSql\DBNotifier.Persistence.Server.PostgreSql.csproj" />
     <ProjectReference Include="..\..\src\DBNotifier.Provider.Abstractions\DBNotifier.Provider.Abstractions.csproj" />
     <ProjectReference Include="..\..\src\DBNotifier.Providers.PostgreSql\DBNotifier.Providers.PostgreSql.csproj" />
+    <ProjectReference Include="..\..\src\DBNotifier.Server.Api\DBNotifier.Server.Api.csproj" />
   </ItemGroup>
 </Project>

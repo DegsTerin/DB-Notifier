@@ -2,8 +2,8 @@
 
 ## Versão atual
 
-- Versão: `3.8.0`
-- Data: 2026-07-11
+- Versão: `3.9.0`
+- Data: 2026-07-12
 - Status: corpus DB-Notifier consolidado
 - Escopo: 13 arquivos ativos
 
@@ -16,6 +16,13 @@ A versão do corpus é independente da versão do software.
 - PATCH: clareza, correção ou referência sem mudança de autoridade.
 
 Toda alteração atualiza este arquivo e, quando necessário, `../Start-Here.md`.
+
+## 3.9.0 — 2026-07-12
+
+- Quarto incremento de `STATE-04`: outbox dispatch/ack ordenado, retry limitado e sincronização HTTPS/mTLS opt-in.
+- Ingestão central idempotente com vínculo Agent/instância, sequência única, eventos canônicos e preparação de alert deliveries atômicos.
+- Primeira API operacional protegida por certificado e autorização exata do Agent na rota; negação sem certificado validada em runtime local.
+- 56 testes .NET aprovados após hardening de HTTPS, sequência e autorização. Nenhum PostgreSQL, certificado real, vault, alvo monitorado ou canal externo foi exercitado.
 
 ## 3.8.0 — 2026-07-11
 

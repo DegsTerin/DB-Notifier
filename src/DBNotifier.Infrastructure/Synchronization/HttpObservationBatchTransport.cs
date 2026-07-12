@@ -1,0 +1,179 @@
+using System.Net;
+using System.Net.Http.Json;
+using System.Text.Json;
+using DBNotifier.Application.Synchronization;
+
+namespace DBNotifier.Infrastructure.Synchronization;
+
+public sealed class HttpObservationBatchTransport : IObservationBatchTransport
+{
+    private static readonly JsonSerializerOptions SerializerOptions = new(JsonSerializerDefaults.Web);
+    private readonly HttpClient httpClient;
+    private readonly Uri serverBaseAddress;
+    private readonly string agentVersion;
+
+    public HttpObservationBatchTransport(
+        HttpClient httpClient,
+        Uri serverBaseAddress,
+        string agentVersion)
+    {
+        ArgumentNullException.ThrowIfNull(httpClient);
+        ArgumentNullException.ThrowIfNull(serverBaseAddress);
+        ArgumentException.ThrowIfNullOrWhiteSpace(agentVersion);
+        if (!serverBaseAddress.IsAbsoluteUri ||
+            !string.Equals(serverBaseAddress.Scheme, Uri.UriSchemeHttps, StringComparison.OrdinalIgnoreCase) ||
+            !string.IsNullOrEmpty(serverBaseAddress.UserInfo) ||
+            !string.IsNullOrEmpty(serverBaseAddress.Query) ||
+            !string.IsNullOrEmpty(serverBaseAddress.Fragment))
+        {
+            throw new ArgumentException(
+                "Observation synchronization requires an absolute HTTPS base address without user info, query, or fragment.",
+                nameof(serverBaseAddress));
+        }
+
+        this.httpClient = httpClient;
+        this.serverBaseAddress = serverBaseAddress;
+        this.agentVersion = agentVersion;
+    }
+
+    public async ValueTask<ObservationBatchResult> SendAsync(
+        Guid agentId,
+        IReadOnlyList<AgentOutboxEnvelope> messages,
+        CancellationToken cancellationToken)
+    {
+        ArgumentOutOfRangeException.ThrowIfEqual(agentId, Guid.Empty);
+        ArgumentNullException.ThrowIfNull(messages);
+
+        List<ObservationSyncMessage> valid = [];
+        List<ObservationItemResult> localResults = [];
+        foreach (AgentOutboxEnvelope envelope in messages)
+        {
+            if (!string.Equals(envelope.MessageType, "health.observation.v1", StringComparison.Ordinal) ||
+                envelope.SchemaVersion != 1 ||
+                !TryDeserialize(envelope, out ObservationSyncMessage? message))
+            {
+                localResults.Add(new ObservationItemResult(
+                    envelope.MessageId,
+                    ObservationIngestionDisposition.Rejected,
+                    "sync.payload_unsupported"));
+                continue;
+            }
+
+            valid.Add(message);
+        }
+
+        if (valid.Count == 0)
+        {
+            return new ObservationBatchResult(localResults, 0);
+        }
+
+        Uri endpoint = new(serverBaseAddress, $"api/v1/agents/{agentId:D}/observations:batch");
+        using HttpRequestMessage request = new(HttpMethod.Post, endpoint)
+        {
+            Content = JsonContent.Create(new ObservationBatchRequest(agentId, valid), options: SerializerOptions),
+        };
+        request.Headers.Add("DBN-Protocol-Version", "1");
+        request.Headers.Add("DBN-Agent-Version", agentVersion);
+        request.Headers.Add("DBN-Message-Schema", "1");
+
+        try
+        {
+            using HttpResponseMessage response = await httpClient
+                .SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken)
+                .ConfigureAwait(false);
+            if (response.IsSuccessStatusCode)
+            {
+                ObservationBatchResult? result = await response.Content
+                    .ReadFromJsonAsync<ObservationBatchResult>(SerializerOptions, cancellationToken)
+                    .ConfigureAwait(false);
+                if (result?.Items is not null)
+                {
+                    return new ObservationBatchResult([.. localResults, .. result.Items], result.HighestContiguousSequence);
+                }
+            }
+
+            ObservationIngestionDisposition disposition = IsRetryable(response.StatusCode)
+                ? ObservationIngestionDisposition.Retryable
+                : ObservationIngestionDisposition.Rejected;
+            string errorCode = disposition == ObservationIngestionDisposition.Retryable
+                ? "sync.server_unavailable"
+                : "sync.request_rejected";
+            DateTimeOffset? retryAfter = response.Headers.RetryAfter?.Date;
+            localResults.AddRange(valid.Select(message =>
+                new ObservationItemResult(message.MessageId, disposition, errorCode, retryAfter)));
+            return new ObservationBatchResult(localResults, 0);
+        }
+        catch (HttpRequestException)
+        {
+            localResults.AddRange(valid.Select(message => new ObservationItemResult(
+                message.MessageId,
+                ObservationIngestionDisposition.Retryable,
+                "sync.transport_unavailable")));
+            return new ObservationBatchResult(localResults, 0);
+        }
+    }
+
+    private static bool TryDeserialize(
+        AgentOutboxEnvelope envelope,
+        out ObservationSyncMessage message)
+    {
+        message = null!;
+        try
+        {
+            ObservationPayload? payload = JsonSerializer.Deserialize<ObservationPayload>(
+                envelope.PayloadJson,
+                SerializerOptions);
+            if (payload is null || payload.MessageId != envelope.MessageId || payload.SchemaVersion != envelope.SchemaVersion)
+            {
+                return false;
+            }
+
+            message = new ObservationSyncMessage(
+                envelope.MessageId,
+                envelope.SchemaVersion,
+                envelope.Sequence,
+                payload.ObservationId,
+                payload.InstanceId,
+                payload.AgentId,
+                payload.ProviderType,
+                payload.ProviderVersion,
+                payload.Status,
+                payload.Method,
+                payload.EvidenceLevel,
+                payload.AttemptCount,
+                payload.ObservedAt,
+                payload.DurationMilliseconds,
+                payload.ErrorCode,
+                payload.SafeErrorMessage,
+                payload.Limitations ?? []);
+            return true;
+        }
+        catch (JsonException)
+        {
+            return false;
+        }
+    }
+
+    private static bool IsRetryable(HttpStatusCode statusCode) =>
+        statusCode == HttpStatusCode.RequestTimeout ||
+        statusCode == HttpStatusCode.TooManyRequests ||
+        (int)statusCode >= 500;
+
+    private sealed record ObservationPayload(
+        Guid MessageId,
+        int SchemaVersion,
+        Guid ObservationId,
+        Guid InstanceId,
+        Guid AgentId,
+        string ProviderType,
+        string ProviderVersion,
+        string Status,
+        string Method,
+        string EvidenceLevel,
+        int AttemptCount,
+        DateTimeOffset ObservedAt,
+        long DurationMilliseconds,
+        string? ErrorCode,
+        string? SafeErrorMessage,
+        IReadOnlyList<string>? Limitations);
+}

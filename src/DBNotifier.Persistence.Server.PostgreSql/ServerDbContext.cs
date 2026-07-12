@@ -127,6 +127,7 @@ public sealed class ServerDbContext(DbContextOptions<ServerDbContext> options) :
             entity.Property(row => row.ErrorCode).HasMaxLength(100);
             entity.Property(row => row.RedactedDetailsJson).HasColumnType("jsonb");
             entity.HasIndex(row => row.MessageId).IsUnique();
+            entity.HasIndex(row => new { row.AgentId, row.Sequence }).IsUnique();
             entity.HasIndex(row => new { row.InstanceId, row.ObservedAt });
             entity.HasIndex(row => new { row.Status, row.ObservedAt });
             entity.HasOne<DatabaseInstanceRow>().WithMany().HasForeignKey(row => row.InstanceId).OnDelete(DeleteBehavior.Restrict);

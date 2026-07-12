@@ -4,7 +4,7 @@ DB-Notifier is the successor to PgNotifier, which was conceptually inspired by M
 
 Agents are designed to monitor local, remote, datacenter, hybrid, and cloud databases from Windows, Linux, containers, or cloud workloads. Monitoring credentials, database administration credentials, OS service identities, and cloud control-plane identities remain separate and vault-backed.
 
-The workspace is currently in `STATE-04 BACKEND_IMPLEMENTATION` after approval of the database-modeling Human Gate. Three neutral backend increments now provide the open Provider SDK, PostgreSQL readiness/authenticated adapters, hosted scheduling, controlled SQLite initialization/assignments/outbox, and read-only Windows/Linux vault adapters. Monitoring remains disabled by default; no real database/vault was exercised and no provider is homologated.
+The workspace is currently in `STATE-04 BACKEND_IMPLEMENTATION` after approval of the database-modeling Human Gate. Four neutral backend increments now provide the open Provider SDK, PostgreSQL readiness/authenticated adapters, hosted scheduling, controlled SQLite initialization/assignments/outbox, read-only Windows/Linux vault adapters, idempotent observation synchronization, canonical event/alert derivation, and a certificate-authorized Agent API. Monitoring and synchronization remain disabled by default; no real database/vault was exercised and no provider is homologated.
 
 ## Start here
 

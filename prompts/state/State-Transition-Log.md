@@ -220,6 +220,16 @@
 - Evidências: `docs/STATE-04-Backend-Implementation-Report.md`, 42 testes unit/model/provider, 4 testes de arquitetura, initializer SQLite efêmero e composite vault.
 - Riscos/ressalvas: monitoring default off; sem banco/rede/credential real, cloud identity, mTLS, dispatch/ingestion, RBAC/comandos, homologação ou UI.
 
+## 2026-07-12 — Quarto incremento de Backend Implementation
+
+- Estado anterior: `STATE-04 BACKEND_IMPLEMENTATION`
+- Estado resultante: sem transição
+- Decisão: implementar dispatch/ack do Agent, ingestão central idempotente, eventos/alertas e primeira superfície API autorizada.
+- Escopo: batch protocol v1, retry/ack SQLite, HTTPS com certificado cliente, scope Agent/instância, event derivation, alert deliveries e endpoint de observations.
+- Gates: incremento automático aprovado por build/format e 56 testes; Human Gate de encerramento de `STATE-04` permanece pendente.
+- Evidências: `docs/STATE-04-Backend-Implementation-Report.md`, 52 testes unit/model/provider, 4 testes de arquitetura e smoke local 200/403.
+- Riscos/ressalvas: synchronization default off; sem PostgreSQL, certificado/mTLS E2E, vault, notification delivery, RBAC humano, comando real, homologação ou UI.
+
 ## Template de nova entrada
 
 - Data:

@@ -475,6 +475,7 @@
       "dbnotifier.persistence.server.postgresql": {
         "type": "Project",
         "dependencies": {
+          "DBNotifier.Application": "[1.0.0, )",
           "DBNotifier.Infrastructure": "[1.0.0, )",
           "Npgsql.EntityFrameworkCore.PostgreSQL": "[10.0.3, )"
         }
@@ -490,6 +491,24 @@
         "dependencies": {
           "DBNotifier.Provider.Abstractions": "[1.0.0, )",
           "Npgsql": "[10.0.3, )"
+        }
+      },
+      "dbnotifier.server.api": {
+        "type": "Project",
+        "dependencies": {
+          "DBNotifier.Application": "[1.0.0, )",
+          "DBNotifier.Infrastructure": "[1.0.0, )",
+          "DBNotifier.Persistence.Server.PostgreSql": "[1.0.0, )",
+          "Microsoft.AspNetCore.Authentication.Certificate": "[10.0.9, )"
+        }
+      },
+      "Microsoft.AspNetCore.Authentication.Certificate": {
+        "type": "CentralTransitive",
+        "requested": "[10.0.9, )",
+        "resolved": "10.0.9",
+        "contentHash": "gifJfIBw3ql/sjPKuDSqCKQg7ChTJ780niNEdcgIQqzL+sRICbL4mF+6kUuuDO6rmvTlxxNGGToKFuUFbiaJiQ==",
+        "dependencies": {
+          "Microsoft.Extensions.Caching.Memory": "10.0.9"
         }
       },
       "Microsoft.EntityFrameworkCore": {

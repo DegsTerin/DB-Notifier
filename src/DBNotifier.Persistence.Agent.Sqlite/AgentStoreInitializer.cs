@@ -4,9 +4,36 @@ namespace DBNotifier.Persistence.Agent.Sqlite;
 
 public sealed class AgentStoreInitializer(
     IDbContextFactory<AgentDbContext> contextFactory,
-    string databasePath)
+    string databasePath) : IDisposable
 {
+    private readonly SemaphoreSlim initializationGate = new(1, 1);
+    private bool initialized;
+
     public async ValueTask InitializeAsync(CancellationToken cancellationToken)
+    {
+        if (Volatile.Read(ref initialized))
+        {
+            return;
+        }
+
+        await initializationGate.WaitAsync(cancellationToken).ConfigureAwait(false);
+        try
+        {
+            if (initialized)
+            {
+                return;
+            }
+
+            await InitializeCoreAsync(cancellationToken).ConfigureAwait(false);
+            Volatile.Write(ref initialized, true);
+        }
+        finally
+        {
+            initializationGate.Release();
+        }
+    }
+
+    private async ValueTask InitializeCoreAsync(CancellationToken cancellationToken)
     {
         if (!Path.IsPathFullyQualified(databasePath))
         {
@@ -25,4 +52,6 @@ public sealed class AgentStoreInitializer(
             .ConfigureAwait(false);
         await context.Database.MigrateAsync(cancellationToken).ConfigureAwait(false);
     }
+
+    public void Dispose() => initializationGate.Dispose();
 }

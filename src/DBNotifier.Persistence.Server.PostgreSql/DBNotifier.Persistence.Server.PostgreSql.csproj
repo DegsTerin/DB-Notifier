@@ -5,6 +5,7 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
+    <ProjectReference Include="..\DBNotifier.Application\DBNotifier.Application.csproj" />
     <ProjectReference Include="..\DBNotifier.Infrastructure\DBNotifier.Infrastructure.csproj" />
   </ItemGroup>
 </Project>

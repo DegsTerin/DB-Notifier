@@ -2,7 +2,7 @@
 
 ## Outcome
 
-The first three `STATE-04 BACKEND_IMPLEMENTATION` increments are implemented in .NET 10. They establish a provider-neutral Domain/Application slice, an open provider registry/SDK, PostgreSQL readiness/authenticated probes, bounded retry policy, a hosted monitoring scheduler, transactional Agent SQLite observation/outbox persistence, and platform vault readers.
+The first four `STATE-04 BACKEND_IMPLEMENTATION` increments are implemented in .NET 10. They establish a provider-neutral Domain/Application slice, an open provider registry/SDK, PostgreSQL readiness/authenticated probes, hosted monitoring and outbox workers, transactional local persistence, platform vault readers, idempotent central ingestion, canonical event/alert derivation, and a certificate-authorized Agent API.
 
 This is incremental evidence, not closure of `STATE-04`, provider homologation, or public PostgreSQL support.
 
@@ -59,6 +59,18 @@ Application         PostgreSql provider
 - `linux-secret-service` invokes `secret-tool` without a shell using attributes `application=db-notifier` and `id=<locator>`; its secret value convention is username, newline, then secret.
 - Both platform readers copy into the disposable lease and zero temporary mutable buffers where the runtime permits. Neither adapter writes/provisions credentials.
 
+## Increment 4
+
+- Provider-neutral synchronization contracts model bounded batches, per-item accepted/duplicate/rejected/retryable outcomes, monotonic sequence acknowledgement, and a highest contiguous server cursor.
+- `AgentOutboxStore` dispatches only ordered due items, records terminal acknowledgements, and applies capped exponential retry without deleting the tombstone.
+- `AgentOutboxDispatchWorker` is disabled by default, shares race-safe SQLite initialization, emits structured counts, and isolates transient dispatch failure.
+- `HttpObservationBatchTransport` sends versioned JSON only to an absolute HTTPS base address; enabled runtime requires a valid private-key client certificate and keeps normal server certificate validation/revocation enabled.
+- The HTTPS transport rejects user-info/query/fragment base addresses even when instantiated outside the Agent composition root; Kestrel requests optional client certificates and the ingestion policy still denies requests without a validated Agent identity.
+- `ServerObservationIngestionStore` rejects inactive Agents and unassigned instances, deduplicates message/observation IDs, rejects conflicting Agent sequences terminally, and persists the sample, event, server outbox and matching alert deliveries atomically.
+- Status transitions derive bounded canonical `Connected`, `Recovered`, `Disconnected`, `Timeout`, `AuthenticationFailed`, or `Degraded` events; unchanged status emits no duplicate event.
+- PostgreSQL migration `EnforceAgentObservationSequence` adds unique `(agent_id, sequence)` enforcement with a reversible down path.
+- `POST /api/v1/agents/{agentId}/observations:batch` requires a valid enrolled client certificate and an identity claim exactly matching the route; protocol v1 and 1 MiB request limits fail closed.
+
 ## Capability truth
 
 | Capability | Implementation | Homologation/public support |
@@ -73,6 +85,10 @@ Application         PostgreSql provider
 | Hosted Agent scheduler | Implemented, structured logs, disabled by default | No enabled live-target execution |
 | SQLite store initialization/assignments | Implemented; migration and due/invalid filtering tested | No production store/retention exercise |
 | Windows/Linux vault readers | Implemented read-only with exact provider selection | No real credential lookup performed |
+| Agent outbox dispatch/ack | Implemented with ordered batching, terminal ack and capped retry | No live enrolled Agent/API exchange |
+| Central observation ingestion | Implemented idempotently with Agent/instance scope validation | Logic tested on ephemeral SQLite; no PostgreSQL instance contacted |
+| Canonical events/alerts | Implemented for health transitions and matching alert delivery preparation | No external notification channel delivered |
+| Agent ingestion API | Implemented with certificate authentication and route-bound authorization | Negative live smoke only; no real certificate enrollment/mTLS E2E |
 | Start/Stop/Restart | Explicitly `Unsupported` | Not implemented or authorized |
 | Other database providers | Registry accepts arbitrary identifiers | Adapters not implemented |
 
@@ -84,21 +100,23 @@ Executed from the repository root with workspace-local .NET SDK `10.0.301`:
 |---|---|
 | Forced restore and lockfile refresh | Approved for all 12 projects |
 | Release build with warnings as errors | Approved; 0 warnings, 0 errors |
-| Unit/model/provider tests | Approved; 42/42 |
+| Unit/model/provider tests | Approved; 52/52 |
 | Architecture tests | Approved; 4/4 |
-| Total .NET tests | Approved; 46/46 |
+| Total .NET tests | Approved; 56/56 |
+| Additional negative tests | Approved for HTTPS constructor enforcement, sequence conflict, inactive Agent and matching route authorization |
 | `dotnet format --verify-no-changes` | Approved |
 | Locked restore | Approved for all 12 projects |
 | NuGet direct/transitive vulnerability audit | Approved; no vulnerable packages reported |
 | Legacy compatibility Pester suite | Approved; 10/10 |
 | Disabled Agent startup smoke | Process remained alive after DI/host build, was terminated, and created no SQLite file or probe |
+| Local API authorization smoke | Liveness returned 200; observation ingestion without a client certificate returned 403 |
 
-Test samples include arbitrary future provider identifiers, duplicate registration, secret-shaped endpoint rejection, unknown provider behavior, all readiness/authenticated mappings, TCP-only degradation, typed argument separation, unsupported administrative capabilities, retry attempts, credential purpose/disposal, vault failure/selection, secret-tool argument separation, per-instance isolation, controlled store initialization, due/invalid assignment filtering, transactional SQLite outbox rollback/sequence, and dependency direction.
+Test samples additionally cover ordered dispatch/ack/retry, HTTPS protocol headers, invalid synchronization configuration, Agent mismatch rejection before persistence, route authorization denial, central duplicate ingestion, contiguous cursor, canonical events, matching alert deliveries, server outbox and migration rollback.
 
 ## Limits and next increment
 
-- No non-ephemeral database, service, network endpoint, vault, API, migration, or administrative action was contacted or changed.
-- PostgreSQL discovery, central ingestion, event derivation, alert evaluation, RBAC, commands, API endpoints, outbox dispatch/ack, retention, and metrics/traces remain pending.
+- No non-ephemeral database, external service, remote network endpoint, vault, production migration, notification channel, or administrative action was contacted or changed. Only the local API liveness/denial smoke used loopback HTTP.
+- PostgreSQL discovery, human authentication/RBAC, catalog mutations, commands, notification delivery, retention, metrics/traces, enrollment workflow, and a real mTLS Agent/API exchange remain pending.
 - Platform vault readers have no live-secret evidence. Windows expects a Generic Credential UTF-8 blob; Linux requires `secret-tool`/Secret Service and the documented two-line secret convention.
 - Npgsql necessarily consumes a managed password string from its password-provider callback for the connection lifetime; the password is excluded from the connection string, pooling is disabled, and the disposable source character buffer is zeroed, but runtime secret review remains required.
 - Runtime plugin package discovery/signature/loading remains pending; this increment provides the open in-process contract and registry.

@@ -120,9 +120,9 @@ public sealed class PersistenceModelTests
         Assert.Contains("health_samples", migrationScript, StringComparison.Ordinal);
 
         string[] migrations = context.Database.GetMigrations().ToArray();
-        Assert.Equal(2, migrations.Length);
-        string rollbackScript = migrator.GenerateScript(migrations[1], migrations[0]);
-        Assert.Contains("DROP CONSTRAINT", rollbackScript, StringComparison.OrdinalIgnoreCase);
+        Assert.Equal(3, migrations.Length);
+        string rollbackScript = migrator.GenerateScript(migrations[2], migrations[1]);
+        Assert.Contains("DROP INDEX", rollbackScript, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]

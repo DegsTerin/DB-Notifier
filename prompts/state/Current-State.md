@@ -6,7 +6,7 @@
 
 ## Situação factual
 
-Três incrementos de `STATE-04 BACKEND_IMPLEMENTATION` implementam contratos neutros, registro aberto, readiness/health autenticado PostgreSQL, scheduler hospedado, SQLite local e readers de vault Windows/Linux. Monitoring permanece desabilitado por default; nenhum banco, rede ou credencial real foi testado e nenhum provider está homologado.
+Quatro incrementos de `STATE-04 BACKEND_IMPLEMENTATION` implementam contratos neutros, registro aberto, readiness/health autenticado PostgreSQL, scheduler, SQLite local, readers de vault, sincronização idempotente, eventos/alertas e a primeira API autorizada para Agents. Monitoring e synchronization permanecem desabilitados por default; nenhum banco, certificado ou credencial real foi testado e nenhum provider está homologado.
 
 ## Produto atual
 
@@ -71,17 +71,21 @@ Três incrementos de `STATE-04 BACKEND_IMPLEMENTATION` implementam contratos neu
 - Sink SQLite grava observation, checkpoint monotônico e outbox atomicamente; rollback e ausência de secret no payload testados.
 - Initializer/assignment source e worker recorrente implementados com intervalo limitado, filtering seguro e telemetria estruturada.
 - Readers `windows-credential-manager` e `linux-secret-service` implementados sem shell/fallback plaintext e selecionados por provider exato.
+- Outbox dispatch/ack implementado com ordem monotônica, outcomes por item, tombstone e retry exponencial limitado.
+- Ingestão central valida Agent/instância, deduplica IDs, rejeita conflito de sequência e persiste sample/event/server-outbox/alert deliveries atomicamente.
+- API de observation batch exige certificado de Agent ativo e autorização exata do `agentId` na rota; chamada local sem certificado negada com 403.
+- Terceira migration PostgreSQL adiciona unicidade `(agent_id, sequence)` com rollback offline verificável.
 - Controles administrativos permanecem explicitamente `Unsupported`.
 - Agent registra catálogo/provider, persistência, vault e scheduler por DI; monitoring permanece desabilitado por default, sem conexão real ou UI.
-- 46 testes .NET aprovados (42 unit/model/provider + 4 arquitetura); build Release e format com 0 avisos/erros.
+- 56 testes .NET aprovados (52 unit/model/provider + 4 arquitetura); build Release e format aprovados em .NET 10 com 0 avisos/erros.
 
 ## Pendente
 
-- Expandir Domain/Application além do probe inicial: eventos, alertas, autorização, retenção e transações.
+- Expandir Domain/Application com autenticação humana, RBAC, auditoria, retenção e comandos idempotentes autorizados.
 - Completar o vertical slice PostgreSQL com discovery e execução sandbox habilitada usando credencial descartável autorizada.
-- Implementar outbox dispatch/ack, central ingestion, derivação de eventos/alertas e retenção local.
+- Implementar retenção local/central e delivery real de notificações com backpressure/deduplicação.
 - Implementar descoberta/carregamento seguro de pacotes de provider além do registro DI em processo.
-- Integrar persistência operacional do Agent/API, eventos, alertas, RBAC e comandos administrativos tipados conforme autorização.
+- Implementar autenticação humana, RBAC server-side, auditoria e comandos administrativos tipados conforme autorização.
 - Cobrir falhas isoladas, autorização negativa, idempotência, retries, timeout, `UnknownOutcome` e testes do provider.
 - Auditar `STATE-04` e submeter seus entregáveis ao Human Gate antes de qualquer transição para UI.
 - Implementação e homologação dos demais providers por ondas independentes.
@@ -97,6 +101,6 @@ Três incrementos de `STATE-04 BACKEND_IMPLEMENTATION` implementam contratos neu
 
 ## Próximo gate
 
-Planejar e executar o quarto incremento de `STATE-04 BACKEND_IMPLEMENTATION`: dispatch/ack do outbox, ingestão central idempotente, eventos/alertas e primeira superfície API autorizada, sem antecipar UI funcional de `STATE-05`.
+Planejar o quinto incremento de `STATE-04 BACKEND_IMPLEMENTATION` com autenticação humana/RBAC, auditoria, catálogo autorizado e criação idempotente de comandos sem execução administrativa real, sem antecipar UI funcional de `STATE-05`.
 
 Este documento descreve somente o presente. Histórico pertence a `State-Transition-Log.md`.
