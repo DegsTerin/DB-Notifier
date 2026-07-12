@@ -11,5 +11,8 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <ProjectReference Include="..\..\src\DBNotifier.Domain\DBNotifier.Domain.csproj" />
+    <ProjectReference Include="..\..\src\DBNotifier.Application\DBNotifier.Application.csproj" />
+    <ProjectReference Include="..\..\src\DBNotifier.Provider.Abstractions\DBNotifier.Provider.Abstractions.csproj" />
+    <ProjectReference Include="..\..\src\DBNotifier.Providers.PostgreSql\DBNotifier.Providers.PostgreSql.csproj" />
   </ItemGroup>
 </Project>

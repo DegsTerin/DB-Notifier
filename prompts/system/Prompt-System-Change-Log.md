@@ -2,7 +2,7 @@
 
 ## Versão atual
 
-- Versão: `3.5.2`
+- Versão: `3.6.0`
 - Data: 2026-07-11
 - Status: corpus DB-Notifier consolidado
 - Escopo: 13 arquivos ativos
@@ -16,6 +16,13 @@ A versão do corpus é independente da versão do software.
 - PATCH: clareza, correção ou referência sem mudança de autoridade.
 
 Toda alteração atualiza este arquivo e, quando necessário, `../Start-Here.md`.
+
+## 3.6.0 — 2026-07-11
+
+- Primeiro incremento de `STATE-04`: Domain/Application neutros, Provider SDK/registro aberto e probe canônico implementados.
+- Adapter PostgreSQL de readiness implementado como validação concreta, sem dependência no núcleo e sem homologação pública.
+- `pg_isready` executado sem shell, timeout limitado e fallback TCP sempre mapeado como `Degraded` quando alcançável.
+- 30 testes aprovados e limites explícitos: sem scheduler, banco real, vault, controle administrativo, API funcional ou UI.
 
 ## 3.5.2 — 2026-07-11
 

@@ -6,7 +6,7 @@
 
 ## Situação factual
 
-O modelo interno de `STATE-03 DATABASE_MODELING` e suas ressalvas foram aprovados no Human Gate, e o workspace entrou em `STATE-04 BACKEND_IMPLEMENTATION`. O monitor PowerShell de compatibilidade continua sendo o único monitor funcional; o novo Domain/Application, Provider SDK, provider PostgreSQL, persistência operacional e API ainda não foram implementados.
+O primeiro incremento de `STATE-04 BACKEND_IMPLEMENTATION` implementa contratos neutros de Domain/Application, registro aberto de providers e o adapter PostgreSQL de readiness. Não há scheduler operacional, banco real testado ou provider homologado; o monitor PowerShell de compatibilidade continua sendo o único runtime funcional para usuário final.
 
 ## Produto atual
 
@@ -63,11 +63,18 @@ O modelo interno de `STATE-03 DATABASE_MODELING` e suas ressalvas foram aprovado
 - Objetivo universal de providers aceito: PostgreSQL primeiro, seguido por ondas priorizadas e extensão aberta sem condicionais de engine no núcleo.
 - Topologias local, remota, Windows, Linux, híbrida e cloud aceitas como objetivo, sem autorizar abertura automática de rede ou reutilização insegura de credenciais.
 - Human Gate de `STATE-03` aprovado em 2026-07-11 após modelagem, migrations, rollback, retenção e recuperação revisados.
+- `ProviderType` aberto e canônico, sem enum fechado de engines; registro aceita providers futuros sem alteração do núcleo.
+- Contratos de health/evidência/erro/credencial/capability/endpoint e caso de uso de probe implementados de forma provider-neutral.
+- Endpoint PostgreSQL tipado, `pg_isready` sem shell, timeout e fallback TCP implementados; TCP-only é sempre `Degraded`.
+- Controles administrativos e health autenticado PostgreSQL declarados explicitamente `Unsupported` neste incremento.
+- Agent registra o catálogo/provider por DI, sem iniciar scheduler, conexão real ou UI.
+- 30 testes .NET aprovados (26 unit/model/provider + 4 arquitetura); build Release e format com 0 avisos/erros.
 
 ## Pendente
 
-- Implementar Domain e Application provider-neutral, ports, casos de uso e regras canônicas.
-- Implementar o Provider SDK/registro aberto e o primeiro vertical slice PostgreSQL preservando a caracterização legada.
+- Expandir Domain/Application além do probe inicial: scheduler, políticas, eventos, alertas, autorização e transações.
+- Completar o vertical slice PostgreSQL com discovery, health autenticado, credencial via vault, retries e integração de persistência/outbox.
+- Implementar descoberta/carregamento seguro de pacotes de provider além do registro DI em processo.
 - Integrar persistência operacional do Agent/API, eventos, alertas, RBAC e comandos administrativos tipados conforme autorização.
 - Cobrir falhas isoladas, autorização negativa, idempotência, retries, timeout, `UnknownOutcome` e testes do provider.
 - Auditar `STATE-04` e submeter seus entregáveis ao Human Gate antes de qualquer transição para UI.

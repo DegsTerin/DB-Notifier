@@ -1,6 +1,6 @@
 namespace DBNotifier.Application;
 
-/// <summary>Identifies the Application assembly without introducing use cases prematurely.</summary>
+/// <summary>Identifies the provider-neutral Application assembly.</summary>
 public static class AssemblyMarker
 {
 }

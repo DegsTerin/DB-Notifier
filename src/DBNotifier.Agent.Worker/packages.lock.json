@@ -401,7 +401,6 @@
       "dbnotifier.providers.postgresql": {
         "type": "Project",
         "dependencies": {
-          "DBNotifier.Application": "[1.0.0, )",
           "DBNotifier.Provider.Abstractions": "[1.0.0, )"
         }
       },

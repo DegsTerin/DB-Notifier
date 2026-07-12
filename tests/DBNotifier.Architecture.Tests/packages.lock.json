@@ -93,8 +93,27 @@
           "xunit.extensibility.core": "[2.9.3]"
         }
       },
+      "dbnotifier.application": {
+        "type": "Project",
+        "dependencies": {
+          "DBNotifier.Domain": "[1.0.0, )",
+          "DBNotifier.Provider.Abstractions": "[1.0.0, )"
+        }
+      },
       "dbnotifier.domain": {
         "type": "Project"
+      },
+      "dbnotifier.provider.abstractions": {
+        "type": "Project",
+        "dependencies": {
+          "DBNotifier.Domain": "[1.0.0, )"
+        }
+      },
+      "dbnotifier.providers.postgresql": {
+        "type": "Project",
+        "dependencies": {
+          "DBNotifier.Provider.Abstractions": "[1.0.0, )"
+        }
       }
     }
   }

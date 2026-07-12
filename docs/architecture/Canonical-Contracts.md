@@ -2,7 +2,7 @@
 
 ## Status
 
-Conceptual contracts for `STATE-02`. Names and semantics are normative for later implementation, but no code/schema is implied by this document.
+Normative contracts accepted in `STATE-02`. `STATE-03` implemented their persistence subset, and the first `STATE-04` increment implements the provider type, health, error, credential-reference, capability, endpoint, and probe subset. Unlisted portions remain contractual targets rather than implementation claims.
 
 ## Common envelope
 

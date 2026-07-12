@@ -190,6 +190,16 @@
 - Aprovador: Bruno, 2026-07-11.
 - Estado resultante: `STATE-04 BACKEND_IMPLEMENTATION`.
 
+## 2026-07-11 — Primeiro incremento de Backend Implementation
+
+- Estado anterior: `STATE-04 BACKEND_IMPLEMENTATION`
+- Estado resultante: sem transição
+- Decisão: implementar núcleo provider-neutral, registro aberto e adapter PostgreSQL de readiness como primeira validação concreta.
+- Escopo: tipos canônicos de health/erro/credencial, endpoint sem secrets, contracts/registry, probe Application, `pg_isready`, timeout, fallback TCP e integração DI do Agent.
+- Gates: incremento automático aprovado por build/format e 28 testes; Human Gate de encerramento de `STATE-04` permanece pendente.
+- Evidências: `docs/STATE-04-Backend-Implementation-Report.md`, 26 testes unit/model/provider, 4 testes de arquitetura e build .NET 10 sem avisos/erros.
+- Riscos/ressalvas: sem banco real, scheduler, vault, health autenticado, persistência operacional, API, RBAC, comando administrativo, homologação ou UI.
+
 ## Template de nova entrada
 
 - Data:

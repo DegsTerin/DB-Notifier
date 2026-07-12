@@ -12,6 +12,7 @@ Current discovery and migration artifacts:
 - [`STATE-02-Architecture-Report.md`](STATE-02-Architecture-Report.md): architecture audit, material decisions, walkthrough, and accepted Human Gate.
 - [`data/README.md`](data/README.md): `STATE-03` logical model, retention, migrations, and recovery guidance.
 - [`STATE-03-Database-Modeling-Report.md`](STATE-03-Database-Modeling-Report.md): approved automatic/Human Gate evidence, migration verification, and accepted limits.
+- [`STATE-04-Backend-Implementation-Report.md`](STATE-04-Backend-Implementation-Report.md): incremental Domain/Application, open Provider SDK, PostgreSQL readiness evidence, and remaining backend scope.
 
 The governing instruction corpus starts at [`../prompts/Start-Here.md`](../prompts/Start-Here.md).
 

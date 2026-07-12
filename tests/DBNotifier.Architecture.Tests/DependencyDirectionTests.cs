@@ -13,4 +13,38 @@ public sealed class DependencyDirectionTests
 
         Assert.Empty(references);
     }
+
+    [Fact]
+    public void ApplicationDoesNotReferenceConcreteProviders()
+    {
+        string[] references = GetDBNotifierReferences(typeof(DBNotifier.Application.AssemblyMarker).Assembly);
+
+        Assert.DoesNotContain(references, name => name.StartsWith("DBNotifier.Providers.", StringComparison.Ordinal));
+        Assert.Contains("DBNotifier.Domain", references);
+        Assert.Contains("DBNotifier.Provider.Abstractions", references);
+    }
+
+    [Fact]
+    public void ProviderAbstractionsDoNotReferenceApplicationOrConcreteProviders()
+    {
+        string[] references = GetDBNotifierReferences(typeof(DBNotifier.Provider.Abstractions.AssemblyMarker).Assembly);
+
+        Assert.Equal(["DBNotifier.Domain"], references);
+    }
+
+    [Fact]
+    public void PostgreSqlProviderDoesNotReferenceApplication()
+    {
+        string[] references = GetDBNotifierReferences(typeof(DBNotifier.Providers.PostgreSql.AssemblyMarker).Assembly);
+
+        Assert.DoesNotContain("DBNotifier.Application", references);
+        Assert.Contains("DBNotifier.Provider.Abstractions", references);
+    }
+
+    private static string[] GetDBNotifierReferences(System.Reflection.Assembly assembly) =>
+        assembly.GetReferencedAssemblies()
+            .Select(reference => reference.Name ?? string.Empty)
+            .Where(name => name.StartsWith("DBNotifier.", StringComparison.Ordinal))
+            .Order(StringComparer.Ordinal)
+            .ToArray();
 }

@@ -12,13 +12,13 @@
 
 | Capability | Local Windows legacy | Remote legacy | Target PostgreSQL provider | Homologation |
 |---|---|---|---|---|
-| Validate non-secret endpoint config | Partial legacy normalization | Partial legacy normalization | Planned typed validation | None |
+| Validate non-secret endpoint config | Partial legacy normalization | Partial legacy normalization | Implemented first increment; unit-tested | None |
 | Discover Windows PostgreSQL services | Legacy observed via CIM/registry | N/A | Planned Windows discovery adapter | None |
-| Provider readiness via `pg_isready` | Legacy observed | Legacy observed | Planned | None |
-| TCP reachability fallback | Legacy observed; must be `Degraded` | Legacy observed; must be `Degraded` | Planned transport evidence only | None |
+| Provider readiness via `pg_isready` | Legacy observed | Legacy observed | Implemented adapter; no live DB evidence | None |
+| TCP reachability fallback | Legacy observed; must be `Degraded` | Legacy observed; must be `Degraded` | Implemented; transport-only maps to `Degraded` | None |
 | Authenticated health probe | Not implemented | Not implemented | Planned with monitoring credential | None |
 | Authentication failure classification | Not reliable | Not reliable | Planned | None |
-| Latency measurement | Process duration not canonicalized | Process duration not canonicalized | Planned | None |
+| Latency measurement | Process duration not canonicalized | Process duration not canonicalized | Implemented for readiness duration | None |
 | Version discovery | Not implemented | Not implemented | Planned | None |
 | Core metrics | Not implemented | Not implemented | Planned incrementally | None |
 | Event/history persistence | Not implemented | Not implemented | Planned via canonical events | None |
@@ -56,7 +56,7 @@ The product objective is to accept any database engine through a versioned provi
 
 | Priority wave | Providers | Architecture registration | Implementation | Homologation | Public support claim |
 |---|---|---|---|---|---|
-| First vertical slice | PostgreSQL | Accepted target | Not implemented | None | No |
+| First vertical slice | PostgreSQL | Accepted target | Partial: endpoint/readiness adapter | None | No |
 | Mainstream relational/document | MySQL/MariaDB, SQL Server/Azure SQL, Oracle, MongoDB | Priority roadmap | Not implemented | None | No |
 | Enterprise/embedded relational | SAP HANA, SQLite, IBM Db2, Firebird, CockroachDB | Priority roadmap | Not implemented | None | No |
 | Distributed/data platforms | Cassandra, ScyllaDB, Redis/Valkey, Couchbase/CouchDB | Open roadmap | Not implemented | None | No |

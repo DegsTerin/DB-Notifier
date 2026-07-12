@@ -278,6 +278,12 @@
           "DBNotifier.Domain": "[1.0.0, )"
         }
       },
+      "dbnotifier.providers.postgresql": {
+        "type": "Project",
+        "dependencies": {
+          "DBNotifier.Provider.Abstractions": "[1.0.0, )"
+        }
+      },
       "Microsoft.EntityFrameworkCore": {
         "type": "CentralTransitive",
         "requested": "[10.0.9, )",

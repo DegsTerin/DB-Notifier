@@ -1,6 +1,6 @@
 namespace DBNotifier.Providers.PostgreSql;
 
-/// <summary>Reserves the first provider boundary; PostgreSQL support is not implemented yet.</summary>
+/// <summary>Identifies the first concrete provider adapter.</summary>
 public static class AssemblyMarker
 {
 }
