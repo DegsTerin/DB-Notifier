@@ -1,7 +1,9 @@
 export const inventorySchemaVersion = "inventory.v1" as const;
 export const staleAfterMilliseconds = 5 * 60 * 1000;
 
-export type InventoryState = "ready" | "loading" | "empty" | "offline" | "error" | "denied";
+export type InventoryState = "ready" | "loading" | "empty" | "offline" | "error" | "denied" | "maintenance";
+export type EventSeverity = "information" | "warning" | "critical";
+export type AlertState = "active" | "acknowledged" | "silenced" | "resolved";
 export type HealthStatus =
   | "healthy"
   | "degraded"
@@ -37,6 +39,21 @@ export interface InventorySummary {
   degraded: number;
   attentionRequired: number;
   stale: number;
+}
+
+export interface TimelineEventItem {
+  eventId: string; instanceId: string; instanceName: string; providerType: string;
+  eventType: string; severity: EventSeverity; summary: string; occurredAt: string; receivedAt: string;
+}
+
+export interface AlertItem {
+  alertId: string; instanceId: string; instanceName: string; providerType: string;
+  severity: EventSeverity; state: AlertState; ruleName: string; summary: string; openedAt: string; updatedAt: string;
+}
+
+export interface TimelineAlertSnapshot {
+  schemaVersion: "history-alerts.v1"; generatedAt: string;
+  events: readonly TimelineEventItem[]; alerts: readonly AlertItem[];
 }
 
 export function isStale(item: InventoryItem, now: Date): boolean {
@@ -113,4 +130,33 @@ export function buildDemonstrationSnapshot(now: Date): InventorySnapshot {
       item("demo-004", "Catálogo", "mongodb", "Planejado · não implementado", "Desenvolvimento", "Linux local", "unknown", 540_000, null),
     ],
   };
+}
+
+export function buildTimelineAlertSnapshot(now: Date): TimelineAlertSnapshot {
+  const at = (minutes: number) => new Date(now.getTime() - minutes * 60_000).toISOString();
+  return {
+    schemaVersion: "history-alerts.v1",
+    generatedAt: now.toISOString(),
+    events: [
+      { eventId: "event-001", instanceId: "demo-001", instanceName: "Financeiro principal", providerType: "postgresql", eventType: "Recovered", severity: "information", summary: "Conectividade recuperada após uma tentativa.", occurredAt: at(2), receivedAt: at(2) },
+      { eventId: "event-002", instanceId: "demo-002", instanceName: "Pedidos regional", providerType: "mysql", eventType: "Degraded", severity: "warning", summary: "Latência acima do limite demonstrativo.", occurredAt: at(7), receivedAt: at(7) },
+      { eventId: "event-003", instanceId: "demo-003", instanceName: "Analytics", providerType: "sql-server", eventType: "Timeout", severity: "critical", summary: "Timeout normalizado; nenhuma ação automática executada.", occurredAt: at(14), receivedAt: at(14) },
+      { eventId: "event-004", instanceId: "demo-004", instanceName: "Catálogo", providerType: "mongodb", eventType: "MaintenanceStarted", severity: "information", summary: "Janela de manutenção demonstrativa iniciada.", occurredAt: at(24), receivedAt: at(24) },
+    ],
+    alerts: [
+      { alertId: "alert-001", instanceId: "demo-003", instanceName: "Analytics", providerType: "sql-server", severity: "critical", state: "active", ruleName: "Timeout contínuo", summary: "Três timeouts na janela demonstrativa.", openedAt: at(16), updatedAt: at(3) },
+      { alertId: "alert-002", instanceId: "demo-002", instanceName: "Pedidos regional", providerType: "mysql", severity: "warning", state: "acknowledged", ruleName: "Latência elevada", summary: "Alerta reconhecido somente na fixture local.", openedAt: at(22), updatedAt: at(8) },
+      { alertId: "alert-003", instanceId: "demo-004", instanceName: "Catálogo", providerType: "mongodb", severity: "information", state: "silenced", ruleName: "Manutenção programada", summary: "Silenciamento demonstrativo; nenhum canal foi contatado.", openedAt: at(26), updatedAt: at(24) },
+    ],
+  };
+}
+
+export function filterTimeline(
+  events: readonly TimelineEventItem[], query: string, severity: "all" | EventSeverity,
+): readonly TimelineEventItem[] {
+  const normalized = query.trim().toLocaleLowerCase("pt-BR");
+  return events.filter((event) =>
+    (severity === "all" || event.severity === severity) &&
+    (normalized.length === 0 || [event.instanceName, event.providerType, event.eventType, event.summary]
+      .join(" ").toLocaleLowerCase("pt-BR").includes(normalized)));
 }

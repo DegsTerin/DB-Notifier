@@ -11,14 +11,28 @@ public partial class MainWindow : Window
 {
     private static readonly TimeSpan StaleAfter = TimeSpan.FromMinutes(5);
     private readonly ObservableCollection<InventoryRow> rows = [];
+    private readonly ObservableCollection<TimelineRow> timelineRows = [];
+    private readonly ObservableCollection<AlertRow> alertRows = [];
     private readonly InventorySnapshot snapshot;
+    private readonly TimelineAlertSnapshot timelineSnapshot;
 
     public MainWindow()
     {
         InitializeComponent();
         snapshot = CreateDemonstrationSnapshot(TimeProvider.System.GetUtcNow());
+        timelineSnapshot = CreateTimelineSnapshot(TimeProvider.System.GetUtcNow());
         InventoryGrid.ItemsSource = rows;
+        HistoryGrid.ItemsSource = timelineRows;
+        AlertsGrid.ItemsSource = alertRows;
         PresentReadyState();
+    }
+
+    private void ViewSelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (IsInitialized && ScenarioSelector.SelectedIndex == 0)
+        {
+            PresentReadyState();
+        }
     }
 
     private void ScenarioSelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -53,6 +67,14 @@ public partial class MainWindow : Window
     private void PresentReadyState()
     {
         DateTimeOffset now = TimeProvider.System.GetUtcNow();
+        bool showHistory = ViewSelector.SelectedItem is ComboBoxItem selectedView &&
+            string.Equals(selectedView.Tag?.ToString(), "HistoryAlerts", StringComparison.Ordinal);
+        if (showHistory)
+        {
+            PresentHistoryAndAlerts(now);
+            return;
+        }
+
         InventoryStatusSummary summary = snapshot.Summarize(now, StaleAfter);
         rows.Clear();
         foreach (InstanceInventoryItem item in snapshot.Items)
@@ -69,6 +91,33 @@ public partial class MainWindow : Window
         AttentionCountText.Text = summary.AttentionRequired.ToString(CultureInfo.InvariantCulture);
         StaleCountText.Text = summary.Stale.ToString(CultureInfo.InvariantCulture);
         ReadySurface.Visibility = Visibility.Visible;
+        HistoryAlertSurface.Visibility = Visibility.Collapsed;
+        StateSurface.Visibility = Visibility.Collapsed;
+    }
+
+    private void PresentHistoryAndAlerts(DateTimeOffset now)
+    {
+        timelineRows.Clear();
+        foreach (TimelineEventItem item in timelineSnapshot.Events)
+        {
+            timelineRows.Add(TimelineRow.From(item));
+        }
+
+        alertRows.Clear();
+        foreach (AlertPresentationItem item in timelineSnapshot.Alerts)
+        {
+            alertRows.Add(AlertRow.From(item));
+        }
+
+        AlertStatusSummary summary = timelineSnapshot.Summarize();
+        AlertSummaryText.Text = string.Create(
+            CultureInfo.InvariantCulture,
+            $"{summary.Active} ativo(s) · {summary.UnresolvedCritical} crítico(s) aberto(s)");
+        UpdatedAtText.Text = string.Create(
+            CultureInfo.InvariantCulture,
+            $"Atualizado em {now:yyyy-MM-dd HH:mm:ss} UTC · adapters locais");
+        ReadySurface.Visibility = Visibility.Collapsed;
+        HistoryAlertSurface.Visibility = Visibility.Visible;
         StateSurface.Visibility = Visibility.Collapsed;
     }
 
@@ -77,18 +126,21 @@ public partial class MainWindow : Window
         (string symbol, string title, string message, bool loading, bool retry) = state switch
         {
             InventorySurfaceState.Loading =>
-                ("…", "Carregando inventário", "Preparando a visão local sem iniciar conexões externas.", true, false),
+                ("…", "Carregando conteúdo", "Preparando a visão local sem iniciar conexões externas.", true, false),
             InventorySurfaceState.Empty =>
-                ("○", "Nenhuma instância disponível", "O inventário autorizado está vazio. Cadastros e integrações serão tratados em fases próprias.", false, false),
+                ("○", "Nenhum dado disponível", "A visão autorizada está vazia. Cadastros e integrações serão tratados em fases próprias.", false, false),
             InventorySurfaceState.Offline =>
                 ("↯", "Agent offline", "Os últimos dados conhecidos não podem ser atualizados. Nenhum status antigo é apresentado como saudável.", false, true),
             InventorySurfaceState.Denied =>
                 ("⊘", "Acesso negado", "Sua identidade não possui instances.read para este escopo. Nenhum detalhe protegido foi exibido.", false, false),
+            InventorySurfaceState.Maintenance =>
+                ("◆", "Janela de manutenção", "A visão está em manutenção planejada. Dados anteriores permanecem identificados como não atuais.", false, false),
             _ =>
-                ("!", "Não foi possível carregar", "O inventário permanece indisponível. Tente novamente; nenhum comando administrativo foi executado.", false, true),
+                ("!", "Não foi possível carregar", "A visão permanece indisponível. Tente novamente; nenhum comando administrativo foi executado.", false, true),
         };
 
         ReadySurface.Visibility = Visibility.Collapsed;
+        HistoryAlertSurface.Visibility = Visibility.Collapsed;
         StateSurface.Visibility = Visibility.Visible;
         LoadingIndicator.Visibility = loading ? Visibility.Visible : Visibility.Collapsed;
         StateSymbolText.Text = symbol;
@@ -108,6 +160,28 @@ public partial class MainWindow : Window
                 CreateItem("00000000-0000-0000-0000-000000000003", "Analytics", "sql-server", "Planejado · não implementado", "Homologação", "Azure", HealthStatus.Timeout, now.AddMinutes(-3), null),
                 CreateItem("00000000-0000-0000-0000-000000000004", "Catálogo", "mongodb", "Planejado · não implementado", "Desenvolvimento", "Linux local", HealthStatus.Unknown, now.AddMinutes(-9), null),
             ]);
+
+    private static TimelineAlertSnapshot CreateTimelineSnapshot(DateTimeOffset now) =>
+        new(
+            TimelineAlertSnapshot.CurrentSchemaVersion,
+            now,
+            [
+                CreateEvent("00000000-0000-0000-0001-000000000001", "Financeiro principal", "postgresql", "Recovered", EventSeverity.Information, "Conectividade recuperada após uma tentativa.", now.AddMinutes(-2)),
+                CreateEvent("00000000-0000-0000-0001-000000000002", "Pedidos regional", "mysql", "Degraded", EventSeverity.Warning, "Latência acima do limite demonstrativo.", now.AddMinutes(-7)),
+                CreateEvent("00000000-0000-0000-0001-000000000003", "Analytics", "sql-server", "Timeout", EventSeverity.Critical, "Timeout normalizado; nenhuma ação automática executada.", now.AddMinutes(-14)),
+                CreateEvent("00000000-0000-0000-0001-000000000004", "Catálogo", "mongodb", "MaintenanceStarted", EventSeverity.Information, "Janela de manutenção demonstrativa iniciada.", now.AddMinutes(-24)),
+            ],
+            [
+                CreateAlert("00000000-0000-0000-0002-000000000001", "Analytics", "sql-server", EventSeverity.Critical, AlertPresentationState.Active, "Timeout contínuo", "Três timeouts na janela demonstrativa.", now.AddMinutes(-3)),
+                CreateAlert("00000000-0000-0000-0002-000000000002", "Pedidos regional", "mysql", EventSeverity.Warning, AlertPresentationState.Acknowledged, "Latência elevada", "Alerta reconhecido somente na fixture local.", now.AddMinutes(-8)),
+                CreateAlert("00000000-0000-0000-0002-000000000003", "Catálogo", "mongodb", EventSeverity.Information, AlertPresentationState.Silenced, "Manutenção programada", "Silenciamento demonstrativo; nenhum canal foi contatado.", now.AddMinutes(-24)),
+            ]);
+
+    private static TimelineEventItem CreateEvent(string id, string name, string provider, string type, EventSeverity severity, string summary, DateTimeOffset occurredAt) =>
+        new(Guid.Parse(id), Guid.Parse(id.Replace("0001-", "0000-")), name, provider, type, severity, summary, occurredAt, occurredAt);
+
+    private static AlertPresentationItem CreateAlert(string id, string name, string provider, EventSeverity severity, AlertPresentationState state, string rule, string summary, DateTimeOffset updatedAt) =>
+        new(Guid.Parse(id), Guid.Parse(id.Replace("0002-", "0000-")), name, provider, severity, state, rule, summary, updatedAt.AddMinutes(-10), updatedAt);
 
     private static InstanceInventoryItem CreateItem(
         string instanceId,
@@ -169,5 +243,21 @@ public partial class MainWindow : Window
                     ? "—"
                     : string.Create(CultureInfo.InvariantCulture, $"{item.Latency.Value.TotalMilliseconds:0} ms"));
         }
+    }
+
+    private sealed record TimelineRow(string OccurredAtLabel, string SeverityLabel, string EventType, string InstanceName, string ProviderType, string Summary)
+    {
+        public static TimelineRow From(TimelineEventItem item) => new(
+            item.OccurredAt.UtcDateTime.ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture),
+            item.Severity switch { EventSeverity.Critical => "■ Crítico", EventSeverity.Warning => "▲ Aviso", _ => "● Informativo" },
+            item.EventType, item.InstanceName, item.ProviderType, item.Summary);
+    }
+
+    private sealed record AlertRow(string SeverityLabel, string StateLabel, string RuleName, string InstanceName, string ProviderType, string Summary)
+    {
+        public static AlertRow From(AlertPresentationItem item) => new(
+            item.Severity switch { EventSeverity.Critical => "■ Crítico", EventSeverity.Warning => "▲ Aviso", _ => "● Informativo" },
+            item.State switch { AlertPresentationState.Active => "Ativo", AlertPresentationState.Acknowledged => "Reconhecido", AlertPresentationState.Silenced => "Silenciado", _ => "Resolvido" },
+            item.RuleName, item.InstanceName, item.ProviderType, item.Summary);
     }
 }

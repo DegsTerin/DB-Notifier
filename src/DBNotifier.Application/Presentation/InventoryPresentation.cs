@@ -10,6 +10,7 @@ public enum InventorySurfaceState
     Offline,
     Error,
     Denied,
+    Maintenance,
 }
 
 public sealed record InstanceInventoryItem(
@@ -58,3 +59,72 @@ public sealed record InventoryStatusSummary(
     int Degraded,
     int AttentionRequired,
     int Stale);
+
+public enum EventSeverity
+{
+    Information,
+    Warning,
+    Critical,
+}
+
+public enum AlertPresentationState
+{
+    Active,
+    Acknowledged,
+    Silenced,
+    Resolved,
+}
+
+public sealed record TimelineEventItem(
+    Guid EventId,
+    Guid InstanceId,
+    string InstanceName,
+    string ProviderType,
+    string EventType,
+    EventSeverity Severity,
+    string Summary,
+    DateTimeOffset OccurredAt,
+    DateTimeOffset ReceivedAt)
+{
+    public bool IsStale(DateTimeOffset now, TimeSpan staleAfter)
+    {
+        ArgumentOutOfRangeException.ThrowIfLessThanOrEqual(staleAfter, TimeSpan.Zero);
+        return now - ReceivedAt > staleAfter;
+    }
+}
+
+public sealed record AlertPresentationItem(
+    Guid AlertId,
+    Guid InstanceId,
+    string InstanceName,
+    string ProviderType,
+    EventSeverity Severity,
+    AlertPresentationState State,
+    string RuleName,
+    string Summary,
+    DateTimeOffset OpenedAt,
+    DateTimeOffset UpdatedAt);
+
+public sealed record TimelineAlertSnapshot(
+    string SchemaVersion,
+    DateTimeOffset GeneratedAt,
+    IReadOnlyList<TimelineEventItem> Events,
+    IReadOnlyList<AlertPresentationItem> Alerts)
+{
+    public const string CurrentSchemaVersion = "history-alerts.v1";
+
+    public AlertStatusSummary Summarize() =>
+        new(
+            Alerts.Count,
+            Alerts.Count(alert => alert.State == AlertPresentationState.Active),
+            Alerts.Count(alert => alert.State == AlertPresentationState.Acknowledged),
+            Alerts.Count(alert => alert.State == AlertPresentationState.Silenced),
+            Alerts.Count(alert => alert.Severity == EventSeverity.Critical && alert.State != AlertPresentationState.Resolved));
+}
+
+public sealed record AlertStatusSummary(
+    int Total,
+    int Active,
+    int Acknowledged,
+    int Silenced,
+    int UnresolvedCritical);

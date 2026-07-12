@@ -2,7 +2,7 @@
 
 ## Versão atual
 
-- Versão: `3.16.0`
+- Versão: `3.17.0`
 - Data: 2026-07-12
 - Status: corpus DB-Notifier consolidado
 - Escopo: 13 arquivos ativos
@@ -16,6 +16,12 @@ A versão do corpus é independente da versão do software.
 - PATCH: clareza, correção ou referência sem mudança de autoridade.
 
 Toda alteração atualiza este arquivo e, quando necessário, `../Start-Here.md`.
+
+## 3.17.0 — 2026-07-12
+
+- Segundo incremento de `STATE-05`: contrato `history-alerts.v1`, timeline e alertas provider-neutral no Dashboard e WPF .NET 10.
+- Busca/filtro de eventos, severidade por texto/símbolo, estados de alerta e manutenção implementados com adapters determinísticos e sem mutations/canais externos.
+- 109 testes .NET e 4 testes Dashboard aprovados; próximo incremento definido como configuração e confirmação capability-aware sem execução administrativa.
 
 ## 3.16.0 — 2026-07-12
 

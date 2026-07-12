@@ -82,18 +82,24 @@
             <TextBlock x:Name="UpdatedAtText" Foreground="{StaticResource MutedBrush}" Margin="0,5,0,0" />
           </StackPanel>
           <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+            <TextBlock Text="Visão:" VerticalAlignment="Center" Margin="0,0,8,0" />
+            <ComboBox x:Name="ViewSelector" Width="155" Margin="0,0,18,0" SelectedIndex="0" SelectionChanged="ViewSelectionChanged" AutomationProperties.Name="Selecionar visão">
+              <ComboBoxItem Content="Inventário" Tag="Inventory" />
+              <ComboBoxItem Content="Histórico e alertas" Tag="HistoryAlerts" />
+            </ComboBox>
             <TextBlock Text="Cenário acessível:" VerticalAlignment="Center" Margin="0,0,10,0" />
             <ComboBox x:Name="ScenarioSelector"
                       Width="180"
                       SelectedIndex="0"
                       SelectionChanged="ScenarioSelectionChanged"
                       AutomationProperties.Name="Selecionar cenário de apresentação">
-              <ComboBoxItem Content="Inventário carregado" Tag="Ready" />
+              <ComboBoxItem Content="Conteúdo carregado" Tag="Ready" />
               <ComboBoxItem Content="Carregando" Tag="Loading" />
-              <ComboBoxItem Content="Inventário vazio" Tag="Empty" />
+              <ComboBoxItem Content="Sem dados" Tag="Empty" />
               <ComboBoxItem Content="Agent offline" Tag="Offline" />
               <ComboBoxItem Content="Erro ao carregar" Tag="Error" />
               <ComboBoxItem Content="Permissão negada" Tag="Denied" />
+              <ComboBoxItem Content="Em manutenção" Tag="Maintenance" />
             </ComboBox>
           </StackPanel>
         </Grid>
@@ -173,6 +179,45 @@
                   <DataGridTextColumn Header="Status" Binding="{Binding StatusLabel}" Width="*" />
                   <DataGridTextColumn Header="Observado em (UTC)" Binding="{Binding ObservedAtLabel}" Width="1.2*" />
                   <DataGridTextColumn Header="Latência" Binding="{Binding LatencyLabel}" Width="0.7*" />
+                </DataGrid.Columns>
+              </DataGrid>
+            </Grid>
+          </Border>
+        </Grid>
+
+        <Grid x:Name="HistoryAlertSurface" Grid.Row="1" Margin="0,22,0,0" Visibility="Collapsed">
+          <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+          </Grid.RowDefinitions>
+          <Border Background="White" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="10">
+            <Grid>
+              <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+              <Grid Margin="18,14"><Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions><TextBlock Text="Timeline de eventos" FontSize="16" FontWeight="SemiBold" /><TextBlock Grid.Column="1" Text="history-alerts.v1 · Somente leitura" Foreground="{StaticResource MutedBrush}" /></Grid>
+              <DataGrid x:Name="HistoryGrid" Grid.Row="1" AutoGenerateColumns="False" IsReadOnly="True" CanUserAddRows="False" HeadersVisibility="Column" GridLinesVisibility="Horizontal" BorderThickness="0" RowHeight="46" ColumnHeaderHeight="40" AlternatingRowBackground="#F8FAFC" AutomationProperties.Name="Timeline de eventos somente leitura">
+                <DataGrid.Columns>
+                  <DataGridTextColumn Header="Horário UTC" Binding="{Binding OccurredAtLabel}" Width="1.1*" />
+                  <DataGridTextColumn Header="Severidade" Binding="{Binding SeverityLabel}" Width="*" />
+                  <DataGridTextColumn Header="Evento" Binding="{Binding EventType}" Width="*" />
+                  <DataGridTextColumn Header="Instância" Binding="{Binding InstanceName}" Width="1.25*" />
+                  <DataGridTextColumn Header="Provider" Binding="{Binding ProviderType}" Width="*" />
+                  <DataGridTextColumn Header="Resumo" Binding="{Binding Summary}" Width="2*" />
+                </DataGrid.Columns>
+              </DataGrid>
+            </Grid>
+          </Border>
+          <Border Grid.Row="1" Background="White" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="10" Margin="0,18,0,0">
+            <Grid>
+              <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+              <Grid Margin="18,14"><Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions><TextBlock Text="Alertas demonstrativos" FontSize="16" FontWeight="SemiBold" /><TextBlock Grid.Column="1" x:Name="AlertSummaryText" Foreground="{StaticResource MutedBrush}" /></Grid>
+              <DataGrid x:Name="AlertsGrid" Grid.Row="1" AutoGenerateColumns="False" IsReadOnly="True" CanUserAddRows="False" HeadersVisibility="Column" GridLinesVisibility="Horizontal" BorderThickness="0" RowHeight="46" ColumnHeaderHeight="40" AlternatingRowBackground="#F8FAFC" AutomationProperties.Name="Alertas somente leitura">
+                <DataGrid.Columns>
+                  <DataGridTextColumn Header="Severidade" Binding="{Binding SeverityLabel}" Width="*" />
+                  <DataGridTextColumn Header="Estado" Binding="{Binding StateLabel}" Width="*" />
+                  <DataGridTextColumn Header="Regra" Binding="{Binding RuleName}" Width="1.2*" />
+                  <DataGridTextColumn Header="Instância" Binding="{Binding InstanceName}" Width="1.2*" />
+                  <DataGridTextColumn Header="Provider" Binding="{Binding ProviderType}" Width="*" />
+                  <DataGridTextColumn Header="Resumo" Binding="{Binding Summary}" Width="2*" />
                 </DataGrid.Columns>
               </DataGrid>
             </Grid>

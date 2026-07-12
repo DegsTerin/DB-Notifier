@@ -2,7 +2,9 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   buildDemonstrationSnapshot,
+  buildTimelineAlertSnapshot,
   filterInventory,
+  filterTimeline,
   isStale,
   staleAfterMilliseconds,
   summarizeInventory,
@@ -15,6 +17,13 @@ test("summary does not report stale data as freshly healthy", () => {
   const summary = summarizeInventory(snapshot, now);
 
   assert.deepEqual(summary, { total: 4, healthy: 1, degraded: 1, attentionRequired: 1, stale: 1 });
+});
+
+test("timeline filters severity without provider-specific branches", () => {
+  const snapshot = buildTimelineAlertSnapshot(now);
+  assert.equal(filterTimeline(snapshot.events, "", "critical").length, 1);
+  assert.equal(filterTimeline(snapshot.events, "mysql", "all").length, 1);
+  assert.equal(snapshot.alerts.filter((alert) => alert.state === "active").length, 1);
 });
 
 test("stale policy changes only after the five-minute boundary", () => {

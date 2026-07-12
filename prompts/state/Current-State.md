@@ -6,7 +6,7 @@
 
 ## Situação factual
 
-O projeto está em `STATE-05 FRONTEND_IMPLEMENTATION`. O primeiro incremento implementa contratos de apresentação `inventory.v1` e inventário/status somente leitura no Dashboard React e no Desktop WPF .NET 10, usando adapters locais determinísticos e estados loading/empty/offline/error/stale/denied. Nenhuma integração externa ou ação administrativa foi ativada; workers mutáveis permanecem desabilitados por default, nenhum banco, IdP, certificado, credencial ou canal real foi testado e nenhum provider está homologado.
+O projeto está em `STATE-05 FRONTEND_IMPLEMENTATION`. Dois incrementos implementam contratos `inventory.v1`/`history-alerts.v1` e visões somente leitura de inventário, status, histórico e alertas no Dashboard React e Desktop WPF .NET 10, com adapters determinísticos e estados operacionais incluindo manutenção. Nenhuma integração, mutation, entrega externa ou ação administrativa foi ativada; nenhum provider está homologado.
 
 ## Produto atual
 
@@ -95,10 +95,12 @@ O projeto está em `STATE-05 FRONTEND_IMPLEMENTATION`. O primeiro incremento imp
 - Dashboard responsivo com inventário/status, busca/filtro, tabela/cards, labels de suporte e estados ready/loading/empty/offline/error/stale/denied/filtered-empty.
 - Shell WPF .NET 10 com o mesmo inventário/status e cenários operacionais, `DataGrid` read-only, AutomationProperties e navegação por teclado.
 - 107 testes .NET e 3 testes de apresentação Dashboard aprovados; builds Release/Vite, typecheck, format, npm audit, smoke da janela WPF e amostras visuais desktop/compacta aprovados.
+- Contrato `history-alerts.v1`, timeline pesquisável/filtrável e alertas com severidade/estado/timestamps implementados sem condicionais de engine.
+- Dashboard e WPF apresentam histórico/alertas somente leitura; acknowledge/silence permanecem desabilitados e manutenção é um estado explícito.
+- 109 testes .NET e 4 testes Dashboard aprovados no segundo incremento; builds e amostras visuais desktop/compacta aprovados.
 
 ## Pendente
 
-- Implementar histórico/timeline e alertas no Tray/Desktop e Dashboard sobre contratos provider-neutral.
 - Implementar configuração e apresentação capability-aware de confirmação/denied/unsupported sem antecipar execução administrativa.
 - Completar validação de acessibilidade com leitor de tela, contraste automatizado, zoom, teclado e viewports representativos.
 - Definir comportamento de Tray/notification area preservando offline, stale e suporte factual.
@@ -118,6 +120,6 @@ O projeto está em `STATE-05 FRONTEND_IMPLEMENTATION`. O primeiro incremento imp
 
 ## Próximo gate
 
-Executar o segundo incremento de `STATE-05`: histórico/timeline e alertas provider-neutral no Dashboard e WPF, com adapters determinísticos, filtros, severidade acessível e estados empty/loading/offline/error/stale/denied/maintenance. Mutations, canais externos e ações administrativas reais permanecem desabilitados.
+Executar o terceiro incremento de `STATE-05`: configuração provider-neutral e apresentação capability-aware de confirmação/denied/unsupported no Dashboard e WPF, sem persistir mutations, despachar comandos ou habilitar Start/Stop/Restart.
 
 Este documento descreve somente o presente. Histórico pertence a `State-Transition-Log.md`.

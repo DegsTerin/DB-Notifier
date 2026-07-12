@@ -312,6 +312,16 @@
 - Evidências: `docs/STATE-05-Frontend-Implementation-Report.md`; nenhuma conexão externa, credential, mutation, canal, comando administrativo ou provider homologado.
 - Riscos/ressalvas: leitor de tela, contraste automatizado, zoom, WPF visual e matriz completa de viewports permanecem para os próximos incrementos/gate da fase.
 
+## 2026-07-12 — Segundo incremento de Frontend Implementation
+
+- Estado anterior: `STATE-05 FRONTEND_IMPLEMENTATION`
+- Estado resultante: sem transição
+- Decisão: implementar histórico/timeline e alertas provider-neutral somente leitura no Dashboard e WPF.
+- Escopo: contrato `history-alerts.v1`, busca/filtro, severidade acessível, estados de alerta, timestamps, manutenção e adapters determinísticos.
+- Gates: builds .NET 10/Vite, 109 testes .NET, 4 testes Dashboard, npm audit, smoke WPF e amostras visuais desktop/compacta aprovados; Human Gate de `STATE-05` permanece pendente.
+- Evidências: `docs/STATE-05-Frontend-Implementation-Report.md`; nenhuma mutation, entrega externa, comando administrativo, conexão real ou homologação.
+- Riscos/ressalvas: acknowledge/silence são somente estados demonstrativos; leitor de tela, contraste automatizado, zoom e WPF visual permanecem pendentes.
+
 ## Template de nova entrada
 
 - Data:

@@ -46,6 +46,34 @@ public sealed class InventoryPresentationTests
         Assert.Throws<ArgumentOutOfRangeException>(() => item.IsStale(Now, TimeSpan.Zero));
     }
 
+    [Fact]
+    public void AlertSummaryKeepsResolvedCriticalOutOfUnresolvedCount()
+    {
+        TimelineAlertSnapshot snapshot = new(
+            TimelineAlertSnapshot.CurrentSchemaVersion,
+            Now,
+            [],
+            [
+                CreateAlert(EventSeverity.Critical, AlertPresentationState.Active),
+                CreateAlert(EventSeverity.Warning, AlertPresentationState.Acknowledged),
+                CreateAlert(EventSeverity.Information, AlertPresentationState.Silenced),
+                CreateAlert(EventSeverity.Critical, AlertPresentationState.Resolved),
+            ]);
+
+        Assert.Equal(new AlertStatusSummary(4, 1, 1, 1, 1), snapshot.Summarize());
+    }
+
+    [Fact]
+    public void TimelineStaleBoundaryMatchesInventoryPolicy()
+    {
+        TimelineEventItem item = new(
+            Guid.NewGuid(), Guid.NewGuid(), "Instance", "sample-provider", "Degraded",
+            EventSeverity.Warning, "Safe summary", Now.AddMinutes(-5), Now.AddMinutes(-5));
+
+        Assert.False(item.IsStale(Now, TimeSpan.FromMinutes(5)));
+        Assert.True(item.IsStale(Now.AddTicks(1), TimeSpan.FromMinutes(5)));
+    }
+
     private static InstanceInventoryItem CreateItem(HealthStatus status, DateTimeOffset receivedAt) =>
         new(
             Guid.NewGuid(),
@@ -59,4 +87,11 @@ public sealed class InventoryPresentationTests
             receivedAt,
             TimeSpan.FromMilliseconds(12),
             true);
+
+    private static AlertPresentationItem CreateAlert(
+        EventSeverity severity,
+        AlertPresentationState state) =>
+        new(
+            Guid.NewGuid(), Guid.NewGuid(), "Instance", "sample-provider", severity, state,
+            "Rule", "Safe summary", Now.AddMinutes(-2), Now.AddMinutes(-1));
 }
