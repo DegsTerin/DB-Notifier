@@ -31,6 +31,123 @@ public sealed class AuthorizedOperationsStore(
         await context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
     }
 
+    public async ValueTask<AuthorizedAuditPage> QueryAuditAsync(
+        string subjectId,
+        string permissionCode,
+        AuditQuery query,
+        DateTimeOffset now,
+        CancellationToken cancellationToken)
+    {
+        await using ServerDbContext context = await contextFactory
+            .CreateDbContextAsync(cancellationToken)
+            .ConfigureAwait(false);
+        Guid? userId = await context.Users
+            .AsNoTracking()
+            .Where(row => row.SubjectId == subjectId && row.State == "Active")
+            .Select(row => (Guid?)row.UserId)
+            .SingleOrDefaultAsync(cancellationToken)
+            .ConfigureAwait(false);
+        AuthorizationScope[] scopes = userId is null
+            ? []
+            : await GetScopesAsync(
+                context,
+                userId.Value,
+                permissionCode,
+                now,
+                cancellationToken).ConfigureAwait(false);
+        bool authorized = scopes.Any(scope => scope.ScopeType == "Global" && scope.ScopeValue == "*");
+        if (!authorized)
+        {
+            AddAudit(
+                context,
+                subjectId,
+                "audit.read",
+                Guid.Empty,
+                "Denied",
+                Guid.NewGuid(),
+                "authorization.denied",
+                now,
+                targetType: "AuditLog");
+            await context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+            return new AuthorizedAuditPage(false, [], null, query.SnapshotAt ?? now);
+        }
+
+        IQueryable<AuditEntryRow> entries = context.AuditEntries.AsNoTracking();
+        DateTimeOffset snapshotAt = query.SnapshotAt ?? now;
+        if (!string.IsNullOrWhiteSpace(query.ActorId))
+        {
+            entries = entries.Where(row => row.ActorId == query.ActorId);
+        }
+
+        if (!string.IsNullOrWhiteSpace(query.Action))
+        {
+            entries = entries.Where(row => row.Action == query.Action);
+        }
+
+        if (!string.IsNullOrWhiteSpace(query.Outcome))
+        {
+            entries = entries.Where(row => row.Outcome == query.Outcome);
+        }
+
+        AuditEntryView[] items;
+        if (string.Equals(
+                context.Database.ProviderName,
+                "Microsoft.EntityFrameworkCore.Sqlite",
+                StringComparison.Ordinal))
+        {
+            AuditEntryRow[] testRows = await entries
+                .ToArrayAsync(cancellationToken)
+                .ConfigureAwait(false);
+            items = testRows
+                .Where(row => row.OccurredAt < snapshotAt)
+                .OrderByDescending(row => row.OccurredAt)
+                .ThenByDescending(row => row.AuditEntryId)
+                .Skip(query.Offset)
+                .Take(query.PageSize + 1)
+                .Select(ToAuditView)
+                .ToArray();
+        }
+        else
+        {
+            items = await entries
+                .Where(row => row.OccurredAt < snapshotAt)
+                .OrderByDescending(row => row.OccurredAt)
+                .ThenByDescending(row => row.AuditEntryId)
+                .Skip(query.Offset)
+                .Take(query.PageSize + 1)
+                .Select(row => new AuditEntryView(
+                    row.AuditEntryId,
+                    row.OccurredAt,
+                    row.ActorType,
+                    row.ActorId,
+                    row.Action,
+                    row.TargetType,
+                    row.TargetId,
+                    row.Outcome,
+                    row.CorrelationId,
+                    row.DetailsJson))
+                .ToArrayAsync(cancellationToken)
+                .ConfigureAwait(false);
+        }
+        bool hasMore = items.Length > query.PageSize;
+        AddAudit(
+            context,
+            subjectId,
+            "audit.read",
+            Guid.Empty,
+            "Succeeded",
+            Guid.NewGuid(),
+            "audit.page_read",
+            now,
+            targetType: "AuditLog");
+        await context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+        return new AuthorizedAuditPage(
+            true,
+            items.Take(query.PageSize).ToArray(),
+            hasMore ? query.Offset + query.PageSize : null,
+            snapshotAt);
+    }
+
     public async ValueTask<IReadOnlyList<AuthorizedInstance>> GetAuthorizedInstancesAsync(
         string subjectId,
         string permissionCode,
@@ -361,7 +478,8 @@ public sealed class AuthorizedOperationsStore(
         string outcome,
         Guid correlationId,
         string code,
-        DateTimeOffset now) =>
+        DateTimeOffset now,
+        string targetType = "DatabaseInstance") =>
         context.AuditEntries.Add(new AuditEntryRow
         {
             AuditEntryId = Guid.NewGuid(),
@@ -369,7 +487,7 @@ public sealed class AuthorizedOperationsStore(
             ActorType = "Human",
             ActorId = subjectId,
             Action = action,
-            TargetType = "DatabaseInstance",
+            TargetType = targetType,
             TargetId = instanceId.ToString("D"),
             Outcome = outcome,
             CorrelationId = correlationId,
@@ -384,6 +502,19 @@ public sealed class AuthorizedOperationsStore(
             command.State,
             command.RequestedAt,
             command.ExpiresAt);
+
+    private static AuditEntryView ToAuditView(AuditEntryRow row) =>
+        new(
+            row.AuditEntryId,
+            row.OccurredAt,
+            row.ActorType,
+            row.ActorId,
+            row.Action,
+            row.TargetType,
+            row.TargetId,
+            row.Outcome,
+            row.CorrelationId,
+            row.DetailsJson);
 
     private sealed record AuthorizationScope(
         Guid RoleAssignmentId,

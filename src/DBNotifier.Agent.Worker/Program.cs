@@ -1,6 +1,7 @@
 using System.Security.Cryptography.X509Certificates;
 using DBNotifier.Agent.Worker;
 using DBNotifier.Application.Monitoring;
+using DBNotifier.Application.Operations;
 using DBNotifier.Application.Security;
 using DBNotifier.Application.Synchronization;
 using DBNotifier.Infrastructure.Security;
@@ -19,6 +20,8 @@ AgentWorkerOptions workerOptions = new();
 builder.Configuration.GetSection(AgentWorkerOptions.SectionName).Bind(workerOptions);
 AgentSynchronizationOptions synchronizationOptions = new();
 builder.Configuration.GetSection(AgentSynchronizationOptions.SectionName).Bind(synchronizationOptions);
+AgentRetentionOptions retentionOptions = new();
+builder.Configuration.GetSection(AgentRetentionOptions.SectionName).Bind(retentionOptions);
 string databasePath = AgentWorkerOptions.ResolveDatabasePath(workerOptions.DatabasePath);
 string connectionString = new SqliteConnectionStringBuilder
 {
@@ -29,6 +32,7 @@ string connectionString = new SqliteConnectionStringBuilder
 
 builder.Services.AddSingleton(workerOptions);
 builder.Services.AddSingleton(synchronizationOptions);
+builder.Services.AddSingleton(retentionOptions);
 builder.Services.AddDbContextFactory<AgentDbContext>(options => options.UseSqlite(connectionString));
 builder.Services.AddSingleton(services => new AgentStoreInitializer(
     services.GetRequiredService<IDbContextFactory<AgentDbContext>>(),
@@ -36,6 +40,7 @@ builder.Services.AddSingleton(services => new AgentStoreInitializer(
 builder.Services.AddSingleton<IMonitoringAssignmentSource, AgentMonitoringAssignmentSource>();
 builder.Services.AddSingleton<IHealthObservationSink, AgentObservationOutboxSink>();
 builder.Services.AddSingleton<IAgentOutboxStore, AgentOutboxStore>();
+builder.Services.AddSingleton<IAgentRetentionStore, AgentRetentionStore>();
 builder.Services.AddSingleton<IPostgreSqlReadinessExecutor, PostgreSqlReadinessExecutor>();
 builder.Services.AddSingleton<IPostgreSqlAuthenticatedExecutor, NpgsqlAuthenticatedExecutor>();
 builder.Services.AddSingleton<IDatabaseProvider, PostgreSqlDatabaseProvider>();
@@ -61,6 +66,7 @@ builder.Services.AddSingleton<IObservationBatchTransport>(services =>
 builder.Services.AddSingleton<ProbeInstanceHandler>();
 builder.Services.AddHostedService<AgentMonitoringWorker>();
 builder.Services.AddHostedService<AgentOutboxDispatchWorker>();
+builder.Services.AddHostedService<AgentRetentionWorker>();
 
 using IHost host = builder.Build();
 await host.RunAsync();

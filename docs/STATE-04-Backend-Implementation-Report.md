@@ -2,7 +2,7 @@
 
 ## Outcome
 
-The first five `STATE-04 BACKEND_IMPLEMENTATION` increments are implemented in .NET 10. They establish a provider-neutral Domain/Application slice, an open provider registry/SDK, PostgreSQL readiness/authenticated probes, hosted monitoring and outbox workers, transactional local persistence, platform vault readers, idempotent central ingestion, canonical event/alert derivation, certificate-authorized Agent ingestion, and a separately authenticated human API with scoped RBAC/audit and pending-command creation.
+The first six `STATE-04 BACKEND_IMPLEMENTATION` increments are implemented in .NET 10. They establish a provider-neutral Domain/Application slice, an open provider registry/SDK, PostgreSQL readiness/authenticated probes, hosted monitoring/outbox/maintenance workers, transactional local persistence, platform vault readers, idempotent central ingestion, canonical event/alert derivation, Agent/human authorization, pending-command creation, bounded retention, durable delivery state machines, and authorized audit reads.
 
 This is incremental evidence, not closure of `STATE-04`, provider homologation, or public PostgreSQL support.
 
@@ -82,6 +82,15 @@ Application         PostgreSql provider
 - Created commands remain `Pending`; no server outbox, Agent inbox, command attempt, Start/Stop/Restart adapter, or administrative execution is invoked by this increment.
 - Created, duplicate, denied, unavailable-capability, conflicting, and semantically invalid requests emit sanitized append-only audit entries without copying reason, parameters, credentials, tokens, or the idempotency key.
 
+## Increment 6
+
+- Agent retention selects bounded seven-day observations, 24-hour acknowledged-outbox tombstones and 30-day terminal inbox commands; dry-run and apply modes use parameterized SQLite time queries.
+- Central retention selects bounded unreferenced 30-day observations, 90-day heartbeats, 12-month delivered notifications and seven-day published server-outbox tombstones. Referenced observations, unpublished outbox and all audit entries are preserved.
+- Retention workers are opt-in; `ApplyChanges` remains false by default and no production deletion, legal-hold override or external database is authorized.
+- `ServerOutboxDeliveryRunner` and `NotificationDeliveryRunner` isolate per-item failure, enforce batches up to 100, preserve stable IDs for consumer deduplication, and persist capped exponential retry/delivery state.
+- Missing publisher/channel adapters remain retryable. The repository registers no external e-mail, webhook, queue or other delivery adapter, so no external contact occurs automatically.
+- `GET /api/v1/audit` requires active-human `audit.read` with non-expired Global scope, bounded snapshot-stable pagination/filters, rate limiting and a sanitized audit entry for successful or denied reads.
+
 ## Capability truth
 
 | Capability | Implementation | Homologation/public support |
@@ -103,6 +112,9 @@ Application         PostgreSql provider
 | Human authentication | External OIDC/JWT bearer scheme, fail-closed defaults | No real identity provider/token/MFA flow exercised |
 | Scoped RBAC/catalog | Active-user, permission, expiry and Global/Environment/Instance scope enforced | Read-only catalog slice; no role/catalog administration API |
 | Administrative command creation | Idempotent, audited, capability/version gated and `Pending` only | No delivery, attempt, adapter execution, post-probe, or homologation |
+| Agent/central retention | Bounded dry-run/apply stores and opt-in workers | Apply disabled by default; no production/legal-hold exercise |
+| Server outbox/notification delivery | Durable batch/retry/dedup state machines | No external publisher/channel adapter registered or homologated |
+| Audit query API | Global `audit.read`, bounded filters/pagination and read auditing | No export pipeline or real IdP/PostgreSQL exercise |
 | Start/Stop/Restart | Explicitly `Unsupported` | Not implemented or authorized |
 | Other database providers | Registry accepts arbitrary identifiers | Adapters not implemented |
 
@@ -114,11 +126,12 @@ Executed from the repository root with workspace-local .NET SDK `10.0.301`:
 |---|---|
 | Forced restore and lockfile refresh | Approved for all 12 projects |
 | Release build with warnings as errors | Approved; 0 warnings, 0 errors |
-| Unit/model/provider tests | Approved; 71/71 |
+| Unit/model/provider tests | Approved; 76/76 |
 | Architecture tests | Approved; 4/4 |
-| Total .NET tests | Approved; 75/75 |
+| Total .NET tests | Approved; 80/80 |
 | Synchronization certification subset | Approved; 21/21 |
 | Human access/RBAC subset | Approved; 8/8 |
+| Maintenance/delivery/audit subset | Approved; 13/13 |
 | Additional negative tests | Approved for monotonic head blocking, rejected tombstone, missing/invalid response, timeout, HTTPS enforcement, sequence conflict, Agent/instance scope and route authorization |
 | `dotnet format --verify-no-changes` | Approved |
 | Locked restore | Approved for all 12 projects |
@@ -126,14 +139,14 @@ Executed from the repository root with workspace-local .NET SDK `10.0.301`:
 | Legacy compatibility Pester suite | Approved; 10/10 |
 | Disabled Agent startup smoke | Process remained alive after DI/host build, was terminated, and created no SQLite file or probe |
 | Local API authorization smoke | Liveness returned 200; observation ingestion without a client certificate returned 403 |
-| Human API fail-closed smoke | Catalog and command creation without a bearer token returned 401 |
+| Human API fail-closed smoke | Catalog and audit query without a bearer token returned 401 |
 
-Test samples additionally cover ordered dispatch/ack/retry, blocked head-of-line ordering, terminal tombstone retention, missing and malformed server responses, client timeout, HTTPS protocol headers, invalid synchronization configuration, Agent/instance mismatch rejection before persistence, route authorization allow/deny, central duplicate ingestion, sequence conflict, contiguous cursor, canonical transitions, alert deliveries, scoped catalog filtering, expired/missing permission denial, capability denial, exact idempotency, invalid-parameter rejection, sanitized audit, no command dispatch/attempt, and human subject resolution.
+Test samples additionally cover ordered dispatch/ack/retry, blocked head-of-line ordering, terminal tombstones, malformed responses, timeout, Agent/instance scope, sequence conflict, canonical transitions, alert deliveries, scoped catalog filtering, expired/missing permissions, capability denial, exact idempotency, sanitized audit, dry-run/apply retention, referenced/unpublished preservation, server-outbox retry, missing notification adapter/backoff, successful delivery and paginated audit reads.
 
 ## Limits and next increment
 
 - No non-ephemeral database, external service, remote network endpoint, vault, production migration, notification channel, or administrative action was contacted or changed. Only the local API liveness/denial smoke used loopback HTTP.
-- PostgreSQL discovery, real OIDC/MFA/token integration, role/user/catalog mutations, audit query/export, command delivery/execution/post-probe, notification delivery, retention, metrics/traces, enrollment workflow, and a real mTLS Agent/API exchange remain pending.
+- PostgreSQL discovery, real OIDC/MFA/token integration, role/user/catalog mutations, audit export, command delivery/execution/post-probe, real notification adapters, legal-hold/backup integration, metrics/traces, enrollment workflow, and a real mTLS Agent/API exchange remain pending.
 - Platform vault readers have no live-secret evidence. Windows expects a Generic Credential UTF-8 blob; Linux requires `secret-tool`/Secret Service and the documented two-line secret convention.
 - Npgsql necessarily consumes a managed password string from its password-provider callback for the connection lifetime; the password is excluded from the connection string, pooling is disabled, and the disposable source character buffer is zeroed, but runtime secret review remains required.
 - Runtime plugin package discovery/signature/loading remains pending; this increment provides the open in-process contract and registry.

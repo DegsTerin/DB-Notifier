@@ -2,8 +2,10 @@ using System.Security.Claims;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading.RateLimiting;
 using DBNotifier.Application.Access;
+using DBNotifier.Application.Operations;
 using DBNotifier.Application.Synchronization;
 using DBNotifier.Persistence.Server.PostgreSql;
+using DBNotifier.Server.Api;
 using DBNotifier.Server.Api.Security;
 using Microsoft.AspNetCore.Authentication.Certificate;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -14,6 +16,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
+ServerOperationsOptions serverOperationsOptions = new();
+builder.Configuration.GetSection(ServerOperationsOptions.SectionName).Bind(serverOperationsOptions);
 builder.WebHost.ConfigureKestrel(options =>
 {
     options.Limits.MaxRequestBodySize = 1_048_576;
@@ -41,6 +45,13 @@ builder.Services.AddScoped<IObservationIngestionStore, ServerObservationIngestio
 builder.Services.AddScoped<ObservationBatchIngestor>();
 builder.Services.AddScoped<IAuthorizedOperationsStore, AuthorizedOperationsStore>();
 builder.Services.AddScoped<AuthorizedOperationsService>();
+builder.Services.AddSingleton(serverOperationsOptions);
+builder.Services.AddSingleton<ServerMaintenanceStore>();
+builder.Services.AddSingleton<IServerRetentionStore>(services => services.GetRequiredService<ServerMaintenanceStore>());
+builder.Services.AddSingleton<IServerOutboxStore>(services => services.GetRequiredService<ServerMaintenanceStore>());
+builder.Services.AddSingleton<INotificationDeliveryStore>(services => services.GetRequiredService<ServerMaintenanceStore>());
+builder.Services.AddSingleton<IServerMessagePublisher, UnavailableServerMessagePublisher>();
+builder.Services.AddHostedService<ServerMaintenanceWorker>();
 builder.Services.AddScoped<AgentCertificateIdentityValidator>();
 builder.Services.AddSingleton<HumanActorResolver>();
 builder.Services
@@ -203,6 +214,49 @@ app.MapPost(
                     title: "Invalid command request",
                     extensions: new Dictionary<string, object?> { ["code"] = result.ErrorCode }),
             };
+        })
+    .RequireAuthorization("HumanApi")
+    .RequireRateLimiting("HumanApiRateLimit");
+app.MapGet(
+        "/api/v1/audit",
+        async Task<IResult> (
+            int? offset,
+            int? pageSize,
+            DateTimeOffset? snapshotAt,
+            string? actorId,
+            string? action,
+            string? outcome,
+            AuthorizedOperationsService operations,
+            HumanActorResolver actorResolver,
+            HttpContext httpContext,
+            CancellationToken cancellationToken) =>
+        {
+            HumanActor? actor = actorResolver.Resolve(httpContext.User);
+            if (actor is null)
+            {
+                return Results.Unauthorized();
+            }
+
+            try
+            {
+                AuthorizedAuditPage page = await operations.QueryAuditAsync(
+                    actor,
+                    new AuditQuery(offset ?? 0, pageSize ?? 50, snapshotAt, actorId, action, outcome),
+                    cancellationToken).ConfigureAwait(false);
+                return page.Authorized
+                    ? Results.Ok(page)
+                    : Results.Problem(
+                        statusCode: StatusCodes.Status403Forbidden,
+                        title: "Audit query denied",
+                        extensions: new Dictionary<string, object?> { ["code"] = "authorization.denied" });
+            }
+            catch (ArgumentException)
+            {
+                return Results.Problem(
+                    statusCode: StatusCodes.Status400BadRequest,
+                    title: "Invalid audit query",
+                    extensions: new Dictionary<string, object?> { ["code"] = "audit.query_invalid" });
+            }
         })
     .RequireAuthorization("HumanApi")
     .RequireRateLimiting("HumanApiRateLimit");

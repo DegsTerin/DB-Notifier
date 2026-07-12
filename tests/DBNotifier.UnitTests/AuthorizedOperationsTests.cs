@@ -222,6 +222,41 @@ public sealed class AuthorizedOperationsTests
         Assert.Null(resolver.Resolve(new ClaimsPrincipal()));
     }
 
+    [Fact]
+    public async Task AuditQueryRequiresGlobalPermissionAndWritesReadAudit()
+    {
+        await using SqliteConnection connection = await OpenConnectionAsync();
+        DbContextOptions<ServerDbContext> options = Options(connection);
+        await SeedAsync(
+            options,
+            Guid.NewGuid(),
+            "production",
+            PlatformPermissions.AuditRead,
+            "Global",
+            "*");
+        await using (ServerDbContext setup = new(options))
+        {
+            setup.AuditEntries.AddRange(
+                AuditEntry("fixture.one", Now.AddMinutes(-3)),
+                AuditEntry("fixture.two", Now.AddMinutes(-2)),
+                AuditEntry("fixture.three", Now.AddMinutes(-1)));
+            await setup.SaveChangesAsync();
+        }
+
+        AuthorizedAuditPage page = await Service(options).QueryAuditAsync(
+            new HumanActor(SubjectId),
+            new AuditQuery(PageSize: 2));
+
+        Assert.True(page.Authorized);
+        Assert.Equal(2, page.Items.Count);
+        Assert.Equal(2, page.NextOffset);
+        Assert.Equal(Now, page.SnapshotAt);
+        Assert.Equal("fixture.three", page.Items[0].Action);
+        await using ServerDbContext verification = new(options);
+        Assert.Equal(4, await verification.AuditEntries.CountAsync());
+        Assert.Contains(await verification.AuditEntries.ToArrayAsync(), row => row.Action == "audit.read");
+    }
+
     private static async Task<SqliteConnection> OpenConnectionAsync()
     {
         SqliteConnection connection = new("Data Source=:memory:");
@@ -345,6 +380,20 @@ public sealed class AuthorizedOperationsTests
             "fixture-agent",
             "fixture-provider");
 
+    private static AuditEntryRow AuditEntry(string action, DateTimeOffset occurredAt) => new()
+    {
+        AuditEntryId = Guid.NewGuid(),
+        OccurredAt = occurredAt,
+        ActorType = "Human",
+        ActorId = "fixture-actor",
+        Action = action,
+        TargetType = "Fixture",
+        TargetId = "fixture",
+        Outcome = "Succeeded",
+        CorrelationId = Guid.NewGuid(),
+        DetailsJson = "{}",
+    };
+
     private sealed class TestServerContextFactory(DbContextOptions<ServerDbContext> options) : IDbContextFactory<ServerDbContext>
     {
         public ServerDbContext CreateDbContext() => new(options);
@@ -390,5 +439,13 @@ public sealed class AuthorizedOperationsTests
             AuditCalls++;
             return ValueTask.CompletedTask;
         }
+
+        public ValueTask<AuthorizedAuditPage> QueryAuditAsync(
+            string subjectId,
+            string permissionCode,
+            AuditQuery query,
+            DateTimeOffset now,
+            CancellationToken cancellationToken) =>
+            ValueTask.FromResult(new AuthorizedAuditPage(false, [], null, now));
     }
 }

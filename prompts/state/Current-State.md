@@ -6,7 +6,7 @@
 
 ## Situação factual
 
-Cinco incrementos de `STATE-04 BACKEND_IMPLEMENTATION` implementam contratos neutros, registro aberto, readiness/health autenticado PostgreSQL, scheduler, SQLite local, readers de vault, sincronização idempotente, eventos/alertas, API autorizada para Agents e API humana OIDC/JWT com RBAC/auditoria e comandos apenas `Pending`. Monitoring e synchronization permanecem desabilitados por default; nenhum banco, IdP, certificado ou credencial real foi testado e nenhum provider está homologado.
+Seis incrementos de `STATE-04 BACKEND_IMPLEMENTATION` implementam contratos neutros, registro aberto, readiness/health autenticado PostgreSQL, scheduler, SQLite local, vault, sincronização, eventos/alertas, APIs Agent/humana, RBAC/auditoria, comandos `Pending`, retenção limitada e delivery durável. Workers mutáveis permanecem desabilitados por default; nenhum banco, IdP, certificado, credencial ou canal real foi testado e nenhum provider está homologado.
 
 ## Produto atual
 
@@ -79,15 +79,18 @@ Cinco incrementos de `STATE-04 BACKEND_IMPLEMENTATION` implementam contratos neu
 - RBAC server-side filtra catálogo por `instances.read` e escopos Global/Environment/Instance não expirados.
 - Criação de comando exige `commands.create`, Agent/capability/version exatos, validação segura, idempotência e auditoria sanitizada.
 - Comandos permanecem `Pending`, sem outbox/attempt/Agent/executor ou ação administrativa real.
+- Retenção Agent/central implementada em lotes, com dry-run default, preservação de audit/referências e workers opt-in.
+- Server-outbox e notification delivery possuem runners duráveis, backoff limitado e IDs estáveis; adapters externos não são registrados.
+- Consulta de auditoria exige `audit.read` Global, paginação estável por snapshot/filtros limitados e audita acesso permitido/negado.
 - Controles administrativos permanecem explicitamente `Unsupported`.
 - Agent registra catálogo/provider, persistência, vault e scheduler por DI; monitoring permanece desabilitado por default, sem conexão real ou UI.
-- 75 testes .NET aprovados (71 unit/model/provider + 4 arquitetura); build Release e format aprovados em .NET 10 com 0 avisos/erros.
+- 80 testes .NET aprovados (76 unit/model/provider + 4 arquitetura); build Release e format aprovados em .NET 10 com 0 avisos/erros.
 
 ## Pendente
 
-- Expandir Domain/Application com retenção, delivery de notificações, consulta de auditoria e protocolo de entrega de comandos sem executor administrativo.
+- Implementar protocolo de entrega/ack de comandos sem executor administrativo e discovery seguro de pacotes de provider.
 - Completar o vertical slice PostgreSQL com discovery e execução sandbox habilitada usando credencial descartável autorizada.
-- Implementar retenção local/central e delivery real de notificações com backpressure/deduplicação.
+- Integrar legal hold/backup e adapters reais de notificação somente em sandbox autorizado.
 - Implementar descoberta/carregamento seguro de pacotes de provider além do registro DI em processo.
 - Integrar IdP/MFA real, provisionamento de usuários/papéis e mutations de catálogo em ambiente autorizado.
 - Cobrir falhas isoladas, autorização negativa, idempotência, retries, timeout, `UnknownOutcome` e testes do provider.
@@ -105,6 +108,6 @@ Cinco incrementos de `STATE-04 BACKEND_IMPLEMENTATION` implementam contratos neu
 
 ## Próximo gate
 
-Planejar o sexto incremento de `STATE-04 BACKEND_IMPLEMENTATION`: retenção local/central, server-outbox e delivery de notificações com backpressure/deduplicação, além de consulta autorizada de auditoria, sem antecipar UI funcional de `STATE-05` ou execução administrativa real.
+Planejar o sétimo incremento de `STATE-04 BACKEND_IMPLEMENTATION`: protocolo de entrega/ack de comandos sem executor e discovery/verificação segura de pacotes de provider, sem antecipar UI funcional de `STATE-05` ou executar ação administrativa real.
 
 Este documento descreve somente o presente. Histórico pertence a `State-Transition-Log.md`.

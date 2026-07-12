@@ -6,6 +6,7 @@ public static class PlatformPermissions
 {
     public const string InstancesRead = "instances.read";
     public const string CommandsCreate = "commands.create";
+    public const string AuditRead = "audit.read";
 }
 
 public sealed record HumanActor(string SubjectId);
@@ -34,6 +35,32 @@ public sealed record AdministrativeCommandReceipt(
     string State,
     DateTimeOffset RequestedAt,
     DateTimeOffset ExpiresAt);
+
+public sealed record AuditQuery(
+    int Offset = 0,
+    int PageSize = 50,
+    DateTimeOffset? SnapshotAt = null,
+    string? ActorId = null,
+    string? Action = null,
+    string? Outcome = null);
+
+public sealed record AuditEntryView(
+    Guid AuditEntryId,
+    DateTimeOffset OccurredAt,
+    string ActorType,
+    string ActorId,
+    string Action,
+    string TargetType,
+    string TargetId,
+    string Outcome,
+    Guid CorrelationId,
+    string DetailsJson);
+
+public sealed record AuthorizedAuditPage(
+    bool Authorized,
+    IReadOnlyList<AuditEntryView> Items,
+    int? NextOffset,
+    DateTimeOffset SnapshotAt);
 
 public enum CommandCreationDisposition
 {
@@ -70,6 +97,13 @@ public interface IAuthorizedOperationsStore
         string subjectId,
         Guid instanceId,
         string errorCode,
+        DateTimeOffset now,
+        CancellationToken cancellationToken);
+
+    ValueTask<AuthorizedAuditPage> QueryAuditAsync(
+        string subjectId,
+        string permissionCode,
+        AuditQuery query,
         DateTimeOffset now,
         CancellationToken cancellationToken);
 }
@@ -147,6 +181,30 @@ public sealed class AuthorizedOperationsService(
             validated,
             now,
             cancellationToken).ConfigureAwait(false);
+    }
+
+    public ValueTask<AuthorizedAuditPage> QueryAuditAsync(
+        HumanActor actor,
+        AuditQuery query,
+        CancellationToken cancellationToken = default)
+    {
+        ValidateActor(actor);
+        ArgumentNullException.ThrowIfNull(query);
+        DateTimeOffset now = timeProvider.GetUtcNow();
+        if (query.Offset is < 0 or > 10000 || query.PageSize is < 1 or > 100 ||
+            query.SnapshotAt > now ||
+            query.ActorId?.Length > 300 || query.Action?.Length > 150 ||
+            query.Outcome?.Length > 32)
+        {
+            throw new ArgumentException("Audit query is outside policy.", nameof(query));
+        }
+
+        return store.QueryAuditAsync(
+            actor.SubjectId,
+            PlatformPermissions.AuditRead,
+            query,
+            now,
+            cancellationToken);
     }
 
     private static void ValidateActor(HumanActor actor)

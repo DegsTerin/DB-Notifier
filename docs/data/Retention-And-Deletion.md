@@ -37,6 +37,14 @@ These values are accepted design defaults from ADR-0004 for schema, index, capac
 - Retention never touches monitored databases or external vault secrets.
 - Audit deletion/archival uses a separate privileged procedure; the application runtime role cannot update/delete audit rows.
 
+## Implemented runtime controls
+
+- `AgentRetentionStore` and `ServerMaintenanceStore` select each retention class with parameterized time cutoffs and a maximum of 5,000 rows per class/cycle.
+- Agent and Server hosted workers are disabled by default; enabling retention still defaults to dry-run until `ApplyChanges` is explicitly set.
+- Central raw observations are eligible only when no event or command-attempt reference exists. Audit entries are never selected.
+- Unacknowledged Agent outbox and unpublished Server outbox rows are never selected as tombstones.
+- This implementation does not evaluate organization-specific legal holds or backup completion. Production apply remains unauthorized until those integrations and the applicable Human Gate exist.
+
 ## Recovery objectives for modeling
 
 - Agent SQLite: rebuildable from central config plus retained local outbox; target RPO is acknowledged server cursor, not last displayed health.

@@ -2,7 +2,7 @@
 
 ## Versão atual
 
-- Versão: `3.10.0`
+- Versão: `3.11.0`
 - Data: 2026-07-12
 - Status: corpus DB-Notifier consolidado
 - Escopo: 13 arquivos ativos
@@ -16,6 +16,13 @@ A versão do corpus é independente da versão do software.
 - PATCH: clareza, correção ou referência sem mudança de autoridade.
 
 Toda alteração atualiza este arquivo e, quando necessário, `../Start-Here.md`.
+
+## 3.11.0 — 2026-07-12
+
+- Sexto incremento de `STATE-04`: retenção Agent/central limitada, opt-in e dry-run por default, sem apagar audit ou dados referenciados/não publicados.
+- Server-outbox e notifications com batches, backpressure, retry/backoff e IDs deduplicáveis; nenhum adapter externo registrado automaticamente.
+- Consulta humana de auditoria com `audit.read` Global, filtros/paginação limitados, rate limit e auditoria do próprio acesso.
+- 80 testes .NET aprovados; nenhuma deleção produtiva, canal externo, PostgreSQL, IdP ou ação administrativa foi exercitada.
 
 ## 3.10.0 — 2026-07-12
 

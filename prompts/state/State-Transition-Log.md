@@ -250,6 +250,16 @@
 - Evidências: `docs/STATE-04-Backend-Implementation-Report.md`, subset humano/RBAC 8/8, nenhum command attempt/outbox e negação de permissão/capability/expiração testada.
 - Riscos/ressalvas: sem IdP/token/MFA real, PostgreSQL, mutations de usuário/papel/catálogo, command delivery/execution/post-probe, homologação ou UI.
 
+## 2026-07-12 — Sexto incremento de Backend Implementation
+
+- Estado anterior: `STATE-04 BACKEND_IMPLEMENTATION`
+- Estado resultante: sem transição
+- Decisão: implementar retenção local/central, server-outbox, delivery durável de notificações e consulta autorizada de auditoria sem canal externo.
+- Escopo: batches limitados, dry-run/apply, tombstones, preservação de referências/audit, retry/backoff, IDs deduplicáveis, adapters abertos e `audit.read` Global paginado.
+- Gates: build/format aprovados em .NET 10 com 0 avisos/erros e 80 testes; Human Gate de encerramento de `STATE-04` permanece pendente.
+- Evidências: `docs/STATE-04-Backend-Implementation-Report.md`, subset maintenance/delivery/audit 13/13, dry-run/aplicação efêmera e workers desabilitados por default.
+- Riscos/ressalvas: nenhuma deleção produtiva, legal hold/backup real, publisher/canal externo, PostgreSQL, IdP, command delivery/execution, homologação ou UI.
+
 ## Template de nova entrada
 
 - Data:
