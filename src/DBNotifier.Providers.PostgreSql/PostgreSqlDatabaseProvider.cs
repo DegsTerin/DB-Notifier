@@ -4,8 +4,11 @@ using DBNotifier.Provider.Abstractions;
 
 namespace DBNotifier.Providers.PostgreSql;
 
-public sealed class PostgreSqlDatabaseProvider(IPostgreSqlReadinessExecutor readinessExecutor) : IDatabaseProvider
+public sealed class PostgreSqlDatabaseProvider(
+    IPostgreSqlReadinessExecutor readinessExecutor,
+    IPostgreSqlAuthenticatedExecutor authenticatedExecutor) : IDatabaseProvider
 {
+    private static readonly TimeSpan MaximumProbeTimeout = TimeSpan.FromMinutes(5);
     private static readonly ProviderType Type = ProviderType.Parse("postgresql");
     private static readonly HashSet<string> AllowedEndpointKeys = new(StringComparer.OrdinalIgnoreCase)
     {
@@ -13,12 +16,13 @@ public sealed class PostgreSqlDatabaseProvider(IPostgreSqlReadinessExecutor read
         "port",
         "database",
         "pgIsReadyPath",
+        "sslMode",
     };
 
     private static readonly IReadOnlyList<ProviderCapability> DeclaredCapabilities =
     [
         new("health.readiness.v1", CapabilityState.Supported, "windows|linux", "implemented"),
-        new("health.authenticated.v1", CapabilityState.Unsupported, "any", "not-implemented"),
+        new("health.authenticated.v1", CapabilityState.Supported, "windows|linux", "implemented"),
         new("control.start.v1", CapabilityState.Unsupported, "any", "not-implemented"),
         new("control.stop.v1", CapabilityState.Unsupported, "any", "not-implemented"),
         new("control.restart.v1", CapabilityState.Unsupported, "any", "not-implemented"),
@@ -71,6 +75,13 @@ public sealed class PostgreSqlDatabaseProvider(IPostgreSqlReadinessExecutor read
             errors.Add(new("postgresql.executable_invalid", "pgIsReadyPath", "The pg_isready path is invalid."));
         }
 
+        if (endpoint.TryGetValue("sslMode", out string sslMode) &&
+            !string.Equals(sslMode, "require", StringComparison.OrdinalIgnoreCase) &&
+            !string.Equals(sslMode, "verify-full", StringComparison.OrdinalIgnoreCase))
+        {
+            errors.Add(new("postgresql.ssl_mode_invalid", "sslMode", "SSL mode must be require or verify-full."));
+        }
+
         return errors.Count == 0 ? ProviderValidationResult.Valid : ProviderValidationResult.Invalid([.. errors]);
     }
 
@@ -80,12 +91,18 @@ public sealed class PostgreSqlDatabaseProvider(IPostgreSqlReadinessExecutor read
     {
         ArgumentNullException.ThrowIfNull(request);
         ArgumentOutOfRangeException.ThrowIfLessThanOrEqual(request.Timeout, TimeSpan.Zero);
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(request.Timeout, MaximumProbeTimeout);
         ArgumentOutOfRangeException.ThrowIfLessThan(request.AttemptNumber, 1);
 
         ProviderValidationResult validation = ValidateEndpoint(request.Endpoint);
         if (!validation.IsValid)
         {
             throw new ArgumentException("Endpoint must be validated before probing.", nameof(request));
+        }
+
+        if (request.MonitoringCredential is not null)
+        {
+            return await ProbeAuthenticatedAsync(request, cancellationToken).ConfigureAwait(false);
         }
 
         PostgreSqlReadinessResult result = await readinessExecutor.ExecuteAsync(
@@ -132,6 +149,61 @@ public sealed class PostgreSqlDatabaseProvider(IPostgreSqlReadinessExecutor read
                 null,
                 ["transport-only-evidence", "postgresql-readiness-unavailable"]),
             _ => throw new InvalidOperationException("Unknown PostgreSQL readiness state."),
+        };
+    }
+
+    private async ValueTask<ProviderProbeResult> ProbeAuthenticatedAsync(
+        ProviderProbeRequest request,
+        CancellationToken cancellationToken)
+    {
+        PostgreSqlAuthenticatedResult result = await authenticatedExecutor.ExecuteAsync(
+            PostgreSqlEndpoint.FromProviderEndpoint(request.Endpoint),
+            request.MonitoringCredential!,
+            request.Timeout,
+            cancellationToken).ConfigureAwait(false);
+
+        return result.State switch
+        {
+            PostgreSqlAuthenticatedState.Healthy => new ProviderProbeResult(
+                HealthStatus.Healthy,
+                EvidenceLevel.ProviderAuthenticated,
+                "npgsql-select-1",
+                result.Duration,
+                null,
+                []),
+            PostgreSqlAuthenticatedState.AuthenticationFailed => new ProviderProbeResult(
+                HealthStatus.AuthFailed,
+                EvidenceLevel.ProviderAuthenticated,
+                "npgsql-select-1",
+                result.Duration,
+                Error("postgresql.authentication_failed", ErrorCategory.Authentication, Retryability.AfterConfigurationChange,
+                    "PostgreSQL rejected the monitoring credential."),
+                []),
+            PostgreSqlAuthenticatedState.Unavailable => new ProviderProbeResult(
+                HealthStatus.Unavailable,
+                EvidenceLevel.ProviderAuthenticated,
+                "npgsql-select-1",
+                result.Duration,
+                Error("postgresql.authenticated_unavailable", ErrorCategory.Network, Retryability.Backoff,
+                    "PostgreSQL was unavailable during the authenticated probe."),
+                []),
+            PostgreSqlAuthenticatedState.TimedOut => new ProviderProbeResult(
+                HealthStatus.Timeout,
+                EvidenceLevel.ProviderAuthenticated,
+                "npgsql-select-1",
+                result.Duration,
+                Error("postgresql.authenticated_timeout", ErrorCategory.Timeout, Retryability.Backoff,
+                    "The authenticated PostgreSQL probe exceeded its deadline."),
+                []),
+            PostgreSqlAuthenticatedState.Failed => new ProviderProbeResult(
+                HealthStatus.Unknown,
+                EvidenceLevel.ProviderAuthenticated,
+                "npgsql-select-1",
+                result.Duration,
+                Error("postgresql.authenticated_probe_failed", ErrorCategory.Provider, Retryability.Unknown,
+                    "The authenticated PostgreSQL probe failed without a conclusive health result."),
+                []),
+            _ => throw new InvalidOperationException("Unknown PostgreSQL authenticated state."),
         };
     }
 

@@ -1,4 +1,5 @@
 using DBNotifier.Application.Monitoring;
+using DBNotifier.Application.Security;
 using DBNotifier.Domain;
 using DBNotifier.Provider.Abstractions;
 
@@ -57,14 +58,14 @@ public sealed class ProviderCoreTests
         ProviderEndpoint endpoint = new(
             ProviderType.Parse("not-installed"),
             [new KeyValuePair<string, string>("host", "localhost")]);
-        ProbeInstanceHandler handler = new(new ProviderRegistry([]), TimeProvider.System);
+        ProbeInstanceHandler handler = new(new ProviderRegistry([]), new UnusedVault(), TimeProvider.System);
 
         HealthObservation observation = await handler.ExecuteAsync(new ProbeInstanceCommand(
             Guid.NewGuid(),
             Guid.NewGuid(),
             endpoint,
             null,
-            TimeSpan.FromSeconds(1)));
+            Policy()));
 
         Assert.Equal(HealthStatus.Unknown, observation.Status);
         Assert.Equal("provider.not_registered", observation.Error?.Code);
@@ -75,7 +76,7 @@ public sealed class ProviderCoreTests
     public async Task ProviderFailureIsIsolatedAndDoesNotLeakExceptionDetails()
     {
         ThrowingProvider provider = new();
-        ProbeInstanceHandler handler = new(new ProviderRegistry([provider]), TimeProvider.System);
+        ProbeInstanceHandler handler = new(new ProviderRegistry([provider]), new UnusedVault(), TimeProvider.System);
         ProviderEndpoint endpoint = new(provider.ProviderType, [new KeyValuePair<string, string>("host", "localhost")]);
 
         HealthObservation observation = await handler.ExecuteAsync(new ProbeInstanceCommand(
@@ -83,12 +84,90 @@ public sealed class ProviderCoreTests
             Guid.NewGuid(),
             endpoint,
             null,
-            TimeSpan.FromSeconds(1)));
+            Policy()));
 
         Assert.Equal(HealthStatus.Unknown, observation.Status);
         Assert.Equal("provider.unhandled_failure", observation.Error?.Code);
         Assert.DoesNotContain("sensitive-provider-detail", observation.Error?.SafeMessage, StringComparison.Ordinal);
     }
+
+    [Fact]
+    public async Task RetryPolicyUsesOneCredentialLeaseAndRecordsFinalAttempt()
+    {
+        RetryProvider provider = new();
+        RecordingVault vault = new();
+        ProbeInstanceHandler handler = new(new ProviderRegistry([provider]), vault, TimeProvider.System);
+        CredentialReference reference = new(Guid.NewGuid(), "test-vault", "monitoring/db-1", CredentialPurpose.Monitoring);
+        ProviderEndpoint endpoint = new(provider.ProviderType, [new KeyValuePair<string, string>("host", "localhost")]);
+
+        HealthObservation observation = await handler.ExecuteAsync(new ProbeInstanceCommand(
+            Guid.NewGuid(),
+            Guid.NewGuid(),
+            endpoint,
+            reference,
+            Policy(maxAttempts: 3)));
+
+        Assert.Equal(HealthStatus.Healthy, observation.Status);
+        Assert.Equal(3, observation.Quality.AttemptCount);
+        Assert.Equal([1, 2, 3], provider.Attempts);
+        Assert.Single(provider.Credentials.Distinct());
+        Assert.Throws<ObjectDisposedException>(() => _ = vault.Lease!.Secret);
+    }
+
+    [Fact]
+    public async Task MonitoringCycleIsolatesPersistenceFailurePerInstance()
+    {
+        StubProvider provider = new("cycle-provider");
+        ProbeInstanceHandler handler = new(new ProviderRegistry([provider]), new UnusedVault(), TimeProvider.System);
+        Guid first = Guid.NewGuid();
+        Guid second = Guid.NewGuid();
+        ProviderEndpoint endpoint = new(provider.ProviderType, [new KeyValuePair<string, string>("host", "localhost")]);
+        StaticAssignmentSource source = new([
+            new MonitoringAssignment(first, endpoint, null, Policy()),
+            new MonitoringAssignment(second, endpoint, null, Policy()),
+        ]);
+        SelectiveSink sink = new(first);
+        MonitoringCycleRunner runner = new(Guid.NewGuid(), source, handler, sink, TimeProvider.System);
+
+        MonitoringCycleResult result = await runner.RunOnceAsync();
+
+        Assert.Equal(2, result.DueCount);
+        Assert.Equal(1, result.PersistedCount);
+        Assert.Collection(result.Failures, failure => Assert.Equal(first, failure.InstanceId));
+        Assert.Contains(second, sink.PersistedInstances);
+    }
+
+    [Fact]
+    public async Task VaultFailureBecomesUnknownWithoutCallingProvider()
+    {
+        CountingProvider provider = new();
+        ProbeInstanceHandler handler = new(new ProviderRegistry([provider]), new FailingVault(), TimeProvider.System);
+        CredentialReference reference = new(Guid.NewGuid(), "failing-vault", "monitoring/db", CredentialPurpose.Monitoring);
+        ProviderEndpoint endpoint = new(provider.ProviderType, [new KeyValuePair<string, string>("host", "localhost")]);
+
+        HealthObservation observation = await handler.ExecuteAsync(new ProbeInstanceCommand(
+            Guid.NewGuid(), Guid.NewGuid(), endpoint, reference, Policy()));
+
+        Assert.Equal(HealthStatus.Unknown, observation.Status);
+        Assert.Equal("credential.unavailable", observation.Error?.Code);
+        Assert.Equal(0, provider.CallCount);
+    }
+
+    [Fact]
+    public async Task AdministrativeCredentialCannotBeUsedForMonitoring()
+    {
+        StubProvider provider = new("purpose-provider");
+        ProbeInstanceHandler handler = new(new ProviderRegistry([provider]), new UnusedVault(), TimeProvider.System);
+        CredentialReference reference = new(Guid.NewGuid(), "vault", "admin/db", CredentialPurpose.Administration);
+        ProviderEndpoint endpoint = new(provider.ProviderType, [new KeyValuePair<string, string>("host", "localhost")]);
+
+        await Assert.ThrowsAsync<ArgumentException>(async () =>
+            await handler.ExecuteAsync(new ProbeInstanceCommand(
+                Guid.NewGuid(), Guid.NewGuid(), endpoint, reference, Policy())));
+    }
+
+    private static ProbePolicy Policy(int maxAttempts = 1) =>
+        new(TimeSpan.FromSeconds(1), maxAttempts, TimeSpan.Zero, TimeSpan.Zero);
 
     private sealed class StubProvider(string providerType) : IDatabaseProvider
     {
@@ -126,5 +205,112 @@ public sealed class ProviderCoreTests
             ProviderProbeRequest request,
             CancellationToken cancellationToken) =>
             throw new InvalidOperationException("sensitive-provider-detail");
+    }
+
+    private sealed class UnusedVault : ICredentialVault
+    {
+        public ValueTask<IProviderCredential> ResolveAsync(
+            CredentialReference reference,
+            CancellationToken cancellationToken) =>
+            throw new InvalidOperationException("Vault should not be called without a credential reference.");
+    }
+
+    private sealed class RecordingVault : ICredentialVault
+    {
+        public ProviderCredentialLease? Lease { get; private set; }
+
+        public ValueTask<IProviderCredential> ResolveAsync(
+            CredentialReference reference,
+            CancellationToken cancellationToken)
+        {
+            Lease = new ProviderCredentialLease("monitor", "temporary-password".AsSpan());
+            return ValueTask.FromResult<IProviderCredential>(Lease);
+        }
+    }
+
+    private sealed class RetryProvider : IDatabaseProvider
+    {
+        public ProviderType ProviderType { get; } = ProviderType.Parse("retry-provider");
+
+        public string Version => "test";
+
+        public IReadOnlyList<ProviderCapability> Capabilities => [];
+
+        public List<int> Attempts { get; } = [];
+
+        public List<IProviderCredential?> Credentials { get; } = [];
+
+        public ProviderValidationResult ValidateEndpoint(ProviderEndpoint endpoint) => ProviderValidationResult.Valid;
+
+        public ValueTask<ProviderProbeResult> ProbeAsync(
+            ProviderProbeRequest request,
+            CancellationToken cancellationToken)
+        {
+            Attempts.Add(request.AttemptNumber);
+            Credentials.Add(request.MonitoringCredential);
+            bool healthy = request.AttemptNumber == 3;
+            return ValueTask.FromResult(new ProviderProbeResult(
+                healthy ? HealthStatus.Healthy : HealthStatus.Unavailable,
+                EvidenceLevel.ProviderAuthenticated,
+                "retry-fixture",
+                TimeSpan.Zero,
+                healthy
+                    ? null
+                    : new NormalizedError("fixture.retry", ErrorCategory.Network, Retryability.Backoff, "Retry fixture."),
+                []));
+        }
+    }
+
+    private sealed class StaticAssignmentSource(IReadOnlyList<MonitoringAssignment> assignments) : IMonitoringAssignmentSource
+    {
+        public ValueTask<IReadOnlyList<MonitoringAssignment>> GetDueAsync(
+            DateTimeOffset now,
+            CancellationToken cancellationToken) => ValueTask.FromResult(assignments);
+    }
+
+    private sealed class SelectiveSink(Guid failingInstanceId) : IHealthObservationSink
+    {
+        public List<Guid> PersistedInstances { get; } = [];
+
+        public ValueTask PersistAsync(HealthObservation observation, CancellationToken cancellationToken)
+        {
+            if (observation.InstanceId == failingInstanceId)
+            {
+                throw new InvalidOperationException("Expected persistence failure.");
+            }
+
+            PersistedInstances.Add(observation.InstanceId);
+            return ValueTask.CompletedTask;
+        }
+    }
+
+    private sealed class FailingVault : ICredentialVault
+    {
+        public ValueTask<IProviderCredential> ResolveAsync(
+            CredentialReference reference,
+            CancellationToken cancellationToken) =>
+            throw new InvalidOperationException("sensitive-vault-detail");
+    }
+
+    private sealed class CountingProvider : IDatabaseProvider
+    {
+        public ProviderType ProviderType { get; } = ProviderType.Parse("counting-provider");
+
+        public string Version => "test";
+
+        public IReadOnlyList<ProviderCapability> Capabilities => [];
+
+        public int CallCount { get; private set; }
+
+        public ProviderValidationResult ValidateEndpoint(ProviderEndpoint endpoint) => ProviderValidationResult.Valid;
+
+        public ValueTask<ProviderProbeResult> ProbeAsync(
+            ProviderProbeRequest request,
+            CancellationToken cancellationToken)
+        {
+            CallCount++;
+            return ValueTask.FromResult(new ProviderProbeResult(
+                HealthStatus.Healthy, EvidenceLevel.ProviderAuthenticated, "fixture", TimeSpan.Zero, null, []));
+        }
     }
 }

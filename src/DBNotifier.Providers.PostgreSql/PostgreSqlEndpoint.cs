@@ -7,7 +7,8 @@ public sealed record PostgreSqlEndpoint(
     string Host,
     int Port,
     string? Database,
-    string PgIsReadyPath)
+    string PgIsReadyPath,
+    string SslMode)
 {
     public const string DefaultExecutable = "pg_isready";
 
@@ -19,8 +20,11 @@ public sealed record PostgreSqlEndpoint(
         string executable = endpoint.TryGetValue("pgIsReadyPath", out string? configuredPath)
             ? configuredPath
             : DefaultExecutable;
+        string sslMode = endpoint.TryGetValue("sslMode", out string? configuredSslMode)
+            ? configuredSslMode
+            : "verify-full";
 
-        return new PostgreSqlEndpoint(host, port, database, executable);
+        return new PostgreSqlEndpoint(host, port, database, executable, sslMode);
     }
 }
 
@@ -43,6 +47,28 @@ public interface IPostgreSqlReadinessExecutor
 {
     ValueTask<PostgreSqlReadinessResult> ExecuteAsync(
         PostgreSqlEndpoint endpoint,
+        TimeSpan timeout,
+        CancellationToken cancellationToken);
+}
+
+public enum PostgreSqlAuthenticatedState
+{
+    Healthy,
+    AuthenticationFailed,
+    Unavailable,
+    TimedOut,
+    Failed,
+}
+
+public sealed record PostgreSqlAuthenticatedResult(
+    PostgreSqlAuthenticatedState State,
+    TimeSpan Duration);
+
+public interface IPostgreSqlAuthenticatedExecutor
+{
+    ValueTask<PostgreSqlAuthenticatedResult> ExecuteAsync(
+        PostgreSqlEndpoint endpoint,
+        IProviderCredential credential,
         TimeSpan timeout,
         CancellationToken cancellationToken);
 }

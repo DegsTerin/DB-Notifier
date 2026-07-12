@@ -1,5 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <ItemGroup>
+    <PackageReference Include="Npgsql" />
     <ProjectReference Include="..\DBNotifier.Provider.Abstractions\DBNotifier.Provider.Abstractions.csproj" />
   </ItemGroup>
 </Project>

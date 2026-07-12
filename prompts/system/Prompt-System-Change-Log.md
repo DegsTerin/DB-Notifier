@@ -2,7 +2,7 @@
 
 ## Versão atual
 
-- Versão: `3.6.0`
+- Versão: `3.7.0`
 - Data: 2026-07-11
 - Status: corpus DB-Notifier consolidado
 - Escopo: 13 arquivos ativos
@@ -16,6 +16,13 @@ A versão do corpus é independente da versão do software.
 - PATCH: clareza, correção ou referência sem mudança de autoridade.
 
 Toda alteração atualiza este arquivo e, quando necessário, `../Start-Here.md`.
+
+## 3.7.0 — 2026-07-11
+
+- Segundo incremento de `STATE-04`: retry/backoff limitado, ciclo isolado, credential lease/vault port e health PostgreSQL autenticado.
+- Npgsql usa TLS `require`/`verify-full`, pooling desativado, query fixa e timeout; sem banco ou credencial real executados.
+- Observation, sequência e outbox SQLite persistidos em uma transação, com rollback/idempotência e payload sem secrets testados.
+- 40 testes .NET aprovados; scheduler recorrente, vault real, store initialization, API/RBAC/comandos e homologação permanecem pendentes.
 
 ## 3.6.0 — 2026-07-11
 

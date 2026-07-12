@@ -388,6 +388,8 @@
       "dbnotifier.persistence.agent.sqlite": {
         "type": "Project",
         "dependencies": {
+          "DBNotifier.Application": "[1.0.0, )",
+          "DBNotifier.Domain": "[1.0.0, )",
           "DBNotifier.Infrastructure": "[1.0.0, )",
           "Microsoft.EntityFrameworkCore.Sqlite": "[10.0.9, )"
         }
@@ -401,7 +403,8 @@
       "dbnotifier.providers.postgresql": {
         "type": "Project",
         "dependencies": {
-          "DBNotifier.Provider.Abstractions": "[1.0.0, )"
+          "DBNotifier.Provider.Abstractions": "[1.0.0, )",
+          "Npgsql": "[10.0.3, )"
         }
       },
       "Microsoft.EntityFrameworkCore": {
@@ -441,6 +444,15 @@
           "Microsoft.Extensions.Logging": "10.0.9",
           "SQLitePCLRaw.bundle_e_sqlite3": "2.1.11",
           "SQLitePCLRaw.core": "2.1.11"
+        }
+      },
+      "Npgsql": {
+        "type": "CentralTransitive",
+        "requested": "[10.0.3, )",
+        "resolved": "10.0.3",
+        "contentHash": "7nb5YzXuvWWJxB0J8DiyL3we+X4FOctZrt0fIBnucOIaIevFEEwGQVZKtiu9olXdlNAK1eNgqSral6r/jlhI4w==",
+        "dependencies": {
+          "Microsoft.Extensions.Logging.Abstractions": "10.0.0"
         }
       },
       "SQLitePCLRaw.lib.e_sqlite3": {

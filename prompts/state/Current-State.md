@@ -6,7 +6,7 @@
 
 ## Situação factual
 
-O primeiro incremento de `STATE-04 BACKEND_IMPLEMENTATION` implementa contratos neutros de Domain/Application, registro aberto de providers e o adapter PostgreSQL de readiness. Não há scheduler operacional, banco real testado ou provider homologado; o monitor PowerShell de compatibilidade continua sendo o único runtime funcional para usuário final.
+Dois incrementos de `STATE-04 BACKEND_IMPLEMENTATION` implementam contratos neutros, registro aberto, readiness/health autenticado PostgreSQL, retry/ciclo isolado e persistência local observation/outbox. Não há scheduler recorrente, vault real, banco real testado ou provider homologado; o monitor PowerShell de compatibilidade continua sendo o único runtime funcional para usuário final.
 
 ## Produto atual
 
@@ -66,14 +66,17 @@ O primeiro incremento de `STATE-04 BACKEND_IMPLEMENTATION` implementa contratos 
 - `ProviderType` aberto e canônico, sem enum fechado de engines; registro aceita providers futuros sem alteração do núcleo.
 - Contratos de health/evidência/erro/credencial/capability/endpoint e caso de uso de probe implementados de forma provider-neutral.
 - Endpoint PostgreSQL tipado, `pg_isready` sem shell, timeout e fallback TCP implementados; TCP-only é sempre `Degraded`.
-- Controles administrativos e health autenticado PostgreSQL declarados explicitamente `Unsupported` neste incremento.
+- Health PostgreSQL autenticado implementado com Npgsql, TLS configurável seguro, query fixa e mapeamento canônico; ainda sem evidência contra banco real.
+- Retry/backoff limitado, credential lease descartável, purpose enforcement e isolamento de falha por instância implementados.
+- Sink SQLite grava observation, checkpoint monotônico e outbox atomicamente; rollback e ausência de secret no payload testados.
+- Controles administrativos permanecem explicitamente `Unsupported`.
 - Agent registra o catálogo/provider por DI, sem iniciar scheduler, conexão real ou UI.
-- 30 testes .NET aprovados (26 unit/model/provider + 4 arquitetura); build Release e format com 0 avisos/erros.
+- 40 testes .NET aprovados (36 unit/model/provider + 4 arquitetura); build Release e format com 0 avisos/erros.
 
 ## Pendente
 
 - Expandir Domain/Application além do probe inicial: scheduler, políticas, eventos, alertas, autorização e transações.
-- Completar o vertical slice PostgreSQL com discovery, health autenticado, credencial via vault, retries e integração de persistência/outbox.
+- Completar o vertical slice PostgreSQL com discovery, vault real, scheduler recorrente/assignment source e inicialização segura do store.
 - Implementar descoberta/carregamento seguro de pacotes de provider além do registro DI em processo.
 - Integrar persistência operacional do Agent/API, eventos, alertas, RBAC e comandos administrativos tipados conforme autorização.
 - Cobrir falhas isoladas, autorização negativa, idempotência, retries, timeout, `UnknownOutcome` e testes do provider.

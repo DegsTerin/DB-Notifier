@@ -1,3 +1,4 @@
+using DBNotifier.Application.Security;
 using DBNotifier.Domain;
 using DBNotifier.Provider.Abstractions;
 using DBNotifier.Providers.PostgreSql;
@@ -9,7 +10,7 @@ public sealed class PostgreSqlProviderTests
     [Fact]
     public void EndpointValidationIsTypedAndRejectsUnknownProperties()
     {
-        PostgreSqlDatabaseProvider provider = new(new StubExecutor(PostgreSqlReadinessState.Accepting));
+        PostgreSqlDatabaseProvider provider = CreateProvider(PostgreSqlReadinessState.Accepting);
         ProviderEndpoint endpoint = Endpoint(
             new("host", "localhost"),
             new("port", "5432"),
@@ -19,6 +20,7 @@ public sealed class PostgreSqlProviderTests
 
         Assert.False(result.IsValid);
         Assert.Contains(result.Errors, error => error.Code == "endpoint.unknown_property");
+        Assert.Equal("verify-full", PostgreSqlEndpoint.FromProviderEndpoint(Endpoint()).SslMode);
     }
 
     [Theory]
@@ -33,7 +35,7 @@ public sealed class PostgreSqlProviderTests
         HealthStatus expectedStatus,
         EvidenceLevel expectedEvidence)
     {
-        PostgreSqlDatabaseProvider provider = new(new StubExecutor(readinessState));
+        PostgreSqlDatabaseProvider provider = CreateProvider(readinessState);
 
         ProviderProbeResult result = await provider.ProbeAsync(
             new ProviderProbeRequest(Endpoint(), null, TimeSpan.FromSeconds(2), 1),
@@ -51,7 +53,7 @@ public sealed class PostgreSqlProviderTests
     [Fact]
     public async Task FailedTcpFallbackRemainsTransportEvidence()
     {
-        PostgreSqlDatabaseProvider provider = new(new StubExecutor(PostgreSqlReadinessState.NoResponse, "tcp"));
+        PostgreSqlDatabaseProvider provider = CreateProvider(PostgreSqlReadinessState.NoResponse, "tcp");
 
         ProviderProbeResult result = await provider.ProbeAsync(
             new ProviderProbeRequest(Endpoint(), null, TimeSpan.FromSeconds(2), 1),
@@ -69,7 +71,8 @@ public sealed class PostgreSqlProviderTests
             "db.example.org",
             5433,
             "inventory database",
-            "C:\\Program Files\\PostgreSQL\\bin\\pg_isready.exe");
+            "C:\\Program Files\\PostgreSQL\\bin\\pg_isready.exe",
+            "require");
 
         System.Diagnostics.ProcessStartInfo startInfo =
             PostgreSqlReadinessExecutor.CreateStartInfo(endpoint, TimeSpan.FromMilliseconds(1500));
@@ -83,14 +86,41 @@ public sealed class PostgreSqlProviderTests
     [Fact]
     public void CapabilitiesDoNotClaimAdministrativeControl()
     {
-        PostgreSqlDatabaseProvider provider = new(new StubExecutor(PostgreSqlReadinessState.Accepting));
+        PostgreSqlDatabaseProvider provider = CreateProvider(PostgreSqlReadinessState.Accepting);
 
         Assert.Contains(provider.Capabilities,
             capability => capability.CapabilityId == "health.readiness.v1" &&
                           capability.State == CapabilityState.Supported);
+        Assert.Contains(provider.Capabilities,
+            capability => capability.CapabilityId == "health.authenticated.v1" &&
+                          capability.State == CapabilityState.Supported);
         Assert.All(
             provider.Capabilities.Where(capability => capability.CapabilityId.StartsWith("control.", StringComparison.Ordinal)),
             capability => Assert.Equal(CapabilityState.Unsupported, capability.State));
+    }
+
+    [Theory]
+    [InlineData(PostgreSqlAuthenticatedState.Healthy, HealthStatus.Healthy)]
+    [InlineData(PostgreSqlAuthenticatedState.AuthenticationFailed, HealthStatus.AuthFailed)]
+    [InlineData(PostgreSqlAuthenticatedState.Unavailable, HealthStatus.Unavailable)]
+    [InlineData(PostgreSqlAuthenticatedState.TimedOut, HealthStatus.Timeout)]
+    [InlineData(PostgreSqlAuthenticatedState.Failed, HealthStatus.Unknown)]
+    public async Task AuthenticatedProbeMapsWithoutExposingCredential(
+        PostgreSqlAuthenticatedState authenticatedState,
+        HealthStatus expectedStatus)
+    {
+        PostgreSqlDatabaseProvider provider = new(
+            new StubExecutor(PostgreSqlReadinessState.Accepting),
+            new StubAuthenticatedExecutor(authenticatedState));
+        using ProviderCredentialLease credential = new("monitor", "not-serialized".AsSpan());
+
+        ProviderProbeResult result = await provider.ProbeAsync(
+            new ProviderProbeRequest(Endpoint(), credential, TimeSpan.FromSeconds(2), 1),
+            CancellationToken.None);
+
+        Assert.Equal(expectedStatus, result.Status);
+        Assert.Equal(EvidenceLevel.ProviderAuthenticated, result.EvidenceLevel);
+        Assert.DoesNotContain("not-serialized", result.Error?.SafeMessage ?? string.Empty, StringComparison.Ordinal);
     }
 
     private static ProviderEndpoint Endpoint(params KeyValuePair<string, string>[] properties)
@@ -101,6 +131,11 @@ public sealed class PostgreSqlProviderTests
         return new ProviderEndpoint(ProviderType.Parse("postgresql"), effectiveProperties);
     }
 
+    private static PostgreSqlDatabaseProvider CreateProvider(
+        PostgreSqlReadinessState state,
+        string method = "fixture") =>
+        new(new StubExecutor(state, method), new StubAuthenticatedExecutor(PostgreSqlAuthenticatedState.Healthy));
+
     private sealed class StubExecutor(PostgreSqlReadinessState state, string method = "fixture") : IPostgreSqlReadinessExecutor
     {
         public ValueTask<PostgreSqlReadinessResult> ExecuteAsync(
@@ -108,5 +143,15 @@ public sealed class PostgreSqlProviderTests
             TimeSpan timeout,
             CancellationToken cancellationToken) =>
             ValueTask.FromResult(new PostgreSqlReadinessResult(state, method, TimeSpan.FromMilliseconds(12)));
+    }
+
+    private sealed class StubAuthenticatedExecutor(PostgreSqlAuthenticatedState state) : IPostgreSqlAuthenticatedExecutor
+    {
+        public ValueTask<PostgreSqlAuthenticatedResult> ExecuteAsync(
+            PostgreSqlEndpoint endpoint,
+            IProviderCredential credential,
+            TimeSpan timeout,
+            CancellationToken cancellationToken) =>
+            ValueTask.FromResult(new PostgreSqlAuthenticatedResult(state, TimeSpan.FromMilliseconds(15)));
     }
 }

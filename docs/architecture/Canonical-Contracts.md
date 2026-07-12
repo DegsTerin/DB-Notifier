@@ -206,7 +206,7 @@ CredentialReference
   referenceId: UUID
   vaultProvider: stable adapter ID
   locator: opaque non-secret locator
-  purpose: Monitoring | Administration
+  purpose: Monitoring | Administration | OperatingSystemControl | CloudControlPlane
   rotationState
   lastRotatedAt optional
 ```

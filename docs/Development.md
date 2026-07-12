@@ -31,7 +31,7 @@ tests/
   DBNotifier.Legacy.Tests.ps1
 ```
 
-The projects created in `STATE-01` began as infrastructure-only bootstrap code and assembly markers. `STATE-03` added isolated persistence assemblies so the Agent carries SQLite without PostgreSQL and the Server carries PostgreSQL without SQLite. The first `STATE-04` increment adds provider-neutral health contracts, an open provider registry, the probe use case, and a PostgreSQL readiness adapter without adding UI.
+The projects created in `STATE-01` began as infrastructure-only bootstrap code and assembly markers. `STATE-03` added isolated persistence assemblies so the Agent carries SQLite without PostgreSQL and the Server carries PostgreSQL without SQLite. The first two `STATE-04` increments add provider-neutral health contracts, an open provider registry, bounded probe/scheduling policies, PostgreSQL readiness/authenticated adapters, and transactional local observation/outbox persistence without adding UI.
 
 ## .NET checks
 

@@ -45,9 +45,16 @@ public sealed class ProviderValidationResult
 
 public sealed record ProviderProbeRequest(
     ProviderEndpoint Endpoint,
-    CredentialReference? MonitoringCredentialReference,
+    IProviderCredential? MonitoringCredential,
     TimeSpan Timeout,
     int AttemptNumber);
+
+public interface IProviderCredential : IDisposable
+{
+    string? UserName { get; }
+
+    ReadOnlyMemory<char> Secret { get; }
+}
 
 public sealed record ProviderProbeResult(
     HealthStatus Status,

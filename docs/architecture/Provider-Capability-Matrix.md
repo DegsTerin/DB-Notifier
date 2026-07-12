@@ -16,15 +16,15 @@
 | Discover Windows PostgreSQL services | Legacy observed via CIM/registry | N/A | Planned Windows discovery adapter | None |
 | Provider readiness via `pg_isready` | Legacy observed | Legacy observed | Implemented adapter; no live DB evidence | None |
 | TCP reachability fallback | Legacy observed; must be `Degraded` | Legacy observed; must be `Degraded` | Implemented; transport-only maps to `Degraded` | None |
-| Authenticated health probe | Not implemented | Not implemented | Planned with monitoring credential | None |
-| Authentication failure classification | Not reliable | Not reliable | Planned | None |
+| Authenticated health probe | Not implemented | Not implemented | Implemented Npgsql/TLS adapter; fake-only evidence | None |
+| Authentication failure classification | Not reliable | Not reliable | Implemented canonical mapping; fake-only evidence | None |
 | Latency measurement | Process duration not canonicalized | Process duration not canonicalized | Implemented for readiness duration | None |
 | Version discovery | Not implemented | Not implemented | Planned | None |
 | Core metrics | Not implemented | Not implemented | Planned incrementally | None |
 | Event/history persistence | Not implemented | Not implemented | Planned via canonical events | None |
 | Start/Stop/Restart Windows service | Legacy observed in code; not exercised in discovery | Unsupported | Planned separate admin adapter | None |
 | SQL/native administrative operations | Unsupported | Unsupported | Unsupported until separate capability ADR/evidence | None |
-| Offline Agent outbox | Not implemented | Not implemented | Planned | None |
+| Offline Agent outbox | Not implemented | Not implemented | Partial: transactional local observation/outbox sink | None |
 
 ## Administrative platform matrix
 

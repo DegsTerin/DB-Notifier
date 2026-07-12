@@ -5,6 +5,8 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" />
+    <ProjectReference Include="..\DBNotifier.Application\DBNotifier.Application.csproj" />
+    <ProjectReference Include="..\DBNotifier.Domain\DBNotifier.Domain.csproj" />
     <ProjectReference Include="..\DBNotifier.Infrastructure\DBNotifier.Infrastructure.csproj" />
   </ItemGroup>
 </Project>
