@@ -11,7 +11,6 @@
   <message key="Language.Announcement">Idioma da interface: {0}</message>
   <message key="Language.Toggle">Idioma: {0}. Alternar para {1}</message>
   <message key="Theme.Label">Tema</message>
-  <message key="Theme.System">Sistema</message>
   <message key="Theme.Light">Claro</message>
   <message key="Theme.Dark">Escuro</message>
   <message key="Theme.Announcement">Preferência de tema: {0}</message>

@@ -65,7 +65,7 @@ public partial class MainWindow : Window
             : InterfaceLanguage.BritishEnglish);
     }
 
-    /// <summary>Cycles System, Light and Dark while preserving the validated theme preference contract.</summary>
+    /// <summary>Cycles Light and Dark while preserving the validated theme preference contract.</summary>
     /// <param name="sender">The single theme preference button.</param>
     /// <param name="e">Button activation event data.</param>
     private void ThemePreferenceButtonClick(object sender, RoutedEventArgs e)
@@ -75,12 +75,9 @@ public partial class MainWindow : Window
             return;
         }
 
-        ThemePreference next = theme.CurrentPreference switch
-        {
-            ThemePreference.System => ThemePreference.Light,
-            ThemePreference.Light => ThemePreference.Dark,
-            _ => ThemePreference.System,
-        };
+        ThemePreference next = theme.CurrentPreference == ThemePreference.Light
+            ? ThemePreference.Dark
+            : ThemePreference.Light;
         theme.SetPreference(next);
     }
 
@@ -95,17 +92,13 @@ public partial class MainWindow : Window
         System.Windows.Automation.AutomationProperties.SetName(LanguagePreferenceButton, languageLabel);
         System.Windows.Automation.AutomationProperties.SetHelpText(LanguagePreferenceButton, languageLabel);
 
-        ThemePreference nextTheme = theme.CurrentPreference switch
-        {
-            ThemePreference.System => ThemePreference.Light,
-            ThemePreference.Light => ThemePreference.Dark,
-            _ => ThemePreference.System,
-        };
+        ThemePreference nextTheme = theme.CurrentPreference == ThemePreference.Light
+            ? ThemePreference.Dark
+            : ThemePreference.Light;
         string themeLabel = Text("Theme.Toggle", ThemeLabel(theme.CurrentPreference), ThemeLabel(nextTheme));
         ThemePreferenceButton.ToolTip = themeLabel;
         System.Windows.Automation.AutomationProperties.SetName(ThemePreferenceButton, themeLabel);
         System.Windows.Automation.AutomationProperties.SetHelpText(ThemePreferenceButton, themeLabel);
-        SystemThemeIcon.Visibility = theme.CurrentPreference == ThemePreference.System ? Visibility.Visible : Visibility.Collapsed;
         LightThemeIcon.Visibility = theme.CurrentPreference == ThemePreference.Light ? Visibility.Visible : Visibility.Collapsed;
         DarkThemeIcon.Visibility = theme.CurrentPreference == ThemePreference.Dark ? Visibility.Visible : Visibility.Collapsed;
     }
@@ -118,14 +111,9 @@ public partial class MainWindow : Window
     /// <summary>Maps a validated theme preference to its current generated display label.</summary>
     /// <param name="preference">Validated current or next theme preference.</param>
     /// <returns>The localised theme label.</returns>
-    private string ThemeLabel(ThemePreference preference) => Text(preference switch
-    {
-        ThemePreference.Light => "Theme.Light",
-        ThemePreference.Dark => "Theme.Dark",
-        _ => "Theme.System",
-    });
+    private string ThemeLabel(ThemePreference preference) => Text(preference == ThemePreference.Dark ? "Theme.Dark" : "Theme.Light");
 
-    /// <summary>Refreshes the theme icon and accessible state after explicit or system-derived theme changes.</summary>
+    /// <summary>Refreshes the theme icon and accessible state after explicit theme or High Contrast changes.</summary>
     /// <param name="sender">Theme service that applied the new effective state.</param>
     /// <param name="e">Theme-change event data.</param>
     private void ThemeChanged(object? sender, EventArgs e) => UpdatePreferenceButtons();

@@ -44,7 +44,7 @@ Auditoria não corrige silenciosamente falhas, não inventa evidência e não pr
 | STATE-02 | ADRs, boundaries, threat model, offline, atualização e rollback |
 | STATE-03 | Constraints, índices, retenção, segredo por referência e migrations |
 | STATE-04 | Arquitetura de dependências, autorização, idempotência e testes de providers |
-| STATE-05 | Estados de UI, Design System, Light/Dark/System, persistência, paridade React/WPF, acessibilidade, responsividade e dado stale |
+| STATE-05 | Estados de UI, Design System, Light/Dark, persistência, paridade React/WPF, High Contrast, acessibilidade, responsividade e dado stale |
 | STATE-06 | Contratos, compatibilidade, reconexão, dedup, atualização autoritativa TV a cada 30 segundos sem sobreposição e E2E em sandbox |
 | STATE-07 | Matriz real, segurança, carga, falha, recuperação e cobertura |
 | STATE-08 | Artefato, assinatura, SBOM, deploy autorizado, observabilidade e rollback |

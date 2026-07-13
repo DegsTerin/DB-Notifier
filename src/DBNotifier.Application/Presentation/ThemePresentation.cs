@@ -2,13 +2,10 @@
 namespace DBNotifier.Application.Presentation;
 
 /// <summary>
-/// Identifies the user-selected source of the visual theme without storing an effective system result.
+/// Identifies the explicit user-selected visual theme.
 /// </summary>
 public enum ThemePreference
 {
-    /// <summary>Follows the active operating-system colour preference.</summary>
-    System,
-
     /// <summary>Always uses the Light semantic token set.</summary>
     Light,
 
@@ -43,34 +40,32 @@ public static class ThemePreferenceContract
     public const string WpfPreferencesFileName = "ui-preferences.v1.json";
 
     /// <summary>
-    /// Resolves an explicit or system-derived preference to a concrete theme.
+    /// Resolves an explicit preference to its concrete theme.
     /// </summary>
     /// <param name="preference">The validated user preference.</param>
-    /// <param name="systemUsesDark">Whether the platform currently requests a dark colour scheme.</param>
     /// <returns>The effective Light or Dark theme.</returns>
-    public static EffectiveTheme Resolve(ThemePreference preference, bool systemUsesDark) => preference switch
+    public static EffectiveTheme Resolve(ThemePreference preference) => preference switch
     {
         ThemePreference.Light => EffectiveTheme.Light,
         ThemePreference.Dark => EffectiveTheme.Dark,
-        _ => systemUsesDark ? EffectiveTheme.Dark : EffectiveTheme.Light
+        _ => EffectiveTheme.Light
     };
 
     /// <summary>
     /// Parses the stable lower-case storage representation without accepting arbitrary enum names.
     /// </summary>
     /// <param name="value">The untrusted persisted value.</param>
-    /// <param name="preference">The parsed preference, or System when parsing fails.</param>
+    /// <param name="preference">The parsed preference, or Light when parsing fails.</param>
     /// <returns><see langword="true"/> only when the persisted value is recognised.</returns>
     public static bool TryParse(string? value, out ThemePreference preference)
     {
         preference = value switch
         {
-            "system" => ThemePreference.System,
             "light" => ThemePreference.Light,
             "dark" => ThemePreference.Dark,
-            _ => ThemePreference.System
+            _ => ThemePreference.Light
         };
-        return value is "system" or "light" or "dark";
+        return value is "light" or "dark";
     }
 
     /// <summary>
@@ -82,6 +77,6 @@ public static class ThemePreferenceContract
     {
         ThemePreference.Light => "light",
         ThemePreference.Dark => "dark",
-        _ => "system"
+        _ => "light"
     };
 }

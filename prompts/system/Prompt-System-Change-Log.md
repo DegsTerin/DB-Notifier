@@ -2,7 +2,7 @@
 
 ## Versão atual
 
-- Versão: `3.29.1`
+- Versão: `3.30.0`
 - Data: 2026-07-13
 - Status: corpus DB-Notifier consolidado
 - Escopo: 13 arquivos ativos
@@ -16,6 +16,12 @@ A versão do corpus é independente da versão do software.
 - PATCH: clareza, correção ou referência sem mudança de autoridade.
 
 Toda alteração atualiza este arquivo e, quando necessário, `../Start-Here.md`.
+
+## 3.30.0 — 2026-07-13
+
+- Regra permanente de frontend alterada para preferências explícitas Light/Dark, sem opção System; valores antigos ou inválidos migram para Light e High Contrast permanece independente.
+- Design System `2.0.0` substitui o globo ambíguo por símbolo de tradução/idiomas e limita o tema aos ícones Sol/Lua no React e WPF.
+- `S05-HG-006`, Lifecycle, Quality Gate, estado e evidências foram sincronizados sem inferir aprovação humana ou transição de `STATE-05`.
 
 ## 3.29.1 — 2026-07-13
 

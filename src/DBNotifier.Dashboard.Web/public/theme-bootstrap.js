@@ -5,29 +5,19 @@
 (function applyInitialTheme() {
   const storageKey = "dbnotifier.theme.preference.v1";
   const languageStorageKey = "dbnotifier.language.preference.v1";
-  const darkQuery = "(prefers-color-scheme: dark)";
-  let preference = "system";
+  let preference = "light";
 
   try {
     const stored = window.localStorage.getItem(storageKey);
-    if (stored === "light" || stored === "dark" || stored === "system") {
+    if (stored === "light" || stored === "dark") {
       preference = stored;
     }
   } catch {
-    // Restricted storage is a supported browser state; System remains the safe default.
-  }
-
-  let systemUsesDark = false;
-  try {
-    systemUsesDark = window.matchMedia(darkQuery).matches;
-  } catch {
-    // Environments without colour-scheme media queries resolve System to Light.
+    // Restricted storage is a supported browser state; Light remains the safe default.
   }
 
   document.documentElement.dataset.themePreference = preference;
-  document.documentElement.dataset.theme = preference === "system"
-    ? (systemUsesDark ? "dark" : "light")
-    : preference;
+  document.documentElement.dataset.theme = preference;
 
   let language = "pt-BR";
   try {

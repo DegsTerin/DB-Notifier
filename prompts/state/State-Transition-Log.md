@@ -518,6 +518,17 @@
 - Riscos/ressalvas: nenhuma integração ou atualização real foi implementada em `STATE-05`; o modo TV continua usando snapshot de demonstração até a fase autorizada.
 - Origem: solicitação explícita do product owner; não constitui aprovação do Human Gate de `STATE-05`.
 
+## 2026-07-13 — Símbolo de idioma e tema Light/Dark S05-HG-006
+
+- Estado anterior: `STATE-05 FRONTEND_IMPLEMENTATION`
+- Estado resultante: sem transição
+- Decisão: substituir o globo ambíguo por símbolo code-native de tradução/idiomas e remover a preferência System, mantendo somente Light/Dark no Dashboard e WPF.
+- Escopo: ciclos `pt-BR` ↔ `en-GB` e Light ↔ Dark, Sol/Lua, migração segura de System/valor inválido para Light, persistência existente e High Contrast independente.
+- Gates: 22 testes Dashboard, 133 testes .NET e builds Web/.NET aprovados; 44 amostras browser padrão e quatro TV cobriram as quatro combinações correntes sem overflow/controle sem nome; quatro amostras WPF restauraram os ciclos com 34 controles focalizáveis e nenhum sem nome; Chrome focado sem erros de console.
+- Evidências: Design System `2.0.0`, `docs/STATE-05-Design-System-Implementation-Report.md`, `docs/STATE-05-Human-Gate-Validation.md` e artefactos temporários sanitizados fora do Git.
+- Riscos/ressalvas: preferências System antigas passam a Light; High Contrast não foi removido; a reauditoria automática não constitui aprovação visual humana.
+- Aprovador: PENDENTE para clareza visual em `S05-HG-006`; Human Gate completo permanece pendente.
+
 ## Template de nova entrada
 
 - Data:

@@ -5,10 +5,10 @@
 | Field | Value |
 |---|---|
 | Status | Official frontend specification |
-| Design System version | `1.4.1` |
+| Design System version | `2.0.0` |
 | Product phase | `STATE-05 FRONTEND_IMPLEMENTATION` |
 | Platforms | React Web Dashboard and .NET 10 WPF Desktop/Tray |
-| Themes | Light, Dark and System |
+| Themes | Light and Dark; Windows High Contrast is an accessibility override |
 | Accessibility target | WCAG 2.2 AA |
 | Interface languages | Brazilian Portuguese (`pt-BR`, default) and British English (`en-GB`) |
 
@@ -113,26 +113,23 @@ Every token change MUST update the Design System version, generated artefacts, c
 The public preference is exactly one of:
 
 ```text
-system | light | dark
+light | dark
 ```
 
-`system` is the default for a new user. Effective theme resolution is:
+`light` is the default for a new user. Effective theme resolution is:
 
 ```text
 light preference -> Light
 dark preference  -> Dark
-system preference + operating system dark -> Dark
-system preference + operating system light/unknown -> Light
 ```
 
-Changing the operating-system theme MUST update an active `system` preference without restarting or recreating the application. An explicit Light or Dark preference MUST ignore later system changes.
+The retired `system` value and every invalid or unreadable value MUST migrate safely to Light. Operating-system colour-mode changes MUST NOT alter an explicit DB-Notifier theme. Windows High Contrast and browser forced-colour modes remain independent accessibility overrides rather than selectable theme preferences.
 
 ### 4.2 React implementation contract
 
 - Apply `data-theme="light|dark"` to `<html>`.
 - Persist the preference, not the resolved theme, under `dbnotifier.theme.preference.v1` in `localStorage`.
-- Validate stored values; invalid or inaccessible storage falls back to `system` without failing page startup.
-- Resolve System using `matchMedia("(prefers-color-scheme: dark)")` and subscribe only while preference is `system`.
+- Validate stored values; invalid, retired `system` or inaccessible storage falls back to `light` without failing page startup.
 - Run a minimal bootstrap before the application stylesheet/React render to prevent a flash of the wrong theme.
 - Set `color-scheme: light dark` consistently with the resolved theme so native controls and scrollbars match.
 - Theme changes MUST preserve route, filters, modal state where safe, keyboard focus and unsaved non-secret input.
@@ -141,11 +138,10 @@ Theme preference is presentation-only data. It MUST NOT contain identity, provid
 
 ### 4.3 WPF implementation contract
 
-- Expose `ThemePreference.System`, `ThemePreference.Light` and `ThemePreference.Dark` through an application service independent of views.
+- Expose only `ThemePreference.Light` and `ThemePreference.Dark` through an application service independent of views.
 - Load theme-specific `ResourceDictionary` instances atomically and reference theme resources using `DynamicResource`.
-- Observe Windows colour-mode changes while the preference is System.
 - Persist only versioned UI preferences in `%LocalAppData%\DB-Notifier\ui-preferences.v1.json` using atomic replacement and current-user access.
-- Invalid/unreadable preference data MUST fail safely to System; it MUST NOT prevent application startup.
+- Invalid, retired System or unreadable preference data MUST fail safely to Light; it MUST NOT prevent application startup.
 - Theme switching MUST preserve window, selected view, scenario, focus and Tray ownership.
 - Windows High Contrast MUST take precedence over DB-Notifier theme colours and preserve native system resources where required.
 
@@ -434,13 +430,13 @@ All components define default, hover, pressed, focus-visible, selected, disabled
 
 ### 10.2 Theme selector
 
-`ThemeSelector` is one discreet icon button that cycles System → Light → Dark → System. Its code-native monitor, sun or moon icon represents the current preference. The button MUST expose a localised accessible name and tooltip containing both the current and next preference, announce the applied state, persist safely, respond to keyboard activation and retain focus after the change. The icon MUST NOT be the only programmatic state indication.
+`ThemeSelector` is one discreet icon button that cycles Light → Dark → Light. Its code-native sun or moon icon represents the current preference; no System/monitor state is exposed. The button MUST expose a localised accessible name and tooltip containing both the current and next preference, announce the applied state, persist safely, respond to keyboard activation and retain focus after the change. The icon MUST NOT be the only programmatic state indication.
 
 On desktop and tablet-width shells, the selector belongs in the upper-right TopBar preference region. At compact mobile widths it MAY wrap beneath the brand, but MUST remain right-aligned, fully visible and ahead of feature content.
 
 ### 10.2.1 Language selector
 
-`LanguageSelector` is one discreet generic language-icon button in the same upper-right TopBar preference region. It cycles only `pt-BR` ↔ `en-GB`; its localised accessible name and tooltip expose the full current and next language names. It applies immediately, persists only the validated BCP 47 value, updates document/window and assistive-technology labels, retains focus and remains usable at compact widths. Flags MUST NOT replace the generic language icon.
+`LanguageSelector` is one discreet translation/languages-icon button in the same upper-right TopBar preference region. Its symbol combines recognisable multi-script translation strokes instead of an ambiguous globe or national flags. It cycles only `pt-BR` ↔ `en-GB`; its localised accessible name and tooltip expose the full current and next language names. It applies immediately, persists only the validated BCP 47 value, updates document/window and assistive-technology labels, retains focus and remains usable at compact widths.
 
 Language and theme buttons MUST retain separate accessible names, a programmatically determinable current state and an obvious focus indicator. Their compact presentation MUST NOT obscure the product brand or cause document-level horizontal overflow.
 
@@ -564,7 +560,7 @@ Interactive and meaningful data elements require appropriate `AutomationProperti
 | Spacing/radius | CSS token | Thickness/CornerRadius resource |
 | Theme selection | `data-theme` + service/hook | Theme service + ResourceDictionary |
 | Language selection | `lang` + generated catalogue/context | Generated `ResourceDictionary` + localisation service |
-| System observation | `matchMedia` | Windows theme observer |
+| Retired System migration | resolve to Light before paint | resolve to Light before resource application |
 | Persistence | versioned `localStorage` value | versioned local UI preferences file |
 | Focus | native DOM/focus-visible | native WPF focus adorner |
 | Modal | native `<dialog>` contract | owned WPF Window/dialog service |
@@ -586,10 +582,9 @@ Parity means semantic equivalence, not identical pixels. Native platform behavio
 
 ### 15.2 Theme behaviour gates
 
-- Light, Dark and System resolve correctly on Web and WPF.
+- Light and Dark resolve correctly on Web and WPF.
 - Preference survives application restart/reload.
-- Invalid/unavailable persistence fails to System without crash.
-- System changes update only System preference.
+- Invalid, unavailable or retired System persistence fails to Light without crash.
 - No wrong-theme flash is visible on Dashboard startup.
 - Switching theme preserves route, view, filters, focus and safe unsaved state.
 - Native controls, scrollbars, overlays and Tray-related windows match the effective theme where platform-supported.
@@ -607,7 +602,7 @@ Parity means semantic equivalence, not identical pixels. Native platform behavio
 Dashboard visual regression samples MUST cover:
 
 ```text
-Themes: Light, Dark, System resolving to each
+Themes: Light and Dark
 Locales: pt-BR and en-GB
 Viewports: 320×568, 390×844, 768×1024, 1024×768, 1440×1000, 1920×1080; TV presentation at 1920×1080
 Views: Inventory, History, Alerts, Configuration
@@ -616,7 +611,7 @@ Overlays: confirmation-required, denied, unsupported, unavailable, unknown
 Preferences: reduced motion and 200% native browser zoom
 ```
 
-WPF samples MUST cover `pt-BR` and `en-GB` with Light, Dark, System Light, System Dark and Windows High Contrast at the default and minimum window sizes, plus 100%, 125%, 150% and 200% Windows scaling where the environment permits.
+WPF samples MUST cover `pt-BR` and `en-GB` with Light, Dark and Windows High Contrast at the default and minimum window sizes, plus 100%, 125%, 150% and 200% Windows scaling where the environment permits.
 
 Acceptance requires no unintended page overflow, clipping, illegible truncation, overlapping focus ring, theme mismatch or state communicated only by colour.
 
@@ -635,8 +630,8 @@ Acceptance requires no unintended page overflow, clipping, illegible truncation,
 2. Implement theme preference resolver and persistence contracts with unit tests.
 3. Refactor React raw values into generated semantic tokens and reusable components.
 4. Refactor WPF raw values into generated `DynamicResource` dictionaries and shared styles.
-5. Implement ThemeSelector on both platforms and System observation.
-6. Add Light/Dark/System contrast, behaviour, visual and persistence tests.
+5. Implement the Light/Dark ThemeSelector on both platforms and independent High Contrast handling.
+6. Add Light/Dark contrast, behaviour, visual and persistence tests.
 7. Repeat the full `STATE-05` automatic re-audit.
 8. Perform the human screen-reader/zoom/theme samples.
 9. Present the Human Gate; no transition occurs automatically.
@@ -656,8 +651,7 @@ The implementation MUST remain deterministic and disconnected from real database
 ## 18. Definition of Done for Design System implementation
 
 - Canonical token source and generated React/WPF adapters exist.
-- Light, Dark and System work and persist on both platforms.
-- System theme changes are observed without restart.
+- Light and Dark work and persist on both platforms; retired System values migrate to Light.
 - Core reusable components consume semantic tokens.
 - Existing STATE-05 views contain no unauthorised raw visual values.
 - Both themes pass automated contrast and accessibility gates.

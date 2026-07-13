@@ -1,4 +1,4 @@
-/** Generated from dbnotifier.localisation.v1; source sha256:8368d14a8932d00eea882cae0cf8daa9fa943bce8a2516496aaab5135cffe7e2. Do not edit directly. */
+/** Generated from dbnotifier.localisation.v1; source sha256:43e742fb7d010eea75b19494bfba780c0c1a8af4585e7737b84fed76a3e8a17b. Do not edit directly. */
 const ptBRMessages = {
   "Action.Restart": "Reiniciar",
   "Action.Start": "Iniciar",
@@ -167,7 +167,6 @@ const ptBRMessages = {
   "Theme.Dark": "Escuro",
   "Theme.Label": "Tema",
   "Theme.Light": "Claro",
-  "Theme.System": "Sistema",
   "Theme.Toggle": "Tema: {0}. Alternar para {1}",
   "Tray.BalloonMessage": "A janela foi recolhida. Nenhum banco ou serviço foi controlado.",
   "Tray.BalloonTitle": "DB Notifier continua disponível",
@@ -372,7 +371,6 @@ const enGBMessages = {
   "Theme.Dark": "Dark",
   "Theme.Label": "Theme",
   "Theme.Light": "Light",
-  "Theme.System": "System",
   "Theme.Toggle": "Theme: {0}. Switch to {1}",
   "Tray.BalloonMessage": "The window was hidden. No database or service was controlled.",
   "Tray.BalloonTitle": "DB Notifier remains available",

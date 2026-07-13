@@ -1,16 +1,15 @@
 /**
  * Renders one discreet persisted language control in the Dashboard topbar.
- * The generic language icon avoids flags while its accessible name exposes the current and next supported locale.
+ * The translation icon avoids flags and globe ambiguity while its accessible name exposes the current and next supported locale.
  */
 import { useLocalisation } from "./LocalisationProvider";
 import type { SupportedLocale } from "./generated/localisation";
 
-/** Renders the code-native language icon shared by the compact preference button. */
+/** Renders the code-native translation icon shared by the compact preference button. */
 function LanguageIcon() {
   return (
     <svg className="preference-icon" viewBox="0 0 24 24" aria-hidden="true">
-      <circle cx="12" cy="12" r="8.5" />
-      <path d="M3.8 12h16.4M12 3.5c2.2 2.3 3.4 5.1 3.4 8.5S14.2 18.2 12 20.5M12 3.5C9.8 5.8 8.6 8.6 8.6 12s1.2 6.2 3.4 8.5" />
+      <path d="M2 5h12M7 2h1M5 8l6 6M4 14l6-6 2-3M12 22l5-10 5 10M14 18h6" />
     </svg>
   );
 }

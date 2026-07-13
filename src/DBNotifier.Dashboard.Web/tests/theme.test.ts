@@ -31,7 +31,7 @@ function resolveColour(token: Token, core: Record<string, Token>): string {
 }
 
 /** Executes the pre-paint bootstrap against isolated browser substitutes. */
-function executeBootstrap(storedValue: string | null, systemUsesDark: boolean, storageFails = false, language = "pt-BR") {
+function executeBootstrap(storedValue: string | null, storageFails = false, language = "pt-BR") {
   const dataset: Record<string, string> = {};
   const bootstrap = readFileSync(new URL("../public/theme-bootstrap.js", import.meta.url), "utf8");
   const localStorage = {
@@ -41,30 +41,28 @@ function executeBootstrap(storedValue: string | null, systemUsesDark: boolean, s
     },
   };
   runInNewContext(bootstrap, {
-    window: { localStorage, matchMedia: () => ({ matches: systemUsesDark }) },
+    window: { localStorage },
     document: { documentElement: { dataset } },
   });
   return dataset;
 }
 
-test("theme preference parsing fails safely to system", () => {
+test("theme preference parsing accepts only Light and Dark and safely retires System", () => {
   assert.equal(parseThemePreference("light"), "light");
   assert.equal(parseThemePreference("dark"), "dark");
-  assert.equal(parseThemePreference("system"), "system");
-  assert.equal(parseThemePreference("unexpected"), "system");
-  assert.equal(parseThemePreference(null), "system");
+  assert.equal(parseThemePreference("system"), "light");
+  assert.equal(parseThemePreference("unexpected"), "light");
+  assert.equal(parseThemePreference(null), "light");
   assert.equal(themePreferenceStorageKey, "dbnotifier.theme.preference.v1");
   assert.equal(themePreferenceSchemaVersion, "dbnotifier.ui-preferences.v1");
 });
 
-test("system resolution follows the current platform request only for system preference", () => {
-  assert.equal(resolveEffectiveTheme("system", false), "light");
-  assert.equal(resolveEffectiveTheme("system", true), "dark");
-  assert.equal(resolveEffectiveTheme("light", true), "light");
-  assert.equal(resolveEffectiveTheme("dark", false), "dark");
+test("explicit theme resolution preserves Light and Dark", () => {
+  assert.equal(resolveEffectiveTheme("light"), "light");
+  assert.equal(resolveEffectiveTheme("dark"), "dark");
 });
 
-test("theme storage and root application fail safely without persisting an effective system theme", () => {
+test("theme storage and root application fail safely to an explicit Light preference", () => {
   const values = new Map<string, string>();
   const storage = {
     getItem: (key: string) => values.get(key) ?? null,
@@ -72,37 +70,37 @@ test("theme storage and root application fail safely without persisting an effec
   };
   const root = { dataset: {} as DOMStringMap };
 
-  assert.equal(readThemePreference(storage), "system");
+  assert.equal(readThemePreference(storage), "light");
   assert.equal(persistThemePreference(storage, "dark"), true);
   assert.equal(readThemePreference(storage), "dark");
-  assert.equal(applyTheme(root, "system", true), "dark");
-  assert.equal(root.dataset.themePreference, "system");
+  assert.equal(applyTheme(root, "dark"), "dark");
+  assert.equal(root.dataset.themePreference, "dark");
   assert.equal(root.dataset.theme, "dark");
 
   const failingStorage = {
     getItem: () => { throw new Error("denied"); },
     setItem: () => { throw new Error("denied"); },
   };
-  assert.equal(readThemePreference(failingStorage), "system");
+  assert.equal(readThemePreference(failingStorage), "light");
   assert.equal(persistThemePreference(failingStorage, "light"), false);
 });
 
 test("pre-paint bootstrap resolves valid, invalid and unavailable preferences before the application module", () => {
-  assert.deepEqual(executeBootstrap("dark", false), { themePreference: "dark", theme: "dark", languagePreference: "pt-BR" });
-  assert.deepEqual(executeBootstrap("invalid", true, false, "en-GB"), { themePreference: "system", theme: "dark", languagePreference: "en-GB" });
-  assert.deepEqual(executeBootstrap(null, false, true), { themePreference: "system", theme: "light", languagePreference: "pt-BR" });
+  assert.deepEqual(executeBootstrap("dark"), { themePreference: "dark", theme: "dark", languagePreference: "pt-BR" });
+  assert.deepEqual(executeBootstrap("invalid", false, "en-GB"), { themePreference: "light", theme: "light", languagePreference: "en-GB" });
+  assert.deepEqual(executeBootstrap(null, true), { themePreference: "light", theme: "light", languagePreference: "pt-BR" });
 
   const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
   assert.ok(html.indexOf("/theme-bootstrap.js") < html.indexOf("/src/main.tsx"));
 });
 
-test("runtime wiring imports generated tokens and observes theme changes without raw feature colours", () => {
+test("runtime wiring imports generated tokens and synchronises explicit theme changes without raw feature colours", () => {
   const main = readFileSync(new URL("../src/main.tsx", import.meta.url), "utf8");
   const selector = readFileSync(new URL("../src/ThemeSelector.tsx", import.meta.url), "utf8");
   const css = readFileSync(new URL("../src/styles.css", import.meta.url), "utf8");
   assert.ok(main.indexOf("generated/design-tokens.css") < main.indexOf("styles.css"));
-  assert.match(selector, /addEventListener\("change"/);
   assert.match(selector, /addEventListener\("storage"/);
+  assert.doesNotMatch(selector, /matchMedia|darkColourSchemeMediaQuery|Theme\.System/);
   assert.doesNotMatch(css, /#[0-9a-f]{3,8}\b|rgba?\(|hsla?\(/i);
   for (const declaration of css.matchAll(/box-shadow\s*:\s*([^;]+);/gi)) {
     assert.match(declaration[1], /^var\(--db-elevation-/, declaration[0]);
@@ -128,6 +126,8 @@ test("both interfaces expose one accessible icon button per global preference in
   assert.equal((languageSelector.match(/<button\b/g) ?? []).length, 1);
   assert.match(languageSelector, /className="preference-icon-button language-selector"/);
   assert.match(languageSelector, /<LanguageIcon \/>/);
+  assert.match(languageSelector, /M2 5h12/);
+  assert.doesNotMatch(languageSelector, /<circle|<Ellipse/);
   assert.match(languageSelector, /aria-label=\{accessibleLabel\}/);
   assert.match(languageSelector, /data-locale=\{locale\}/);
   assert.doesNotMatch(languageSelector, /role="group"|aria-pressed=/);
@@ -145,14 +145,15 @@ test("both interfaces expose one accessible icon button per global preference in
   for (const automationId of ["LanguagePreferenceButton", "ThemePreferenceButton"]) {
     assert.match(desktopXaml, new RegExp(`<Button x:Name="${automationId}"`));
   }
-  for (const icon of ["SystemThemeIcon", "LightThemeIcon", "DarkThemeIcon"]) {
+  for (const icon of ["LightThemeIcon", "DarkThemeIcon"]) {
     assert.match(desktopXaml, new RegExp(`x:Name="${icon}"`));
   }
+  assert.doesNotMatch(desktopXaml, /SystemThemeIcon/);
   assert.doesNotMatch(desktopXaml, /PortugueseLanguageButton|BritishEnglishLanguageButton|TopbarPreferenceRadio/);
   assert.match(desktopXaml, /<WrapPanel Grid.Column="1" HorizontalAlignment="Right"/);
   assert.match(desktopXaml, /AutomationProperties.Name="\{DynamicResource Language.Label\}"/);
   assert.match(desktopXaml, /AutomationProperties.Name="\{DynamicResource Theme.Label\}"/);
-  assert.match(desktopTheme, /AppsUseLightTheme/);
+  assert.doesNotMatch(desktopTheme, /AppsUseLightTheme|ThemePreference\.System/);
   assert.match(desktopTheme, /SystemParameters\.HighContrast/);
   assert.match(desktopTheme, /DesignTokens\.\{resolved\}\.xaml/);
   assert.match(desktopPreferences, /Current with \{ Language = language \}/);

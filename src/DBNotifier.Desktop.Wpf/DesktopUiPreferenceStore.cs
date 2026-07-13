@@ -57,7 +57,7 @@ internal sealed class DesktopUiPreferenceStore
                 : LanguagePreferenceContract.Default;
             ThemePreference theme = ThemePreferenceContract.TryParse(persisted.Theme, out ThemePreference parsedTheme)
                 ? parsedTheme
-                : ThemePreference.System;
+                : ThemePreference.Light;
             return new DesktopUiPreferences(language, theme);
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or JsonException)
@@ -104,5 +104,5 @@ internal sealed class DesktopUiPreferenceStore
 internal sealed record DesktopUiPreferences(InterfaceLanguage Language, ThemePreference Theme)
 {
     /// <summary>Gets the safe defaults for a new or invalid preference document.</summary>
-    public static DesktopUiPreferences Default { get; } = new(LanguagePreferenceContract.Default, ThemePreference.System);
+    public static DesktopUiPreferences Default { get; } = new(LanguagePreferenceContract.Default, ThemePreference.Light);
 }

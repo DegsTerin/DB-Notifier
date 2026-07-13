@@ -3,8 +3,8 @@
 param(
     [ValidateSet("pt-BR", "en-GB")]
     [string]$Locale = "pt-BR",
-    [ValidateSet("system", "light", "dark")]
-    [string]$Theme = "system",
+    [ValidateSet("light", "dark")]
+    [string]$Theme = "light",
     [ValidateRange(820, 3000)]
     [int]$Width = 1180,
     [ValidateRange(620, 2200)]
@@ -100,7 +100,7 @@ try {
     Start-Sleep -Milliseconds 150
     $languageCycle += $languageButton.Current.Name
     $themeCycle = @($themeButton.Current.Name)
-    for ($index = 0; $index -lt 3; $index += 1) {
+    for ($index = 0; $index -lt 2; $index += 1) {
         $themeInvoke.Invoke()
         Start-Sleep -Milliseconds 150
         $themeCycle += $themeButton.Current.Name

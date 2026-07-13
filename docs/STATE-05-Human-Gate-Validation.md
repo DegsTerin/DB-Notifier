@@ -14,7 +14,7 @@ The human sample covers:
 
 - the React Dashboard in Brazilian Portuguese and British English;
 - the WPF Desktop/Tray shell in Brazilian Portuguese and British English;
-- Light, Dark and System preferences;
+- explicit Light and Dark preferences plus independent Windows High Contrast behaviour;
 - keyboard-only operation and visible focus;
 - Narrator reading order, names, states and announcements;
 - native browser zoom, Windows scaling and High Contrast where the environment permits;
@@ -26,10 +26,10 @@ Mobile and tablet samples apply to the responsive Dashboard Web. There is no nat
 
 | Evidence | Current result |
 |---|---|
-| Design System implementation report | Design System `1.4.0` visual remediation, outlined database-mark, ultrawide, compact-preference and TV-presentation gates approved; commit identifier is reported in the implementation hand-off |
-| Dashboard matrix | 66 standard locale/theme/viewport-route samples plus six TV samples, including `960×1040` and `1920×1080`; no global overflow or unnamed interactive control |
-| WPF matrix | Six locale/theme combinations and minimum-window sample recorded after visual remediation |
-| Automated tests | 22 Dashboard, 131 .NET unit/model/provider/presentation, 5 architecture and 10 legacy compatibility tests approved |
+| Design System implementation report | Design System `2.0.0` translation-icon, Light/Dark-only, outlined database-mark, ultrawide and TV-presentation gates approved; commit identifier is reported in the implementation hand-off |
+| Dashboard matrix | 44 standard locale/theme/viewport-route samples plus four TV samples across the current Light/Dark combinations; no global overflow or unnamed interactive control |
+| WPF matrix | Four current locale/theme combinations at `1180×760`, each with 34 focusable controls and none unnamed; minimum-window and High Contrast samples remain separately recorded |
+| Automated tests | 22 Dashboard, 128 .NET unit/model/provider/presentation, 5 architecture and 10 legacy compatibility tests approved |
 | Security/dependencies | npm and NuGet reported no known vulnerabilities in the recorded audit |
 
 Primary automatic evidence:
@@ -228,6 +228,17 @@ Do not mark a row until the named human validator has performed it.
 - Human closure: PENDENTE; viewing distance, visual density and enter/exit behaviour require confirmation in `HG05-10`.
 - Lifecycle impact: Narrator remains off and the Human Gate remains pending.
 
+### `S05-HG-006` — Clarify the language icon and remove the System theme option
+
+- Date observed: 2026-07-13.
+- Source: explicit user review during the active Human Gate session.
+- Classification: global preference-contract and visual-clarity change; it supersedes the selectable theme/icon portion of `S05-HG-004` without rewriting its historical evidence.
+- Human feedback: the globe-style language icon is confusing; retain only Dark and Light and remove the System theme option.
+- Remediation: Design System `2.0.0` replaces the globe with a multi-script translation/languages symbol in React and WPF. Theme preference now cycles only Light ↔ Dark with sun/moon icons; invalid or retired System persistence migrates safely to Light. Windows High Contrast remains an independent accessibility override.
+- Automatic evidence: 22 Dashboard tests, 133 .NET tests and both builds passed. Forty-four standard browser samples plus four TV samples covered the four current locale/theme combinations with no global overflow or unnamed interactive control. Four WPF combinations completed and restored both two-state cycles, each exposing 34 focusable controls and none unnamed. A focused Chrome visual sample confirmed the new icon, localised names and console without errors.
+- Human closure: PENDENTE; the reviewer must confirm that the replacement icon is visually clear and that the two-state theme control is accepted.
+- Lifecycle impact: Narrator remains off and the Human Gate remains pending.
+
 ## Human Gate decision
 
 - Phase: `STATE-05 FRONTEND_IMPLEMENTATION`
@@ -237,7 +248,7 @@ Do not mark a row until the named human validator has performed it.
 - Critical samples repeated: PENDENTE
 - Experience and error messages: PENDENTE
 - Security/authorisation truth: PENDENTE
-- Remaining coverage: outlined database-mark, fullscreen/TV layout, display name and compact-control confirmation plus all keyboard, screen-reader, zoom, scaling, High Contrast and remaining samples above
+- Remaining coverage: outlined database-mark, fullscreen/TV layout, display name, translation icon and Light/Dark-only control confirmation plus all keyboard, screen-reader, zoom, scaling, High Contrast and remaining samples above
 - Decision: `PENDENTE`
 - Justification/evidence: PENDENTE
 
@@ -245,4 +256,4 @@ Permitted decisions after the sample are `APROVADO`, `APROVADO COM RESSALVAS` or
 
 ## Recommended next step
 
-Confirm the outlined canonical database mark, standard/TV layouts, `DB Notifier` display name and compact controls in the visible `pt-BR` Dashboard, then obtain explicit consent before starting Narrator and continuing the keyboard/accessibility protocol; record every result without inferring the final Human Gate decision.
+Confirm the outlined canonical database mark, standard/TV layouts, `DB Notifier` display name, translation icon and Light/Dark-only control in the visible `pt-BR` Dashboard, then obtain explicit consent before starting Narrator and continuing the keyboard/accessibility protocol; record every result without inferring the final Human Gate decision.

@@ -28,22 +28,18 @@ public sealed class AccessibilityPresentationTests
     }
 
     /// <summary>
-    /// Confirms explicit preferences override the platform while System follows it.
+    /// Confirms explicit preferences resolve to their matching semantic themes.
     /// </summary>
     /// <param name="preference">Validated stored preference.</param>
-    /// <param name="systemUsesDark">Current platform colour request.</param>
     /// <param name="expected">Expected effective semantic theme.</param>
     [Theory]
-    [InlineData(ThemePreference.System, false, EffectiveTheme.Light)]
-    [InlineData(ThemePreference.System, true, EffectiveTheme.Dark)]
-    [InlineData(ThemePreference.Light, true, EffectiveTheme.Light)]
-    [InlineData(ThemePreference.Dark, false, EffectiveTheme.Dark)]
+    [InlineData(ThemePreference.Light, EffectiveTheme.Light)]
+    [InlineData(ThemePreference.Dark, EffectiveTheme.Dark)]
     public void ThemeResolutionPreservesExplicitPreference(
         ThemePreference preference,
-        bool systemUsesDark,
         EffectiveTheme expected)
     {
-        Assert.Equal(expected, ThemePreferenceContract.Resolve(preference, systemUsesDark));
+        Assert.Equal(expected, ThemePreferenceContract.Resolve(preference));
     }
 
     /// <summary>
@@ -52,7 +48,6 @@ public sealed class AccessibilityPresentationTests
     /// <param name="stored">Stable lower-case persisted value.</param>
     /// <param name="expected">Expected parsed preference.</param>
     [Theory]
-    [InlineData("system", ThemePreference.System)]
     [InlineData("light", ThemePreference.Light)]
     [InlineData("dark", ThemePreference.Dark)]
     public void ThemeStorageValuesRoundTrip(string stored, ThemePreference expected)
@@ -63,13 +58,15 @@ public sealed class AccessibilityPresentationTests
     }
 
     /// <summary>
-    /// Confirms invalid persisted data fails safely to the System preference.
+    /// Confirms invalid and retired persisted data fails safely to the Light preference.
     /// </summary>
     [Fact]
-    public void InvalidThemeStorageFailsSafelyToSystem()
+    public void InvalidThemeStorageFailsSafelyToLight()
     {
         Assert.False(ThemePreferenceContract.TryParse("unexpected", out ThemePreference parsed));
-        Assert.Equal(ThemePreference.System, parsed);
+        Assert.Equal(ThemePreference.Light, parsed);
+        Assert.False(ThemePreferenceContract.TryParse("system", out ThemePreference retired));
+        Assert.Equal(ThemePreference.Light, retired);
     }
 
     /// <summary>

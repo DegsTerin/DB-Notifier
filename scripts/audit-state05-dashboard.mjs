@@ -11,7 +11,7 @@ const dashboardUrl = "http://127.0.0.1:4173/";
 const requestedLocale = process.env.DBNOTIFIER_AUDIT_LOCALE;
 const locale = requestedLocale === "en-GB" ? "en-GB" : "pt-BR";
 const requestedTheme = process.env.DBNOTIFIER_AUDIT_THEME;
-const theme = ["light", "dark"].includes(requestedTheme) ? requestedTheme : "system";
+const theme = requestedTheme === "dark" ? "dark" : "light";
 const evidenceDirectory = join(tmpdir(), "DBNotifier-State05-Audit", locale, theme);
 mkdirSync(evidenceDirectory, { recursive: true });
 
@@ -207,7 +207,7 @@ async function auditPreferenceCycles(call) {
       language.push(readLanguage());
     }
     const theme = [readTheme()];
-    for (let index = 0; index < 3; index += 1) {
+    for (let index = 0; index < 2; index += 1) {
       document.querySelector(".theme-selector")?.click();
       await pause();
       theme.push(readTheme());

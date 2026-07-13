@@ -1,24 +1,17 @@
-// Module purpose: Resolves and applies System, Light, Dark and High Contrast WPF resource dictionaries without altering feature state.
-using System.IO;
-using System.Security;
+// Module purpose: Resolves and applies explicit Light, Dark and High Contrast WPF resource dictionaries without altering feature state.
 using System.Windows;
-using System.Windows.Threading;
 using DBNotifier.Application.Presentation;
-using Microsoft.Win32;
 using WpfSystemColors = System.Windows.SystemColors;
 
 namespace DBNotifier.Desktop.Wpf;
 
 /// <summary>
-/// Owns the desktop theme preference, generated dictionary replacement and live Windows preference observation.
-/// System resolution is presentation-only and never persists the derived effective theme.
+/// Owns the explicit desktop theme preference, generated dictionary replacement and High Contrast observation.
 /// </summary>
 internal sealed class DesktopThemeService : IDisposable
 {
-    private const string WindowsThemeRegistryPath = @"Software\Microsoft\Windows\CurrentVersion\Themes\Personalize";
     private readonly System.Windows.Application application;
     private readonly DesktopUiPreferenceStore preferences;
-    private readonly DispatcherTimer systemObserver;
     private ResourceDictionary? activeDictionary;
     private bool lastHighContrast;
 
@@ -29,32 +22,26 @@ internal sealed class DesktopThemeService : IDisposable
     {
         this.application = application;
         this.preferences = preferences;
-        systemObserver = new DispatcherTimer(DispatcherPriority.Background, application.Dispatcher)
-        {
-            Interval = TimeSpan.FromSeconds(2),
-        };
-        systemObserver.Tick += SystemObserverTick;
     }
 
-    /// <summary>Signals a user preference or effective system-theme change.</summary>
+    /// <summary>Signals an explicit user preference or effective High Contrast change.</summary>
     public event EventHandler? ThemeChanged;
 
-    /// <summary>Gets the selected theme source rather than its derived effective value.</summary>
-    public ThemePreference CurrentPreference { get; private set; } = ThemePreference.System;
+    /// <summary>Gets the selected explicit theme preference.</summary>
+    public ThemePreference CurrentPreference { get; private set; } = ThemePreference.Light;
 
     /// <summary>Gets the effective generated token set currently applied beneath any High Contrast override.</summary>
     public EffectiveTheme EffectiveTheme { get; private set; } = EffectiveTheme.Light;
 
-    /// <summary>Applies the stored preference and starts bounded observation of Windows theme changes.</summary>
+    /// <summary>Applies the stored preference and observes Windows High Contrast changes.</summary>
     public void Initialise()
     {
         CurrentPreference = preferences.Current.Theme;
         SystemParameters.StaticPropertyChanged += SystemParametersChanged;
-        systemObserver.Start();
         Apply(force: true);
     }
 
-    /// <summary>Applies and persists an explicit System, Light or Dark preference.</summary>
+    /// <summary>Applies and persists an explicit Light or Dark preference.</summary>
     /// <param name="preference">Validated preference selected in the topbar.</param>
     public void SetPreference(ThemePreference preference)
     {
@@ -67,11 +54,9 @@ internal sealed class DesktopThemeService : IDisposable
         Apply(force: true);
     }
 
-    /// <summary>Stops system observation and releases event ownership.</summary>
+    /// <summary>Stops High Contrast observation and releases event ownership.</summary>
     public void Dispose()
     {
-        systemObserver.Stop();
-        systemObserver.Tick -= SystemObserverTick;
         SystemParameters.StaticPropertyChanged -= SystemParametersChanged;
     }
 
@@ -84,20 +69,11 @@ internal sealed class DesktopThemeService : IDisposable
         }
     }
 
-    /// <summary>Polls the lightweight current-user colour preference only while System can affect the result.</summary>
-    private void SystemObserverTick(object? sender, EventArgs e)
-    {
-        if (CurrentPreference == ThemePreference.System || SystemParameters.HighContrast != lastHighContrast)
-        {
-            Apply(force: false);
-        }
-    }
-
     /// <summary>Atomically replaces only the semantic theme dictionary and preserves localisation/core resources.</summary>
     private void Apply(bool force)
     {
         bool highContrast = SystemParameters.HighContrast;
-        EffectiveTheme resolved = ThemePreferenceContract.Resolve(CurrentPreference, ReadSystemUsesDark());
+        EffectiveTheme resolved = ThemePreferenceContract.Resolve(CurrentPreference);
         if (!force && resolved == EffectiveTheme && highContrast == lastHighContrast)
         {
             return;
@@ -138,20 +114,6 @@ internal sealed class DesktopThemeService : IDisposable
             }
         }
         return -1;
-    }
-
-    /// <summary>Reads the Windows application colour preference and fails safely to Light when unavailable.</summary>
-    private static bool ReadSystemUsesDark()
-    {
-        try
-        {
-            using RegistryKey? key = Registry.CurrentUser.OpenSubKey(WindowsThemeRegistryPath, writable: false);
-            return key?.GetValue("AppsUseLightTheme") is int value && value == 0;
-        }
-        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or SecurityException)
-        {
-            return false;
-        }
     }
 
     /// <summary>Maps semantic resources to live Windows system brushes while High Contrast takes precedence.</summary>

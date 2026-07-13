@@ -50,7 +50,7 @@ Objetivo: implementar Tray/Desktop e Dashboard.
 
 Entregáveis: inventário, status, histórico, alertas, configuração, ações autorizadas e Design System oficial com paridade React/WPF; estados vazio/loading/offline/error/stale/denied.
 
-Aceite: acessibilidade WCAG AA, responsividade, teclado, contraste, temas Light/Dark/System, persistência, paridade React/WPF, timestamp de dados e ausência de dependência exclusiva de cor.
+Aceite: acessibilidade WCAG AA, responsividade, teclado, contraste, temas explícitos Light/Dark, persistência, paridade React/WPF, High Contrast independente, timestamp de dados e ausência de dependência exclusiva de cor.
 
 ## STATE-06 INTEGRATION
 

@@ -1,4 +1,4 @@
-<!-- Generated from dbnotifier.localisation.v1; culture:en-GB; source sha256:8368d14a8932d00eea882cae0cf8daa9fa943bce8a2516496aaab5135cffe7e2. Do not edit directly. -->
+<!-- Generated from dbnotifier.localisation.v1; culture:en-GB; source sha256:43e742fb7d010eea75b19494bfba780c0c1a8af4585e7737b84fed76a3e8a17b. Do not edit directly. -->
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:sys="clr-namespace:System;assembly=System.Runtime">
@@ -169,7 +169,6 @@
   <sys:String x:Key="Theme.Dark">Dark</sys:String>
   <sys:String x:Key="Theme.Label">Theme</sys:String>
   <sys:String x:Key="Theme.Light">Light</sys:String>
-  <sys:String x:Key="Theme.System">System</sys:String>
   <sys:String x:Key="Theme.Toggle">Theme: {0}. Switch to {1}</sys:String>
   <sys:String x:Key="Tray.BalloonMessage">The window was hidden. No database or service was controlled.</sys:String>
   <sys:String x:Key="Tray.BalloonTitle">DB Notifier remains available</sys:String>

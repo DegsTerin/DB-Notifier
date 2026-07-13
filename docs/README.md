@@ -10,7 +10,7 @@ Current discovery and migration artifacts:
 - [`STATE-00-Discovery-Report.md`](STATE-00-Discovery-Report.md): checks, findings, limitations, and accepted Human Gate.
 - [`Development.md`](Development.md): `STATE-01` scaffold, tool baseline, checks, and onboarding.
 - [`Code-Documentation-Standards.md`](Code-Documentation-Standards.md): project-wide British English documentation policy, review requirements, automated gate, and narrow format exceptions.
-- [`design/DB-Notifier-Design-System.md`](design/DB-Notifier-Design-System.md): official modern enterprise visual language, shared tokens, Light/Dark/System architecture, component contracts and STATE-05 re-audit criteria.
+- [`design/DB-Notifier-Design-System.md`](design/DB-Notifier-Design-System.md): official modern enterprise visual language, shared tokens, explicit Light/Dark architecture, component contracts and STATE-05 re-audit criteria.
 - [`STATE-05-Design-System-Implementation-Report.md`](STATE-05-Design-System-Implementation-Report.md): canonical token/schema foundation, deterministic CSS/XAML generation, theme contracts, verification and remaining implementation increments.
 - [`STATE-05-Localisation-Implementation-Report.md`](STATE-05-Localisation-Implementation-Report.md): shared `pt-BR`/`en-GB` catalogue, React/WPF language lifecycle, responsive scope and verification evidence.
 - [`STATE-01-Setup-Report.md`](STATE-01-Setup-Report.md): approved setup evidence, dependency remediation, compatibility migration, and Human Gate.

@@ -2,9 +2,9 @@
 
 ## Outcome
 
-The first three DB-Notifier Design System increments, two `S05-HG-001` visual remediation iterations, the canonical product-mark refinement, the ultrawide shell correction, compact preference controls and Dashboard TV presentation are complete. They establish the canonical token/schema sources, deterministic React/WPF asset generation, platform-neutral Light/Dark/System preference contracts and a cohesive enterprise shell required by Design System `1.4.0`.
+The first three DB-Notifier Design System increments, two `S05-HG-001` visual remediation iterations, the canonical product-mark refinement, the ultrawide shell correction, compact preference controls and Dashboard TV presentation are complete. They establish the canonical token/schema sources, deterministic React/WPF asset generation, explicit Light/Dark preference contracts and a cohesive enterprise shell required by Design System `2.0.0`.
 
-The Dashboard and WPF Desktop now apply generated semantic tokens, expose one discreet language icon button and one cycling System/Light/Dark icon button in the upper-right TopBar and preserve the validated preferences. Localised accessible names and tooltips identify the current and next states without flags or permanently expanded groups. Dedicated chrome semantics keep product identity cohesive across themes without the rejected Light-header/Dark-content inversion. System follows live platform colour preference; explicit Light and Dark remain stable. WPF gives Windows High Contrast precedence over the generated palette.
+The Dashboard and WPF Desktop now apply generated semantic tokens, expose one discreet translation/languages icon button and one cycling Light/Dark icon button in the upper-right TopBar and preserve the validated preferences. Localised accessible names and tooltips identify the current and next states without flags or permanently expanded groups. The translation symbol replaces the ambiguous globe, while sun/moon states replace the retired System/monitor option. WPF still gives Windows High Contrast precedence over the generated palette.
 
 User-facing Web, WPF, Tray and installer surfaces use the display name `DB Notifier`; technical identifiers and compatibility paths retain `DBNotifier` or `DB-Notifier` as appropriate. The Dashboard main region stretches across the available desktop and ultrawide shell width. Its dedicated TV presentation requests native Fullscreen, removes navigation/filter density, enlarges fleet data and retains a visible collapse control, UTC clock and demonstration truth. It does not claim the external real-time integration reserved for `STATE-06`.
 
@@ -50,22 +50,22 @@ Generated CSS includes core custom properties plus resolved `data-theme="light"`
 
 React and .NET 10 share these exact concepts:
 
-- Preference: `system | light | dark`.
+- Preference: `light | dark`.
 - Effective theme: `light | dark`.
 - Web key: `dbnotifier.theme.preference.v1`.
 - UI preference schema: `dbnotifier.ui-preferences.v1`.
 - WPF file name: `ui-preferences.v1.json`.
-- Invalid data fails safely to System.
-- Explicit Light/Dark overrides system state; System follows the current platform request.
+- Invalid, missing or retired `system` data fails safely to Light.
+- Explicit Light/Dark remains stable across operating-system colour-mode changes.
 
-The React adapter accesses only versioned local UI preference storage, the document root and the system colour-scheme media query. WPF stores the validated language and selected theme together in the versioned current-user file; locale-only documents from the preceding increment migrate safely to System without losing the language.
+The React adapter accesses only versioned local UI preference storage and the document root. WPF stores the validated language and selected theme together in the versioned current-user file; locale-only, invalid and retired System documents migrate safely to Light without losing the language.
 
 ## React theme runtime
 
 - A blocking local bootstrap runs in the document head before application styles can paint, validates the persisted preference and applies `data-theme` plus `data-theme-preference` without a wrong-theme flash.
-- Storage access, invalid values and unavailable media-query APIs fail safely to System without interrupting rendering.
-- `ThemeSelector` uses one code-native monitor/sun/moon icon button, cycles System → Light → Dark, applies immediately and exposes the current/next preference through its localised accessible name, tooltip and polite announcement.
-- `matchMedia` changes update the effective theme live only through System resolution; explicit Light and Dark remain stable.
+- Storage access, invalid values and retired System values fail safely to Light without interrupting rendering.
+- `ThemeSelector` uses one code-native sun/moon icon button, cycles Light → Dark, applies immediately and exposes the current/next preference through its localised accessible name, tooltip and polite announcement.
+- Operating-system colour-mode changes do not alter the explicit preference.
 - Cross-tab storage changes accept only validated preference values.
 - Route, filters, modal state and other React state remain owned by their existing components and are not reset by a theme change.
 - Generated CSS loads before feature CSS. Hand-written feature styles contain no raw colour values or shadows and use canonical spacing/radius tokens for their corresponding declarations.
@@ -76,11 +76,11 @@ The React adapter accesses only versioned local UI preference storage, the docum
 ## WPF theme runtime
 
 - The application loads core and Light generated dictionaries before constructing the window, then atomically replaces only the semantic theme dictionary.
-- System resolves the current-user Windows application colour preference and observes it at a bounded interval; explicit Light and Dark ignore that derived value.
+- Only explicit Light and Dark are selectable; old System values migrate to Light without a Windows colour-mode observer.
 - Windows High Contrast takes precedence and maps semantic resources to live system brushes without persisting an effective theme.
 - One atomic, bounded `%LocalAppData%\DB-Notifier\ui-preferences.v1.json` document stores only schema, locale and selected theme; failures remain session-local.
 - Main window chrome, surfaces, cards, inputs, buttons, tables, statuses and footer consume generated `DynamicResource` keys. Custom Button/ComboBox/DataGrid selection templates retain legibility in Dark instead of inheriting incompatible native Light colours.
-- WPF uses one generic language icon button and one current-theme icon button at the upper-right of the TopBar; UI Automation names expose current/next states, and complete cycles restore the starting preferences.
+- WPF uses the same translation/languages icon button and one current-theme icon button at the upper-right of the TopBar; UI Automation names expose current/next states, and complete two-state cycles restore the starting preferences.
 
 ## Verification
 
@@ -94,32 +94,32 @@ The React adapter accesses only versioned local UI preference storage, the docum
 | Dashboard tests | Approved; 22/22 |
 | Dashboard production build | Approved |
 | .NET 10 Release build | Approved; 0 warnings/errors |
-| .NET tests | Approved; 131 unit/model/provider/presentation + 5 architecture = 136/136 |
+| .NET tests | Approved; 128 unit/model/provider/presentation + 5 architecture = 133/133 |
 | .NET format verification | Approved |
 | Legacy compatibility | Approved; 10/10 Pester and bundle validation |
 | Dependency audit | Approved; no npm or NuGet vulnerabilities reported |
-| Documentation gate | Approved; 161 comment-capable source files |
-| React visual/responsive matrix | Approved; 66 locale/theme/viewport-route samples across 320, 390, 640, 768, 960, 1024, 1440 and 1920 CSS px |
-| React overflow/accessibility | Approved; 0 global overflow and 0 unnamed interactive controls in all six locale/theme combinations |
-| Preference cycles | Approved; Web and WPF restored both locales after two activations and all three themes after three activations in all six locale/theme combinations, with 0 unnamed interactive/focusable controls |
-| Dashboard TV mode | Approved; six `1920×1080` locale/theme samples entered native Fullscreen, retained demonstration truth and the exit control, hid navigation/filters, displayed the complete table and restored the standard shell; the unavailable-Fullscreen sample kept TV active and announced the limitation |
-| WPF UI Automation/visual matrix | Approved; six locale/theme combinations plus `820×620` minimum-window sample, with representative Light/Dark repetition after the second refinement |
+| Documentation gate | Approved; 162 comment-capable source files |
+| React visual/responsive matrix | Approved; 44 locale/theme/viewport-route samples across the four current locale/theme combinations and 320–1920 CSS px |
+| React overflow/accessibility | Approved; 0 global overflow and 0 unnamed interactive controls in all four locale/theme combinations |
+| Preference cycles | Approved; Web and WPF restored both locales and both themes after two activations in all four combinations, with 0 unnamed interactive/focusable controls |
+| Dashboard TV mode | Approved; four `1920×1080` locale/theme samples entered native Fullscreen, retained demonstration truth and the exit control, hid navigation/filters, displayed the complete table and restored the standard shell; the unavailable-Fullscreen fallback remains covered |
+| WPF UI Automation/visual matrix | Approved; four locale/theme combinations at `1180×760`, each with 34 focusable controls and none unnamed; earlier minimum-window and High Contrast evidence remains separate |
 
 ## Security and phase boundaries
 
 - Theme data is presentation-only and contains no user, provider, endpoint, credential or infrastructure data.
-- Browser persistence contains only the validated semantic preference under `dbnotifier.theme.preference.v1`; the effective system-derived theme is not persisted.
-- Storage and system-theme failures are contained locally and do not relax any product authorisation boundary.
+- Browser persistence contains only the validated Light or Dark preference under `dbnotifier.theme.preference.v1`.
+- Storage failures and retired System values are contained locally through the Light fallback and do not relax any product authorisation boundary.
 - Generated adapters do not connect to a database, Agent, API, IdP, vault or administrative executor.
 - No provider support or homologation state changed.
 - `STATE-05` remains active; Human Gate, `STATE-06` and the multi-database laboratory remain blocked.
 
 ## Remaining increments
 
-1. Confirm the outlined database mark, ultrawide/TV layouts, `DB Notifier` display name and compact icon-only controls in the visible Dashboard preview.
+1. Confirm the outlined database mark, ultrawide/TV layouts, `DB Notifier` display name, translation icon and Light/Dark-only control in the visible Dashboard preview.
 2. Obtain explicit consent, then complete the keyboard/Narrator portion of `HG05-01`, native browser zoom, Windows scaling, High Contrast and remaining visual samples.
 3. Present the explicit Human Gate decision; no lifecycle transition occurs automatically.
 
 ## Recommendation
 
-Confirm the outlined canonical database mark, ultrawide/TV layouts, `DB Notifier` display name and compact controls in the visible Dashboard preview, then obtain explicit consent before starting Narrator and continuing the remaining samples in [`STATE-05-Human-Gate-Validation.md`](STATE-05-Human-Gate-Validation.md).
+Confirm the outlined canonical database mark, ultrawide/TV layouts, `DB Notifier` display name, translation icon and Light/Dark-only control in the visible Dashboard preview, then obtain explicit consent before starting Narrator and continuing the remaining samples in [`STATE-05-Human-Gate-Validation.md`](STATE-05-Human-Gate-Validation.md).

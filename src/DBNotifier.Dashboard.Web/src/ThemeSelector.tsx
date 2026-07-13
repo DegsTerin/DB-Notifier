@@ -5,7 +5,6 @@
 import { useEffect, useState } from "react";
 import {
   applyTheme,
-  darkColourSchemeMediaQuery,
   parseThemePreference,
   persistThemePreference,
   readThemePreference,
@@ -16,12 +15,11 @@ import { useLocalisation } from "./LocalisationProvider";
 import type { MessageKey } from "./generated/localisation";
 
 const options: ReadonlyArray<{ value: ThemePreference; labelKey: MessageKey }> = [
-  { value: "system", labelKey: "Theme.System" },
   { value: "light", labelKey: "Theme.Light" },
   { value: "dark", labelKey: "Theme.Dark" },
 ];
 
-/** Renders the outlined icon for the current System, Light or Dark preference. */
+/** Renders the outlined sun or moon icon for the current explicit preference. */
 function ThemeIcon({ preference }: Readonly<{ preference: ThemePreference }>) {
   if (preference === "light") {
     return (
@@ -31,17 +29,9 @@ function ThemeIcon({ preference }: Readonly<{ preference: ThemePreference }>) {
       </svg>
     );
   }
-  if (preference === "dark") {
-    return (
-      <svg className="preference-icon" viewBox="0 0 24 24" aria-hidden="true">
-        <path d="M20 15.2A8.3 8.3 0 0 1 8.8 4a8.5 8.5 0 1 0 11.2 11.2Z" />
-      </svg>
-    );
-  }
   return (
     <svg className="preference-icon" viewBox="0 0 24 24" aria-hidden="true">
-      <rect x="3.5" y="4.5" width="17" height="12" rx="1.8" />
-      <path d="M9 20h6M12 16.5V20" />
+      <path d="M20 15.2A8.3 8.3 0 0 1 8.8 4a8.5 8.5 0 1 0 11.2 11.2Z" />
     </svg>
   );
 }
@@ -56,53 +46,26 @@ function readInitialPreference(): ThemePreference {
   try {
     return readThemePreference(window.localStorage);
   } catch {
-    return "system";
+    return "light";
   }
 }
 
 /**
- * Resolves the current platform colour scheme without assuming matchMedia is available.
- * @returns True only when a supported media query explicitly reports Dark.
- */
-function readSystemUsesDark(): boolean {
-  try {
-    return window.matchMedia(darkColourSchemeMediaQuery).matches;
-  } catch {
-    return false;
-  }
-}
-
-/**
- * Renders the theme cycle control and keeps System responsive to live platform changes.
+ * Renders the explicit Light and Dark cycle control.
  * @returns An accessible icon button with an announced current preference.
  */
 export function ThemeSelector() {
   const { t } = useLocalisation();
   const [preference, setPreference] = useState<ThemePreference>(readInitialPreference);
-  const [systemUsesDark, setSystemUsesDark] = useState(readSystemUsesDark);
 
   useEffect(() => {
-    try {
-      const media = window.matchMedia(darkColourSchemeMediaQuery);
-      /** Updates the effective theme only when System is selected through normal React resolution. */
-      const handleSystemThemeChange = (event: MediaQueryListEvent) => setSystemUsesDark(event.matches);
-      media.addEventListener("change", handleSystemThemeChange);
-      setSystemUsesDark(media.matches);
-      return () => media.removeEventListener("change", handleSystemThemeChange);
-    } catch {
-      setSystemUsesDark(false);
-      return undefined;
-    }
-  }, []);
-
-  useEffect(() => {
-    applyTheme(document.documentElement, preference, systemUsesDark);
+    applyTheme(document.documentElement, preference);
     try {
       persistThemePreference(window.localStorage, preference);
     } catch {
       // Storage access can itself be denied before the resilient adapter receives a value.
     }
-  }, [preference, systemUsesDark]);
+  }, [preference]);
 
   useEffect(() => {
     /** Synchronises a valid preference selected in another tab without accepting arbitrary storage values. */
@@ -115,7 +78,7 @@ export function ThemeSelector() {
 
   const currentIndex = options.findIndex((option) => option.value === preference);
   const nextOption = options[(currentIndex + 1) % options.length] ?? options[0];
-  const currentLabel = t(options[currentIndex]?.labelKey ?? "Theme.System");
+  const currentLabel = t(options[currentIndex]?.labelKey ?? "Theme.Light");
   const nextLabel = t(nextOption.labelKey);
   const accessibleLabel = t("Theme.Toggle", currentLabel, nextLabel);
   return (

@@ -249,20 +249,13 @@
           <Button x:Name="LanguagePreferenceButton" Style="{StaticResource TopbarIconButton}" Click="LanguagePreferenceButtonClick" AutomationProperties.Name="{DynamicResource Language.Label}">
             <Viewbox Width="20" Height="20">
               <Canvas Width="24" Height="24">
-                <Ellipse Canvas.Left="3.5" Canvas.Top="3.5" Width="17" Height="17" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="1.8" />
-                <Path Data="M 3.8,12 H 20.2 M 12,3.5 C 14.2,5.8 15.4,8.6 15.4,12 C 15.4,15.4 14.2,18.2 12,20.5 M 12,3.5 C 9.8,5.8 8.6,8.6 8.6,12 C 8.6,15.4 9.8,18.2 12,20.5" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="1.8" StrokeStartLineCap="Round" StrokeEndLineCap="Round" />
+                <Path Data="M 2,5 H 14 M 7,2 H 8 M 5,8 L 11,14 M 4,14 L 10,8 L 12,5 M 12,22 L 17,12 L 22,22 M 14,18 H 20" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="1.8" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round" />
               </Canvas>
             </Viewbox>
           </Button>
           <Button x:Name="ThemePreferenceButton" Style="{StaticResource TopbarIconButton}" Click="ThemePreferenceButtonClick" AutomationProperties.Name="{DynamicResource Theme.Label}" Margin="4,0,10,0">
             <Grid Width="20" Height="20">
-              <Viewbox x:Name="SystemThemeIcon" Width="20" Height="20">
-                <Canvas Width="24" Height="24">
-                  <Rectangle Canvas.Left="3.5" Canvas.Top="4.5" Width="17" Height="12" RadiusX="1.8" RadiusY="1.8" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="1.8" />
-                  <Path Data="M 9,20 H 15 M 12,16.5 V 20" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="1.8" StrokeStartLineCap="Round" StrokeEndLineCap="Round" />
-                </Canvas>
-              </Viewbox>
-              <Viewbox x:Name="LightThemeIcon" Width="20" Height="20" Visibility="Collapsed">
+              <Viewbox x:Name="LightThemeIcon" Width="20" Height="20">
                 <Canvas Width="24" Height="24">
                   <Ellipse Canvas.Left="8.5" Canvas.Top="8.5" Width="7" Height="7" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="1.8" />
                   <Path Data="M 12,2.5 V 5.5 M 12,18.5 V 21.5 M 2.5,12 H 5.5 M 18.5,12 H 21.5 M 5.3,5.3 L 7.4,7.4 M 16.6,16.6 L 18.7,18.7 M 18.7,5.3 L 16.6,7.4 M 7.4,16.6 L 5.3,18.7" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="1.8" StrokeStartLineCap="Round" StrokeEndLineCap="Round" />
