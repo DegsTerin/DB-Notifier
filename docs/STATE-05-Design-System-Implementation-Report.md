@@ -95,10 +95,11 @@ The React adapter accesses only versioned local UI preference storage, the docum
 
 ## Remaining increments
 
-1. Human screen-reader, native browser zoom, Windows scaling and High Contrast samples required by the Design System matrix.
-2. Human visual review of hierarchy, focus, truth labels and selector behaviour in both languages and themes.
-3. Explicit Human Gate presentation; no lifecycle transition occurs automatically.
+1. Remediate the blocking `S05-HG-001` human finding: the sampled Dashboard does not yet meet the required modern enterprise visual identity.
+2. Repeat the affected automatic visual/responsive/accessibility matrix and restart the rejected `HG05-01` sample.
+3. Complete human screen-reader, native browser zoom, Windows scaling, High Contrast and remaining visual samples.
+4. Present the explicit Human Gate decision; no lifecycle transition occurs automatically.
 
 ## Recommendation
 
-Execute the pending protocol in [`STATE-05-Human-Gate-Validation.md`](STATE-05-Human-Gate-Validation.md), record the human accessibility, native zoom/scaling, High Contrast and visual samples, then present the `STATE-05` Human Gate without changing the provider-neutral demonstration boundary.
+Remediate `S05-HG-001` through the canonical Design System and shared shell, repeat the affected automatic gates, then restart the pending protocol in [`STATE-05-Human-Gate-Validation.md`](STATE-05-Human-Gate-Validation.md) without changing the provider-neutral demonstration boundary.

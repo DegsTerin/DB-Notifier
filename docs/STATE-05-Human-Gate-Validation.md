@@ -152,7 +152,7 @@ Do not mark a row until the named human validator has performed it.
 
 | ID | Human sample | Validator result | Sanitised evidence/notes |
 |---|---|---|---|
-| `HG05-01` | Dashboard `pt-BR` Light, keyboard and Narrator | PENDENTE | Not executed; the initial interactive launch was cancelled before validation. A future launch requires specific confirmation. |
+| `HG05-01` | Dashboard `pt-BR` Light, keyboard and Narrator | REPROVADO | Visual acceptance failed before keyboard/Narrator sampling; those accessibility portions remain not tested. See `S05-HG-001`. |
 | `HG05-02` | Dashboard `en-GB` Dark, keyboard and Narrator | PENDENTE | |
 | `HG05-03` | Dashboard native 200% zoom and compact reflow | PENDENTE | |
 | `HG05-04` | WPF `pt-BR` Light, default/minimum, keyboard and Narrator | PENDENTE | |
@@ -161,6 +161,19 @@ Do not mark a row until the named human validator has performed it.
 | `HG05-07` | Windows High Contrast on both interfaces | PENDENTE | |
 | `HG05-08` | WPF Windows scaling at 125%, 150% and 200% where permitted | PENDENTE | |
 | `HG05-09` | Visual hierarchy and operational-truth review | PENDENTE | |
+
+## Recorded human finding
+
+### `S05-HG-001` — Dashboard visual identity does not meet the enterprise Design System
+
+- Date observed: 2026-07-13.
+- Source: explicit user review of the local `pt-BR` Dashboard in the active Human Gate session, supported by a sanitised screenshot supplied in the conversation and not committed to the repository.
+- Classification: blocking Human Gate visual finding.
+- Human feedback: the interface was judged visually unattractive and not modern or enterprise-grade.
+- Corroborating review: the sampled screen has an abrupt Light-header/Dark-content split, heavy outlined preference controls, compressed side navigation, excessive borders, weak density/hierarchy balance and a crowded data region at the observed viewport.
+- Scope not tested: Narrator announcements, complete keyboard path, dialogue focus and remaining Human Gate samples were not performed after the visual rejection.
+- Required remediation: revise the shared shell, typography, spacing, navigation, preference-control treatment, surface hierarchy and responsive data presentation in the canonical token/component sources; then repeat automatic contrast/responsive/accessibility gates and restart `HG05-01`.
+- Lifecycle impact: `STATE-05` remains active; the Human Gate cannot be approved while this finding is open.
 
 ## Human Gate decision
 
@@ -171,7 +184,7 @@ Do not mark a row until the named human validator has performed it.
 - Critical samples repeated: PENDENTE
 - Experience and error messages: PENDENTE
 - Security/authorisation truth: PENDENTE
-- Remaining coverage: all samples above
+- Remaining coverage: `S05-HG-001` remediation plus all accessibility and remaining samples above
 - Decision: `PENDENTE`
 - Justification/evidence: PENDENTE
 

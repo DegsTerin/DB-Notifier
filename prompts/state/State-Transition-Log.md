@@ -422,6 +422,16 @@
 - Evidências: `docs/STATE-05-Human-Gate-Validation.md` com nove amostras `PENDENTE` e campos de validador/decisão não preenchidos.
 - Riscos/ressalvas: NVDA não está disponível neste ambiente; mudanças de escala/High Contrast exigem operação interativa e restauração pelo validador; `STATE-06` permanece bloqueado.
 
+## 2026-07-13 — Achado humano visual S05-HG-001
+
+- Estado anterior: `STATE-05 FRONTEND_IMPLEMENTATION`
+- Estado resultante: sem transição
+- Decisão: reprovar a porção visual de `HG05-01` e interromper as demais amostras até remediação.
+- Escopo: revisão humana do Dashboard local `pt-BR` no início do Human Gate; teclado, Narrator, zoom, High Contrast e WPF não foram testados nesta execução.
+- Gates: `S05-HG-001` classificado como bloqueador porque a interface foi explicitamente julgada não moderna e não empresarial, em conflito com o Design System oficial.
+- Evidências: feedback explícito e screenshot sanitizada fornecida pelo utilizador na sessão; registro factual em `docs/STATE-05-Human-Gate-Validation.md` sem incorporar a imagem ao Git.
+- Riscos/ressalvas: Human Gate continua `PENDENTE` e bloqueado; remediação visual e repetição dos gates automáticos afetados são obrigatórias antes de reiniciar `HG05-01`.
+
 ## Template de nova entrada
 
 - Data:

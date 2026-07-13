@@ -121,11 +121,13 @@ O projeto está em `STATE-05 FRONTEND_IMPLEMENTATION`. Quatro incrementos implem
 - Terceiro incremento do Design System concluído: WPF aplica tokens gerados, troca Light/Dark atomicamente, segue o tema Windows em System, dá precedência a High Contrast e persiste tema/locale juntos sem material secreto.
 - Dashboard e WPF expõem botões discretos `pt-BR`, `en-GB`, System, Light e Dark na região superior direita do TopBar, com estado selecionado acessível, teclado e adaptação compacta.
 - Reauditoria automática combinada aprovada em 54 amostras browser (`2 locales × 3 temas × 9 viewport/rota`), sem overflow global ou controlo interativo sem nome, além das seis combinações WPF e amostra mínima `820×620`.
-- Protocolo do Human Gate de `STATE-05` preparado em `docs/STATE-05-Human-Gate-Validation.md`; preflight confirmou Narrator disponível, escala atual 100% e High Contrast desligado, mas todas as amostras e a decisão humana permanecem `PENDENTE`.
+- Protocolo do Human Gate de `STATE-05` preparado em `docs/STATE-05-Human-Gate-Validation.md`; preflight confirmou Narrator disponível, escala atual 100% e High Contrast desligado.
+- Primeira amostra humana interrompida com `S05-HG-001`: o Dashboard `pt-BR` foi explicitamente reprovado na revisão visual por não parecer moderno nem empresarial; teclado/Narrator e demais amostras não foram executados.
 
 ## Pendente
 
 - Completar amostras humanas bilíngues com leitor de tela, zoom nativo, Windows scaling/High Contrast e revisão visual conforme inventário do Design System.
+- Remediar `S05-HG-001` no shell visual compartilhado, repetir os gates automáticos afetados e reiniciar `HG05-01` antes das demais amostras humanas.
 - Manter adapters de apresentação determinísticos até `STATE-06`; não integrar silenciosamente banco, IdP, certificado, canal ou provider real durante a fase de UI.
 - Representar capabilities e suporte de modo factual: ação ausente/negada/unsupported não pode aparecer como executável ou homologada.
 - Preservar as pendências posteriores de ativação sandbox de pacotes, integração real, execução/post-probe de comandos, legal hold/backup e adapters externos.
@@ -142,6 +144,6 @@ O projeto está em `STATE-05 FRONTEND_IMPLEMENTATION`. Quatro incrementos implem
 
 ## Próximo gate
 
-Executar e registrar as amostras pendentes de `docs/STATE-05-Human-Gate-Validation.md`; depois obter a decisão humana explícita do Human Gate de `STATE-05`. `STATE-06` e laboratório continuam bloqueados.
+Remediar `S05-HG-001`, repetir a auditoria visual/responsiva/automatizada afetada e reiniciar `HG05-01`. O Human Gate, `STATE-06` e o laboratório continuam bloqueados.
 
 Este documento descreve somente o presente. Histórico pertence a `State-Transition-Log.md`.
