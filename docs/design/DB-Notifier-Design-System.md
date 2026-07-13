@@ -5,7 +5,7 @@
 | Field | Value |
 |---|---|
 | Status | Official frontend specification |
-| Design System version | `1.3.3` |
+| Design System version | `1.3.4` |
 | Product phase | `STATE-05 FRONTEND_IMPLEMENTATION` |
 | Platforms | React Web Dashboard and .NET 10 WPF Desktop/Tray |
 | Themes | Light, Dark and System |
@@ -382,9 +382,9 @@ Body copy MUST NOT be smaller than 14 px by default. Uppercase is limited to sho
 - The DB-Notifier product mark is a simple outlined white database cylinder on a `palette.brand.600` rounded square. Rounded three-pixel strokes preserve a light enterprise appearance and legibility at 16 px. It is provider-neutral and MUST NOT be replaced by a PostgreSQL, MySQL or other vendor logo.
 - `scripts/generate-brand-assets.mjs` is the canonical cross-platform generator. It emits the Design System/Web SVG and a multi-resolution Windows ICO at 16/20/24/32/40/48/64/128/256 px; CI MUST fail on generated drift.
 - Dashboard favicon/header, WPF header/window, Windows executable/shortcuts, Tray and installer MUST consume this same mark. Release signing remains a `STATE-08` concern and MUST NOT be claimed during frontend implementation.
-- When adjacent text already exposes the product name, Web treats the mark as decorative. Native surfaces provide the stable accessible name `DB-Notifier` where the platform exposes the image independently.
+- When adjacent text already exposes the product name, Web treats the mark as decorative. Native surfaces provide the stable accessible name `DB Notifier` where the platform exposes the image independently.
 
-The DB-Notifier wordmark is visually written as `DB-NOTIFIER`; accessible and product text uses `DB-Notifier`. The mark MUST retain clear space equal to at least half its icon height.
+The user-facing display name and wordmark are written as `DB Notifier`. Architecture, governance and technical prose retain the canonical name `DB-Notifier`; identifiers use `DBNotifier` only where spaces or punctuation are not valid. The mark MUST retain clear space equal to at least half its icon height.
 
 ## 9. Layout and responsiveness
 
@@ -396,7 +396,7 @@ The DB-Notifier wordmark is visually written as `DB-NOTIFIER`; accessible and pr
 | `480–767` | Wide compact | Single-column content with more generous metadata layout |
 | `768–1100` | Tablet/narrow desktop | Horizontal navigation, compact data cards and 3–5 column summaries according to content |
 | `1101–1439` | Standard desktop | Persistent navigation and data tables |
-| `1440+` | Wide desktop | Controlled max line lengths; no uncontrolled stretching |
+| `1440+` | Wide desktop | Shell and operational regions use the available width; prose retains a controlled reading measure |
 
 Breakpoints respond to content, not device names. Every component MUST tolerate text expansion of at least 30%. Global horizontal scrolling is forbidden at 320 CSS px. Deliberate local scrolling is permitted for navigation and data regions when labelled and keyboard-operable.
 
@@ -407,6 +407,7 @@ Breakpoints respond to content, not device names. Every component MUST tolerate 
 - Main: one page title, optional description/actions, then operational content.
 - Footer/status area: connectivity/data-source truth without competing with primary tasks.
 - Maximum readable prose line length: approximately 75 characters.
+- The main application region MUST stretch across the available desktop and ultrawide shell width. A fixed page-level maximum width MUST NOT create an inactive strip at the right edge; content-specific reading measures remain permitted.
 - Dense tables may use available width; forms and dialogues use controlled widths.
 - A navigation rail MUST NOT retain visible labels once its width forces wrapping or compression; switch to a labelled horizontal navigation region first.
 - Seven-column operational tables switch to the complete compact-card alternative at `1100` CSS px or below. The alternative preserves all fields and does not rely on horizontal page scrolling.
@@ -414,6 +415,10 @@ Breakpoints respond to content, not device names. Every component MUST tolerate 
 ### 9.3 WPF adaptation
 
 The WPF minimum window remains usable at `820×620` DIP. Below the comfortable table width, content SHOULD use controlled scrolling or a compact item template; columns MUST NOT silently truncate critical support/status text. Windows scaling at 100%, 125%, 150% and 200% MUST be sampled before release.
+
+### 9.4 TV and wallboard scope
+
+Design System `1.3.4` does not define a dedicated TV, wallboard or kiosk mode. Responsive Web behaviour at desktop or ultrawide dimensions MUST NOT be presented as TV-mode support. Any future TV mode requires a separately approved interaction, density, viewing-distance, focus/navigation, refresh and long-running-display contract.
 
 ## 10. Reusable component catalogue
 
@@ -600,7 +605,7 @@ Dashboard visual regression samples MUST cover:
 ```text
 Themes: Light, Dark, System resolving to each
 Locales: pt-BR and en-GB
-Viewports: 320×568, 390×844, 768×1024, 1024×768, 1440×1000
+Viewports: 320×568, 390×844, 768×1024, 1024×768, 1440×1000, 1920×1080
 Views: Inventory, History, Alerts, Configuration
 States: ready, loading, empty, offline, error, denied, maintenance, stale, filtered-empty
 Overlays: confirmation-required, denied, unsupported, unavailable, unknown

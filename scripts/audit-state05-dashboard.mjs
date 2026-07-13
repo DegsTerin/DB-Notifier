@@ -72,6 +72,8 @@ async function captureViewport(call, name, width, height, hash = "inventory", pa
 
   const layout = await evaluate(call, `(() => {
     const root = document.documentElement;
+    const main = document.querySelector("main")?.getBoundingClientRect();
+    const primaryPanel = document.querySelector(".inventory-panel")?.getBoundingClientRect();
     const offenders = [...document.querySelectorAll("body *")]
       .filter((element) => element.scrollWidth > element.clientWidth + 1)
       .filter((element) => !["auto", "scroll"].includes(getComputedStyle(element).overflowX))
@@ -84,6 +86,8 @@ async function captureViewport(call, name, width, height, hash = "inventory", pa
       documentClientWidth: root.clientWidth,
       documentScrollWidth: root.scrollWidth,
       horizontalOverflow: root.scrollWidth > root.clientWidth + 1,
+      mainRightGap: main ? Math.round(innerWidth - main.right) : null,
+      primaryContentRightGap: primaryPanel ? Math.round(innerWidth - primaryPanel.right) : null,
       offenders,
       heading: document.querySelector("h1")?.textContent?.trim(),
     };
@@ -236,6 +240,7 @@ async function main() {
 
   const viewports = [];
   for (const [name, width, height, hash = "inventory", pageScaleFactor = 1] of [
+    ["inventory-ultrawide-1920x1080", 1920, 1080],
     ["inventory-desktop-1440x1000", 1440, 1000],
     ["inventory-narrow-desktop-960x1040", 960, 1040],
     ["inventory-laptop-1024x768", 1024, 768],

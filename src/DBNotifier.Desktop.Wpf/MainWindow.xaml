@@ -240,9 +240,9 @@
           <ColumnDefinition Width="Auto" />
         </Grid.ColumnDefinitions>
         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-          <Image Width="38" Height="38" Source="Assets/DBNotifier.ico" Stretch="Uniform" AutomationProperties.Name="DB-Notifier" />
+          <Image Width="38" Height="38" Source="Assets/DBNotifier.ico" Stretch="Uniform" AutomationProperties.Name="DB Notifier" />
           <StackPanel Margin="12,0,0,0" VerticalAlignment="Center">
-            <TextBlock Text="DB-NOTIFIER" Foreground="{DynamicResource ComponentShellChromeForegroundBrush}" FontWeight="SemiBold" FontSize="13" />
+            <TextBlock Text="DB Notifier" Foreground="{DynamicResource ComponentShellChromeForegroundBrush}" FontWeight="SemiBold" FontSize="13" />
             <TextBlock Text="{DynamicResource Brand.Subtitle}" Foreground="{DynamicResource ComponentShellChromeMutedBrush}" FontSize="12" Margin="0,3,0,0" />
           </StackPanel>
         </StackPanel>

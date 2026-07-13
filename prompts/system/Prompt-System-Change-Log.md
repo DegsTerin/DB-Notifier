@@ -2,7 +2,7 @@
 
 ## Versão atual
 
-- Versão: `3.28.3`
+- Versão: `3.28.4`
 - Data: 2026-07-13
 - Status: corpus DB-Notifier consolidado
 - Escopo: 13 arquivos ativos
@@ -16,6 +16,12 @@ A versão do corpus é independente da versão do software.
 - PATCH: clareza, correção ou referência sem mudança de autoridade.
 
 Toda alteração atualiza este arquivo e, quando necessário, `../Start-Here.md`.
+
+## 3.28.4 — 2026-07-13
+
+- A convenção permanente distingue `DB-Notifier` em arquitetura, governança e prosa técnica, `DB Notifier` nas superfícies visuais e `DBNotifier` onde identificadores não aceitam espaços ou pontuação.
+- Design System `1.3.4` remove o limite fixo da região principal em desktop/ultrawide e adiciona `1920×1080` à matriz; 66 amostras browser e a amostra WPF afetada foram aprovadas automaticamente.
+- `S05-HG-003` registra a faixa inativa e o nome visual observados pelo usuário, sem inferir aprovação humana da remediação. O corpus também registra factualmente que não existe modo TV/wallboard/kiosk dedicado.
 
 ## 3.28.3 — 2026-07-13
 

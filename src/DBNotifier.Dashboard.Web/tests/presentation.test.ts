@@ -62,6 +62,7 @@ test("enterprise shell uses coherent icons and a consolidated responsive metric 
   assert.match(app, /className="metric-icon"/);
   assert.equal((app.match(/className={`nav-item/g) ?? []).length, 4);
   assert.doesNotMatch(app, /className={`nav-item[^>]*}><span aria-hidden="true">/s);
+  assert.match(css, /main \{[^}]*max-width: none;[^}]*justify-self: stretch;/s);
   assert.match(css, /\.summary-grid \{[^}]*overflow: hidden;[^}]*border:/s);
   assert.match(css, /\.summary-card \{[^}]*border-inline-end:/s);
 });
@@ -82,11 +83,18 @@ test("provider-neutral database mark is shared by active Web and Windows surface
   assert.deepEqual([...windowsIcon.subarray(0, 6)], [0, 0, 1, 0, 9, 0]);
   assert.match(html, /rel="icon"[^>]+dbnotifier-icon\.svg/);
   assert.match(app, /<img src="\/dbnotifier-icon\.svg\?v=1\.3\.3" alt=""/);
+  assert.match(html, /<title>DB Notifier — Inventário<\/title>/);
+  assert.match(app, /aria-label="DB Notifier"/);
+  assert.match(app, /<strong>DB Notifier<\/strong>/);
+  assert.match(desktopXaml, /Text="DB Notifier"/);
   assert.match(desktopProject, /<ApplicationIcon>Assets\\DBNotifier\.ico<\/ApplicationIcon>/);
   assert.match(desktopXaml, /Icon="Assets\/DBNotifier\.ico"/);
   assert.match(trayController, /Icon = applicationIcon/);
   assert.doesNotMatch(trayController, /SystemIcons\.Application/);
   assert.match(installer, /SetupIconFile=.*DBNotifier\.ico/);
+  assert.match(installer, /#define AppDisplayName "DB Notifier"/);
+  assert.match(installer, /AppName=\{#AppDisplayName\}/);
+  assert.match(installer, /DefaultDirName=\{autopf\}\\\{#AppName\}/);
   assert.match(compatibilityBuild, /-IconFile \$iconPath/);
 });
 

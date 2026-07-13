@@ -140,7 +140,7 @@ public partial class MainWindow : Window
     {
         if (CapabilityGrid.SelectedItem is not CapabilityRow selected)
         {
-            System.Windows.MessageBox.Show(this, Text("Configuration.SelectCapability"), "DB-Notifier", MessageBoxButton.OK, MessageBoxImage.Information);
+            System.Windows.MessageBox.Show(this, Text("Configuration.SelectCapability"), "DB Notifier", MessageBoxButton.OK, MessageBoxImage.Information);
             return;
         }
 

@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Module purpose: Defines canonical British English interface messages shared by React and WPF adapters. -->
 <localisation schemaVersion="dbnotifier.localisation.v1" culture="en-GB">
-  <message key="App.Title">DB-Notifier — Inventory</message>
-  <message key="App.Description">DB-Notifier multi-provider console for instance inventory and health.</message>
+  <message key="App.Title">DB Notifier — Inventory</message>
+  <message key="App.Description">DB Notifier multi-provider console for instance inventory and health.</message>
   <message key="Brand.Subtitle">Operations console</message>
   <message key="Demo.Badge">Demonstration data</message>
   <message key="Language.Label">Language</message>
@@ -191,10 +191,10 @@
   <message key="Wpf.ConfigurationTitle">Non-secret configuration</message>
   <message key="Wpf.NoAction">No action can be executed from this screen.</message>
   <message key="Wpf.ReviewSelected">Review selected decision</message>
-  <message key="Tray.Open">Open DB-Notifier</message>
+  <message key="Tray.Open">Open DB Notifier</message>
   <message key="Tray.Status">Local demonstration · no external data</message>
   <message key="Tray.Exit">Exit</message>
-  <message key="Tray.Tooltip">DB-Notifier · local demonstration</message>
-  <message key="Tray.BalloonTitle">DB-Notifier remains available</message>
+  <message key="Tray.Tooltip">DB Notifier · local demonstration</message>
+  <message key="Tray.BalloonTitle">DB Notifier remains available</message>
   <message key="Tray.BalloonMessage">The window was hidden. No database or service was controlled.</message>
 </localisation>

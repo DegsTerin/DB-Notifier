@@ -474,6 +474,17 @@
 - Riscos/ressalvas: `S05-HG-002`, confirmação humana do ícone, Narrator e o Human Gate completo permanecem pendentes.
 - Aprovador: PENDENTE para o ícone substituto.
 
+## 2026-07-13 — Remediação fullscreen e nome visual S05-HG-003
+
+- Estado anterior: `STATE-05 FRONTEND_IMPLEMENTATION`
+- Estado resultante: sem transição
+- Decisão: corrigir a faixa inativa observada à direita em tela cheia, padronizar o nome visual solicitado e registrar separadamente a inexistência de modo TV dedicado.
+- Escopo: Design System `1.3.4`, shell Web sem limite fixo de largura, display name `DB Notifier` em Web/WPF/Tray/instalador, preservação de caminhos técnicos e nova amostra `1920×1080`.
+- Gates: 66 amostras browser aprovadas em dois locales, três preferências e onze viewport/rotas, com gap principal zero e inset de conteúdo de 48 px em ultrawide; 21 testes Dashboard, typecheck/build Web, build .NET 10 sem avisos/erros, 136 testes .NET e amostra WPF com 37 controles focalizáveis e 0 sem nome aprovados.
+- Evidências: `docs/STATE-05-Design-System-Implementation-Report.md`, `docs/STATE-05-Human-Gate-Validation.md` e JSON/PNG sanitizados temporários fora do Git.
+- Riscos/ressalvas: não há modo TV/wallboard/kiosk implementado; responsividade ultrawide não equivale a esse suporte. `S05-HG-002`, `S05-HG-003`, Narrator e o Human Gate completo permanecem pendentes de validação humana.
+- Aprovador: PENDENTE para a correção visível e o nome visual.
+
 ## Template de nova entrada
 
 - Data:

@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Module purpose: Defines canonical Brazilian Portuguese interface messages shared by React and WPF adapters. -->
 <localisation schemaVersion="dbnotifier.localisation.v1" culture="pt-BR">
-  <message key="App.Title">DB-Notifier — Inventário</message>
-  <message key="App.Description">Console multi-provider do DB-Notifier para inventário e saúde de instâncias.</message>
+  <message key="App.Title">DB Notifier — Inventário</message>
+  <message key="App.Description">Console multi-provider do DB Notifier para inventário e saúde de instâncias.</message>
   <message key="Brand.Subtitle">Console de operações</message>
   <message key="Demo.Badge">Dados de demonstração</message>
   <message key="Language.Label">Idioma</message>
@@ -191,10 +191,10 @@
   <message key="Wpf.ConfigurationTitle">Configuração não secreta</message>
   <message key="Wpf.NoAction">Nenhuma ação pode ser executada nesta tela.</message>
   <message key="Wpf.ReviewSelected">Revisar decisão selecionada</message>
-  <message key="Tray.Open">Abrir DB-Notifier</message>
+  <message key="Tray.Open">Abrir DB Notifier</message>
   <message key="Tray.Status">Demonstração local · sem dados externos</message>
   <message key="Tray.Exit">Sair</message>
-  <message key="Tray.Tooltip">DB-Notifier · demonstração local</message>
-  <message key="Tray.BalloonTitle">DB-Notifier continua disponível</message>
+  <message key="Tray.Tooltip">DB Notifier · demonstração local</message>
+  <message key="Tray.BalloonTitle">DB Notifier continua disponível</message>
   <message key="Tray.BalloonMessage">A janela foi recolhida. Nenhum banco ou serviço foi controlado.</message>
 </localisation>

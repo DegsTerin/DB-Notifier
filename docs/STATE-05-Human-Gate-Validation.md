@@ -20,14 +20,14 @@ The human sample covers:
 - native browser zoom, Windows scaling and High Contrast where the environment permits;
 - operational truth for stale data, planned providers and unavailable administrative execution.
 
-Mobile and tablet samples apply to the responsive Dashboard Web. There is no native mobile application in this phase. WPF remains a Windows desktop interface with a supported minimum window size of `820×620` DIP.
+Mobile and tablet samples apply to the responsive Dashboard Web. There is no native mobile application in this phase. There is also no dedicated TV, wallboard or kiosk mode; standard desktop/ultrawide responsiveness is not evidence of TV-mode support. WPF remains a Windows desktop interface with a supported minimum window size of `820×620` DIP.
 
 ## Automatic evidence to review first
 
 | Evidence | Current result |
 |---|---|
-| Design System implementation report | Design System `1.3.3` visual remediation and outlined database-mark gates approved; commit identifier is reported in the implementation hand-off |
-| Dashboard matrix | 60 locale/theme/viewport-route samples, including `960×1040`; no global overflow or unnamed interactive control |
+| Design System implementation report | Design System `1.3.4` visual remediation, outlined database-mark and ultrawide gates approved; commit identifier is reported in the implementation hand-off |
+| Dashboard matrix | 66 locale/theme/viewport-route samples, including `960×1040` and `1920×1080`; no global overflow or unnamed interactive control |
 | WPF matrix | Six locale/theme combinations and minimum-window sample recorded after visual remediation |
 | Automated tests | 21 Dashboard, 131 .NET unit/model/provider/presentation, 5 architecture and 10 legacy compatibility tests approved |
 | Security/dependencies | npm and NuGet reported no known vulnerabilities in the recorded audit |
@@ -192,6 +192,18 @@ Do not mark a row until the named human validator has performed it.
 - Human closure: PENDENTE; only review of the outlined replacement may close this finding.
 - Lifecycle impact: Narrator remains off and the Human Gate remains pending.
 
+### `S05-HG-003` — Fullscreen Dashboard leaves an inactive strip and uses the wrong visual product spelling
+
+- Date observed: 2026-07-13.
+- Source: explicit user review of the fullscreen `pt-BR` Dashboard, supported by a sanitised screenshot supplied in the conversation and not committed to the repository.
+- Classification: blocking visual layout and identity checkpoint; it does not reopen the previously accepted shell hierarchy.
+- Human feedback: the main content left excessive empty space on the right in fullscreen, and visible product text must use `DB Notifier`.
+- Remediation: Design System `1.3.4` removes the fixed `1640` CSS px main-region limit, stretches operational content across the available shell width and defines `DB Notifier` as the visual display name while preserving technical paths and identifiers.
+- Automatic evidence: 66 browser samples passed. All six locale/theme combinations at `1920×1080` measured a zero-pixel main-region right gap, a 48-pixel content inset, no global overflow and no unnamed interactive control. WPF `pt-BR` Dark exposed the window name `DB Notifier — Inventário`, 37 focusable controls and none without a name.
+- TV scope: repository and Design System review confirm that no dedicated TV/wallboard/kiosk mode is implemented; the ultrawide correction must not be presented as such.
+- Human closure: PENDENTE; the visible fullscreen correction and display name still require reviewer confirmation.
+- Lifecycle impact: Narrator remains off and the Human Gate remains pending.
+
 ## Human Gate decision
 
 - Phase: `STATE-05 FRONTEND_IMPLEMENTATION`
@@ -201,7 +213,7 @@ Do not mark a row until the named human validator has performed it.
 - Critical samples repeated: PENDENTE
 - Experience and error messages: PENDENTE
 - Security/authorisation truth: PENDENTE
-- Remaining coverage: outlined database-mark confirmation plus all keyboard, screen-reader, zoom, scaling, High Contrast and remaining samples above
+- Remaining coverage: outlined database-mark, fullscreen layout and display-name confirmation plus all keyboard, screen-reader, zoom, scaling, High Contrast and remaining samples above
 - Decision: `PENDENTE`
 - Justification/evidence: PENDENTE
 
@@ -209,4 +221,4 @@ Permitted decisions after the sample are `APROVADO`, `APROVADO COM RESSALVAS` or
 
 ## Recommended next step
 
-Confirm the outlined canonical database mark in the visible `pt-BR` Light Dashboard, then obtain explicit consent before starting Narrator and continuing the keyboard/accessibility protocol; record every result without inferring the final Human Gate decision.
+Confirm the outlined canonical database mark, fullscreen layout and `DB Notifier` display name in the visible `pt-BR` Dashboard, then obtain explicit consent before starting Narrator and continuing the keyboard/accessibility protocol; record every result without inferring the final Human Gate decision.

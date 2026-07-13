@@ -38,6 +38,8 @@ test("language persistence accepts only supported BCP 47 values and fails safely
 });
 
 test("translated messages preserve placeholders and British operational terminology", () => {
+  assert.equal(translate("pt-BR", "App.Title"), "DB Notifier — Inventário");
+  assert.equal(translate("en-GB", "App.Title"), "DB Notifier — Inventory");
   assert.equal(translate("pt-BR", "Inventory.Count", 2, 4), "2 de 4 itens visíveis");
   assert.equal(translate("en-GB", "Inventory.Count", 2, 4), "2 of 4 items visible");
   assert.match(translate("en-GB", "Configuration.AdminDescription"), /authorisation/);

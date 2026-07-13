@@ -2,9 +2,11 @@
 
 ## Outcome
 
-The first three DB-Notifier Design System increments, two `S05-HG-001` visual remediation iterations and the canonical product-mark refinement are complete. They establish the canonical token/schema sources, deterministic React/WPF asset generation, platform-neutral Light/Dark/System preference contracts and a cohesive enterprise shell on both interfaces required by Design System `1.3.3`.
+The first three DB-Notifier Design System increments, two `S05-HG-001` visual remediation iterations, the canonical product-mark refinement and the ultrawide shell correction are complete. They establish the canonical token/schema sources, deterministic React/WPF asset generation, platform-neutral Light/Dark/System preference contracts and a cohesive enterprise shell on both interfaces required by Design System `1.3.4`.
 
 The Dashboard and WPF Desktop now apply generated semantic tokens, expose discreet language and theme buttons in the upper-right TopBar and preserve the validated preferences. Dedicated chrome semantics keep product identity cohesive across themes without the rejected Light-header/Dark-content inversion. System follows live platform colour preference; explicit Light and Dark remain stable. WPF gives Windows High Contrast precedence over the generated palette.
+
+User-facing Web, WPF, Tray and installer surfaces use the display name `DB Notifier`; technical identifiers and compatibility paths retain `DBNotifier` or `DB-Notifier` as appropriate. The Dashboard main region now stretches across the available desktop and ultrawide shell width instead of stopping at a fixed `1640` CSS px maximum. Responsive desktop behaviour remains distinct from a dedicated TV/wallboard/kiosk mode, which is not implemented in this phase.
 
 ## International product-pattern review
 
@@ -97,7 +99,7 @@ The React adapter accesses only versioned local UI preference storage, the docum
 | Legacy compatibility | Approved; 10/10 Pester and bundle validation |
 | Dependency audit | Approved; no npm or NuGet vulnerabilities reported |
 | Documentation gate | Approved; 161 comment-capable source files |
-| React visual/responsive matrix | Approved; 60 locale/theme/viewport-route samples across 320, 390, 640, 768, 960, 1024 and 1440 CSS px |
+| React visual/responsive matrix | Approved; 66 locale/theme/viewport-route samples across 320, 390, 640, 768, 960, 1024, 1440 and 1920 CSS px |
 | React overflow/accessibility | Approved; 0 global overflow and 0 unnamed interactive controls in all six locale/theme combinations |
 | WPF UI Automation/visual matrix | Approved; six locale/theme combinations plus `820×620` minimum-window sample, with representative Light/Dark repetition after the second refinement |
 
@@ -112,10 +114,10 @@ The React adapter accesses only versioned local UI preference storage, the docum
 
 ## Remaining increments
 
-1. Confirm the newly applied outlined database mark in the visible Dashboard preview.
+1. Confirm the outlined database mark, ultrawide layout and `DB Notifier` display name in the visible Dashboard preview.
 2. Obtain explicit consent, then complete the keyboard/Narrator portion of `HG05-01`, native browser zoom, Windows scaling, High Contrast and remaining visual samples.
 3. Present the explicit Human Gate decision; no lifecycle transition occurs automatically.
 
 ## Recommendation
 
-Confirm the outlined canonical database mark in the visible Dashboard preview, then obtain explicit consent before starting Narrator and continuing the remaining samples in [`STATE-05-Human-Gate-Validation.md`](STATE-05-Human-Gate-Validation.md).
+Confirm the outlined canonical database mark, ultrawide layout and `DB Notifier` display name in the visible Dashboard preview, then obtain explicit consent before starting Narrator and continuing the remaining samples in [`STATE-05-Human-Gate-Validation.md`](STATE-05-Human-Gate-Validation.md).

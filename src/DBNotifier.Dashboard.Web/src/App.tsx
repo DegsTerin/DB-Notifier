@@ -145,9 +145,9 @@ export function App() {
     <div className="app-shell">
       <a className="skip-link" href="#main-content">{t("Navigation.Skip")}</a>
       <header className="topbar">
-        <div className="brand-lockup" aria-label="DB-Notifier">
+        <div className="brand-lockup" aria-label="DB Notifier">
           <span className="brand-mark"><img src="/dbnotifier-icon.svg?v=1.3.3" alt="" /></span>
-          <span><strong>DB-NOTIFIER</strong><small>{t("Brand.Subtitle")}</small></span>
+          <span><strong>DB Notifier</strong><small>{t("Brand.Subtitle")}</small></span>
         </div>
         <div className="topbar-controls">
           <LanguageSelector />
