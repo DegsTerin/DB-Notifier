@@ -57,6 +57,8 @@ The preflight proves tool availability only. It does not prove screen-reader usa
 
 ## Safety and evidence rules
 
+- An agent or automation MUST NOT start Narrator/NVDA, open a visible validation browser/application, or change zoom, scaling, theme or High Contrast unless the validator has separately confirmed that exact interactive action.
+- General continuation words such as “continue/seguir” or “approved/aprovado” do not by themselves authorise an accessibility tool or operating-system preference change.
 - Use only the local deterministic demonstration data. Do not connect to an Agent, API, database, identity provider, credential store or administrative executor.
 - Do not enter credentials, connection strings, host names or production identifiers.
 - Do not capture unrelated windows, notifications, Narrator history or personal desktop content.
@@ -150,7 +152,7 @@ Do not mark a row until the named human validator has performed it.
 
 | ID | Human sample | Validator result | Sanitised evidence/notes |
 |---|---|---|---|
-| `HG05-01` | Dashboard `pt-BR` Light, keyboard and Narrator | PENDENTE | |
+| `HG05-01` | Dashboard `pt-BR` Light, keyboard and Narrator | PENDENTE | Not executed; the initial interactive launch was cancelled before validation. A future launch requires specific confirmation. |
 | `HG05-02` | Dashboard `en-GB` Dark, keyboard and Narrator | PENDENTE | |
 | `HG05-03` | Dashboard native 200% zoom and compact reflow | PENDENTE | |
 | `HG05-04` | WPF `pt-BR` Light, default/minimum, keyboard and Narrator | PENDENTE | |
