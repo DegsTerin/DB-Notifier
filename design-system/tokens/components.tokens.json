@@ -4,6 +4,13 @@
   "tokenSet": "components",
   "tokens": {
     "component.app.background": { "type": "color", "value": "{colour.canvas}" },
+    "component.shell.chrome.background": { "type": "color", "value": "{colour.chrome.background}" },
+    "component.shell.chrome.surface": { "type": "color", "value": "{colour.chrome.surface}" },
+    "component.shell.chrome.foreground": { "type": "color", "value": "{colour.chrome.foreground}" },
+    "component.shell.chrome.muted": { "type": "color", "value": "{colour.chrome.muted}" },
+    "component.shell.chrome.border": { "type": "color", "value": "{colour.chrome.border}" },
+    "component.shell.chrome.selected.background": { "type": "color", "value": "{colour.chrome.selected.background}" },
+    "component.shell.chrome.selected.foreground": { "type": "color", "value": "{colour.chrome.selected.foreground}" },
     "component.card.background": { "type": "color", "value": "{colour.surface.default}" },
     "component.card.border": { "type": "color", "value": "{colour.border.default}" },
     "component.button.primary.background.default": { "type": "color", "value": "{colour.action.primary.background}" },

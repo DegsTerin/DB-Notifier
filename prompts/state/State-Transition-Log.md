@@ -432,6 +432,16 @@
 - Evidências: feedback explícito e screenshot sanitizada fornecida pelo utilizador na sessão; registro factual em `docs/STATE-05-Human-Gate-Validation.md` sem incorporar a imagem ao Git.
 - Riscos/ressalvas: Human Gate continua `PENDENTE` e bloqueado; remediação visual e repetição dos gates automáticos afetados são obrigatórias antes de reiniciar `HG05-01`.
 
+## 2026-07-13 — Remediação visual e reauditoria automática de S05-HG-001
+
+- Estado anterior: `STATE-05 FRONTEND_IMPLEMENTATION`
+- Estado resultante: sem transição
+- Decisão: considerar a implementação e a reauditoria automática da remediação concluídas, mantendo o achado aberto até nova validação humana.
+- Escopo: Design System `1.3.0`, tokens de chrome, shell React/WPF, seletores discretos, hierarquia de superfícies, navegação responsiva, cartões de dados compactos e seleção do DataGrid.
+- Gates: 60 amostras browser aprovadas em dois locales, três preferências e dez viewport/rotas; sete amostras WPF aprovadas; 19 testes Dashboard, 136 .NET, 10 Pester, builds, format, drift, documentação, bundle e auditorias de dependência aprovados.
+- Evidências: `docs/STATE-05-Design-System-Implementation-Report.md`, `docs/STATE-05-Human-Gate-Validation.md` e JSON/PNG sanitizados temporários fora do Git, incluindo a largura `960×1040` que reproduzia o problema.
+- Riscos/ressalvas: a reauditoria automática não substitui a reprovação humana original; `HG05-01`, Narrator, zoom, scaling, High Contrast e o Human Gate completo permanecem pendentes.
+
 ## Template de nova entrada
 
 - Data:

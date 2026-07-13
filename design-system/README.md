@@ -21,4 +21,4 @@ npm run tokens:verify
 - Add component tokens instead of consuming palette primitives in feature UI.
 - Update the Design System version and contrast/visual evidence with every material token change.
 
-Generated adapters are not yet applied to the current React/WPF views; integration is the next controlled `STATE-05` increment.
+Generated adapters are applied by the current React and WPF shells. Canonical changes must be regenerated and verified before either platform is built.

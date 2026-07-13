@@ -2,17 +2,17 @@
 
 ## Outcome
 
-The first three DB-Notifier Design System increments are complete. They establish the canonical token schema/source, deterministic React/WPF generation, platform-neutral Light/Dark/System preference contracts and complete theme runtimes on both interfaces required by Design System `1.2.0`.
+The first three DB-Notifier Design System increments and the `S05-HG-001` visual remediation increment are complete. They establish the canonical token schema/source, deterministic React/WPF generation, platform-neutral Light/Dark/System preference contracts and a cohesive enterprise shell on both interfaces required by Design System `1.3.0`.
 
-The Dashboard and WPF Desktop now apply generated semantic tokens, expose discreet language and theme buttons in the upper-right TopBar and preserve the validated preferences. System follows live platform colour preference; explicit Light and Dark remain stable. WPF gives Windows High Contrast precedence over the generated palette.
+The Dashboard and WPF Desktop now apply generated semantic tokens, expose discreet language and theme buttons in the upper-right TopBar and preserve the validated preferences. Dedicated chrome semantics keep product identity cohesive across themes without the rejected Light-header/Dark-content inversion. System follows live platform colour preference; explicit Light and Dark remain stable. WPF gives Windows High Contrast precedence over the generated palette.
 
 ## Canonical token source
 
 - Contract: `dbnotifier.design-tokens.v1`.
 - JSON Schema restricts envelope, token-set names, key format, token types and values.
 - `core.tokens.json` defines brand/neutral/status palettes, spacing, radius, control heights, typography, motion, easing and elevation primitives.
-- `semantic.light.tokens.json` and `semantic.dark.tokens.json` expose identical semantic names/types for surfaces, text, borders, actions, focus, selection, status, overlay and elevation.
-- `components.tokens.json` maps initial App, Card, Button, Input, Focus and Status component decisions to semantic aliases.
+- `semantic.light.tokens.json` and `semantic.dark.tokens.json` expose identical semantic names/types for surfaces, cohesive chrome, text, borders, actions, focus, selection, status, overlay and elevation.
+- `components.tokens.json` maps App Shell Chrome, App, Card, Button, Input, Focus and Status component decisions to semantic aliases.
 - Strict JSON remains comment-free; semantics are owned by the official Design System specification.
 
 ## Deterministic platform generation
@@ -53,6 +53,8 @@ The React adapter accesses only versioned local UI preference storage, the docum
 - Cross-tab storage changes accept only validated preference values.
 - Route, filters, modal state and other React state remain owned by their existing components and are not reset by a theme change.
 - Generated CSS loads before feature CSS. Hand-written feature styles contain no raw colour values or shadows and use canonical spacing/radius tokens for their corresponding declarations.
+- At `1100` CSS px and below, the shell switches from the persistent side navigation to labelled horizontal navigation and replaces the seven-column inventory table with complete operational cards. The previous compressed `82` px rail and clipped `980` px table no longer exist.
+- Summary cards use restrained surface elevation and compact status markers rather than heavy status-coloured top borders; preference groups use quiet chrome surfaces rather than outlined containers.
 
 ## WPF theme runtime
 
@@ -60,7 +62,7 @@ The React adapter accesses only versioned local UI preference storage, the docum
 - System resolves the current-user Windows application colour preference and observes it at a bounded interval; explicit Light and Dark ignore that derived value.
 - Windows High Contrast takes precedence and maps semantic resources to live system brushes without persisting an effective theme.
 - One atomic, bounded `%LocalAppData%\DB-Notifier\ui-preferences.v1.json` document stores only schema, locale and selected theme; failures remain session-local.
-- Main window surfaces, cards, inputs, buttons, tables, statuses and footer consume generated `DynamicResource` keys. Custom Button/ComboBox templates retain legibility in Dark instead of inheriting incompatible native Light colours.
+- Main window chrome, surfaces, cards, inputs, buttons, tables, statuses and footer consume generated `DynamicResource` keys. Custom Button/ComboBox/DataGrid selection templates retain legibility in Dark instead of inheriting incompatible native Light colours.
 - `pt-BR`, `en-GB`, System, Light and Dark are distinct accessible radio-button groups at the upper-right of the WPF TopBar.
 
 ## Verification
@@ -80,7 +82,7 @@ The React adapter accesses only versioned local UI preference storage, the docum
 | Legacy compatibility | Approved; 10/10 Pester and bundle validation |
 | Dependency audit | Approved; no npm or NuGet vulnerabilities reported |
 | Documentation gate | Approved; 160 comment-capable source files |
-| React visual/responsive matrix | Approved; 54 locale/theme/viewport-route samples across 320, 390, 640, 768, 1024 and 1440 CSS px |
+| React visual/responsive matrix | Approved; 60 locale/theme/viewport-route samples across 320, 390, 640, 768, 960, 1024 and 1440 CSS px |
 | React overflow/accessibility | Approved; 0 global overflow and 0 unnamed interactive controls in all six locale/theme combinations |
 | WPF UI Automation/visual matrix | Approved; six locale/theme combinations plus `820×620` minimum-window sample |
 
@@ -95,11 +97,10 @@ The React adapter accesses only versioned local UI preference storage, the docum
 
 ## Remaining increments
 
-1. Remediate the blocking `S05-HG-001` human finding: the sampled Dashboard does not yet meet the required modern enterprise visual identity.
-2. Repeat the affected automatic visual/responsive/accessibility matrix and restart the rejected `HG05-01` sample.
-3. Complete human screen-reader, native browser zoom, Windows scaling, High Contrast and remaining visual samples.
-4. Present the explicit Human Gate decision; no lifecycle transition occurs automatically.
+1. Repeat `HG05-01` so the human validator can accept or reject the remediated visual result before Narrator sampling continues.
+2. Complete human screen-reader, native browser zoom, Windows scaling, High Contrast and remaining visual samples.
+3. Present the explicit Human Gate decision; no lifecycle transition occurs automatically.
 
 ## Recommendation
 
-Remediate `S05-HG-001` through the canonical Design System and shared shell, repeat the affected automatic gates, then restart the pending protocol in [`STATE-05-Human-Gate-Validation.md`](STATE-05-Human-Gate-Validation.md) without changing the provider-neutral demonstration boundary.
+Restart `HG05-01` against the remediated shell in [`STATE-05-Human-Gate-Validation.md`](STATE-05-Human-Gate-Validation.md). Continue Narrator and the remaining Human Gate samples only after the validator has reviewed the new visual result; do not infer approval from this automatic re-audit.

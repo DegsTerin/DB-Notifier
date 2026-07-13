@@ -171,6 +171,9 @@ test("canonical Light and Dark semantic text pairs meet WCAG AA", () => {
     const pairs = [
       ["colour.text.primary", "colour.surface.default"],
       ["colour.text.secondary", "colour.surface.default"],
+      ["colour.chrome.foreground", "colour.chrome.background"],
+      ["colour.chrome.muted", "colour.chrome.background"],
+      ["colour.chrome.selected.foreground", "colour.chrome.selected.background"],
       ["colour.action.primary.foreground", "colour.action.primary.background"],
       ["colour.status.healthy.foreground", "colour.status.healthy.background"],
       ["colour.status.degraded.foreground", "colour.status.degraded.background"],

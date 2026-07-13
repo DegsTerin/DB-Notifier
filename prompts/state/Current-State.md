@@ -123,11 +123,13 @@ O projeto está em `STATE-05 FRONTEND_IMPLEMENTATION`. Quatro incrementos implem
 - Reauditoria automática combinada aprovada em 54 amostras browser (`2 locales × 3 temas × 9 viewport/rota`), sem overflow global ou controlo interativo sem nome, além das seis combinações WPF e amostra mínima `820×620`.
 - Protocolo do Human Gate de `STATE-05` preparado em `docs/STATE-05-Human-Gate-Validation.md`; preflight confirmou Narrator disponível, escala atual 100% e High Contrast desligado.
 - Primeira amostra humana interrompida com `S05-HG-001`: o Dashboard `pt-BR` foi explicitamente reprovado na revisão visual por não parecer moderno nem empresarial; teclado/Narrator e demais amostras não foram executados.
+- Remediação visual de `S05-HG-001` implementada no Design System `1.3.0`: chrome coeso Light/Dark, seletores discretos, hierarquia de superfícies refinada, navegação horizontal antes da compressão e cartões operacionais completos em larguras estreitas, com paridade WPF.
+- Reauditoria automática afetada aprovada em 60 amostras browser (`2 locales × 3 preferências × 10 viewport/rota`, incluindo `960×1040`) e sete amostras WPF, sem overflow global nem controles interativos/focalizáveis sem nome; o resultado humano inicial não foi sobrescrito.
 
 ## Pendente
 
 - Completar amostras humanas bilíngues com leitor de tela, zoom nativo, Windows scaling/High Contrast e revisão visual conforme inventário do Design System.
-- Remediar `S05-HG-001` no shell visual compartilhado, repetir os gates automáticos afetados e reiniciar `HG05-01` antes das demais amostras humanas.
+- Repetir a revisão visual humana de `HG05-01` sobre a remediação de `S05-HG-001`; somente após aceitação visual e consentimento explícito iniciar Narrator e as demais porções da amostra.
 - Manter adapters de apresentação determinísticos até `STATE-06`; não integrar silenciosamente banco, IdP, certificado, canal ou provider real durante a fase de UI.
 - Representar capabilities e suporte de modo factual: ação ausente/negada/unsupported não pode aparecer como executável ou homologada.
 - Preservar as pendências posteriores de ativação sandbox de pacotes, integração real, execução/post-probe de comandos, legal hold/backup e adapters externos.

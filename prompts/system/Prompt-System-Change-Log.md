@@ -2,7 +2,7 @@
 
 ## Versão atual
 
-- Versão: `3.27.0`
+- Versão: `3.28.0`
 - Data: 2026-07-13
 - Status: corpus DB-Notifier consolidado
 - Escopo: 13 arquivos ativos
@@ -16,6 +16,12 @@ A versão do corpus é independente da versão do software.
 - PATCH: clareza, correção ou referência sem mudança de autoridade.
 
 Toda alteração atualiza este arquivo e, quando necessário, `../Start-Here.md`.
+
+## 3.28.0 — 2026-07-13
+
+- Design System atualizado para `1.3.0` com chrome canônico coeso nos temas Light/Dark, hierarquia empresarial refinada e seletores de preferência de baixa ênfase.
+- Breakpoints de conteúdo substituem o rail comprimido por navegação horizontal rotulada e a tabela de sete colunas por cartões completos em `1100` CSS px ou menos; a matriz inclui a largura de reprovação `960×1040`.
+- `S05-HG-001` implementado e reauditado automaticamente em 60 amostras browser e sete WPF; a reprovação humana original permanece registrada e exige nova validação explícita, sem transição de estado.
 
 ## 3.27.0 — 2026-07-13
 

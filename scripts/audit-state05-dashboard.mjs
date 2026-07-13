@@ -68,6 +68,7 @@ async function captureViewport(call, name, width, height, hash = "inventory", pa
   await settle(80);
   await call("Page.reload", { ignoreCache: true });
   await settle();
+  await evaluate(call, "window.scrollTo(0, 0); true");
 
   const layout = await evaluate(call, `(() => {
     const root = document.documentElement;
@@ -236,6 +237,7 @@ async function main() {
   const viewports = [];
   for (const [name, width, height, hash = "inventory", pageScaleFactor = 1] of [
     ["inventory-desktop-1440x1000", 1440, 1000],
+    ["inventory-narrow-desktop-960x1040", 960, 1040],
     ["inventory-laptop-1024x768", 1024, 768],
     ["inventory-tablet-768x1024", 768, 1024],
     ["inventory-mobile-390x844", 390, 844],

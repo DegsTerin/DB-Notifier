@@ -5,7 +5,7 @@
 | Field | Value |
 |---|---|
 | Status | Official frontend specification |
-| Design System version | `1.2.0` |
+| Design System version | `1.3.0` |
 | Product phase | `STATE-05 FRONTEND_IMPLEMENTATION` |
 | Platforms | React Web Dashboard and .NET 10 WPF Desktop/Tray |
 | Themes | Light, Dark and System |
@@ -287,7 +287,23 @@ Animations MUST NOT delay an operation, loop decoratively or imply live activity
 | `colour.selection.foreground` | `#052C50` | `#F2F6F8` |
 | `colour.overlay.scrim` | `rgba(8,25,38,.68)` | `rgba(0,0,0,.74)` |
 
-### 6.2 Operational status
+### 6.2 Cohesive application chrome
+
+The TopBar and its preference region use dedicated chrome semantics instead of `surface.inverse`. Chrome remains a restrained deep navy in Light and Dark so switching themes never creates a visually inverted header/content split. Theme differences remain visible in the canvas, surfaces, controls and data regions.
+
+| Semantic token | Light | Dark |
+|---|---:|---:|
+| `colour.chrome.background` | `#10283B` | `#0E1B25` |
+| `colour.chrome.surface` | `#18384F` | `#172C3A` |
+| `colour.chrome.foreground` | `#F4F7FA` | `#F4F7FA` |
+| `colour.chrome.muted` | `#C7D3DC` | `#C7D3DC` |
+| `colour.chrome.border` | `#3B586C` | `#3B586C` |
+| `colour.chrome.selected.background` | `#86C4F4` | `#86C4F4` |
+| `colour.chrome.selected.foreground` | `#031B31` | `#031B31` |
+
+Chrome text/background ratios range from `9.92:1` to `16.25:1`; the selected preference pair is `9.31:1`. Components consume the corresponding `component.shell.chrome.*` aliases. Chrome is reserved for shared application identity and preferences; feature panels MUST NOT recreate it as a decorative dark band.
+
+### 6.3 Operational status
 
 Every status component MUST combine icon, text and colour. These colours represent operational meaning and MUST NOT be assigned to provider identity.
 
@@ -308,7 +324,7 @@ Provider support labels use neutral/information semantics:
 - `Unavailable`: warning only when a normally supported capability is temporarily unavailable.
 - `Denied`: critical access state without implying system failure.
 
-### 6.3 Required contrast evidence
+### 6.4 Required contrast evidence
 
 The initial palette has the following calculated text contrast ratios:
 
@@ -374,8 +390,8 @@ The DB-Notifier wordmark is visually written as `DB-NOTIFIER`; accessible and pr
 |---|---|---|
 | `320–479` CSS px | Compact | Single-column cards; internal horizontal navigation; no page overflow |
 | `480–767` | Wide compact | Single-column content with more generous metadata layout |
-| `768–1023` | Tablet/narrow desktop | Collapsed navigation rail; 2–3 column summaries |
-| `1024–1439` | Standard desktop | Persistent navigation and data tables |
+| `768–1100` | Tablet/narrow desktop | Horizontal navigation, compact data cards and 3–5 column summaries according to content |
+| `1101–1439` | Standard desktop | Persistent navigation and data tables |
 | `1440+` | Wide desktop | Controlled max line lengths; no uncontrolled stretching |
 
 Breakpoints respond to content, not device names. Every component MUST tolerate text expansion of at least 30%. Global horizontal scrolling is forbidden at 320 CSS px. Deliberate local scrolling is permitted for navigation and data regions when labelled and keyboard-operable.
@@ -388,6 +404,8 @@ Breakpoints respond to content, not device names. Every component MUST tolerate 
 - Footer/status area: connectivity/data-source truth without competing with primary tasks.
 - Maximum readable prose line length: approximately 75 characters.
 - Dense tables may use available width; forms and dialogues use controlled widths.
+- A navigation rail MUST NOT retain visible labels once its width forces wrapping or compression; switch to a labelled horizontal navigation region first.
+- Seven-column operational tables switch to the complete compact-card alternative at `1100` CSS px or below. The alternative preserves all fields and does not rely on horizontal page scrolling.
 
 ### 9.3 WPF adaptation
 
@@ -399,7 +417,7 @@ All components define default, hover, pressed, focus-visible, selected, disabled
 
 ### 10.1 Application shell
 
-`AppShell`, `TopBar`, `SideNavigation`, `PageHeader`, `ContentRegion` and `FooterStatus` establish the common hierarchy. The shell owns theme application and responsive navigation; feature views MUST NOT recreate it.
+`AppShell`, `TopBar`, `SideNavigation`, `PageHeader`, `ContentRegion` and `FooterStatus` establish the common hierarchy. The shell owns theme application and responsive navigation; feature views MUST NOT recreate it. TopBar chrome remains cohesive across Light and Dark, while surface hierarchy and content colours communicate the effective theme.
 
 ### 10.2 Theme selector
 

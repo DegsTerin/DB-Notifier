@@ -1,4 +1,4 @@
-/* Generated from dbnotifier.design-tokens.v1; source sha256:536ef5f07695dc3c1ab7e5e8caf49ddfc6b61444fff600aae498280efc91eb52. Do not edit directly. */
+/* Generated from dbnotifier.design-tokens.v1; source sha256:b67aa76ed32ee07ad4f2ca0c3de5cc87b7564e349be8e97db1448108b796621a. Do not edit directly. */
 :root {
   --db-control-height-comfortable: 44px;
   --db-control-height-compact: 40px;
@@ -98,6 +98,13 @@
   --db-colour-border-default: #D9E0E7;
   --db-colour-border-strong: #9AACBC;
   --db-colour-canvas: #F4F7FA;
+  --db-colour-chrome-background: #10283B;
+  --db-colour-chrome-border: #3B586C;
+  --db-colour-chrome-foreground: #F4F7FA;
+  --db-colour-chrome-muted: #C7D3DC;
+  --db-colour-chrome-selected-background: #86C4F4;
+  --db-colour-chrome-selected-foreground: #031B31;
+  --db-colour-chrome-surface: #18384F;
   --db-colour-focus-ring: #9A4A00;
   --db-colour-overlay-scrim: #081926AD;
   --db-colour-selection-background: #DCEEFF;
@@ -137,6 +144,13 @@
   --db-component-input-background: #FFFFFF;
   --db-component-input-border: #9AACBC;
   --db-component-input-foreground: #17202A;
+  --db-component-shell-chrome-background: #10283B;
+  --db-component-shell-chrome-border: #3B586C;
+  --db-component-shell-chrome-foreground: #F4F7FA;
+  --db-component-shell-chrome-muted: #C7D3DC;
+  --db-component-shell-chrome-selected-background: #86C4F4;
+  --db-component-shell-chrome-selected-foreground: #031B31;
+  --db-component-shell-chrome-surface: #18384F;
   --db-component-status-critical-background: #FFF0F0;
   --db-component-status-critical-foreground: #982B2B;
   --db-component-status-degraded-background: #FFF7E4;
@@ -163,6 +177,13 @@
   --db-colour-border-default: #334650;
   --db-colour-border-strong: #58707D;
   --db-colour-canvas: #0B1218;
+  --db-colour-chrome-background: #0E1B25;
+  --db-colour-chrome-border: #3B586C;
+  --db-colour-chrome-foreground: #F4F7FA;
+  --db-colour-chrome-muted: #C7D3DC;
+  --db-colour-chrome-selected-background: #86C4F4;
+  --db-colour-chrome-selected-foreground: #031B31;
+  --db-colour-chrome-surface: #172C3A;
   --db-colour-focus-ring: #FFC857;
   --db-colour-overlay-scrim: #000000BD;
   --db-colour-selection-background: #063A6C;
@@ -202,6 +223,13 @@
   --db-component-input-background: #111C24;
   --db-component-input-border: #58707D;
   --db-component-input-foreground: #F2F6F8;
+  --db-component-shell-chrome-background: #0E1B25;
+  --db-component-shell-chrome-border: #3B586C;
+  --db-component-shell-chrome-foreground: #F4F7FA;
+  --db-component-shell-chrome-muted: #C7D3DC;
+  --db-component-shell-chrome-selected-background: #86C4F4;
+  --db-component-shell-chrome-selected-foreground: #031B31;
+  --db-component-shell-chrome-surface: #172C3A;
   --db-component-status-critical-background: #32191B;
   --db-component-status-critical-foreground: #FF9C9C;
   --db-component-status-degraded-background: #2B2412;

@@ -51,7 +51,7 @@ test("modal and mobile regression guards remain in source", () => {
   assert.match(app, /event\.shiftKey/);
   assert.match(app, /openerRef\.current\?\.focus\(\)/);
   assert.match(css, /\.app-shell \{ width: 100%; min-width: 0;/);
-  assert.match(css, /\.sidebar nav \{ width: 100%; min-width: 0; display: flex; overflow-x: auto;/);
+  assert.match(css, /\.sidebar nav \{[^}]*width: 100%;[^}]*min-width: 0;[^}]*display: flex;[^}]*overflow-x: auto;/s);
 });
 
 test("timeline filters severity without provider-specific branches", () => {

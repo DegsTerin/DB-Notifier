@@ -160,14 +160,17 @@ internal sealed class DesktopThemeService : IDisposable
         ResourceDictionary resources = [];
         Add(resources, WpfSystemColors.WindowBrush,
             "ColourCanvasBrush", "ColourSurfaceDefaultBrush", "ColourSurfaceRaisedBrush", "ColourSurfaceSubtleBrush", "ColourSurfaceSunkenBrush",
-            "ComponentAppBackgroundBrush", "ComponentCardBackgroundBrush", "ComponentButtonSecondaryBackgroundBrush", "ComponentInputBackgroundBrush");
+            "ColourChromeBackgroundBrush", "ColourChromeSurfaceBrush",
+            "ComponentAppBackgroundBrush", "ComponentCardBackgroundBrush", "ComponentButtonSecondaryBackgroundBrush", "ComponentInputBackgroundBrush",
+            "ComponentShellChromeBackgroundBrush", "ComponentShellChromeSurfaceBrush");
         Add(resources, WpfSystemColors.WindowTextBrush,
-            "ColourTextPrimaryBrush", "ColourTextSecondaryBrush", "ColourTextMutedBrush", "ComponentButtonSecondaryForegroundBrush", "ComponentInputForegroundBrush");
+            "ColourTextPrimaryBrush", "ColourTextSecondaryBrush", "ColourTextMutedBrush", "ColourChromeForegroundBrush", "ColourChromeMutedBrush",
+            "ComponentButtonSecondaryForegroundBrush", "ComponentInputForegroundBrush", "ComponentShellChromeForegroundBrush", "ComponentShellChromeMutedBrush");
         Add(resources, WpfSystemColors.ControlBrush, "ColourSurfaceInverseBrush");
         Add(resources, WpfSystemColors.ControlTextBrush, "ColourTextInverseBrush");
-        Add(resources, WpfSystemColors.ActiveBorderBrush, "ColourBorderDefaultBrush", "ColourBorderStrongBrush", "ComponentCardBorderBrush", "ComponentButtonSecondaryBorderBrush", "ComponentInputBorderBrush");
-        Add(resources, WpfSystemColors.HighlightBrush, "ColourSelectionBackgroundBrush", "ColourActionPrimaryBackgroundBrush", "ColourActionPrimaryHoverBrush", "ColourActionPrimaryActiveBrush", "ComponentButtonPrimaryBackgroundDefaultBrush", "ComponentButtonPrimaryBackgroundHoverBrush", "ComponentButtonPrimaryBackgroundActiveBrush");
-        Add(resources, WpfSystemColors.HighlightTextBrush, "ColourSelectionForegroundBrush", "ColourActionPrimaryForegroundBrush", "ComponentButtonPrimaryForegroundBrush");
+        Add(resources, WpfSystemColors.ActiveBorderBrush, "ColourBorderDefaultBrush", "ColourBorderStrongBrush", "ColourChromeBorderBrush", "ComponentCardBorderBrush", "ComponentButtonSecondaryBorderBrush", "ComponentInputBorderBrush", "ComponentShellChromeBorderBrush");
+        Add(resources, WpfSystemColors.HighlightBrush, "ColourSelectionBackgroundBrush", "ColourChromeSelectedBackgroundBrush", "ColourActionPrimaryBackgroundBrush", "ColourActionPrimaryHoverBrush", "ColourActionPrimaryActiveBrush", "ComponentButtonPrimaryBackgroundDefaultBrush", "ComponentButtonPrimaryBackgroundHoverBrush", "ComponentButtonPrimaryBackgroundActiveBrush", "ComponentShellChromeSelectedBackgroundBrush");
+        Add(resources, WpfSystemColors.HighlightTextBrush, "ColourSelectionForegroundBrush", "ColourChromeSelectedForegroundBrush", "ColourActionPrimaryForegroundBrush", "ComponentButtonPrimaryForegroundBrush", "ComponentShellChromeSelectedForegroundBrush");
         Add(resources, WpfSystemColors.HotTrackBrush, "ColourFocusRingBrush", "ComponentFocusRingBrush");
         Add(resources, WpfSystemColors.WindowBrush,
             "ColourStatusCriticalBackgroundBrush", "ColourStatusDegradedBackgroundBrush", "ColourStatusHealthyBackgroundBrush", "ColourStatusInformationBackgroundBrush", "ColourStatusMaintenanceBackgroundBrush", "ColourStatusNeutralBackgroundBrush",

@@ -157,26 +157,40 @@
       <Setter Property="VerticalGridLinesBrush" Value="{DynamicResource ColourBorderDefaultBrush}" />
     </Style>
     <Style TargetType="DataGridColumnHeader">
-      <Setter Property="Background" Value="{DynamicResource ColourSurfaceSunkenBrush}" />
+      <Setter Property="Background" Value="{DynamicResource ColourSurfaceSubtleBrush}" />
       <Setter Property="Foreground" Value="{DynamicResource ColourTextPrimaryBrush}" />
       <Setter Property="BorderBrush" Value="{DynamicResource ColourBorderDefaultBrush}" />
     </Style>
     <Style TargetType="DataGridRow">
       <Setter Property="Foreground" Value="{DynamicResource ColourTextPrimaryBrush}" />
     </Style>
+    <Style TargetType="DataGridCell">
+      <Setter Property="BorderBrush" Value="{DynamicResource ColourBorderDefaultBrush}" />
+      <Setter Property="BorderThickness" Value="0" />
+      <Style.Triggers>
+        <Trigger Property="IsSelected" Value="True">
+          <Setter Property="Background" Value="{DynamicResource ColourSelectionBackgroundBrush}" />
+          <Setter Property="Foreground" Value="{DynamicResource ColourSelectionForegroundBrush}" />
+        </Trigger>
+        <Trigger Property="IsKeyboardFocusWithin" Value="True">
+          <Setter Property="BorderBrush" Value="{DynamicResource ComponentFocusRingBrush}" />
+          <Setter Property="BorderThickness" Value="1" />
+        </Trigger>
+      </Style.Triggers>
+    </Style>
     <Style x:Key="SummaryCard" TargetType="Border">
       <Setter Property="Background" Value="{DynamicResource ComponentCardBackgroundBrush}" />
       <Setter Property="BorderBrush" Value="{DynamicResource ComponentCardBorderBrush}" />
       <Setter Property="BorderThickness" Value="1" />
-      <Setter Property="CornerRadius" Value="10" />
-      <Setter Property="Padding" Value="16" />
+      <Setter Property="CornerRadius" Value="12" />
+      <Setter Property="Padding" Value="18" />
       <Setter Property="Margin" Value="0,0,12,0" />
     </Style>
     <Style x:Key="TopbarPreferenceRadio" TargetType="RadioButton">
-      <Setter Property="MinHeight" Value="32" />
-      <Setter Property="Padding" Value="9,5" />
+      <Setter Property="MinHeight" Value="34" />
+      <Setter Property="Padding" Value="10,5" />
       <Setter Property="Margin" Value="2,0" />
-      <Setter Property="Foreground" Value="{DynamicResource ColourTextInverseBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource ComponentShellChromeMutedBrush}" />
       <Setter Property="Cursor" Value="Hand" />
       <Setter Property="Template">
         <Setter.Value>
@@ -184,19 +198,20 @@
             <Border x:Name="PreferenceBorder"
                     Padding="{TemplateBinding Padding}"
                     BorderThickness="1"
-                    BorderBrush="{DynamicResource ColourBorderStrongBrush}"
+                    BorderBrush="{DynamicResource ComponentShellChromeSurfaceBrush}"
                     CornerRadius="6"
-                    Background="Transparent">
+                    Background="{DynamicResource ComponentShellChromeSurfaceBrush}">
               <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
             </Border>
             <ControlTemplate.Triggers>
               <Trigger Property="IsMouseOver" Value="True">
-                <Setter TargetName="PreferenceBorder" Property="Background" Value="{DynamicResource ColourSelectionBackgroundBrush}" />
-                <Setter Property="Foreground" Value="{DynamicResource ColourSelectionForegroundBrush}" />
+                <Setter TargetName="PreferenceBorder" Property="Background" Value="{DynamicResource ComponentShellChromeBackgroundBrush}" />
+                <Setter Property="Foreground" Value="{DynamicResource ComponentShellChromeForegroundBrush}" />
               </Trigger>
               <Trigger Property="IsChecked" Value="True">
-                <Setter TargetName="PreferenceBorder" Property="Background" Value="{DynamicResource ColourSelectionBackgroundBrush}" />
-                <Setter Property="Foreground" Value="{DynamicResource ColourSelectionForegroundBrush}" />
+                <Setter TargetName="PreferenceBorder" Property="Background" Value="{DynamicResource ComponentShellChromeSelectedBackgroundBrush}" />
+                <Setter TargetName="PreferenceBorder" Property="BorderBrush" Value="{DynamicResource ComponentShellChromeSelectedBackgroundBrush}" />
+                <Setter Property="Foreground" Value="{DynamicResource ComponentShellChromeSelectedForegroundBrush}" />
               </Trigger>
               <Trigger Property="IsKeyboardFocused" Value="True">
                 <Setter TargetName="PreferenceBorder" Property="BorderBrush" Value="{DynamicResource ComponentFocusRingBrush}" />
@@ -216,42 +231,51 @@
       <RowDefinition Height="Auto" />
     </Grid.RowDefinitions>
 
-    <Border Grid.Row="0" Background="{DynamicResource ColourSurfaceInverseBrush}" Padding="28,14">
+    <!-- The cohesive chrome keeps product identity and low-emphasis preferences stable in every theme. -->
+    <Border Grid.Row="0" Background="{DynamicResource ComponentShellChromeBackgroundBrush}" BorderBrush="{DynamicResource ComponentShellChromeBorderBrush}" BorderThickness="0,0,0,1" Padding="28,12">
       <Grid>
         <Grid.ColumnDefinitions>
           <ColumnDefinition Width="*" />
           <ColumnDefinition Width="Auto" />
         </Grid.ColumnDefinitions>
-        <StackPanel>
-          <TextBlock Text="DB-NOTIFIER" Foreground="{DynamicResource ColourActionPrimaryBackgroundBrush}" FontWeight="SemiBold" FontSize="12" />
-          <TextBlock Text="{DynamicResource View.Inventory.Title}" Foreground="{DynamicResource ColourTextInverseBrush}" FontWeight="SemiBold" FontSize="24" Margin="0,4,0,0" />
-          <TextBlock Text="{DynamicResource Sidebar.ReadOnly}" Foreground="{DynamicResource ColourTextInverseBrush}" Opacity="0.78" FontSize="13" Margin="0,5,0,0" />
+        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+          <Border Width="38" Height="38" Padding="8" Background="{DynamicResource ComponentShellChromeSurfaceBrush}" BorderBrush="{DynamicResource ComponentShellChromeBorderBrush}" BorderThickness="1" CornerRadius="8">
+            <StackPanel VerticalAlignment="Center">
+              <Border Height="3" Background="{DynamicResource ComponentShellChromeForegroundBrush}" CornerRadius="2" />
+              <Border Height="3" Width="15" HorizontalAlignment="Left" Background="{DynamicResource ComponentShellChromeForegroundBrush}" CornerRadius="2" Margin="0,4,0,0" />
+              <Border Height="3" Width="10" HorizontalAlignment="Left" Background="{DynamicResource ComponentShellChromeForegroundBrush}" CornerRadius="2" Margin="0,4,0,0" />
+            </StackPanel>
+          </Border>
+          <StackPanel Margin="12,0,0,0" VerticalAlignment="Center">
+            <TextBlock Text="DB-NOTIFIER" Foreground="{DynamicResource ComponentShellChromeForegroundBrush}" FontWeight="SemiBold" FontSize="13" />
+            <TextBlock Text="{DynamicResource Brand.Subtitle}" Foreground="{DynamicResource ComponentShellChromeMutedBrush}" FontSize="12" Margin="0,3,0,0" />
+          </StackPanel>
         </StackPanel>
         <WrapPanel Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Center">
           <StackPanel Margin="0,0,10,0">
-            <TextBlock Text="{DynamicResource Language.Label}" Foreground="{DynamicResource ColourTextInverseBrush}" Opacity="0.78" FontSize="10" Margin="2,0,0,4" />
+            <TextBlock Text="{DynamicResource Language.Label}" Foreground="{DynamicResource ComponentShellChromeMutedBrush}" FontSize="10" Margin="2,0,0,4" />
             <StackPanel Orientation="Horizontal">
               <RadioButton x:Name="PortugueseLanguageButton" GroupName="LanguagePreference" Style="{StaticResource TopbarPreferenceRadio}" Content="pt-BR" Tag="pt-BR" Checked="LanguageButtonChecked" AutomationProperties.Name="Português (Brasil)" />
               <RadioButton x:Name="BritishEnglishLanguageButton" GroupName="LanguagePreference" Style="{StaticResource TopbarPreferenceRadio}" Content="en-GB" Tag="en-GB" Checked="LanguageButtonChecked" AutomationProperties.Name="English (UK)" />
             </StackPanel>
           </StackPanel>
           <StackPanel Margin="0,0,10,0">
-            <TextBlock Text="{DynamicResource Theme.Label}" Foreground="{DynamicResource ColourTextInverseBrush}" Opacity="0.78" FontSize="10" Margin="2,0,0,4" />
+            <TextBlock Text="{DynamicResource Theme.Label}" Foreground="{DynamicResource ComponentShellChromeMutedBrush}" FontSize="10" Margin="2,0,0,4" />
             <StackPanel Orientation="Horizontal">
               <RadioButton x:Name="SystemThemeButton" GroupName="ThemePreference" Style="{StaticResource TopbarPreferenceRadio}" Content="{DynamicResource Theme.System}" Tag="system" Checked="ThemeButtonChecked" />
               <RadioButton x:Name="LightThemeButton" GroupName="ThemePreference" Style="{StaticResource TopbarPreferenceRadio}" Content="{DynamicResource Theme.Light}" Tag="light" Checked="ThemeButtonChecked" />
               <RadioButton x:Name="DarkThemeButton" GroupName="ThemePreference" Style="{StaticResource TopbarPreferenceRadio}" Content="{DynamicResource Theme.Dark}" Tag="dark" Checked="ThemeButtonChecked" />
             </StackPanel>
           </StackPanel>
-          <Border Background="{DynamicResource ColourSelectionBackgroundBrush}" CornerRadius="14" Padding="12,6" VerticalAlignment="Bottom" Margin="0,0,0,1">
-            <TextBlock Text="{DynamicResource Demo.Badge}" Foreground="{DynamicResource ColourSelectionForegroundBrush}" FontSize="11" FontWeight="SemiBold" />
+          <Border Background="{DynamicResource ComponentShellChromeSurfaceBrush}" CornerRadius="14" Padding="12,6" VerticalAlignment="Bottom" Margin="0,0,0,1">
+            <TextBlock Text="{DynamicResource Demo.Badge}" Foreground="{DynamicResource ComponentShellChromeMutedBrush}" FontSize="11" FontWeight="SemiBold" />
           </Border>
         </WrapPanel>
       </Grid>
     </Border>
 
     <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" AutomationProperties.Name="{DynamicResource App.Title}">
-      <Grid Margin="28,24">
+      <Grid Margin="32,28">
         <Grid.RowDefinitions>
           <RowDefinition Height="Auto" />
           <RowDefinition Height="Auto" />
@@ -264,7 +288,7 @@
             <RowDefinition Height="Auto" />
           </Grid.RowDefinitions>
           <StackPanel>
-            <TextBlock Text="{DynamicResource Wpf.HealthTitle}" FontSize="20" FontWeight="SemiBold" />
+            <TextBlock Text="{DynamicResource Wpf.HealthTitle}" FontSize="24" FontWeight="SemiBold" />
             <TextBlock x:Name="UpdatedAtText" Foreground="{DynamicResource ColourTextSecondaryBrush}" Margin="0,5,0,0" />
           </StackPanel>
           <WrapPanel Grid.Row="1" Margin="0,16,0,0" VerticalAlignment="Center">
@@ -303,19 +327,19 @@
                 <TextBlock x:Name="TotalCountText" FontSize="26" FontWeight="SemiBold" Margin="0,5,0,0" />
               </StackPanel>
             </Border>
-            <Border Style="{StaticResource SummaryCard}" BorderBrush="{DynamicResource ComponentStatusHealthyForegroundBrush}">
+            <Border Style="{StaticResource SummaryCard}">
               <StackPanel>
                 <TextBlock Text="{DynamicResource Inventory.Healthy}" Foreground="{DynamicResource ComponentStatusHealthyForegroundBrush}" FontSize="11" FontWeight="SemiBold" />
                 <TextBlock x:Name="HealthyCountText" FontSize="26" FontWeight="SemiBold" Margin="0,5,0,0" />
               </StackPanel>
             </Border>
-            <Border Style="{StaticResource SummaryCard}" BorderBrush="{DynamicResource ComponentStatusDegradedForegroundBrush}">
+            <Border Style="{StaticResource SummaryCard}">
               <StackPanel>
                 <TextBlock Text="{DynamicResource Inventory.Degraded}" Foreground="{DynamicResource ComponentStatusDegradedForegroundBrush}" FontSize="11" FontWeight="SemiBold" />
                 <TextBlock x:Name="DegradedCountText" FontSize="26" FontWeight="SemiBold" Margin="0,5,0,0" />
               </StackPanel>
             </Border>
-            <Border Style="{StaticResource SummaryCard}" BorderBrush="{DynamicResource ComponentStatusCriticalForegroundBrush}">
+            <Border Style="{StaticResource SummaryCard}">
               <StackPanel>
                 <TextBlock Text="{DynamicResource Inventory.Attention}" Foreground="{DynamicResource ComponentStatusCriticalForegroundBrush}" FontSize="11" FontWeight="SemiBold" />
                 <TextBlock x:Name="AttentionCountText" FontSize="26" FontWeight="SemiBold" Margin="0,5,0,0" />
@@ -329,7 +353,7 @@
             </Border>
           </UniformGrid>
 
-          <Border Grid.Row="1" Background="{DynamicResource ComponentCardBackgroundBrush}" BorderBrush="{DynamicResource ComponentCardBorderBrush}" BorderThickness="1" CornerRadius="10" Margin="0,18,0,0">
+          <Border Grid.Row="1" Background="{DynamicResource ComponentCardBackgroundBrush}" BorderBrush="{DynamicResource ComponentCardBorderBrush}" BorderThickness="1" CornerRadius="12" Margin="0,20,0,0">
             <Grid>
               <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
