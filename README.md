@@ -4,7 +4,7 @@ DB-Notifier is the successor to PgNotifier, which was conceptually inspired by M
 
 Agents are designed to monitor local, remote, datacenter, hybrid, and cloud databases from Windows, Linux, containers, or cloud workloads. Monitoring credentials, database administration credentials, OS service identities, and cloud control-plane identities remain separate and vault-backed.
 
-The workspace is currently in `STATE-05 FRONTEND_IMPLEMENTATION`. Four frontend increments provide provider-neutral inventory, history/alerts, configuration/capabilities and a safe Windows Tray in React/.NET 10 WPF. Mobile-overflow and modal-focus blockers are remediated; that re-audit remains valid evidence for the existing UI, while the newly approved Design System implementation and a fresh theme-aware re-audit are now required before the Human Gate and `STATE-06`. The Tray controls only the DB-Notifier window, and all views remain demonstration-only, with no external integration, mutation, database/service control or provider homologation.
+The workspace is technically positioned in `STATE-05 FRONTEND_IMPLEMENTATION`, with lifecycle progression on hold. Five frontend increments provide provider-neutral inventory, history/alerts, configuration/capabilities, a safe Windows Tray and an operational demonstration flyout in React/.NET 10 WPF. Historical Human Gate approvals for `STATE-00` through `STATE-04` are under independent retrospective ratification after the validator disputed whether short approval responses represented informed gate decisions. The current `STATE-05` Human Gate also remains pending. All views are demonstration-only, with no external integration, mutation, database/service control or provider homologation.
 
 ## Start here
 
@@ -12,16 +12,17 @@ Repository agents start with [`AGENTS.md`](AGENTS.md), the primary source for pe
 
 Code and configuration documentation follows [`docs/Code-Documentation-Standards.md`](docs/Code-Documentation-Standards.md): comments use British English, document intent and remain synchronised with implementation. Run `npm run comments:verify` from `src/DBNotifier.Dashboard.Web` to check the project-wide module inventory.
 
-All frontend work follows the official [`DB-Notifier Design System`](docs/design/DB-Notifier-Design-System.md): a restrained modern enterprise identity, shared React/WPF semantic tokens, WCAG 2.2 AA and Light, Dark and System theme contracts. The canonical token/generation foundation is implemented; React/WPF application remains in `STATE-05` before its Human Gate.
+All frontend work follows the official [`DB-Notifier Design System`](docs/design/DB-Notifier-Design-System.md): a restrained modern enterprise identity, shared React/WPF semantic tokens, WCAG 2.2 AA and explicit Light/Dark theme contracts. Retired System values migrate safely to Light, while High Contrast remains an independent accessibility override. The Design System `2.1.0` application and its [final automatic re-audit](docs/STATE-05-Frontend-Implementation-Final-Reaudit.md) are approved in their tested scope; its Human Gate remains pending.
 
 The discovery outputs for the transformation are:
 
 - [`docs/Legacy-Inventory.md`](docs/Legacy-Inventory.md): verified behavior, assets, limitations, and risks in PgNotifier.
 - [`docs/Legacy-Migration-Plan.md`](docs/Legacy-Migration-Plan.md): incremental migration, compatibility contract, milestones, rollback, and gate criteria.
 - [`docs/Legacy-Compatibility.md`](docs/Legacy-Compatibility.md): canonical names and explicit deprecated shims.
-- [`docs/STATE-00-Discovery-Report.md`](docs/STATE-00-Discovery-Report.md): discovery evidence and the approved Human Gate.
+- [`docs/STATE-00-Discovery-Report.md`](docs/STATE-00-Discovery-Report.md): historical discovery evidence and the original, now-contested Human Gate record.
+- [`docs/Human-Gate-Retrospective-Ratification.md`](docs/Human-Gate-Retrospective-Ratification.md): pending state-by-state ratification of the contested `STATE-00` through `STATE-04` approvals.
 
-The project has completed the approved discovery, setup, architecture, database-modeling, and backend gates. See [`prompts/state/Current-State.md`](prompts/state/Current-State.md) for the factual state and [`docs/Development.md`](docs/Development.md) for onboarding commands.
+The project has technically completed discovery, setup, architecture, database modelling and backend implementation, but their Human Gate authority is being ratified retrospectively. See [`prompts/state/Current-State.md`](prompts/state/Current-State.md) for the factual hold and [`docs/Development.md`](docs/Development.md) for onboarding commands.
 
 ## Current legacy application
 

@@ -11,6 +11,8 @@
     "comments:verify": "node ../../scripts/verify-code-documentation.mjs",
     "localisation:generate": "node ../../scripts/generate-localisation.mjs",
     "localisation:verify": "node ../../scripts/generate-localisation.mjs --verify",
+    "markdown:verify": "node ../../scripts/verify-markdown-links.mjs",
+    "preview": "vite preview",
     "test": "node --experimental-strip-types --test tests/*.test.ts",
     "tokens:generate": "node ../../scripts/generate-design-tokens.mjs",
     "tokens:verify": "node ../../scripts/generate-design-tokens.mjs --verify"

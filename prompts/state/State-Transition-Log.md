@@ -540,6 +540,30 @@
 - Riscos/ressalvas: nenhuma arte PostgreSQL, consulta externa, notificação por mudança ou operação de serviço foi adicionada; integração factual pertence ao `STATE-06` e controlo depende de implementação e homologação exata no `STATE-07`.
 - Aprovador: PENDENTE para a revisão humana do novo flyout; a solicitação de implementação não aprova o Human Gate completo.
 
+## 2026-07-13 — Contestação e início da ratificação retrospectiva dos Human Gates
+
+- Estado anterior: posição técnica `STATE-05 FRONTEND_IMPLEMENTATION`, Human Gate de `STATE-05` pendente.
+- Estado resultante: sem transição; progressão de lifecycle `EM ESPERA`.
+- Decisão: preservar os relatórios e transições históricas, mas retirar sua autoridade corrente até ratificação independente de `STATE-00` a `STATE-04`.
+- Motivo: o validador declarou não ter certeza de que os Human Gates anteriores foram aprovados corretamente e informou que havia apenas respondido “Aprovado”; em seguida autorizou a correção das divergências e a regularização completa.
+- Escopo: regra contra aprovação curta/ambígua, template de ratificação, pacote retrospectivo por estado, sincronização de estado/README/playbook/Human Gate e reforço de CI.
+- Integridade Git: referência interna Codex com caminho excessivamente longo foi copiada e validada em `%TEMP%`, removida pontualmente e `git show-ref`/`git fsck --full` retornaram código 0; nenhum commit, branch ou tag de produto foi removido.
+- Gates humanos: `STATE-00`, `STATE-01`, `STATE-02`, `STATE-03`, `STATE-04` e `STATE-05` permanecem `PENDENTE` até decisões inequívocas separadas.
+- Evidências: `docs/Human-Gate-Retrospective-Ratification.md`, `prompts/governance/Quality-Gates.md`, `prompts/state/Current-State.md` e relatórios históricos originais.
+- Riscos/ressalvas: evidência técnica continua válida em seu escopo, mas não substitui amostras humanas; `STATE-06`, laboratório, homologação e release permanecem bloqueados.
+- Aprovador: Bruno autorizou o processo de regularização, não a aprovação dos gates individuais.
+
+## 2026-07-13 — Regularização automática e reauditoria final de STATE-05
+
+- Estado anterior: posição técnica `STATE-05 FRONTEND_IMPLEMENTATION`, progressão `EM ESPERA`.
+- Estado resultante: sem transição; progressão permanece `EM ESPERA`.
+- Decisão: fechar as divergências reproduzíveis de CI e emitir a reauditoria automática corrente do Design System `2.1.0`/Tray sem inferir decisões humanas.
+- Escopo: gates CI de format, vulnerabilidades NuGet/npm, bundle legado, links Markdown, smoke fail-closed, integridade Git e matriz Dashboard headless bilíngue Light/Dark.
+- Gates: 133 testes .NET, 23 Dashboard, 10 Pester, builds/formato/drift/bundle aprovados; 93 links em 58 Markdown; 44 amostras Web; API `200/401/403`; Agent desabilitado por padrão; auditorias de dependência sem vulnerabilidades conhecidas.
+- Evidências: `docs/STATE-05-Frontend-Implementation-Final-Reaudit.md`, scripts de auditoria em `scripts/` e `.github/workflows/ci.yml`.
+- Riscos/ressalvas: XML completo de APIs públicas preexistentes continua incremental; WPF visível, Narrator, zoom/scaling, High Contrast, TV e Tray permanecem amostras humanas; sistemas externos não foram contactados.
+- Aprovador: resultado automático; Human Gates `STATE-00` a `STATE-05` permanecem `PENDENTE`.
+
 ## Template de nova entrada
 
 - Data:

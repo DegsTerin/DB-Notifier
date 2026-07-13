@@ -2,7 +2,7 @@
 
 ## Versão atual
 
-- Versão: `3.31.0`
+- Versão: `3.32.0`
 - Data: 2026-07-13
 - Status: corpus DB-Notifier consolidado
 - Escopo: 13 arquivos ativos
@@ -16,6 +16,13 @@ A versão do corpus é independente da versão do software.
 - PATCH: clareza, correção ou referência sem mudança de autoridade.
 
 Toda alteração atualiza este arquivo e, quando necessário, `../Start-Here.md`.
+
+## 3.32.0 — 2026-07-13
+
+- Human Gates passam a exigir confirmação inequívoca de um único estado após resumo explícito de relatório, amostras, cobertura e ressalvas; respostas curtas ou agrupadas não autorizam transição.
+- Contestação posterior de aprovação informada coloca a progressão em espera e exige ratificação retrospectiva independente, preservando relatórios e histórico originais.
+- Template de Human Gate e auditoria retrospectiva ampliado; playbook UI/UX sincronizado com Light/Dark, migração de System retirado e High Contrast independente.
+- Aprovações históricas de `STATE-00` a `STATE-04` foram contestadas pelo validador e passam a aguardar ratificação; `STATE-05`, `STATE-06` e laboratório permanecem bloqueados.
 
 ## 3.31.0 — 2026-07-13
 

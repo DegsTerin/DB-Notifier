@@ -63,6 +63,10 @@ Decisões possíveis: `PENDENTE`, `APROVADO`, `APROVADO COM RESSALVAS` ou `REPRO
 
 O gate não pode ser pré-aprovado nem substituir falha técnica sem justificativa formal.
 
+Uma resposta curta como `sim`, `aprovado`, `yes`, `approved` ou `seguir` somente constitui decisão quando responde imediatamente a um resumo explícito de um único estado que identifica o relatório automático revisado, as amostras humanas repetidas, a cobertura pendente, as ressalvas e a decisão solicitada. Resposta ambígua, aprovação agrupada de vários estados ou simples autorização para continuar mantém o gate `PENDENTE`.
+
+Se o validador contestar posteriormente que uma aprovação registrada foi informada, o histórico não é reescrito. A progressão entra em espera e cada estado afetado recebe ratificação retrospectiva independente, com evidência atualizada e nova decisão humana. A ratificação não transforma automaticamente evidência técnica antiga em amostra humana executada.
+
 ## Amostras humanas por fase
 
 - STATE-01: onboarding de desenvolvedor e execução limpa.
@@ -86,3 +90,11 @@ Executar quando implementação ou integração revelar pressuposto incorreto:
 ## Auditoria dos Human Gates
 
 Comparar checklists, relatórios automáticos e workspace; detectar aprovação pré-preenchida, item não aplicável sem justificativa e cobertura omitida. A auditoria aponta inconsistências, mas não substitui a decisão humana.
+
+Para ratificação retrospectiva:
+
+1. Identificar exatamente o registro contestado e preservar o relatório histórico.
+2. Revalidar automaticamente o que ainda é reproduzível e distinguir evidência histórica da atual.
+3. Repetir ou declarar pendente cada amostra humana exigida na fase.
+4. Apresentar um estado por vez, sem agrupar decisões.
+5. Registrar nova decisão, data, ressalvas e evidência como adendo; somente depois restaurar a cadeia de progressão.

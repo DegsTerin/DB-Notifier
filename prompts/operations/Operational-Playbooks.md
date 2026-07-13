@@ -40,7 +40,7 @@ Quando usar: pedido explícito de revisão ponta a ponta.
 - Percorrer alerta, configuração, logs e comando administrativo.
 - Testar Desktop Windows e web em viewports representativos.
 - Validar teclado, foco, leitor de tela, contraste, escala e overflow.
-- Validar Light, Dark e System, persistência, troca sem perda de estado e paridade semântica React/WPF.
+- Validar Light e Dark, persistência, migração segura do valor System retirado para Light, troca sem perda de estado, High Contrast independente e paridade semântica React/WPF.
 - Produzir evidência visual apenas quando materialmente útil.
 
 ## Sistematização

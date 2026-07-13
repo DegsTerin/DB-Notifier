@@ -48,13 +48,34 @@ Usar para integração, homologação ou release. A fase determina as verificaç
 
 - Fase:
 - Validador e data:
-- Relatório automático revisado:
-- Amostras repetidas:
+- Relatório automático revisado (identificador/commit):
+- Amostras críticas repetidas pelo validador:
+- Amostras não repetidas e motivo:
 - Experiência operacional:
 - Segurança/autorização:
 - Cobertura pendente:
+- Ressalvas aceitas:
 - Decisão: PENDENTE/APROVADO/APROVADO COM RESSALVAS/REPROVADO
 - Justificativa e evidências:
+- Confirmação inequívoca do validador: `Confirmo a decisão acima exclusivamente para <STATE-ID>`
+
+Uma palavra isolada ou autorização para continuar não preenche este template. Cada fase exige decisão separada; gates agrupados permanecem pendentes.
+
+## Ratificação retrospectiva de Human Gate
+
+- Fase original:
+- Registro histórico contestado:
+- Motivo da contestação:
+- Evidência automática histórica:
+- Evidência automática repetida agora:
+- Amostras humanas repetidas agora:
+- Limitações ainda não exercitadas:
+- Ressalvas e dívida aceitas:
+- Decisão de ratificação: PENDENTE/APROVADO/APROVADO COM RESSALVAS/REPROVADO
+- Validador e data:
+- Confirmação inequívoca: `Ratifico a decisão acima exclusivamente para <STATE-ID>`
+
+A ratificação é um adendo e não reescreve o relatório ou a decisão histórica contestada.
 
 ## ADR
 

@@ -28,6 +28,7 @@ Agentes que operam no repositório começam também por [`../AGENTS.md`](../AGEN
 | Auditoria completa, ajustes, UI/UX e reestruturação | `operations/Operational-Playbooks.md` |
 | Design System, temas, tokens e componentes React/WPF | `../docs/design/DB-Notifier-Design-System.md` |
 | Situação atual | `state/Current-State.md` |
+| Ratificação retrospectiva dos Human Gates contestados | `../docs/Human-Gate-Retrospective-Ratification.md` |
 | Histórico de transições | `state/State-Transition-Log.md` |
 | Handoff, relatórios, auditoria e ADR | `templates/Templates.md` |
 | Versão e histórico do corpus | `system/Prompt-System-Change-Log.md` |

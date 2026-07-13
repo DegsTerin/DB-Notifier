@@ -126,11 +126,11 @@ Repeat the critical path once in `pt-BR`/Light and once in `en-GB`/Dark, at the 
 7. Use each safe flyout shortcut, dismiss with Escape and focus loss, and confirm Restart is explanatory/non-interactive rather than executable.
 8. Exit through the flyout and confirm no DB-Notifier process remains.
 
-## System, High Contrast and scaling protocol
+## Theme stability, High Contrast and scaling protocol
 
 These samples change user display preferences and must be performed interactively by the validator. Do not automate them silently.
 
-1. With System selected, switch Windows application mode Light → Dark → Light. Confirm both interfaces follow without restart and explicit Light/Dark remain stable.
+1. Select Light and then Dark in each interface. Change Windows application mode Light → Dark → Light and confirm the explicit DB Notifier selection remains stable without a restart; there is no selectable System theme.
 2. Enable Windows High Contrast/Contrast Themes. Confirm WPF and Dashboard retain readable text, borders, selected state and focus; verify status meaning remains textual.
 3. Disable High Contrast and confirm the selected semantic preference returns.
 4. Sample Windows scaling at 125%, 150% and 200% where the display environment permits. At each scale, inspect WPF default and minimum sizes for clipped labels, overlapping controls and inaccessible scroll regions.
@@ -158,7 +158,7 @@ Do not mark a row until the named human validator has performed it.
 | `HG05-03` | Dashboard native 200% zoom and compact reflow | PENDENTE | |
 | `HG05-04` | WPF `pt-BR` Light, default/minimum, keyboard and Narrator | PENDENTE | |
 | `HG05-05` | WPF `en-GB` Dark, default/minimum, keyboard and Narrator | PENDENTE | |
-| `HG05-06` | System live Light/Dark observation on both interfaces | PENDENTE | |
+| `HG05-06` | Explicit Light/Dark stability across Windows application-mode changes | PENDENTE | |
 | `HG05-07` | Windows High Contrast on both interfaces | PENDENTE | |
 | `HG05-08` | WPF Windows scaling at 125%, 150% and 200% where permitted | PENDENTE | |
 | `HG05-09` | Visual hierarchy and operational-truth review | PENDENTE | |

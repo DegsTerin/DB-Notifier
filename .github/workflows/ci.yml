@@ -20,6 +20,15 @@ jobs:
       - run: dotnet restore DBNotifier.sln --locked-mode
       - run: dotnet build DBNotifier.sln --configuration Release --no-restore
       - run: dotnet test DBNotifier.sln --configuration Release --no-build
+      - run: dotnet format DBNotifier.sln --verify-no-changes --no-restore
+      - name: Audit NuGet vulnerabilities
+        shell: powershell
+        run: .\scripts\verify-nuget-vulnerabilities.ps1 -DotNetPath dotnet
+      - name: Audit fail-closed runtime boundaries
+        shell: powershell
+        run: .\scripts\audit-fail-closed-runtime.ps1 -DotNetPath dotnet
+      - run: git diff --check
+      - run: git fsck --full
 
   legacy-compatibility:
     runs-on: windows-latest
@@ -28,6 +37,9 @@ jobs:
       - name: Run DB-Notifier legacy compatibility tests
         shell: powershell
         run: Invoke-Pester .\tests\DBNotifier.Legacy.Tests.ps1
+      - name: Validate the canonical build entry point
+        shell: powershell
+        run: .\build\build.ps1 -ValidateOnly
 
   dashboard:
     runs-on: ubuntu-latest
@@ -47,5 +59,26 @@ jobs:
       - run: npm run localisation:verify
       - run: npm run check
       - run: npm run comments:verify
+      - run: npm run markdown:verify
       - run: npm run test
       - run: npm run build
+      - run: npm audit --audit-level=high
+
+  dashboard-runtime-audit:
+    runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: src/DBNotifier.Dashboard.Web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: src/DBNotifier.Dashboard.Web/package-lock.json
+      - run: npm ci
+      - run: npm run build
+      - name: Run the bilingual Light and Dark headless browser matrix
+        shell: powershell
+        working-directory: .
+        run: .\scripts\run-state05-dashboard-audit.ps1

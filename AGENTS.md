@@ -133,6 +133,8 @@ Resolve conflicts using the precedence in `prompts/Start-Here.md`. A current exp
 - For runtime work, verify actual process/service state and live health; do not rely only on startup output. Stop validation processes when the task does not authorise leaving them running.
 - Distinguish observed, inferred, not tested, and blocked results. Record commands, environment, versions, exit codes, scope, and sanitised artefacts where appropriate.
 - Keep automatic audit and human validation separate. Never pre-fill or infer a Human Gate approval.
+- Treat a bare acknowledgement such as `yes`, `approved`, `sim`, `aprovado` or `continue` as a Human Gate decision only when it directly answers an explicit gate summary that names the single lifecycle state, reviewed automatic report, repeated human samples, reservations and exact decision being requested. Ambiguous or bundled acknowledgements leave the gate pending.
+- If a validator later disputes whether a recorded approval was informed, preserve the historical record, place lifecycle progression on hold and require a separate retrospective ratification for each affected state. Never ratify on the validator's behalf.
 - Do not transition to a later state while a current gate, required remediation, or explicit human sample remains pending.
 
 ## Docker and multi-database laboratory
