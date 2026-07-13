@@ -138,6 +138,8 @@ Regras determinísticas, análise estatística, correlação, base de conhecimen
 - SQLite local guarda configuração autorizada, cache e outbox.
 - PostgreSQL central guarda catálogo, políticas, eventos, auditoria e usuários.
 - SignalR publica mudanças; a API continua sendo fonte de autorização e dados.
+- Ao entrar no modo TV, o Dashboard faz uma leitura autorizada imediata da API e, enquanto o modo permanecer ativo, inicia uma nova leitura autoritativa a cada 30 segundos somente depois de a anterior terminar. Um hint autenticado do SignalR pode antecipar a leitura, mas não substitui essa reconciliação periódica.
+- Falha, timeout ou desconexão durante a atualização mantém o último snapshot conhecido, preserva seus timestamps e apresenta erro, offline ou stale conforme os fatos; o cliente nunca avança artificialmente `observedAt` ou `receivedAt`.
 - Dashboard exibe `observedAt`, `receivedAt` e condição stale.
 
 ## Implantação

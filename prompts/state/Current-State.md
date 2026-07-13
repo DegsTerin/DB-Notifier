@@ -145,6 +145,7 @@ O projeto está em `STATE-05 FRONTEND_IMPLEMENTATION`. Quatro incrementos implem
 - Confirmar visualmente a correção de largura em tela cheia e o display name `DB Notifier`; `S05-HG-003` permanece pendente até essa validação humana.
 - Confirmar visualmente os controles compactos de idioma e tema; `S05-HG-004` permanece pendente até essa validação humana.
 - Executar `HG05-10` para confirmar distância de leitura, densidade e entrada/saída do modo TV; `S05-HG-005` permanece pendente de validação humana.
+- Implementar em `STATE-06` a atualização real do modo TV: leitura autorizada imediata da API na entrada e nova leitura não sobreposta a cada 30 segundos enquanto ativo, com hints SignalR apenas antecipando a reconciliação e falhas preservando o último snapshot/timestamps e o estado stale/erro factual.
 - Manter adapters de apresentação determinísticos até `STATE-06`; não integrar silenciosamente banco, IdP, certificado, canal ou provider real durante a fase de UI.
 - Representar capabilities e suporte de modo factual: ação ausente/negada/unsupported não pode aparecer como executável ou homologada.
 - Preservar as pendências posteriores de ativação sandbox de pacotes, integração real, execução/post-probe de comandos, legal hold/backup e adapters externos.

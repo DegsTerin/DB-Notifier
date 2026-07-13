@@ -56,9 +56,9 @@ Aceite: acessibilidade WCAG AA, responsividade, teclado, contraste, temas Light/
 
 Objetivo: integrar Agent, API, interfaces, providers e canais.
 
-Entregáveis: contratos versionados, autenticação de Agent, sincronização offline, E2E em sandbox e entrega de notificações.
+Entregáveis: contratos versionados, autenticação de Agent, sincronização offline, E2E em sandbox, entrega de notificações e modo TV ligado à API autorizada com leitura inicial e atualização não sobreposta a cada 30 segundos enquanto ativo.
 
-Aceite: reconexão, duplicidade, reorder, expiração de comando e incompatibilidade de versão foram testados.
+Aceite: reconexão, duplicidade, reorder, expiração de comando e incompatibilidade de versão foram testados; relógio controlado e E2E comprovam a cadência TV de 30 segundos, a antecipação segura por SignalR, a ausência de leituras concorrentes e a preservação factual do último snapshot/stale em falha.
 
 ## STATE-07 TESTING_HOMOLOGATION
 

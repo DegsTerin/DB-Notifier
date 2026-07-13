@@ -2,7 +2,7 @@
 
 ## Versão atual
 
-- Versão: `3.29.0`
+- Versão: `3.29.1`
 - Data: 2026-07-13
 - Status: corpus DB-Notifier consolidado
 - Escopo: 13 arquivos ativos
@@ -16,6 +16,12 @@ A versão do corpus é independente da versão do software.
 - PATCH: clareza, correção ou referência sem mudança de autoridade.
 
 Toda alteração atualiza este arquivo e, quando necessário, `../Start-Here.md`.
+
+## 3.29.1 — 2026-07-13
+
+- Requisito de integração do modo TV atribuído explicitamente a `STATE-06`: leitura autorizada imediata da API na entrada e nova leitura não sobreposta a cada 30 segundos enquanto ativo.
+- Hints autenticados do SignalR podem antecipar a leitura sem substituir a reconciliação; falhas preservam snapshot/timestamps e apresentam stale, offline ou erro factual.
+- Lifecycle, Quality Gate, arquitetura, plano M6, Design System `1.4.1`, estado pendente e histórico foram sincronizados sem implementar integração em `STATE-05` ou inferir Human Gate.
 
 ## 3.29.0 — 2026-07-13
 

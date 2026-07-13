@@ -507,6 +507,17 @@
 - Riscos/ressalvas: atualização visual/freshness sobre snapshot de demonstração não comprova feed externo em tempo real; API/SignalR, reconexão e saúde da fonte pertencem a `STATE-06`. WPF TV, app móvel nativo, kiosk unattended e burn-in não foram implementados.
 - Aprovador: PENDENTE para `HG05-10`; Human Gate completo permanece pendente.
 
+## 2026-07-13 — Requisito de atualização real do modo TV atribuído ao STATE-06
+
+- Estado anterior: `STATE-05 FRONTEND_IMPLEMENTATION`
+- Estado resultante: sem transição
+- Decisão: documentar para `STATE-06 INTEGRATION` a leitura autorizada imediata da API ao entrar no modo TV e uma nova leitura autoritativa a cada 30 segundos enquanto o modo estiver ativo.
+- Escopo: requisições sem sobreposição; hints autenticados do SignalR podem antecipar uma leitura, mas não substituir a reconciliação periódica; falhas preservam o último snapshot e timestamps e apresentam erro/offline/stale factual.
+- Gates futuros: relógio controlado e E2E em sandbox devem provar a cadência, ausência de concorrência, hint/reconciliação, desconexão e recuperação antes do aceite de `STATE-06`.
+- Evidências: `prompts/foundation/Solution-Architecture-Document.md`, `prompts/governance/Lifecycle.md`, `prompts/governance/Quality-Gates.md`, `docs/Legacy-Migration-Plan.md` e Design System `1.4.1`.
+- Riscos/ressalvas: nenhuma integração ou atualização real foi implementada em `STATE-05`; o modo TV continua usando snapshot de demonstração até a fase autorizada.
+- Origem: solicitação explícita do product owner; não constitui aprovação do Human Gate de `STATE-05`.
+
 ## Template de nova entrada
 
 - Data:

@@ -5,7 +5,7 @@
 | Field | Value |
 |---|---|
 | Status | Official frontend specification |
-| Design System version | `1.4.0` |
+| Design System version | `1.4.1` |
 | Product phase | `STATE-05 FRONTEND_IMPLEMENTATION` |
 | Platforms | React Web Dashboard and .NET 10 WPF Desktop/Tray |
 | Themes | Light, Dark and System |
@@ -422,7 +422,7 @@ The Dashboard Web provides a dedicated, session-only TV presentation for continu
 
 TV presentation hides primary navigation, scenario selection and inventory filters, increases metric/table viewing distance, and preserves the product identity, UTC clock, freshness/stale semantics, status text/shapes, read-only state, demonstration badge and footer truth. It MUST NOT auto-start, persist across sessions, rotate views without an approved contract, conceal degraded/unknown data or permit administrative execution.
 
-The current `STATE-05` implementation recalculates visible freshness and its UTC clock continuously from the in-memory demonstration snapshot. This proves presentation behaviour only; it is not evidence of an external real-time stream. Versioned API/SignalR ingestion, reconnection, backpressure and live-source health remain `STATE-06` integration work. WPF, native mobile, unattended kiosk provisioning and burn-in mitigation are outside this increment.
+The current `STATE-05` implementation recalculates visible freshness and its UTC clock continuously from the in-memory demonstration snapshot. This proves presentation behaviour only; it is not evidence of an external real-time stream. In `STATE-06`, entering TV mode MUST perform an immediate authorised API read and MUST start a new authoritative read every 30 seconds while active, only after the previous read has completed. An authenticated SignalR hint MAY trigger an earlier read but MUST NOT replace periodic reconciliation. Failure MUST retain the last known snapshot and its timestamps while presenting the factual error, offline or stale state. Reconnection, backpressure and live-source health remain part of that integration work. WPF, native mobile, unattended kiosk provisioning and burn-in mitigation are outside this increment.
 
 ## 10. Reusable component catalogue
 

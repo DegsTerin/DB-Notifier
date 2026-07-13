@@ -123,6 +123,7 @@ Deliverables:
 
 - Authenticated versioned Agent/API communication, outbox reconciliation, deduplication, ordering rules, heartbeat, and revocation.
 - Web Dashboard reading authorized API data and displaying observed/received/stale timestamps.
+- TV mode performing an immediate authorised API read on entry and a non-overlapping authoritative refresh every 30 seconds while active; authenticated SignalR hints may request an earlier read but never replace periodic reconciliation.
 - Sandbox E2E for disconnect/reconnect, duplicates, expired commands, and incompatible versions.
 
 Exit: local monitoring survives API outage and reconciliation does not duplicate events or commands.
