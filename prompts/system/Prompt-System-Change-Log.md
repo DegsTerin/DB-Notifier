@@ -2,7 +2,7 @@
 
 ## Versão atual
 
-- Versão: `3.26.0`
+- Versão: `3.27.0`
 - Data: 2026-07-13
 - Status: corpus DB-Notifier consolidado
 - Escopo: 13 arquivos ativos
@@ -16,6 +16,12 @@ A versão do corpus é independente da versão do software.
 - PATCH: clareza, correção ou referência sem mudança de autoridade.
 
 Toda alteração atualiza este arquivo e, quando necessário, `../Start-Here.md`.
+
+## 3.27.0 — 2026-07-13
+
+- Design System atualizado para `1.2.0` com grupos de idioma e tema em botões discretos, estado selecionado acessível e posicionamento oficial na região superior direita do TopBar.
+- Contrato compacto usa `pt-BR`/`en-GB` visualmente e nomes nativos completos para tecnologia assistiva; System/Light/Dark permanece localizado, persistente e operável por teclado.
+- Terceiro incremento implementado e reauditoria automática bilíngue/temática aprovada; amostras humanas e Human Gate continuam pendentes, sem transição ou autorização externa.
 
 ## 3.26.0 — 2026-07-13
 

@@ -16,15 +16,15 @@ DB-Notifier now provides Brazilian Portuguese (`pt-BR`) and British English (`en
 
 ### React Dashboard
 
-- A native language selector applies copy immediately, updates the document `lang`, title and description, and announces the selected language.
+- Discreet `pt-BR` and `en-GB` pressed-state buttons in the upper-right TopBar apply copy immediately, update the document `lang`, title and description, and announce the selected language.
 - The bootstrap reads `dbnotifier.language.preference.v1` before React render, avoiding an initial language mismatch where valid storage is available.
 - Storage denial or malformed values do not block rendering; cross-tab changes accept only supported locales.
 - Demonstration fixtures, navigation, states, filters, tables/cards and confirmation copy use typed catalogue keys.
 
 ### WPF Desktop and Tray
 
-- The language selector replaces a generated localisation `ResourceDictionary` while preserving the window, selected view and safe demonstration state.
-- Only schema and locale are stored in `%LocalAppData%\DB-Notifier\ui-preferences.v1.json`; writes use temporary-file replacement and failure remains session-local.
+- Discreet `pt-BR` and `en-GB` radio buttons in the upper-right TopBar replace a generated localisation `ResourceDictionary` while preserving the window, selected view, selected theme and safe demonstration state.
+- Only schema, validated locale and selected semantic theme are stored together in `%LocalAppData%\DB-Notifier\ui-preferences.v1.json`; writes use temporary-file replacement and failure remains session-local.
 - Dynamic XAML resources update structural copy, accessible names and headers; code-generated fixture/status/dialog values are rebuilt through the same catalogue.
 - Tray menu, tooltip and first-hide notification update with the active locale.
 
@@ -38,22 +38,22 @@ The React Dashboard is the adaptive interface for compact mobile, tablet, laptop
 |---|---|
 | Canonical catalogue | Approved; 196 keys per locale with exact key/placeholder parity |
 | Generated adapter drift | Approved for TypeScript and both WPF dictionaries |
-| Dashboard | Approved; typecheck, 18/18 tests and Vite production build |
+| Dashboard | Approved; typecheck, 19/19 tests and Vite production build |
 | .NET 10 solution | Approved; Release build with 0 warnings/errors and 136/136 tests |
-| Source documentation/format | Approved; 158 comment-capable files and `dotnet format` clean |
+| Source documentation/format | Approved; 160 comment-capable files and `dotnet format` clean |
 | Dependencies | Approved; npm reported 0 vulnerabilities; NuGet remained covered by the solution gate |
-| Browser responsive/accessibility | Approved; 18 locale/viewport-route samples, 0 global overflow, 0 unnamed interactive controls and modal entry/Escape/restoration passing |
-| WPF UI Automation | Approved with existing framework reservation; both locales at 1180×760 and 820×620, deterministic visible Tab sample and one unnamed framework Pane |
+| Browser responsive/accessibility | Approved; 54 locale/theme/viewport-route samples, 0 global overflow, 0 unnamed interactive controls and modal entry/Escape/restoration passing |
+| WPF UI Automation | Approved across all six locale/theme combinations and the 820×620 minimum; deterministic visible Tab samples recorded |
 | Legacy compatibility | Approved; canonical and deprecated entry-point samples passed |
 
-Sanitised runtime screenshots and JSON remain in `%TEMP%\DBNotifier-State05-Audit\pt-BR` and `%TEMP%\DBNotifier-State05-Audit\en-GB`; they are deliberately not committed.
+Sanitised runtime screenshots and JSON remain under `%TEMP%\DBNotifier-State05-Audit\<locale>\<theme>`; they are deliberately not committed.
 
 ## Boundaries and remaining evidence
 
 - This increment proves implemented interface localisation, not provider homologation or production readiness.
 - Human screen-reader review and native 200% zoom/scaling samples remain required for the `STATE-05` Human Gate in both languages.
-- Theme completion on WPF remains a separate Design System increment; localisation resources do not imply that Light/Dark/System parity is complete there.
+- Windows High Contrast and native 125%, 150% and 200% scaling remain human/native-environment samples even though the WPF runtime support is implemented.
 
 ## Recommendation
 
-Complete the WPF Light/Dark/System and High Contrast increment, then repeat the full bilingual automatic re-audit before requesting the remaining human accessibility samples.
+Complete the remaining human bilingual screen-reader, native zoom/scaling, High Contrast and visual samples before presenting the `STATE-05` Human Gate.

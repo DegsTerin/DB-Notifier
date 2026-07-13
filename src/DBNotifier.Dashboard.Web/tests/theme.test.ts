@@ -115,6 +115,41 @@ test("runtime wiring imports generated tokens and observes theme changes without
   }
 });
 
+test("both interfaces expose discreet language and theme buttons in the upper-right topbar", () => {
+  const app = readFileSync(new URL("../src/App.tsx", import.meta.url), "utf8");
+  const languageSelector = readFileSync(new URL("../src/LanguageSelector.tsx", import.meta.url), "utf8");
+  const themeSelector = readFileSync(new URL("../src/ThemeSelector.tsx", import.meta.url), "utf8");
+  const css = readFileSync(new URL("../src/styles.css", import.meta.url), "utf8");
+  const desktopXaml = readFileSync(new URL("../../DBNotifier.Desktop.Wpf/MainWindow.xaml", import.meta.url), "utf8");
+  const desktopTheme = readFileSync(new URL("../../DBNotifier.Desktop.Wpf/DesktopThemeService.cs", import.meta.url), "utf8");
+  const desktopPreferences = readFileSync(new URL("../../DBNotifier.Desktop.Wpf/DesktopUiPreferenceStore.cs", import.meta.url), "utf8");
+
+  assert.ok(app.indexOf("<LanguageSelector />") < app.indexOf("<ThemeSelector />"));
+  assert.match(languageSelector, /role="group"/);
+  assert.match(languageSelector, /aria-pressed=/);
+  assert.match(languageSelector, />\s*\{option\}\s*<\/button>/);
+  assert.doesNotMatch(languageSelector, /<select|<input/i);
+  assert.match(themeSelector, /role="group"/);
+  assert.match(themeSelector, /aria-pressed=/);
+  assert.doesNotMatch(themeSelector, /<fieldset|<input/i);
+  assert.match(css, /\.topbar-controls\s*\{[^}]*margin-left:\s*auto;[^}]*justify-content:\s*flex-end;/s);
+
+  for (const automationId of [
+    "PortugueseLanguageButton",
+    "BritishEnglishLanguageButton",
+    "SystemThemeButton",
+    "LightThemeButton",
+    "DarkThemeButton",
+  ]) assert.match(desktopXaml, new RegExp(`x:Name="${automationId}"`));
+  assert.match(desktopXaml, /<WrapPanel Grid.Column="1" HorizontalAlignment="Right"/);
+  assert.doesNotMatch(desktopXaml, /x:Name="LanguageSelector"/);
+  assert.match(desktopTheme, /AppsUseLightTheme/);
+  assert.match(desktopTheme, /SystemParameters\.HighContrast/);
+  assert.match(desktopTheme, /DesignTokens\.\{resolved\}\.xaml/);
+  assert.match(desktopPreferences, /Current with \{ Language = language \}/);
+  assert.match(desktopPreferences, /Current with \{ Theme = theme \}/);
+});
+
 test("generated CSS and WPF token adapters are current and contain both semantic themes", () => {
   const generator = new URL("../../../scripts/generate-design-tokens.mjs", import.meta.url);
   const result = spawnSync(process.execPath, [fileURLToPath(generator), "--verify"], { encoding: "utf8" });

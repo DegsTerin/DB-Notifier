@@ -3,6 +3,8 @@
 param(
     [ValidateSet("pt-BR", "en-GB")]
     [string]$Locale = "pt-BR",
+    [ValidateSet("system", "light", "dark")]
+    [string]$Theme = "system",
     [ValidateRange(820, 3000)]
     [int]$Width = 1180,
     [ValidateRange(620, 2200)]
@@ -16,6 +18,20 @@ Add-Type -AssemblyName UIAutomationClient
 Add-Type -AssemblyName UIAutomationTypes
 Add-Type -AssemblyName System.Drawing
 Add-Type -AssemblyName System.Windows.Forms
+if (-not ("AuditNativeMethods" -as [type])) {
+    Add-Type -TypeDefinition @"
+using System;
+using System.Runtime.InteropServices;
+
+/// <summary>Provides the target-window-only capture required by the WPF audit.</summary>
+public static class AuditNativeMethods
+{
+    /// <summary>Renders one identified native window into the supplied device context.</summary>
+    [DllImport("user32.dll")]
+    public static extern bool PrintWindow(IntPtr windowHandle, IntPtr deviceContext, uint flags);
+}
+"@
+}
 
 $root = Split-Path -Parent $PSScriptRoot
 $executable = Join-Path $root "src/DBNotifier.Desktop.Wpf/bin/Release/net10.0-windows/DBNotifier.Desktop.Wpf.exe"
@@ -23,8 +39,11 @@ if (-not (Test-Path -LiteralPath $executable -PathType Leaf)) {
     throw "Build the Release WPF application before running this audit."
 }
 
-$evidenceDirectory = Join-Path ([System.IO.Path]::GetTempPath()) "DBNotifier-State05-Audit/$Locale"
+$evidenceDirectory = Join-Path ([System.IO.Path]::GetTempPath()) "DBNotifier-State05-Audit/$Locale/$Theme"
 [System.IO.Directory]::CreateDirectory($evidenceDirectory) | Out-Null
+$preferencePath = Join-Path ([Environment]::GetFolderPath([Environment+SpecialFolder]::LocalApplicationData)) "DB-Notifier/ui-preferences.v1.json"
+$preferenceExisted = [System.IO.File]::Exists($preferencePath)
+$preferenceBytes = if ($preferenceExisted) { [System.IO.File]::ReadAllBytes($preferencePath) } else { $null }
 $process = Start-Process -FilePath $executable -PassThru
 
 try {
@@ -45,27 +64,31 @@ try {
         $transformPattern.Resize($Width, $Height)
         Start-Sleep -Milliseconds 200
     }
+    $languageAutomationId = if ($Locale -eq "en-GB") { "BritishEnglishLanguageButton" } else { "PortugueseLanguageButton" }
     $languageCondition = [System.Windows.Automation.PropertyCondition]::new(
         [System.Windows.Automation.AutomationElement]::AutomationIdProperty,
-        "LanguageSelector")
-    $languageSelector = $window.FindFirst([System.Windows.Automation.TreeScope]::Descendants, $languageCondition)
-    if ($null -eq $languageSelector) {
-        throw "The desktop language selector is unavailable."
+        $languageAutomationId)
+    $languageButton = $window.FindFirst([System.Windows.Automation.TreeScope]::Descendants, $languageCondition)
+    if ($null -eq $languageButton) {
+        throw "The requested desktop language button is unavailable."
     }
-    $expandPattern = $languageSelector.GetCurrentPattern([System.Windows.Automation.ExpandCollapsePattern]::Pattern)
-    $expandPattern.Expand()
-    Start-Sleep -Milliseconds 150
-    $languageName = if ($Locale -eq "en-GB") { "English (UK)" } else { "Português (Brasil)" }
-    $languageItemCondition = [System.Windows.Automation.PropertyCondition]::new(
-        [System.Windows.Automation.AutomationElement]::NameProperty,
-        $languageName)
-    $languageItem = $languageSelector.FindFirst([System.Windows.Automation.TreeScope]::Subtree, $languageItemCondition)
-    if ($null -eq $languageItem) {
-        throw "The requested desktop language item is unavailable."
+    $languageSelection = $languageButton.GetCurrentPattern([System.Windows.Automation.SelectionItemPattern]::Pattern)
+    $languageSelection.Select()
+
+    $themeAutomationId = switch ($Theme) {
+        "light" { "LightThemeButton" }
+        "dark" { "DarkThemeButton" }
+        default { "SystemThemeButton" }
     }
-    $selectionPattern = $languageItem.GetCurrentPattern([System.Windows.Automation.SelectionItemPattern]::Pattern)
-    $selectionPattern.Select()
-    $expandPattern.Collapse()
+    $themeCondition = [System.Windows.Automation.PropertyCondition]::new(
+        [System.Windows.Automation.AutomationElement]::AutomationIdProperty,
+        $themeAutomationId)
+    $themeButton = $window.FindFirst([System.Windows.Automation.TreeScope]::Descendants, $themeCondition)
+    if ($null -eq $themeButton) {
+        throw "The requested desktop theme button is unavailable."
+    }
+    $themeSelection = $themeButton.GetCurrentPattern([System.Windows.Automation.SelectionItemPattern]::Pattern)
+    $themeSelection.Select()
     Start-Sleep -Milliseconds 250
     $elements = $window.FindAll([System.Windows.Automation.TreeScope]::Descendants, $condition)
     $focusable = @(
@@ -88,6 +111,9 @@ try {
         [System.Windows.Forms.SendKeys]::SendWait("{TAB}")
         Start-Sleep -Milliseconds 100
         $focused = [System.Windows.Automation.AutomationElement]::FocusedElement
+        if ($focused.Current.ProcessId -ne $process.Id) {
+            throw "Keyboard focus left the audited DB-Notifier process; no external UI details were collected."
+        }
         $tabSequence += [ordered]@{
             name = $focused.Current.Name
             automationId = $focused.Current.AutomationId
@@ -100,7 +126,15 @@ try {
     $bitmap = [System.Drawing.Bitmap]::new([int]$bounds.Width, [int]$bounds.Height)
     $graphics = [System.Drawing.Graphics]::FromImage($bitmap)
     try {
-        $graphics.CopyFromScreen([int]$bounds.X, [int]$bounds.Y, 0, 0, $bitmap.Size)
+        $deviceContext = $graphics.GetHdc()
+        try {
+            if (-not [AuditNativeMethods]::PrintWindow($process.MainWindowHandle, $deviceContext, 2)) {
+                throw "The target WPF window could not be rendered for audit evidence."
+            }
+        }
+        finally {
+            $graphics.ReleaseHdc($deviceContext)
+        }
         $screenshotPath = Join-Path $evidenceDirectory "wpf-main-window-$($Width)x$($Height).png"
         $bitmap.Save($screenshotPath, [System.Drawing.Imaging.ImageFormat]::Png)
     }
@@ -112,6 +146,7 @@ try {
     $report = [ordered]@{
         generatedAt = [DateTimeOffset]::UtcNow.ToString("O")
         locale = $Locale
+        theme = $Theme
         windowTitle = $window.Current.Name
         processId = $process.Id
         windowName = $window.Current.Name
@@ -132,5 +167,11 @@ finally {
         if (-not $process.WaitForExit(3000)) {
             Stop-Process -Id $process.Id -Force
         }
+    }
+    if ($preferenceExisted) {
+        [System.IO.File]::WriteAllBytes($preferencePath, $preferenceBytes)
+    }
+    elseif ([System.IO.File]::Exists($preferencePath)) {
+        Remove-Item -LiteralPath $preferencePath -Force
     }
 }

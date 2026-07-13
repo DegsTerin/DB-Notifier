@@ -5,7 +5,7 @@
 | Field | Value |
 |---|---|
 | Status | Official frontend specification |
-| Design System version | `1.1.0` |
+| Design System version | `1.2.0` |
 | Product phase | `STATE-05 FRONTEND_IMPLEMENTATION` |
 | Platforms | React Web Dashboard and .NET 10 WPF Desktop/Tray |
 | Themes | Light, Dark and System |
@@ -403,11 +403,15 @@ All components define default, hover, pressed, focus-visible, selected, disabled
 
 ### 10.2 Theme selector
 
-`ThemeSelector` exposes System, Light and Dark with visible text. It MUST announce the current preference, apply immediately, persist safely and remain keyboard-operable. An icon alone is insufficient.
+`ThemeSelector` exposes System, Light and Dark as discreet pressed-state buttons with visible localised text. It MUST announce the current preference, apply immediately, persist safely and remain keyboard-operable. An icon alone is insufficient.
+
+On desktop and tablet-width shells, the selector belongs in the upper-right TopBar preference region. At compact mobile widths it MAY wrap beneath the brand, but MUST remain right-aligned, fully visible and ahead of feature content.
 
 ### 10.2.1 Language selector
 
-`LanguageSelector` exposes Português (Brasil) and English (UK) as visible native options. It applies immediately, persists only the validated BCP 47 value, updates document/window and assistive-technology labels, and remains usable at compact widths. Flags MUST NOT replace language names.
+`LanguageSelector` exposes `pt-BR` and `en-GB` as discreet pressed-state buttons in the same upper-right TopBar preference region. Each compact code MUST expose the full native language name to assistive technology and as supplementary pointer text. It applies immediately, persists only the validated BCP 47 value, updates document/window and assistive-technology labels, and remains usable at compact widths. Flags MUST NOT replace the locale controls.
+
+Language and theme groups MUST retain separate accessible names, a programmatically determinable selected state and an obvious focus indicator. Their compact presentation MUST NOT obscure the product brand or cause document-level horizontal overflow.
 
 ### 10.3 Buttons
 

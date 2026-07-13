@@ -1,5 +1,5 @@
 /**
- * Provides the Dashboard theme runtime and visible System, Light and Dark preference selector.
+ * Provides the Dashboard theme runtime and discreet System, Light and Dark topbar controls.
  * The component owns browser observation and persistence but does not alter routes, feature state or external systems.
  */
 import { useEffect, useState } from "react";
@@ -48,8 +48,8 @@ function readSystemUsesDark(): boolean {
 }
 
 /**
- * Renders the theme preference control and keeps System responsive to live platform changes.
- * @returns A native radio group with visible labels and an announced current preference.
+ * Renders the theme preference controls and keeps System responsive to live platform changes.
+ * @returns An accessible pressed-button group with an announced current preference.
  */
 export function ThemeSelector() {
   const { t } = useLocalisation();
@@ -90,23 +90,18 @@ export function ThemeSelector() {
 
   const currentLabel = t(options.find((option) => option.value === preference)?.labelKey ?? "Theme.System");
   return (
-    <fieldset className="theme-selector">
-      <legend>{t("Theme.Label")}</legend>
-      <div className="theme-options">
-        {options.map((option) => (
-          <label key={option.value}>
-            <input
-              type="radio"
-              name="theme-preference"
-              value={option.value}
-              checked={preference === option.value}
-              onChange={() => setPreference(option.value)}
-            />
-            <span>{t(option.labelKey)}</span>
-          </label>
-        ))}
-      </div>
+    <div className="preference-selector theme-selector" role="group" aria-label={t("Theme.Label")}>
+      {options.map((option) => (
+        <button
+          key={option.value}
+          type="button"
+          aria-pressed={preference === option.value}
+          onClick={() => setPreference(option.value)}
+        >
+          {t(option.labelKey)}
+        </button>
+      ))}
       <span className="sr-only" aria-live="polite">{t("Theme.Announcement", currentLabel)}</span>
-    </fieldset>
+    </div>
   );
 }

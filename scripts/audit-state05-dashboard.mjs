@@ -6,11 +6,13 @@ import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 
-const endpoint = "http://localhost:9224";
+const endpoint = "http://127.0.0.1:9224";
 const dashboardUrl = "http://127.0.0.1:4173/";
 const requestedLocale = process.env.DBNOTIFIER_AUDIT_LOCALE;
 const locale = requestedLocale === "en-GB" ? "en-GB" : "pt-BR";
-const evidenceDirectory = join(tmpdir(), "DBNotifier-State05-Audit", locale);
+const requestedTheme = process.env.DBNOTIFIER_AUDIT_THEME;
+const theme = ["light", "dark"].includes(requestedTheme) ? requestedTheme : "system";
+const evidenceDirectory = join(tmpdir(), "DBNotifier-State05-Audit", locale, theme);
 mkdirSync(evidenceDirectory, { recursive: true });
 
 /** Opens the current Dashboard target and returns a minimal request-response CDP client. */
@@ -223,7 +225,11 @@ async function main() {
   await call("Accessibility.enable");
   await call("Page.navigate", { url: dashboardUrl });
   await settle();
-  await evaluate(call, `localStorage.setItem("dbnotifier.language.preference.v1", ${JSON.stringify(locale)}); true`);
+  await evaluate(call, `
+    localStorage.setItem("dbnotifier.language.preference.v1", ${JSON.stringify(locale)});
+    localStorage.setItem("dbnotifier.theme.preference.v1", ${JSON.stringify(theme)});
+    true
+  `);
   await call("Page.reload", { ignoreCache: true });
   await settle();
 
@@ -248,6 +254,7 @@ async function main() {
   const report = {
     generatedAt: new Date().toISOString(),
     locale,
+    theme,
     viewports,
     keyboard: await auditKeyboard(call),
     accessibilityTree: await auditAccessibilityTree(call),

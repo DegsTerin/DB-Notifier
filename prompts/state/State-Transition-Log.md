@@ -402,6 +402,16 @@
 - Evidências: `docs/STATE-05-Localisation-Implementation-Report.md`; nenhuma integração externa ou capability administrativa foi habilitada.
 - Riscos/ressalvas: amostras humanas bilíngues de leitor de tela e zoom/scaling permanecem pendentes; tema WPF completo continua em incremento separado.
 
+## 2026-07-13 — Terceiro incremento do Design System e TopBar de preferências
+
+- Estado anterior: `STATE-05 FRONTEND_IMPLEMENTATION`
+- Estado resultante: sem transição
+- Decisão: concluir o ciclo Light/Dark/System no WPF e padronizar idioma/tema como botões discretos no canto superior direito do TopBar das duas interfaces.
+- Escopo: preferência WPF unificada e atômica, troca de dicionário semântico, observação do tema Windows, precedência de High Contrast, migração dos recursos visuais WPF e grupos acessíveis `pt-BR`/`en-GB`/System/Light/Dark em React e WPF.
+- Gates: 19 testes Dashboard, 136 testes .NET, typecheck/builds e matriz automática de 54 amostras browser aprovada sem overflow global ou controlo interativo sem nome; seis combinações WPF e mínimo `820×620` amostrados.
+- Evidências: `docs/STATE-05-Design-System-Implementation-Report.md`, `docs/STATE-05-Localisation-Implementation-Report.md` e artefactos temporários sanitizados sob `%TEMP%\DBNotifier-State05-Audit\<locale>\<theme>`.
+- Riscos/ressalvas: leitor de tela, zoom/scaling nativo, High Contrast visual e revisão humana continuam pendentes; Human Gate, `STATE-06`, integração externa e laboratório permanecem bloqueados.
+
 ## Template de nova entrada
 
 - Data:

@@ -6,6 +6,8 @@
   <Application.Resources>
     <ResourceDictionary>
       <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="Generated/DesignTokens.Core.xaml" />
+        <ResourceDictionary Source="Generated/DesignTokens.Light.xaml" />
         <ResourceDictionary Source="Generated/Localisation.pt-BR.xaml" />
       </ResourceDictionary.MergedDictionaries>
     </ResourceDictionary>

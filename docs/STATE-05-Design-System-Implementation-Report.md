@@ -2,9 +2,9 @@
 
 ## Outcome
 
-The first two DB-Notifier Design System increments are complete. They establish the canonical token schema/source, deterministic React/WPF generation, platform-neutral Light/Dark/System preference contracts and the complete React runtime required by Design System `1.0.0`.
+The first three DB-Notifier Design System increments are complete. They establish the canonical token schema/source, deterministic React/WPF generation, platform-neutral Light/Dark/System preference contracts and complete theme runtimes on both interfaces required by Design System `1.2.0`.
 
-The Dashboard now applies generated tokens throughout its hand-written feature styles and exposes the persisted System/Light/Dark preference. WPF still consumes its previous raw resources and remains the next separate increment.
+The Dashboard and WPF Desktop now apply generated semantic tokens, expose discreet language and theme buttons in the upper-right TopBar and preserve the validated preferences. System follows live platform colour preference; explicit Light and Dark remain stable. WPF gives Windows High Contrast precedence over the generated palette.
 
 ## Canonical token source
 
@@ -42,17 +42,26 @@ React and .NET 10 share these exact concepts:
 - Invalid data fails safely to System.
 - Explicit Light/Dark overrides system state; System follows the current platform request.
 
-The React adapter now accesses only versioned local UI preference storage, the document root and the system colour-scheme media query. WPF does not yet access Windows theme settings or a preference file; that platform adapter belongs to the next increment.
+The React adapter accesses only versioned local UI preference storage, the document root and the system colour-scheme media query. WPF stores the validated language and selected theme together in the versioned current-user file; locale-only documents from the preceding increment migrate safely to System without losing the language.
 
 ## React theme runtime
 
 - A blocking local bootstrap runs in the document head before application styles can paint, validates the persisted preference and applies `data-theme` plus `data-theme-preference` without a wrong-theme flash.
 - Storage access, invalid values and unavailable media-query APIs fail safely to System without interrupting rendering.
-- `ThemeSelector` uses a native radio group with visible System, Light and Dark labels, immediate application, keyboard operation and a polite current-preference announcement.
+- `ThemeSelector` uses discreet pressed-state buttons with visible System, Light and Dark labels, immediate application, keyboard operation and a polite current-preference announcement.
 - `matchMedia` changes update the effective theme live only through System resolution; explicit Light and Dark remain stable.
 - Cross-tab storage changes accept only validated preference values.
 - Route, filters, modal state and other React state remain owned by their existing components and are not reset by a theme change.
 - Generated CSS loads before feature CSS. Hand-written feature styles contain no raw colour values or shadows and use canonical spacing/radius tokens for their corresponding declarations.
+
+## WPF theme runtime
+
+- The application loads core and Light generated dictionaries before constructing the window, then atomically replaces only the semantic theme dictionary.
+- System resolves the current-user Windows application colour preference and observes it at a bounded interval; explicit Light and Dark ignore that derived value.
+- Windows High Contrast takes precedence and maps semantic resources to live system brushes without persisting an effective theme.
+- One atomic, bounded `%LocalAppData%\DB-Notifier\ui-preferences.v1.json` document stores only schema, locale and selected theme; failures remain session-local.
+- Main window surfaces, cards, inputs, buttons, tables, statuses and footer consume generated `DynamicResource` keys. Custom Button/ComboBox templates retain legibility in Dark instead of inheriting incompatible native Light colours.
+- `pt-BR`, `en-GB`, System, Light and Dark are distinct accessible radio-button groups at the upper-right of the WPF TopBar.
 
 ## Verification
 
@@ -63,16 +72,17 @@ The React adapter now accesses only versioned local UI preference storage, the d
 | Schema/reference/type/theme parity | Approved |
 | Light/Dark canonical contrast pairs | Approved; all tested pairs `>= 4.5:1` |
 | Dashboard typecheck | Approved |
-| Dashboard tests | Approved; 14/14 |
+| Dashboard tests | Approved; 19/19 |
 | Dashboard production build | Approved |
 | .NET 10 Release build | Approved; 0 warnings/errors |
-| .NET tests | Approved; 128 unit/model/provider/presentation + 5 architecture = 133/133 |
+| .NET tests | Approved; 131 unit/model/provider/presentation + 5 architecture = 136/136 |
 | .NET format verification | Approved |
 | Legacy compatibility | Approved; 10/10 Pester and bundle validation |
 | Dependency audit | Approved; no npm or NuGet vulnerabilities reported |
-| Documentation gate | Approved; 148 comment-capable source files |
-| React visual/responsive sample | Approved; explicit Light at 1440 px and explicit Dark at exact 390 CSS px |
-| Compact document overflow | Approved; `clientWidth = scrollWidth = 390` |
+| Documentation gate | Approved; 160 comment-capable source files |
+| React visual/responsive matrix | Approved; 54 locale/theme/viewport-route samples across 320, 390, 640, 768, 1024 and 1440 CSS px |
+| React overflow/accessibility | Approved; 0 global overflow and 0 unnamed interactive controls in all six locale/theme combinations |
+| WPF UI Automation/visual matrix | Approved; six locale/theme combinations plus `820×620` minimum-window sample |
 
 ## Security and phase boundaries
 
@@ -85,11 +95,10 @@ The React adapter now accesses only versioned local UI preference storage, the d
 
 ## Remaining increments
 
-1. WPF: theme service, atomic `ResourceDictionary` switching, System/High Contrast observer, safe local preference file, ThemeSelector and migration from raw resources.
-2. Shared React/WPF component and operational-state parity, including removal of remaining unauthorised WPF raw visual values.
-3. Full Light/Dark/System visual, contrast, persistence, accessibility and responsive re-audit.
-4. Human screen-reader/native-zoom/theme samples and Human Gate.
+1. Human screen-reader, native browser zoom, Windows scaling and High Contrast samples required by the Design System matrix.
+2. Human visual review of hierarchy, focus, truth labels and selector behaviour in both languages and themes.
+3. Explicit Human Gate presentation; no lifecycle transition occurs automatically.
 
 ## Recommendation
 
-Execute the third Design System increment: integrate generated resources and the complete Light/Dark/System preference lifecycle into WPF, including High Contrast observation, without changing the provider-neutral demonstration boundary.
+Execute the remaining human accessibility, native zoom/scaling, High Contrast and visual samples, then present the `STATE-05` Human Gate without changing the provider-neutral demonstration boundary.

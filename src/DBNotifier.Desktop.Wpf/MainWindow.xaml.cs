@@ -10,12 +10,14 @@ namespace DBNotifier.Desktop.Wpf;
 
 /// <summary>
 /// Presents read-only demonstration data and accessible operational states without connecting to databases or executing commands.
-/// Localised presentation values are rebuilt whenever the user changes the supported interface language.
+/// Localised presentation values are rebuilt whenever the user changes the supported interface language;
+/// theme changes remain isolated to generated semantic resources owned by the desktop theme service.
 /// </summary>
 public partial class MainWindow : Window
 {
     private static readonly TimeSpan StaleAfter = TimeSpan.FromMinutes(5);
     private readonly DesktopLocalisationService localisation;
+    private readonly DesktopThemeService theme;
     private readonly ObservableCollection<InventoryRow> rows = [];
     private readonly ObservableCollection<TimelineRow> timelineRows = [];
     private readonly ObservableCollection<AlertRow> alertRows = [];
@@ -24,13 +26,18 @@ public partial class MainWindow : Window
     private TimelineAlertSnapshot timelineSnapshot = null!;
     private ConfigurationCapabilitySnapshot configurationSnapshot = null!;
 
-    /// <summary>Initialises the local demonstration surface with the already loaded interface preference.</summary>
+    /// <summary>Initialises the local demonstration surface with the already loaded language and theme preferences.</summary>
     /// <param name="localisation">Desktop localisation owner shared with the application and tray controller.</param>
-    internal MainWindow(DesktopLocalisationService localisation)
+    /// <param name="theme">Desktop theme owner shared with the application.</param>
+    internal MainWindow(DesktopLocalisationService localisation, DesktopThemeService theme)
     {
         this.localisation = localisation;
+        this.theme = theme;
         InitializeComponent();
-        LanguageSelector.SelectedIndex = localisation.CurrentLanguage == InterfaceLanguage.BritishEnglish ? 1 : 0;
+        (localisation.CurrentLanguage == InterfaceLanguage.BritishEnglish
+            ? BritishEnglishLanguageButton
+            : PortugueseLanguageButton).IsChecked = true;
+        ThemeButton(theme.CurrentPreference).IsChecked = true;
         InventoryGrid.ItemsSource = rows;
         HistoryGrid.ItemsSource = timelineRows;
         AlertsGrid.ItemsSource = alertRows;
@@ -41,10 +48,10 @@ public partial class MainWindow : Window
         PresentReadyState();
     }
 
-    /// <summary>Applies a validated language selected from the fixed desktop list.</summary>
-    private void LanguageSelectionChanged(object sender, SelectionChangedEventArgs e)
+    /// <summary>Applies a validated language selected through the fixed topbar button group.</summary>
+    private void LanguageButtonChecked(object sender, RoutedEventArgs e)
     {
-        if (!IsInitialized || LanguageSelector.SelectedItem is not ComboBoxItem selected ||
+        if (!IsInitialized || sender is not System.Windows.Controls.RadioButton selected ||
             !LanguagePreferenceContract.TryParse(selected.Tag?.ToString(), out InterfaceLanguage language) ||
             language == localisation.CurrentLanguage)
         {
@@ -53,6 +60,29 @@ public partial class MainWindow : Window
 
         localisation.SetLanguage(language);
     }
+
+    /// <summary>Applies a validated System, Light or Dark selection through the fixed topbar button group.</summary>
+    private void ThemeButtonChecked(object sender, RoutedEventArgs e)
+    {
+        if (!IsInitialized || sender is not System.Windows.Controls.RadioButton selected ||
+            !ThemePreferenceContract.TryParse(selected.Tag?.ToString(), out ThemePreference preference) ||
+            preference == theme.CurrentPreference)
+        {
+            return;
+        }
+
+        theme.SetPreference(preference);
+    }
+
+    /// <summary>Maps the validated active theme preference to its corresponding topbar button.</summary>
+    /// <param name="preference">Current persisted preference rather than the derived effective theme.</param>
+    /// <returns>The radio button that must expose the selected state.</returns>
+    private System.Windows.Controls.RadioButton ThemeButton(ThemePreference preference) => preference switch
+    {
+        ThemePreference.Light => LightThemeButton,
+        ThemePreference.Dark => DarkThemeButton,
+        _ => SystemThemeButton,
+    };
 
     /// <summary>Rebuilds fixture-derived labels after the generated resource dictionary changes.</summary>
     private void LocalisationLanguageChanged(object? sender, EventArgs e)

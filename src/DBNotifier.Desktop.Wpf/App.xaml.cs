@@ -7,20 +7,24 @@ public partial class App : System.Windows.Application, IDisposable
 {
     private TrayApplicationController? trayController;
     private DesktopLocalisationService? localisation;
+    private DesktopThemeService? theme;
 
-    /// <summary>Loads the safe language preference before constructing any visible desktop surface.</summary>
+    /// <summary>Loads safe language and theme preferences before constructing any visible desktop surface.</summary>
     protected override void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
-        localisation = new DesktopLocalisationService(this);
+        DesktopUiPreferenceStore preferences = new();
+        localisation = new DesktopLocalisationService(this, preferences);
+        theme = new DesktopThemeService(this, preferences);
         localisation.Initialise();
-        MainWindow window = new(localisation);
+        theme.Initialise();
+        MainWindow window = new(localisation, theme);
         MainWindow = window;
         trayController = new TrayApplicationController(window, this, localisation);
         window.Show();
     }
 
-    /// <summary>Releases tray resources when the WPF application exits.</summary>
+    /// <summary>Releases tray and theme-observation resources when the WPF application exits.</summary>
     protected override void OnExit(ExitEventArgs e)
     {
         Dispose();
@@ -32,6 +36,8 @@ public partial class App : System.Windows.Application, IDisposable
     {
         trayController?.Dispose();
         trayController = null;
+        theme?.Dispose();
+        theme = null;
         GC.SuppressFinalize(this);
     }
 }

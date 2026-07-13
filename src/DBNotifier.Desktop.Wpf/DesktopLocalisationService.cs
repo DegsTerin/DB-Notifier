@@ -1,7 +1,5 @@
-// Module purpose: Applies the shared interface-language contract to WPF resources and persists only a non-secret locale preference.
+// Module purpose: Applies the shared interface-language contract to WPF resources through the common non-secret preference store.
 using System.Globalization;
-using System.IO;
-using System.Text.Json;
 using System.Windows;
 using DBNotifier.Application.Presentation;
 
@@ -13,20 +11,16 @@ namespace DBNotifier.Desktop.Wpf;
 /// </summary>
 internal sealed class DesktopLocalisationService
 {
-    private const string SchemaVersion = "dbnotifier.ui-preferences.v1";
-    private const long MaximumPreferenceBytes = 16 * 1024;
     private readonly System.Windows.Application application;
-    private readonly string preferencePath;
+    private readonly DesktopUiPreferenceStore preferences;
 
     /// <summary>Initialises a service for the running WPF application.</summary>
     /// <param name="application">Application whose merged localisation dictionary is replaced.</param>
-    public DesktopLocalisationService(System.Windows.Application application)
+    /// <param name="preferences">Shared validated UI preference store.</param>
+    public DesktopLocalisationService(System.Windows.Application application, DesktopUiPreferenceStore preferences)
     {
         this.application = application;
-        preferencePath = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-            "DB-Notifier",
-            "ui-preferences.v1.json");
+        this.preferences = preferences;
     }
 
     /// <summary>Signals that all dynamic localisation resources have changed.</summary>
@@ -39,7 +33,7 @@ internal sealed class DesktopLocalisationService
     public CultureInfo Culture => CultureInfo.GetCultureInfo(LanguagePreferenceContract.ToStorageValue(CurrentLanguage));
 
     /// <summary>Loads the persisted preference and applies it, failing safely to pt-BR for invalid or unavailable data.</summary>
-    public void Initialise() => Apply(Load(), persist: false);
+    public void Initialise() => Apply(preferences.Current.Language, persist: false);
 
     /// <summary>Applies and persists a validated interface language.</summary>
     /// <param name="language">Supported language selected by the user.</param>
@@ -82,7 +76,7 @@ internal sealed class DesktopLocalisationService
         CultureInfo.CurrentUICulture = Culture;
         if (persist)
         {
-            Save(locale);
+            preferences.UpdateLanguage(language);
         }
         LanguageChanged?.Invoke(this, EventArgs.Empty);
     }
@@ -101,54 +95,4 @@ internal sealed class DesktopLocalisationService
         return -1;
     }
 
-    /// <summary>Loads a bounded, non-secret JSON preference and rejects malformed schemas or locales.</summary>
-    private InterfaceLanguage Load()
-    {
-        try
-        {
-            FileInfo file = new(preferencePath);
-            if (!file.Exists || file.Length > MaximumPreferenceBytes)
-            {
-                return LanguagePreferenceContract.Default;
-            }
-            DesktopUiPreference? preference = JsonSerializer.Deserialize<DesktopUiPreference>(File.ReadAllText(preferencePath));
-            return preference?.SchemaVersion == SchemaVersion &&
-                LanguagePreferenceContract.TryParse(preference.Language, out InterfaceLanguage language)
-                    ? language
-                    : LanguagePreferenceContract.Default;
-        }
-        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or JsonException)
-        {
-            return LanguagePreferenceContract.Default;
-        }
-    }
-
-    /// <summary>Writes the preference atomically; storage policy failures do not interrupt the interface.</summary>
-    private void Save(string locale)
-    {
-        string? temporaryPath = null;
-        try
-        {
-            string directory = Path.GetDirectoryName(preferencePath)!;
-            Directory.CreateDirectory(directory);
-            temporaryPath = Path.Combine(directory, $"ui-preferences.{Guid.NewGuid():N}.tmp");
-            string json = JsonSerializer.Serialize(new DesktopUiPreference(SchemaVersion, locale));
-            File.WriteAllText(temporaryPath, json);
-            File.Move(temporaryPath, preferencePath, overwrite: true);
-        }
-        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
-        {
-            // The selected language remains active for this session when persistence is unavailable.
-        }
-        finally
-        {
-            if (temporaryPath is not null)
-            {
-                try { File.Delete(temporaryPath); } catch (Exception exception) when (exception is IOException or UnauthorizedAccessException) { }
-            }
-        }
-    }
-
-    /// <summary>Represents the versioned, non-secret preference persisted for the desktop shell.</summary>
-    private sealed record DesktopUiPreference(string SchemaVersion, string Language);
 }

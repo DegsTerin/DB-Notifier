@@ -118,11 +118,13 @@ O projeto está em `STATE-05 FRONTEND_IMPLEMENTATION`. Quatro incrementos implem
 - Localização de interface `pt-BR` (padrão) e `en-GB` implementada no Dashboard React e no Desktop/Tray WPF a partir de catálogos XML canônicos com geração TypeScript/XAML determinística e gate de drift no CI.
 - Seletores de idioma persistem somente o locale validado, falham com segurança para `pt-BR` e preservam identificadores técnicos; o Dashboard permanece responsivo para amostras mobile/tablet/desktop e o WPF mantém mínimo desktop de `820×620` DIP.
 - Incremento bilíngue verificado com 18 testes Dashboard, 136 testes .NET, build Release sem avisos/erros, 18 amostras browser sem overflow global e WPF/UI Automation nos dois locales em `1180×760` e `820×620`.
+- Terceiro incremento do Design System concluído: WPF aplica tokens gerados, troca Light/Dark atomicamente, segue o tema Windows em System, dá precedência a High Contrast e persiste tema/locale juntos sem material secreto.
+- Dashboard e WPF expõem botões discretos `pt-BR`, `en-GB`, System, Light e Dark na região superior direita do TopBar, com estado selecionado acessível, teclado e adaptação compacta.
+- Reauditoria automática combinada aprovada em 54 amostras browser (`2 locales × 3 temas × 9 viewport/rota`), sem overflow global ou controlo interativo sem nome, além das seis combinações WPF e amostra mínima `820×620`.
 
 ## Pendente
 
-- Integrar tokens e ciclo completo Light/Dark/System no WPF, substituir recursos visuais locais, adicionar ThemeSelector/observadores de tema e High Contrast e então repetir a reauditoria automática bilíngue.
-- Após a reauditoria automática aprovada, completar amostras humanas com leitor de tela e zoom nativo conforme inventário do relatório.
+- Completar amostras humanas bilíngues com leitor de tela, zoom nativo, Windows scaling/High Contrast e revisão visual conforme inventário do Design System.
 - Manter adapters de apresentação determinísticos até `STATE-06`; não integrar silenciosamente banco, IdP, certificado, canal ou provider real durante a fase de UI.
 - Representar capabilities e suporte de modo factual: ação ausente/negada/unsupported não pode aparecer como executável ou homologada.
 - Preservar as pendências posteriores de ativação sandbox de pacotes, integração real, execução/post-probe de comandos, legal hold/backup e adapters externos.
@@ -139,6 +141,6 @@ O projeto está em `STATE-05 FRONTEND_IMPLEMENTATION`. Quatro incrementos implem
 
 ## Próximo gate
 
-Executar o próximo incremento do Design System no WPF: serviço de tema, troca atômica de `ResourceDictionary`, observação System/High Contrast, preferência local segura integrada ao locale, ThemeSelector e migração para recursos visuais gerados. `STATE-06` e laboratório continuam bloqueados.
+Executar as amostras humanas pendentes de leitor de tela, zoom/scaling, High Contrast e revisão visual; depois apresentar o Human Gate de `STATE-05`. `STATE-06` e laboratório continuam bloqueados.
 
 Este documento descreve somente o presente. Histórico pertence a `State-Transition-Log.md`.
