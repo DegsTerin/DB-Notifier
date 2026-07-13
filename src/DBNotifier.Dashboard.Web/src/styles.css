@@ -79,21 +79,23 @@ button:focus-visible, select:focus-visible, input:focus-visible, a:focus-visible
 .demo-badge > span { width: 6px; height: 6px; background: var(--db-component-shell-chrome-selected-background); border-radius: 50%; }
 .read-only-label { text-transform: uppercase; letter-spacing: .04em; }
 
-/* Compact pressed buttons keep language and theme preferences visible without dominating the topbar. */
-.preference-selector { display: flex; padding: var(--db-space-0); gap: var(--db-space-1); background: transparent; border-radius: var(--db-radius-medium); }
-.preference-selector button {
+/* Single icon controls preserve both global preferences without competing with the product identity. */
+.preference-icon-button {
+  width: var(--db-control-height-compact);
+  height: var(--db-control-height-compact);
   min-height: var(--db-control-height-compact);
-  padding: var(--db-space-2) var(--db-space-3);
+  padding: var(--db-space-2);
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
   border: 0;
   border-radius: var(--db-radius-control);
   background: transparent;
   color: var(--db-component-shell-chrome-muted);
-  font-size: .75rem;
-  font-weight: var(--db-typography-weight-semibold);
   cursor: pointer;
 }
-.preference-selector button:hover { color: var(--db-component-shell-chrome-foreground); background: var(--db-component-shell-chrome-surface); }
-.preference-selector button[aria-pressed="true"] { color: var(--db-component-shell-chrome-selected-foreground); background: var(--db-component-shell-chrome-selected-background); }
+.preference-icon-button:hover { color: var(--db-component-shell-chrome-foreground); background: var(--db-component-shell-chrome-surface); }
+.preference-icon { width: 20px; height: 20px; display: block; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 
 .page-layout { min-width: 0; display: grid; grid-template-columns: 230px minmax(0, 1fr); }
 .sidebar {
@@ -328,7 +330,7 @@ footer { padding: var(--db-space-3) var(--db-space-8); color: var(--db-colour-te
   .topbar { min-height: 68px; padding: var(--db-space-2) var(--db-space-4); }
   .brand-lockup small { display: none; }
   .topbar-controls { gap: var(--db-space-2); }
-  .preference-selector button { padding-inline: var(--db-space-2); }
+  .preference-icon-button { padding: var(--db-space-2); }
   .demo-badge { display: none; }
   .sidebar { padding-inline: var(--db-space-2); }
   .nav-item { flex: 0 0 118px; min-width: 0; grid-template-columns: 24px 1fr; font-size: .76rem; }
@@ -370,7 +372,7 @@ footer { padding: var(--db-space-3) var(--db-space-8); color: var(--db-colour-te
 
 /* Forced-colour mode delegates palette decisions to the operating system while retaining status shapes and borders. */
 @media (forced-colors: active) {
-  .status-badge, .summary-card, .preference-selector, .brand-mark { forced-color-adjust: auto; }
+  .status-badge, .summary-card, .preference-icon-button, .brand-mark { forced-color-adjust: auto; }
   .nav-item.active::before { background: CanvasText; }
   .timeline-marker { background: CanvasText; outline-color: CanvasText; }
 }

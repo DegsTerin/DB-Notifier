@@ -1,4 +1,4 @@
-<!-- Generated from dbnotifier.localisation.v1; culture:en-GB; source sha256:a935dbfc8e539480eca1e7ffa5bbff4543997ad64b42818d8b1f53c31fce86fb. Do not edit directly. -->
+<!-- Generated from dbnotifier.localisation.v1; culture:en-GB; source sha256:1f3b3f52b17cce292afd47249c1040157b6eb7f47263d8ec476b81f1b72bf031. Do not edit directly. -->
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:sys="clr-namespace:System;assembly=System.Runtime">
@@ -80,6 +80,7 @@
   <sys:String x:Key="Language.EnGb">English (UK)</sys:String>
   <sys:String x:Key="Language.Label">Language</sys:String>
   <sys:String x:Key="Language.PtBr">Português (Brasil)</sys:String>
+  <sys:String x:Key="Language.Toggle">Language: {0}. Switch to {1}</sys:String>
   <sys:String x:Key="Navigation.Alerts">Alerts</sys:String>
   <sys:String x:Key="Navigation.Configuration">Configuration</sys:String>
   <sys:String x:Key="Navigation.History">History</sys:String>
@@ -169,6 +170,7 @@
   <sys:String x:Key="Theme.Label">Theme</sys:String>
   <sys:String x:Key="Theme.Light">Light</sys:String>
   <sys:String x:Key="Theme.System">System</sys:String>
+  <sys:String x:Key="Theme.Toggle">Theme: {0}. Switch to {1}</sys:String>
   <sys:String x:Key="Tray.BalloonMessage">The window was hidden. No database or service was controlled.</sys:String>
   <sys:String x:Key="Tray.BalloonTitle">DB Notifier remains available</sys:String>
   <sys:String x:Key="Tray.Exit">Exit</sys:String>

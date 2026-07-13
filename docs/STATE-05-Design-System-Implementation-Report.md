@@ -2,9 +2,9 @@
 
 ## Outcome
 
-The first three DB-Notifier Design System increments, two `S05-HG-001` visual remediation iterations, the canonical product-mark refinement and the ultrawide shell correction are complete. They establish the canonical token/schema sources, deterministic React/WPF asset generation, platform-neutral Light/Dark/System preference contracts and a cohesive enterprise shell on both interfaces required by Design System `1.3.4`.
+The first three DB-Notifier Design System increments, two `S05-HG-001` visual remediation iterations, the canonical product-mark refinement, the ultrawide shell correction and the compact preference-control refinement are complete. They establish the canonical token/schema sources, deterministic React/WPF asset generation, platform-neutral Light/Dark/System preference contracts and a cohesive enterprise shell on both interfaces required by Design System `1.3.5`.
 
-The Dashboard and WPF Desktop now apply generated semantic tokens, expose discreet language and theme buttons in the upper-right TopBar and preserve the validated preferences. Dedicated chrome semantics keep product identity cohesive across themes without the rejected Light-header/Dark-content inversion. System follows live platform colour preference; explicit Light and Dark remain stable. WPF gives Windows High Contrast precedence over the generated palette.
+The Dashboard and WPF Desktop now apply generated semantic tokens, expose one discreet language icon button and one cycling System/Light/Dark icon button in the upper-right TopBar and preserve the validated preferences. Localised accessible names and tooltips identify the current and next states without flags or permanently expanded groups. Dedicated chrome semantics keep product identity cohesive across themes without the rejected Light-header/Dark-content inversion. System follows live platform colour preference; explicit Light and Dark remain stable. WPF gives Windows High Contrast precedence over the generated palette.
 
 User-facing Web, WPF, Tray and installer surfaces use the display name `DB Notifier`; technical identifiers and compatibility paths retain `DBNotifier` or `DB-Notifier` as appropriate. The Dashboard main region now stretches across the available desktop and ultrawide shell width instead of stopping at a fixed `1640` CSS px maximum. Responsive desktop behaviour remains distinct from a dedicated TV/wallboard/kiosk mode, which is not implemented in this phase.
 
@@ -64,7 +64,7 @@ The React adapter accesses only versioned local UI preference storage, the docum
 
 - A blocking local bootstrap runs in the document head before application styles can paint, validates the persisted preference and applies `data-theme` plus `data-theme-preference` without a wrong-theme flash.
 - Storage access, invalid values and unavailable media-query APIs fail safely to System without interrupting rendering.
-- `ThemeSelector` uses discreet pressed-state buttons with visible System, Light and Dark labels, immediate application, keyboard operation and a polite current-preference announcement.
+- `ThemeSelector` uses one code-native monitor/sun/moon icon button, cycles System → Light → Dark, applies immediately and exposes the current/next preference through its localised accessible name, tooltip and polite announcement.
 - `matchMedia` changes update the effective theme live only through System resolution; explicit Light and Dark remain stable.
 - Cross-tab storage changes accept only validated preference values.
 - Route, filters, modal state and other React state remain owned by their existing components and are not reset by a theme change.
@@ -80,7 +80,7 @@ The React adapter accesses only versioned local UI preference storage, the docum
 - Windows High Contrast takes precedence and maps semantic resources to live system brushes without persisting an effective theme.
 - One atomic, bounded `%LocalAppData%\DB-Notifier\ui-preferences.v1.json` document stores only schema, locale and selected theme; failures remain session-local.
 - Main window chrome, surfaces, cards, inputs, buttons, tables, statuses and footer consume generated `DynamicResource` keys. Custom Button/ComboBox/DataGrid selection templates retain legibility in Dark instead of inheriting incompatible native Light colours.
-- `pt-BR`, `en-GB`, System, Light and Dark are distinct accessible radio-button groups at the upper-right of the WPF TopBar.
+- WPF uses one generic language icon button and one current-theme icon button at the upper-right of the TopBar; UI Automation names expose current/next states, and complete cycles restore the starting preferences.
 
 ## Verification
 
@@ -101,6 +101,7 @@ The React adapter accesses only versioned local UI preference storage, the docum
 | Documentation gate | Approved; 161 comment-capable source files |
 | React visual/responsive matrix | Approved; 66 locale/theme/viewport-route samples across 320, 390, 640, 768, 960, 1024, 1440 and 1920 CSS px |
 | React overflow/accessibility | Approved; 0 global overflow and 0 unnamed interactive controls in all six locale/theme combinations |
+| Preference cycles | Approved; Web and WPF restored both locales after two activations and all three themes after three activations in all six locale/theme combinations, with 0 unnamed interactive/focusable controls |
 | WPF UI Automation/visual matrix | Approved; six locale/theme combinations plus `820×620` minimum-window sample, with representative Light/Dark repetition after the second refinement |
 
 ## Security and phase boundaries
@@ -114,10 +115,10 @@ The React adapter accesses only versioned local UI preference storage, the docum
 
 ## Remaining increments
 
-1. Confirm the outlined database mark, ultrawide layout and `DB Notifier` display name in the visible Dashboard preview.
+1. Confirm the outlined database mark, ultrawide layout, `DB Notifier` display name and compact icon-only preference controls in the visible Dashboard preview.
 2. Obtain explicit consent, then complete the keyboard/Narrator portion of `HG05-01`, native browser zoom, Windows scaling, High Contrast and remaining visual samples.
 3. Present the explicit Human Gate decision; no lifecycle transition occurs automatically.
 
 ## Recommendation
 
-Confirm the outlined canonical database mark, ultrawide layout and `DB Notifier` display name in the visible Dashboard preview, then obtain explicit consent before starting Narrator and continuing the remaining samples in [`STATE-05-Human-Gate-Validation.md`](STATE-05-Human-Gate-Validation.md).
+Confirm the outlined canonical database mark, ultrawide layout, `DB Notifier` display name and compact preference icons in the visible Dashboard preview, then obtain explicit consent before starting Narrator and continuing the remaining samples in [`STATE-05-Human-Gate-Validation.md`](STATE-05-Human-Gate-Validation.md).

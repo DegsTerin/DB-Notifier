@@ -187,32 +187,31 @@
       <Setter Property="Padding" Value="18" />
       <Setter Property="Margin" Value="0,0,12,0" />
     </Style>
-    <Style x:Key="TopbarPreferenceRadio" TargetType="RadioButton">
+    <Style x:Key="TopbarIconButton" TargetType="Button">
+      <Setter Property="Width" Value="36" />
+      <Setter Property="Height" Value="36" />
       <Setter Property="MinHeight" Value="34" />
-      <Setter Property="Padding" Value="10,5" />
+      <Setter Property="Padding" Value="7" />
       <Setter Property="Margin" Value="2,0" />
       <Setter Property="Foreground" Value="{DynamicResource ComponentShellChromeMutedBrush}" />
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderBrush" Value="Transparent" />
       <Setter Property="Cursor" Value="Hand" />
       <Setter Property="Template">
         <Setter.Value>
-          <ControlTemplate TargetType="RadioButton">
+          <ControlTemplate TargetType="Button">
             <Border x:Name="PreferenceBorder"
                     Padding="{TemplateBinding Padding}"
                     BorderThickness="1"
-                    BorderBrush="{DynamicResource ComponentShellChromeSurfaceBrush}"
+                    BorderBrush="{TemplateBinding BorderBrush}"
                     CornerRadius="6"
-                    Background="{DynamicResource ComponentShellChromeSurfaceBrush}">
+                    Background="{TemplateBinding Background}">
               <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
             </Border>
             <ControlTemplate.Triggers>
               <Trigger Property="IsMouseOver" Value="True">
-                <Setter TargetName="PreferenceBorder" Property="Background" Value="{DynamicResource ComponentShellChromeBackgroundBrush}" />
+                <Setter TargetName="PreferenceBorder" Property="Background" Value="{DynamicResource ComponentShellChromeSurfaceBrush}" />
                 <Setter Property="Foreground" Value="{DynamicResource ComponentShellChromeForegroundBrush}" />
-              </Trigger>
-              <Trigger Property="IsChecked" Value="True">
-                <Setter TargetName="PreferenceBorder" Property="Background" Value="{DynamicResource ComponentShellChromeSelectedBackgroundBrush}" />
-                <Setter TargetName="PreferenceBorder" Property="BorderBrush" Value="{DynamicResource ComponentShellChromeSelectedBackgroundBrush}" />
-                <Setter Property="Foreground" Value="{DynamicResource ComponentShellChromeSelectedForegroundBrush}" />
               </Trigger>
               <Trigger Property="IsKeyboardFocused" Value="True">
                 <Setter TargetName="PreferenceBorder" Property="BorderBrush" Value="{DynamicResource ComponentFocusRingBrush}" />
@@ -247,22 +246,36 @@
           </StackPanel>
         </StackPanel>
         <WrapPanel Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Center">
-          <StackPanel Margin="0,0,10,0">
-            <TextBlock Text="{DynamicResource Language.Label}" Foreground="{DynamicResource ComponentShellChromeMutedBrush}" FontSize="10" Margin="2,0,0,4" />
-            <StackPanel Orientation="Horizontal">
-              <RadioButton x:Name="PortugueseLanguageButton" GroupName="LanguagePreference" Style="{StaticResource TopbarPreferenceRadio}" Content="pt-BR" Tag="pt-BR" Checked="LanguageButtonChecked" AutomationProperties.Name="Português (Brasil)" />
-              <RadioButton x:Name="BritishEnglishLanguageButton" GroupName="LanguagePreference" Style="{StaticResource TopbarPreferenceRadio}" Content="en-GB" Tag="en-GB" Checked="LanguageButtonChecked" AutomationProperties.Name="English (UK)" />
-            </StackPanel>
-          </StackPanel>
-          <StackPanel Margin="0,0,10,0">
-            <TextBlock Text="{DynamicResource Theme.Label}" Foreground="{DynamicResource ComponentShellChromeMutedBrush}" FontSize="10" Margin="2,0,0,4" />
-            <StackPanel Orientation="Horizontal">
-              <RadioButton x:Name="SystemThemeButton" GroupName="ThemePreference" Style="{StaticResource TopbarPreferenceRadio}" Content="{DynamicResource Theme.System}" Tag="system" Checked="ThemeButtonChecked" />
-              <RadioButton x:Name="LightThemeButton" GroupName="ThemePreference" Style="{StaticResource TopbarPreferenceRadio}" Content="{DynamicResource Theme.Light}" Tag="light" Checked="ThemeButtonChecked" />
-              <RadioButton x:Name="DarkThemeButton" GroupName="ThemePreference" Style="{StaticResource TopbarPreferenceRadio}" Content="{DynamicResource Theme.Dark}" Tag="dark" Checked="ThemeButtonChecked" />
-            </StackPanel>
-          </StackPanel>
-          <Border Background="{DynamicResource ComponentShellChromeSurfaceBrush}" CornerRadius="14" Padding="12,6" VerticalAlignment="Bottom" Margin="0,0,0,1">
+          <Button x:Name="LanguagePreferenceButton" Style="{StaticResource TopbarIconButton}" Click="LanguagePreferenceButtonClick" AutomationProperties.Name="{DynamicResource Language.Label}">
+            <Viewbox Width="20" Height="20">
+              <Canvas Width="24" Height="24">
+                <Ellipse Canvas.Left="3.5" Canvas.Top="3.5" Width="17" Height="17" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="1.8" />
+                <Path Data="M 3.8,12 H 20.2 M 12,3.5 C 14.2,5.8 15.4,8.6 15.4,12 C 15.4,15.4 14.2,18.2 12,20.5 M 12,3.5 C 9.8,5.8 8.6,8.6 8.6,12 C 8.6,15.4 9.8,18.2 12,20.5" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="1.8" StrokeStartLineCap="Round" StrokeEndLineCap="Round" />
+              </Canvas>
+            </Viewbox>
+          </Button>
+          <Button x:Name="ThemePreferenceButton" Style="{StaticResource TopbarIconButton}" Click="ThemePreferenceButtonClick" AutomationProperties.Name="{DynamicResource Theme.Label}" Margin="4,0,10,0">
+            <Grid Width="20" Height="20">
+              <Viewbox x:Name="SystemThemeIcon" Width="20" Height="20">
+                <Canvas Width="24" Height="24">
+                  <Rectangle Canvas.Left="3.5" Canvas.Top="4.5" Width="17" Height="12" RadiusX="1.8" RadiusY="1.8" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="1.8" />
+                  <Path Data="M 9,20 H 15 M 12,16.5 V 20" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="1.8" StrokeStartLineCap="Round" StrokeEndLineCap="Round" />
+                </Canvas>
+              </Viewbox>
+              <Viewbox x:Name="LightThemeIcon" Width="20" Height="20" Visibility="Collapsed">
+                <Canvas Width="24" Height="24">
+                  <Ellipse Canvas.Left="8.5" Canvas.Top="8.5" Width="7" Height="7" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="1.8" />
+                  <Path Data="M 12,2.5 V 5.5 M 12,18.5 V 21.5 M 2.5,12 H 5.5 M 18.5,12 H 21.5 M 5.3,5.3 L 7.4,7.4 M 16.6,16.6 L 18.7,18.7 M 18.7,5.3 L 16.6,7.4 M 7.4,16.6 L 5.3,18.7" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="1.8" StrokeStartLineCap="Round" StrokeEndLineCap="Round" />
+                </Canvas>
+              </Viewbox>
+              <Viewbox x:Name="DarkThemeIcon" Width="20" Height="20" Visibility="Collapsed">
+                <Canvas Width="24" Height="24">
+                  <Path Data="M 20,15.2 A 8.3,8.3 0 0 1 8.8,4 A 8.5,8.5 0 1 0 20,15.2 Z" Fill="Transparent" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="1.8" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round" />
+                </Canvas>
+              </Viewbox>
+            </Grid>
+          </Button>
+          <Border Background="{DynamicResource ComponentShellChromeSurfaceBrush}" CornerRadius="14" Padding="12,6" VerticalAlignment="Center">
             <TextBlock Text="{DynamicResource Demo.Badge}" Foreground="{DynamicResource ComponentShellChromeMutedBrush}" FontSize="11" FontWeight="SemiBold" />
           </Border>
         </WrapPanel>

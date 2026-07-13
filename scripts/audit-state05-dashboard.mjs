@@ -120,6 +120,39 @@ async function auditKeyboard(call) {
   return sequence;
 }
 
+/** Exercises both compact preference buttons and restores their initial locale and theme. */
+async function auditPreferenceCycles(call) {
+  await call("Emulation.setDeviceMetricsOverride", { width: 1440, height: 1000, deviceScaleFactor: 1, mobile: false });
+  await call("Page.navigate", { url: `${dashboardUrl}#inventory` });
+  await settle(80);
+  await call("Page.reload", { ignoreCache: true });
+  await settle();
+  return evaluate(call, `(() => new Promise(async (resolve) => {
+    const pause = () => new Promise((done) => setTimeout(done, 80));
+    const readLanguage = () => {
+      const button = document.querySelector(".language-selector");
+      return { locale: button?.dataset.locale, name: button?.getAttribute("aria-label") };
+    };
+    const readTheme = () => {
+      const button = document.querySelector(".theme-selector");
+      return { preference: button?.dataset.preference, name: button?.getAttribute("aria-label") };
+    };
+    const language = [readLanguage()];
+    for (let index = 0; index < 2; index += 1) {
+      document.querySelector(".language-selector")?.click();
+      await pause();
+      language.push(readLanguage());
+    }
+    const theme = [readTheme()];
+    for (let index = 0; index < 3; index += 1) {
+      document.querySelector(".theme-selector")?.click();
+      await pause();
+      theme.push(readTheme());
+    }
+    resolve({ language, theme });
+  }))()`);
+}
+
 /** Inspects accessible roles and flags unnamed interactive controls. */
 async function auditAccessibilityTree(call) {
   const { nodes } = await call("Accessibility.getFullAXTree");
@@ -264,6 +297,7 @@ async function main() {
     theme,
     viewports,
     keyboard: await auditKeyboard(call),
+    preferenceCycles: await auditPreferenceCycles(call),
     accessibilityTree: await auditAccessibilityTree(call),
     operationalStates: await auditOperationalStates(call),
     modal: await auditModal(call),

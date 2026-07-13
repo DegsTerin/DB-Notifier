@@ -5,7 +5,7 @@
 | Field | Value |
 |---|---|
 | Status | Official frontend specification |
-| Design System version | `1.3.4` |
+| Design System version | `1.3.5` |
 | Product phase | `STATE-05 FRONTEND_IMPLEMENTATION` |
 | Platforms | React Web Dashboard and .NET 10 WPF Desktop/Tray |
 | Themes | Light, Dark and System |
@@ -418,7 +418,7 @@ The WPF minimum window remains usable at `820×620` DIP. Below the comfortable t
 
 ### 9.4 TV and wallboard scope
 
-Design System `1.3.4` does not define a dedicated TV, wallboard or kiosk mode. Responsive Web behaviour at desktop or ultrawide dimensions MUST NOT be presented as TV-mode support. Any future TV mode requires a separately approved interaction, density, viewing-distance, focus/navigation, refresh and long-running-display contract.
+Design System `1.3.5` does not define a dedicated TV, wallboard or kiosk mode. Responsive Web behaviour at desktop or ultrawide dimensions MUST NOT be presented as TV-mode support. Any future TV mode requires a separately approved interaction, density, viewing-distance, focus/navigation, refresh and long-running-display contract.
 
 ## 10. Reusable component catalogue
 
@@ -430,15 +430,15 @@ All components define default, hover, pressed, focus-visible, selected, disabled
 
 ### 10.2 Theme selector
 
-`ThemeSelector` exposes System, Light and Dark as discreet pressed-state buttons with visible localised text. It MUST announce the current preference, apply immediately, persist safely and remain keyboard-operable. An icon alone is insufficient.
+`ThemeSelector` is one discreet icon button that cycles System → Light → Dark → System. Its code-native monitor, sun or moon icon represents the current preference. The button MUST expose a localised accessible name and tooltip containing both the current and next preference, announce the applied state, persist safely, respond to keyboard activation and retain focus after the change. The icon MUST NOT be the only programmatic state indication.
 
 On desktop and tablet-width shells, the selector belongs in the upper-right TopBar preference region. At compact mobile widths it MAY wrap beneath the brand, but MUST remain right-aligned, fully visible and ahead of feature content.
 
 ### 10.2.1 Language selector
 
-`LanguageSelector` exposes `pt-BR` and `en-GB` as discreet pressed-state buttons in the same upper-right TopBar preference region. Each compact code MUST expose the full native language name to assistive technology and as supplementary pointer text. It applies immediately, persists only the validated BCP 47 value, updates document/window and assistive-technology labels, and remains usable at compact widths. Flags MUST NOT replace the locale controls.
+`LanguageSelector` is one discreet generic language-icon button in the same upper-right TopBar preference region. It cycles only `pt-BR` ↔ `en-GB`; its localised accessible name and tooltip expose the full current and next language names. It applies immediately, persists only the validated BCP 47 value, updates document/window and assistive-technology labels, retains focus and remains usable at compact widths. Flags MUST NOT replace the generic language icon.
 
-Language and theme groups MUST retain separate accessible names, a programmatically determinable selected state and an obvious focus indicator. Their compact presentation MUST NOT obscure the product brand or cause document-level horizontal overflow.
+Language and theme buttons MUST retain separate accessible names, a programmatically determinable current state and an obvious focus indicator. Their compact presentation MUST NOT obscure the product brand or cause document-level horizontal overflow.
 
 ### 10.3 Buttons
 

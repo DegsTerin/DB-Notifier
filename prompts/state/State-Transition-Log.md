@@ -485,6 +485,17 @@
 - Riscos/ressalvas: não há modo TV/wallboard/kiosk implementado; responsividade ultrawide não equivale a esse suporte. `S05-HG-002`, `S05-HG-003`, Narrator e o Human Gate completo permanecem pendentes de validação humana.
 - Aprovador: PENDENTE para a correção visível e o nome visual.
 
+## 2026-07-13 — Controles compactos de preferência S05-HG-004
+
+- Estado anterior: `STATE-05 FRONTEND_IMPLEMENTATION`
+- Estado resultante: sem transição
+- Decisão: substituir os grupos textuais expandidos por um botão de idioma e um botão de tema com iconografia code-native equivalente no React e WPF.
+- Escopo: Design System `1.3.5`, ícone genérico de idioma, ícones Sistema/Sol/Lua, ciclos limitados `pt-BR` ↔ `en-GB` e System → Light → Dark, nomes acessíveis/tooltips localizados e persistência existente.
+- Gates: 66 amostras browser e seis combinações WPF aprovadas, com os dois ciclos completos/restaurados em cada combinação de locale/tema, sem overflow global nem controles sem nome; cada WPF expôs 34 controles focalizáveis e 0 sem nome; 21 testes Dashboard e builds Web/.NET 10 aplicáveis aprovados.
+- Evidências: `docs/STATE-05-Design-System-Implementation-Report.md`, `docs/STATE-05-Human-Gate-Validation.md` e JSON/PNG sanitizados temporários fora do Git.
+- Riscos/ressalvas: a reauditoria automática não constitui aprovação visual; `S05-HG-002`, `S05-HG-003`, `S05-HG-004`, Narrator e o Human Gate completo permanecem pendentes.
+- Aprovador: PENDENTE para os controles compactos.
+
 ## Template de nova entrada
 
 - Data:

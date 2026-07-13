@@ -115,7 +115,7 @@ test("runtime wiring imports generated tokens and observes theme changes without
   }
 });
 
-test("both interfaces expose discreet language and theme buttons in the upper-right topbar", () => {
+test("both interfaces expose one accessible icon button per global preference in the upper-right topbar", () => {
   const app = readFileSync(new URL("../src/App.tsx", import.meta.url), "utf8");
   const languageSelector = readFileSync(new URL("../src/LanguageSelector.tsx", import.meta.url), "utf8");
   const themeSelector = readFileSync(new URL("../src/ThemeSelector.tsx", import.meta.url), "utf8");
@@ -125,24 +125,33 @@ test("both interfaces expose discreet language and theme buttons in the upper-ri
   const desktopPreferences = readFileSync(new URL("../../DBNotifier.Desktop.Wpf/DesktopUiPreferenceStore.cs", import.meta.url), "utf8");
 
   assert.ok(app.indexOf("<LanguageSelector />") < app.indexOf("<ThemeSelector />"));
-  assert.match(languageSelector, /role="group"/);
-  assert.match(languageSelector, /aria-pressed=/);
-  assert.match(languageSelector, />\s*\{option\}\s*<\/button>/);
+  assert.equal((languageSelector.match(/<button\b/g) ?? []).length, 1);
+  assert.match(languageSelector, /className="preference-icon-button language-selector"/);
+  assert.match(languageSelector, /<LanguageIcon \/>/);
+  assert.match(languageSelector, /aria-label=\{accessibleLabel\}/);
+  assert.match(languageSelector, /data-locale=\{locale\}/);
+  assert.doesNotMatch(languageSelector, /role="group"|aria-pressed=/);
   assert.doesNotMatch(languageSelector, /<select|<input/i);
-  assert.match(themeSelector, /role="group"/);
-  assert.match(themeSelector, /aria-pressed=/);
+  assert.equal((themeSelector.match(/<button\b/g) ?? []).length, 1);
+  assert.match(themeSelector, /className="preference-icon-button theme-selector"/);
+  assert.match(themeSelector, /<ThemeIcon preference=\{preference\} \/>/);
+  assert.match(themeSelector, /aria-label=\{accessibleLabel\}/);
+  assert.match(themeSelector, /data-preference=\{preference\}/);
+  assert.doesNotMatch(themeSelector, /role="group"|aria-pressed=/);
   assert.doesNotMatch(themeSelector, /<fieldset|<input/i);
   assert.match(css, /\.topbar-controls\s*\{[^}]*margin-left:\s*auto;[^}]*justify-content:\s*flex-end;/s);
+  assert.match(css, /\.preference-icon-button\s*\{[^}]*width:\s*var\(--db-control-height-compact\);[^}]*display:\s*grid;/s);
 
-  for (const automationId of [
-    "PortugueseLanguageButton",
-    "BritishEnglishLanguageButton",
-    "SystemThemeButton",
-    "LightThemeButton",
-    "DarkThemeButton",
-  ]) assert.match(desktopXaml, new RegExp(`x:Name="${automationId}"`));
+  for (const automationId of ["LanguagePreferenceButton", "ThemePreferenceButton"]) {
+    assert.match(desktopXaml, new RegExp(`<Button x:Name="${automationId}"`));
+  }
+  for (const icon of ["SystemThemeIcon", "LightThemeIcon", "DarkThemeIcon"]) {
+    assert.match(desktopXaml, new RegExp(`x:Name="${icon}"`));
+  }
+  assert.doesNotMatch(desktopXaml, /PortugueseLanguageButton|BritishEnglishLanguageButton|TopbarPreferenceRadio/);
   assert.match(desktopXaml, /<WrapPanel Grid.Column="1" HorizontalAlignment="Right"/);
-  assert.doesNotMatch(desktopXaml, /x:Name="LanguageSelector"/);
+  assert.match(desktopXaml, /AutomationProperties.Name="\{DynamicResource Language.Label\}"/);
+  assert.match(desktopXaml, /AutomationProperties.Name="\{DynamicResource Theme.Label\}"/);
   assert.match(desktopTheme, /AppsUseLightTheme/);
   assert.match(desktopTheme, /SystemParameters\.HighContrast/);
   assert.match(desktopTheme, /DesignTokens\.\{resolved\}\.xaml/);

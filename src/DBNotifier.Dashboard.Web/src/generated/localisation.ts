@@ -1,4 +1,4 @@
-/** Generated from dbnotifier.localisation.v1; source sha256:a935dbfc8e539480eca1e7ffa5bbff4543997ad64b42818d8b1f53c31fce86fb. Do not edit directly. */
+/** Generated from dbnotifier.localisation.v1; source sha256:1f3b3f52b17cce292afd47249c1040157b6eb7f47263d8ec476b81f1b72bf031. Do not edit directly. */
 const ptBRMessages = {
   "Action.Restart": "Reiniciar",
   "Action.Start": "Iniciar",
@@ -78,6 +78,7 @@ const ptBRMessages = {
   "Language.EnGb": "English (UK)",
   "Language.Label": "Idioma",
   "Language.PtBr": "Português (Brasil)",
+  "Language.Toggle": "Idioma: {0}. Alternar para {1}",
   "Navigation.Alerts": "Alertas",
   "Navigation.Configuration": "Configuração",
   "Navigation.History": "Histórico",
@@ -167,6 +168,7 @@ const ptBRMessages = {
   "Theme.Label": "Tema",
   "Theme.Light": "Claro",
   "Theme.System": "Sistema",
+  "Theme.Toggle": "Tema: {0}. Alternar para {1}",
   "Tray.BalloonMessage": "A janela foi recolhida. Nenhum banco ou serviço foi controlado.",
   "Tray.BalloonTitle": "DB Notifier continua disponível",
   "Tray.Exit": "Sair",
@@ -277,6 +279,7 @@ const enGBMessages = {
   "Language.EnGb": "English (UK)",
   "Language.Label": "Language",
   "Language.PtBr": "Português (Brasil)",
+  "Language.Toggle": "Language: {0}. Switch to {1}",
   "Navigation.Alerts": "Alerts",
   "Navigation.Configuration": "Configuration",
   "Navigation.History": "History",
@@ -366,6 +369,7 @@ const enGBMessages = {
   "Theme.Label": "Theme",
   "Theme.Light": "Light",
   "Theme.System": "System",
+  "Theme.Toggle": "Theme: {0}. Switch to {1}",
   "Tray.BalloonMessage": "The window was hidden. No database or service was controlled.",
   "Tray.BalloonTitle": "DB Notifier remains available",
   "Tray.Exit": "Exit",

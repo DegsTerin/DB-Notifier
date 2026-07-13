@@ -2,7 +2,7 @@
 
 ## Versão atual
 
-- Versão: `3.28.4`
+- Versão: `3.28.5`
 - Data: 2026-07-13
 - Status: corpus DB-Notifier consolidado
 - Escopo: 13 arquivos ativos
@@ -16,6 +16,12 @@ A versão do corpus é independente da versão do software.
 - PATCH: clareza, correção ou referência sem mudança de autoridade.
 
 Toda alteração atualiza este arquivo e, quando necessário, `../Start-Here.md`.
+
+## 3.28.5 — 2026-07-13
+
+- A regra permanente de frontend passa a exigir um botão code-native de idioma e um de tema no TopBar, com estados atual/próximo localizados por nome acessível e tooltip, sem flags ou grupos permanentemente expandidos.
+- Design System `1.3.5` define os ciclos `pt-BR` ↔ `en-GB` e System → Light → Dark com ícones genérico de idioma, monitor, sol e lua em React/WPF.
+- `S05-HG-004` registra a solicitação visual e a reauditoria automática dos ciclos, sem inferir aprovação humana ou alterar `STATE-05`.
 
 ## 3.28.4 — 2026-07-13
 

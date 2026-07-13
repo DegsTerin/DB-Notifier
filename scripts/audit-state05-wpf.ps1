@@ -44,9 +44,18 @@ $evidenceDirectory = Join-Path ([System.IO.Path]::GetTempPath()) "DBNotifier-Sta
 $preferencePath = Join-Path ([Environment]::GetFolderPath([Environment+SpecialFolder]::LocalApplicationData)) "DB-Notifier/ui-preferences.v1.json"
 $preferenceExisted = [System.IO.File]::Exists($preferencePath)
 $preferenceBytes = if ($preferenceExisted) { [System.IO.File]::ReadAllBytes($preferencePath) } else { $null }
-$process = Start-Process -FilePath $executable -PassThru
+$preferenceDirectory = [System.IO.Path]::GetDirectoryName($preferencePath)
+[System.IO.Directory]::CreateDirectory($preferenceDirectory) | Out-Null
+$requestedPreferences = [ordered]@{
+    SchemaVersion = "dbnotifier.ui-preferences.v1"
+    Language = $Locale
+    Theme = $Theme
+} | ConvertTo-Json -Compress
+$process = $null
 
 try {
+    [System.IO.File]::WriteAllText($preferencePath, $requestedPreferences)
+    $process = Start-Process -FilePath $executable -PassThru
     $deadline = [DateTime]::UtcNow.AddSeconds(15)
     do {
         Start-Sleep -Milliseconds 200
@@ -64,31 +73,38 @@ try {
         $transformPattern.Resize($Width, $Height)
         Start-Sleep -Milliseconds 200
     }
-    $languageAutomationId = if ($Locale -eq "en-GB") { "BritishEnglishLanguageButton" } else { "PortugueseLanguageButton" }
     $languageCondition = [System.Windows.Automation.PropertyCondition]::new(
         [System.Windows.Automation.AutomationElement]::AutomationIdProperty,
-        $languageAutomationId)
+        "LanguagePreferenceButton")
     $languageButton = $window.FindFirst([System.Windows.Automation.TreeScope]::Descendants, $languageCondition)
     if ($null -eq $languageButton) {
-        throw "The requested desktop language button is unavailable."
+        throw "The desktop language preference button is unavailable."
     }
-    $languageSelection = $languageButton.GetCurrentPattern([System.Windows.Automation.SelectionItemPattern]::Pattern)
-    $languageSelection.Select()
 
-    $themeAutomationId = switch ($Theme) {
-        "light" { "LightThemeButton" }
-        "dark" { "DarkThemeButton" }
-        default { "SystemThemeButton" }
-    }
     $themeCondition = [System.Windows.Automation.PropertyCondition]::new(
         [System.Windows.Automation.AutomationElement]::AutomationIdProperty,
-        $themeAutomationId)
+        "ThemePreferenceButton")
     $themeButton = $window.FindFirst([System.Windows.Automation.TreeScope]::Descendants, $themeCondition)
     if ($null -eq $themeButton) {
-        throw "The requested desktop theme button is unavailable."
+        throw "The desktop theme preference button is unavailable."
     }
-    $themeSelection = $themeButton.GetCurrentPattern([System.Windows.Automation.SelectionItemPattern]::Pattern)
-    $themeSelection.Select()
+
+    # Each icon button is invoked through UI Automation and returned to its requested initial preference.
+    $languageInvoke = $languageButton.GetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern)
+    $themeInvoke = $themeButton.GetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern)
+    $languageCycle = @($languageButton.Current.Name)
+    $languageInvoke.Invoke()
+    Start-Sleep -Milliseconds 150
+    $languageCycle += $languageButton.Current.Name
+    $languageInvoke.Invoke()
+    Start-Sleep -Milliseconds 150
+    $languageCycle += $languageButton.Current.Name
+    $themeCycle = @($themeButton.Current.Name)
+    for ($index = 0; $index -lt 3; $index += 1) {
+        $themeInvoke.Invoke()
+        Start-Sleep -Milliseconds 150
+        $themeCycle += $themeButton.Current.Name
+    }
     Start-Sleep -Milliseconds 250
     $elements = $window.FindAll([System.Windows.Automation.TreeScope]::Descendants, $condition)
     $focusable = @(
@@ -154,6 +170,7 @@ try {
         focusableControlCount = $focusable.Count
         unnamedFocusable = @($focusable | Where-Object { [string]::IsNullOrWhiteSpace($_.name) })
         focusableControls = $focusable
+        preferenceCycles = [ordered]@{ language = $languageCycle; theme = $themeCycle }
         tabSequence = $tabSequence
         screenshotPath = $screenshotPath
     }
@@ -162,7 +179,7 @@ try {
     [ordered]@{ reportPath = $reportPath; report = $report } | ConvertTo-Json -Depth 8
 }
 finally {
-    if (-not $process.HasExited) {
+    if ($null -ne $process -and -not $process.HasExited) {
         $process.CloseMainWindow() | Out-Null
         if (-not $process.WaitForExit(3000)) {
             Stop-Process -Id $process.Id -Force

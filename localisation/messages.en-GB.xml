@@ -9,11 +9,13 @@
   <message key="Language.PtBr">Português (Brasil)</message>
   <message key="Language.EnGb">English (UK)</message>
   <message key="Language.Announcement">Interface language: {0}</message>
+  <message key="Language.Toggle">Language: {0}. Switch to {1}</message>
   <message key="Theme.Label">Theme</message>
   <message key="Theme.System">System</message>
   <message key="Theme.Light">Light</message>
   <message key="Theme.Dark">Dark</message>
   <message key="Theme.Announcement">Theme preference: {0}</message>
+  <message key="Theme.Toggle">Theme: {0}. Switch to {1}</message>
   <message key="Navigation.Label">Main navigation</message>
   <message key="Navigation.Inventory">Inventory</message>
   <message key="Navigation.History">History</message>

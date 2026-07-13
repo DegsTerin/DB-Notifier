@@ -1,5 +1,5 @@
 /**
- * Provides the Dashboard theme runtime and discreet System, Light and Dark topbar controls.
+ * Provides the Dashboard theme runtime and one discreet cycling topbar control.
  * The component owns browser observation and persistence but does not alter routes, feature state or external systems.
  */
 import { useEffect, useState } from "react";
@@ -20,6 +20,31 @@ const options: ReadonlyArray<{ value: ThemePreference; labelKey: MessageKey }> =
   { value: "light", labelKey: "Theme.Light" },
   { value: "dark", labelKey: "Theme.Dark" },
 ];
+
+/** Renders the outlined icon for the current System, Light or Dark preference. */
+function ThemeIcon({ preference }: Readonly<{ preference: ThemePreference }>) {
+  if (preference === "light") {
+    return (
+      <svg className="preference-icon" viewBox="0 0 24 24" aria-hidden="true">
+        <circle cx="12" cy="12" r="3.5" />
+        <path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M18.7 5.3l-2.1 2.1M7.4 16.6l-2.1 2.1" />
+      </svg>
+    );
+  }
+  if (preference === "dark") {
+    return (
+      <svg className="preference-icon" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M20 15.2A8.3 8.3 0 0 1 8.8 4a8.5 8.5 0 1 0 11.2 11.2Z" />
+      </svg>
+    );
+  }
+  return (
+    <svg className="preference-icon" viewBox="0 0 24 24" aria-hidden="true">
+      <rect x="3.5" y="4.5" width="17" height="12" rx="1.8" />
+      <path d="M9 20h6M12 16.5V20" />
+    </svg>
+  );
+}
 
 /**
  * Reads the bootstrap result first so React preserves the preference applied before the first paint.
@@ -48,8 +73,8 @@ function readSystemUsesDark(): boolean {
 }
 
 /**
- * Renders the theme preference controls and keeps System responsive to live platform changes.
- * @returns An accessible pressed-button group with an announced current preference.
+ * Renders the theme cycle control and keeps System responsive to live platform changes.
+ * @returns An accessible icon button with an announced current preference.
  */
 export function ThemeSelector() {
   const { t } = useLocalisation();
@@ -88,20 +113,22 @@ export function ThemeSelector() {
     return () => window.removeEventListener("storage", handleStorage);
   }, []);
 
-  const currentLabel = t(options.find((option) => option.value === preference)?.labelKey ?? "Theme.System");
+  const currentIndex = options.findIndex((option) => option.value === preference);
+  const nextOption = options[(currentIndex + 1) % options.length] ?? options[0];
+  const currentLabel = t(options[currentIndex]?.labelKey ?? "Theme.System");
+  const nextLabel = t(nextOption.labelKey);
+  const accessibleLabel = t("Theme.Toggle", currentLabel, nextLabel);
   return (
-    <div className="preference-selector theme-selector" role="group" aria-label={t("Theme.Label")}>
-      {options.map((option) => (
-        <button
-          key={option.value}
-          type="button"
-          aria-pressed={preference === option.value}
-          onClick={() => setPreference(option.value)}
-        >
-          {t(option.labelKey)}
-        </button>
-      ))}
+    <button
+      className="preference-icon-button theme-selector"
+      type="button"
+      aria-label={accessibleLabel}
+      title={accessibleLabel}
+      data-preference={preference}
+      onClick={() => setPreference(nextOption.value)}
+    >
+      <ThemeIcon preference={preference} />
       <span className="sr-only" aria-live="polite">{t("Theme.Announcement", currentLabel)}</span>
-    </div>
+    </button>
   );
 }

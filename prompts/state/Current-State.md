@@ -119,7 +119,7 @@ O projeto está em `STATE-05 FRONTEND_IMPLEMENTATION`. Quatro incrementos implem
 - Seletores de idioma persistem somente o locale validado, falham com segurança para `pt-BR` e preservam identificadores técnicos; o Dashboard permanece responsivo para amostras mobile/tablet/desktop e o WPF mantém mínimo desktop de `820×620` DIP.
 - Incremento bilíngue verificado com 18 testes Dashboard, 136 testes .NET, build Release sem avisos/erros, 18 amostras browser sem overflow global e WPF/UI Automation nos dois locales em `1180×760` e `820×620`.
 - Terceiro incremento do Design System concluído: WPF aplica tokens gerados, troca Light/Dark atomicamente, segue o tema Windows em System, dá precedência a High Contrast e persiste tema/locale juntos sem material secreto.
-- Dashboard e WPF expõem botões discretos `pt-BR`, `en-GB`, System, Light e Dark na região superior direita do TopBar, com estado selecionado acessível, teclado e adaptação compacta.
+- Dashboard e WPF expõem um único botão com ícone genérico de idioma e um único botão de tema com ícones Sistema/Sol/Lua na região superior direita do TopBar. Os ciclos aceitam somente `pt-BR` ↔ `en-GB` e System → Light → Dark, com estado atual/próximo localizado, persistência, teclado e adaptação compacta.
 - Reauditoria automática combinada aprovada em 54 amostras browser (`2 locales × 3 temas × 9 viewport/rota`), sem overflow global ou controlo interativo sem nome, além das seis combinações WPF e amostra mínima `820×620`.
 - Protocolo do Human Gate de `STATE-05` preparado em `docs/STATE-05-Human-Gate-Validation.md`; preflight confirmou Narrator disponível, escala atual 100% e High Contrast desligado.
 - Primeira amostra humana interrompida com `S05-HG-001`: o Dashboard `pt-BR` foi explicitamente reprovado na revisão visual por não parecer moderno nem empresarial; teclado/Narrator e demais amostras não foram executados.
@@ -134,12 +134,14 @@ O projeto está em `STATE-05 FRONTEND_IMPLEMENTATION`. Quatro incrementos implem
 - Design System `1.3.4` remove o limite fixo de `1640` CSS px que deixava uma faixa inativa à direita em tela cheia e padroniza `DB Notifier` nas superfícies visuais, preservando caminhos e identificadores técnicos existentes.
 - A matriz ampliada foi aprovada em 66 amostras browser; nas seis combinações de locale/tema em `1920×1080`, a região principal terminou na borda direita, manteve inset interno de 48 px e não apresentou overflow global nem controles interativos sem nome. WPF `pt-BR` Dark confirmou o título `DB Notifier — Inventário`, 37 controles focalizáveis e nenhum sem nome.
 - Não existe modo TV, wallboard ou kiosk dedicado no projeto atual; a responsividade Web desktop/tablet/mobile e ultrawide não deve ser apresentada como suporte a modo TV.
+- Design System `1.3.5` substitui os cinco botões textuais de preferência por dois controles de ícone no Web e WPF. A reauditoria de 66 amostras browser e seis combinações WPF completou/restaurou todos os ciclos sem overflow ou controle sem nome; cada amostra WPF confirmou 34 controles focalizáveis e nenhum sem nome.
 
 ## Pendente
 
 - Completar amostras humanas bilíngues com leitor de tela, zoom nativo, Windows scaling/High Contrast e revisão visual conforme inventário do Design System.
 - Confirmar visualmente o ícone canônico de banco de dados em contorno; somente após novo consentimento explícito iniciar Narrator e as demais porções pendentes de `HG05-01`.
 - Confirmar visualmente a correção de largura em tela cheia e o display name `DB Notifier`; `S05-HG-003` permanece pendente até essa validação humana.
+- Confirmar visualmente os controles compactos de idioma e tema; `S05-HG-004` permanece pendente até essa validação humana.
 - Manter adapters de apresentação determinísticos até `STATE-06`; não integrar silenciosamente banco, IdP, certificado, canal ou provider real durante a fase de UI.
 - Representar capabilities e suporte de modo factual: ação ausente/negada/unsupported não pode aparecer como executável ou homologada.
 - Preservar as pendências posteriores de ativação sandbox de pacotes, integração real, execução/post-probe de comandos, legal hold/backup e adapters externos.
@@ -156,6 +158,6 @@ O projeto está em `STATE-05 FRONTEND_IMPLEMENTATION`. Quatro incrementos implem
 
 ## Próximo gate
 
-Confirmar o ícone canônico em contorno, a largura em tela cheia e o display name `DB Notifier` na janela visível; depois obter consentimento explícito antes de iniciar Narrator/teclado em `HG05-01`. O Human Gate, `STATE-06` e o laboratório continuam bloqueados.
+Confirmar o ícone canônico em contorno, a largura em tela cheia, o display name `DB Notifier` e os dois controles compactos de preferência na janela visível; depois obter consentimento explícito antes de iniciar Narrator/teclado em `HG05-01`. O Human Gate, `STATE-06` e o laboratório continuam bloqueados.
 
 Este documento descreve somente o presente. Histórico pertence a `State-Transition-Log.md`.

@@ -118,6 +118,7 @@ Resolve conflicts using the precedence in `prompts/Start-Here.md`. A current exp
 - Follow the official DB-Notifier Design System for every new or modified React or WPF interface.
 - Maintain a modern, clean, calm, professional, restrained enterprise identity. Avoid sci-fi, neon, glassmorphism, excessive glow, decorative animation, and exaggerated effects.
 - Support Light, Dark, and System preferences with safe persistence, live system-theme observation, no incorrect-theme flash, and semantic parity between React and WPF.
+- Present global language and theme preferences as one discreet code-native icon button each in the upper-right TopBar; expose current and next states through localised accessible names and tooltips rather than flags or permanently expanded button groups.
 - Consume canonical generated semantic/component tokens. Do not create parallel token sets, provider-specific themes, or arbitrary raw visual values without a documented narrow exception.
 - Meet WCAG 2.2 AA, including contrast, keyboard access, focus visibility/order/restoration, zoom/reflow, reduced motion, screen-reader semantics, non-colour status cues, and High Contrast behaviour where applicable.
 - Preserve factual operational distinctions in labels and states. Visual polish must never imply support, freshness, permission, connectivity, or successful execution that has not been proved.

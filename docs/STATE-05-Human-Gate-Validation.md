@@ -26,7 +26,7 @@ Mobile and tablet samples apply to the responsive Dashboard Web. There is no nat
 
 | Evidence | Current result |
 |---|---|
-| Design System implementation report | Design System `1.3.4` visual remediation, outlined database-mark and ultrawide gates approved; commit identifier is reported in the implementation hand-off |
+| Design System implementation report | Design System `1.3.5` visual remediation, outlined database-mark, ultrawide and compact-preference gates approved; commit identifier is reported in the implementation hand-off |
 | Dashboard matrix | 66 locale/theme/viewport-route samples, including `960×1040` and `1920×1080`; no global overflow or unnamed interactive control |
 | WPF matrix | Six locale/theme combinations and minimum-window sample recorded after visual remediation |
 | Automated tests | 21 Dashboard, 131 .NET unit/model/provider/presentation, 5 architecture and 10 legacy compatibility tests approved |
@@ -204,6 +204,17 @@ Do not mark a row until the named human validator has performed it.
 - Human closure: PENDENTE; the visible fullscreen correction and display name still require reviewer confirmation.
 - Lifecycle impact: Narrator remains off and the Human Gate remains pending.
 
+### `S05-HG-004` — Expanded language and theme groups should become compact icon controls
+
+- Date observed: 2026-07-13.
+- Source: explicit user review of Dashboard and WPF TopBar screenshots in the active Human Gate session.
+- Classification: visual density and interaction refinement; it does not approve the existing pending brand, layout or accessibility checkpoints.
+- Human feedback: replace the expanded `pt-BR`/`en-GB` and System/Light/Dark controls with one language-image button and one theme-image button using System, sun and moon states.
+- Remediation: Design System `1.3.5` uses one generic language icon button cycling `pt-BR` ↔ `en-GB` and one monitor/sun/moon button cycling System → Light → Dark in React and WPF. Localised accessible names and tooltips expose the current and next states.
+- Automatic evidence: 66 browser samples passed with no global overflow or unnamed interactive control. All six locale/theme combinations completed and restored both preference cycles in Web and WPF; every WPF sample exposed 34 focusable controls and found none without a name.
+- Human closure: PENDENTE; the compact controls require visual confirmation in the visible Dashboard preview.
+- Lifecycle impact: Narrator remains off and the Human Gate remains pending.
+
 ## Human Gate decision
 
 - Phase: `STATE-05 FRONTEND_IMPLEMENTATION`
@@ -213,7 +224,7 @@ Do not mark a row until the named human validator has performed it.
 - Critical samples repeated: PENDENTE
 - Experience and error messages: PENDENTE
 - Security/authorisation truth: PENDENTE
-- Remaining coverage: outlined database-mark, fullscreen layout and display-name confirmation plus all keyboard, screen-reader, zoom, scaling, High Contrast and remaining samples above
+- Remaining coverage: outlined database-mark, fullscreen layout, display name and compact preference-control confirmation plus all keyboard, screen-reader, zoom, scaling, High Contrast and remaining samples above
 - Decision: `PENDENTE`
 - Justification/evidence: PENDENTE
 
@@ -221,4 +232,4 @@ Permitted decisions after the sample are `APROVADO`, `APROVADO COM RESSALVAS` or
 
 ## Recommended next step
 
-Confirm the outlined canonical database mark, fullscreen layout and `DB Notifier` display name in the visible `pt-BR` Dashboard, then obtain explicit consent before starting Narrator and continuing the keyboard/accessibility protocol; record every result without inferring the final Human Gate decision.
+Confirm the outlined canonical database mark, fullscreen layout, `DB Notifier` display name and compact preference icons in the visible `pt-BR` Dashboard, then obtain explicit consent before starting Narrator and continuing the keyboard/accessibility protocol; record every result without inferring the final Human Gate decision.

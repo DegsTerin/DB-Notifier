@@ -34,59 +34,106 @@ public partial class MainWindow : Window
         this.localisation = localisation;
         this.theme = theme;
         InitializeComponent();
-        (localisation.CurrentLanguage == InterfaceLanguage.BritishEnglish
-            ? BritishEnglishLanguageButton
-            : PortugueseLanguageButton).IsChecked = true;
-        ThemeButton(theme.CurrentPreference).IsChecked = true;
+        UpdatePreferenceButtons();
         InventoryGrid.ItemsSource = rows;
         HistoryGrid.ItemsSource = timelineRows;
         AlertsGrid.ItemsSource = alertRows;
         CapabilityGrid.ItemsSource = capabilityRows;
         localisation.LanguageChanged += LocalisationLanguageChanged;
-        Closed += (_, _) => localisation.LanguageChanged -= LocalisationLanguageChanged;
+        theme.ThemeChanged += ThemeChanged;
+        Closed += (_, _) =>
+        {
+            localisation.LanguageChanged -= LocalisationLanguageChanged;
+            theme.ThemeChanged -= ThemeChanged;
+        };
         RebuildLocalisedData();
         PresentReadyState();
     }
 
-    /// <summary>Applies a validated language selected through the fixed topbar button group.</summary>
-    private void LanguageButtonChecked(object sender, RoutedEventArgs e)
+    /// <summary>Cycles to the other supported interface language without accepting arbitrary locale input.</summary>
+    /// <param name="sender">The single language preference button.</param>
+    /// <param name="e">Button activation event data.</param>
+    private void LanguagePreferenceButtonClick(object sender, RoutedEventArgs e)
     {
-        if (!IsInitialized || sender is not System.Windows.Controls.RadioButton selected ||
-            !LanguagePreferenceContract.TryParse(selected.Tag?.ToString(), out InterfaceLanguage language) ||
-            language == localisation.CurrentLanguage)
+        if (!IsInitialized)
         {
             return;
         }
 
-        localisation.SetLanguage(language);
+        localisation.SetLanguage(localisation.CurrentLanguage == InterfaceLanguage.BritishEnglish
+            ? InterfaceLanguage.BrazilianPortuguese
+            : InterfaceLanguage.BritishEnglish);
     }
 
-    /// <summary>Applies a validated System, Light or Dark selection through the fixed topbar button group.</summary>
-    private void ThemeButtonChecked(object sender, RoutedEventArgs e)
+    /// <summary>Cycles System, Light and Dark while preserving the validated theme preference contract.</summary>
+    /// <param name="sender">The single theme preference button.</param>
+    /// <param name="e">Button activation event data.</param>
+    private void ThemePreferenceButtonClick(object sender, RoutedEventArgs e)
     {
-        if (!IsInitialized || sender is not System.Windows.Controls.RadioButton selected ||
-            !ThemePreferenceContract.TryParse(selected.Tag?.ToString(), out ThemePreference preference) ||
-            preference == theme.CurrentPreference)
+        if (!IsInitialized)
         {
             return;
         }
 
-        theme.SetPreference(preference);
+        ThemePreference next = theme.CurrentPreference switch
+        {
+            ThemePreference.System => ThemePreference.Light,
+            ThemePreference.Light => ThemePreference.Dark,
+            _ => ThemePreference.System,
+        };
+        theme.SetPreference(next);
     }
 
-    /// <summary>Maps the validated active theme preference to its corresponding topbar button.</summary>
-    /// <param name="preference">Current persisted preference rather than the derived effective theme.</param>
-    /// <returns>The radio button that must expose the selected state.</returns>
-    private System.Windows.Controls.RadioButton ThemeButton(ThemePreference preference) => preference switch
+    /// <summary>Refreshes both icon controls, tooltips and accessible names from current validated preferences.</summary>
+    private void UpdatePreferenceButtons()
     {
-        ThemePreference.Light => LightThemeButton,
-        ThemePreference.Dark => DarkThemeButton,
-        _ => SystemThemeButton,
-    };
+        InterfaceLanguage nextLanguage = localisation.CurrentLanguage == InterfaceLanguage.BritishEnglish
+            ? InterfaceLanguage.BrazilianPortuguese
+            : InterfaceLanguage.BritishEnglish;
+        string languageLabel = Text("Language.Toggle", LanguageLabel(localisation.CurrentLanguage), LanguageLabel(nextLanguage));
+        LanguagePreferenceButton.ToolTip = languageLabel;
+        System.Windows.Automation.AutomationProperties.SetName(LanguagePreferenceButton, languageLabel);
+        System.Windows.Automation.AutomationProperties.SetHelpText(LanguagePreferenceButton, languageLabel);
+
+        ThemePreference nextTheme = theme.CurrentPreference switch
+        {
+            ThemePreference.System => ThemePreference.Light,
+            ThemePreference.Light => ThemePreference.Dark,
+            _ => ThemePreference.System,
+        };
+        string themeLabel = Text("Theme.Toggle", ThemeLabel(theme.CurrentPreference), ThemeLabel(nextTheme));
+        ThemePreferenceButton.ToolTip = themeLabel;
+        System.Windows.Automation.AutomationProperties.SetName(ThemePreferenceButton, themeLabel);
+        System.Windows.Automation.AutomationProperties.SetHelpText(ThemePreferenceButton, themeLabel);
+        SystemThemeIcon.Visibility = theme.CurrentPreference == ThemePreference.System ? Visibility.Visible : Visibility.Collapsed;
+        LightThemeIcon.Visibility = theme.CurrentPreference == ThemePreference.Light ? Visibility.Visible : Visibility.Collapsed;
+        DarkThemeIcon.Visibility = theme.CurrentPreference == ThemePreference.Dark ? Visibility.Visible : Visibility.Collapsed;
+    }
+
+    /// <summary>Maps a supported interface language to its current generated display label.</summary>
+    /// <param name="language">Validated current or next interface language.</param>
+    /// <returns>The localised native language label.</returns>
+    private string LanguageLabel(InterfaceLanguage language) => Text(language == InterfaceLanguage.BritishEnglish ? "Language.EnGb" : "Language.PtBr");
+
+    /// <summary>Maps a validated theme preference to its current generated display label.</summary>
+    /// <param name="preference">Validated current or next theme preference.</param>
+    /// <returns>The localised theme label.</returns>
+    private string ThemeLabel(ThemePreference preference) => Text(preference switch
+    {
+        ThemePreference.Light => "Theme.Light",
+        ThemePreference.Dark => "Theme.Dark",
+        _ => "Theme.System",
+    });
+
+    /// <summary>Refreshes the theme icon and accessible state after explicit or system-derived theme changes.</summary>
+    /// <param name="sender">Theme service that applied the new effective state.</param>
+    /// <param name="e">Theme-change event data.</param>
+    private void ThemeChanged(object? sender, EventArgs e) => UpdatePreferenceButtons();
 
     /// <summary>Rebuilds fixture-derived labels after the generated resource dictionary changes.</summary>
     private void LocalisationLanguageChanged(object? sender, EventArgs e)
     {
+        UpdatePreferenceButtons();
         RebuildLocalisedData();
         if (ScenarioSelector.SelectedItem is ComboBoxItem selected &&
             Enum.TryParse(selected.Tag?.ToString(), false, out InventorySurfaceState state) &&
