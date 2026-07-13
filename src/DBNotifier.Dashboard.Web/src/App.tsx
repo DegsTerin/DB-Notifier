@@ -1,5 +1,5 @@
 /** Module purpose: Implements App for the provider-neutral DB-Notifier Dashboard without direct database access. */
-import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import {
   buildDemonstrationSnapshot,
   buildConfigurationSnapshot,
@@ -20,6 +20,7 @@ import {
 } from "./presentation";
 import { ThemeSelector } from "./ThemeSelector";
 import { LanguageSelector } from "./LanguageSelector";
+import { TvModeButton } from "./TvModeButton";
 import { useLocalisation } from "./LocalisationProvider";
 import type { MessageKey, SupportedLocale } from "./generated/localisation";
 
@@ -126,9 +127,11 @@ export function App() {
   const [state, setState] = useState<InventoryState>("ready");
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | HealthStatus | "stale">("all");
-  const [now] = useState(() => new Date());
-  const snapshot = useMemo(() => buildDemonstrationSnapshot(now, locale), [now, locale]);
-  const timelineSnapshot = useMemo(() => buildTimelineAlertSnapshot(now, locale), [now, locale]);
+  const [tvMode, setTvMode] = useState(false);
+  const [snapshotTime] = useState(() => new Date());
+  const [now, setNow] = useState(snapshotTime);
+  const snapshot = useMemo(() => buildDemonstrationSnapshot(snapshotTime, locale), [snapshotTime, locale]);
+  const timelineSnapshot = useMemo(() => buildTimelineAlertSnapshot(snapshotTime, locale), [snapshotTime, locale]);
   const configurationSnapshot = useMemo(() => buildConfigurationSnapshot(locale), [locale]);
   const summary = useMemo(() => summarizeInventory(snapshot, now), [snapshot, now]);
   const filteredItems = useMemo(
@@ -136,22 +139,42 @@ export function App() {
     [snapshot.items, query, statusFilter, now, locale],
   );
   const copy = viewCopy[view];
-  const navigate = (nextView: DashboardView) => {
+  const navigate = useCallback((nextView: DashboardView) => {
     window.history.replaceState(null, "", nextView === "inventory" ? "#inventory" : `#${nextView}`);
     setView(nextView);
-  };
+  }, []);
+
+  useEffect(() => {
+    // TV mode updates the visible UTC clock each second; standard views only need bounded freshness recalculation.
+    const interval = window.setInterval(() => setNow(new Date()), tvMode ? 1_000 : 30_000);
+    return () => window.clearInterval(interval);
+  }, [tvMode]);
+
+  /** Enters the factual fleet view for TV presentation and restores only the presentation shell on exit. */
+  const handleTvModeChange = useCallback((active: boolean) => {
+    setTvMode(active);
+    if (active) {
+      navigate("inventory");
+      setState("ready");
+      setQuery("");
+      setStatusFilter("all");
+      setNow(new Date());
+    }
+  }, [navigate]);
 
   return (
-    <div className="app-shell">
+    <div className={`app-shell ${tvMode ? "tv-mode" : ""}`}>
       <a className="skip-link" href="#main-content">{t("Navigation.Skip")}</a>
       <header className="topbar">
         <div className="brand-lockup" aria-label="DB Notifier">
           <span className="brand-mark"><img src="/dbnotifier-icon.svg?v=1.3.3" alt="" /></span>
           <span><strong>DB Notifier</strong><small>{t("Brand.Subtitle")}</small></span>
         </div>
+        {tvMode && <div className="tv-mode-status"><span aria-hidden="true" /><strong>{t("TV.Active")}</strong><time dateTime={now.toISOString()}>{formatUtc(now.toISOString(), locale)} UTC</time></div>}
         <div className="topbar-controls">
           <LanguageSelector />
           <ThemeSelector />
+          <TvModeButton active={tvMode} onActiveChange={handleTvModeChange} />
           <div className="demo-badge"><span aria-hidden="true" />{t("Demo.Badge")}</div>
         </div>
       </header>

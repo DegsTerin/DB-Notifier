@@ -2,11 +2,11 @@
 
 ## Outcome
 
-The first three DB-Notifier Design System increments, two `S05-HG-001` visual remediation iterations, the canonical product-mark refinement, the ultrawide shell correction and the compact preference-control refinement are complete. They establish the canonical token/schema sources, deterministic React/WPF asset generation, platform-neutral Light/Dark/System preference contracts and a cohesive enterprise shell on both interfaces required by Design System `1.3.5`.
+The first three DB-Notifier Design System increments, two `S05-HG-001` visual remediation iterations, the canonical product-mark refinement, the ultrawide shell correction, compact preference controls and Dashboard TV presentation are complete. They establish the canonical token/schema sources, deterministic React/WPF asset generation, platform-neutral Light/Dark/System preference contracts and a cohesive enterprise shell required by Design System `1.4.0`.
 
 The Dashboard and WPF Desktop now apply generated semantic tokens, expose one discreet language icon button and one cycling System/Light/Dark icon button in the upper-right TopBar and preserve the validated preferences. Localised accessible names and tooltips identify the current and next states without flags or permanently expanded groups. Dedicated chrome semantics keep product identity cohesive across themes without the rejected Light-header/Dark-content inversion. System follows live platform colour preference; explicit Light and Dark remain stable. WPF gives Windows High Contrast precedence over the generated palette.
 
-User-facing Web, WPF, Tray and installer surfaces use the display name `DB Notifier`; technical identifiers and compatibility paths retain `DBNotifier` or `DB-Notifier` as appropriate. The Dashboard main region now stretches across the available desktop and ultrawide shell width instead of stopping at a fixed `1640` CSS px maximum. Responsive desktop behaviour remains distinct from a dedicated TV/wallboard/kiosk mode, which is not implemented in this phase.
+User-facing Web, WPF, Tray and installer surfaces use the display name `DB Notifier`; technical identifiers and compatibility paths retain `DBNotifier` or `DB-Notifier` as appropriate. The Dashboard main region stretches across the available desktop and ultrawide shell width. Its dedicated TV presentation requests native Fullscreen, removes navigation/filter density, enlarges fleet data and retains a visible collapse control, UTC clock and demonstration truth. It does not claim the external real-time integration reserved for `STATE-06`.
 
 ## International product-pattern review
 
@@ -91,7 +91,7 @@ The React adapter accesses only versioned local UI preference storage, the docum
 | Schema/reference/type/theme parity | Approved |
 | Light/Dark canonical contrast pairs | Approved; all tested pairs `>= 4.5:1` |
 | Dashboard typecheck | Approved |
-| Dashboard tests | Approved; 21/21 |
+| Dashboard tests | Approved; 22/22 |
 | Dashboard production build | Approved |
 | .NET 10 Release build | Approved; 0 warnings/errors |
 | .NET tests | Approved; 131 unit/model/provider/presentation + 5 architecture = 136/136 |
@@ -102,6 +102,7 @@ The React adapter accesses only versioned local UI preference storage, the docum
 | React visual/responsive matrix | Approved; 66 locale/theme/viewport-route samples across 320, 390, 640, 768, 960, 1024, 1440 and 1920 CSS px |
 | React overflow/accessibility | Approved; 0 global overflow and 0 unnamed interactive controls in all six locale/theme combinations |
 | Preference cycles | Approved; Web and WPF restored both locales after two activations and all three themes after three activations in all six locale/theme combinations, with 0 unnamed interactive/focusable controls |
+| Dashboard TV mode | Approved; six `1920×1080` locale/theme samples entered native Fullscreen, retained demonstration truth and the exit control, hid navigation/filters, displayed the complete table and restored the standard shell; the unavailable-Fullscreen sample kept TV active and announced the limitation |
 | WPF UI Automation/visual matrix | Approved; six locale/theme combinations plus `820×620` minimum-window sample, with representative Light/Dark repetition after the second refinement |
 
 ## Security and phase boundaries
@@ -115,10 +116,10 @@ The React adapter accesses only versioned local UI preference storage, the docum
 
 ## Remaining increments
 
-1. Confirm the outlined database mark, ultrawide layout, `DB Notifier` display name and compact icon-only preference controls in the visible Dashboard preview.
+1. Confirm the outlined database mark, ultrawide/TV layouts, `DB Notifier` display name and compact icon-only controls in the visible Dashboard preview.
 2. Obtain explicit consent, then complete the keyboard/Narrator portion of `HG05-01`, native browser zoom, Windows scaling, High Contrast and remaining visual samples.
 3. Present the explicit Human Gate decision; no lifecycle transition occurs automatically.
 
 ## Recommendation
 
-Confirm the outlined canonical database mark, ultrawide layout, `DB Notifier` display name and compact preference icons in the visible Dashboard preview, then obtain explicit consent before starting Narrator and continuing the remaining samples in [`STATE-05-Human-Gate-Validation.md`](STATE-05-Human-Gate-Validation.md).
+Confirm the outlined canonical database mark, ultrawide/TV layouts, `DB Notifier` display name and compact controls in the visible Dashboard preview, then obtain explicit consent before starting Narrator and continuing the remaining samples in [`STATE-05-Human-Gate-Validation.md`](STATE-05-Human-Gate-Validation.md).

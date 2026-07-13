@@ -133,8 +133,10 @@ O projeto está em `STATE-05 FRONTEND_IMPLEMENTATION`. Quatro incrementos implem
 - O primeiro ícone canônico, com cilindro branco preenchido, foi explicitamente reprovado pelo usuário como feio. Design System `1.3.3` o substitui por cilindro leve em contorno branco e traços arredondados; `S05-HG-002` e a confirmação humana da substituição permanecem pendentes.
 - Design System `1.3.4` remove o limite fixo de `1640` CSS px que deixava uma faixa inativa à direita em tela cheia e padroniza `DB Notifier` nas superfícies visuais, preservando caminhos e identificadores técnicos existentes.
 - A matriz ampliada foi aprovada em 66 amostras browser; nas seis combinações de locale/tema em `1920×1080`, a região principal terminou na borda direita, manteve inset interno de 48 px e não apresentou overflow global nem controles interativos sem nome. WPF `pt-BR` Dark confirmou o título `DB Notifier — Inventário`, 37 controles focalizáveis e nenhum sem nome.
-- Não existe modo TV, wallboard ou kiosk dedicado no projeto atual; a responsividade Web desktop/tablet/mobile e ultrawide não deve ser apresentada como suporte a modo TV.
+- Dashboard Web possui modo TV session-only no Design System `1.4.0`: um botão ampliar/desampliar solicita Fullscreen, abre inventário ready sem filtros, remove navegação/cenário, aumenta métricas/tabela e preserva botão de saída, relógio UTC, freshness, estados textuais, badge de demonstração e disclaimer.
+- O relógio e a avaliação de freshness do modo TV atualizam continuamente sobre o snapshot local de demonstração. Integração externa realmente em tempo real via API/SignalR, saúde da fonte, reconexão e backpressure continuam pendentes de `STATE-06`; não há modo TV WPF, app móvel nativo ou provisionamento kiosk unattended.
 - Design System `1.3.5` substitui os cinco botões textuais de preferência por dois controles de ícone no Web e WPF. A reauditoria de 66 amostras browser e seis combinações WPF completou/restaurou todos os ciclos sem overflow ou controle sem nome; cada amostra WPF confirmou 34 controles focalizáveis e nenhum sem nome.
+- Design System `1.4.0` foi aprovado automaticamente em mais seis amostras TV `1920×1080`: todas entraram em Fullscreen nativo, preservaram verdade de demonstração/saída, ocultaram navegação/filtros, exibiram a tabela e restauraram o shell padrão sem overflow ou controle sem nome. A amostra sem Fullscreen manteve o modo TV/saída e anunciou a limitação.
 
 ## Pendente
 
@@ -142,6 +144,7 @@ O projeto está em `STATE-05 FRONTEND_IMPLEMENTATION`. Quatro incrementos implem
 - Confirmar visualmente o ícone canônico de banco de dados em contorno; somente após novo consentimento explícito iniciar Narrator e as demais porções pendentes de `HG05-01`.
 - Confirmar visualmente a correção de largura em tela cheia e o display name `DB Notifier`; `S05-HG-003` permanece pendente até essa validação humana.
 - Confirmar visualmente os controles compactos de idioma e tema; `S05-HG-004` permanece pendente até essa validação humana.
+- Executar `HG05-10` para confirmar distância de leitura, densidade e entrada/saída do modo TV; `S05-HG-005` permanece pendente de validação humana.
 - Manter adapters de apresentação determinísticos até `STATE-06`; não integrar silenciosamente banco, IdP, certificado, canal ou provider real durante a fase de UI.
 - Representar capabilities e suporte de modo factual: ação ausente/negada/unsupported não pode aparecer como executável ou homologada.
 - Preservar as pendências posteriores de ativação sandbox de pacotes, integração real, execução/post-probe de comandos, legal hold/backup e adapters externos.
@@ -158,6 +161,6 @@ O projeto está em `STATE-05 FRONTEND_IMPLEMENTATION`. Quatro incrementos implem
 
 ## Próximo gate
 
-Confirmar o ícone canônico em contorno, a largura em tela cheia, o display name `DB Notifier` e os dois controles compactos de preferência na janela visível; depois obter consentimento explícito antes de iniciar Narrator/teclado em `HG05-01`. O Human Gate, `STATE-06` e o laboratório continuam bloqueados.
+Confirmar o ícone canônico em contorno, os layouts padrão/TV, o display name `DB Notifier` e os controles compactos na janela visível; depois obter consentimento explícito antes de iniciar Narrator/teclado em `HG05-01`. O Human Gate, `STATE-06` e o laboratório continuam bloqueados.
 
 Este documento descreve somente o presente. Histórico pertence a `State-Transition-Log.md`.

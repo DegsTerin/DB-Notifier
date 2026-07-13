@@ -67,6 +67,26 @@ test("enterprise shell uses coherent icons and a consolidated responsive metric 
   assert.match(css, /\.summary-card \{[^}]*border-inline-end:/s);
 });
 
+test("TV mode keeps a visible Fullscreen toggle and factual demonstration context", () => {
+  const app = readFileSync(new URL("../src/App.tsx", import.meta.url), "utf8");
+  const control = readFileSync(new URL("../src/TvModeButton.tsx", import.meta.url), "utf8");
+  const css = readFileSync(new URL("../src/styles.css", import.meta.url), "utf8");
+
+  assert.match(app, /<TvModeButton active=\{tvMode\} onActiveChange=\{handleTvModeChange\}/);
+  assert.match(app, /tvMode && <div className="tv-mode-status"/);
+  assert.match(app, /navigate\("inventory"\)/);
+  assert.match(control, /requestFullscreen\(\)/);
+  assert.match(control, /typeof document\.documentElement\.requestFullscreen !== "function"/);
+  assert.match(control, /TV\.FullscreenUnavailable/);
+  assert.match(control, /exitFullscreen\(\)/);
+  assert.match(control, /addEventListener\("fullscreenchange"/);
+  assert.match(control, /aria-pressed=\{active\}/);
+  assert.match(control, /data-tv-mode-control=\{active \? "exit" : "enter"\}/);
+  assert.match(css, /\.app-shell\.tv-mode \.sidebar \{ display: none; \}/);
+  assert.match(css, /\.app-shell\.tv-mode \.filters \{ display: none; \}/);
+  assert.match(css, /\.app-shell\.tv-mode \.demo-badge \{ display: flex; \}/);
+});
+
 test("provider-neutral database mark is shared by active Web and Windows surfaces", () => {
   const app = readFileSync(new URL("../src/App.tsx", import.meta.url), "utf8");
   const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");

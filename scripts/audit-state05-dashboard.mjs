@@ -98,6 +98,69 @@ async function captureViewport(call, name, width, height, hash = "inventory", pa
   return { name, width, height, hash, pageScaleFactor, screenshotPath, layout };
 }
 
+/** Dispatches a trusted pointer activation to the centre of one visible element. */
+async function clickElement(call, selector) {
+  const point = await evaluate(call, `(() => {
+    const rect = document.querySelector(${JSON.stringify(selector)})?.getBoundingClientRect();
+    return rect ? { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 } : null;
+  })()`);
+  if (!point) throw new Error(`Visible audit control unavailable: ${selector}`);
+  await call("Input.dispatchMouseEvent", { type: "mousePressed", x: point.x, y: point.y, button: "left", clickCount: 1 });
+  await call("Input.dispatchMouseEvent", { type: "mouseReleased", x: point.x, y: point.y, button: "left", clickCount: 1 });
+}
+
+/** Exercises the dedicated TV layout, native Fullscreen request and persistent visible exit control. */
+async function auditTvMode(call) {
+  await call("Emulation.setDeviceMetricsOverride", { width: 1920, height: 1080, deviceScaleFactor: 1, mobile: false });
+  await call("Page.navigate", { url: `${dashboardUrl}#inventory` });
+  await settle(80);
+  await call("Page.reload", { ignoreCache: true });
+  await settle();
+  await clickElement(call, ".tv-mode-button");
+  await settle(300);
+  const active = await evaluate(call, `(() => ({
+    tvMode: document.documentElement.dataset.tvMode,
+    appClass: document.querySelector(".app-shell")?.className,
+    nativeFullscreen: Boolean(document.fullscreenElement),
+    buttonState: document.querySelector(".tv-mode-button")?.dataset.tvModeControl,
+    buttonName: document.querySelector(".tv-mode-button")?.getAttribute("aria-label"),
+    sidebarDisplay: getComputedStyle(document.querySelector(".sidebar")).display,
+    scenarioDisplay: getComputedStyle(document.querySelector(".scenario-control")).display,
+    filtersDisplay: getComputedStyle(document.querySelector(".inventory-panel .filters")).display,
+    tableDisplay: getComputedStyle(document.querySelector(".table-wrap")).display,
+    demoDisplay: getComputedStyle(document.querySelector(".demo-badge")).display,
+    statusText: document.querySelector(".tv-mode-status")?.textContent?.trim().replace(/\s+/g, " "),
+  }))()`);
+  const screenshot = await call("Page.captureScreenshot", { format: "png", captureBeyondViewport: false });
+  const screenshotPath = join(evidenceDirectory, "tv-mode-inventory-1920x1080.png");
+  writeFileSync(screenshotPath, Buffer.from(screenshot.data, "base64"));
+  await clickElement(call, ".tv-mode-button");
+  await settle(250);
+  const restored = await evaluate(call, `(() => ({
+    tvMode: document.documentElement.dataset.tvMode ?? null,
+    nativeFullscreen: Boolean(document.fullscreenElement),
+    buttonState: document.querySelector(".tv-mode-button")?.dataset.tvModeControl,
+    sidebarDisplay: getComputedStyle(document.querySelector(".sidebar")).display,
+  }))()`);
+  await evaluate(call, `(() => {
+    Object.defineProperty(document.documentElement, "requestFullscreen", { value: undefined, configurable: true });
+    return true;
+  })()`);
+  await clickElement(call, ".tv-mode-button");
+  await settle(150);
+  const unavailableFullscreen = await evaluate(call, `(() => ({
+    tvMode: document.documentElement.dataset.tvMode,
+    nativeFullscreen: Boolean(document.fullscreenElement),
+    buttonState: document.querySelector(".tv-mode-button")?.dataset.tvModeControl,
+    announcement: document.querySelector(".tv-mode-button + [role=status]")?.textContent,
+  }))()`);
+  await clickElement(call, ".tv-mode-button");
+  await settle(100);
+  await call("Page.reload", { ignoreCache: true });
+  await settle();
+  return { active, restored, unavailableFullscreen, screenshotPath };
+}
+
 /** Records the focus sequence produced by native Tab navigation. */
 async function auditKeyboard(call) {
   await call("Emulation.setDeviceMetricsOverride", { width: 1440, height: 1000, deviceScaleFactor: 1, mobile: false });
@@ -296,6 +359,7 @@ async function main() {
     locale,
     theme,
     viewports,
+    tvMode: await auditTvMode(call),
     keyboard: await auditKeyboard(call),
     preferenceCycles: await auditPreferenceCycles(call),
     accessibilityTree: await auditAccessibilityTree(call),

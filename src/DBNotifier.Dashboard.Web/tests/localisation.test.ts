@@ -42,6 +42,8 @@ test("translated messages preserve placeholders and British operational terminol
   assert.equal(translate("en-GB", "App.Title"), "DB Notifier — Inventory");
   assert.equal(translate("pt-BR", "Theme.Toggle", "Sistema", "Claro"), "Tema: Sistema. Alternar para Claro");
   assert.equal(translate("en-GB", "Language.Toggle", "English (UK)", "Português (Brasil)"), "Language: English (UK). Switch to Português (Brasil)");
+  assert.equal(translate("pt-BR", "TV.Enter"), "Ativar modo TV");
+  assert.equal(translate("en-GB", "TV.Active"), "TV mode · demonstration");
   assert.equal(translate("pt-BR", "Inventory.Count", 2, 4), "2 de 4 itens visíveis");
   assert.equal(translate("en-GB", "Inventory.Count", 2, 4), "2 of 4 items visible");
   assert.match(translate("en-GB", "Configuration.AdminDescription"), /authorisation/);

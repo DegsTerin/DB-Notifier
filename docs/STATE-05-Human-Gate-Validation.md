@@ -20,16 +20,16 @@ The human sample covers:
 - native browser zoom, Windows scaling and High Contrast where the environment permits;
 - operational truth for stale data, planned providers and unavailable administrative execution.
 
-Mobile and tablet samples apply to the responsive Dashboard Web. There is no native mobile application in this phase. There is also no dedicated TV, wallboard or kiosk mode; standard desktop/ultrawide responsiveness is not evidence of TV-mode support. WPF remains a Windows desktop interface with a supported minimum window size of `820×620` DIP.
+Mobile and tablet samples apply to the responsive Dashboard Web. There is no native mobile application in this phase. Dashboard TV presentation is session-only and distinct from standard desktop/ultrawide responsiveness; it does not prove external real-time ingestion, unattended kiosk provisioning or WPF TV support. WPF remains a Windows desktop interface with a supported minimum window size of `820×620` DIP.
 
 ## Automatic evidence to review first
 
 | Evidence | Current result |
 |---|---|
-| Design System implementation report | Design System `1.3.5` visual remediation, outlined database-mark, ultrawide and compact-preference gates approved; commit identifier is reported in the implementation hand-off |
-| Dashboard matrix | 66 locale/theme/viewport-route samples, including `960×1040` and `1920×1080`; no global overflow or unnamed interactive control |
+| Design System implementation report | Design System `1.4.0` visual remediation, outlined database-mark, ultrawide, compact-preference and TV-presentation gates approved; commit identifier is reported in the implementation hand-off |
+| Dashboard matrix | 66 standard locale/theme/viewport-route samples plus six TV samples, including `960×1040` and `1920×1080`; no global overflow or unnamed interactive control |
 | WPF matrix | Six locale/theme combinations and minimum-window sample recorded after visual remediation |
-| Automated tests | 21 Dashboard, 131 .NET unit/model/provider/presentation, 5 architecture and 10 legacy compatibility tests approved |
+| Automated tests | 22 Dashboard, 131 .NET unit/model/provider/presentation, 5 architecture and 10 legacy compatibility tests approved |
 | Security/dependencies | npm and NuGet reported no known vulnerabilities in the recorded audit |
 
 Primary automatic evidence:
@@ -161,6 +161,7 @@ Do not mark a row until the named human validator has performed it.
 | `HG05-07` | Windows High Contrast on both interfaces | PENDENTE | |
 | `HG05-08` | WPF Windows scaling at 125%, 150% and 200% where permitted | PENDENTE | |
 | `HG05-09` | Visual hierarchy and operational-truth review | PENDENTE | |
+| `HG05-10` | Dashboard TV mode at `1920×1080`, Fullscreen entry/exit and viewing distance | PENDENTE | |
 
 ## Recorded human finding
 
@@ -200,7 +201,7 @@ Do not mark a row until the named human validator has performed it.
 - Human feedback: the main content left excessive empty space on the right in fullscreen, and visible product text must use `DB Notifier`.
 - Remediation: Design System `1.3.4` removes the fixed `1640` CSS px main-region limit, stretches operational content across the available shell width and defines `DB Notifier` as the visual display name while preserving technical paths and identifiers.
 - Automatic evidence: 66 browser samples passed. All six locale/theme combinations at `1920×1080` measured a zero-pixel main-region right gap, a 48-pixel content inset, no global overflow and no unnamed interactive control. WPF `pt-BR` Dark exposed the window name `DB Notifier — Inventário`, 37 focusable controls and none without a name.
-- TV scope: repository and Design System review confirm that no dedicated TV/wallboard/kiosk mode is implemented; the ultrawide correction must not be presented as such.
+- TV scope at remediation time: no dedicated mode existed in Design System `1.3.4`; this historical limitation is superseded by the separately recorded `S05-HG-005` implementation and does not turn the ultrawide correction itself into TV support.
 - Human closure: PENDENTE; the visible fullscreen correction and display name still require reviewer confirmation.
 - Lifecycle impact: Narrator remains off and the Human Gate remains pending.
 
@@ -215,6 +216,18 @@ Do not mark a row until the named human validator has performed it.
 - Human closure: PENDENTE; the compact controls require visual confirmation in the visible Dashboard preview.
 - Lifecycle impact: Narrator remains off and the Human Gate remains pending.
 
+### `S05-HG-005` — Add a dedicated Dashboard TV mode for continuous monitoring
+
+- Date observed: 2026-07-13.
+- Source: explicit user request in the active Human Gate session.
+- Classification: new Dashboard presentation capability; it does not authorise integration or imply a live external source.
+- Human request: include TV mode for real-time Dashboard monitoring with one expand/collapse icon button.
+- Implementation: Design System `1.4.0` adds a session-only Dashboard Web TV mode. The button enters the ready, unfiltered inventory, requests browser Fullscreen, hides navigation/scenario/filters, enlarges metrics/table and remains visible as the exit control. Escape from established Fullscreen also restores the standard shell.
+- Operational truth: the UTC clock and freshness evaluation update continuously, but the current snapshot remains demonstration-only. Real API/SignalR ingestion and live-source health belong to `STATE-06` and are not claimed here.
+- Automatic evidence: 66 standard browser samples plus six `1920×1080` TV samples passed. Every locale/theme combination entered native Fullscreen, retained the demonstration badge and footer truth, exposed the collapse control, hid navigation/filters, displayed the table, exited and restored the standard shell with no global overflow or unnamed interactive control. A separate unavailable-Fullscreen sample kept TV active, retained the exit control and announced the limitation.
+- Human closure: PENDENTE; viewing distance, visual density and enter/exit behaviour require confirmation in `HG05-10`.
+- Lifecycle impact: Narrator remains off and the Human Gate remains pending.
+
 ## Human Gate decision
 
 - Phase: `STATE-05 FRONTEND_IMPLEMENTATION`
@@ -224,7 +237,7 @@ Do not mark a row until the named human validator has performed it.
 - Critical samples repeated: PENDENTE
 - Experience and error messages: PENDENTE
 - Security/authorisation truth: PENDENTE
-- Remaining coverage: outlined database-mark, fullscreen layout, display name and compact preference-control confirmation plus all keyboard, screen-reader, zoom, scaling, High Contrast and remaining samples above
+- Remaining coverage: outlined database-mark, fullscreen/TV layout, display name and compact-control confirmation plus all keyboard, screen-reader, zoom, scaling, High Contrast and remaining samples above
 - Decision: `PENDENTE`
 - Justification/evidence: PENDENTE
 
@@ -232,4 +245,4 @@ Permitted decisions after the sample are `APROVADO`, `APROVADO COM RESSALVAS` or
 
 ## Recommended next step
 
-Confirm the outlined canonical database mark, fullscreen layout, `DB Notifier` display name and compact preference icons in the visible `pt-BR` Dashboard, then obtain explicit consent before starting Narrator and continuing the keyboard/accessibility protocol; record every result without inferring the final Human Gate decision.
+Confirm the outlined canonical database mark, standard/TV layouts, `DB Notifier` display name and compact controls in the visible `pt-BR` Dashboard, then obtain explicit consent before starting Narrator and continuing the keyboard/accessibility protocol; record every result without inferring the final Human Gate decision.

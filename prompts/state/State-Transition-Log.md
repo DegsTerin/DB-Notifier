@@ -496,6 +496,17 @@
 - Riscos/ressalvas: a reauditoria automática não constitui aprovação visual; `S05-HG-002`, `S05-HG-003`, `S05-HG-004`, Narrator e o Human Gate completo permanecem pendentes.
 - Aprovador: PENDENTE para os controles compactos.
 
+## 2026-07-13 — Modo TV do Dashboard S05-HG-005
+
+- Estado anterior: `STATE-05 FRONTEND_IMPLEMENTATION`
+- Estado resultante: sem transição
+- Decisão: implementar modo TV session-only no Dashboard Web com um controle ampliar/desampliar e integração opcional ao Fullscreen nativo.
+- Escopo: Design System `1.4.0`, inventário ready sem filtros, shell sem navegação/cenário, densidade para distância, relógio UTC/freshness contínuos, saída persistente e verdade de demonstração preservada.
+- Gates: 22 testes Dashboard, typecheck/build Web e 72 amostras browser aprovados; as seis amostras TV `1920×1080` entraram em Fullscreen, mantiveram badge/disclaimer e saída, exibiram a tabela, restauraram o shell e apresentaram 0 overflow/controles sem nome. Fallback sem Fullscreen também aprovado com anúncio e saída preservados.
+- Evidências: `docs/STATE-05-Design-System-Implementation-Report.md`, `docs/STATE-05-Human-Gate-Validation.md` e JSON/PNG sanitizados temporários fora do Git.
+- Riscos/ressalvas: atualização visual/freshness sobre snapshot de demonstração não comprova feed externo em tempo real; API/SignalR, reconexão e saúde da fonte pertencem a `STATE-06`. WPF TV, app móvel nativo, kiosk unattended e burn-in não foram implementados.
+- Aprovador: PENDENTE para `HG05-10`; Human Gate completo permanece pendente.
+
 ## Template de nova entrada
 
 - Data:

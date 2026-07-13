@@ -5,7 +5,7 @@
 | Field | Value |
 |---|---|
 | Status | Official frontend specification |
-| Design System version | `1.3.5` |
+| Design System version | `1.4.0` |
 | Product phase | `STATE-05 FRONTEND_IMPLEMENTATION` |
 | Platforms | React Web Dashboard and .NET 10 WPF Desktop/Tray |
 | Themes | Light, Dark and System |
@@ -418,7 +418,11 @@ The WPF minimum window remains usable at `820×620` DIP. Below the comfortable t
 
 ### 9.4 TV and wallboard scope
 
-Design System `1.3.5` does not define a dedicated TV, wallboard or kiosk mode. Responsive Web behaviour at desktop or ultrawide dimensions MUST NOT be presented as TV-mode support. Any future TV mode requires a separately approved interaction, density, viewing-distance, focus/navigation, refresh and long-running-display contract.
+The Dashboard Web provides a dedicated, session-only TV presentation for continuous fleet observation. One upper-right expand icon enters the ready, unfiltered inventory view and requests browser Fullscreen; the same persistent control changes to a collapse icon and exits. Native Fullscreen is an enhancement rather than a prerequisite: denied or unavailable Fullscreen MUST leave the TV layout active, announce the limitation and retain the visible exit control. Escape or browser chrome leaving an established Fullscreen session MUST also restore the standard shell.
+
+TV presentation hides primary navigation, scenario selection and inventory filters, increases metric/table viewing distance, and preserves the product identity, UTC clock, freshness/stale semantics, status text/shapes, read-only state, demonstration badge and footer truth. It MUST NOT auto-start, persist across sessions, rotate views without an approved contract, conceal degraded/unknown data or permit administrative execution.
+
+The current `STATE-05` implementation recalculates visible freshness and its UTC clock continuously from the in-memory demonstration snapshot. This proves presentation behaviour only; it is not evidence of an external real-time stream. Versioned API/SignalR ingestion, reconnection, backpressure and live-source health remain `STATE-06` integration work. WPF, native mobile, unattended kiosk provisioning and burn-in mitigation are outside this increment.
 
 ## 10. Reusable component catalogue
 
@@ -605,7 +609,7 @@ Dashboard visual regression samples MUST cover:
 ```text
 Themes: Light, Dark, System resolving to each
 Locales: pt-BR and en-GB
-Viewports: 320×568, 390×844, 768×1024, 1024×768, 1440×1000, 1920×1080
+Viewports: 320×568, 390×844, 768×1024, 1024×768, 1440×1000, 1920×1080; TV presentation at 1920×1080
 Views: Inventory, History, Alerts, Configuration
 States: ready, loading, empty, offline, error, denied, maintenance, stale, filtered-empty
 Overlays: confirmation-required, denied, unsupported, unavailable, unknown

@@ -1,4 +1,4 @@
-/** Generated from dbnotifier.localisation.v1; source sha256:1f3b3f52b17cce292afd47249c1040157b6eb7f47263d8ec476b81f1b72bf031. Do not edit directly. */
+/** Generated from dbnotifier.localisation.v1; source sha256:8368d14a8932d00eea882cae0cf8daa9fa943bce8a2516496aaab5135cffe7e2. Do not edit directly. */
 const ptBRMessages = {
   "Action.Restart": "Reiniciar",
   "Action.Start": "Iniciar",
@@ -175,6 +175,10 @@ const ptBRMessages = {
   "Tray.Open": "Abrir DB Notifier",
   "Tray.Status": "Demonstração local · sem dados externos",
   "Tray.Tooltip": "DB Notifier · demonstração local",
+  "TV.Active": "Modo TV · demonstração",
+  "TV.Enter": "Ativar modo TV",
+  "TV.Exit": "Sair do modo TV",
+  "TV.FullscreenUnavailable": "Modo TV ativo; a tela cheia não está disponível neste navegador.",
   "View.Alerts.Description": "Estado de alertas e regras demonstrativas sem entrega externa ou alteração.",
   "View.Alerts.Eyebrow": "Atenção operacional",
   "View.Alerts.Title": "Alertas",
@@ -376,6 +380,10 @@ const enGBMessages = {
   "Tray.Open": "Open DB Notifier",
   "Tray.Status": "Local demonstration · no external data",
   "Tray.Tooltip": "DB Notifier · local demonstration",
+  "TV.Active": "TV mode · demonstration",
+  "TV.Enter": "Enter TV mode",
+  "TV.Exit": "Exit TV mode",
+  "TV.FullscreenUnavailable": "TV mode is active; Fullscreen is unavailable in this browser.",
   "View.Alerts.Description": "Demonstration alert and rule states without external delivery or mutation.",
   "View.Alerts.Eyebrow": "Operational attention",
   "View.Alerts.Title": "Alerts",

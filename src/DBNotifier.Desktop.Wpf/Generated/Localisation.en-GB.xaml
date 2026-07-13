@@ -1,4 +1,4 @@
-<!-- Generated from dbnotifier.localisation.v1; culture:en-GB; source sha256:1f3b3f52b17cce292afd47249c1040157b6eb7f47263d8ec476b81f1b72bf031. Do not edit directly. -->
+<!-- Generated from dbnotifier.localisation.v1; culture:en-GB; source sha256:8368d14a8932d00eea882cae0cf8daa9fa943bce8a2516496aaab5135cffe7e2. Do not edit directly. -->
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:sys="clr-namespace:System;assembly=System.Runtime">
@@ -177,6 +177,10 @@
   <sys:String x:Key="Tray.Open">Open DB Notifier</sys:String>
   <sys:String x:Key="Tray.Status">Local demonstration · no external data</sys:String>
   <sys:String x:Key="Tray.Tooltip">DB Notifier · local demonstration</sys:String>
+  <sys:String x:Key="TV.Active">TV mode · demonstration</sys:String>
+  <sys:String x:Key="TV.Enter">Enter TV mode</sys:String>
+  <sys:String x:Key="TV.Exit">Exit TV mode</sys:String>
+  <sys:String x:Key="TV.FullscreenUnavailable">TV mode is active; Fullscreen is unavailable in this browser.</sys:String>
   <sys:String x:Key="View.Alerts.Description">Demonstration alert and rule states without external delivery or mutation.</sys:String>
   <sys:String x:Key="View.Alerts.Eyebrow">Operational attention</sys:String>
   <sys:String x:Key="View.Alerts.Title">Alerts</sys:String>

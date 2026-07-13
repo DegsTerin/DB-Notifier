@@ -16,6 +16,10 @@
   <message key="Theme.Dark">Escuro</message>
   <message key="Theme.Announcement">Preferência de tema: {0}</message>
   <message key="Theme.Toggle">Tema: {0}. Alternar para {1}</message>
+  <message key="TV.Enter">Ativar modo TV</message>
+  <message key="TV.Exit">Sair do modo TV</message>
+  <message key="TV.Active">Modo TV · demonstração</message>
+  <message key="TV.FullscreenUnavailable">Modo TV ativo; a tela cheia não está disponível neste navegador.</message>
   <message key="Navigation.Label">Navegação principal</message>
   <message key="Navigation.Inventory">Inventário</message>
   <message key="Navigation.History">Histórico</message>

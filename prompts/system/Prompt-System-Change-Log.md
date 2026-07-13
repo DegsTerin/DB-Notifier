@@ -2,7 +2,7 @@
 
 ## Versão atual
 
-- Versão: `3.28.5`
+- Versão: `3.29.0`
 - Data: 2026-07-13
 - Status: corpus DB-Notifier consolidado
 - Escopo: 13 arquivos ativos
@@ -16,6 +16,12 @@ A versão do corpus é independente da versão do software.
 - PATCH: clareza, correção ou referência sem mudança de autoridade.
 
 Toda alteração atualiza este arquivo e, quando necessário, `../Start-Here.md`.
+
+## 3.29.0 — 2026-07-13
+
+- Nova capacidade permanente de apresentação TV no Dashboard: controle único ampliar/desampliar, estado session-only, Fullscreen opcional, saída persistente e preservação de freshness/unknown/stale e verdade da fonte.
+- Design System `1.4.0` define o layout TV de inventário, densidade para distância, relógio UTC e degradação segura quando Fullscreen é negado ou indisponível.
+- `S05-HG-005` separa explicitamente apresentação contínua sobre dados de demonstração da futura ingestão externa realmente em tempo real de `STATE-06`; seis amostras TV automáticas foram aprovadas sem inferir aprovação humana.
 
 ## 3.28.5 — 2026-07-13
 

@@ -96,6 +96,10 @@ button:focus-visible, select:focus-visible, input:focus-visible, a:focus-visible
 }
 .preference-icon-button:hover { color: var(--db-component-shell-chrome-foreground); background: var(--db-component-shell-chrome-surface); }
 .preference-icon { width: 20px; height: 20px; display: block; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.tv-mode-button.active { color: var(--db-component-shell-chrome-selected-foreground); background: var(--db-component-shell-chrome-selected-background); }
+.tv-mode-status { display: flex; align-items: center; gap: var(--db-space-2); color: var(--db-component-shell-chrome-muted); font-size: .76rem; }
+.tv-mode-status > span { width: var(--db-space-2); height: var(--db-space-2); background: var(--db-colour-status-information-foreground); border-radius: 50%; }
+.tv-mode-status strong { color: var(--db-component-shell-chrome-foreground); }
 
 .page-layout { min-width: 0; display: grid; grid-template-columns: 230px minmax(0, 1fr); }
 .sidebar {
@@ -299,6 +303,42 @@ code { padding: var(--db-space-1) var(--db-space-2); color: var(--db-colour-sele
 @media (prefers-reduced-motion: reduce) { .loading-line::after { width: 100%; animation: none; opacity: .55; } }
 
 footer { padding: var(--db-space-3) var(--db-space-8); color: var(--db-colour-text-secondary); background: var(--db-colour-surface-default); border-top: 1px solid var(--db-colour-border-default); font-size: .75rem; text-align: center; }
+
+/* TV presentation removes navigation and editing density while retaining freshness and demonstration truth. */
+html[data-tv-mode="true"], html[data-tv-mode="true"] body, html[data-tv-mode="true"] #root { min-height: 100%; background: var(--db-component-app-background); }
+.app-shell.tv-mode { min-height: 100vh; }
+.app-shell.tv-mode .topbar { min-height: 56px; padding: var(--db-space-2) var(--db-space-6); position: sticky; top: 0; z-index: 20; flex-direction: row; align-items: center; }
+.app-shell.tv-mode .topbar-controls { width: auto; margin-left: 0; flex-wrap: nowrap; }
+.app-shell.tv-mode .language-selector, .app-shell.tv-mode .theme-selector { display: none; }
+.app-shell.tv-mode .demo-badge { display: flex; }
+.app-shell.tv-mode .page-layout { display: block; }
+.app-shell.tv-mode .sidebar { display: none; }
+.app-shell.tv-mode main { width: 100%; padding: var(--db-space-6) var(--db-space-8) var(--db-space-8); }
+.app-shell.tv-mode .page-heading { margin-bottom: var(--db-space-4); align-items: center; }
+.app-shell.tv-mode .page-heading > div > p, .app-shell.tv-mode .scenario-control { display: none; }
+.app-shell.tv-mode .page-heading h1 { font-size: 2rem; }
+.app-shell.tv-mode .updated-at { margin-bottom: var(--db-space-4); font-size: .82rem; }
+.app-shell.tv-mode .summary-grid { margin-bottom: var(--db-space-5); }
+.app-shell.tv-mode .summary-card { min-height: 112px; padding: var(--db-space-5); }
+.app-shell.tv-mode .summary-card strong { font-size: 2rem; }
+.app-shell.tv-mode .filters { display: none; }
+.app-shell.tv-mode .panel-header { padding: var(--db-space-4) var(--db-space-5); }
+.app-shell.tv-mode th, .app-shell.tv-mode td { padding: var(--db-space-4) var(--db-space-5); font-size: .9rem; }
+.app-shell.tv-mode footer { padding-block: var(--db-space-2); }
+
+@media (min-width: 1101px) {
+  .app-shell.tv-mode .table-wrap { display: block; }
+  .app-shell.tv-mode .mobile-list { display: none; }
+}
+
+@media (min-width: 1920px) {
+  .app-shell.tv-mode main { padding-inline: var(--db-space-12); }
+  .app-shell.tv-mode .page-heading h1 { font-size: 2.35rem; }
+  .app-shell.tv-mode .summary-card { min-height: 132px; padding: var(--db-space-6); }
+  .app-shell.tv-mode .summary-label { font-size: .86rem; }
+  .app-shell.tv-mode .summary-card strong { font-size: 2.5rem; }
+  .app-shell.tv-mode th, .app-shell.tv-mode td { padding: var(--db-space-5) var(--db-space-6); font-size: 1rem; }
+}
 
 /* The compact data alternative preserves every field when a seven-column table becomes too dense. */
 .instance-card { padding: var(--db-space-4); background: var(--db-colour-surface-default); border: 1px solid var(--db-colour-border-default); border-radius: var(--db-radius-medium); }
