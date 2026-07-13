@@ -101,4 +101,4 @@ The React adapter accesses only versioned local UI preference storage, the docum
 
 ## Recommendation
 
-Execute the remaining human accessibility, native zoom/scaling, High Contrast and visual samples, then present the `STATE-05` Human Gate without changing the provider-neutral demonstration boundary.
+Execute the pending protocol in [`STATE-05-Human-Gate-Validation.md`](STATE-05-Human-Gate-Validation.md), record the human accessibility, native zoom/scaling, High Contrast and visual samples, then present the `STATE-05` Human Gate without changing the provider-neutral demonstration boundary.

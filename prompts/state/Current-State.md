@@ -121,6 +121,7 @@ O projeto está em `STATE-05 FRONTEND_IMPLEMENTATION`. Quatro incrementos implem
 - Terceiro incremento do Design System concluído: WPF aplica tokens gerados, troca Light/Dark atomicamente, segue o tema Windows em System, dá precedência a High Contrast e persiste tema/locale juntos sem material secreto.
 - Dashboard e WPF expõem botões discretos `pt-BR`, `en-GB`, System, Light e Dark na região superior direita do TopBar, com estado selecionado acessível, teclado e adaptação compacta.
 - Reauditoria automática combinada aprovada em 54 amostras browser (`2 locales × 3 temas × 9 viewport/rota`), sem overflow global ou controlo interativo sem nome, além das seis combinações WPF e amostra mínima `820×620`.
+- Protocolo do Human Gate de `STATE-05` preparado em `docs/STATE-05-Human-Gate-Validation.md`; preflight confirmou Narrator disponível, escala atual 100% e High Contrast desligado, mas todas as amostras e a decisão humana permanecem `PENDENTE`.
 
 ## Pendente
 
@@ -141,6 +142,6 @@ O projeto está em `STATE-05 FRONTEND_IMPLEMENTATION`. Quatro incrementos implem
 
 ## Próximo gate
 
-Executar as amostras humanas pendentes de leitor de tela, zoom/scaling, High Contrast e revisão visual; depois apresentar o Human Gate de `STATE-05`. `STATE-06` e laboratório continuam bloqueados.
+Executar e registrar as amostras pendentes de `docs/STATE-05-Human-Gate-Validation.md`; depois obter a decisão humana explícita do Human Gate de `STATE-05`. `STATE-06` e laboratório continuam bloqueados.
 
 Este documento descreve somente o presente. Histórico pertence a `State-Transition-Log.md`.

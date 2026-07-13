@@ -412,6 +412,16 @@
 - Evidências: `docs/STATE-05-Design-System-Implementation-Report.md`, `docs/STATE-05-Localisation-Implementation-Report.md` e artefactos temporários sanitizados sob `%TEMP%\DBNotifier-State05-Audit\<locale>\<theme>`.
 - Riscos/ressalvas: leitor de tela, zoom/scaling nativo, High Contrast visual e revisão humana continuam pendentes; Human Gate, `STATE-06`, integração externa e laboratório permanecem bloqueados.
 
+## 2026-07-13 — Preparação do Human Gate de STATE-05
+
+- Estado anterior: `STATE-05 FRONTEND_IMPLEMENTATION`
+- Estado resultante: sem transição
+- Decisão: manter o Human Gate `PENDENTE`; nenhuma amostra ou aprovação humana foi inferida.
+- Escopo: protocolo bilíngue para teclado, Narrator, zoom nativo, Windows scaling, System/High Contrast, Tray, revisão visual e verdade operacional em Dashboard/WPF.
+- Gates: preflight observou Windows 11, Chrome 150, .NET 10.0.301, Narrator disponível, escala atual 100% e High Contrast desligado; resultados humanos continuam não executados.
+- Evidências: `docs/STATE-05-Human-Gate-Validation.md` com nove amostras `PENDENTE` e campos de validador/decisão não preenchidos.
+- Riscos/ressalvas: NVDA não está disponível neste ambiente; mudanças de escala/High Contrast exigem operação interativa e restauração pelo validador; `STATE-06` permanece bloqueado.
+
 ## Template de nova entrada
 
 - Data:
