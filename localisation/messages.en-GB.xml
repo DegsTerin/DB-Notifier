@@ -198,6 +198,15 @@
   <message key="Wpf.ReviewSelected">Review selected decision</message>
   <message key="Tray.Open">Open DB Notifier</message>
   <message key="Tray.Status">Local demonstration · no external data</message>
+  <message key="Tray.FleetTitle">Fleet at a glance</message>
+  <message key="Tray.FleetSummary">4 demonstration instances · no external data</message>
+  <message key="Tray.Instances">Instances monitored in the local demonstration</message>
+  <message key="Tray.LocalSnapshot">Local snapshot at {0} UTC</message>
+  <message key="Tray.OpenInventory">Open inventory</message>
+  <message key="Tray.OpenHistoryAlerts">Open history and alerts</message>
+  <message key="Tray.OpenConfiguration">Open configuration</message>
+  <message key="Tray.RestartUnavailable">Restart service · unavailable</message>
+  <message key="Tray.RestartUnavailableHelp">Requires a homologated capability, authorisation, confirmation and audit.</message>
   <message key="Tray.Exit">Exit</message>
   <message key="Tray.Tooltip">DB Notifier · local demonstration</message>
   <message key="Tray.BalloonTitle">DB Notifier remains available</message>

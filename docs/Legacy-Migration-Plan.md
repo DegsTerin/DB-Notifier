@@ -111,6 +111,7 @@ Implementation note (2026-07-12): the backend remediation increment implements t
 Deliverables:
 
 - Production WPF Tray/Desktop bound to Application contracts rather than mocks.
+- Provider-neutral notification-area flyout with factual fleet summary, non-colour-only states, local navigation and explicit unavailability for administrative operations not yet integrated or homologated.
 - Empty, loading, offline, error, stale, maintenance, unsupported, and denied states.
 - Keyboard/accessibility support and status not communicated by color alone.
 - PgNotifier and DB-Notifier side-by-side configuration choice during the compatibility window.
@@ -123,6 +124,7 @@ Deliverables:
 
 - Authenticated versioned Agent/API communication, outbox reconciliation, deduplication, ordering rules, heartbeat, and revocation.
 - Web Dashboard reading authorized API data and displaying observed/received/stale timestamps.
+- WPF Tray reading authorised API/Agent presentation state, emitting notifications only for canonical changes and opening integrated history/log destinations without exposing provider-native secrets.
 - TV mode performing an immediate authorised API read on entry and a non-overlapping authoritative refresh every 30 seconds while active; authenticated SignalR hints may request an earlier read but never replace periodic reconciliation.
 - Sandbox E2E for disconnect/reconnect, duplicates, expired commands, and incompatible versions.
 
@@ -133,6 +135,7 @@ Exit: local monitoring survives API outage and reconciliation does not duplicate
 Deliverables:
 
 - PostgreSQL engine/platform/role matrix with functional, security, recovery, load, and accessibility evidence.
+- Tray administrative actions enabled only for each exact homologated service-control capability after privilege, confirmation, idempotency, audit and post-action probe evidence passes.
 - One subsequent provider at a time, prioritizing MySQL/MariaDB, SQL Server, Oracle, MongoDB, SAP HANA, SQLite and other widely adopted engines, each with its own capability matrix, fixtures/environment, licensing review, and limitations.
 - Open provider/plugin onboarding for additional relational, NoSQL, distributed, embedded, cloud-managed and future engines without changes to the core domain.
 

@@ -8,6 +8,14 @@ using DBNotifier.Domain;
 
 namespace DBNotifier.Desktop.Wpf;
 
+/// <summary>Identifies the safe read-only desktop destinations exposed by the notification-area flyout.</summary>
+internal enum DesktopView
+{
+    Inventory,
+    HistoryAlerts,
+    Configuration,
+}
+
 /// <summary>
 /// Presents read-only demonstration data and accessible operational states without connecting to databases or executing commands.
 /// Localised presentation values are rebuilt whenever the user changes the supported interface language;
@@ -47,6 +55,23 @@ public partial class MainWindow : Window
             theme.ThemeChanged -= ThemeChanged;
         };
         RebuildLocalisedData();
+        PresentReadyState();
+    }
+
+    /// <summary>Shows a validated read-only destination requested by the notification-area flyout.</summary>
+    /// <param name="view">Known desktop destination; no administrative operation is performed.</param>
+    internal void ShowView(DesktopView view)
+    {
+        int selectedIndex = view switch
+        {
+            DesktopView.Inventory => 0,
+            DesktopView.HistoryAlerts => 1,
+            DesktopView.Configuration => 2,
+            _ => throw new ArgumentOutOfRangeException(nameof(view)),
+        };
+
+        ScenarioSelector.SelectedIndex = 0;
+        ViewSelector.SelectedIndex = selectedIndex;
         PresentReadyState();
     }
 

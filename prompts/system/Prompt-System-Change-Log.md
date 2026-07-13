@@ -2,7 +2,7 @@
 
 ## Versão atual
 
-- Versão: `3.30.0`
+- Versão: `3.31.0`
 - Data: 2026-07-13
 - Status: corpus DB-Notifier consolidado
 - Escopo: 13 arquivos ativos
@@ -16,6 +16,12 @@ A versão do corpus é independente da versão do software.
 - PATCH: clareza, correção ou referência sem mudança de autoridade.
 
 Toda alteração atualiza este arquivo e, quando necessário, `../Start-Here.md`.
+
+## 3.31.0 — 2026-07-13
+
+- Regra permanente do Tray refinada para uma visão compacta e provider-neutral da frota, com verdade de fonte/freshness, navegação segura e separação explícita entre apresentação, integração e controlo homologado.
+- Design System `2.1.0` adota a leitura operacional do PgNotifier como referência de experiência sem copiar arte PostgreSQL, identificadores nativos ou capabilities não comprovadas.
+- Estado, plano de migração, Human Gate e evidências foram sincronizados; notificações por mudança permanecem no `STATE-06` e operações de serviço dependem de homologação exata no `STATE-07`.
 
 ## 3.30.0 — 2026-07-13
 

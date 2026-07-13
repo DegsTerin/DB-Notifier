@@ -1,0 +1,147 @@
+<!-- Module purpose: Defines the compact, accessible notification-area fleet overview; it presents local fixtures and safe navigation only. -->
+<Window x:Class="DBNotifier.Desktop.Wpf.TrayFlyoutWindow"
+        x:ClassModifier="internal"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="{DynamicResource Tray.FleetTitle}"
+        Width="388"
+        SizeToContent="Height"
+        MaxHeight="680"
+        WindowStyle="None"
+        ResizeMode="NoResize"
+        ShowInTaskbar="False"
+        Topmost="True"
+        AllowsTransparency="True"
+        Background="Transparent"
+        Foreground="{DynamicResource ColourTextPrimaryBrush}"
+        FontFamily="{DynamicResource TypographyFontfamilySans}"
+        KeyboardNavigation.TabNavigation="Cycle"
+        AutomationProperties.Name="{DynamicResource Tray.FleetTitle}"
+        Deactivated="WindowDeactivated"
+        PreviewKeyDown="WindowPreviewKeyDown"
+        Closing="WindowClosing">
+  <Window.Resources>
+    <Style x:Key="TrayActionButton" TargetType="Button">
+      <Setter Property="MinHeight" Value="{DynamicResource ControlHeightCompact}" />
+      <Setter Property="Padding" Value="{DynamicResource Space3}" />
+      <Setter Property="HorizontalContentAlignment" Value="Left" />
+      <Setter Property="Foreground" Value="{DynamicResource ColourTextPrimaryBrush}" />
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderBrush" Value="Transparent" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="Cursor" Value="Hand" />
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="Button">
+            <Border x:Name="ActionSurface"
+                    Padding="{TemplateBinding Padding}"
+                    Background="{TemplateBinding Background}"
+                    BorderBrush="{TemplateBinding BorderBrush}"
+                    BorderThickness="{TemplateBinding BorderThickness}"
+                    CornerRadius="{DynamicResource RadiusControl}">
+              <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="Center" />
+            </Border>
+            <ControlTemplate.Triggers>
+              <Trigger Property="IsMouseOver" Value="True">
+                <Setter TargetName="ActionSurface" Property="Background" Value="{DynamicResource ColourSurfaceSubtleBrush}" />
+              </Trigger>
+              <Trigger Property="IsKeyboardFocused" Value="True">
+                <Setter TargetName="ActionSurface" Property="BorderBrush" Value="{DynamicResource ComponentFocusRingBrush}" />
+                <Setter TargetName="ActionSurface" Property="BorderThickness" Value="2" />
+              </Trigger>
+            </ControlTemplate.Triggers>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
+    <Style x:Key="TrayInstanceRow" TargetType="Grid">
+      <Setter Property="Margin" Value="0,4" />
+      <Setter Property="MinHeight" Value="48" />
+    </Style>
+  </Window.Resources>
+
+  <Border Background="{DynamicResource ComponentCardBackgroundBrush}"
+          BorderBrush="{DynamicResource ColourBorderStrongBrush}"
+          BorderThickness="1"
+          CornerRadius="{DynamicResource RadiusXlarge}"
+          Padding="{DynamicResource Space4}">
+    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+      <StackPanel>
+        <!-- The header distinguishes the local demonstration from authoritative runtime monitoring. -->
+        <Grid>
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="Auto" />
+          </Grid.ColumnDefinitions>
+          <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+          </Grid.RowDefinitions>
+          <Image Grid.RowSpan="2" Width="36" Height="36" Source="Assets/DBNotifier.ico" Stretch="Uniform" AutomationProperties.Name="DB Notifier" />
+          <TextBlock Grid.Column="1" Margin="12,0,0,0" Text="{DynamicResource Tray.FleetTitle}" FontSize="15" FontWeight="SemiBold" VerticalAlignment="Center" />
+          <Border Grid.Column="2" Padding="8,4" Background="{DynamicResource ColourStatusInformationBackgroundBrush}" CornerRadius="{DynamicResource RadiusPill}" VerticalAlignment="Center">
+            <TextBlock Text="{DynamicResource Demo.Badge}" Foreground="{DynamicResource ColourStatusInformationForegroundBrush}" FontSize="10" FontWeight="SemiBold" />
+          </Border>
+          <TextBlock Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" Text="{DynamicResource Tray.FleetSummary}" Margin="12,4,0,0" Foreground="{DynamicResource ColourTextSecondaryBrush}" FontSize="12" TextWrapping="Wrap" />
+        </Grid>
+
+        <Border Height="1" Background="{DynamicResource ColourBorderDefaultBrush}" Margin="0,16" />
+
+        <!-- Instance rows preserve provider-neutral status truth and never expose credentials or native service identifiers. -->
+        <StackPanel AutomationProperties.Name="{DynamicResource Tray.Instances}">
+          <Grid Style="{StaticResource TrayInstanceRow}">
+            <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+            <Ellipse Width="10" Height="10" Fill="{DynamicResource ComponentStatusHealthyForegroundBrush}" Margin="0,0,12,0" />
+            <StackPanel Grid.Column="1"><TextBlock Text="{DynamicResource Sample.Instance.Finance}" FontWeight="SemiBold" /><TextBlock Text="postgresql" Foreground="{DynamicResource ColourTextSecondaryBrush}" FontSize="11" Margin="0,4,0,0" /></StackPanel>
+            <TextBlock Grid.Column="2" Text="{DynamicResource Status.Healthy}" Foreground="{DynamicResource ComponentStatusHealthyForegroundBrush}" FontWeight="SemiBold" VerticalAlignment="Center" />
+          </Grid>
+          <Grid Style="{StaticResource TrayInstanceRow}">
+            <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+            <Ellipse Width="10" Height="10" Fill="{DynamicResource ComponentStatusDegradedForegroundBrush}" Margin="0,0,12,0" />
+            <StackPanel Grid.Column="1"><TextBlock Text="{DynamicResource Sample.Instance.Orders}" FontWeight="SemiBold" /><TextBlock Text="mysql" Foreground="{DynamicResource ColourTextSecondaryBrush}" FontSize="11" Margin="0,4,0,0" /></StackPanel>
+            <TextBlock Grid.Column="2" Text="{DynamicResource Status.Degraded}" Foreground="{DynamicResource ComponentStatusDegradedForegroundBrush}" FontWeight="SemiBold" VerticalAlignment="Center" />
+          </Grid>
+          <Grid Style="{StaticResource TrayInstanceRow}">
+            <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+            <Rectangle Width="10" Height="10" Fill="{DynamicResource ComponentStatusCriticalForegroundBrush}" Margin="0,0,12,0" RadiusX="2" RadiusY="2" />
+            <StackPanel Grid.Column="1"><TextBlock Text="{DynamicResource Sample.Instance.Analytics}" FontWeight="SemiBold" /><TextBlock Text="sql-server" Foreground="{DynamicResource ColourTextSecondaryBrush}" FontSize="11" Margin="0,4,0,0" /></StackPanel>
+            <TextBlock Grid.Column="2" Text="{DynamicResource Status.Timeout}" Foreground="{DynamicResource ComponentStatusCriticalForegroundBrush}" FontWeight="SemiBold" VerticalAlignment="Center" />
+          </Grid>
+          <Grid Style="{StaticResource TrayInstanceRow}">
+            <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+            <Ellipse Width="10" Height="10" Stroke="{DynamicResource ComponentStatusNeutralForegroundBrush}" StrokeThickness="2" Margin="0,0,12,0" />
+            <StackPanel Grid.Column="1"><TextBlock Text="{DynamicResource Sample.Instance.Catalogue}" FontWeight="SemiBold" /><TextBlock Text="mongodb" Foreground="{DynamicResource ColourTextSecondaryBrush}" FontSize="11" Margin="0,4,0,0" /></StackPanel>
+            <TextBlock Grid.Column="2" Text="{DynamicResource Status.Stale}" Foreground="{DynamicResource ComponentStatusNeutralForegroundBrush}" FontWeight="SemiBold" VerticalAlignment="Center" />
+          </Grid>
+        </StackPanel>
+
+        <TextBlock x:Name="SnapshotText" Foreground="{DynamicResource ColourTextMutedBrush}" FontSize="11" Margin="0,8,0,0" />
+        <Border Height="1" Background="{DynamicResource ColourBorderDefaultBrush}" Margin="0,12" />
+
+        <!-- Quick actions navigate within DB Notifier; administrative execution remains visibly unavailable. -->
+        <Button Style="{StaticResource TrayActionButton}" Click="OpenInventoryClick" AutomationProperties.Name="{DynamicResource Tray.OpenInventory}">
+          <TextBlock Text="{DynamicResource Tray.OpenInventory}" FontWeight="SemiBold" />
+        </Button>
+        <Button Style="{StaticResource TrayActionButton}" Click="OpenHistoryAlertsClick" AutomationProperties.Name="{DynamicResource Tray.OpenHistoryAlerts}">
+          <TextBlock Text="{DynamicResource Tray.OpenHistoryAlerts}" FontWeight="SemiBold" />
+        </Button>
+        <Button Style="{StaticResource TrayActionButton}" Click="OpenConfigurationClick" AutomationProperties.Name="{DynamicResource Tray.OpenConfiguration}">
+          <TextBlock Text="{DynamicResource Tray.OpenConfiguration}" FontWeight="SemiBold" />
+        </Button>
+
+        <Border Background="{DynamicResource ColourSurfaceSubtleBrush}" CornerRadius="{DynamicResource RadiusControl}" Padding="{DynamicResource Space3}" Margin="0,4">
+          <StackPanel>
+            <TextBlock Text="{DynamicResource Tray.RestartUnavailable}" Foreground="{DynamicResource ColourTextSecondaryBrush}" FontWeight="SemiBold" />
+            <TextBlock Text="{DynamicResource Tray.RestartUnavailableHelp}" Foreground="{DynamicResource ColourTextMutedBrush}" FontSize="11" TextWrapping="Wrap" Margin="0,4,0,0" />
+          </StackPanel>
+        </Border>
+
+        <Border Height="1" Background="{DynamicResource ColourBorderDefaultBrush}" Margin="0,12" />
+        <Button Style="{StaticResource TrayActionButton}" Click="ExitClick" AutomationProperties.Name="{DynamicResource Tray.Exit}">
+          <TextBlock Text="{DynamicResource Tray.Exit}" FontWeight="SemiBold" />
+        </Button>
+      </StackPanel>
+    </ScrollViewer>
+  </Border>
+</Window>

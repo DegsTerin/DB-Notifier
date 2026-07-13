@@ -2,7 +2,7 @@
 
 ## Outcome
 
-Four `STATE-05 FRONTEND_IMPLEMENTATION` increments implement provider-neutral inventory/status, history/alert, configuration/capability and Tray/accessibility slices in React and .NET 10 WPF. All surfaces use deterministic local adapters; none calls the API, Agent, database, vault, IdP, notification channel or administrative executor.
+Five `STATE-05 FRONTEND_IMPLEMENTATION` increments implement provider-neutral inventory/status, history/alert, configuration/capability and Tray/accessibility slices in React and .NET 10 WPF. All surfaces use deterministic local adapters; none calls the API, Agent, database, vault, IdP, notification channel or administrative executor.
 
 This is an authorized implementation increment, not closure of `STATE-05`, external integration, provider activation or homologation. PostgreSQL remains implemented but unhomologated; MySQL, SQL Server and MongoDB appear only as clearly labelled planned demonstration rows and do not represent working providers.
 
@@ -86,10 +86,19 @@ Temporary screenshots were stored outside the repository and were not committed.
 - WPF colour pairs are independently verified at WCAG AA normal-text contrast; AutomationProperties, native controls, keyboard cycle and textual/symbolic states remain present.
 - No external toast/channel was registered and no monitoring status was fabricated; Tray text says `Demonstração local · sem dados externos`.
 
+## Increment 5 — Operational notification-area flyout
+
+- The earlier minimal native menu is replaced by a token-driven WPF flyout inspired by the PgNotifier operational pattern without copying PostgreSQL artwork or engine-specific assumptions.
+- The flyout shows the same four local demonstration instances, provider identifiers and healthy/degraded/timeout/stale distinctions with shape, text and semantic colour.
+- Safe quick actions restore the main window directly in Inventory, History/Alerts or non-secret Configuration; Escape, focus loss and repeated Tray activation dismiss the transient surface.
+- Restart is an explanatory non-interactive row, not an enabled command. Its copy states that a homologated capability, authorisation, confirmation and audit are required.
+- The exact flyout timestamp is labelled as a local snapshot and the header continues to say that no external data is present. No change notification, API refresh, provider process lookup or service control was added.
+- The staged legacy mapping is explicit: authorised API/Agent data and change-only notifications belong to `STATE-06`; an exact service-control action may become visible only after implementation and per-provider/topology homologation in `STATE-07`.
+
 ## Security and phase boundaries
 
 - Demonstration data contains no connection string, credential reference, secret, token or real infrastructure identifier.
-- Administrative actions are absent. No Start/Stop/Restart affordance or executor is exposed.
+- Administrative execution is absent. Restart appears only as a non-interactive unavailable explanation; no Start/Stop/Restart control or executor is exposed.
 - Planned providers are labelled `Planejado · não implementado`; PostgreSQL is labelled `Implementado · não homologado`.
 - No API integration, authentication flow, SignalR, Agent synchronization or external channel was added; those remain owned by `STATE-06`.
 - The Dashboard does not directly connect to a monitored database; future data must continue through authorized API contracts.
@@ -97,9 +106,9 @@ Temporary screenshots were stored outside the repository and were not committed.
 ## Remaining STATE-05 scope
 
 - Complete human keyboard, screen-reader, zoom and representative viewport samples for the closure gate.
-- Replace the generic system Tray icon with a signed branded asset during packaging/release preparation.
+- Sign the existing canonical Tray/application asset during packaging/release preparation.
 - Run the automatic closure audit and Human Gate only after all phase deliverables are complete.
 
 ## Recommendation
 
-Continue with React and WPF integration of the generated Design System tokens and theme lifecycle, repeat the Light/Dark/System automatic re-audit, then perform the human screen-reader/native-zoom/theme samples. Do not transition to `STATE-06` before explicit Human Gate approval.
+Review the operational Tray flyout in visible `pt-BR`/Light and `en-GB`/Dark sessions, then continue the pending screen-reader, native-zoom/scaling and High Contrast samples. Do not transition to `STATE-06` before explicit Human Gate approval.

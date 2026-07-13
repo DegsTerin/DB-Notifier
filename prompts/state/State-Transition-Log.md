@@ -529,6 +529,17 @@
 - Riscos/ressalvas: preferências System antigas passam a Light; High Contrast não foi removido; a reauditoria automática não constitui aprovação visual humana.
 - Aprovador: PENDENTE para clareza visual em `S05-HG-006`; Human Gate completo permanece pendente.
 
+## 2026-07-13 — Flyout operacional do Tray inspirado no PgNotifier
+
+- Estado anterior: `STATE-05 FRONTEND_IMPLEMENTATION`
+- Estado resultante: sem transição
+- Decisão: adotar a leitura rápida e os atalhos do panfleto legado como referência de experiência, preservando identidade DB Notifier, neutralidade de provider e verdade de capability.
+- Escopo: Design System `2.1.0`, flyout WPF bilíngue/temático, quatro instâncias demonstrativas, estados não dependentes apenas de cor, atalhos locais para Inventário/Histórico/Configuração e Restart explicitamente não interativo.
+- Gates: build Release .NET 10 sem avisos/erros, 133 testes .NET, 23 testes Dashboard, geração/drift bilíngue e gate documental de 164 fontes aprovados; quatro amostras WPF principais mantiveram 34 controles focalizáveis e nenhum sem nome. A ativação visual do flyout não foi inferida do host automático e permanece no Human Gate.
+- Evidências: `docs/STATE-05-Frontend-Implementation-Report.md`, Design System e artefactos temporários sanitizados quando produzidos.
+- Riscos/ressalvas: nenhuma arte PostgreSQL, consulta externa, notificação por mudança ou operação de serviço foi adicionada; integração factual pertence ao `STATE-06` e controlo depende de implementação e homologação exata no `STATE-07`.
+- Aprovador: PENDENTE para a revisão humana do novo flyout; a solicitação de implementação não aprova o Human Gate completo.
+
 ## Template de nova entrada
 
 - Data:

@@ -26,10 +26,10 @@ Mobile and tablet samples apply to the responsive Dashboard Web. There is no nat
 
 | Evidence | Current result |
 |---|---|
-| Design System implementation report | Design System `2.0.0` translation-icon, Light/Dark-only, outlined database-mark, ultrawide and TV-presentation gates approved; commit identifier is reported in the implementation hand-off |
+| Design System implementation report | Design System `2.1.0` translation-icon, Light/Dark-only, outlined database-mark, ultrawide, TV-presentation and operational-Tray implementation gates approved; commit identifier is reported in the implementation hand-off |
 | Dashboard matrix | 44 standard locale/theme/viewport-route samples plus four TV samples across the current Light/Dark combinations; no global overflow or unnamed interactive control |
 | WPF matrix | Four current locale/theme combinations at `1180×760`, each with 34 focusable controls and none unnamed; minimum-window and High Contrast samples remain separately recorded |
-| Automated tests | 22 Dashboard, 128 .NET unit/model/provider/presentation, 5 architecture and 10 legacy compatibility tests approved |
+| Automated tests | 23 Dashboard, 128 .NET unit/model/provider/presentation, 5 architecture and 10 legacy compatibility tests approved |
 | Security/dependencies | npm and NuGet reported no known vulnerabilities in the recorded audit |
 
 Primary automatic evidence:
@@ -122,8 +122,9 @@ Repeat the critical path once in `pt-BR`/Light and once in `en-GB`/Dark, at the 
 3. Confirm Inventory summary counts and stale data are understandable without colour.
 4. Visit History/Alerts and Configuration; confirm read-only/unsupported/denied wording remains explicit.
 5. Open each safe preview dialogue and confirm title, message, button order and focus return.
-6. Minimise/close to Tray, reopen the window from the Tray menu and confirm the current locale remains reflected in the native menu.
-7. Exit through the Tray menu and confirm no DB-Notifier process remains.
+6. Minimise/close to Tray, open the notification-area fleet flyout and confirm the current locale/theme, four demonstration instances, textual status, source truth and local snapshot label remain understandable.
+7. Use each safe flyout shortcut, dismiss with Escape and focus loss, and confirm Restart is explanatory/non-interactive rather than executable.
+8. Exit through the flyout and confirm no DB-Notifier process remains.
 
 ## System, High Contrast and scaling protocol
 

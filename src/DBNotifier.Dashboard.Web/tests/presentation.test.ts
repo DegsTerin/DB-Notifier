@@ -118,6 +118,25 @@ test("provider-neutral database mark is shared by active Web and Windows surface
   assert.match(compatibilityBuild, /-IconFile \$iconPath/);
 });
 
+test("Tray flyout preserves operational scanning while administrative execution remains unavailable", () => {
+  const flyout = readFileSync(new URL("../../DBNotifier.Desktop.Wpf/TrayFlyoutWindow.xaml", import.meta.url), "utf8");
+  const flyoutCode = readFileSync(new URL("../../DBNotifier.Desktop.Wpf/TrayFlyoutWindow.xaml.cs", import.meta.url), "utf8");
+  const controller = readFileSync(new URL("../../DBNotifier.Desktop.Wpf/TrayApplicationController.cs", import.meta.url), "utf8");
+
+  assert.equal((flyout.match(/DynamicResource Sample\.Instance\./g) ?? []).length, 4);
+  assert.match(flyout, /DynamicResource Tray\.FleetSummary/);
+  assert.match(flyoutCode, /localisation\.Text\("Tray\.LocalSnapshot"/);
+  assert.match(flyout, /Click="OpenInventoryClick"/);
+  assert.match(flyout, /Click="OpenHistoryAlertsClick"/);
+  assert.match(flyout, /Click="OpenConfigurationClick"/);
+  assert.match(flyout, /DynamicResource Tray\.RestartUnavailable/);
+  assert.doesNotMatch(flyout, /Click="Restart/);
+  assert.match(controller, /new TrayFlyoutWindow\(localisation, ShowView/);
+  assert.match(controller, /notifyIcon\.MouseClick \+= NotifyIconMouseClick/);
+  assert.match(controller, /contextMenu\.Opening \+= ContextMenuOpening/);
+  assert.match(controller, /ContextMenuStrip = contextMenu/);
+});
+
 test("timeline filters severity without provider-specific branches", () => {
   const snapshot = buildTimelineAlertSnapshot(now);
   assert.equal(filterTimeline(snapshot.events, "", "critical").length, 1);

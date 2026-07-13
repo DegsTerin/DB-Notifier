@@ -16,9 +16,8 @@ internal sealed class TrayApplicationController : IDisposable
     private readonly DesktopLocalisationService localisation;
     private readonly Icon applicationIcon;
     private readonly Forms.NotifyIcon notifyIcon;
-    private readonly Forms.ToolStripMenuItem openItem;
-    private readonly Forms.ToolStripMenuItem statusItem;
-    private readonly Forms.ToolStripMenuItem exitItem;
+    private readonly Forms.ContextMenuStrip contextMenu;
+    private readonly TrayFlyoutWindow flyout;
     private bool exiting;
     private bool firstHide = true;
 
@@ -28,20 +27,17 @@ internal sealed class TrayApplicationController : IDisposable
         this.window = window;
         this.application = application;
         this.localisation = localisation;
-        openItem = new Forms.ToolStripMenuItem();
-        openItem.Click += (_, _) => Apply(TrayWindowIntent.Show);
-        statusItem = new Forms.ToolStripMenuItem { Enabled = false };
-        exitItem = new Forms.ToolStripMenuItem();
-        exitItem.Click += (_, _) => Apply(TrayWindowIntent.Exit);
-        Forms.ContextMenuStrip menu = new();
-        menu.Items.AddRange([openItem, statusItem, new Forms.ToolStripSeparator(), exitItem]);
+        flyout = new TrayFlyoutWindow(localisation, ShowView, () => Apply(TrayWindowIntent.Exit));
+        contextMenu = new Forms.ContextMenuStrip();
+        contextMenu.Opening += ContextMenuOpening;
         applicationIcon = LoadApplicationIcon();
         notifyIcon = new Forms.NotifyIcon
         {
             Icon = applicationIcon,
-            ContextMenuStrip = menu,
+            ContextMenuStrip = contextMenu,
             Visible = true,
         };
+        notifyIcon.MouseClick += NotifyIconMouseClick;
         notifyIcon.DoubleClick += (_, _) => Apply(TrayWindowIntent.Show);
         window.StateChanged += WindowStateChanged;
         window.Closing += WindowClosing;
@@ -55,9 +51,12 @@ internal sealed class TrayApplicationController : IDisposable
         window.StateChanged -= WindowStateChanged;
         window.Closing -= WindowClosing;
         localisation.LanguageChanged -= LanguageChanged;
+        notifyIcon.MouseClick -= NotifyIconMouseClick;
+        contextMenu.Opening -= ContextMenuOpening;
         notifyIcon.Visible = false;
-        notifyIcon.ContextMenuStrip?.Dispose();
+        flyout.CloseForApplicationExit();
         notifyIcon.Dispose();
+        contextMenu.Dispose();
         applicationIcon.Dispose();
     }
 
@@ -89,15 +88,51 @@ internal sealed class TrayApplicationController : IDisposable
     }
 
     /// <summary>Refreshes tray labels after an interface-language change.</summary>
-    private void LanguageChanged(object? sender, EventArgs e) => RefreshText();
+    private void LanguageChanged(object? sender, EventArgs e)
+    {
+        RefreshText();
+        flyout.RefreshPresentation();
+    }
 
     /// <summary>Updates all tray-visible strings from the generated localisation dictionary.</summary>
     private void RefreshText()
     {
-        openItem.Text = localisation.Text("Tray.Open");
-        statusItem.Text = localisation.Text("Tray.Status");
-        exitItem.Text = localisation.Text("Tray.Exit");
         notifyIcon.Text = localisation.Text("Tray.Tooltip");
+    }
+
+    /// <summary>Toggles the accessible WPF fleet flyout after primary notification-area activation.</summary>
+    private void NotifyIconMouseClick(object? sender, Forms.MouseEventArgs e)
+    {
+        if (e.Button == Forms.MouseButtons.Left)
+        {
+            ToggleFlyout();
+        }
+    }
+
+    /// <summary>Replaces the empty native secondary-click menu with the richer token-driven flyout.</summary>
+    private void ContextMenuOpening(object? sender, CancelEventArgs e)
+    {
+        e.Cancel = true;
+        ToggleFlyout();
+    }
+
+    /// <summary>Shows or dismisses the single transient notification-area surface.</summary>
+    private void ToggleFlyout()
+    {
+        if (flyout.IsVisible)
+        {
+            flyout.Hide();
+            return;
+        }
+
+        flyout.ShowNearNotificationArea();
+    }
+
+    /// <summary>Restores the desktop window and selects one safe read-only destination.</summary>
+    private void ShowView(DesktopView view)
+    {
+        Apply(TrayWindowIntent.Show);
+        window.ShowView(view);
     }
 
     /// <summary>Executes only the local window action resolved by the neutral tray policy.</summary>

@@ -5,7 +5,7 @@
 | Field | Value |
 |---|---|
 | Status | Official frontend specification |
-| Design System version | `2.0.0` |
+| Design System version | `2.1.0` |
 | Product phase | `STATE-05 FRONTEND_IMPLEMENTATION` |
 | Platforms | React Web Dashboard and .NET 10 WPF Desktop/Tray |
 | Themes | Light and Dark; Windows High Contrast is an accessibility override |
@@ -496,7 +496,9 @@ Modal dialogue requirements include initial focus, forward/reverse containment, 
 
 ### 10.10 Tray
 
-The Tray surface is an extension of the Desktop client, not a separate design language. It uses the signed brand icon and native menu conventions. Open, factual status and Exit remain clearly separated. Database/service actions are absent unless capability, privilege, confirmation and audit contracts are later approved.
+The Tray surface is an extension of the Desktop client, not a separate design language. It uses the canonical database mark and Windows notification-area conventions. Primary or secondary activation opens a compact WPF flyout with product identity, explicit source truth, a provider-neutral fleet summary, status text and shapes, and safe shortcuts to Inventory, History/Alerts and non-secret Configuration. Escape, loss of activation or a repeated notification-area click dismisses the flyout; explicit Exit remains separated from navigation.
+
+During `STATE-05`, the flyout MUST identify its deterministic local demonstration, MUST NOT present its display timestamp as an external observation, and MAY show a non-interactive explanation that administrative Restart is unavailable. `STATE-06` owns binding the same surface to authorised API/Agent state, factual change-only notifications and integrated event/log navigation. Service Restart MUST remain unavailable until its exact provider/topology capability, privilege, confirmation, idempotency, audit and post-probe path is implemented and then homologated in `STATE-07`. Vendor artwork, native service identifiers, credentials and unsupported actions MUST NOT be copied from legacy references into this provider-neutral surface.
 
 ## 11. Interaction states
 

@@ -6,7 +6,7 @@
 
 ## Situação factual
 
-O projeto está em `STATE-05 FRONTEND_IMPLEMENTATION`. Quatro incrementos implementam inventário/status, histórico/alertas, configuração/capabilities e Tray seguro no Dashboard React/Desktop WPF .NET 10. O Tray controla somente a janela DB-Notifier; adapters continuam determinísticos, sem integração, secret, mutation, controle de banco/serviço ou provider homologado.
+O projeto está em `STATE-05 FRONTEND_IMPLEMENTATION`. Cinco incrementos implementam inventário/status, histórico/alertas, configuração/capabilities, Tray seguro e o flyout operacional no Dashboard React/Desktop WPF .NET 10. O Tray controla somente superfícies do DB Notifier; adapters continuam determinísticos, sem integração, secret, mutation, controle de banco/serviço ou provider homologado.
 
 ## Produto atual
 
@@ -138,6 +138,9 @@ O projeto está em `STATE-05 FRONTEND_IMPLEMENTATION`. Quatro incrementos implem
 - Design System `1.3.5` substituiu os cinco botões textuais de preferência por dois controles de ícone; Design System `2.0.0` substitui o globo ambíguo pelo símbolo de tradução/idiomas e remove o estado Sistema/monitor, mantendo somente Sol/Lua para Light/Dark.
 - Design System `1.4.0` foi aprovado automaticamente em mais seis amostras TV `1920×1080`: todas entraram em Fullscreen nativo, preservaram verdade de demonstração/saída, ocultaram navegação/filtros, exibiram a tabela e restauraram o shell padrão sem overflow ou controle sem nome. A amostra sem Fullscreen manteve o modo TV/saída e anunciou a limitação.
 - Design System `2.0.0` foi aprovado automaticamente em 44 amostras browser padrão e quatro amostras TV (`2 locales × 2 temas`), sem overflow global ou controle interativo sem nome; os quatro ciclos WPF `1180×760` restauraram idioma/tema, com 34 controles focalizáveis e nenhum sem nome. Um sample visual Chrome confirmou o novo símbolo, nomes localizados e ausência de erros no console.
+- Design System `2.1.0` substitui o menu mínimo do Tray por flyout WPF empresarial inspirado na leitura operacional do PgNotifier, mas provider-neutral: quatro instâncias demonstrativas, estados textuais/semânticos, snapshot explicitamente local e atalhos para Inventário, Histórico/Alertas e Configuração.
+- Reiniciar serviço aparece somente como explicação não interativa de indisponibilidade; dados/notificações reais do Tray pertencem ao `STATE-06` e qualquer controlo de serviço continua condicionado à implementação e homologação exata no `STATE-07`.
+- O incremento do Tray passou em build Release .NET 10 sem avisos/erros, 133 testes .NET, 23 testes Dashboard, geração bilíngue e gate documental de 164 fontes; a matriz WPF principal repetiu quatro combinações com 34 controles focalizáveis e nenhum sem nome. A ativação visual do flyout pela área de notificação não foi observável de modo confiável no host automático e permanece amostra humana explícita.
 
 ## Pendente
 
@@ -146,6 +149,7 @@ O projeto está em `STATE-05 FRONTEND_IMPLEMENTATION`. Quatro incrementos implem
 - Confirmar visualmente a correção de largura em tela cheia e o display name `DB Notifier`; `S05-HG-003` permanece pendente até essa validação humana.
 - Confirmar visualmente o símbolo de tradução/idiomas e o controle apenas Light/Dark; `S05-HG-006` permanece pendente e supersede a porção de iconografia/tema ainda aberta de `S05-HG-004`.
 - Executar `HG05-10` para confirmar distância de leitura, densidade e entrada/saída do modo TV; `S05-HG-005` permanece pendente de validação humana.
+- Revisar humanamente o novo flyout do Tray em Light/Dark e `pt-BR`/`en-GB`, incluindo teclado/Escape, leitura dos estados e clareza de que Restart não está disponível.
 - Implementar em `STATE-06` a atualização real do modo TV: leitura autorizada imediata da API na entrada e nova leitura não sobreposta a cada 30 segundos enquanto ativo, com hints SignalR apenas antecipando a reconciliação e falhas preservando o último snapshot/timestamps e o estado stale/erro factual.
 - Manter adapters de apresentação determinísticos até `STATE-06`; não integrar silenciosamente banco, IdP, certificado, canal ou provider real durante a fase de UI.
 - Representar capabilities e suporte de modo factual: ação ausente/negada/unsupported não pode aparecer como executável ou homologada.
