@@ -2,7 +2,7 @@
 
 ## Versão atual
 
-- Versão: `3.28.2`
+- Versão: `3.28.3`
 - Data: 2026-07-13
 - Status: corpus DB-Notifier consolidado
 - Escopo: 13 arquivos ativos
@@ -16,6 +16,12 @@ A versão do corpus é independente da versão do software.
 - PATCH: clareza, correção ou referência sem mudança de autoridade.
 
 Toda alteração atualiza este arquivo e, quando necessário, `../Start-Here.md`.
+
+## 3.28.3 — 2026-07-13
+
+- `S05-HG-002` registra a reprovação humana explícita do primeiro ícone canônico de banco de dados, sem reabrir a hierarquia do shell já aprovada.
+- Design System `1.3.3` substitui o cilindro preenchido por uma marca mais leve em contorno branco, traços arredondados e três níveis legíveis, preservando o gerador único SVG/ICO e todas as integrações ativas.
+- A substituição foi reauditada automaticamente; sua confirmação humana, teclado, Narrator e o Human Gate completo continuam pendentes.
 
 ## 3.28.2 — 2026-07-13
 

@@ -81,7 +81,7 @@ test("provider-neutral database mark is shared by active Web and Windows surface
   assert.deepEqual(dashboardSvg, designSystemSvg);
   assert.deepEqual([...windowsIcon.subarray(0, 6)], [0, 0, 1, 0, 9, 0]);
   assert.match(html, /rel="icon"[^>]+dbnotifier-icon\.svg/);
-  assert.match(app, /<img src="\/dbnotifier-icon\.svg" alt=""/);
+  assert.match(app, /<img src="\/dbnotifier-icon\.svg\?v=1\.3\.3" alt=""/);
   assert.match(desktopProject, /<ApplicationIcon>Assets\\DBNotifier\.ico<\/ApplicationIcon>/);
   assert.match(desktopXaml, /Icon="Assets\/DBNotifier\.ico"/);
   assert.match(trayController, /Icon = applicationIcon/);

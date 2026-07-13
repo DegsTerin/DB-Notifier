@@ -2,7 +2,7 @@
 
 ## Outcome
 
-The first three DB-Notifier Design System increments, two `S05-HG-001` visual remediation iterations and the canonical product-mark increment are complete. They establish the canonical token/schema sources, deterministic React/WPF asset generation, platform-neutral Light/Dark/System preference contracts and a cohesive enterprise shell on both interfaces required by Design System `1.3.2`.
+The first three DB-Notifier Design System increments, two `S05-HG-001` visual remediation iterations and the canonical product-mark refinement are complete. They establish the canonical token/schema sources, deterministic React/WPF asset generation, platform-neutral Light/Dark/System preference contracts and a cohesive enterprise shell on both interfaces required by Design System `1.3.3`.
 
 The Dashboard and WPF Desktop now apply generated semantic tokens, expose discreet language and theme buttons in the upper-right TopBar and preserve the validated preferences. Dedicated chrome semantics keep product identity cohesive across themes without the rejected Light-header/Dark-content inversion. System follows live platform colour preference; explicit Light and Dark remain stable. WPF gives Windows High Contrast precedence over the generated palette.
 
@@ -16,7 +16,7 @@ The second visual iteration reviewed current official guidance rather than copyi
 
 DB-Notifier translates those principles into its own provider-neutral identity: code-native outlined icons replace text glyphs, selected navigation uses a restrained surface plus a narrow accent, five related fleet metrics share one divided band, and language/theme controls remain visible without dominating the shell.
 
-The human reviewer explicitly accepted the second visual refinement on 2026-07-13 and requested one follow-up identity rule: the entire active product must use a simple database image. The provider-neutral cylinder mark now appears in the Dashboard header/favicon, WPF header/window, executable/shortcuts, Tray and installer without adopting any database vendor identity.
+The human reviewer explicitly accepted the second visual refinement on 2026-07-13 and requested one follow-up identity rule: the entire active product must use a simple database image. The first filled-cylinder mark was then explicitly rejected as unattractive. Its replacement uses a lighter outlined cylinder and appears in the Dashboard header/favicon, WPF header/window, executable/shortcuts, Tray and installer without adopting any database vendor identity.
 
 ## Canonical token source
 
@@ -112,10 +112,10 @@ The React adapter accesses only versioned local UI preference storage, the docum
 
 ## Remaining increments
 
-1. Confirm the newly applied database mark in the visible Dashboard preview.
+1. Confirm the newly applied outlined database mark in the visible Dashboard preview.
 2. Obtain explicit consent, then complete the keyboard/Narrator portion of `HG05-01`, native browser zoom, Windows scaling, High Contrast and remaining visual samples.
 3. Present the explicit Human Gate decision; no lifecycle transition occurs automatically.
 
 ## Recommendation
 
-Confirm the canonical database mark in the visible Dashboard preview, then obtain explicit consent before starting Narrator and continuing the remaining samples in [`STATE-05-Human-Gate-Validation.md`](STATE-05-Human-Gate-Validation.md).
+Confirm the outlined canonical database mark in the visible Dashboard preview, then obtain explicit consent before starting Narrator and continuing the remaining samples in [`STATE-05-Human-Gate-Validation.md`](STATE-05-Human-Gate-Validation.md).

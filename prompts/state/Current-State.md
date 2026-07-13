@@ -129,12 +129,13 @@ O projeto está em `STATE-05 FRONTEND_IMPLEMENTATION`. Quatro incrementos implem
 - Segunda remediação Design System `1.3.1` consolidou os KPIs em uma faixa operacional, substituiu glifos por ícones SVG coerentes, conteve a seleção de navegação/preferências e reduziu `card soup`, após revisão de padrões oficiais Carbon, Grafana Saga e Fluent.
 - Segunda matriz afetada aprovada novamente em 60 amostras browser; WPF Light/Dark representativos mantiveram 0 controles focalizáveis sem nome.
 - Segunda remediação visual explicitamente aprovada pelo usuário em 2026-07-13; a aprovação fecha `S05-HG-001` somente na sua porção visual e não abrange teclado, Narrator ou o Human Gate completo.
-- Design System `1.3.2` implementa o pedido subsequente de um ícone simples de banco de dados em todo o produto ativo: SVG/ICO determinísticos e provider-neutral no Dashboard, WPF, executável/atalhos, Tray e instalador. A confirmação visual do novo ícone permanece pendente.
+- Design System `1.3.2` implementou o pedido subsequente de um ícone simples de banco de dados em todo o produto ativo: SVG/ICO determinísticos e provider-neutral no Dashboard, WPF, executável/atalhos, Tray e instalador.
+- O primeiro ícone canônico, com cilindro branco preenchido, foi explicitamente reprovado pelo usuário como feio. Design System `1.3.3` o substitui por cilindro leve em contorno branco e traços arredondados; `S05-HG-002` e a confirmação humana da substituição permanecem pendentes.
 
 ## Pendente
 
 - Completar amostras humanas bilíngues com leitor de tela, zoom nativo, Windows scaling/High Contrast e revisão visual conforme inventário do Design System.
-- Confirmar visualmente o ícone canônico de banco de dados; somente após novo consentimento explícito iniciar Narrator e as demais porções pendentes de `HG05-01`.
+- Confirmar visualmente o ícone canônico de banco de dados em contorno; somente após novo consentimento explícito iniciar Narrator e as demais porções pendentes de `HG05-01`.
 - Manter adapters de apresentação determinísticos até `STATE-06`; não integrar silenciosamente banco, IdP, certificado, canal ou provider real durante a fase de UI.
 - Representar capabilities e suporte de modo factual: ação ausente/negada/unsupported não pode aparecer como executável ou homologada.
 - Preservar as pendências posteriores de ativação sandbox de pacotes, integração real, execução/post-probe de comandos, legal hold/backup e adapters externos.
@@ -151,6 +152,6 @@ O projeto está em `STATE-05 FRONTEND_IMPLEMENTATION`. Quatro incrementos implem
 
 ## Próximo gate
 
-Confirmar o ícone canônico na janela visível e obter consentimento explícito antes de iniciar Narrator/teclado em `HG05-01`. O Human Gate, `STATE-06` e o laboratório continuam bloqueados.
+Confirmar o ícone canônico em contorno na janela visível e obter consentimento explícito antes de iniciar Narrator/teclado em `HG05-01`. O Human Gate, `STATE-06` e o laboratório continuam bloqueados.
 
 Este documento descreve somente o presente. Histórico pertence a `State-Transition-Log.md`.

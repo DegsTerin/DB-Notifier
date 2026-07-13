@@ -463,6 +463,17 @@
 - Riscos/ressalvas: o Human Gate permanece pendente; teclado, Narrator, zoom, scaling, High Contrast, demais amostras e confirmação visual do ícone não foram inferidos.
 - Aprovador: usuário, por resposta explícita “Sim!” à pergunta de aprovação visual em 2026-07-13.
 
+## 2026-07-13 — Remediação do ícone canônico S05-HG-002
+
+- Estado anterior: `STATE-05 FRONTEND_IMPLEMENTATION`
+- Estado resultante: sem transição
+- Decisão: preservar a aprovação humana da hierarquia do shell, registrar a reprovação específica do primeiro ícone e substituí-lo antes de continuar o Human Gate.
+- Escopo: Design System `1.3.3`, gerador SVG/ICO e cache-busting Web; o cilindro branco preenchido foi substituído por contorno branco arredondado em todas as superfícies já integradas.
+- Gates: drift SVG/ICO, 21 testes Dashboard, typecheck/build Web, build/testes .NET e amostra visual proporcional aplicáveis à mesma família de ativos.
+- Evidências: `docs/STATE-05-Design-System-Implementation-Report.md`, `docs/STATE-05-Human-Gate-Validation.md` e PNG sanitizado temporário fora do Git.
+- Riscos/ressalvas: `S05-HG-002`, confirmação humana do ícone, Narrator e o Human Gate completo permanecem pendentes.
+- Aprovador: PENDENTE para o ícone substituto.
+
 ## Template de nova entrada
 
 - Data:

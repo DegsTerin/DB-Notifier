@@ -26,7 +26,7 @@ Mobile and tablet samples apply to the responsive Dashboard Web. There is no nat
 
 | Evidence | Current result |
 |---|---|
-| Design System implementation report | Design System `1.3.2` visual remediation and canonical database-mark gates approved; commit identifier is reported in the implementation hand-off |
+| Design System implementation report | Design System `1.3.3` visual remediation and outlined database-mark gates approved; commit identifier is reported in the implementation hand-off |
 | Dashboard matrix | 60 locale/theme/viewport-route samples, including `960×1040`; no global overflow or unnamed interactive control |
 | WPF matrix | Six locale/theme combinations and minimum-window sample recorded after visual remediation |
 | Automated tests | 21 Dashboard, 131 .NET unit/model/provider/presentation, 5 architecture and 10 legacy compatibility tests approved |
@@ -152,7 +152,7 @@ Do not mark a row until the named human validator has performed it.
 
 | ID | Human sample | Validator result | Sanitised evidence/notes |
 |---|---|---|---|
-| `HG05-01` | Dashboard `pt-BR` Light, keyboard and Narrator | VISUAL APROVADO — TECLADO/NARRATOR PENDENTES | The human reviewer explicitly accepted the second visual refinement on 2026-07-13, then requested the follow-up canonical database mark. Keyboard and Narrator were not performed and remain pending. |
+| `HG05-01` | Dashboard `pt-BR` Light, keyboard and Narrator | SHELL VISUAL APROVADO — ÍCONE/TECLADO/NARRATOR PENDENTES | The human reviewer accepted the second shell refinement, rejected the first filled database mark and has not yet reviewed its outlined replacement. Keyboard and Narrator were not performed. |
 | `HG05-02` | Dashboard `en-GB` Dark, keyboard and Narrator | PENDENTE | |
 | `HG05-03` | Dashboard native 200% zoom and compact reflow | PENDENTE | |
 | `HG05-04` | WPF `pt-BR` Light, default/minimum, keyboard and Narrator | PENDENTE | |
@@ -178,8 +178,19 @@ Do not mark a row until the named human validator has performed it.
 - First remediation feedback: the human reviewer explicitly judged the result better, but requested further refinement inspired by international market software; this was not recorded as visual acceptance.
 - Second remediation evidence: Design System `1.3.1` applies a reviewed Carbon/Grafana/Fluent pattern synthesis through a consolidated metric band, coherent SVG iconography, quieter selected navigation/preferences and reduced competing card chrome. The repeated 60-sample browser matrix passed; representative WPF Light/Dark samples retained zero unnamed focusable controls.
 - Human closure: the reviewer answered “Sim!” to the explicit visual-approval question on 2026-07-13. This closes the visual identity finding only; it does not approve keyboard, Narrator or the overall Human Gate.
-- Follow-up identity request: use a simple database image as the icon throughout the active system. Design System `1.3.2` implements one generated provider-neutral cylinder across Web, WPF, executable, Tray and installer surfaces; final icon confirmation remains the immediate human checkpoint.
+- Follow-up identity request: use a simple database image as the icon throughout the active system. Design System `1.3.2` implemented the first generated provider-neutral cylinder across Web, WPF, executable, Tray and installer surfaces, but the reviewer explicitly rejected that filled mark as unattractive.
 - Lifecycle impact: `STATE-05` remains active; the Human Gate cannot be approved until the pending accessibility and remaining samples are completed.
+
+### `S05-HG-002` — First canonical database mark is visually unattractive
+
+- Date observed: 2026-07-13.
+- Source: explicit user review of the generated filled-cylinder database mark in the active Human Gate session.
+- Classification: blocking brand checkpoint; it does not reopen the accepted shell hierarchy.
+- Human feedback: the database icon was judged unattractive.
+- Remediation: Design System `1.3.3` replaces the heavy filled cylinder with a balanced white outline, rounded three-pixel strokes and three clearly separated database levels on the same canonical brand background.
+- Automatic evidence: SVG/ICO drift verification, Dashboard tests/build and WPF build/runtime sampling apply to the same generated asset family.
+- Human closure: PENDENTE; only review of the outlined replacement may close this finding.
+- Lifecycle impact: Narrator remains off and the Human Gate remains pending.
 
 ## Human Gate decision
 
@@ -190,7 +201,7 @@ Do not mark a row until the named human validator has performed it.
 - Critical samples repeated: PENDENTE
 - Experience and error messages: PENDENTE
 - Security/authorisation truth: PENDENTE
-- Remaining coverage: final database-mark confirmation plus all keyboard, screen-reader, zoom, scaling, High Contrast and remaining samples above
+- Remaining coverage: outlined database-mark confirmation plus all keyboard, screen-reader, zoom, scaling, High Contrast and remaining samples above
 - Decision: `PENDENTE`
 - Justification/evidence: PENDENTE
 
@@ -198,4 +209,4 @@ Permitted decisions after the sample are `APROVADO`, `APROVADO COM RESSALVAS` or
 
 ## Recommended next step
 
-Confirm the canonical database mark in the visible `pt-BR` Light Dashboard, then obtain explicit consent before starting Narrator and continuing the keyboard/accessibility protocol; record every result without inferring the final Human Gate decision.
+Confirm the outlined canonical database mark in the visible `pt-BR` Light Dashboard, then obtain explicit consent before starting Narrator and continuing the keyboard/accessibility protocol; record every result without inferring the final Human Gate decision.
