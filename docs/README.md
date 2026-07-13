@@ -4,11 +4,11 @@ Permanent repository-agent behaviour is consolidated in [`../AGENTS.md`](../AGEN
 
 Current discovery and migration artifacts:
 
-- [`Human-Gate-Retrospective-Ratification.md`](Human-Gate-Retrospective-Ratification.md): current pending ratification pack for the contested `STATE-00` through `STATE-04` Human Gate records; it does not rewrite the historical reports.
+- [`Human-Gate-Retrospective-Ratification.md`](Human-Gate-Retrospective-Ratification.md): current ratification pack; `STATE-00` is approved retrospectively and `STATE-01` through `STATE-04` remain pending without rewriting the historical reports.
 - [`Legacy-Inventory.md`](Legacy-Inventory.md): verified PgNotifier behavior, limitations, and capability truth.
 - [`Legacy-Migration-Plan.md`](Legacy-Migration-Plan.md): incremental PgNotifier → DB-Notifier milestones, compatibility, verification, and rollback.
 - [`Legacy-Compatibility.md`](Legacy-Compatibility.md): canonical names, deprecated shims, configuration preservation, and removal gate.
-- [`STATE-00-Discovery-Report.md`](STATE-00-Discovery-Report.md): checks, findings, limitations, and the original Human Gate record, now pending retrospective ratification.
+- [`STATE-00-Discovery-Report.md`](STATE-00-Discovery-Report.md): checks, findings, limitations and the original Human Gate record, now retrospectively ratified by the current addendum.
 - [`Development.md`](Development.md): `STATE-01` scaffold, tool baseline, checks, and onboarding.
 - [`Code-Documentation-Standards.md`](Code-Documentation-Standards.md): project-wide British English documentation policy, review requirements, automated gate, and narrow format exceptions.
 - [`design/DB-Notifier-Design-System.md`](design/DB-Notifier-Design-System.md): official modern enterprise visual language, shared tokens, explicit Light/Dark architecture, component contracts and STATE-05 re-audit criteria.

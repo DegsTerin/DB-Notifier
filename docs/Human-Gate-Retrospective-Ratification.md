@@ -2,7 +2,7 @@
 
 ## Status
 
-`PENDENTE`
+`PENDENTE — STATE-00 RATIFICADO; STATE-01 A STATE-04 PENDENTES`
 
 This document owns the retrospective ratification of the contested Human Gate records for `STATE-00` through `STATE-04`. It is an addendum: the original reports and transition log remain historical evidence and are not rewritten.
 
@@ -76,12 +76,12 @@ The remediation baseline was re-run after the CI/governance changes. The current
 
 ### Ratification record
 
-- Validator/date: `PENDENTE`
-- Samples repeated now: `PENDENTE`
-- Reservations accepted: `PENDENTE`
-- Decision: `PENDENTE`
-- Justification/evidence: `PENDENTE`
-- Required confirmation: `Ratifico a decisão acima exclusivamente para STATE-00 DISCOVERY_MIGRATION.`
+- Validator/date: `Bruno — 2026-07-13`
+- Samples reviewed now (document review; no runtime execution): inventory separation between functional legacy code and WPF/Python prototypes; degraded meaning of TCP-only evidence; absence of service control or real-infrastructure action during discovery; incremental migration, rollback preservation and no provider-homologation claim.
+- Reservations accepted: approval is limited to discovery and planning. It does not validate real-environment operation and does not replace later integration, infrastructure, provider or operational testing.
+- Decision: `APROVADO`
+- Justification/evidence: the validator explicitly reviewed all four named samples, accepted the discovery/migration direction and retained the stated scope limitations.
+- Confirmation received: `Ratifico a decisão acima exclusivamente para STATE-00 DISCOVERY_MIGRATION.`
 
 ## STATE-01 PROJECT_SETUP
 
@@ -215,12 +215,12 @@ The remediation baseline was re-run after the CI/governance changes. The current
 
 ## Overall result
 
-- `STATE-00`: `PENDENTE`
+- `STATE-00`: `APROVADO` — retrospectively ratified by Bruno on 2026-07-13 with the recorded scope limitations
 - `STATE-01`: `PENDENTE`
 - `STATE-02`: `PENDENTE`
 - `STATE-03`: `PENDENTE`
 - `STATE-04`: `PENDENTE`
 - Lifecycle progression: `EM ESPERA`
-- Next ratification decision to present: `STATE-00 DISCOVERY_MIGRATION`
+- Next ratification decision to present: `STATE-01 PROJECT_SETUP`
 
 Only after all five independent records are completed may the project resume the `STATE-05` closure workflow. That resumption still requires the current automatic re-audit and its own Human Gate.

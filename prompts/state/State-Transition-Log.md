@@ -564,6 +564,16 @@
 - Riscos/ressalvas: XML completo de APIs públicas preexistentes continua incremental; WPF visível, Narrator, zoom/scaling, High Contrast, TV e Tray permanecem amostras humanas; sistemas externos não foram contactados.
 - Aprovador: resultado automático; Human Gates `STATE-00` a `STATE-05` permanecem `PENDENTE`.
 
+## 2026-07-13 — Ratificação retrospectiva de STATE-00 DISCOVERY_MIGRATION
+
+- Estado anterior: posição técnica `STATE-05 FRONTEND_IMPLEMENTATION`, progressão `EM ESPERA`; `STATE-00` a `STATE-04` aguardavam ratificação.
+- Estado resultante: sem transição; `STATE-00` ratificado como `APROVADO`, `STATE-01` a `STATE-05` permanecem pendentes e a progressão continua `EM ESPERA`.
+- Decisão: o validador Bruno aprovou retrospectivamente somente `STATE-00 DISCOVERY_MIGRATION` após revisar inventário legado/protótipos, semântica degradada de TCP, ausência de controle real e estratégia incremental com rollback.
+- Ressalvas: a decisão vale apenas para discovery e planejamento; não valida ambiente real nem substitui integração, infraestrutura, homologação de provider ou testes operacionais futuros.
+- Evidências: confirmação inequívoca recebida no Human Gate e registrada em `docs/Human-Gate-Retrospective-Ratification.md`; baseline automático corrente permanece aprovado em seu escopo.
+- Riscos/limites: nenhuma ação externa, banco, serviço, deploy ou infraestrutura foi executada por esta ratificação.
+- Aprovador: Bruno — `Ratifico a decisão acima exclusivamente para STATE-00 DISCOVERY_MIGRATION.`
+
 ## Template de nova entrada
 
 - Data:

@@ -4,7 +4,7 @@ DB-Notifier is the successor to PgNotifier, which was conceptually inspired by M
 
 Agents are designed to monitor local, remote, datacenter, hybrid, and cloud databases from Windows, Linux, containers, or cloud workloads. Monitoring credentials, database administration credentials, OS service identities, and cloud control-plane identities remain separate and vault-backed.
 
-The workspace is technically positioned in `STATE-05 FRONTEND_IMPLEMENTATION`, with lifecycle progression on hold. Five frontend increments provide provider-neutral inventory, history/alerts, configuration/capabilities, a safe Windows Tray and an operational demonstration flyout in React/.NET 10 WPF. Historical Human Gate approvals for `STATE-00` through `STATE-04` are under independent retrospective ratification after the validator disputed whether short approval responses represented informed gate decisions. The current `STATE-05` Human Gate also remains pending. All views are demonstration-only, with no external integration, mutation, database/service control or provider homologation.
+The workspace is technically positioned in `STATE-05 FRONTEND_IMPLEMENTATION`, with lifecycle progression on hold. Five frontend increments provide provider-neutral inventory, history/alerts, configuration/capabilities, a safe Windows Tray and an operational demonstration flyout in React/.NET 10 WPF. The validator has retrospectively ratified `STATE-00`; historical Human Gate approvals for `STATE-01` through `STATE-04` remain under independent ratification after short approval responses were disputed as informed gate decisions. The current `STATE-05` Human Gate also remains pending. All views are demonstration-only, with no external integration, mutation, database/service control or provider homologation.
 
 ## Start here
 
@@ -19,10 +19,10 @@ The discovery outputs for the transformation are:
 - [`docs/Legacy-Inventory.md`](docs/Legacy-Inventory.md): verified behavior, assets, limitations, and risks in PgNotifier.
 - [`docs/Legacy-Migration-Plan.md`](docs/Legacy-Migration-Plan.md): incremental migration, compatibility contract, milestones, rollback, and gate criteria.
 - [`docs/Legacy-Compatibility.md`](docs/Legacy-Compatibility.md): canonical names and explicit deprecated shims.
-- [`docs/STATE-00-Discovery-Report.md`](docs/STATE-00-Discovery-Report.md): historical discovery evidence and the original, now-contested Human Gate record.
-- [`docs/Human-Gate-Retrospective-Ratification.md`](docs/Human-Gate-Retrospective-Ratification.md): pending state-by-state ratification of the contested `STATE-00` through `STATE-04` approvals.
+- [`docs/STATE-00-Discovery-Report.md`](docs/STATE-00-Discovery-Report.md): historical discovery evidence and the original Human Gate record, now retrospectively ratified with explicit scope limits.
+- [`docs/Human-Gate-Retrospective-Ratification.md`](docs/Human-Gate-Retrospective-Ratification.md): completed `STATE-00` ratification and pending state-by-state ratification of `STATE-01` through `STATE-04`.
 
-The project has technically completed discovery, setup, architecture, database modelling and backend implementation, but their Human Gate authority is being ratified retrospectively. See [`prompts/state/Current-State.md`](prompts/state/Current-State.md) for the factual hold and [`docs/Development.md`](docs/Development.md) for onboarding commands.
+The project has technically completed discovery, setup, architecture, database modelling and backend implementation. `STATE-00` Human Gate authority is ratified; setup through backend authority remains under retrospective ratification. See [`prompts/state/Current-State.md`](prompts/state/Current-State.md) for the factual hold and [`docs/Development.md`](docs/Development.md) for onboarding commands.
 
 ## Current legacy application
 

@@ -4,8 +4,9 @@
 
 - Posição técnica do workspace: `STATE-05 FRONTEND_IMPLEMENTATION`.
 - Progressão de ciclo de vida: `EM ESPERA`.
-- Motivo: o validador informou em 2026-07-13 que não tem certeza de ter aprovado conscientemente os Human Gates anteriores e que respostas curtas como “Aprovado” foram interpretadas como decisões completas.
-- Human Gates de `STATE-00` a `STATE-04`: registros históricos preservados, mas ratificação retrospectiva `PENDENTE` para cada estado.
+- Motivo: o validador contestou em 2026-07-13 a aprovação informada dos Human Gates históricos; `STATE-00` já foi ratificado, mas `STATE-01` a `STATE-04` e o Human Gate atual ainda impedem progressão.
+- Human Gate de `STATE-00`: ratificação retrospectiva `APROVADA` por Bruno em 2026-07-13, limitada a discovery/planejamento e sem validar runtime real, integração, infraestrutura, providers ou testes operacionais futuros.
+- Human Gates de `STATE-01` a `STATE-04`: registros históricos preservados, mas ratificação retrospectiva `PENDENTE` para cada estado.
 - Human Gate de `STATE-05`: `PENDENTE` e ainda dependente das amostras humanas visuais, de teclado, leitor de tela, zoom, scaling, High Contrast, TV e Tray.
 - Nenhuma transição para `STATE-06`, homologação, laboratório multi-provider, integração externa, execução administrativa ou release está autorizada.
 
@@ -46,15 +47,15 @@
 - Git worktree rastreado permanece limpo antes deste incremento; a referência interna longa e inválida encontrada na auditoria foi copiada para `%TEMP%`, removida pontualmente e `git show-ref`/`git fsck --full` voltaram a sair com código 0.
 - Evidência automática não substitui Human Gate nem prova runtime externo, provider real, acessibilidade humana ou produção.
 
-## Ratificação retrospectiva pendente
+## Ratificação retrospectiva
 
 - Pacote proprietário: `docs/Human-Gate-Retrospective-Ratification.md`.
-- `STATE-00`: revisar discovery, inventário legado, migração incremental, build/Git originalmente bloqueados e limites de runtime.
+- `STATE-00`: `APROVADO` retrospectivamente em 2026-07-13, com limites explícitos de discovery/planejamento.
 - `STATE-01`: revisar bootstrap, compatibilidade, build/test e ausência de repetição humana do onboarding limpo.
 - `STATE-02`: decidir separadamente sobre ADR-0001 a ADR-0006, threat model, cenários híbridos, retenção, packaging e AIOps.
 - `STATE-03`: revisar modelos SQLite/PostgreSQL, migrations, rollback, retenção e ausência de execução PostgreSQL real.
 - `STATE-04`: revisar provider PostgreSQL, autorização negativa, migrador, ausência de homologação e ausência de execução administrativa.
-- Cada decisão permanece `PENDENTE` até confirmação inequívoca do validador para um único estado.
+- Cada decisão de `STATE-01` a `STATE-04` permanece `PENDENTE` até confirmação inequívoca do validador para um único estado.
 
 ## Dívida e limitações atuais
 
@@ -67,6 +68,6 @@
 
 ## Próximo gate
 
-Concluir a ratificação retrospectiva de `STATE-00` a `STATE-04`, um estado por vez. Depois executar as amostras humanas pendentes do `STATE-05` e solicitar uma decisão inequívoca exclusiva para `STATE-05`.
+Ratificar `STATE-01 PROJECT_SETUP` e depois `STATE-02` a `STATE-04`, um estado por vez. Depois executar as amostras humanas pendentes do `STATE-05` e solicitar uma decisão inequívoca exclusiva para `STATE-05`.
 
 Este documento contém somente a verdade presente. Evolução e decisões históricas permanecem em `State-Transition-Log.md` e nos relatórios originais.
