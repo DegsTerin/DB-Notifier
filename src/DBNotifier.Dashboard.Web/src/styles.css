@@ -62,14 +62,12 @@ button:focus-visible, select:focus-visible, input:focus-visible, a:focus-visible
 .brand-mark {
   width: 34px;
   height: 34px;
-  padding: var(--db-space-1);
   display: grid;
   place-items: center;
-  color: var(--db-component-shell-chrome-foreground);
-  background: var(--db-component-shell-chrome-surface);
-  border: 1px solid var(--db-component-shell-chrome-border);
-  border-radius: var(--db-radius-medium);
+  overflow: hidden;
+  border-radius: var(--db-radius-large);
 }
+.brand-mark img { width: 100%; height: 100%; display: block; }
 .topbar-controls { margin-left: auto; display: flex; align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: var(--db-space-2); }
 .demo-badge, .read-only-label {
   padding: var(--db-space-2) var(--db-space-3);

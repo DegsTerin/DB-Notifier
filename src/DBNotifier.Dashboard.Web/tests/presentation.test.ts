@@ -66,6 +66,30 @@ test("enterprise shell uses coherent icons and a consolidated responsive metric 
   assert.match(css, /\.summary-card \{[^}]*border-inline-end:/s);
 });
 
+test("provider-neutral database mark is shared by active Web and Windows surfaces", () => {
+  const app = readFileSync(new URL("../src/App.tsx", import.meta.url), "utf8");
+  const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
+  const dashboardSvg = readFileSync(new URL("../public/dbnotifier-icon.svg", import.meta.url));
+  const designSystemSvg = readFileSync(new URL("../../../design-system/assets/dbnotifier-database.svg", import.meta.url));
+  const windowsIcon = readFileSync(new URL("../../DBNotifier.Desktop.Wpf/Assets/DBNotifier.ico", import.meta.url));
+  const desktopProject = readFileSync(new URL("../../DBNotifier.Desktop.Wpf/DBNotifier.Desktop.Wpf.csproj", import.meta.url), "utf8");
+  const desktopXaml = readFileSync(new URL("../../DBNotifier.Desktop.Wpf/MainWindow.xaml", import.meta.url), "utf8");
+  const trayController = readFileSync(new URL("../../DBNotifier.Desktop.Wpf/TrayApplicationController.cs", import.meta.url), "utf8");
+  const installer = readFileSync(new URL("../../../packaging/inno/DBNotifier.iss", import.meta.url), "utf8");
+  const compatibilityBuild = readFileSync(new URL("../../../build/build.ps1", import.meta.url), "utf8");
+
+  assert.deepEqual(dashboardSvg, designSystemSvg);
+  assert.deepEqual([...windowsIcon.subarray(0, 6)], [0, 0, 1, 0, 9, 0]);
+  assert.match(html, /rel="icon"[^>]+dbnotifier-icon\.svg/);
+  assert.match(app, /<img src="\/dbnotifier-icon\.svg" alt=""/);
+  assert.match(desktopProject, /<ApplicationIcon>Assets\\DBNotifier\.ico<\/ApplicationIcon>/);
+  assert.match(desktopXaml, /Icon="Assets\/DBNotifier\.ico"/);
+  assert.match(trayController, /Icon = applicationIcon/);
+  assert.doesNotMatch(trayController, /SystemIcons\.Application/);
+  assert.match(installer, /SetupIconFile=.*DBNotifier\.ico/);
+  assert.match(compatibilityBuild, /-IconFile \$iconPath/);
+});
+
 test("timeline filters severity without provider-specific branches", () => {
   const snapshot = buildTimelineAlertSnapshot(now);
   assert.equal(filterTimeline(snapshot.events, "", "critical").length, 1);

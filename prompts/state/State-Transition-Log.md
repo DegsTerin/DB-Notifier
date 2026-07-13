@@ -452,6 +452,17 @@
 - Evidências: `docs/STATE-05-Design-System-Implementation-Report.md`, `docs/STATE-05-Human-Gate-Validation.md` e JSON/PNG sanitizados temporários fora do Git.
 - Riscos/ressalvas: a avaliação “ficou melhor” não foi interpretada como aprovação; a segunda revisão visual, Narrator e o Human Gate completo permanecem pendentes.
 
+## 2026-07-13 — Aprovação visual e ícone canônico de banco de dados
+
+- Estado anterior: `STATE-05 FRONTEND_IMPLEMENTATION`
+- Estado resultante: sem transição
+- Decisão: registrar a aprovação humana explícita da segunda remediação somente na porção visual e implementar o pedido subsequente de um ícone simples de banco de dados em todo o produto ativo.
+- Escopo: Design System `1.3.2`, gerador SVG/ICO provider-neutral, favicon/cabeçalho Web, cabeçalho/janela/executável/Tray WPF, atalhos e instalador; protótipos PostgreSQL legados não foram alterados.
+- Gates: geração e drift do ativo aprovados; 21 testes Dashboard, typecheck/build Web e build WPF Release com 0 avisos/erros aprovados; amostra WPF `pt-BR` Light iniciou com o novo ícone, 37 controles focalizáveis e 0 sem nome.
+- Evidências: `docs/STATE-05-Design-System-Implementation-Report.md`, `docs/STATE-05-Human-Gate-Validation.md` e PNG/JSON WPF sanitizados temporários fora do Git.
+- Riscos/ressalvas: o Human Gate permanece pendente; teclado, Narrator, zoom, scaling, High Contrast, demais amostras e confirmação visual do ícone não foram inferidos.
+- Aprovador: usuário, por resposta explícita “Sim!” à pergunta de aprovação visual em 2026-07-13.
+
 ## Template de nova entrada
 
 - Data:

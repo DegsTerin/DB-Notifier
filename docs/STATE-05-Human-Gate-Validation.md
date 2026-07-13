@@ -26,10 +26,10 @@ Mobile and tablet samples apply to the responsive Dashboard Web. There is no nat
 
 | Evidence | Current result |
 |---|---|
-| Design System implementation report | Design System `1.3.1` second-remediation gates approved; commit identifier is reported in the implementation hand-off |
+| Design System implementation report | Design System `1.3.2` visual remediation and canonical database-mark gates approved; commit identifier is reported in the implementation hand-off |
 | Dashboard matrix | 60 locale/theme/viewport-route samples, including `960×1040`; no global overflow or unnamed interactive control |
 | WPF matrix | Six locale/theme combinations and minimum-window sample recorded after visual remediation |
-| Automated tests | 20 Dashboard, 131 .NET unit/model/provider/presentation, 5 architecture and 10 legacy compatibility tests approved |
+| Automated tests | 21 Dashboard, 131 .NET unit/model/provider/presentation, 5 architecture and 10 legacy compatibility tests approved |
 | Security/dependencies | npm and NuGet reported no known vulnerabilities in the recorded audit |
 
 Primary automatic evidence:
@@ -152,7 +152,7 @@ Do not mark a row until the named human validator has performed it.
 
 | ID | Human sample | Validator result | Sanitised evidence/notes |
 |---|---|---|---|
-| `HG05-01` | Dashboard `pt-BR` Light, keyboard and Narrator | REPROVADO — SEGUNDA REPETIÇÃO PENDENTE | The first remediation was judged better but still below the desired international enterprise standard. A second refinement is automatically validated, but its replacement visual and accessibility portions have not yet been accepted by the human reviewer. |
+| `HG05-01` | Dashboard `pt-BR` Light, keyboard and Narrator | VISUAL APROVADO — TECLADO/NARRATOR PENDENTES | The human reviewer explicitly accepted the second visual refinement on 2026-07-13, then requested the follow-up canonical database mark. Keyboard and Narrator were not performed and remain pending. |
 | `HG05-02` | Dashboard `en-GB` Dark, keyboard and Narrator | PENDENTE | |
 | `HG05-03` | Dashboard native 200% zoom and compact reflow | PENDENTE | |
 | `HG05-04` | WPF `pt-BR` Light, default/minimum, keyboard and Narrator | PENDENTE | |
@@ -177,8 +177,9 @@ Do not mark a row until the named human validator has performed it.
 - Remediation evidence: Design System `1.3.0` adds cohesive shell chrome; the Dashboard changes to horizontal labelled navigation and complete cards before content compression; WPF uses the same chrome and restrained selected states. The affected automatic matrix passed in 60 browser samples and seven WPF samples with no global overflow or unnamed focusable/interactable controls.
 - First remediation feedback: the human reviewer explicitly judged the result better, but requested further refinement inspired by international market software; this was not recorded as visual acceptance.
 - Second remediation evidence: Design System `1.3.1` applies a reviewed Carbon/Grafana/Fluent pattern synthesis through a consolidated metric band, coherent SVG iconography, quieter selected navigation/preferences and reduced competing card chrome. The repeated 60-sample browser matrix passed; representative WPF Light/Dark samples retained zero unnamed focusable controls.
-- Human closure rule: only a new human visual result may close this finding. The automatic evidence does not replace the rejected sample or approve the gate.
-- Lifecycle impact: `STATE-05` remains active; the Human Gate cannot be approved until `HG05-01` is repeated and the remaining samples are completed.
+- Human closure: the reviewer answered “Sim!” to the explicit visual-approval question on 2026-07-13. This closes the visual identity finding only; it does not approve keyboard, Narrator or the overall Human Gate.
+- Follow-up identity request: use a simple database image as the icon throughout the active system. Design System `1.3.2` implements one generated provider-neutral cylinder across Web, WPF, executable, Tray and installer surfaces; final icon confirmation remains the immediate human checkpoint.
+- Lifecycle impact: `STATE-05` remains active; the Human Gate cannot be approved until the pending accessibility and remaining samples are completed.
 
 ## Human Gate decision
 
@@ -189,7 +190,7 @@ Do not mark a row until the named human validator has performed it.
 - Critical samples repeated: PENDENTE
 - Experience and error messages: PENDENTE
 - Security/authorisation truth: PENDENTE
-- Remaining coverage: human revalidation of the `S05-HG-001` remediation plus all accessibility and remaining samples above
+- Remaining coverage: final database-mark confirmation plus all keyboard, screen-reader, zoom, scaling, High Contrast and remaining samples above
 - Decision: `PENDENTE`
 - Justification/evidence: PENDENTE
 
@@ -197,4 +198,4 @@ Permitted decisions after the sample are `APROVADO`, `APROVADO COM RESSALVAS` or
 
 ## Recommended next step
 
-Restart `HG05-01` with a visual review of the remediated `pt-BR` Light Dashboard. If that visual result is accepted, obtain explicit consent before starting Narrator and continue the keyboard/accessibility protocol; record every result without inferring the final Human Gate decision.
+Confirm the canonical database mark in the visible `pt-BR` Light Dashboard, then obtain explicit consent before starting Narrator and continuing the keyboard/accessibility protocol; record every result without inferring the final Human Gate decision.

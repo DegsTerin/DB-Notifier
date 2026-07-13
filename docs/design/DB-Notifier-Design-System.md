@@ -5,7 +5,7 @@
 | Field | Value |
 |---|---|
 | Status | Official frontend specification |
-| Design System version | `1.3.1` |
+| Design System version | `1.3.2` |
 | Product phase | `STATE-05 FRONTEND_IMPLEMENTATION` |
 | Platforms | React Web Dashboard and .NET 10 WPF Desktop/Tray |
 | Themes | Light, Dark and System |
@@ -379,7 +379,10 @@ Body copy MUST NOT be smaller than 14 px by default. Uppercase is limited to sho
 - Status icons always have adjacent visible text.
 - Provider logos MAY appear in provider detail/catalogue contexts, never as the only provider name or status indicator.
 - Third-party icons MUST be vendored with recorded licence/provenance; runtime downloads are prohibited.
-- The final Tray icon MUST be a signed DB-Notifier brand asset with 16/20/24/32/48/256 px variants and Light/Dark/high-contrast visibility.
+- The DB-Notifier product mark is a simple white database cylinder on a `palette.brand.600` rounded square. It is provider-neutral and MUST NOT be replaced by a PostgreSQL, MySQL or other vendor logo.
+- `scripts/generate-brand-assets.mjs` is the canonical cross-platform generator. It emits the Design System/Web SVG and a multi-resolution Windows ICO at 16/20/24/32/40/48/64/128/256 px; CI MUST fail on generated drift.
+- Dashboard favicon/header, WPF header/window, Windows executable/shortcuts, Tray and installer MUST consume this same mark. Release signing remains a `STATE-08` concern and MUST NOT be claimed during frontend implementation.
+- When adjacent text already exposes the product name, Web treats the mark as decorative. Native surfaces provide the stable accessible name `DB-Notifier` where the platform exposes the image independently.
 
 The DB-Notifier wordmark is visually written as `DB-NOTIFIER`; accessible and product text uses `DB-Notifier`. The mark MUST retain clear space equal to at least half its icon height.
 

@@ -15,6 +15,11 @@ $packagePath = Join-Path -Path $root -ChildPath "dist\package"
 $installerPath = Join-Path -Path $root -ChildPath "dist\installers"
 $bundlePath = Join-Path -Path ([System.IO.Path]::GetTempPath()) -ChildPath ("dbnotifier-bundle-{0}.ps1" -f [guid]::NewGuid().ToString("N"))
 $exePath = Join-Path -Path $packagePath -ChildPath "DBNotifier.exe"
+$iconPath = Join-Path -Path $root -ChildPath "src\DBNotifier.Desktop.Wpf\Assets\DBNotifier.ico"
+
+if (-not (Test-Path -LiteralPath $iconPath -PathType Leaf)) {
+    throw "Generate the canonical DB-Notifier icon before building compatibility packaging."
+}
 
 if (-not $ValidateOnly -and (Test-Path -LiteralPath (Join-Path -Path $root -ChildPath "dist"))) {
     Remove-Item -LiteralPath (Join-Path -Path $root -ChildPath "dist") -Recurse -Force
@@ -67,6 +72,7 @@ try {
         -Product "DB-Notifier" `
         -Company "DegsTerin" `
         -Version "1.1.0" `
+        -IconFile $iconPath `
         -RequireAdmin:$false
 }
 finally {

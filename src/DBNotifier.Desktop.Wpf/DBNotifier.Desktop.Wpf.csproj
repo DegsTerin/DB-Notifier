@@ -6,8 +6,10 @@
     <UseWPF>true</UseWPF>
     <UseWindowsForms>true</UseWindowsForms>
     <EnableWindowsTargeting>true</EnableWindowsTargeting>
+    <ApplicationIcon>Assets\DBNotifier.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
+    <Resource Include="Assets\DBNotifier.ico" />
     <ProjectReference Include="..\DBNotifier.Application\DBNotifier.Application.csproj" />
     <ProjectReference Include="..\DBNotifier.Infrastructure\DBNotifier.Infrastructure.csproj" />
   </ItemGroup>

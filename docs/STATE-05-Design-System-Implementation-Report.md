@@ -2,7 +2,7 @@
 
 ## Outcome
 
-The first three DB-Notifier Design System increments and two `S05-HG-001` visual remediation iterations are complete. They establish the canonical token schema/source, deterministic React/WPF generation, platform-neutral Light/Dark/System preference contracts and a cohesive enterprise shell on both interfaces required by Design System `1.3.1`.
+The first three DB-Notifier Design System increments, two `S05-HG-001` visual remediation iterations and the canonical product-mark increment are complete. They establish the canonical token/schema sources, deterministic React/WPF asset generation, platform-neutral Light/Dark/System preference contracts and a cohesive enterprise shell on both interfaces required by Design System `1.3.2`.
 
 The Dashboard and WPF Desktop now apply generated semantic tokens, expose discreet language and theme buttons in the upper-right TopBar and preserve the validated preferences. Dedicated chrome semantics keep product identity cohesive across themes without the rejected Light-header/Dark-content inversion. System follows live platform colour preference; explicit Light and Dark remain stable. WPF gives Windows High Contrast precedence over the generated palette.
 
@@ -15,6 +15,8 @@ The second visual iteration reviewed current official guidance rather than copyi
 - [Microsoft Fluent navigation](https://fluent2.microsoft.design/components/web/react/core/nav/usage) stays brief and scannable, while [Fluent cards](https://fluent2.microsoft.design/components/web/react/core/card/usage) organise related information through a predictable hierarchy.
 
 DB-Notifier translates those principles into its own provider-neutral identity: code-native outlined icons replace text glyphs, selected navigation uses a restrained surface plus a narrow accent, five related fleet metrics share one divided band, and language/theme controls remain visible without dominating the shell.
+
+The human reviewer explicitly accepted the second visual refinement on 2026-07-13 and requested one follow-up identity rule: the entire active product must use a simple database image. The provider-neutral cylinder mark now appears in the Dashboard header/favicon, WPF header/window, executable/shortcuts, Tray and installer without adopting any database vendor identity.
 
 ## Canonical token source
 
@@ -39,6 +41,8 @@ src/DBNotifier.Desktop.Wpf/Generated/DesignTokens.Dark.xaml
 `tokens:generate` writes adapters; `tokens:verify` compares canonical generated content byte-for-byte and fails on drift. Every generated header carries the SHA-256 checksum of the schema and four canonical sources. CI runs verification before Dashboard typecheck/tests/build.
 
 Generated CSS includes core custom properties plus resolved `data-theme="light"` and `data-theme="dark"` blocks. WPF output includes core primitives and resolved Light/Dark `SolidColorBrush` resources with stable keys.
+
+`scripts/generate-brand-assets.mjs` similarly produces byte-stable SVG and nine-resolution ICO assets from one provider-neutral drawing algorithm. `brand:verify` compares every generated asset byte-for-byte and runs in Dashboard CI before the existing token/localisation gates.
 
 ## Preference contracts
 
@@ -85,14 +89,14 @@ The React adapter accesses only versioned local UI preference storage, the docum
 | Schema/reference/type/theme parity | Approved |
 | Light/Dark canonical contrast pairs | Approved; all tested pairs `>= 4.5:1` |
 | Dashboard typecheck | Approved |
-| Dashboard tests | Approved; 20/20 |
+| Dashboard tests | Approved; 21/21 |
 | Dashboard production build | Approved |
 | .NET 10 Release build | Approved; 0 warnings/errors |
 | .NET tests | Approved; 131 unit/model/provider/presentation + 5 architecture = 136/136 |
 | .NET format verification | Approved |
 | Legacy compatibility | Approved; 10/10 Pester and bundle validation |
 | Dependency audit | Approved; no npm or NuGet vulnerabilities reported |
-| Documentation gate | Approved; 160 comment-capable source files |
+| Documentation gate | Approved; 161 comment-capable source files |
 | React visual/responsive matrix | Approved; 60 locale/theme/viewport-route samples across 320, 390, 640, 768, 960, 1024 and 1440 CSS px |
 | React overflow/accessibility | Approved; 0 global overflow and 0 unnamed interactive controls in all six locale/theme combinations |
 | WPF UI Automation/visual matrix | Approved; six locale/theme combinations plus `820×620` minimum-window sample, with representative Light/Dark repetition after the second refinement |
@@ -108,10 +112,10 @@ The React adapter accesses only versioned local UI preference storage, the docum
 
 ## Remaining increments
 
-1. Repeat `HG05-01` so the human validator can accept or reject the remediated visual result before Narrator sampling continues.
-2. Complete human screen-reader, native browser zoom, Windows scaling, High Contrast and remaining visual samples.
+1. Confirm the newly applied database mark in the visible Dashboard preview.
+2. Obtain explicit consent, then complete the keyboard/Narrator portion of `HG05-01`, native browser zoom, Windows scaling, High Contrast and remaining visual samples.
 3. Present the explicit Human Gate decision; no lifecycle transition occurs automatically.
 
 ## Recommendation
 
-Restart `HG05-01` against the remediated shell in [`STATE-05-Human-Gate-Validation.md`](STATE-05-Human-Gate-Validation.md). Continue Narrator and the remaining Human Gate samples only after the validator has reviewed the new visual result; do not infer approval from this automatic re-audit.
+Confirm the canonical database mark in the visible Dashboard preview, then obtain explicit consent before starting Narrator and continuing the remaining samples in [`STATE-05-Human-Gate-Validation.md`](STATE-05-Human-Gate-Validation.md).

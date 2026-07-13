@@ -1,6 +1,7 @@
 // Module purpose: Coordinates the localised Windows tray lifecycle without controlling database or operating-system services.
 using System.ComponentModel;
 using System.Drawing;
+using System.IO;
 using System.Windows;
 using DBNotifier.Application.Presentation;
 using Forms = System.Windows.Forms;
@@ -13,6 +14,7 @@ internal sealed class TrayApplicationController : IDisposable
     private readonly MainWindow window;
     private readonly System.Windows.Application application;
     private readonly DesktopLocalisationService localisation;
+    private readonly Icon applicationIcon;
     private readonly Forms.NotifyIcon notifyIcon;
     private readonly Forms.ToolStripMenuItem openItem;
     private readonly Forms.ToolStripMenuItem statusItem;
@@ -33,9 +35,10 @@ internal sealed class TrayApplicationController : IDisposable
         exitItem.Click += (_, _) => Apply(TrayWindowIntent.Exit);
         Forms.ContextMenuStrip menu = new();
         menu.Items.AddRange([openItem, statusItem, new Forms.ToolStripSeparator(), exitItem]);
+        applicationIcon = LoadApplicationIcon();
         notifyIcon = new Forms.NotifyIcon
         {
-            Icon = SystemIcons.Application,
+            Icon = applicationIcon,
             ContextMenuStrip = menu,
             Visible = true,
         };
@@ -55,6 +58,20 @@ internal sealed class TrayApplicationController : IDisposable
         notifyIcon.Visible = false;
         notifyIcon.ContextMenuStrip?.Dispose();
         notifyIcon.Dispose();
+        applicationIcon.Dispose();
+    }
+
+    /// <summary>Loads an independent icon instance from the WPF resource shared by the executable and window.</summary>
+    /// <returns>A disposable Windows icon that remains valid after the resource stream closes.</returns>
+    /// <exception cref="InvalidOperationException">Thrown when the packaged DB-Notifier icon resource is unavailable.</exception>
+    private static Icon LoadApplicationIcon()
+    {
+        Uri resourceUri = new("pack://application:,,,/Assets/DBNotifier.ico", UriKind.Absolute);
+        System.Windows.Resources.StreamResourceInfo resource = System.Windows.Application.GetResourceStream(resourceUri)
+            ?? throw new InvalidOperationException("The packaged DB-Notifier icon resource is unavailable.");
+        using Stream stream = resource.Stream;
+        using Icon source = new(stream);
+        return (Icon)source.Clone();
     }
 
     /// <summary>Applies the minimise-to-tray policy when the WPF window is minimised.</summary>

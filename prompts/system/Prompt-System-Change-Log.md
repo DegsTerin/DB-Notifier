@@ -2,7 +2,7 @@
 
 ## Versão atual
 
-- Versão: `3.28.1`
+- Versão: `3.28.2`
 - Data: 2026-07-13
 - Status: corpus DB-Notifier consolidado
 - Escopo: 13 arquivos ativos
@@ -16,6 +16,12 @@ A versão do corpus é independente da versão do software.
 - PATCH: clareza, correção ou referência sem mudança de autoridade.
 
 Toda alteração atualiza este arquivo e, quando necessário, `../Start-Here.md`.
+
+## 3.28.2 — 2026-07-13
+
+- A segunda remediação visual foi explicitamente aprovada pelo usuário; `S05-HG-001` está encerrado somente quanto à identidade visual, sem inferir aprovação de teclado, Narrator ou do Human Gate completo.
+- Design System `1.3.2` formaliza um único ícone provider-neutral de cilindro de banco de dados em Dashboard, WPF, executável, Tray e instalador, com geração SVG/ICO determinística e verificação de drift no CI.
+- Próximo checkpoint passa a ser a confirmação humana do ícone, seguida de consentimento explícito antes da continuação de `HG05-01`.
 
 ## 3.28.1 — 2026-07-13
 
