@@ -18,6 +18,7 @@ import {
   staleAfterMilliseconds,
   summarizeInventory,
 } from "./presentation";
+import { ThemeSelector } from "./ThemeSelector";
 
 const stateOptions: ReadonlyArray<{ value: InventoryState; label: string }> = [
   { value: "ready", label: "Conteúdo carregado" },
@@ -72,6 +73,10 @@ function StatusBadge({ item, now }: { item: InventoryItem; now: Date }) {
   return <span className={`status-badge ${presentation.className}`}><span aria-hidden="true">{presentation.symbol}</span> {presentation.label}</span>;
 }
 
+/**
+ * Renders the provider-neutral Dashboard shell and deterministic STATE-05 feature views.
+ * @returns The accessible application shell without external integration or administrative execution.
+ */
 export function App() {
   const [view, setView] = useState<DashboardView>(() =>
     window.location.hash === "#history" ? "history" : window.location.hash === "#alerts" ? "alerts" : window.location.hash === "#configuration" ? "configuration" : "inventory");
@@ -101,7 +106,10 @@ export function App() {
           <span className="brand-mark" aria-hidden="true"><i /><i /><i /></span>
           <span><strong>DB-NOTIFIER</strong><small>Operations console</small></span>
         </div>
-        <div className="demo-badge">Dados de demonstração</div>
+        <div className="topbar-controls">
+          <ThemeSelector />
+          <div className="demo-badge">Dados de demonstração</div>
+        </div>
       </header>
 
       <div className="page-layout">

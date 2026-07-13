@@ -86,15 +86,18 @@ These tests characterize the only functional legacy provider behavior under its 
 
 ## Dashboard bootstrap
 
-`src/DBNotifier.Dashboard.Web` contains only a TypeScript/React build scaffold. Its CI job uses the committed lockfile and runs:
+`src/DBNotifier.Dashboard.Web` contains the deterministic STATE-05 React demonstration views and Design System theme runtime. It has no external Agent, API, database, IdP or administrative integration. Its CI job uses the committed lockfile and runs:
 
 ```powershell
 npm ci
+npm run tokens:verify
 npm run check
+npm run comments:verify
+npm test
 npm run build
 ```
 
-Do not add product screens or monitoring behavior until their owning lifecycle state.
+Keep presentation adapters deterministic until the owning integration state explicitly authorises external dependencies.
 
 ## Configuration and secrets
 

@@ -382,6 +382,16 @@
 - Evidências: `docs/STATE-05-Design-System-Implementation-Report.md`; saídas CSS/XAML geradas deterministicamente.
 - Riscos/ressalvas: telas ainda usam estilos atuais; ThemeSelector, bootstrap, observadores e persistência runtime permanecem pendentes.
 
+## 2026-07-13 — Segundo incremento do Design System
+
+- Estado anterior: `STATE-05 FRONTEND_IMPLEMENTATION`
+- Estado resultante: sem transição
+- Decisão: integrar o ciclo completo System/Light/Dark e tokens canônicos no Dashboard React, preservando os adapters determinísticos.
+- Escopo: bootstrap pré-render, persistência resiliente versionada, observação `matchMedia`, sincronização entre abas, ThemeSelector acessível e migração dos estilos manuais para tokens gerados.
+- Gates: drift de tokens, typecheck, 14 testes Dashboard, build Vite, documentação de 148 fontes, npm/NuGet sem vulnerabilidades, build .NET 10 sem warnings/errors, 133 testes .NET, format, 10 Pester e bundle aprovados.
+- Evidências: `docs/STATE-05-Design-System-Implementation-Report.md`; amostras Chrome Light 1440 e Dark em viewport exato de 390 CSS px aprovadas, com `clientWidth = scrollWidth = 390`.
+- Riscos/ressalvas: WPF ainda não consome o ciclo de tema runtime nem migrou recursos manuais; reauditoria automática completa e Human Gate permanecem pendentes.
+
 ## Template de nova entrada
 
 - Data:

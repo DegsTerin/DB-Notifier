@@ -14,8 +14,3 @@ export function contrastRatio(foreground: string, background: string): number {
   const values = [relativeLuminance(foreground), relativeLuminance(background)].sort((a, b) => b - a);
   return (values[0] + 0.05) / (values[1] + 0.05);
 }
-
-export const dashboardTextContrastPairs = [
-  ["#17202a", "#f4f7fa"], ["#526273", "#ffffff"], ["#0b5cad", "#ffffff"],
-  ["#17633a", "#edf8f1"], ["#805300", "#fff7e4"], ["#982b2b", "#fff0f0"],
-] as const;

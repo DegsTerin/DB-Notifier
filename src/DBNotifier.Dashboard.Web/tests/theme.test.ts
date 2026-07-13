@@ -3,9 +3,13 @@ import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
+import { runInNewContext } from "node:vm";
 import test from "node:test";
 import {
+  applyTheme,
   parseThemePreference,
+  persistThemePreference,
+  readThemePreference,
   resolveEffectiveTheme,
   themePreferenceSchemaVersion,
   themePreferenceStorageKey,
@@ -26,6 +30,23 @@ function resolveColour(token: Token, core: Record<string, Token>): string {
   return String(match ? core[match[1]].value : token.value);
 }
 
+/** Executes the pre-paint bootstrap against isolated browser substitutes. */
+function executeBootstrap(storedValue: string | null, systemUsesDark: boolean, storageFails = false) {
+  const dataset: Record<string, string> = {};
+  const bootstrap = readFileSync(new URL("../public/theme-bootstrap.js", import.meta.url), "utf8");
+  const localStorage = {
+    getItem() {
+      if (storageFails) throw new Error("storage denied");
+      return storedValue;
+    },
+  };
+  runInNewContext(bootstrap, {
+    window: { localStorage, matchMedia: () => ({ matches: systemUsesDark }) },
+    document: { documentElement: { dataset } },
+  });
+  return dataset;
+}
+
 test("theme preference parsing fails safely to system", () => {
   assert.equal(parseThemePreference("light"), "light");
   assert.equal(parseThemePreference("dark"), "dark");
@@ -41,6 +62,57 @@ test("system resolution follows the current platform request only for system pre
   assert.equal(resolveEffectiveTheme("system", true), "dark");
   assert.equal(resolveEffectiveTheme("light", true), "light");
   assert.equal(resolveEffectiveTheme("dark", false), "dark");
+});
+
+test("theme storage and root application fail safely without persisting an effective system theme", () => {
+  const values = new Map<string, string>();
+  const storage = {
+    getItem: (key: string) => values.get(key) ?? null,
+    setItem: (key: string, value: string) => { values.set(key, value); },
+  };
+  const root = { dataset: {} as DOMStringMap };
+
+  assert.equal(readThemePreference(storage), "system");
+  assert.equal(persistThemePreference(storage, "dark"), true);
+  assert.equal(readThemePreference(storage), "dark");
+  assert.equal(applyTheme(root, "system", true), "dark");
+  assert.equal(root.dataset.themePreference, "system");
+  assert.equal(root.dataset.theme, "dark");
+
+  const failingStorage = {
+    getItem: () => { throw new Error("denied"); },
+    setItem: () => { throw new Error("denied"); },
+  };
+  assert.equal(readThemePreference(failingStorage), "system");
+  assert.equal(persistThemePreference(failingStorage, "light"), false);
+});
+
+test("pre-paint bootstrap resolves valid, invalid and unavailable preferences before the application module", () => {
+  assert.deepEqual(executeBootstrap("dark", false), { themePreference: "dark", theme: "dark" });
+  assert.deepEqual(executeBootstrap("invalid", true), { themePreference: "system", theme: "dark" });
+  assert.deepEqual(executeBootstrap(null, false, true), { themePreference: "system", theme: "light" });
+
+  const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
+  assert.ok(html.indexOf("/theme-bootstrap.js") < html.indexOf("/src/main.tsx"));
+});
+
+test("runtime wiring imports generated tokens and observes theme changes without raw feature colours", () => {
+  const main = readFileSync(new URL("../src/main.tsx", import.meta.url), "utf8");
+  const selector = readFileSync(new URL("../src/ThemeSelector.tsx", import.meta.url), "utf8");
+  const css = readFileSync(new URL("../src/styles.css", import.meta.url), "utf8");
+  assert.ok(main.indexOf("generated/design-tokens.css") < main.indexOf("styles.css"));
+  assert.match(selector, /addEventListener\("change"/);
+  assert.match(selector, /addEventListener\("storage"/);
+  assert.doesNotMatch(css, /#[0-9a-f]{3,8}\b|rgba?\(|hsla?\(/i);
+  for (const declaration of css.matchAll(/box-shadow\s*:\s*([^;]+);/gi)) {
+    assert.match(declaration[1], /^var\(--db-elevation-/, declaration[0]);
+  }
+  for (const declaration of css.matchAll(/(?:margin(?:-[a-z]+)?|padding(?:-[a-z]+)?|gap)\s*:\s*([^;]+);/gi)) {
+    assert.doesNotMatch(declaration[1], /-?\d*\.?\d+(?:px|rem)\b/i, declaration[0]);
+  }
+  for (const declaration of css.matchAll(/border-radius\s*:\s*([^;]+);/gi)) {
+    assert.match(declaration[1], /var\(--db-radius-|50%/, declaration[0]);
+  }
 });
 
 test("generated CSS and WPF token adapters are current and contain both semantic themes", () => {

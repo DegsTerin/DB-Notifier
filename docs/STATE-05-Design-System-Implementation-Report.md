@@ -2,9 +2,9 @@
 
 ## Outcome
 
-The first DB-Notifier Design System increment is complete. It establishes the canonical token schema/source, deterministic React/WPF generation and platform-neutral Light/Dark/System preference contracts required by Design System `1.0.0`.
+The first two DB-Notifier Design System increments are complete. They establish the canonical token schema/source, deterministic React/WPF generation, platform-neutral Light/Dark/System preference contracts and the complete React runtime required by Design System `1.0.0`.
 
-This increment does not yet apply the generated tokens to the current Dashboard or WPF views. It does not add the visible theme selector or persist preferences at runtime. The existing UI remains unchanged while the foundation is verified independently.
+The Dashboard now applies generated tokens throughout its hand-written feature styles and exposes the persisted System/Light/Dark preference. WPF still consumes its previous raw resources and remains the next separate increment.
 
 ## Canonical token source
 
@@ -42,7 +42,17 @@ React and .NET 10 share these exact concepts:
 - Invalid data fails safely to System.
 - Explicit Light/Dark overrides system state; System follows the current platform request.
 
-The contracts do not yet access storage, DOM, Windows settings or files. Those platform adapters belong to the next increments.
+The React adapter now accesses only versioned local UI preference storage, the document root and the system colour-scheme media query. WPF does not yet access Windows theme settings or a preference file; that platform adapter belongs to the next increment.
+
+## React theme runtime
+
+- A blocking local bootstrap runs in the document head before application styles can paint, validates the persisted preference and applies `data-theme` plus `data-theme-preference` without a wrong-theme flash.
+- Storage access, invalid values and unavailable media-query APIs fail safely to System without interrupting rendering.
+- `ThemeSelector` uses a native radio group with visible System, Light and Dark labels, immediate application, keyboard operation and a polite current-preference announcement.
+- `matchMedia` changes update the effective theme live only through System resolution; explicit Light and Dark remain stable.
+- Cross-tab storage changes accept only validated preference values.
+- Route, filters, modal state and other React state remain owned by their existing components and are not reset by a theme change.
+- Generated CSS loads before feature CSS. Hand-written feature styles contain no raw colour values or shadows and use canonical spacing/radius tokens for their corresponding declarations.
 
 ## Verification
 
@@ -53,28 +63,33 @@ The contracts do not yet access storage, DOM, Windows settings or files. Those p
 | Schema/reference/type/theme parity | Approved |
 | Light/Dark canonical contrast pairs | Approved; all tested pairs `>= 4.5:1` |
 | Dashboard typecheck | Approved |
-| Dashboard tests | Approved; 12/12 |
+| Dashboard tests | Approved; 14/14 |
 | Dashboard production build | Approved |
 | .NET 10 Release build | Approved; 0 warnings/errors |
 | .NET tests | Approved; 128 unit/model/provider/presentation + 5 architecture = 133/133 |
-| Documentation gate | Approved; 146 comment-capable source files |
+| .NET format verification | Approved |
+| Legacy compatibility | Approved; 10/10 Pester and bundle validation |
+| Dependency audit | Approved; no npm or NuGet vulnerabilities reported |
+| Documentation gate | Approved; 148 comment-capable source files |
+| React visual/responsive sample | Approved; explicit Light at 1440 px and explicit Dark at exact 390 CSS px |
+| Compact document overflow | Approved; `clientWidth = scrollWidth = 390` |
 
 ## Security and phase boundaries
 
 - Theme data is presentation-only and contains no user, provider, endpoint, credential or infrastructure data.
-- No browser storage, preference file, registry, system-theme API or remote synchronisation is accessed yet.
+- Browser persistence contains only the validated semantic preference under `dbnotifier.theme.preference.v1`; the effective system-derived theme is not persisted.
+- Storage and system-theme failures are contained locally and do not relax any product authorisation boundary.
 - Generated adapters do not connect to a database, Agent, API, IdP, vault or administrative executor.
 - No provider support or homologation state changed.
 - `STATE-05` remains active; Human Gate, `STATE-06` and the multi-database laboratory remain blocked.
 
 ## Remaining increments
 
-1. React: bootstrap without wrong-theme flash, System observer, resilient local persistence, ThemeSelector and migration from raw values to semantic/component tokens.
-2. WPF: theme service, atomic `ResourceDictionary` switching, System/High Contrast observer, safe local preference file, ThemeSelector and migration from raw resources.
-3. Shared component/state parity and removal of unauthorised raw visual values.
-4. Light/Dark/System visual, contrast, persistence, accessibility and responsive re-audit.
-5. Human screen-reader/native-zoom/theme samples and Human Gate.
+1. WPF: theme service, atomic `ResourceDictionary` switching, System/High Contrast observer, safe local preference file, ThemeSelector and migration from raw resources.
+2. Shared React/WPF component and operational-state parity, including removal of remaining unauthorised WPF raw visual values.
+3. Full Light/Dark/System visual, contrast, persistence, accessibility and responsive re-audit.
+4. Human screen-reader/native-zoom/theme samples and Human Gate.
 
 ## Recommendation
 
-Execute the second Design System increment: integrate the generated tokens and full Light/Dark/System preference lifecycle into the React Dashboard without changing its provider-neutral demonstration boundary. WPF migration follows as a separate controlled increment.
+Execute the third Design System increment: integrate generated resources and the complete Light/Dark/System preference lifecycle into WPF, including High Contrast observation, without changing the provider-neutral demonstration boundary.

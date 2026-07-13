@@ -2,7 +2,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { readFileSync } from "node:fs";
-import { contrastRatio, dashboardTextContrastPairs } from "../src/accessibility.ts";
 import {
   buildDemonstrationSnapshot,
   buildTimelineAlertSnapshot,
@@ -29,12 +28,6 @@ test("administrative preview distinguishes denied, unsupported and unknown", () 
   assert.equal(previewAction(snapshot, "service.start", true), "unsupported");
   assert.equal(previewAction(snapshot, "service.start", false), "denied");
   assert.equal(previewAction(snapshot, "missing", true), "unknown");
-});
-
-test("dashboard text palette meets WCAG AA normal-text contrast", () => {
-  for (const [foreground, background] of dashboardTextContrastPairs) {
-    assert.ok(contrastRatio(foreground, background) >= 4.5, `${foreground} on ${background}`);
-  }
 });
 
 test("semantic and motion accessibility guards remain in source", () => {
