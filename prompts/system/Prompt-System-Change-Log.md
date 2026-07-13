@@ -2,7 +2,7 @@
 
 ## Versão atual
 
-- Versão: `3.32.0`
+- Versão: `3.32.1`
 - Data: 2026-07-13
 - Status: corpus DB-Notifier consolidado
 - Escopo: 13 arquivos ativos
@@ -16,6 +16,11 @@ A versão do corpus é independente da versão do software.
 - PATCH: clareza, correção ou referência sem mudança de autoridade.
 
 Toda alteração atualiza este arquivo e, quando necessário, `../Start-Here.md`.
+
+## 3.32.1 — 2026-07-13
+
+- Todo handoff passa a terminar com orientação detalhada e acionável ao usuário: próxima ação, ordem, local, resultado esperado, restrições relevantes e evidência ou resposta necessária para continuidade.
+- O template de handoff foi ampliado para impedir recomendações finais vagas e reduzir dependência de conhecimento especializado implícito.
 
 ## 3.32.0 — 2026-07-13
 

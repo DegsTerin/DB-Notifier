@@ -16,6 +16,11 @@ Templates não representam execução nem aprovação até serem preenchidos com
 - Pré-condições da próxima fase:
 - Auditoria automática:
 - Human Gate:
+- Próxima ação do usuário:
+- Passos ordenados e local de execução:
+- Resultado esperado:
+- Restrições ou cuidados:
+- Evidência/resposta que o usuário deve retornar:
 
 ## Relatório de execução
 

@@ -17,7 +17,7 @@ Resolve conflicts using the precedence in `prompts/Start-Here.md`. A current exp
 - Never invent implementation, support, evidence, test results, credentials, approvals, runtime state, or environment capabilities.
 - Inspect the current state before work. Do not advance a lifecycle state automatically: an automatic audit and an explicit Human Gate are both required.
 - Execute every authorised increment completely, including its applicable checks and documentation, before recommending progression.
-- End every user hand-off with the concrete recommended next step.
+- End every user hand-off with detailed, actionable guidance for the user. State what they should do next, the ordered steps when more than one action is required, where to perform them, the expected result, any relevant safety or lifecycle restriction, and exactly what evidence or response to return so work can continue. Do not end with a vague recommendation or assume specialist knowledge that has not been established.
 
 ## Mandatory technology baseline
 
