@@ -54,6 +54,18 @@ test("modal and mobile regression guards remain in source", () => {
   assert.match(css, /\.sidebar nav \{[^}]*width: 100%;[^}]*min-width: 0;[^}]*display: flex;[^}]*overflow-x: auto;/s);
 });
 
+test("enterprise shell uses coherent icons and a consolidated responsive metric band", () => {
+  const app = readFileSync(new URL("../src/App.tsx", import.meta.url), "utf8");
+  const css = readFileSync(new URL("../src/styles.css", import.meta.url), "utf8");
+
+  assert.match(app, /function AppIcon/);
+  assert.match(app, /className="metric-icon"/);
+  assert.equal((app.match(/className={`nav-item/g) ?? []).length, 4);
+  assert.doesNotMatch(app, /className={`nav-item[^>]*}><span aria-hidden="true">/s);
+  assert.match(css, /\.summary-grid \{[^}]*overflow: hidden;[^}]*border:/s);
+  assert.match(css, /\.summary-card \{[^}]*border-inline-end:/s);
+});
+
 test("timeline filters severity without provider-specific branches", () => {
   const snapshot = buildTimelineAlertSnapshot(now);
   assert.equal(filterTimeline(snapshot.events, "", "critical").length, 1);

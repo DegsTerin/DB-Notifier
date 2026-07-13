@@ -1,5 +1,5 @@
 /** Module purpose: Implements App for the provider-neutral DB-Notifier Dashboard without direct database access. */
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import {
   buildDemonstrationSnapshot,
   buildConfigurationSnapshot,
@@ -49,6 +49,44 @@ const viewCopy: Record<DashboardView, { eyebrowKey: MessageKey; titleKey: Messag
   alerts: { eyebrowKey: "View.Alerts.Eyebrow", titleKey: "View.Alerts.Title", descriptionKey: "View.Alerts.Description" },
   configuration: { eyebrowKey: "View.Configuration.Eyebrow", titleKey: "View.Configuration.Title", descriptionKey: "View.Configuration.Description" },
 };
+
+type AppIconName = "database" | "inventory" | "history" | "alerts" | "configuration" | "healthy" | "degraded" | "critical" | "stale";
+
+/**
+ * Renders the small outlined icon set owned by the DB-Notifier shell and operational summaries.
+ * @param name - Stable semantic icon name; it does not encode provider identity.
+ * @param className - Optional presentation class applied without changing accessible meaning.
+ * @returns A decorative SVG hidden from assistive technology because adjacent text carries the label.
+ */
+function AppIcon({ name, className = "" }: { name: AppIconName; className?: string }) {
+  let content: ReactNode;
+  switch (name) {
+    case "database":
+      content = <><ellipse cx="12" cy="5" rx="7.5" ry="3" /><path d="M4.5 5v7c0 1.7 3.4 3 7.5 3s7.5-1.3 7.5-3V5" /><path d="M4.5 12v7c0 1.7 3.4 3 7.5 3s7.5-1.3 7.5-3v-7" /></>;
+      break;
+    case "inventory":
+      content = <><rect x="4" y="4" width="6" height="6" rx="1" /><rect x="14" y="4" width="6" height="6" rx="1" /><rect x="4" y="14" width="6" height="6" rx="1" /><rect x="14" y="14" width="6" height="6" rx="1" /></>;
+      break;
+    case "history":
+    case "stale":
+      content = <><circle cx="12" cy="12" r="8" /><path d="M12 7.5V12l3 2" /></>;
+      break;
+    case "alerts":
+    case "degraded":
+      content = <><path d="M12 3.5 21 19H3Z" /><path d="M12 9v4" /><path d="M12 16.25h.01" /></>;
+      break;
+    case "configuration":
+      content = <><path d="M4 7h10M18 7h2M4 17h2M10 17h10" /><circle cx="16" cy="7" r="2" /><circle cx="8" cy="17" r="2" /></>;
+      break;
+    case "healthy":
+      content = <><circle cx="12" cy="12" r="8" /><path d="m8.5 12 2.25 2.25L15.75 9" /></>;
+      break;
+    case "critical":
+      content = <><circle cx="12" cy="12" r="8" /><path d="M12 7.75v5.5" /><path d="M12 16.5h.01" /></>;
+      break;
+  }
+  return <svg className={`app-icon ${className}`.trim()} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">{content}</svg>;
+}
 
 const statusPresentation: Record<HealthStatus, { symbol: string; labelKey: MessageKey; className: string }> = {
   healthy: { symbol: "●", labelKey: "Status.Healthy", className: "healthy" },
@@ -108,24 +146,27 @@ export function App() {
       <a className="skip-link" href="#main-content">{t("Navigation.Skip")}</a>
       <header className="topbar">
         <div className="brand-lockup" aria-label="DB-Notifier">
-          <span className="brand-mark" aria-hidden="true"><i /><i /><i /></span>
+          <span className="brand-mark"><AppIcon name="database" /></span>
           <span><strong>DB-NOTIFIER</strong><small>{t("Brand.Subtitle")}</small></span>
         </div>
         <div className="topbar-controls">
           <LanguageSelector />
           <ThemeSelector />
-          <div className="demo-badge">{t("Demo.Badge")}</div>
+          <div className="demo-badge"><span aria-hidden="true" />{t("Demo.Badge")}</div>
         </div>
       </header>
 
       <div className="page-layout">
         <aside className="sidebar" aria-label={t("Navigation.Label")}>
-          <nav>
-            <button type="button" className={`nav-item ${view === "inventory" ? "active" : ""}`} aria-current={view === "inventory" ? "page" : undefined} onClick={() => navigate("inventory")}><span aria-hidden="true">▦</span> {t("Navigation.Inventory")}</button>
-            <button type="button" className={`nav-item ${view === "history" ? "active" : ""}`} aria-current={view === "history" ? "page" : undefined} onClick={() => navigate("history")}><span aria-hidden="true">◷</span> {t("Navigation.History")}</button>
-            <button type="button" className={`nav-item ${view === "alerts" ? "active" : ""}`} aria-current={view === "alerts" ? "page" : undefined} onClick={() => navigate("alerts")}><span aria-hidden="true">△</span> {t("Navigation.Alerts")}</button>
-            <button type="button" className={`nav-item ${view === "configuration" ? "active" : ""}`} aria-current={view === "configuration" ? "page" : undefined} onClick={() => navigate("configuration")}><span aria-hidden="true">⚙</span> {t("Navigation.Configuration")}</button>
-          </nav>
+          <div className="sidebar-primary">
+            <p className="sidebar-section-label">{t("Navigation.Label")}</p>
+            <nav>
+              <button type="button" className={`nav-item ${view === "inventory" ? "active" : ""}`} aria-current={view === "inventory" ? "page" : undefined} onClick={() => navigate("inventory")}><AppIcon name="inventory" /><span className="nav-label">{t("Navigation.Inventory")}</span></button>
+              <button type="button" className={`nav-item ${view === "history" ? "active" : ""}`} aria-current={view === "history" ? "page" : undefined} onClick={() => navigate("history")}><AppIcon name="history" /><span className="nav-label">{t("Navigation.History")}</span></button>
+              <button type="button" className={`nav-item ${view === "alerts" ? "active" : ""}`} aria-current={view === "alerts" ? "page" : undefined} onClick={() => navigate("alerts")}><AppIcon name="alerts" /><span className="nav-label">{t("Navigation.Alerts")}</span></button>
+              <button type="button" className={`nav-item ${view === "configuration" ? "active" : ""}`} aria-current={view === "configuration" ? "page" : undefined} onClick={() => navigate("configuration")}><AppIcon name="configuration" /><span className="nav-label">{t("Navigation.Configuration")}</span></button>
+            </nav>
+          </div>
           <div className="sidebar-note"><strong>{t("Sidebar.State")}</strong><span>{t("Sidebar.ReadOnly")}</span></div>
         </aside>
 
@@ -318,12 +359,12 @@ function ReadyInventory({
   onStatusChange: (value: "all" | HealthStatus | "stale") => void;
 }) {
   const { locale, t } = useLocalisation();
-  const cards = [
-    { label: t("Inventory.Total"), value: summary.total, symbol: "▦", className: "total" },
-    { label: t("Inventory.Healthy"), value: summary.healthy, symbol: "●", className: "healthy" },
-    { label: t("Inventory.Degraded"), value: summary.degraded, symbol: "▲", className: "degraded" },
-    { label: t("Inventory.Attention"), value: summary.attentionRequired, symbol: "■", className: "critical" },
-    { label: t("Inventory.Stale"), value: summary.stale, symbol: "◷", className: "stale" },
+  const cards: ReadonlyArray<{ label: string; value: number; icon: AppIconName; className: string }> = [
+    { label: t("Inventory.Total"), value: summary.total, icon: "database", className: "total" },
+    { label: t("Inventory.Healthy"), value: summary.healthy, icon: "healthy", className: "healthy" },
+    { label: t("Inventory.Degraded"), value: summary.degraded, icon: "degraded", className: "degraded" },
+    { label: t("Inventory.Attention"), value: summary.attentionRequired, icon: "critical", className: "critical" },
+    { label: t("Inventory.Stale"), value: summary.stale, icon: "stale", className: "stale" },
   ];
 
   return (
@@ -332,7 +373,7 @@ function ReadyInventory({
       <div className="summary-grid">
         {cards.map((card) => (
           <article className={`summary-card ${card.className}`} key={card.label}>
-            <span><i aria-hidden="true">{card.symbol}</i> {card.label}</span>
+            <span className="summary-label"><span className="metric-icon"><AppIcon name={card.icon} /></span><span>{card.label}</span></span>
             <strong>{card.value}</strong>
           </article>
         ))}

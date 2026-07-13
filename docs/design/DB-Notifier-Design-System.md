@@ -5,7 +5,7 @@
 | Field | Value |
 |---|---|
 | Status | Official frontend specification |
-| Design System version | `1.3.0` |
+| Design System version | `1.3.1` |
 | Product phase | `STATE-05 FRONTEND_IMPLEMENTATION` |
 | Platforms | React Web Dashboard and .NET 10 WPF Desktop/Tray |
 | Themes | Light, Dark and System |
@@ -298,10 +298,10 @@ The TopBar and its preference region use dedicated chrome semantics instead of `
 | `colour.chrome.foreground` | `#F4F7FA` | `#F4F7FA` |
 | `colour.chrome.muted` | `#C7D3DC` | `#C7D3DC` |
 | `colour.chrome.border` | `#3B586C` | `#3B586C` |
-| `colour.chrome.selected.background` | `#86C4F4` | `#86C4F4` |
-| `colour.chrome.selected.foreground` | `#031B31` | `#031B31` |
+| `colour.chrome.selected.background` | `#DCEEFF` | `#24465D` |
+| `colour.chrome.selected.foreground` | `#052C50` | `#F4F7FA` |
 
-Chrome text/background ratios range from `9.92:1` to `16.25:1`; the selected preference pair is `9.31:1`. Components consume the corresponding `component.shell.chrome.*` aliases. Chrome is reserved for shared application identity and preferences; feature panels MUST NOT recreate it as a decorative dark band.
+Chrome text/background ratios range from `9.92:1` to `16.25:1`; selected preference pairs are `11.95:1` in Light and `9.26:1` in Dark. Components consume the corresponding `component.shell.chrome.*` aliases. Chrome is reserved for shared application identity and preferences; feature panels MUST NOT recreate it as a decorative dark band.
 
 ### 6.3 Operational status
 
@@ -373,6 +373,7 @@ Body copy MUST NOT be smaller than 14 px by default. Uppercase is limited to sho
 - Core navigation uses 20 px icons; primary commands use 16 or 20 px; empty states MAY use 32 px.
 - Icons MUST have consistent stroke weight and optical alignment.
 - Emoji and text glyphs are not production icons.
+- Shell and summary icons SHOULD use the shared code-native outlined SVG set when a licensed external family is unnecessary; stroke, view box and optical size remain consistent across the set.
 - Icon-only buttons require an accessible name and tooltip.
 - Decorative icons are hidden from assistive technology.
 - Status icons always have adjacent visible text.
@@ -450,6 +451,8 @@ Disabled controls MUST remain legible and MUST provide adjacent explanation when
 ### 10.5 Cards and metrics
 
 `SurfaceCard`, `SummaryCard`, `MetricCard` and `AlertCard` use consistent padding, border, radius and heading order. A metric includes label, value, freshness/context and optional trend; it MUST NOT use colour alone.
+
+Related fleet metrics SHOULD form one bordered metric band with internal dividers at comfortable widths. This reduces competing card chrome and preserves scan order. The band reflows to two columns and then one column without removing labels, icons or values.
 
 ### 10.6 Status and support
 

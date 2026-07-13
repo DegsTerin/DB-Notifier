@@ -442,6 +442,16 @@
 - Evidências: `docs/STATE-05-Design-System-Implementation-Report.md`, `docs/STATE-05-Human-Gate-Validation.md` e JSON/PNG sanitizados temporários fora do Git, incluindo a largura `960×1040` que reproduzia o problema.
 - Riscos/ressalvas: a reauditoria automática não substitui a reprovação humana original; `HG05-01`, Narrator, zoom, scaling, High Contrast e o Human Gate completo permanecem pendentes.
 
+## 2026-07-13 — Segunda remediação visual internacional de S05-HG-001
+
+- Estado anterior: `STATE-05 FRONTEND_IMPLEMENTATION`
+- Estado resultante: sem transição
+- Decisão: preservar a primeira remediação como melhoria parcial e executar novo refinamento antes de repetir a decisão visual humana.
+- Escopo: revisão de padrões oficiais Carbon/Grafana/Fluent, ícones SVG próprios, faixa consolidada de KPIs, navegação selecionada contida, preferências de menor ênfase e ajuste cromático equivalente no WPF.
+- Gates: 60 amostras browser repetidas sem overflow global, controle interativo sem nome ou regressão modal; WPF `pt-BR` Light/Dark representativo com 0 controles focalizáveis sem nome; 20 testes Dashboard e builds aplicáveis aprovados.
+- Evidências: `docs/STATE-05-Design-System-Implementation-Report.md`, `docs/STATE-05-Human-Gate-Validation.md` e JSON/PNG sanitizados temporários fora do Git.
+- Riscos/ressalvas: a avaliação “ficou melhor” não foi interpretada como aprovação; a segunda revisão visual, Narrator e o Human Gate completo permanecem pendentes.
+
 ## Template de nova entrada
 
 - Data:

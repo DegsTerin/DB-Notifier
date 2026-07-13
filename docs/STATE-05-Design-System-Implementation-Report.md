@@ -2,9 +2,19 @@
 
 ## Outcome
 
-The first three DB-Notifier Design System increments and the `S05-HG-001` visual remediation increment are complete. They establish the canonical token schema/source, deterministic React/WPF generation, platform-neutral Light/Dark/System preference contracts and a cohesive enterprise shell on both interfaces required by Design System `1.3.0`.
+The first three DB-Notifier Design System increments and two `S05-HG-001` visual remediation iterations are complete. They establish the canonical token schema/source, deterministic React/WPF generation, platform-neutral Light/Dark/System preference contracts and a cohesive enterprise shell on both interfaces required by Design System `1.3.1`.
 
 The Dashboard and WPF Desktop now apply generated semantic tokens, expose discreet language and theme buttons in the upper-right TopBar and preserve the validated preferences. Dedicated chrome semantics keep product identity cohesive across themes without the rejected Light-header/Dark-content inversion. System follows live platform colour preference; explicit Light and Dark remain stable. WPF gives Windows High Contrast precedence over the generated palette.
+
+## International product-pattern review
+
+The second visual iteration reviewed current official guidance rather than copying a product skin:
+
+- [IBM Carbon's UI Shell](https://carbondesignsystem.com/components/UI-shell-header/usage/) treats the header as persistent orientation, keeps product identity to the left and global utilities to the right.
+- [Grafana Saga's object-list guidance](https://grafana.com/developers/saga/templates/lists-of-objects/) distinguishes tables for open-ended exploration from lists for named objects with predictable structure, and its [table template](https://grafana.com/developers/saga/templates/table/) keeps filters adjacent to data.
+- [Microsoft Fluent navigation](https://fluent2.microsoft.design/components/web/react/core/nav/usage) stays brief and scannable, while [Fluent cards](https://fluent2.microsoft.design/components/web/react/core/card/usage) organise related information through a predictable hierarchy.
+
+DB-Notifier translates those principles into its own provider-neutral identity: code-native outlined icons replace text glyphs, selected navigation uses a restrained surface plus a narrow accent, five related fleet metrics share one divided band, and language/theme controls remain visible without dominating the shell.
 
 ## Canonical token source
 
@@ -55,6 +65,7 @@ The React adapter accesses only versioned local UI preference storage, the docum
 - Generated CSS loads before feature CSS. Hand-written feature styles contain no raw colour values or shadows and use canonical spacing/radius tokens for their corresponding declarations.
 - At `1100` CSS px and below, the shell switches from the persistent side navigation to labelled horizontal navigation and replaces the seven-column inventory table with complete operational cards. The previous compressed `82` px rail and clipped `980` px table no longer exist.
 - Summary cards use restrained surface elevation and compact status markers rather than heavy status-coloured top borders; preference groups use quiet chrome surfaces rather than outlined containers.
+- The second refinement consolidates fleet summaries into one responsive metric band, replaces navigation/summary text glyphs with a coherent SVG icon set and reduces selected-preference intensity while retaining the tested contrast pairs.
 
 ## WPF theme runtime
 
@@ -74,7 +85,7 @@ The React adapter accesses only versioned local UI preference storage, the docum
 | Schema/reference/type/theme parity | Approved |
 | Light/Dark canonical contrast pairs | Approved; all tested pairs `>= 4.5:1` |
 | Dashboard typecheck | Approved |
-| Dashboard tests | Approved; 19/19 |
+| Dashboard tests | Approved; 20/20 |
 | Dashboard production build | Approved |
 | .NET 10 Release build | Approved; 0 warnings/errors |
 | .NET tests | Approved; 131 unit/model/provider/presentation + 5 architecture = 136/136 |
@@ -84,7 +95,7 @@ The React adapter accesses only versioned local UI preference storage, the docum
 | Documentation gate | Approved; 160 comment-capable source files |
 | React visual/responsive matrix | Approved; 60 locale/theme/viewport-route samples across 320, 390, 640, 768, 960, 1024 and 1440 CSS px |
 | React overflow/accessibility | Approved; 0 global overflow and 0 unnamed interactive controls in all six locale/theme combinations |
-| WPF UI Automation/visual matrix | Approved; six locale/theme combinations plus `820×620` minimum-window sample |
+| WPF UI Automation/visual matrix | Approved; six locale/theme combinations plus `820×620` minimum-window sample, with representative Light/Dark repetition after the second refinement |
 
 ## Security and phase boundaries
 

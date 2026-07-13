@@ -123,8 +123,11 @@ O projeto está em `STATE-05 FRONTEND_IMPLEMENTATION`. Quatro incrementos implem
 - Reauditoria automática combinada aprovada em 54 amostras browser (`2 locales × 3 temas × 9 viewport/rota`), sem overflow global ou controlo interativo sem nome, além das seis combinações WPF e amostra mínima `820×620`.
 - Protocolo do Human Gate de `STATE-05` preparado em `docs/STATE-05-Human-Gate-Validation.md`; preflight confirmou Narrator disponível, escala atual 100% e High Contrast desligado.
 - Primeira amostra humana interrompida com `S05-HG-001`: o Dashboard `pt-BR` foi explicitamente reprovado na revisão visual por não parecer moderno nem empresarial; teclado/Narrator e demais amostras não foram executados.
-- Remediação visual de `S05-HG-001` implementada no Design System `1.3.0`: chrome coeso Light/Dark, seletores discretos, hierarquia de superfícies refinada, navegação horizontal antes da compressão e cartões operacionais completos em larguras estreitas, com paridade WPF.
+- Primeira remediação visual de `S05-HG-001` implementada no Design System `1.3.0`: chrome coeso Light/Dark, seletores discretos, hierarquia de superfícies refinada, navegação horizontal antes da compressão e cartões operacionais completos em larguras estreitas, com paridade WPF.
 - Reauditoria automática afetada aprovada em 60 amostras browser (`2 locales × 3 preferências × 10 viewport/rota`, incluindo `960×1040`) e sete amostras WPF, sem overflow global nem controles interativos/focalizáveis sem nome; o resultado humano inicial não foi sobrescrito.
+- Primeira remediação julgada explicitamente melhor pelo usuário, porém ainda insuficiente para aceitação visual; foi solicitada nova inspiração em softwares empresariais internacionais.
+- Segunda remediação Design System `1.3.1` consolidou os KPIs em uma faixa operacional, substituiu glifos por ícones SVG coerentes, conteve a seleção de navegação/preferências e reduziu `card soup`, após revisão de padrões oficiais Carbon, Grafana Saga e Fluent.
+- Segunda matriz afetada aprovada novamente em 60 amostras browser; WPF Light/Dark representativos mantiveram 0 controles focalizáveis sem nome. A segunda revisão humana permanece pendente.
 
 ## Pendente
 
@@ -146,6 +149,6 @@ O projeto está em `STATE-05 FRONTEND_IMPLEMENTATION`. Quatro incrementos implem
 
 ## Próximo gate
 
-Remediar `S05-HG-001`, repetir a auditoria visual/responsiva/automatizada afetada e reiniciar `HG05-01`. O Human Gate, `STATE-06` e o laboratório continuam bloqueados.
+Repetir a revisão visual humana de `HG05-01` sobre a segunda remediação; somente após aceitação explícita e novo consentimento iniciar Narrator. O Human Gate, `STATE-06` e o laboratório continuam bloqueados.
 
 Este documento descreve somente o presente. Histórico pertence a `State-Transition-Log.md`.

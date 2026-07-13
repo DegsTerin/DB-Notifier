@@ -1,4 +1,4 @@
-/* Generated from dbnotifier.design-tokens.v1; source sha256:b67aa76ed32ee07ad4f2ca0c3de5cc87b7564e349be8e97db1448108b796621a. Do not edit directly. */
+/* Generated from dbnotifier.design-tokens.v1; source sha256:affb438c4389038d509edfc2ac25930c2729cc8f68d374ba4185363037172807. Do not edit directly. */
 :root {
   --db-control-height-comfortable: 44px;
   --db-control-height-compact: 40px;
@@ -102,8 +102,8 @@
   --db-colour-chrome-border: #3B586C;
   --db-colour-chrome-foreground: #F4F7FA;
   --db-colour-chrome-muted: #C7D3DC;
-  --db-colour-chrome-selected-background: #86C4F4;
-  --db-colour-chrome-selected-foreground: #031B31;
+  --db-colour-chrome-selected-background: #DCEEFF;
+  --db-colour-chrome-selected-foreground: #052C50;
   --db-colour-chrome-surface: #18384F;
   --db-colour-focus-ring: #9A4A00;
   --db-colour-overlay-scrim: #081926AD;
@@ -148,8 +148,8 @@
   --db-component-shell-chrome-border: #3B586C;
   --db-component-shell-chrome-foreground: #F4F7FA;
   --db-component-shell-chrome-muted: #C7D3DC;
-  --db-component-shell-chrome-selected-background: #86C4F4;
-  --db-component-shell-chrome-selected-foreground: #031B31;
+  --db-component-shell-chrome-selected-background: #DCEEFF;
+  --db-component-shell-chrome-selected-foreground: #052C50;
   --db-component-shell-chrome-surface: #18384F;
   --db-component-status-critical-background: #FFF0F0;
   --db-component-status-critical-foreground: #982B2B;
@@ -181,8 +181,8 @@
   --db-colour-chrome-border: #3B586C;
   --db-colour-chrome-foreground: #F4F7FA;
   --db-colour-chrome-muted: #C7D3DC;
-  --db-colour-chrome-selected-background: #86C4F4;
-  --db-colour-chrome-selected-foreground: #031B31;
+  --db-colour-chrome-selected-background: #24465D;
+  --db-colour-chrome-selected-foreground: #F4F7FA;
   --db-colour-chrome-surface: #172C3A;
   --db-colour-focus-ring: #FFC857;
   --db-colour-overlay-scrim: #000000BD;
@@ -227,8 +227,8 @@
   --db-component-shell-chrome-border: #3B586C;
   --db-component-shell-chrome-foreground: #F4F7FA;
   --db-component-shell-chrome-muted: #C7D3DC;
-  --db-component-shell-chrome-selected-background: #86C4F4;
-  --db-component-shell-chrome-selected-foreground: #031B31;
+  --db-component-shell-chrome-selected-background: #24465D;
+  --db-component-shell-chrome-selected-foreground: #F4F7FA;
   --db-component-shell-chrome-surface: #172C3A;
   --db-component-status-critical-background: #32191B;
   --db-component-status-critical-foreground: #FF9C9C;

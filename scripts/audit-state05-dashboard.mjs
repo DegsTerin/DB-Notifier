@@ -6,7 +6,7 @@ import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 
-const endpoint = "http://127.0.0.1:9224";
+const endpoint = process.env.DBNOTIFIER_AUDIT_CDP_ENDPOINT ?? "http://127.0.0.1:9224";
 const dashboardUrl = "http://127.0.0.1:4173/";
 const requestedLocale = process.env.DBNOTIFIER_AUDIT_LOCALE;
 const locale = requestedLocale === "en-GB" ? "en-GB" : "pt-BR";

@@ -26,10 +26,10 @@ Mobile and tablet samples apply to the responsive Dashboard Web. There is no nat
 
 | Evidence | Current result |
 |---|---|
-| Design System implementation report | Design System `1.3.0` remediation gates approved; commit identifier is reported in the implementation hand-off |
+| Design System implementation report | Design System `1.3.1` second-remediation gates approved; commit identifier is reported in the implementation hand-off |
 | Dashboard matrix | 60 locale/theme/viewport-route samples, including `960×1040`; no global overflow or unnamed interactive control |
 | WPF matrix | Six locale/theme combinations and minimum-window sample recorded after visual remediation |
-| Automated tests | 19 Dashboard, 131 .NET unit/model/provider/presentation, 5 architecture and 10 legacy compatibility tests approved |
+| Automated tests | 20 Dashboard, 131 .NET unit/model/provider/presentation, 5 architecture and 10 legacy compatibility tests approved |
 | Security/dependencies | npm and NuGet reported no known vulnerabilities in the recorded audit |
 
 Primary automatic evidence:
@@ -152,7 +152,7 @@ Do not mark a row until the named human validator has performed it.
 
 | ID | Human sample | Validator result | Sanitised evidence/notes |
 |---|---|---|---|
-| `HG05-01` | Dashboard `pt-BR` Light, keyboard and Narrator | REPROVADO — REPETIÇÃO PENDENTE | The initial visual acceptance failed before keyboard/Narrator sampling. `S05-HG-001` is automatically remediated, but the replacement visual and accessibility portions have not yet been validated by the human reviewer. |
+| `HG05-01` | Dashboard `pt-BR` Light, keyboard and Narrator | REPROVADO — SEGUNDA REPETIÇÃO PENDENTE | The first remediation was judged better but still below the desired international enterprise standard. A second refinement is automatically validated, but its replacement visual and accessibility portions have not yet been accepted by the human reviewer. |
 | `HG05-02` | Dashboard `en-GB` Dark, keyboard and Narrator | PENDENTE | |
 | `HG05-03` | Dashboard native 200% zoom and compact reflow | PENDENTE | |
 | `HG05-04` | WPF `pt-BR` Light, default/minimum, keyboard and Narrator | PENDENTE | |
@@ -175,6 +175,8 @@ Do not mark a row until the named human validator has performed it.
 - Required remediation: revise the shared shell, typography, spacing, navigation, preference-control treatment, surface hierarchy and responsive data presentation in the canonical token/component sources; then repeat automatic contrast/responsive/accessibility gates and restart `HG05-01`.
 - Remediation status: IMPLEMENTED AND AUTOMATICALLY RE-AUDITED on 2026-07-13; human revalidation remains pending.
 - Remediation evidence: Design System `1.3.0` adds cohesive shell chrome; the Dashboard changes to horizontal labelled navigation and complete cards before content compression; WPF uses the same chrome and restrained selected states. The affected automatic matrix passed in 60 browser samples and seven WPF samples with no global overflow or unnamed focusable/interactable controls.
+- First remediation feedback: the human reviewer explicitly judged the result better, but requested further refinement inspired by international market software; this was not recorded as visual acceptance.
+- Second remediation evidence: Design System `1.3.1` applies a reviewed Carbon/Grafana/Fluent pattern synthesis through a consolidated metric band, coherent SVG iconography, quieter selected navigation/preferences and reduced competing card chrome. The repeated 60-sample browser matrix passed; representative WPF Light/Dark samples retained zero unnamed focusable controls.
 - Human closure rule: only a new human visual result may close this finding. The automatic evidence does not replace the rejected sample or approve the gate.
 - Lifecycle impact: `STATE-05` remains active; the Human Gate cannot be approved until `HG05-01` is repeated and the remaining samples are completed.
 

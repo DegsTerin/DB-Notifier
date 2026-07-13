@@ -1,4 +1,4 @@
-<!-- Generated from dbnotifier.design-tokens.v1; source sha256:b67aa76ed32ee07ad4f2ca0c3de5cc87b7564e349be8e97db1448108b796621a. Do not edit directly. -->
+<!-- Generated from dbnotifier.design-tokens.v1; source sha256:affb438c4389038d509edfc2ac25930c2729cc8f68d374ba4185363037172807. Do not edit directly. -->
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:sys="clr-namespace:System;assembly=System.Runtime">

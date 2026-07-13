@@ -2,7 +2,7 @@
 
 ## Versão atual
 
-- Versão: `3.28.0`
+- Versão: `3.28.1`
 - Data: 2026-07-13
 - Status: corpus DB-Notifier consolidado
 - Escopo: 13 arquivos ativos
@@ -16,6 +16,12 @@ A versão do corpus é independente da versão do software.
 - PATCH: clareza, correção ou referência sem mudança de autoridade.
 
 Toda alteração atualiza este arquivo e, quando necessário, `../Start-Here.md`.
+
+## 3.28.1 — 2026-07-13
+
+- Design System `1.3.1` refina `S05-HG-001` após avaliação humana de melhoria parcial, sem aprovação: faixa única de KPIs, iconografia SVG coerente, navegação selecionada contida e preferências globais menos dominantes.
+- Padrões oficiais Carbon UI Shell, Grafana Saga e Microsoft Fluent foram sintetizados sem copiar identidade externa nem alterar a verdade operacional do DB-Notifier.
+- Segunda reauditoria afetada aprovada em 60 amostras browser e WPF Light/Dark representativos; a segunda revisão visual humana e todas as porções de Narrator continuam pendentes, sem transição de estado.
 
 ## 3.28.0 — 2026-07-13
 
