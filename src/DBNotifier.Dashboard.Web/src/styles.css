@@ -71,7 +71,7 @@ button:focus-visible, select:focus-visible, input:focus-visible, a:focus-visible
 .brand-mark i { display: block; height: var(--db-space-1); border-radius: var(--db-radius-small); background: currentColor; }
 .brand-mark i:nth-child(2) { width: 75%; }
 .brand-mark i:nth-child(3) { width: 50%; }
-.topbar-controls { display: flex; align-items: center; gap: var(--db-space-4); }
+.topbar-controls { display: flex; align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: var(--db-space-4); }
 .demo-badge, .read-only-label {
   padding: var(--db-space-2) var(--db-space-3);
   border-radius: var(--db-radius-pill);
@@ -81,6 +81,10 @@ button:focus-visible, select:focus-visible, input:focus-visible, a:focus-visible
   letter-spacing: .04em;
 }
 .demo-badge { color: var(--db-colour-selection-foreground); background: var(--db-colour-selection-background); }
+
+/* The language selector remains a native control and exposes complete locale names. */
+.language-selector { min-width: 160px; display: grid; gap: var(--db-space-1); color: inherit; font-size: .72rem; font-weight: var(--db-typography-weight-semibold); }
+.language-selector select { min-height: var(--db-control-height-compact); padding-block: var(--db-space-2); }
 
 /* The native radio group exposes every preference while retaining expected keyboard behaviour. */
 .theme-selector { min-width: 0; margin: 0; padding: 0; display: flex; align-items: center; gap: var(--db-space-2); border: 0; }
@@ -315,7 +319,7 @@ footer { padding: var(--db-space-3) var(--db-space-8); color: var(--db-colour-te
 
 @media (max-width: 760px) {
   .topbar { min-height: 68px; padding: var(--db-space-2) var(--db-space-4); }
-  .brand-lockup small, .theme-selector legend { display: none; }
+  .brand-lockup small, .theme-selector legend, .language-selector > span:first-child { display: none; }
   .topbar-controls { gap: var(--db-space-2); }
   .theme-options span { min-height: var(--db-control-height-compact); padding-inline: var(--db-space-2); }
   .demo-badge { display: none; }
@@ -348,6 +352,7 @@ footer { padding: var(--db-space-3) var(--db-space-8); color: var(--db-colour-te
 @media (max-width: 430px) {
   .topbar { align-items: flex-start; flex-direction: column; }
   .topbar-controls, .theme-selector, .theme-options { width: 100%; }
+  .language-selector { width: 100%; }
   .theme-options label { flex: 1; }
   .summary-grid { grid-template-columns: 1fr; }
   .summary-card:last-child { grid-column: auto; }

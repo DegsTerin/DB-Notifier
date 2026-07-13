@@ -31,13 +31,13 @@ function resolveColour(token: Token, core: Record<string, Token>): string {
 }
 
 /** Executes the pre-paint bootstrap against isolated browser substitutes. */
-function executeBootstrap(storedValue: string | null, systemUsesDark: boolean, storageFails = false) {
+function executeBootstrap(storedValue: string | null, systemUsesDark: boolean, storageFails = false, language = "pt-BR") {
   const dataset: Record<string, string> = {};
   const bootstrap = readFileSync(new URL("../public/theme-bootstrap.js", import.meta.url), "utf8");
   const localStorage = {
-    getItem() {
+    getItem(key: string) {
       if (storageFails) throw new Error("storage denied");
-      return storedValue;
+      return key.includes("language") ? language : storedValue;
     },
   };
   runInNewContext(bootstrap, {
@@ -88,9 +88,9 @@ test("theme storage and root application fail safely without persisting an effec
 });
 
 test("pre-paint bootstrap resolves valid, invalid and unavailable preferences before the application module", () => {
-  assert.deepEqual(executeBootstrap("dark", false), { themePreference: "dark", theme: "dark" });
-  assert.deepEqual(executeBootstrap("invalid", true), { themePreference: "system", theme: "dark" });
-  assert.deepEqual(executeBootstrap(null, false, true), { themePreference: "system", theme: "light" });
+  assert.deepEqual(executeBootstrap("dark", false), { themePreference: "dark", theme: "dark", languagePreference: "pt-BR" });
+  assert.deepEqual(executeBootstrap("invalid", true, false, "en-GB"), { themePreference: "system", theme: "dark", languagePreference: "en-GB" });
+  assert.deepEqual(executeBootstrap(null, false, true), { themePreference: "system", theme: "light", languagePreference: "pt-BR" });
 
   const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
   assert.ok(html.indexOf("/theme-bootstrap.js") < html.indexOf("/src/main.tsx"));

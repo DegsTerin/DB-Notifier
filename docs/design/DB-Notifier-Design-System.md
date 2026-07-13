@@ -5,12 +5,12 @@
 | Field | Value |
 |---|---|
 | Status | Official frontend specification |
-| Design System version | `1.0.0` |
+| Design System version | `1.1.0` |
 | Product phase | `STATE-05 FRONTEND_IMPLEMENTATION` |
 | Platforms | React Web Dashboard and .NET 10 WPF Desktop/Tray |
 | Themes | Light, Dark and System |
 | Accessibility target | WCAG 2.2 AA |
-| Interface language baseline | Portuguese (Brazil), with localisation-ready components |
+| Interface languages | Brazilian Portuguese (`pt-BR`, default) and British English (`en-GB`) |
 
 This document is normative for all new or modified DB-Notifier frontend work. “MUST”, “MUST NOT”, “SHOULD” and “MAY” express requirement strength. Product truth, security and accessibility requirements take precedence over visual preference.
 
@@ -150,6 +150,14 @@ Theme preference is presentation-only data. It MUST NOT contain identity, provid
 - Windows High Contrast MUST take precedence over DB-Notifier theme colours and preserve native system resources where required.
 
 Future authenticated preference synchronisation MAY be added in `STATE-06` or later, but local selection remains the offline fallback and never carries secrets.
+
+### 4.4 Interface-language contract
+
+The supported interface locales are exactly `pt-BR` and `en-GB`; unsupported or unreadable preferences fail safely to `pt-BR`. React and WPF MUST consume adapters generated from `localisation/messages.pt-BR.xml` and `localisation/messages.en-GB.xml`. Generated TypeScript/XAML resources MUST have identical keys and positional placeholders, and CI MUST reject drift.
+
+React persists only the validated locale under `dbnotifier.language.preference.v1`, applies `lang` before application render and synchronises changes between tabs. WPF persists only the validated locale in the versioned local UI-preference file, replaces its generated `ResourceDictionary` without recreating the window and keeps Tray text aligned. Provider identifiers, contract names and reason codes remain stable machine values rather than translated data.
+
+Language switching MUST preserve route/view, scenario, filters, focus where safe and all factual capability distinctions. Every responsive and accessibility sample MUST exercise both locales because British English copy may expand differently from Brazilian Portuguese.
 
 ## 5. Core tokens
 
@@ -397,6 +405,10 @@ All components define default, hover, pressed, focus-visible, selected, disabled
 
 `ThemeSelector` exposes System, Light and Dark with visible text. It MUST announce the current preference, apply immediately, persist safely and remain keyboard-operable. An icon alone is insufficient.
 
+### 10.2.1 Language selector
+
+`LanguageSelector` exposes Português (Brasil) and English (UK) as visible native options. It applies immediately, persists only the validated BCP 47 value, updates document/window and assistive-technology labels, and remains usable at compact widths. Flags MUST NOT replace language names.
+
 ### 10.3 Buttons
 
 Variants:
@@ -496,7 +508,7 @@ Interactive and meaningful data elements require appropriate `AutomationProperti
 
 ## 13. Content and data presentation
 
-- Interface copy uses concise Brazilian Portuguese in sentence case.
+- Interface copy uses concise `pt-BR` or `en-GB` in sentence case according to the active supported preference.
 - Code comments remain British English under the project documentation standard.
 - Provider identifiers remain stable machine values; visible provider names may be localised separately.
 - UTC timestamps include `UTC`; local time requires an explicit timezone label.
@@ -514,6 +526,7 @@ Interactive and meaningful data elements require appropriate `AutomationProperti
 | Typography | CSS type token/class | Dynamic style resource |
 | Spacing/radius | CSS token | Thickness/CornerRadius resource |
 | Theme selection | `data-theme` + service/hook | Theme service + ResourceDictionary |
+| Language selection | `lang` + generated catalogue/context | Generated `ResourceDictionary` + localisation service |
 | System observation | `matchMedia` | Windows theme observer |
 | Persistence | versioned `localStorage` value | versioned local UI preferences file |
 | Focus | native DOM/focus-visible | native WPF focus adorner |
@@ -558,6 +571,7 @@ Dashboard visual regression samples MUST cover:
 
 ```text
 Themes: Light, Dark, System resolving to each
+Locales: pt-BR and en-GB
 Viewports: 320×568, 390×844, 768×1024, 1024×768, 1440×1000
 Views: Inventory, History, Alerts, Configuration
 States: ready, loading, empty, offline, error, denied, maintenance, stale, filtered-empty
@@ -565,7 +579,7 @@ Overlays: confirmation-required, denied, unsupported, unavailable, unknown
 Preferences: reduced motion and 200% native browser zoom
 ```
 
-WPF samples MUST cover Light, Dark, System Light, System Dark and Windows High Contrast at the default and minimum window sizes, plus 100%, 125%, 150% and 200% Windows scaling where the environment permits.
+WPF samples MUST cover `pt-BR` and `en-GB` with Light, Dark, System Light, System Dark and Windows High Contrast at the default and minimum window sizes, plus 100%, 125%, 150% and 200% Windows scaling where the environment permits.
 
 Acceptance requires no unintended page overflow, clipping, illegible truncation, overlapping focus ring, theme mismatch or state communicated only by colour.
 

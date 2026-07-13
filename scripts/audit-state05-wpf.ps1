@@ -1,6 +1,13 @@
 # Module purpose: Audits the STATE-05 WPF shell through Windows UI Automation without invoking database or service controls.
 [CmdletBinding()]
-param()
+param(
+    [ValidateSet("pt-BR", "en-GB")]
+    [string]$Locale = "pt-BR",
+    [ValidateRange(820, 3000)]
+    [int]$Width = 1180,
+    [ValidateRange(620, 2200)]
+    [int]$Height = 760
+)
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
@@ -16,7 +23,7 @@ if (-not (Test-Path -LiteralPath $executable -PathType Leaf)) {
     throw "Build the Release WPF application before running this audit."
 }
 
-$evidenceDirectory = Join-Path ([System.IO.Path]::GetTempPath()) "DBNotifier-State05-Audit"
+$evidenceDirectory = Join-Path ([System.IO.Path]::GetTempPath()) "DBNotifier-State05-Audit/$Locale"
 [System.IO.Directory]::CreateDirectory($evidenceDirectory) | Out-Null
 $process = Start-Process -FilePath $executable -PassThru
 
@@ -33,6 +40,33 @@ try {
 
     $window = [System.Windows.Automation.AutomationElement]::FromHandle($process.MainWindowHandle)
     $condition = [System.Windows.Automation.Condition]::TrueCondition
+    $transformPattern = $window.GetCurrentPattern([System.Windows.Automation.TransformPattern]::Pattern)
+    if ($transformPattern.Current.CanResize) {
+        $transformPattern.Resize($Width, $Height)
+        Start-Sleep -Milliseconds 200
+    }
+    $languageCondition = [System.Windows.Automation.PropertyCondition]::new(
+        [System.Windows.Automation.AutomationElement]::AutomationIdProperty,
+        "LanguageSelector")
+    $languageSelector = $window.FindFirst([System.Windows.Automation.TreeScope]::Descendants, $languageCondition)
+    if ($null -eq $languageSelector) {
+        throw "The desktop language selector is unavailable."
+    }
+    $expandPattern = $languageSelector.GetCurrentPattern([System.Windows.Automation.ExpandCollapsePattern]::Pattern)
+    $expandPattern.Expand()
+    Start-Sleep -Milliseconds 150
+    $languageName = if ($Locale -eq "en-GB") { "English (UK)" } else { "Português (Brasil)" }
+    $languageItemCondition = [System.Windows.Automation.PropertyCondition]::new(
+        [System.Windows.Automation.AutomationElement]::NameProperty,
+        $languageName)
+    $languageItem = $languageSelector.FindFirst([System.Windows.Automation.TreeScope]::Subtree, $languageItemCondition)
+    if ($null -eq $languageItem) {
+        throw "The requested desktop language item is unavailable."
+    }
+    $selectionPattern = $languageItem.GetCurrentPattern([System.Windows.Automation.SelectionItemPattern]::Pattern)
+    $selectionPattern.Select()
+    $expandPattern.Collapse()
+    Start-Sleep -Milliseconds 250
     $elements = $window.FindAll([System.Windows.Automation.TreeScope]::Descendants, $condition)
     $focusable = @(
         foreach ($element in $elements) {
@@ -67,7 +101,7 @@ try {
     $graphics = [System.Drawing.Graphics]::FromImage($bitmap)
     try {
         $graphics.CopyFromScreen([int]$bounds.X, [int]$bounds.Y, 0, 0, $bitmap.Size)
-        $screenshotPath = Join-Path $evidenceDirectory "wpf-main-window.png"
+        $screenshotPath = Join-Path $evidenceDirectory "wpf-main-window-$($Width)x$($Height).png"
         $bitmap.Save($screenshotPath, [System.Drawing.Imaging.ImageFormat]::Png)
     }
     finally {
@@ -77,6 +111,8 @@ try {
 
     $report = [ordered]@{
         generatedAt = [DateTimeOffset]::UtcNow.ToString("O")
+        locale = $Locale
+        windowTitle = $window.Current.Name
         processId = $process.Id
         windowName = $window.Current.Name
         bounds = [ordered]@{ width = $bounds.Width; height = $bounds.Height }
@@ -86,7 +122,7 @@ try {
         tabSequence = $tabSequence
         screenshotPath = $screenshotPath
     }
-    $reportPath = Join-Path $evidenceDirectory "wpf-audit.json"
+    $reportPath = Join-Path $evidenceDirectory "wpf-audit-$($Width)x$($Height).json"
     $report | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath $reportPath -Encoding utf8
     [ordered]@{ reportPath = $reportPath; report = $report } | ConvertTo-Json -Depth 8
 }

@@ -19,46 +19,49 @@ import {
   summarizeInventory,
 } from "./presentation";
 import { ThemeSelector } from "./ThemeSelector";
+import { LanguageSelector } from "./LanguageSelector";
+import { useLocalisation } from "./LocalisationProvider";
+import type { MessageKey, SupportedLocale } from "./generated/localisation";
 
-const stateOptions: ReadonlyArray<{ value: InventoryState; label: string }> = [
-  { value: "ready", label: "Conteúdo carregado" },
-  { value: "loading", label: "Carregando" },
-  { value: "empty", label: "Sem dados" },
-  { value: "offline", label: "Agent offline" },
-  { value: "error", label: "Erro ao carregar" },
-  { value: "denied", label: "Permissão negada" },
-  { value: "maintenance", label: "Em manutenção" },
+const stateOptions: ReadonlyArray<{ value: InventoryState; labelKey: MessageKey }> = [
+  { value: "ready", labelKey: "Scenario.Ready" },
+  { value: "loading", labelKey: "Scenario.Loading" },
+  { value: "empty", labelKey: "Scenario.Empty" },
+  { value: "offline", labelKey: "Scenario.Offline" },
+  { value: "error", labelKey: "Scenario.Error" },
+  { value: "denied", labelKey: "Scenario.Denied" },
+  { value: "maintenance", labelKey: "Scenario.Maintenance" },
 ];
 
-const stateMessages: Record<Exclude<InventoryState, "ready">, { symbol: string; title: string; message: string; retry: boolean }> = {
-  loading: { symbol: "…", title: "Carregando conteúdo", message: "Preparando a visão local sem iniciar conexões externas.", retry: false },
-  empty: { symbol: "○", title: "Nenhum dado disponível", message: "A visão autorizada está vazia. Cadastros e integrações serão tratados em fases próprias.", retry: false },
-  offline: { symbol: "↯", title: "Agent offline", message: "Os últimos dados conhecidos não podem ser atualizados. Nenhum status antigo é apresentado como saudável.", retry: true },
-  error: { symbol: "!", title: "Não foi possível carregar", message: "A visão permanece indisponível. Nenhum comando administrativo foi executado.", retry: true },
-  denied: { symbol: "⊘", title: "Acesso negado", message: "Sua identidade não possui instances.read para este escopo. Nenhum detalhe protegido foi exibido.", retry: false },
-  maintenance: { symbol: "◆", title: "Janela de manutenção", message: "A visão está em manutenção planejada. Dados anteriores permanecem identificados como não atuais.", retry: false },
+const stateMessages: Record<Exclude<InventoryState, "ready">, { symbol: string; titleKey: MessageKey; messageKey: MessageKey; retry: boolean }> = {
+  loading: { symbol: "…", titleKey: "Operational.Loading.Title", messageKey: "Operational.Loading.Message", retry: false },
+  empty: { symbol: "○", titleKey: "Operational.Empty.Title", messageKey: "Operational.Empty.Message", retry: false },
+  offline: { symbol: "↯", titleKey: "Operational.Offline.Title", messageKey: "Operational.Offline.Message", retry: true },
+  error: { symbol: "!", titleKey: "Operational.Error.Title", messageKey: "Operational.Error.Message", retry: true },
+  denied: { symbol: "⊘", titleKey: "Operational.Denied.Title", messageKey: "Operational.Denied.Message", retry: false },
+  maintenance: { symbol: "◆", titleKey: "Operational.Maintenance.Title", messageKey: "Operational.Maintenance.Message", retry: false },
 };
 
 type DashboardView = "inventory" | "history" | "alerts" | "configuration";
-const viewCopy: Record<DashboardView, { eyebrow: string; title: string; description: string }> = {
-  inventory: { eyebrow: "Visão da frota", title: "Inventário de instâncias", description: "Estado operacional, atualização e suporte declarado por provider." },
-  history: { eyebrow: "Eventos canônicos", title: "Histórico operacional", description: "Timeline somente leitura com severidade, origem e timestamps UTC." },
-  alerts: { eyebrow: "Atenção operacional", title: "Alertas", description: "Estado de alertas e regras demonstrativas sem entrega externa ou mutation." },
-  configuration: { eyebrow: "Política e capabilities", title: "Configuração", description: "Valores não secretos e decisões administrativas sem persistência ou execução." },
+const viewCopy: Record<DashboardView, { eyebrowKey: MessageKey; titleKey: MessageKey; descriptionKey: MessageKey }> = {
+  inventory: { eyebrowKey: "View.Inventory.Eyebrow", titleKey: "View.Inventory.Title", descriptionKey: "View.Inventory.Description" },
+  history: { eyebrowKey: "View.History.Eyebrow", titleKey: "View.History.Title", descriptionKey: "View.History.Description" },
+  alerts: { eyebrowKey: "View.Alerts.Eyebrow", titleKey: "View.Alerts.Title", descriptionKey: "View.Alerts.Description" },
+  configuration: { eyebrowKey: "View.Configuration.Eyebrow", titleKey: "View.Configuration.Title", descriptionKey: "View.Configuration.Description" },
 };
 
-const statusPresentation: Record<HealthStatus, { symbol: string; label: string; className: string }> = {
-  healthy: { symbol: "●", label: "Saudável", className: "healthy" },
-  degraded: { symbol: "▲", label: "Degradado", className: "degraded" },
-  unavailable: { symbol: "■", label: "Indisponível", className: "critical" },
-  authFailed: { symbol: "■", label: "Falha de autenticação", className: "critical" },
-  timeout: { symbol: "■", label: "Timeout", className: "critical" },
-  maintenance: { symbol: "◆", label: "Manutenção", className: "maintenance" },
-  unknown: { symbol: "○", label: "Desconhecido", className: "unknown" },
+const statusPresentation: Record<HealthStatus, { symbol: string; labelKey: MessageKey; className: string }> = {
+  healthy: { symbol: "●", labelKey: "Status.Healthy", className: "healthy" },
+  degraded: { symbol: "▲", labelKey: "Status.Degraded", className: "degraded" },
+  unavailable: { symbol: "■", labelKey: "Status.Unavailable", className: "critical" },
+  authFailed: { symbol: "■", labelKey: "Status.AuthFailed", className: "critical" },
+  timeout: { symbol: "■", labelKey: "Status.Timeout", className: "critical" },
+  maintenance: { symbol: "◆", labelKey: "Status.Maintenance", className: "maintenance" },
+  unknown: { symbol: "○", labelKey: "Status.Unknown", className: "unknown" },
 };
 
-function formatUtc(value: string): string {
-  return new Intl.DateTimeFormat("pt-BR", {
+function formatUtc(value: string, locale: SupportedLocale): string {
+  return new Intl.DateTimeFormat(locale, {
     dateStyle: "short",
     timeStyle: "medium",
     timeZone: "UTC",
@@ -66,11 +69,12 @@ function formatUtc(value: string): string {
 }
 
 function StatusBadge({ item, now }: { item: InventoryItem; now: Date }) {
+  const { t } = useLocalisation();
   if (isStale(item, now)) {
-    return <span className="status-badge stale"><span aria-hidden="true">◷</span> Desatualizado</span>;
+    return <span className="status-badge stale"><span aria-hidden="true">◷</span> {t("Status.Stale")}</span>;
   }
   const presentation = statusPresentation[item.status];
-  return <span className={`status-badge ${presentation.className}`}><span aria-hidden="true">{presentation.symbol}</span> {presentation.label}</span>;
+  return <span className={`status-badge ${presentation.className}`}><span aria-hidden="true">{presentation.symbol}</span> {t(presentation.labelKey)}</span>;
 }
 
 /**
@@ -78,19 +82,20 @@ function StatusBadge({ item, now }: { item: InventoryItem; now: Date }) {
  * @returns The accessible application shell without external integration or administrative execution.
  */
 export function App() {
+  const { locale, t } = useLocalisation();
   const [view, setView] = useState<DashboardView>(() =>
     window.location.hash === "#history" ? "history" : window.location.hash === "#alerts" ? "alerts" : window.location.hash === "#configuration" ? "configuration" : "inventory");
   const [state, setState] = useState<InventoryState>("ready");
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | HealthStatus | "stale">("all");
   const [now] = useState(() => new Date());
-  const snapshot = useMemo(() => buildDemonstrationSnapshot(now), [now]);
-  const timelineSnapshot = useMemo(() => buildTimelineAlertSnapshot(now), [now]);
-  const configurationSnapshot = useMemo(() => buildConfigurationSnapshot(), []);
+  const snapshot = useMemo(() => buildDemonstrationSnapshot(now, locale), [now, locale]);
+  const timelineSnapshot = useMemo(() => buildTimelineAlertSnapshot(now, locale), [now, locale]);
+  const configurationSnapshot = useMemo(() => buildConfigurationSnapshot(locale), [locale]);
   const summary = useMemo(() => summarizeInventory(snapshot, now), [snapshot, now]);
   const filteredItems = useMemo(
-    () => filterInventory(snapshot.items, query, statusFilter, now),
-    [snapshot.items, query, statusFilter, now],
+    () => filterInventory(snapshot.items, query, statusFilter, now, locale),
+    [snapshot.items, query, statusFilter, now, locale],
   );
   const copy = viewCopy[view];
   const navigate = (nextView: DashboardView) => {
@@ -100,40 +105,41 @@ export function App() {
 
   return (
     <div className="app-shell">
-      <a className="skip-link" href="#main-content">Pular para o conteúdo</a>
+      <a className="skip-link" href="#main-content">{t("Navigation.Skip")}</a>
       <header className="topbar">
         <div className="brand-lockup" aria-label="DB-Notifier">
           <span className="brand-mark" aria-hidden="true"><i /><i /><i /></span>
-          <span><strong>DB-NOTIFIER</strong><small>Operations console</small></span>
+          <span><strong>DB-NOTIFIER</strong><small>{t("Brand.Subtitle")}</small></span>
         </div>
         <div className="topbar-controls">
+          <LanguageSelector />
           <ThemeSelector />
-          <div className="demo-badge">Dados de demonstração</div>
+          <div className="demo-badge">{t("Demo.Badge")}</div>
         </div>
       </header>
 
       <div className="page-layout">
-        <aside className="sidebar" aria-label="Navegação principal">
+        <aside className="sidebar" aria-label={t("Navigation.Label")}>
           <nav>
-            <button type="button" className={`nav-item ${view === "inventory" ? "active" : ""}`} aria-current={view === "inventory" ? "page" : undefined} onClick={() => navigate("inventory")}><span aria-hidden="true">▦</span> Inventário</button>
-            <button type="button" className={`nav-item ${view === "history" ? "active" : ""}`} aria-current={view === "history" ? "page" : undefined} onClick={() => navigate("history")}><span aria-hidden="true">◷</span> Histórico</button>
-            <button type="button" className={`nav-item ${view === "alerts" ? "active" : ""}`} aria-current={view === "alerts" ? "page" : undefined} onClick={() => navigate("alerts")}><span aria-hidden="true">△</span> Alertas</button>
-            <button type="button" className={`nav-item ${view === "configuration" ? "active" : ""}`} aria-current={view === "configuration" ? "page" : undefined} onClick={() => navigate("configuration")}><span aria-hidden="true">⚙</span> Configuração</button>
+            <button type="button" className={`nav-item ${view === "inventory" ? "active" : ""}`} aria-current={view === "inventory" ? "page" : undefined} onClick={() => navigate("inventory")}><span aria-hidden="true">▦</span> {t("Navigation.Inventory")}</button>
+            <button type="button" className={`nav-item ${view === "history" ? "active" : ""}`} aria-current={view === "history" ? "page" : undefined} onClick={() => navigate("history")}><span aria-hidden="true">◷</span> {t("Navigation.History")}</button>
+            <button type="button" className={`nav-item ${view === "alerts" ? "active" : ""}`} aria-current={view === "alerts" ? "page" : undefined} onClick={() => navigate("alerts")}><span aria-hidden="true">△</span> {t("Navigation.Alerts")}</button>
+            <button type="button" className={`nav-item ${view === "configuration" ? "active" : ""}`} aria-current={view === "configuration" ? "page" : undefined} onClick={() => navigate("configuration")}><span aria-hidden="true">⚙</span> {t("Navigation.Configuration")}</button>
           </nav>
-          <div className="sidebar-note"><strong>STATE-05</strong><span>Interface somente leitura</span></div>
+          <div className="sidebar-note"><strong>{t("Sidebar.State")}</strong><span>{t("Sidebar.ReadOnly")}</span></div>
         </aside>
 
         <main id="main-content" tabIndex={-1}>
           <section className="page-heading" aria-labelledby="page-title">
             <div>
-              <p className="eyebrow">{copy.eyebrow}</p>
-              <h1 id="page-title">{copy.title}</h1>
-              <p>{copy.description}</p>
+              <p className="eyebrow">{t(copy.eyebrowKey)}</p>
+              <h1 id="page-title">{t(copy.titleKey)}</h1>
+              <p>{t(copy.descriptionKey)}</p>
             </div>
             <label className="scenario-control">
-              <span>Cenário acessível</span>
+              <span>{t("Scenario.Label")}</span>
               <select value={state} onChange={(event) => setState(event.target.value as InventoryState)}>
-                {stateOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+                {stateOptions.map((option) => <option key={option.value} value={option.value}>{t(option.labelKey)}</option>)}
               </select>
             </label>
           </section>
@@ -162,50 +168,54 @@ export function App() {
       </div>
 
       <footer>
-        Nenhuma conexão externa é realizada nesta tela. Providers planejados não representam suporte público ou homologação.
+        {t("Footer.Disclaimer")}
       </footer>
     </div>
   );
 }
 
-const severityPresentation: Record<EventSeverity, { symbol: string; label: string; className: string }> = {
-  information: { symbol: "●", label: "Informativo", className: "information" },
-  warning: { symbol: "▲", label: "Aviso", className: "degraded" },
-  critical: { symbol: "■", label: "Crítico", className: "critical" },
+const severityPresentation: Record<EventSeverity, { symbol: string; labelKey: MessageKey; className: string }> = {
+  information: { symbol: "●", labelKey: "Severity.Information", className: "information" },
+  warning: { symbol: "▲", labelKey: "Severity.Warning", className: "degraded" },
+  critical: { symbol: "■", labelKey: "Severity.Critical", className: "critical" },
 };
 
 function SeverityBadge({ severity }: { severity: EventSeverity }) {
+  const { t } = useLocalisation();
   const item = severityPresentation[severity];
-  return <span className={`status-badge ${item.className}`}><span aria-hidden="true">{item.symbol}</span> {item.label}</span>;
+  return <span className={`status-badge ${item.className}`}><span aria-hidden="true">{item.symbol}</span> {t(item.labelKey)}</span>;
 }
 
 function HistoryView({ snapshot }: { snapshot: ReturnType<typeof buildTimelineAlertSnapshot> }) {
+  const { locale, t } = useLocalisation();
   const [query, setQuery] = useState("");
   const [severity, setSeverity] = useState<"all" | EventSeverity>("all");
-  const events = useMemo(() => filterTimeline(snapshot.events, query, severity), [snapshot.events, query, severity]);
+  const events = useMemo(() => filterTimeline(snapshot.events, query, severity, locale), [snapshot.events, query, severity, locale]);
   return <section className="inventory-panel timeline-panel" aria-labelledby="history-title">
-    <div className="panel-header"><div><h2 id="history-title">Timeline de eventos</h2><p aria-live="polite">{events.length} de {snapshot.events.length} eventos visíveis</p></div><span className="read-only-label">history-alerts.v1</span></div>
-    <div className="filters" role="search"><label><span>Buscar eventos</span><input type="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Instância, provider, evento..." /></label><label><span>Severidade</span><select value={severity} onChange={(event) => setSeverity(event.target.value as "all" | EventSeverity)}><option value="all">Todas</option><option value="information">Informativo</option><option value="warning">Aviso</option><option value="critical">Crítico</option></select></label></div>
-    {events.length === 0 ? <FilteredEmpty message="Ajuste a busca ou o filtro de severidade." /> : <ol className="timeline-list">{events.map((event) => <TimelineRow key={event.eventId} event={event} />)}</ol>}
+    <div className="panel-header"><div><h2 id="history-title">{t("History.Title")}</h2><p aria-live="polite">{t("History.Count", events.length, snapshot.events.length)}</p></div><span className="read-only-label">history-alerts.v1</span></div>
+    <div className="filters" role="search"><label><span>{t("History.Search")}</span><input type="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder={t("History.SearchPlaceholder")} /></label><label><span>{t("History.Severity")}</span><select value={severity} onChange={(event) => setSeverity(event.target.value as "all" | EventSeverity)}><option value="all">{t("History.AllSeverities")}</option><option value="information">{t("Severity.Information")}</option><option value="warning">{t("Severity.Warning")}</option><option value="critical">{t("Severity.Critical")}</option></select></label></div>
+    {events.length === 0 ? <FilteredEmpty message={t("History.FilteredEmpty")} /> : <ol className="timeline-list">{events.map((event) => <TimelineRow key={event.eventId} event={event} />)}</ol>}
   </section>;
 }
 
 function TimelineRow({ event }: { event: TimelineEventItem }) {
-  return <li className={`timeline-item ${event.severity}`}><div className="timeline-marker" aria-hidden="true" /><article><div className="timeline-heading"><div><h3>{event.eventType}</h3><p>{event.instanceName} · <code>{event.providerType}</code></p></div><SeverityBadge severity={event.severity} /></div><p className="timeline-summary">{event.summary}</p><time dateTime={event.occurredAt}>{formatUtc(event.occurredAt)} UTC</time></article></li>;
+  const { locale } = useLocalisation();
+  return <li className={`timeline-item ${event.severity}`}><div className="timeline-marker" aria-hidden="true" /><article><div className="timeline-heading"><div><h3>{event.eventType}</h3><p>{event.instanceName} · <code>{event.providerType}</code></p></div><SeverityBadge severity={event.severity} /></div><p className="timeline-summary">{event.summary}</p><time dateTime={event.occurredAt}>{formatUtc(event.occurredAt, locale)} UTC</time></article></li>;
 }
 
 function AlertsView({ alerts, generatedAt }: { alerts: readonly AlertItem[]; generatedAt: string }) {
+  const { locale, t } = useLocalisation();
   const active = alerts.filter((alert) => alert.state === "active").length;
   const critical = alerts.filter((alert) => alert.severity === "critical" && alert.state !== "resolved").length;
-  return <section aria-labelledby="alerts-title"><p className="updated-at">Atualizado em <time dateTime={generatedAt}>{formatUtc(generatedAt)} UTC</time></p><div className="summary-grid alert-summary"><article className="summary-card critical"><span><i aria-hidden="true">■</i> Críticos abertos</span><strong>{critical}</strong></article><article className="summary-card degraded"><span><i aria-hidden="true">▲</i> Ativos</span><strong>{active}</strong></article><article className="summary-card"><span><i aria-hidden="true">✓</i> Total visível</span><strong>{alerts.length}</strong></article></div><div className="inventory-panel"><div className="panel-header"><div><h2 id="alerts-title">Alertas demonstrativos</h2><p>Reconhecer e silenciar não estão habilitados neste incremento.</p></div><span className="read-only-label">Somente leitura</span></div><div className="alert-list">{alerts.map((alert) => <article className="alert-card" key={alert.alertId}><div className="alert-card-heading"><SeverityBadge severity={alert.severity} /><span className="alert-state">{alert.state === "active" ? "Ativo" : alert.state === "acknowledged" ? "Reconhecido" : alert.state === "silenced" ? "Silenciado" : "Resolvido"}</span></div><h3>{alert.ruleName}</h3><p>{alert.summary}</p><dl><div><dt>Instância</dt><dd>{alert.instanceName}</dd></div><div><dt>Provider</dt><dd><code>{alert.providerType}</code></dd></div><div><dt>Atualizado</dt><dd><time dateTime={alert.updatedAt}>{formatUtc(alert.updatedAt)} UTC</time></dd></div></dl></article>)}</div></div></section>;
+  return <section aria-labelledby="alerts-title"><p className="updated-at">{t("Alerts.UpdatedAt", formatUtc(generatedAt, locale))}</p><div className="summary-grid alert-summary"><article className="summary-card critical"><span><i aria-hidden="true">■</i> {t("Alerts.CriticalOpen")}</span><strong>{critical}</strong></article><article className="summary-card degraded"><span><i aria-hidden="true">▲</i> {t("Alerts.Active")}</span><strong>{active}</strong></article><article className="summary-card"><span><i aria-hidden="true">✓</i> {t("Alerts.TotalVisible")}</span><strong>{alerts.length}</strong></article></div><div className="inventory-panel"><div className="panel-header"><div><h2 id="alerts-title">{t("Alerts.Title")}</h2><p>{t("Alerts.Description")}</p></div><span className="read-only-label">{t("Common.ReadOnly")}</span></div><div className="alert-list">{alerts.map((alert) => <article className="alert-card" key={alert.alertId}><div className="alert-card-heading"><SeverityBadge severity={alert.severity} /><span className="alert-state">{t(alert.state === "active" ? "AlertState.Active" : alert.state === "acknowledged" ? "AlertState.Acknowledged" : alert.state === "silenced" ? "AlertState.Silenced" : "AlertState.Resolved")}</span></div><h3>{alert.ruleName}</h3><p>{alert.summary}</p><dl><div><dt>{t("Common.Instance")}</dt><dd>{alert.instanceName}</dd></div><div><dt>{t("Common.Provider")}</dt><dd><code>{alert.providerType}</code></dd></div><div><dt>{t("Common.Updated")}</dt><dd><time dateTime={alert.updatedAt}>{formatUtc(alert.updatedAt, locale)} UTC</time></dd></div></dl></article>)}</div></div></section>;
 }
 
-const previewCopy: Record<ActionPreview, { symbol: string; title: string; message: string }> = {
-  confirmationRequired: { symbol: "?", title: "Confirmação obrigatória", message: "Uma operação suportada exigiria motivo, expiração e confirmação final. A execução está desabilitada nesta demonstração." },
-  denied: { symbol: "⊘", title: "Permissão negada", message: "A identidade demonstrativa não possui a permissão específica no escopo da instância." },
-  unsupported: { symbol: "—", title: "Operação não suportada", message: "O provider não declara esta capability. Nenhuma tentativa ou fallback foi realizado." },
-  unavailable: { symbol: "↯", title: "Operação indisponível", message: "A capability existe, mas seus pré-requisitos não estão disponíveis neste momento." },
-  unknown: { symbol: "?", title: "Capability desconhecida", message: "O estado não é comprovado e falha fechado, sem apresentar a ação como disponível." },
+const previewCopy: Record<ActionPreview, { symbol: string; titleKey: MessageKey; messageKey: MessageKey }> = {
+  confirmationRequired: { symbol: "?", titleKey: "Preview.Confirmation.Title", messageKey: "Preview.Confirmation.Message" },
+  denied: { symbol: "⊘", titleKey: "Preview.Denied.Title", messageKey: "Preview.Denied.Message" },
+  unsupported: { symbol: "—", titleKey: "Preview.Unsupported.Title", messageKey: "Preview.Unsupported.Message" },
+  unavailable: { symbol: "↯", titleKey: "Preview.Unavailable.Title", messageKey: "Preview.Unavailable.Message" },
+  unknown: { symbol: "?", titleKey: "Preview.Unknown.Title", messageKey: "Preview.Unknown.Message" },
 };
 
 /**
@@ -213,6 +223,7 @@ const previewCopy: Record<ActionPreview, { symbol: string; title: string; messag
  * The native modal dialogue contains keyboard focus and restores it to the invoking control when closed.
  */
 function ConfigurationView({ snapshot }: { snapshot: ReturnType<typeof buildConfigurationSnapshot> }) {
+  const { t } = useLocalisation();
   const [authorized, setAuthorized] = useState(true);
   const [preview, setPreview] = useState<ActionPreview | null>(null);
   const dialogRef = useRef<HTMLDialogElement>(null);
@@ -276,14 +287,15 @@ function ConfigurationView({ snapshot }: { snapshot: ReturnType<typeof buildConf
   const closePreview = () => setPreview(null);
 
   return <section className="configuration-layout" aria-labelledby="configuration-title">
-    <div className="inventory-panel configuration-panel"><div className="panel-header"><div><h2 id="configuration-title">{snapshot.instanceName}</h2><p><code>{snapshot.providerType}</code> · configuration-capabilities.v1</p></div><span className="read-only-label">Não persistido</span></div><div className="configuration-fields">{snapshot.fields.map((field) => <article key={field.key}><span>{field.label}</span><strong>{field.safeValue}</strong><p>{field.description}</p></article>)}</div></div>
-    <div className="inventory-panel capability-panel"><div className="panel-header"><div><h2>Controle administrativo</h2><p>Capability, autorização e disponibilidade são avaliadas separadamente.</p></div><label className="permission-toggle"><span>Cenário de permissão</span><select value={authorized ? "authorized" : "denied"} onChange={(event) => setAuthorized(event.target.value === "authorized")}><option value="authorized">Autorizado</option><option value="denied">Negado</option></select></label></div><div className="capability-list">{snapshot.capabilities.map((capability) => <article key={capability.capabilityId}><div><h3>{capability.displayName}</h3><code>{capability.capabilityId}</code></div><span className={`capability-state ${capability.state}`}>{capability.state === "unsupported" ? "— Não suportado" : capability.state}</span><p>{capability.reasonCode}</p><button type="button" onClick={(event) => openPreview(capability.capabilityId, event.currentTarget)}>Revisar decisão</button></article>)}</div><div className="confirmation-example"><div><strong>Exemplo de confirmação segura</strong><p>Prévia de UX para uma capability futura suportada; não altera o estado factual acima.</p></div><button type="button" onClick={(event) => openConfirmationExample(event.currentTarget)}>Visualizar confirmação</button></div></div>
-    {preview && <dialog ref={dialogRef} className="confirmation-dialog" role="dialog" aria-modal="true" aria-labelledby="preview-title" onCancel={(event) => { event.preventDefault(); closePreview(); }}><span className="state-symbol" aria-hidden="true">{previewCopy[preview].symbol}</span><h2 id="preview-title">{previewCopy[preview].title}</h2><p>{previewCopy[preview].message}</p><div className="dialog-actions"><button ref={closeButtonRef} type="button" onClick={closePreview}>Fechar</button><button type="button" disabled>Executar — desabilitado</button></div></dialog>}
+    <div className="inventory-panel configuration-panel"><div className="panel-header"><div><h2 id="configuration-title">{snapshot.instanceName}</h2><p><code>{snapshot.providerType}</code> · configuration-capabilities.v1</p></div><span className="read-only-label">{t("Common.NotPersisted")}</span></div><div className="configuration-fields">{snapshot.fields.map((field) => <article key={field.key}><span>{field.label}</span><strong>{field.safeValue}</strong><p>{field.description}</p></article>)}</div></div>
+    <div className="inventory-panel capability-panel"><div className="panel-header"><div><h2>{t("Configuration.AdminTitle")}</h2><p>{t("Configuration.AdminDescription")}</p></div><label className="permission-toggle"><span>{t("Configuration.PermissionScenario")}</span><select value={authorized ? "authorized" : "denied"} onChange={(event) => setAuthorized(event.target.value === "authorized")}><option value="authorized">{t("Configuration.Authorized")}</option><option value="denied">{t("Configuration.Denied")}</option></select></label></div><div className="capability-list">{snapshot.capabilities.map((capability) => <article key={capability.capabilityId}><div><h3>{capability.displayName}</h3><code>{capability.capabilityId}</code></div><span className={`capability-state ${capability.state}`}>{capability.state === "unsupported" ? t("Configuration.Unsupported") : capability.state}</span><p>{capability.reasonCode}</p><button type="button" onClick={(event) => openPreview(capability.capabilityId, event.currentTarget)}>{t("Configuration.ReviewDecision")}</button></article>)}</div><div className="confirmation-example"><div><strong>{t("Configuration.ConfirmationTitle")}</strong><p>{t("Configuration.ConfirmationDescription")}</p></div><button type="button" onClick={(event) => openConfirmationExample(event.currentTarget)}>{t("Configuration.ViewConfirmation")}</button></div></div>
+    {preview && <dialog ref={dialogRef} className="confirmation-dialog" role="dialog" aria-modal="true" aria-labelledby="preview-title" onCancel={(event) => { event.preventDefault(); closePreview(); }}><span className="state-symbol" aria-hidden="true">{previewCopy[preview].symbol}</span><h2 id="preview-title">{t(previewCopy[preview].titleKey)}</h2><p>{t(previewCopy[preview].messageKey)}</p><div className="dialog-actions"><button ref={closeButtonRef} type="button" onClick={closePreview}>{t("Dialog.Close")}</button><button type="button" disabled>{t("Dialog.ExecuteDisabled")}</button></div></dialog>}
   </section>;
 }
 
 function FilteredEmpty({ message }: { message: string }) {
-  return <div className="filtered-empty"><span aria-hidden="true">⌕</span><strong>Nenhum resultado</strong><p>{message}</p></div>;
+  const { t } = useLocalisation();
+  return <div className="filtered-empty"><span aria-hidden="true">⌕</span><strong>{t("FilteredEmpty.Title")}</strong><p>{message}</p></div>;
 }
 
 function ReadyInventory({
@@ -305,17 +317,18 @@ function ReadyInventory({
   onQueryChange: (value: string) => void;
   onStatusChange: (value: "all" | HealthStatus | "stale") => void;
 }) {
+  const { locale, t } = useLocalisation();
   const cards = [
-    { label: "Total", value: summary.total, symbol: "▦", className: "total" },
-    { label: "Saudáveis", value: summary.healthy, symbol: "●", className: "healthy" },
-    { label: "Degradadas", value: summary.degraded, symbol: "▲", className: "degraded" },
-    { label: "Atenção", value: summary.attentionRequired, symbol: "■", className: "critical" },
-    { label: "Desatualizadas", value: summary.stale, symbol: "◷", className: "stale" },
+    { label: t("Inventory.Total"), value: summary.total, symbol: "▦", className: "total" },
+    { label: t("Inventory.Healthy"), value: summary.healthy, symbol: "●", className: "healthy" },
+    { label: t("Inventory.Degraded"), value: summary.degraded, symbol: "▲", className: "degraded" },
+    { label: t("Inventory.Attention"), value: summary.attentionRequired, symbol: "■", className: "critical" },
+    { label: t("Inventory.Stale"), value: summary.stale, symbol: "◷", className: "stale" },
   ];
 
   return (
-    <section id="inventory" aria-label="Resumo e inventário">
-      <p className="updated-at">Atualizado em <time dateTime={generatedAt}>{formatUtc(generatedAt)} UTC</time> · stale após {staleAfterMilliseconds / 60_000} min</p>
+    <section id="inventory" aria-label={t("Inventory.Caption")}>
+      <p className="updated-at">{t("Inventory.UpdatedAt", formatUtc(generatedAt, locale), staleAfterMilliseconds / 60_000)}</p>
       <div className="summary-grid">
         {cards.map((card) => (
           <article className={`summary-card ${card.className}`} key={card.label}>
@@ -327,23 +340,23 @@ function ReadyInventory({
 
       <section className="inventory-panel" aria-labelledby="inventory-title">
         <div className="panel-header">
-          <div><h2 id="inventory-title">Instâncias monitoradas</h2><p aria-live="polite">{items.length} de {summary.total} itens visíveis</p></div>
-          <span className="read-only-label">Somente leitura</span>
+          <div><h2 id="inventory-title">{t("Inventory.Title")}</h2><p aria-live="polite">{t("Inventory.Count", items.length, summary.total)}</p></div>
+          <span className="read-only-label">{t("Common.ReadOnly")}</span>
         </div>
         <div className="filters" role="search">
-          <label><span>Buscar</span><input type="search" value={query} onChange={(event) => onQueryChange(event.target.value)} placeholder="Nome, provider, ambiente..." /></label>
-          <label><span>Status</span><select value={statusFilter} onChange={(event) => onStatusChange(event.target.value as "all" | HealthStatus | "stale")}>
-            <option value="all">Todos</option><option value="healthy">Saudável</option><option value="degraded">Degradado</option><option value="timeout">Timeout</option><option value="unknown">Desconhecido</option><option value="stale">Desatualizado</option>
+          <label><span>{t("Inventory.Search")}</span><input type="search" value={query} onChange={(event) => onQueryChange(event.target.value)} placeholder={t("Inventory.SearchPlaceholder")} /></label>
+          <label><span>{t("Common.Status")}</span><select value={statusFilter} onChange={(event) => onStatusChange(event.target.value as "all" | HealthStatus | "stale")}>
+            <option value="all">{t("Common.All")}</option><option value="healthy">{t("Status.Healthy")}</option><option value="degraded">{t("Status.Degraded")}</option><option value="timeout">{t("Status.Timeout")}</option><option value="unknown">{t("Status.Unknown")}</option><option value="stale">{t("Status.Stale")}</option>
           </select></label>
         </div>
         {items.length === 0 ? (
-          <FilteredEmpty message="Ajuste a busca ou o filtro de status." />
+          <FilteredEmpty message={t("Inventory.FilteredEmpty")} />
         ) : (
           <>
             <div className="table-wrap">
               <table>
-                <caption className="sr-only">Inventário demonstrativo de instâncias de banco de dados</caption>
-                <thead><tr><th scope="col">Instância</th><th scope="col">Provider</th><th scope="col">Suporte</th><th scope="col">Ambiente</th><th scope="col">Status</th><th scope="col">Observado em</th><th scope="col">Latência</th></tr></thead>
+                <caption className="sr-only">{t("Inventory.Caption")}</caption>
+                <thead><tr><th scope="col">{t("Common.Instance")}</th><th scope="col">{t("Common.Provider")}</th><th scope="col">{t("Common.Support")}</th><th scope="col">{t("Common.Environment")}</th><th scope="col">{t("Common.Status")}</th><th scope="col">{t("Common.ObservedAt")}</th><th scope="col">{t("Common.Latency")}</th></tr></thead>
                 <tbody>{items.map((item) => <InventoryTableRow key={item.instanceId} item={item} now={now} />)}</tbody>
               </table>
             </div>
@@ -356,18 +369,21 @@ function ReadyInventory({
 }
 
 function InventoryTableRow({ item, now }: { item: InventoryItem; now: Date }) {
-  return <tr><th scope="row"><strong>{item.displayName}</strong><small>{item.locationLabel}</small></th><td><code>{item.providerType}</code></td><td>{item.supportLabel}</td><td>{item.environment}</td><td><StatusBadge item={item} now={now} /></td><td><time dateTime={item.observedAt}>{formatUtc(item.observedAt)} UTC</time></td><td>{item.latencyMilliseconds === null ? "—" : `${item.latencyMilliseconds} ms`}</td></tr>;
+  const { locale } = useLocalisation();
+  return <tr><th scope="row"><strong>{item.displayName}</strong><small>{item.locationLabel}</small></th><td><code>{item.providerType}</code></td><td>{item.supportLabel}</td><td>{item.environment}</td><td><StatusBadge item={item} now={now} /></td><td><time dateTime={item.observedAt}>{formatUtc(item.observedAt, locale)} UTC</time></td><td>{item.latencyMilliseconds === null ? "—" : `${item.latencyMilliseconds} ms`}</td></tr>;
 }
 
 function InventoryMobileCard({ item, now }: { item: InventoryItem; now: Date }) {
-  return <article className="instance-card"><div className="instance-card-heading"><div><h3>{item.displayName}</h3><p>{item.locationLabel}</p></div><StatusBadge item={item} now={now} /></div><dl><div><dt>Provider</dt><dd><code>{item.providerType}</code></dd></div><div><dt>Suporte</dt><dd>{item.supportLabel}</dd></div><div><dt>Ambiente</dt><dd>{item.environment}</dd></div><div><dt>Observado em</dt><dd><time dateTime={item.observedAt}>{formatUtc(item.observedAt)} UTC</time></dd></div><div><dt>Latência</dt><dd>{item.latencyMilliseconds === null ? "—" : `${item.latencyMilliseconds} ms`}</dd></div></dl></article>;
+  const { locale, t } = useLocalisation();
+  return <article className="instance-card"><div className="instance-card-heading"><div><h3>{item.displayName}</h3><p>{item.locationLabel}</p></div><StatusBadge item={item} now={now} /></div><dl><div><dt>{t("Common.Provider")}</dt><dd><code>{item.providerType}</code></dd></div><div><dt>{t("Common.Support")}</dt><dd>{item.supportLabel}</dd></div><div><dt>{t("Common.Environment")}</dt><dd>{item.environment}</dd></div><div><dt>{t("Common.ObservedAt")}</dt><dd><time dateTime={item.observedAt}>{formatUtc(item.observedAt, locale)} UTC</time></dd></div><div><dt>{t("Common.Latency")}</dt><dd>{item.latencyMilliseconds === null ? "—" : `${item.latencyMilliseconds} ms`}</dd></div></dl></article>;
 }
 
 function OperationalState({ state, onRetry }: { state: Exclude<InventoryState, "ready">; onRetry: () => void }) {
+  const { t } = useLocalisation();
   const content = stateMessages[state];
   return <section className="operational-state" role={state === "error" || state === "denied" ? "alert" : "status"} aria-live="polite" aria-busy={state === "loading"}>
     {state === "loading" && <span className="loading-line" aria-hidden="true" />}
-    <span className="state-symbol" aria-hidden="true">{content.symbol}</span><h2>{content.title}</h2><p>{content.message}</p>
-    {content.retry && <button type="button" onClick={onRetry}>Tentar novamente</button>}
+    <span className="state-symbol" aria-hidden="true">{content.symbol}</span><h2>{t(content.titleKey)}</h2><p>{t(content.messageKey)}</p>
+    {content.retry && <button type="button" onClick={onRetry}>{t("Operational.Retry")}</button>}
   </section>;
 }

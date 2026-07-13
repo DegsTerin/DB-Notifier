@@ -392,6 +392,16 @@
 - Evidências: `docs/STATE-05-Design-System-Implementation-Report.md`; amostras Chrome Light 1440 e Dark em viewport exato de 390 CSS px aprovadas, com `clientWidth = scrollWidth = 390`.
 - Riscos/ressalvas: WPF ainda não consome o ciclo de tema runtime nem migrou recursos manuais; reauditoria automática completa e Human Gate permanecem pendentes.
 
+## 2026-07-13 — Incremento bilíngue de localização da interface
+
+- Estado anterior: `STATE-05 FRONTEND_IMPLEMENTATION`
+- Estado resultante: sem transição
+- Decisão: implementar `pt-BR` e `en-GB` no Dashboard React e Desktop/Tray WPF com `pt-BR` como fallback seguro.
+- Escopo: catálogos XML canônicos, geração TypeScript/XAML, seletores persistentes, recursos dinâmicos, fixtures localizadas e matriz responsiva bilíngue.
+- Gates: geração/drift, testes/builds, documentação, dependências e auditorias runtime bilíngues aplicáveis; Human Gate permanece pendente.
+- Evidências: `docs/STATE-05-Localisation-Implementation-Report.md`; nenhuma integração externa ou capability administrativa foi habilitada.
+- Riscos/ressalvas: amostras humanas bilíngues de leitor de tela e zoom/scaling permanecem pendentes; tema WPF completo continua em incremento separado.
+
 ## Template de nova entrada
 
 - Data:

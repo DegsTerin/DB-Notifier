@@ -71,4 +71,29 @@ public sealed class AccessibilityPresentationTests
         Assert.False(ThemePreferenceContract.TryParse("unexpected", out ThemePreference parsed));
         Assert.Equal(ThemePreference.System, parsed);
     }
+
+    /// <summary>
+    /// Confirms supported interface locales round-trip through their exact BCP 47 values.
+    /// </summary>
+    /// <param name="stored">Supported persisted locale.</param>
+    /// <param name="expected">Expected platform-neutral language.</param>
+    [Theory]
+    [InlineData("pt-BR", InterfaceLanguage.BrazilianPortuguese)]
+    [InlineData("en-GB", InterfaceLanguage.BritishEnglish)]
+    public void LanguageStorageValuesRoundTrip(string stored, InterfaceLanguage expected)
+    {
+        Assert.True(LanguagePreferenceContract.TryParse(stored, out InterfaceLanguage parsed));
+        Assert.Equal(expected, parsed);
+        Assert.Equal(stored, LanguagePreferenceContract.ToStorageValue(parsed));
+    }
+
+    /// <summary>
+    /// Confirms an unsupported locale fails safely to the Brazilian Portuguese baseline.
+    /// </summary>
+    [Fact]
+    public void InvalidLanguageStorageFailsSafelyToBrazilianPortuguese()
+    {
+        Assert.False(LanguagePreferenceContract.TryParse("en-US", out InterfaceLanguage parsed));
+        Assert.Equal(InterfaceLanguage.BrazilianPortuguese, parsed);
+    }
 }

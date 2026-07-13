@@ -12,11 +12,13 @@ import {
   themePreferenceStorageKey,
   type ThemePreference,
 } from "./theme";
+import { useLocalisation } from "./LocalisationProvider";
+import type { MessageKey } from "./generated/localisation";
 
-const options: ReadonlyArray<{ value: ThemePreference; label: string }> = [
-  { value: "system", label: "Sistema" },
-  { value: "light", label: "Claro" },
-  { value: "dark", label: "Escuro" },
+const options: ReadonlyArray<{ value: ThemePreference; labelKey: MessageKey }> = [
+  { value: "system", labelKey: "Theme.System" },
+  { value: "light", labelKey: "Theme.Light" },
+  { value: "dark", labelKey: "Theme.Dark" },
 ];
 
 /**
@@ -50,6 +52,7 @@ function readSystemUsesDark(): boolean {
  * @returns A native radio group with visible labels and an announced current preference.
  */
 export function ThemeSelector() {
+  const { t } = useLocalisation();
   const [preference, setPreference] = useState<ThemePreference>(readInitialPreference);
   const [systemUsesDark, setSystemUsesDark] = useState(readSystemUsesDark);
 
@@ -85,10 +88,10 @@ export function ThemeSelector() {
     return () => window.removeEventListener("storage", handleStorage);
   }, []);
 
-  const currentLabel = options.find((option) => option.value === preference)?.label ?? "Sistema";
+  const currentLabel = t(options.find((option) => option.value === preference)?.labelKey ?? "Theme.System");
   return (
     <fieldset className="theme-selector">
-      <legend>Tema</legend>
+      <legend>{t("Theme.Label")}</legend>
       <div className="theme-options">
         {options.map((option) => (
           <label key={option.value}>
@@ -99,11 +102,11 @@ export function ThemeSelector() {
               checked={preference === option.value}
               onChange={() => setPreference(option.value)}
             />
-            <span>{option.label}</span>
+            <span>{t(option.labelKey)}</span>
           </label>
         ))}
       </div>
-      <span className="sr-only" aria-live="polite">Preferência de tema: {currentLabel}</span>
+      <span className="sr-only" aria-live="polite">{t("Theme.Announcement", currentLabel)}</span>
     </fieldset>
   );
 }

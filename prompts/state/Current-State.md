@@ -115,10 +115,13 @@ O projeto está em `STATE-05 FRONTEND_IMPLEMENTATION`. Quatro incrementos implem
 - Segundo incremento do Design System concluído no React: bootstrap pré-render sem flash de tema incorreto, preferência System/Light/Dark persistida de modo resiliente, observação live do sistema, sincronização entre abas e `ThemeSelector` acessível.
 - Dashboard migrado para CSS gerado e tokens semânticos/componentes canônicos, sem cores ou shadows crus nos estilos manuais e sem alterar rotas, filtros, estado seguro ou fronteiras provider-neutral.
 - 14 testes Dashboard, build/typecheck, drift de tokens, gate documental de 148 fontes, npm/NuGet audit, 133 testes .NET, 10 Pester, bundle e amostras Light 1440/Dark 390 aprovados; viewport de 390 CSS px comprovado sem overflow global.
+- Localização de interface `pt-BR` (padrão) e `en-GB` implementada no Dashboard React e no Desktop/Tray WPF a partir de catálogos XML canônicos com geração TypeScript/XAML determinística e gate de drift no CI.
+- Seletores de idioma persistem somente o locale validado, falham com segurança para `pt-BR` e preservam identificadores técnicos; o Dashboard permanece responsivo para amostras mobile/tablet/desktop e o WPF mantém mínimo desktop de `820×620` DIP.
+- Incremento bilíngue verificado com 18 testes Dashboard, 136 testes .NET, build Release sem avisos/erros, 18 amostras browser sem overflow global e WPF/UI Automation nos dois locales em `1180×760` e `820×620`.
 
 ## Pendente
 
-- Integrar tokens e ciclo completo Light/Dark/System no WPF, substituir recursos visuais locais, adicionar ThemeSelector/persistência segura/observadores de tema e High Contrast e então repetir a reauditoria automática.
+- Integrar tokens e ciclo completo Light/Dark/System no WPF, substituir recursos visuais locais, adicionar ThemeSelector/observadores de tema e High Contrast e então repetir a reauditoria automática bilíngue.
 - Após a reauditoria automática aprovada, completar amostras humanas com leitor de tela e zoom nativo conforme inventário do relatório.
 - Manter adapters de apresentação determinísticos até `STATE-06`; não integrar silenciosamente banco, IdP, certificado, canal ou provider real durante a fase de UI.
 - Representar capabilities e suporte de modo factual: ação ausente/negada/unsupported não pode aparecer como executável ou homologada.
@@ -136,6 +139,6 @@ O projeto está em `STATE-05 FRONTEND_IMPLEMENTATION`. Quatro incrementos implem
 
 ## Próximo gate
 
-Executar o terceiro incremento do Design System no WPF: serviço de tema, troca atômica de `ResourceDictionary`, observação System/High Contrast, preferência local segura, ThemeSelector e migração para recursos gerados. `STATE-06` e laboratório continuam bloqueados.
+Executar o próximo incremento do Design System no WPF: serviço de tema, troca atômica de `ResourceDictionary`, observação System/High Contrast, preferência local segura integrada ao locale, ThemeSelector e migração para recursos visuais gerados. `STATE-06` e laboratório continuam bloqueados.
 
 Este documento descreve somente o presente. Histórico pertence a `State-Transition-Log.md`.

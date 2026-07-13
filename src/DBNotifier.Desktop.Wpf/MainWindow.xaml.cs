@@ -1,4 +1,4 @@
-// Module purpose: Implements Main Window xaml for the Windows desktop shell without controlling database services implicitly.
+// Module purpose: Presents local demonstration inventory, history, alerts and capability decisions through the localised WPF shell.
 using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Windows;
@@ -8,31 +8,69 @@ using DBNotifier.Domain;
 
 namespace DBNotifier.Desktop.Wpf;
 
+/// <summary>
+/// Presents read-only demonstration data and accessible operational states without connecting to databases or executing commands.
+/// Localised presentation values are rebuilt whenever the user changes the supported interface language.
+/// </summary>
 public partial class MainWindow : Window
 {
     private static readonly TimeSpan StaleAfter = TimeSpan.FromMinutes(5);
+    private readonly DesktopLocalisationService localisation;
     private readonly ObservableCollection<InventoryRow> rows = [];
     private readonly ObservableCollection<TimelineRow> timelineRows = [];
     private readonly ObservableCollection<AlertRow> alertRows = [];
     private readonly ObservableCollection<CapabilityRow> capabilityRows = [];
-    private readonly InventorySnapshot snapshot;
-    private readonly TimelineAlertSnapshot timelineSnapshot;
-    private readonly ConfigurationCapabilitySnapshot configurationSnapshot;
+    private InventorySnapshot snapshot = null!;
+    private TimelineAlertSnapshot timelineSnapshot = null!;
+    private ConfigurationCapabilitySnapshot configurationSnapshot = null!;
 
-    public MainWindow()
+    /// <summary>Initialises the local demonstration surface with the already loaded interface preference.</summary>
+    /// <param name="localisation">Desktop localisation owner shared with the application and tray controller.</param>
+    internal MainWindow(DesktopLocalisationService localisation)
     {
+        this.localisation = localisation;
         InitializeComponent();
-        snapshot = CreateDemonstrationSnapshot(TimeProvider.System.GetUtcNow());
-        timelineSnapshot = CreateTimelineSnapshot(TimeProvider.System.GetUtcNow());
-        configurationSnapshot = CreateConfigurationSnapshot();
+        LanguageSelector.SelectedIndex = localisation.CurrentLanguage == InterfaceLanguage.BritishEnglish ? 1 : 0;
         InventoryGrid.ItemsSource = rows;
         HistoryGrid.ItemsSource = timelineRows;
         AlertsGrid.ItemsSource = alertRows;
-        ConfigurationGrid.ItemsSource = configurationSnapshot.Fields;
         CapabilityGrid.ItemsSource = capabilityRows;
+        localisation.LanguageChanged += LocalisationLanguageChanged;
+        Closed += (_, _) => localisation.LanguageChanged -= LocalisationLanguageChanged;
+        RebuildLocalisedData();
         PresentReadyState();
     }
 
+    /// <summary>Applies a validated language selected from the fixed desktop list.</summary>
+    private void LanguageSelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (!IsInitialized || LanguageSelector.SelectedItem is not ComboBoxItem selected ||
+            !LanguagePreferenceContract.TryParse(selected.Tag?.ToString(), out InterfaceLanguage language) ||
+            language == localisation.CurrentLanguage)
+        {
+            return;
+        }
+
+        localisation.SetLanguage(language);
+    }
+
+    /// <summary>Rebuilds fixture-derived labels after the generated resource dictionary changes.</summary>
+    private void LocalisationLanguageChanged(object? sender, EventArgs e)
+    {
+        RebuildLocalisedData();
+        if (ScenarioSelector.SelectedItem is ComboBoxItem selected &&
+            Enum.TryParse(selected.Tag?.ToString(), false, out InventorySurfaceState state) &&
+            state != InventorySurfaceState.Ready)
+        {
+            PresentNonReadyState(state);
+        }
+        else
+        {
+            PresentReadyState();
+        }
+    }
+
+    /// <summary>Refreshes the selected ready view when navigation changes.</summary>
     private void ViewSelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         if (IsInitialized && ScenarioSelector.SelectedIndex == 0)
@@ -41,6 +79,7 @@ public partial class MainWindow : Window
         }
     }
 
+    /// <summary>Presents the selected accessible operational state without external activity.</summary>
     private void ScenarioSelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         if (!IsInitialized || ScenarioSelector.SelectedItem is not ComboBoxItem selected)
@@ -48,312 +87,306 @@ public partial class MainWindow : Window
             return;
         }
 
-        InventorySurfaceState state = Enum.TryParse(
-            selected.Tag?.ToString(),
-            ignoreCase: false,
-            out InventorySurfaceState parsed)
+        InventorySurfaceState state = Enum.TryParse(selected.Tag?.ToString(), false, out InventorySurfaceState parsed)
             ? parsed
             : InventorySurfaceState.Error;
-
         if (state == InventorySurfaceState.Ready)
         {
             PresentReadyState();
             return;
         }
-
         PresentNonReadyState(state);
     }
 
+    /// <summary>Returns keyboard focus and presentation to the loaded demonstration state.</summary>
     private void RetryButtonClick(object sender, RoutedEventArgs e)
     {
         ScenarioSelector.SelectedIndex = 0;
         ScenarioSelector.Focus();
     }
 
+    /// <summary>Reviews the selected capability through the fail-closed application preview contract.</summary>
     private void ReviewCapabilityClick(object sender, RoutedEventArgs e)
     {
         if (CapabilityGrid.SelectedItem is not CapabilityRow selected)
         {
-            System.Windows.MessageBox.Show(this, "Selecione uma capability para revisar.", "DB-Notifier", MessageBoxButton.OK, MessageBoxImage.Information);
+            System.Windows.MessageBox.Show(this, Text("Configuration.SelectCapability"), "DB-Notifier", MessageBoxButton.OK, MessageBoxImage.Information);
             return;
         }
 
-        bool authorized = PermissionSelector.SelectedItem is ComboBoxItem permission &&
+        bool authorised = PermissionSelector.SelectedItem is ComboBoxItem permission &&
             string.Equals(permission.Tag?.ToString(), "Authorized", StringComparison.Ordinal);
-        ShowPreview(configurationSnapshot.Preview(selected.CapabilityId, authorized));
+        ShowPreview(configurationSnapshot.Preview(selected.CapabilityId, authorised));
     }
 
+    /// <summary>Shows the safe confirmation UX example without enabling execution.</summary>
     private void PreviewConfirmationClick(object sender, RoutedEventArgs e) =>
         ShowPreview(ActionPreviewDisposition.ConfirmationRequired);
 
+    /// <summary>Maps a canonical preview disposition to generated localised dialog content.</summary>
     private void ShowPreview(ActionPreviewDisposition disposition)
     {
-        (string title, string message) = disposition switch
+        (string titleKey, string messageKey) = disposition switch
         {
-            ActionPreviewDisposition.ConfirmationRequired => ("Confirmação obrigatória", "Uma operação suportada exigiria motivo, expiração e confirmação final. Executar permanece desabilitado."),
-            ActionPreviewDisposition.Denied => ("Permissão negada", "A identidade demonstrativa não possui a permissão específica no escopo."),
-            ActionPreviewDisposition.Unsupported => ("Operação não suportada", "O provider não declara esta capability. Nenhuma tentativa foi realizada."),
-            ActionPreviewDisposition.Unavailable => ("Operação indisponível", "Os pré-requisitos da capability não estão disponíveis."),
-            _ => ("Capability desconhecida", "O estado falha fechado e nenhuma ação é disponibilizada."),
+            ActionPreviewDisposition.ConfirmationRequired => ("Preview.Confirmation.Title", "Preview.Confirmation.Message"),
+            ActionPreviewDisposition.Denied => ("Preview.Denied.Title", "Preview.Denied.Message"),
+            ActionPreviewDisposition.Unsupported => ("Preview.Unsupported.Title", "Preview.Unsupported.Message"),
+            ActionPreviewDisposition.Unavailable => ("Preview.Unavailable.Title", "Preview.Unavailable.Message"),
+            _ => ("Preview.Unknown.Title", "Preview.Unknown.Message"),
         };
-        System.Windows.MessageBox.Show(this, message, title, MessageBoxButton.OK, MessageBoxImage.Information);
+        System.Windows.MessageBox.Show(this, Text(messageKey), Text(titleKey), MessageBoxButton.OK, MessageBoxImage.Information);
     }
 
+    /// <summary>Presents inventory, history and alerts, or configuration according to the selected view.</summary>
     private void PresentReadyState()
     {
         DateTimeOffset now = TimeProvider.System.GetUtcNow();
-        bool showHistory = ViewSelector.SelectedItem is ComboBoxItem selectedView &&
-            string.Equals(selectedView.Tag?.ToString(), "HistoryAlerts", StringComparison.Ordinal);
-        if (showHistory)
+        string? view = (ViewSelector.SelectedItem as ComboBoxItem)?.Tag?.ToString();
+        if (view == "HistoryAlerts")
         {
             PresentHistoryAndAlerts(now);
             return;
         }
-        bool showConfiguration = ViewSelector.SelectedItem is ComboBoxItem configurationView &&
-            string.Equals(configurationView.Tag?.ToString(), "Configuration", StringComparison.Ordinal);
-        if (showConfiguration)
+        if (view == "Configuration")
         {
             PresentConfiguration(now);
             return;
         }
 
         InventoryStatusSummary summary = snapshot.Summarize(now, StaleAfter);
-        rows.Clear();
-        foreach (InstanceInventoryItem item in snapshot.Items)
-        {
-            rows.Add(InventoryRow.From(item, now, StaleAfter));
-        }
-
-        UpdatedAtText.Text = string.Create(
-            CultureInfo.InvariantCulture,
-            $"Atualizado em {now:yyyy-MM-dd HH:mm:ss} UTC · stale após 5 min");
-        TotalCountText.Text = summary.Total.ToString(CultureInfo.InvariantCulture);
-        HealthyCountText.Text = summary.Healthy.ToString(CultureInfo.InvariantCulture);
-        DegradedCountText.Text = summary.Degraded.ToString(CultureInfo.InvariantCulture);
-        AttentionCountText.Text = summary.AttentionRequired.ToString(CultureInfo.InvariantCulture);
-        StaleCountText.Text = summary.Stale.ToString(CultureInfo.InvariantCulture);
-        ReadySurface.Visibility = Visibility.Visible;
-        HistoryAlertSurface.Visibility = Visibility.Collapsed;
-        ConfigurationSurface.Visibility = Visibility.Collapsed;
-        StateSurface.Visibility = Visibility.Collapsed;
+        Replace(rows, snapshot.Items.Select(item => InventoryRow.From(item, now, StaleAfter, localisation)));
+        UpdatedAtText.Text = Text("Wpf.UpdatedAt", FormatUtc(now));
+        TotalCountText.Text = summary.Total.ToString(localisation.Culture);
+        HealthyCountText.Text = summary.Healthy.ToString(localisation.Culture);
+        DegradedCountText.Text = summary.Degraded.ToString(localisation.Culture);
+        AttentionCountText.Text = summary.AttentionRequired.ToString(localisation.Culture);
+        StaleCountText.Text = summary.Stale.ToString(localisation.Culture);
+        ShowOnly(ReadySurface);
     }
 
+    /// <summary>Presents local event and alert fixtures using localised severity and state labels.</summary>
     private void PresentHistoryAndAlerts(DateTimeOffset now)
     {
-        timelineRows.Clear();
-        foreach (TimelineEventItem item in timelineSnapshot.Events)
-        {
-            timelineRows.Add(TimelineRow.From(item));
-        }
-
-        alertRows.Clear();
-        foreach (AlertPresentationItem item in timelineSnapshot.Alerts)
-        {
-            alertRows.Add(AlertRow.From(item));
-        }
-
+        Replace(timelineRows, timelineSnapshot.Events.Select(item => TimelineRow.From(item, localisation)));
+        Replace(alertRows, timelineSnapshot.Alerts.Select(item => AlertRow.From(item, localisation)));
         AlertStatusSummary summary = timelineSnapshot.Summarize();
-        AlertSummaryText.Text = string.Create(
-            CultureInfo.InvariantCulture,
-            $"{summary.Active} ativo(s) · {summary.UnresolvedCritical} crítico(s) aberto(s)");
-        UpdatedAtText.Text = string.Create(
-            CultureInfo.InvariantCulture,
-            $"Atualizado em {now:yyyy-MM-dd HH:mm:ss} UTC · adapters locais");
-        ReadySurface.Visibility = Visibility.Collapsed;
-        HistoryAlertSurface.Visibility = Visibility.Visible;
-        ConfigurationSurface.Visibility = Visibility.Collapsed;
-        StateSurface.Visibility = Visibility.Collapsed;
+        AlertSummaryText.Text = Text("Wpf.AlertSummary", summary.Active, summary.UnresolvedCritical);
+        UpdatedAtText.Text = Text("Wpf.UpdatedFromAdapters", FormatUtc(now));
+        ShowOnly(HistoryAlertSurface);
     }
 
+    /// <summary>Presents safe configuration fields and unsupported capability decisions.</summary>
     private void PresentConfiguration(DateTimeOffset now)
     {
-        capabilityRows.Clear();
-        foreach (CapabilityPresentation capability in configurationSnapshot.Capabilities)
-        {
-            capabilityRows.Add(CapabilityRow.From(capability));
-        }
-        if (capabilityRows.Count > 0)
-        {
-            CapabilityGrid.SelectedIndex = 0;
-        }
-        UpdatedAtText.Text = string.Create(CultureInfo.InvariantCulture, $"Prévia local em {now:yyyy-MM-dd HH:mm:ss} UTC · nenhuma mutation");
-        ReadySurface.Visibility = Visibility.Collapsed;
-        HistoryAlertSurface.Visibility = Visibility.Collapsed;
-        ConfigurationSurface.Visibility = Visibility.Visible;
-        StateSurface.Visibility = Visibility.Collapsed;
+        Replace(capabilityRows, configurationSnapshot.Capabilities.Select(item => CapabilityRow.From(item, localisation)));
+        ConfigurationGrid.ItemsSource = configurationSnapshot.Fields;
+        ConfigurationInstanceText.Text = $"{configurationSnapshot.InstanceName} · {configurationSnapshot.ProviderType}";
+        CapabilityGrid.SelectedIndex = capabilityRows.Count > 0 ? 0 : -1;
+        UpdatedAtText.Text = Text("Wpf.LocalPreview", FormatUtc(now));
+        ShowOnly(ConfigurationSurface);
     }
 
+    /// <summary>Presents a complete, non-colour-only state with bounded retry visibility.</summary>
     private void PresentNonReadyState(InventorySurfaceState state)
     {
-        (string symbol, string title, string message, bool loading, bool retry) = state switch
+        (string symbol, string titleKey, string messageKey, bool loading, bool retry) = state switch
         {
-            InventorySurfaceState.Loading =>
-                ("…", "Carregando conteúdo", "Preparando a visão local sem iniciar conexões externas.", true, false),
-            InventorySurfaceState.Empty =>
-                ("○", "Nenhum dado disponível", "A visão autorizada está vazia. Cadastros e integrações serão tratados em fases próprias.", false, false),
-            InventorySurfaceState.Offline =>
-                ("↯", "Agent offline", "Os últimos dados conhecidos não podem ser atualizados. Nenhum status antigo é apresentado como saudável.", false, true),
-            InventorySurfaceState.Denied =>
-                ("⊘", "Acesso negado", "Sua identidade não possui instances.read para este escopo. Nenhum detalhe protegido foi exibido.", false, false),
-            InventorySurfaceState.Maintenance =>
-                ("◆", "Janela de manutenção", "A visão está em manutenção planejada. Dados anteriores permanecem identificados como não atuais.", false, false),
-            _ =>
-                ("!", "Não foi possível carregar", "A visão permanece indisponível. Tente novamente; nenhum comando administrativo foi executado.", false, true),
+            InventorySurfaceState.Loading => ("…", "Operational.Loading.Title", "Operational.Loading.Message", true, false),
+            InventorySurfaceState.Empty => ("○", "Operational.Empty.Title", "Operational.Empty.Message", false, false),
+            InventorySurfaceState.Offline => ("↯", "Operational.Offline.Title", "Operational.Offline.Message", false, true),
+            InventorySurfaceState.Denied => ("⊘", "Operational.Denied.Title", "Operational.Denied.Message", false, false),
+            InventorySurfaceState.Maintenance => ("◆", "Operational.Maintenance.Title", "Operational.Maintenance.Message", false, false),
+            _ => ("!", "Operational.Error.Title", "Operational.Error.Message", false, true),
         };
-
-        ReadySurface.Visibility = Visibility.Collapsed;
-        HistoryAlertSurface.Visibility = Visibility.Collapsed;
-        ConfigurationSurface.Visibility = Visibility.Collapsed;
-        StateSurface.Visibility = Visibility.Visible;
+        ShowOnly(StateSurface);
         LoadingIndicator.Visibility = loading ? Visibility.Visible : Visibility.Collapsed;
         StateSymbolText.Text = symbol;
-        StateTitleText.Text = title;
-        StateMessageText.Text = message;
+        StateTitleText.Text = Text(titleKey);
+        StateMessageText.Text = Text(messageKey);
         RetryButton.Visibility = retry ? Visibility.Visible : Visibility.Collapsed;
-        UpdatedAtText.Text = "Estado demonstrativo · nenhuma conexão externa";
+        UpdatedAtText.Text = Text("Wpf.DemonstrationState");
     }
 
-    private static InventorySnapshot CreateDemonstrationSnapshot(DateTimeOffset now) =>
-        new(
-            InventorySnapshot.CurrentSchemaVersion,
-            now,
-            [
-                CreateItem("00000000-0000-0000-0000-000000000001", "Financeiro principal", "postgresql", "Implementado · não homologado", "Produção", "Datacenter SP", HealthStatus.Healthy, now.AddSeconds(-38), 24),
-                CreateItem("00000000-0000-0000-0000-000000000002", "Pedidos regional", "mysql", "Planejado · não implementado", "Produção", "Cloud privado", HealthStatus.Degraded, now.AddMinutes(-2), 86),
-                CreateItem("00000000-0000-0000-0000-000000000003", "Analytics", "sql-server", "Planejado · não implementado", "Homologação", "Azure", HealthStatus.Timeout, now.AddMinutes(-3), null),
-                CreateItem("00000000-0000-0000-0000-000000000004", "Catálogo", "mongodb", "Planejado · não implementado", "Desenvolvimento", "Linux local", HealthStatus.Unknown, now.AddMinutes(-9), null),
-            ]);
+    /// <summary>Recreates all local fixtures whose visible values depend on the active language.</summary>
+    private void RebuildLocalisedData()
+    {
+        DateTimeOffset now = TimeProvider.System.GetUtcNow();
+        snapshot = CreateDemonstrationSnapshot(now);
+        timelineSnapshot = CreateTimelineSnapshot(now);
+        configurationSnapshot = CreateConfigurationSnapshot();
+        ConfigurationGrid.ItemsSource = configurationSnapshot.Fields;
+        RefreshGridHeaders();
+    }
 
-    private static TimelineAlertSnapshot CreateTimelineSnapshot(DateTimeOffset now) =>
-        new(
-            TimelineAlertSnapshot.CurrentSchemaVersion,
-            now,
-            [
-                CreateEvent("00000000-0000-0000-0001-000000000001", "Financeiro principal", "postgresql", "Recovered", EventSeverity.Information, "Conectividade recuperada após uma tentativa.", now.AddMinutes(-2)),
-                CreateEvent("00000000-0000-0000-0001-000000000002", "Pedidos regional", "mysql", "Degraded", EventSeverity.Warning, "Latência acima do limite demonstrativo.", now.AddMinutes(-7)),
-                CreateEvent("00000000-0000-0000-0001-000000000003", "Analytics", "sql-server", "Timeout", EventSeverity.Critical, "Timeout normalizado; nenhuma ação automática executada.", now.AddMinutes(-14)),
-                CreateEvent("00000000-0000-0000-0001-000000000004", "Catálogo", "mongodb", "MaintenanceStarted", EventSeverity.Information, "Janela de manutenção demonstrativa iniciada.", now.AddMinutes(-24)),
-            ],
-            [
-                CreateAlert("00000000-0000-0000-0002-000000000001", "Analytics", "sql-server", EventSeverity.Critical, AlertPresentationState.Active, "Timeout contínuo", "Três timeouts na janela demonstrativa.", now.AddMinutes(-3)),
-                CreateAlert("00000000-0000-0000-0002-000000000002", "Pedidos regional", "mysql", EventSeverity.Warning, AlertPresentationState.Acknowledged, "Latência elevada", "Alerta reconhecido somente na fixture local.", now.AddMinutes(-8)),
-                CreateAlert("00000000-0000-0000-0002-000000000003", "Catálogo", "mongodb", EventSeverity.Information, AlertPresentationState.Silenced, "Manutenção programada", "Silenciamento demonstrativo; nenhum canal foi contatado.", now.AddMinutes(-24)),
-            ]);
+    /// <summary>Refreshes detached DataGrid column headers that do not inherit WPF dynamic-resource invalidation.</summary>
+    private void RefreshGridHeaders()
+    {
+        SetHeaders(InventoryGrid, "Common.Instance", "Common.Provider", "Common.Support", "Common.Environment", "Common.Status", "Common.ObservedAt", "Common.Latency");
+        SetHeaders(HistoryGrid, "Common.TimeUtc", "Common.Severity", "Common.Event", "Common.Instance", "Common.Provider", "Common.Summary");
+        SetHeaders(AlertsGrid, "Common.Severity", "Common.State", "Common.Rule", "Common.Instance", "Common.Provider", "Common.Summary");
+        SetHeaders(ConfigurationGrid, "Common.Field", "Common.SafeValue", "Common.Description");
+        SetHeaders(CapabilityGrid, "Common.Action", "Common.Capability", "Common.State", "Common.Reason");
+    }
 
-    private static ConfigurationCapabilitySnapshot CreateConfigurationSnapshot() =>
-        new(
-            ConfigurationCapabilitySnapshot.CurrentSchemaVersion,
-            Guid.Parse("00000000-0000-0000-0000-000000000001"),
-            "Financeiro principal",
-            "postgresql",
-            [
-                new("monitoring.interval", "Intervalo de monitoramento", "60 segundos", "Política demonstrativa; não persistida."),
-                new("monitoring.timeout", "Timeout", "5 segundos", "Limite demonstrativo do probe."),
-                new("monitoring.retry", "Tentativas", "3", "Retry limitado com backoff."),
-                new("credential.reference", "Credencial", "Referência protegida", "Identificador e segredo não são exibidos."),
-            ],
-            [
-                new("service.start", "Start", CapabilityPresentationState.Unsupported, "provider.control_unsupported", true),
-                new("service.stop", "Stop", CapabilityPresentationState.Unsupported, "provider.control_unsupported", true),
-                new("service.restart", "Restart", CapabilityPresentationState.Unsupported, "provider.control_unsupported", true),
-            ]);
+    /// <summary>Assigns canonical translated labels to one grid while preserving its fixed column contract.</summary>
+    private void SetHeaders(System.Windows.Controls.DataGrid grid, params string[] keys)
+    {
+        if (grid.Columns.Count != keys.Length)
+        {
+            throw new InvalidOperationException($"Localised header count does not match {grid.Name}.");
+        }
+        for (int index = 0; index < keys.Length; index++) grid.Columns[index].Header = Text(keys[index]);
+    }
 
+    /// <summary>Shows one content surface and collapses the remaining mutually exclusive surfaces.</summary>
+    private void ShowOnly(FrameworkElement selected)
+    {
+        FrameworkElement[] surfaces = [ReadySurface, HistoryAlertSurface, ConfigurationSurface, StateSurface];
+        foreach (FrameworkElement surface in surfaces)
+        {
+            surface.Visibility = ReferenceEquals(surface, selected) ? Visibility.Visible : Visibility.Collapsed;
+        }
+    }
+
+    /// <summary>Replaces observable rows as one local presentation update.</summary>
+    private static void Replace<T>(ObservableCollection<T> target, IEnumerable<T> items)
+    {
+        target.Clear();
+        foreach (T item in items) target.Add(item);
+    }
+
+    /// <summary>Formats UTC timestamps in a stable sortable shape under the selected culture.</summary>
+    private string FormatUtc(DateTimeOffset value) => value.UtcDateTime.ToString("yyyy-MM-dd HH:mm:ss", localisation.Culture);
+
+    /// <summary>Resolves one canonical generated resource through the desktop localisation owner.</summary>
+    private string Text(string key, params object[] values) => localisation.Text(key, values);
+
+    /// <summary>Creates the provider-neutral inventory demonstration fixture with localised visible fields.</summary>
+    private InventorySnapshot CreateDemonstrationSnapshot(DateTimeOffset now) => new(
+        InventorySnapshot.CurrentSchemaVersion,
+        now,
+        [
+            CreateItem("00000000-0000-0000-0000-000000000001", Text("Sample.Instance.Finance"), "postgresql", Text("Sample.Support.Implemented"), Text("Sample.Environment.Production"), Text("Sample.Location.Datacentre"), HealthStatus.Healthy, now.AddSeconds(-38), 24),
+            CreateItem("00000000-0000-0000-0000-000000000002", Text("Sample.Instance.Orders"), "mysql", Text("Sample.Support.Planned"), Text("Sample.Environment.Production"), Text("Sample.Location.PrivateCloud"), HealthStatus.Degraded, now.AddMinutes(-2), 86),
+            CreateItem("00000000-0000-0000-0000-000000000003", Text("Sample.Instance.Analytics"), "sql-server", Text("Sample.Support.Planned"), Text("Sample.Environment.Validation"), "Azure", HealthStatus.Timeout, now.AddMinutes(-3), null),
+            CreateItem("00000000-0000-0000-0000-000000000004", Text("Sample.Instance.Catalogue"), "mongodb", Text("Sample.Support.Planned"), Text("Sample.Environment.Development"), Text("Sample.Location.LocalLinux"), HealthStatus.Unknown, now.AddMinutes(-9), null),
+        ]);
+
+    /// <summary>Creates local event and alert fixtures without delivery, acknowledgement or mutation.</summary>
+    private TimelineAlertSnapshot CreateTimelineSnapshot(DateTimeOffset now) => new(
+        TimelineAlertSnapshot.CurrentSchemaVersion,
+        now,
+        [
+            CreateEvent("00000000-0000-0000-0001-000000000001", Text("Sample.Instance.Finance"), "postgresql", "Recovered", EventSeverity.Information, Text("Sample.Event.Recovered"), now.AddMinutes(-2)),
+            CreateEvent("00000000-0000-0000-0001-000000000002", Text("Sample.Instance.Orders"), "mysql", "Degraded", EventSeverity.Warning, Text("Sample.Event.Degraded"), now.AddMinutes(-7)),
+            CreateEvent("00000000-0000-0000-0001-000000000003", Text("Sample.Instance.Analytics"), "sql-server", "Timeout", EventSeverity.Critical, Text("Sample.Event.Timeout"), now.AddMinutes(-14)),
+            CreateEvent("00000000-0000-0000-0001-000000000004", Text("Sample.Instance.Catalogue"), "mongodb", "MaintenanceStarted", EventSeverity.Information, Text("Sample.Event.Maintenance"), now.AddMinutes(-24)),
+        ],
+        [
+            CreateAlert("00000000-0000-0000-0002-000000000001", Text("Sample.Instance.Analytics"), "sql-server", EventSeverity.Critical, AlertPresentationState.Active, Text("Sample.Alert.TimeoutRule"), Text("Sample.Alert.TimeoutSummary"), now.AddMinutes(-3)),
+            CreateAlert("00000000-0000-0000-0002-000000000002", Text("Sample.Instance.Orders"), "mysql", EventSeverity.Warning, AlertPresentationState.Acknowledged, Text("Sample.Alert.LatencyRule"), Text("Sample.Alert.LatencySummary"), now.AddMinutes(-8)),
+            CreateAlert("00000000-0000-0000-0002-000000000003", Text("Sample.Instance.Catalogue"), "mongodb", EventSeverity.Information, AlertPresentationState.Silenced, Text("Sample.Alert.MaintenanceRule"), Text("Sample.Alert.MaintenanceSummary"), now.AddMinutes(-24)),
+        ]);
+
+    /// <summary>Creates non-secret fields and unavailable administrative controls for UX review.</summary>
+    private ConfigurationCapabilitySnapshot CreateConfigurationSnapshot() => new(
+        ConfigurationCapabilitySnapshot.CurrentSchemaVersion,
+        Guid.Parse("00000000-0000-0000-0000-000000000001"),
+        Text("Sample.Instance.Finance"),
+        "postgresql",
+        [
+            new("monitoring.interval", Text("Sample.Config.Interval.Label"), Text("Sample.Config.Interval.Value"), Text("Sample.Config.Interval.Description")),
+            new("monitoring.timeout", Text("Sample.Config.Timeout.Label"), Text("Sample.Config.Timeout.Value"), Text("Sample.Config.Timeout.Description")),
+            new("monitoring.retry", Text("Sample.Config.Retry.Label"), Text("Sample.Config.Retry.Value"), Text("Sample.Config.Retry.Description")),
+            new("credential.reference", Text("Sample.Config.Credential.Label"), Text("Sample.Config.Credential.Value"), Text("Sample.Config.Credential.Description")),
+        ],
+        [
+            new("service.start", Text("Action.Start"), CapabilityPresentationState.Unsupported, "provider.control_unsupported", true),
+            new("service.stop", Text("Action.Stop"), CapabilityPresentationState.Unsupported, "provider.control_unsupported", true),
+            new("service.restart", Text("Action.Restart"), CapabilityPresentationState.Unsupported, "provider.control_unsupported", true),
+        ]);
+
+    /// <summary>Creates a canonical event fixture with deterministic identifiers.</summary>
     private static TimelineEventItem CreateEvent(string id, string name, string provider, string type, EventSeverity severity, string summary, DateTimeOffset occurredAt) =>
         new(Guid.Parse(id), Guid.Parse(id.Replace("0001-", "0000-")), name, provider, type, severity, summary, occurredAt, occurredAt);
 
+    /// <summary>Creates a canonical alert fixture with deterministic identifiers.</summary>
     private static AlertPresentationItem CreateAlert(string id, string name, string provider, EventSeverity severity, AlertPresentationState state, string rule, string summary, DateTimeOffset updatedAt) =>
         new(Guid.Parse(id), Guid.Parse(id.Replace("0002-", "0000-")), name, provider, severity, state, rule, summary, updatedAt.AddMinutes(-10), updatedAt);
 
-    private static InstanceInventoryItem CreateItem(
-        string instanceId,
-        string name,
-        string provider,
-        string support,
-        string environment,
-        string location,
-        HealthStatus status,
-        DateTimeOffset receivedAt,
-        double? latencyMilliseconds) =>
-        new(
-            Guid.Parse(instanceId),
-            name,
-            provider,
-            support,
-            environment,
-            location,
-            status,
-            receivedAt.AddSeconds(-1),
-            receivedAt,
-            latencyMilliseconds is null ? null : TimeSpan.FromMilliseconds(latencyMilliseconds.Value),
-            true);
+    /// <summary>Creates one inventory fixture without embedding credentials or native provider details.</summary>
+    private static InstanceInventoryItem CreateItem(string id, string name, string provider, string support, string environment, string location, HealthStatus status, DateTimeOffset receivedAt, double? latencyMilliseconds) =>
+        new(Guid.Parse(id), name, provider, support, environment, location, status, receivedAt.AddSeconds(-1), receivedAt,
+            latencyMilliseconds is null ? null : TimeSpan.FromMilliseconds(latencyMilliseconds.Value), true);
 
-    private sealed record InventoryRow(
-        string DisplayName,
-        string ProviderType,
-        string SupportLabel,
-        string Environment,
-        string StatusLabel,
-        string ObservedAtLabel,
-        string LatencyLabel)
+    /// <summary>Represents one localised inventory grid row.</summary>
+    private sealed record InventoryRow(string DisplayName, string ProviderType, string SupportLabel, string Environment, string StatusLabel, string ObservedAtLabel, string LatencyLabel)
     {
-        public static InventoryRow From(
-            InstanceInventoryItem item,
-            DateTimeOffset now,
-            TimeSpan staleAfter)
+        /// <summary>Maps a canonical inventory item to non-colour-only localised presentation.</summary>
+        public static InventoryRow From(InstanceInventoryItem item, DateTimeOffset now, TimeSpan staleAfter, DesktopLocalisationService localisation)
         {
-            bool stale = item.IsStale(now, staleAfter);
-            string status = stale ? "◷ Desatualizado" : item.Status switch
+            string status = item.IsStale(now, staleAfter) ? $"◷ {localisation.Text("Status.Stale")}" : item.Status switch
             {
-                HealthStatus.Healthy => "● Saudável",
-                HealthStatus.Degraded => "▲ Degradado",
-                HealthStatus.Unavailable => "■ Indisponível",
-                HealthStatus.AuthFailed => "■ Falha de autenticação",
-                HealthStatus.Timeout => "■ Timeout",
-                HealthStatus.Maintenance => "◆ Manutenção",
-                _ => "○ Desconhecido",
+                HealthStatus.Healthy => $"● {localisation.Text("Status.Healthy")}",
+                HealthStatus.Degraded => $"▲ {localisation.Text("Status.Degraded")}",
+                HealthStatus.Unavailable => $"■ {localisation.Text("Status.Unavailable")}",
+                HealthStatus.AuthFailed => $"■ {localisation.Text("Status.AuthFailed")}",
+                HealthStatus.Timeout => $"■ {localisation.Text("Status.Timeout")}",
+                HealthStatus.Maintenance => $"◆ {localisation.Text("Status.Maintenance")}",
+                _ => $"○ {localisation.Text("Status.Unknown")}",
             };
-
-            return new InventoryRow(
-                item.DisplayName,
-                item.ProviderType,
-                item.SupportLabel,
-                item.Environment,
-                status,
-                item.ObservedAt.UtcDateTime.ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture),
-                item.Latency is null
-                    ? "—"
-                    : string.Create(CultureInfo.InvariantCulture, $"{item.Latency.Value.TotalMilliseconds:0} ms"));
+            string latency = item.Latency is null ? "—" : string.Create(CultureInfo.InvariantCulture, $"{item.Latency.Value.TotalMilliseconds:0} ms");
+            return new(item.DisplayName, item.ProviderType, item.SupportLabel, item.Environment, status,
+                item.ObservedAt.UtcDateTime.ToString("yyyy-MM-dd HH:mm:ss", localisation.Culture), latency);
         }
     }
 
+    /// <summary>Represents one localised event timeline row.</summary>
     private sealed record TimelineRow(string OccurredAtLabel, string SeverityLabel, string EventType, string InstanceName, string ProviderType, string Summary)
     {
-        public static TimelineRow From(TimelineEventItem item) => new(
-            item.OccurredAt.UtcDateTime.ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture),
-            item.Severity switch { EventSeverity.Critical => "■ Crítico", EventSeverity.Warning => "▲ Aviso", _ => "● Informativo" },
-            item.EventType, item.InstanceName, item.ProviderType, item.Summary);
+        /// <summary>Maps canonical event severity without altering its provider-neutral event type.</summary>
+        public static TimelineRow From(TimelineEventItem item, DesktopLocalisationService localisation) => new(
+            item.OccurredAt.UtcDateTime.ToString("yyyy-MM-dd HH:mm:ss", localisation.Culture),
+            item.Severity switch
+            {
+                EventSeverity.Critical => $"■ {localisation.Text("Severity.Critical")}",
+                EventSeverity.Warning => $"▲ {localisation.Text("Severity.Warning")}",
+                _ => $"● {localisation.Text("Severity.Information")}",
+            }, item.EventType, item.InstanceName, item.ProviderType, item.Summary);
     }
 
+    /// <summary>Represents one localised alert grid row.</summary>
     private sealed record AlertRow(string SeverityLabel, string StateLabel, string RuleName, string InstanceName, string ProviderType, string Summary)
     {
-        public static AlertRow From(AlertPresentationItem item) => new(
-            item.Severity switch { EventSeverity.Critical => "■ Crítico", EventSeverity.Warning => "▲ Aviso", _ => "● Informativo" },
-            item.State switch { AlertPresentationState.Active => "Ativo", AlertPresentationState.Acknowledged => "Reconhecido", AlertPresentationState.Silenced => "Silenciado", _ => "Resolvido" },
-            item.RuleName, item.InstanceName, item.ProviderType, item.Summary);
-    }
-
-    private sealed record CapabilityRow(string CapabilityId, string DisplayName, string StateLabel, string ReasonCode)
-    {
-        public static CapabilityRow From(CapabilityPresentation item) => new(
-            item.CapabilityId,
-            item.DisplayName,
+        /// <summary>Maps canonical alert state and severity to localised display labels.</summary>
+        public static AlertRow From(AlertPresentationItem item, DesktopLocalisationService localisation) => new(
+            item.Severity switch
+            {
+                EventSeverity.Critical => $"■ {localisation.Text("Severity.Critical")}",
+                EventSeverity.Warning => $"▲ {localisation.Text("Severity.Warning")}",
+                _ => $"● {localisation.Text("Severity.Information")}",
+            },
             item.State switch
             {
-                CapabilityPresentationState.Supported => "Suportado",
-                CapabilityPresentationState.Unsupported => "— Não suportado",
-                CapabilityPresentationState.Unavailable => "↯ Indisponível",
-                _ => "? Desconhecido",
-            },
-            item.ReasonCode);
+                AlertPresentationState.Active => localisation.Text("AlertState.Active"),
+                AlertPresentationState.Acknowledged => localisation.Text("AlertState.Acknowledged"),
+                AlertPresentationState.Silenced => localisation.Text("AlertState.Silenced"),
+                _ => localisation.Text("AlertState.Resolved"),
+            }, item.RuleName, item.InstanceName, item.ProviderType, item.Summary);
+    }
+
+    /// <summary>Represents one fail-closed capability decision row.</summary>
+    private sealed record CapabilityRow(string CapabilityId, string DisplayName, string StateLabel, string ReasonCode)
+    {
+        /// <summary>Maps canonical capability states without implying unavailable support.</summary>
+        public static CapabilityRow From(CapabilityPresentation item, DesktopLocalisationService localisation) => new(
+            item.CapabilityId, item.DisplayName,
+            item.State switch
+            {
+                CapabilityPresentationState.Unsupported => localisation.Text("Configuration.Unsupported"),
+                CapabilityPresentationState.Unavailable => $"↯ {localisation.Text("Status.Unavailable")}",
+                CapabilityPresentationState.Supported => localisation.Text("Common.Support"),
+                _ => $"? {localisation.Text("Status.Unknown")}",
+            }, item.ReasonCode);
     }
 }

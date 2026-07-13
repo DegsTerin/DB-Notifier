@@ -8,7 +8,9 @@ import { tmpdir } from "node:os";
 
 const endpoint = "http://localhost:9224";
 const dashboardUrl = "http://127.0.0.1:4173/";
-const evidenceDirectory = join(tmpdir(), "DBNotifier-State05-Audit");
+const requestedLocale = process.env.DBNOTIFIER_AUDIT_LOCALE;
+const locale = requestedLocale === "en-GB" ? "en-GB" : "pt-BR";
+const evidenceDirectory = join(tmpdir(), "DBNotifier-State05-Audit", locale);
 mkdirSync(evidenceDirectory, { recursive: true });
 
 /** Opens the current Dashboard target and returns a minimal request-response CDP client. */
@@ -61,6 +63,7 @@ async function captureViewport(call, name, width, height, hash = "inventory", pa
   await call("Emulation.setDeviceMetricsOverride", { width, height, deviceScaleFactor: 1, mobile: false });
   await call("Emulation.setPageScaleFactor", { pageScaleFactor });
   await call("Page.navigate", { url: `${dashboardUrl}#${hash}` });
+  await settle(80);
   await call("Page.reload", { ignoreCache: true });
   await settle();
 
@@ -93,6 +96,7 @@ async function auditKeyboard(call) {
   await call("Emulation.setDeviceMetricsOverride", { width: 1440, height: 1000, deviceScaleFactor: 1, mobile: false });
   await call("Emulation.setPageScaleFactor", { pageScaleFactor: 1 });
   await call("Page.navigate", { url: `${dashboardUrl}#inventory` });
+  await settle(80);
   await call("Page.reload", { ignoreCache: true });
   await settle();
   await evaluate(call, "document.activeElement?.blur(); document.body.focus(); true");
@@ -126,6 +130,7 @@ async function auditAccessibilityTree(call) {
 /** Exercises each declared operational state and verifies reduced-motion rendering. */
 async function auditOperationalStates(call) {
   await call("Page.navigate", { url: `${dashboardUrl}#inventory` });
+  await settle(80);
   await call("Page.reload", { ignoreCache: true });
   await settle();
   const states = {};
@@ -163,10 +168,19 @@ async function auditOperationalStates(call) {
 async function auditModal(call) {
   await call("Emulation.setDeviceMetricsOverride", { width: 390, height: 844, deviceScaleFactor: 1, mobile: false });
   await call("Page.navigate", { url: `${dashboardUrl}#configuration` });
+  await settle(80);
   await call("Page.reload", { ignoreCache: true });
   await settle();
   await evaluate(call, `(() => {
-    const button = [...document.querySelectorAll("button")].find((item) => item.textContent.includes("Visualizar confirmação"));
+    const select = document.querySelector(".scenario-control select");
+    const setter = Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype, "value").set;
+    setter.call(select, "ready");
+    select.dispatchEvent(new Event("change", { bubbles: true }));
+    return true;
+  })()`);
+  await settle(100);
+  await evaluate(call, `(() => {
+    const button = document.querySelector(".confirmation-example button");
     button?.click();
     return Boolean(button);
   })()`);
@@ -195,7 +209,7 @@ async function auditModal(call) {
   await call("Input.dispatchKeyEvent", { type: "keyUp", key: "Escape", code: "Escape", windowsVirtualKeyCode: 27 });
   const afterEscape = await evaluate(call, `(() => ({
     closesWithEscape: !document.querySelector('[role="dialog"]'),
-    focusRestored: document.activeElement?.textContent?.includes("Visualizar confirmação") ?? false,
+    focusRestored: document.activeElement === document.querySelector(".confirmation-example button"),
     activeText: document.activeElement?.textContent?.trim(),
   }))()`);
   return { initial, tabSequence, reverseTabInside, screenshotPath, ...afterEscape };
@@ -207,6 +221,11 @@ async function main() {
   await call("Page.enable");
   await call("Runtime.enable");
   await call("Accessibility.enable");
+  await call("Page.navigate", { url: dashboardUrl });
+  await settle();
+  await evaluate(call, `localStorage.setItem("dbnotifier.language.preference.v1", ${JSON.stringify(locale)}); true`);
+  await call("Page.reload", { ignoreCache: true });
+  await settle();
 
   const viewports = [];
   for (const [name, width, height, hash = "inventory", pageScaleFactor = 1] of [
@@ -222,11 +241,13 @@ async function main() {
   ]) viewports.push(await captureViewport(call, name, width, height, hash, pageScaleFactor));
 
   await call("Page.navigate", { url: `${dashboardUrl}#history` });
+  await settle(80);
   await call("Page.reload", { ignoreCache: true });
   await settle();
   const duplicateHistorySearchRegions = await evaluate(call, "document.querySelectorAll('[role=search]').length");
   const report = {
     generatedAt: new Date().toISOString(),
+    locale,
     viewports,
     keyboard: await auditKeyboard(call),
     accessibilityTree: await auditAccessibilityTree(call),

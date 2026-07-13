@@ -4,6 +4,7 @@
  */
 (function applyInitialTheme() {
   const storageKey = "dbnotifier.theme.preference.v1";
+  const languageStorageKey = "dbnotifier.language.preference.v1";
   const darkQuery = "(prefers-color-scheme: dark)";
   let preference = "system";
 
@@ -27,4 +28,14 @@
   document.documentElement.dataset.theme = preference === "system"
     ? (systemUsesDark ? "dark" : "light")
     : preference;
+
+  let language = "pt-BR";
+  try {
+    const storedLanguage = window.localStorage.getItem(languageStorageKey);
+    if (storedLanguage === "pt-BR" || storedLanguage === "en-GB") language = storedLanguage;
+  } catch {
+    // Restricted storage preserves the Brazilian Portuguese product baseline.
+  }
+  document.documentElement.lang = language;
+  document.documentElement.dataset.languagePreference = language;
 })();

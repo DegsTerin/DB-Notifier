@@ -1,4 +1,7 @@
 /** Module purpose: Implements presentation for the provider-neutral DB-Notifier Dashboard without direct database access. */
+import type { SupportedLocale } from "./generated/localisation";
+import { translate } from "./localisation.ts";
+
 export const inventorySchemaVersion = "inventory.v1" as const;
 export const staleAfterMilliseconds = 5 * 60 * 1000;
 
@@ -89,21 +92,22 @@ export function filterInventory(
   query: string,
   status: "all" | HealthStatus | "stale",
   now: Date,
+  locale: SupportedLocale = "pt-BR",
 ): readonly InventoryItem[] {
-  const normalizedQuery = query.trim().toLocaleLowerCase("pt-BR");
+  const normalizedQuery = query.trim().toLocaleLowerCase(locale);
   return items.filter((item) => {
     const matchesQuery =
       normalizedQuery.length === 0 ||
       [item.displayName, item.providerType, item.environment, item.locationLabel]
         .join(" ")
-        .toLocaleLowerCase("pt-BR")
+        .toLocaleLowerCase(locale)
         .includes(normalizedQuery);
     const matchesStatus = status === "all" || (status === "stale" ? isStale(item, now) : item.status === status);
     return matchesQuery && matchesStatus;
   });
 }
 
-export function buildDemonstrationSnapshot(now: Date): InventorySnapshot {
+export function buildDemonstrationSnapshot(now: Date, locale: SupportedLocale = "pt-BR"): InventorySnapshot {
   const isoAt = (offsetMilliseconds: number) => new Date(now.getTime() - offsetMilliseconds).toISOString();
   const item = (
     instanceId: string,
@@ -133,57 +137,57 @@ export function buildDemonstrationSnapshot(now: Date): InventorySnapshot {
     schemaVersion: inventorySchemaVersion,
     generatedAt: now.toISOString(),
     items: [
-      item("demo-001", "Financeiro principal", "postgresql", "Implementado · não homologado", "Produção", "Datacenter SP", "healthy", 38_000, 24),
-      item("demo-002", "Pedidos regional", "mysql", "Planejado · não implementado", "Produção", "Cloud privado", "degraded", 120_000, 86),
-      item("demo-003", "Analytics", "sql-server", "Planejado · não implementado", "Homologação", "Azure", "timeout", 180_000, null),
-      item("demo-004", "Catálogo", "mongodb", "Planejado · não implementado", "Desenvolvimento", "Linux local", "unknown", 540_000, null),
+      item("demo-001", translate(locale, "Sample.Instance.Finance"), "postgresql", translate(locale, "Sample.Support.Implemented"), translate(locale, "Sample.Environment.Production"), translate(locale, "Sample.Location.Datacentre"), "healthy", 38_000, 24),
+      item("demo-002", translate(locale, "Sample.Instance.Orders"), "mysql", translate(locale, "Sample.Support.Planned"), translate(locale, "Sample.Environment.Production"), translate(locale, "Sample.Location.PrivateCloud"), "degraded", 120_000, 86),
+      item("demo-003", translate(locale, "Sample.Instance.Analytics"), "sql-server", translate(locale, "Sample.Support.Planned"), translate(locale, "Sample.Environment.Validation"), "Azure", "timeout", 180_000, null),
+      item("demo-004", translate(locale, "Sample.Instance.Catalogue"), "mongodb", translate(locale, "Sample.Support.Planned"), translate(locale, "Sample.Environment.Development"), translate(locale, "Sample.Location.LocalLinux"), "unknown", 540_000, null),
     ],
   };
 }
 
-export function buildTimelineAlertSnapshot(now: Date): TimelineAlertSnapshot {
+export function buildTimelineAlertSnapshot(now: Date, locale: SupportedLocale = "pt-BR"): TimelineAlertSnapshot {
   const at = (minutes: number) => new Date(now.getTime() - minutes * 60_000).toISOString();
   return {
     schemaVersion: "history-alerts.v1",
     generatedAt: now.toISOString(),
     events: [
-      { eventId: "event-001", instanceId: "demo-001", instanceName: "Financeiro principal", providerType: "postgresql", eventType: "Recovered", severity: "information", summary: "Conectividade recuperada após uma tentativa.", occurredAt: at(2), receivedAt: at(2) },
-      { eventId: "event-002", instanceId: "demo-002", instanceName: "Pedidos regional", providerType: "mysql", eventType: "Degraded", severity: "warning", summary: "Latência acima do limite demonstrativo.", occurredAt: at(7), receivedAt: at(7) },
-      { eventId: "event-003", instanceId: "demo-003", instanceName: "Analytics", providerType: "sql-server", eventType: "Timeout", severity: "critical", summary: "Timeout normalizado; nenhuma ação automática executada.", occurredAt: at(14), receivedAt: at(14) },
-      { eventId: "event-004", instanceId: "demo-004", instanceName: "Catálogo", providerType: "mongodb", eventType: "MaintenanceStarted", severity: "information", summary: "Janela de manutenção demonstrativa iniciada.", occurredAt: at(24), receivedAt: at(24) },
+      { eventId: "event-001", instanceId: "demo-001", instanceName: translate(locale, "Sample.Instance.Finance"), providerType: "postgresql", eventType: "Recovered", severity: "information", summary: translate(locale, "Sample.Event.Recovered"), occurredAt: at(2), receivedAt: at(2) },
+      { eventId: "event-002", instanceId: "demo-002", instanceName: translate(locale, "Sample.Instance.Orders"), providerType: "mysql", eventType: "Degraded", severity: "warning", summary: translate(locale, "Sample.Event.Degraded"), occurredAt: at(7), receivedAt: at(7) },
+      { eventId: "event-003", instanceId: "demo-003", instanceName: translate(locale, "Sample.Instance.Analytics"), providerType: "sql-server", eventType: "Timeout", severity: "critical", summary: translate(locale, "Sample.Event.Timeout"), occurredAt: at(14), receivedAt: at(14) },
+      { eventId: "event-004", instanceId: "demo-004", instanceName: translate(locale, "Sample.Instance.Catalogue"), providerType: "mongodb", eventType: "MaintenanceStarted", severity: "information", summary: translate(locale, "Sample.Event.Maintenance"), occurredAt: at(24), receivedAt: at(24) },
     ],
     alerts: [
-      { alertId: "alert-001", instanceId: "demo-003", instanceName: "Analytics", providerType: "sql-server", severity: "critical", state: "active", ruleName: "Timeout contínuo", summary: "Três timeouts na janela demonstrativa.", openedAt: at(16), updatedAt: at(3) },
-      { alertId: "alert-002", instanceId: "demo-002", instanceName: "Pedidos regional", providerType: "mysql", severity: "warning", state: "acknowledged", ruleName: "Latência elevada", summary: "Alerta reconhecido somente na fixture local.", openedAt: at(22), updatedAt: at(8) },
-      { alertId: "alert-003", instanceId: "demo-004", instanceName: "Catálogo", providerType: "mongodb", severity: "information", state: "silenced", ruleName: "Manutenção programada", summary: "Silenciamento demonstrativo; nenhum canal foi contatado.", openedAt: at(26), updatedAt: at(24) },
+      { alertId: "alert-001", instanceId: "demo-003", instanceName: translate(locale, "Sample.Instance.Analytics"), providerType: "sql-server", severity: "critical", state: "active", ruleName: translate(locale, "Sample.Alert.TimeoutRule"), summary: translate(locale, "Sample.Alert.TimeoutSummary"), openedAt: at(16), updatedAt: at(3) },
+      { alertId: "alert-002", instanceId: "demo-002", instanceName: translate(locale, "Sample.Instance.Orders"), providerType: "mysql", severity: "warning", state: "acknowledged", ruleName: translate(locale, "Sample.Alert.LatencyRule"), summary: translate(locale, "Sample.Alert.LatencySummary"), openedAt: at(22), updatedAt: at(8) },
+      { alertId: "alert-003", instanceId: "demo-004", instanceName: translate(locale, "Sample.Instance.Catalogue"), providerType: "mongodb", severity: "information", state: "silenced", ruleName: translate(locale, "Sample.Alert.MaintenanceRule"), summary: translate(locale, "Sample.Alert.MaintenanceSummary"), openedAt: at(26), updatedAt: at(24) },
     ],
   };
 }
 
 export function filterTimeline(
-  events: readonly TimelineEventItem[], query: string, severity: "all" | EventSeverity,
+  events: readonly TimelineEventItem[], query: string, severity: "all" | EventSeverity, locale: SupportedLocale = "pt-BR",
 ): readonly TimelineEventItem[] {
-  const normalized = query.trim().toLocaleLowerCase("pt-BR");
+  const normalized = query.trim().toLocaleLowerCase(locale);
   return events.filter((event) =>
     (severity === "all" || event.severity === severity) &&
     (normalized.length === 0 || [event.instanceName, event.providerType, event.eventType, event.summary]
-      .join(" ").toLocaleLowerCase("pt-BR").includes(normalized)));
+      .join(" ").toLocaleLowerCase(locale).includes(normalized)));
 }
 
-export function buildConfigurationSnapshot(): ConfigurationCapabilitySnapshot {
+export function buildConfigurationSnapshot(locale: SupportedLocale = "pt-BR"): ConfigurationCapabilitySnapshot {
   return {
     schemaVersion: "configuration-capabilities.v1",
-    instanceId: "demo-001", instanceName: "Financeiro principal", providerType: "postgresql",
+    instanceId: "demo-001", instanceName: translate(locale, "Sample.Instance.Finance"), providerType: "postgresql",
     fields: [
-      { key: "monitoring.interval", label: "Intervalo de monitoramento", safeValue: "60 segundos", description: "Política demonstrativa; não persistida." },
-      { key: "monitoring.timeout", label: "Timeout", safeValue: "5 segundos", description: "Limite demonstrativo do probe." },
-      { key: "monitoring.retry", label: "Tentativas", safeValue: "3", description: "Retry limitado com backoff." },
-      { key: "credential.reference", label: "Credencial", safeValue: "Referência protegida", description: "O identificador e o segredo não são exibidos." },
+      { key: "monitoring.interval", label: translate(locale, "Sample.Config.Interval.Label"), safeValue: translate(locale, "Sample.Config.Interval.Value"), description: translate(locale, "Sample.Config.Interval.Description") },
+      { key: "monitoring.timeout", label: translate(locale, "Sample.Config.Timeout.Label"), safeValue: translate(locale, "Sample.Config.Timeout.Value"), description: translate(locale, "Sample.Config.Timeout.Description") },
+      { key: "monitoring.retry", label: translate(locale, "Sample.Config.Retry.Label"), safeValue: translate(locale, "Sample.Config.Retry.Value"), description: translate(locale, "Sample.Config.Retry.Description") },
+      { key: "credential.reference", label: translate(locale, "Sample.Config.Credential.Label"), safeValue: translate(locale, "Sample.Config.Credential.Value"), description: translate(locale, "Sample.Config.Credential.Description") },
     ],
     capabilities: [
-      { capabilityId: "service.start", displayName: "Start", state: "unsupported", reasonCode: "provider.control_unsupported", requiresConfirmation: true },
-      { capabilityId: "service.stop", displayName: "Stop", state: "unsupported", reasonCode: "provider.control_unsupported", requiresConfirmation: true },
-      { capabilityId: "service.restart", displayName: "Restart", state: "unsupported", reasonCode: "provider.control_unsupported", requiresConfirmation: true },
+      { capabilityId: "service.start", displayName: translate(locale, "Action.Start"), state: "unsupported", reasonCode: "provider.control_unsupported", requiresConfirmation: true },
+      { capabilityId: "service.stop", displayName: translate(locale, "Action.Stop"), state: "unsupported", reasonCode: "provider.control_unsupported", requiresConfirmation: true },
+      { capabilityId: "service.restart", displayName: translate(locale, "Action.Restart"), state: "unsupported", reasonCode: "provider.control_unsupported", requiresConfirmation: true },
     ],
   };
 }

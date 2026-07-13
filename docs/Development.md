@@ -91,6 +91,7 @@ These tests characterize the only functional legacy provider behavior under its 
 ```powershell
 npm ci
 npm run tokens:verify
+npm run localisation:verify
 npm run check
 npm run comments:verify
 npm test

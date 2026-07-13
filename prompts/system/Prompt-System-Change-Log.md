@@ -2,8 +2,8 @@
 
 ## Versão atual
 
-- Versão: `3.25.0`
-- Data: 2026-07-12
+- Versão: `3.26.0`
+- Data: 2026-07-13
 - Status: corpus DB-Notifier consolidado
 - Escopo: 13 arquivos ativos
 
@@ -16,6 +16,12 @@ A versão do corpus é independente da versão do software.
 - PATCH: clareza, correção ou referência sem mudança de autoridade.
 
 Toda alteração atualiza este arquivo e, quando necessário, `../Start-Here.md`.
+
+## 3.26.0 — 2026-07-13
+
+- Design System atualizado para `1.1.0` com contrato oficial de interface `pt-BR`/`en-GB`, `pt-BR` como fallback seguro e `LanguageSelector` equivalente em React/WPF.
+- Matriz responsiva, acessibilidade e paridade ampliada para exigir os dois locales sem traduzir identificadores técnicos ou alterar fatos operacionais.
+- Incremento implementado e verificado em Dashboard, Desktop e Tray; `STATE-05`, Human Gate e limites de integração externa permanecem inalterados.
 
 ## 3.25.0 — 2026-07-12
 

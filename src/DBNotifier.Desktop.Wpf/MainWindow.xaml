@@ -2,7 +2,7 @@
 <Window x:Class="DBNotifier.Desktop.Wpf.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="DB-Notifier — Inventário"
+        Title="{DynamicResource App.Title}"
         Width="1180"
         Height="760"
         MinWidth="820"
@@ -56,11 +56,11 @@
         </Grid.ColumnDefinitions>
         <StackPanel>
           <TextBlock Text="DB-NOTIFIER" Foreground="#8CC8FF" FontWeight="SemiBold" FontSize="12" />
-          <TextBlock Text="Inventário de instâncias" Foreground="White" FontWeight="SemiBold" FontSize="26" Margin="0,4,0,0" />
-          <TextBlock Text="Visão local somente leitura · contrato inventory.v1" Foreground="#C7D7E5" FontSize="13" Margin="0,5,0,0" />
+          <TextBlock Text="{DynamicResource View.Inventory.Title}" Foreground="White" FontWeight="SemiBold" FontSize="26" Margin="0,4,0,0" />
+          <TextBlock Text="{DynamicResource Sidebar.ReadOnly}" Foreground="#C7D7E5" FontSize="13" Margin="0,5,0,0" />
         </StackPanel>
         <Border Grid.Column="1" Background="#263F52" CornerRadius="14" Padding="12,6" VerticalAlignment="Center">
-          <TextBlock Text="DADOS DE DEMONSTRAÇÃO" Foreground="White" FontSize="11" FontWeight="SemiBold" />
+          <TextBlock Text="{DynamicResource Demo.Badge}" Foreground="White" FontSize="11" FontWeight="SemiBold" />
         </Border>
       </Grid>
     </Border>
@@ -74,36 +74,41 @@
         </Grid.RowDefinitions>
 
         <Grid Grid.Row="0">
-          <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="*" />
-            <ColumnDefinition Width="Auto" />
-          </Grid.ColumnDefinitions>
+          <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+          </Grid.RowDefinitions>
           <StackPanel>
-            <TextBlock Text="Saúde da frota" FontSize="20" FontWeight="SemiBold" />
+            <TextBlock Text="{DynamicResource Wpf.HealthTitle}" FontSize="20" FontWeight="SemiBold" />
             <TextBlock x:Name="UpdatedAtText" Foreground="{StaticResource MutedBrush}" Margin="0,5,0,0" />
           </StackPanel>
-          <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-            <TextBlock Text="Visão:" VerticalAlignment="Center" Margin="0,0,8,0" />
-            <ComboBox x:Name="ViewSelector" Width="155" Margin="0,0,18,0" SelectedIndex="0" SelectionChanged="ViewSelectionChanged" AutomationProperties.Name="Selecionar visão">
-              <ComboBoxItem Content="Inventário" Tag="Inventory" />
-              <ComboBoxItem Content="Histórico e alertas" Tag="HistoryAlerts" />
-              <ComboBoxItem Content="Configuração" Tag="Configuration" />
+          <WrapPanel Grid.Row="1" Margin="0,16,0,0" VerticalAlignment="Center">
+            <TextBlock Text="{DynamicResource Language.Label}" VerticalAlignment="Center" Margin="0,0,8,0" />
+            <ComboBox x:Name="LanguageSelector" Width="150" Margin="0,0,18,0" SelectedIndex="0" SelectionChanged="LanguageSelectionChanged" AutomationProperties.Name="{DynamicResource Language.Label}">
+              <ComboBoxItem Content="{DynamicResource Language.PtBr}" Tag="pt-BR" />
+              <ComboBoxItem Content="{DynamicResource Language.EnGb}" Tag="en-GB" />
             </ComboBox>
-            <TextBlock Text="Cenário acessível:" VerticalAlignment="Center" Margin="0,0,10,0" />
+            <TextBlock Text="{DynamicResource Wpf.ViewLabel}" VerticalAlignment="Center" Margin="0,0,8,0" />
+            <ComboBox x:Name="ViewSelector" Width="155" Margin="0,0,18,0" SelectedIndex="0" SelectionChanged="ViewSelectionChanged" AutomationProperties.Name="{DynamicResource Wpf.ViewLabel}">
+              <ComboBoxItem Content="{DynamicResource Navigation.Inventory}" Tag="Inventory" />
+              <ComboBoxItem Content="{DynamicResource Wpf.HistoryAlerts}" Tag="HistoryAlerts" />
+              <ComboBoxItem Content="{DynamicResource Navigation.Configuration}" Tag="Configuration" />
+            </ComboBox>
+            <TextBlock Text="{DynamicResource Scenario.Label}" VerticalAlignment="Center" Margin="0,0,10,0" />
             <ComboBox x:Name="ScenarioSelector"
                       Width="180"
                       SelectedIndex="0"
                       SelectionChanged="ScenarioSelectionChanged"
-                      AutomationProperties.Name="Selecionar cenário de apresentação">
-              <ComboBoxItem Content="Conteúdo carregado" Tag="Ready" />
-              <ComboBoxItem Content="Carregando" Tag="Loading" />
-              <ComboBoxItem Content="Sem dados" Tag="Empty" />
-              <ComboBoxItem Content="Agent offline" Tag="Offline" />
-              <ComboBoxItem Content="Erro ao carregar" Tag="Error" />
-              <ComboBoxItem Content="Permissão negada" Tag="Denied" />
-              <ComboBoxItem Content="Em manutenção" Tag="Maintenance" />
+                      AutomationProperties.Name="{DynamicResource Scenario.Label}">
+              <ComboBoxItem Content="{DynamicResource Scenario.Ready}" Tag="Ready" />
+              <ComboBoxItem Content="{DynamicResource Scenario.Loading}" Tag="Loading" />
+              <ComboBoxItem Content="{DynamicResource Scenario.Empty}" Tag="Empty" />
+              <ComboBoxItem Content="{DynamicResource Scenario.Offline}" Tag="Offline" />
+              <ComboBoxItem Content="{DynamicResource Scenario.Error}" Tag="Error" />
+              <ComboBoxItem Content="{DynamicResource Scenario.Denied}" Tag="Denied" />
+              <ComboBoxItem Content="{DynamicResource Scenario.Maintenance}" Tag="Maintenance" />
             </ComboBox>
-          </StackPanel>
+          </WrapPanel>
         </Grid>
 
         <Grid x:Name="ReadySurface" Grid.Row="1" Margin="0,22,0,0">
@@ -114,31 +119,31 @@
           <UniformGrid Columns="5">
             <Border Style="{StaticResource SummaryCard}">
               <StackPanel>
-                <TextBlock Text="TOTAL" Foreground="{StaticResource MutedBrush}" FontSize="11" FontWeight="SemiBold" />
+                <TextBlock Text="{DynamicResource Inventory.Total}" Foreground="{StaticResource MutedBrush}" FontSize="11" FontWeight="SemiBold" />
                 <TextBlock x:Name="TotalCountText" FontSize="26" FontWeight="SemiBold" Margin="0,5,0,0" />
               </StackPanel>
             </Border>
             <Border Style="{StaticResource SummaryCard}" BorderBrush="#81B89A">
               <StackPanel>
-                <TextBlock Text="● SAUDÁVEIS" Foreground="#17633A" FontSize="11" FontWeight="SemiBold" />
+                <TextBlock Text="{DynamicResource Inventory.Healthy}" Foreground="#17633A" FontSize="11" FontWeight="SemiBold" />
                 <TextBlock x:Name="HealthyCountText" FontSize="26" FontWeight="SemiBold" Margin="0,5,0,0" />
               </StackPanel>
             </Border>
             <Border Style="{StaticResource SummaryCard}" BorderBrush="#E3B75E">
               <StackPanel>
-                <TextBlock Text="▲ DEGRADADAS" Foreground="#805300" FontSize="11" FontWeight="SemiBold" />
+                <TextBlock Text="{DynamicResource Inventory.Degraded}" Foreground="#805300" FontSize="11" FontWeight="SemiBold" />
                 <TextBlock x:Name="DegradedCountText" FontSize="26" FontWeight="SemiBold" Margin="0,5,0,0" />
               </StackPanel>
             </Border>
             <Border Style="{StaticResource SummaryCard}" BorderBrush="#E29A9A">
               <StackPanel>
-                <TextBlock Text="■ ATENÇÃO" Foreground="#982B2B" FontSize="11" FontWeight="SemiBold" />
+                <TextBlock Text="{DynamicResource Inventory.Attention}" Foreground="#982B2B" FontSize="11" FontWeight="SemiBold" />
                 <TextBlock x:Name="AttentionCountText" FontSize="26" FontWeight="SemiBold" Margin="0,5,0,0" />
               </StackPanel>
             </Border>
             <Border Style="{StaticResource SummaryCard}" Margin="0">
               <StackPanel>
-                <TextBlock Text="◷ DESATUALIZADAS" Foreground="#4E5C69" FontSize="11" FontWeight="SemiBold" />
+                <TextBlock Text="{DynamicResource Inventory.Stale}" Foreground="#4E5C69" FontSize="11" FontWeight="SemiBold" />
                 <TextBlock x:Name="StaleCountText" FontSize="26" FontWeight="SemiBold" Margin="0,5,0,0" />
               </StackPanel>
             </Border>
@@ -155,8 +160,8 @@
                   <ColumnDefinition Width="*" />
                   <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
-                <TextBlock Text="Instâncias monitoradas" FontSize="16" FontWeight="SemiBold" />
-                <TextBlock Grid.Column="1" Text="Somente leitura" Foreground="{StaticResource MutedBrush}" />
+                <TextBlock Text="{DynamicResource Inventory.Title}" FontSize="16" FontWeight="SemiBold" />
+                <TextBlock Grid.Column="1" Text="{DynamicResource Common.ReadOnly}" Foreground="{StaticResource MutedBrush}" />
               </Grid>
               <DataGrid x:Name="InventoryGrid"
                         Grid.Row="1"
@@ -172,15 +177,15 @@
                         ColumnHeaderHeight="42"
                         AlternatingRowBackground="#F8FAFC"
                         SelectionMode="Single"
-                        AutomationProperties.Name="Inventário de instâncias somente leitura">
+                        AutomationProperties.Name="{DynamicResource View.Inventory.Title}">
                 <DataGrid.Columns>
-                  <DataGridTextColumn Header="Instância" Binding="{Binding DisplayName}" Width="1.25*" />
-                  <DataGridTextColumn Header="Provider" Binding="{Binding ProviderType}" Width="*" />
-                  <DataGridTextColumn Header="Suporte" Binding="{Binding SupportLabel}" Width="1.35*" />
-                  <DataGridTextColumn Header="Ambiente" Binding="{Binding Environment}" Width="*" />
-                  <DataGridTextColumn Header="Status" Binding="{Binding StatusLabel}" Width="*" />
-                  <DataGridTextColumn Header="Observado em (UTC)" Binding="{Binding ObservedAtLabel}" Width="1.2*" />
-                  <DataGridTextColumn Header="Latência" Binding="{Binding LatencyLabel}" Width="0.7*" />
+                  <DataGridTextColumn Header="{DynamicResource Common.Instance}" Binding="{Binding DisplayName}" Width="170" />
+                  <DataGridTextColumn Header="{DynamicResource Common.Provider}" Binding="{Binding ProviderType}" Width="130" />
+                  <DataGridTextColumn Header="{DynamicResource Common.Support}" Binding="{Binding SupportLabel}" Width="210" />
+                  <DataGridTextColumn Header="{DynamicResource Common.Environment}" Binding="{Binding Environment}" Width="140" />
+                  <DataGridTextColumn Header="{DynamicResource Common.Status}" Binding="{Binding StatusLabel}" Width="140" />
+                  <DataGridTextColumn Header="{DynamicResource Common.ObservedAt}" Binding="{Binding ObservedAtLabel}" Width="180" />
+                  <DataGridTextColumn Header="{DynamicResource Common.Latency}" Binding="{Binding LatencyLabel}" Width="90" />
                 </DataGrid.Columns>
               </DataGrid>
             </Grid>
@@ -195,15 +200,15 @@
           <Border Background="White" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="10">
             <Grid>
               <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
-              <Grid Margin="18,14"><Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions><TextBlock Text="Timeline de eventos" FontSize="16" FontWeight="SemiBold" /><TextBlock Grid.Column="1" Text="history-alerts.v1 · Somente leitura" Foreground="{StaticResource MutedBrush}" /></Grid>
-              <DataGrid x:Name="HistoryGrid" Grid.Row="1" AutoGenerateColumns="False" IsReadOnly="True" CanUserAddRows="False" HeadersVisibility="Column" GridLinesVisibility="Horizontal" BorderThickness="0" RowHeight="46" ColumnHeaderHeight="40" AlternatingRowBackground="#F8FAFC" AutomationProperties.Name="Timeline de eventos somente leitura">
+              <Grid Margin="18,14"><Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions><TextBlock Text="{DynamicResource History.Title}" FontSize="16" FontWeight="SemiBold" /><TextBlock Grid.Column="1" Text="{DynamicResource Common.ReadOnly}" Foreground="{StaticResource MutedBrush}" /></Grid>
+              <DataGrid x:Name="HistoryGrid" Grid.Row="1" AutoGenerateColumns="False" IsReadOnly="True" CanUserAddRows="False" HeadersVisibility="Column" GridLinesVisibility="Horizontal" BorderThickness="0" RowHeight="46" ColumnHeaderHeight="40" AlternatingRowBackground="#F8FAFC" AutomationProperties.Name="{DynamicResource History.Title}">
                 <DataGrid.Columns>
-                  <DataGridTextColumn Header="Horário UTC" Binding="{Binding OccurredAtLabel}" Width="1.1*" />
-                  <DataGridTextColumn Header="Severidade" Binding="{Binding SeverityLabel}" Width="*" />
-                  <DataGridTextColumn Header="Evento" Binding="{Binding EventType}" Width="*" />
-                  <DataGridTextColumn Header="Instância" Binding="{Binding InstanceName}" Width="1.25*" />
-                  <DataGridTextColumn Header="Provider" Binding="{Binding ProviderType}" Width="*" />
-                  <DataGridTextColumn Header="Resumo" Binding="{Binding Summary}" Width="2*" />
+                  <DataGridTextColumn Header="{DynamicResource Common.TimeUtc}" Binding="{Binding OccurredAtLabel}" Width="1.1*" />
+                  <DataGridTextColumn Header="{DynamicResource Common.Severity}" Binding="{Binding SeverityLabel}" Width="*" />
+                  <DataGridTextColumn Header="{DynamicResource Common.Event}" Binding="{Binding EventType}" Width="*" />
+                  <DataGridTextColumn Header="{DynamicResource Common.Instance}" Binding="{Binding InstanceName}" Width="1.25*" />
+                  <DataGridTextColumn Header="{DynamicResource Common.Provider}" Binding="{Binding ProviderType}" Width="*" />
+                  <DataGridTextColumn Header="{DynamicResource Common.Summary}" Binding="{Binding Summary}" Width="2*" />
                 </DataGrid.Columns>
               </DataGrid>
             </Grid>
@@ -211,15 +216,15 @@
           <Border Grid.Row="1" Background="White" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="10" Margin="0,18,0,0">
             <Grid>
               <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
-              <Grid Margin="18,14"><Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions><TextBlock Text="Alertas demonstrativos" FontSize="16" FontWeight="SemiBold" /><TextBlock Grid.Column="1" x:Name="AlertSummaryText" Foreground="{StaticResource MutedBrush}" /></Grid>
-              <DataGrid x:Name="AlertsGrid" Grid.Row="1" AutoGenerateColumns="False" IsReadOnly="True" CanUserAddRows="False" HeadersVisibility="Column" GridLinesVisibility="Horizontal" BorderThickness="0" RowHeight="46" ColumnHeaderHeight="40" AlternatingRowBackground="#F8FAFC" AutomationProperties.Name="Alertas somente leitura">
+              <Grid Margin="18,14"><Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions><TextBlock Text="{DynamicResource Alerts.Title}" FontSize="16" FontWeight="SemiBold" /><TextBlock Grid.Column="1" x:Name="AlertSummaryText" Foreground="{StaticResource MutedBrush}" /></Grid>
+              <DataGrid x:Name="AlertsGrid" Grid.Row="1" AutoGenerateColumns="False" IsReadOnly="True" CanUserAddRows="False" HeadersVisibility="Column" GridLinesVisibility="Horizontal" BorderThickness="0" RowHeight="46" ColumnHeaderHeight="40" AlternatingRowBackground="#F8FAFC" AutomationProperties.Name="{DynamicResource Alerts.Title}">
                 <DataGrid.Columns>
-                  <DataGridTextColumn Header="Severidade" Binding="{Binding SeverityLabel}" Width="*" />
-                  <DataGridTextColumn Header="Estado" Binding="{Binding StateLabel}" Width="*" />
-                  <DataGridTextColumn Header="Regra" Binding="{Binding RuleName}" Width="1.2*" />
-                  <DataGridTextColumn Header="Instância" Binding="{Binding InstanceName}" Width="1.2*" />
-                  <DataGridTextColumn Header="Provider" Binding="{Binding ProviderType}" Width="*" />
-                  <DataGridTextColumn Header="Resumo" Binding="{Binding Summary}" Width="2*" />
+                  <DataGridTextColumn Header="{DynamicResource Common.Severity}" Binding="{Binding SeverityLabel}" Width="*" />
+                  <DataGridTextColumn Header="{DynamicResource Common.State}" Binding="{Binding StateLabel}" Width="*" />
+                  <DataGridTextColumn Header="{DynamicResource Common.Rule}" Binding="{Binding RuleName}" Width="1.2*" />
+                  <DataGridTextColumn Header="{DynamicResource Common.Instance}" Binding="{Binding InstanceName}" Width="1.2*" />
+                  <DataGridTextColumn Header="{DynamicResource Common.Provider}" Binding="{Binding ProviderType}" Width="*" />
+                  <DataGridTextColumn Header="{DynamicResource Common.Summary}" Binding="{Binding Summary}" Width="2*" />
                 </DataGrid.Columns>
               </DataGrid>
             </Grid>
@@ -230,15 +235,15 @@
           <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
           <Border Background="White" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="10">
             <Grid><Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
-              <Grid Margin="18,14"><Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions><StackPanel><TextBlock Text="Configuração não secreta" FontSize="16" FontWeight="SemiBold" /><TextBlock Text="Financeiro principal · postgresql" Foreground="{StaticResource MutedBrush}" Margin="0,4,0,0" /></StackPanel><TextBlock Grid.Column="1" Text="configuration-capabilities.v1 · Não persistido" Foreground="{StaticResource MutedBrush}" /></Grid>
-              <DataGrid x:Name="ConfigurationGrid" Grid.Row="1" AutoGenerateColumns="False" IsReadOnly="True" CanUserAddRows="False" HeadersVisibility="Column" BorderThickness="0" RowHeight="46" AutomationProperties.Name="Configuração somente leitura"><DataGrid.Columns><DataGridTextColumn Header="Campo" Binding="{Binding Label}" Width="1.3*" /><DataGridTextColumn Header="Valor seguro" Binding="{Binding SafeValue}" Width="*" /><DataGridTextColumn Header="Descrição" Binding="{Binding Description}" Width="2*" /></DataGrid.Columns></DataGrid>
+              <Grid Margin="18,14"><Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions><StackPanel><TextBlock Text="{DynamicResource Wpf.ConfigurationTitle}" FontSize="16" FontWeight="SemiBold" /><TextBlock x:Name="ConfigurationInstanceText" Foreground="{StaticResource MutedBrush}" Margin="0,4,0,0" /></StackPanel><TextBlock Grid.Column="1" Text="{DynamicResource Common.NotPersisted}" Foreground="{StaticResource MutedBrush}" /></Grid>
+              <DataGrid x:Name="ConfigurationGrid" Grid.Row="1" AutoGenerateColumns="False" IsReadOnly="True" CanUserAddRows="False" HeadersVisibility="Column" BorderThickness="0" RowHeight="46" AutomationProperties.Name="{DynamicResource Wpf.ConfigurationTitle}"><DataGrid.Columns><DataGridTextColumn Header="{DynamicResource Common.Field}" Binding="{Binding Label}" Width="1.3*" /><DataGridTextColumn Header="{DynamicResource Common.SafeValue}" Binding="{Binding SafeValue}" Width="*" /><DataGridTextColumn Header="{DynamicResource Common.Description}" Binding="{Binding Description}" Width="2*" /></DataGrid.Columns></DataGrid>
             </Grid>
           </Border>
           <Border Grid.Row="1" Background="White" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="10" Margin="0,18,0,0">
             <Grid><Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
-              <Grid Margin="18,14"><Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions><StackPanel><TextBlock Text="Controle administrativo" FontSize="16" FontWeight="SemiBold" /><TextBlock Text="Nenhuma ação pode ser executada nesta tela." Foreground="{StaticResource MutedBrush}" Margin="0,4,0,0" /></StackPanel><ComboBox x:Name="PermissionSelector" Grid.Column="1" Width="170" SelectedIndex="0" AutomationProperties.Name="Cenário de permissão"><ComboBoxItem Content="Autorizado" Tag="Authorized" /><ComboBoxItem Content="Negado" Tag="Denied" /></ComboBox></Grid>
-              <DataGrid x:Name="CapabilityGrid" Grid.Row="1" AutoGenerateColumns="False" IsReadOnly="True" CanUserAddRows="False" HeadersVisibility="Column" BorderThickness="0" RowHeight="46" SelectionMode="Single" AutomationProperties.Name="Capabilities administrativas"><DataGrid.Columns><DataGridTextColumn Header="Ação" Binding="{Binding DisplayName}" Width="*" /><DataGridTextColumn Header="Capability" Binding="{Binding CapabilityId}" Width="1.2*" /><DataGridTextColumn Header="Estado" Binding="{Binding StateLabel}" Width="*" /><DataGridTextColumn Header="Motivo" Binding="{Binding ReasonCode}" Width="1.5*" /></DataGrid.Columns></DataGrid>
-              <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="18,12"><Button Content="Revisar decisão selecionada" Click="ReviewCapabilityClick" Margin="0,0,10,0" /><Button Content="Visualizar confirmação segura" Click="PreviewConfirmationClick" /></StackPanel>
+              <Grid Margin="18,14"><Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions><StackPanel><TextBlock Text="{DynamicResource Configuration.AdminTitle}" FontSize="16" FontWeight="SemiBold" /><TextBlock Text="{DynamicResource Wpf.NoAction}" Foreground="{StaticResource MutedBrush}" Margin="0,4,0,0" /></StackPanel><ComboBox x:Name="PermissionSelector" Grid.Column="1" Width="170" SelectedIndex="0" AutomationProperties.Name="{DynamicResource Configuration.PermissionScenario}"><ComboBoxItem Content="{DynamicResource Configuration.Authorized}" Tag="Authorized" /><ComboBoxItem Content="{DynamicResource Configuration.Denied}" Tag="Denied" /></ComboBox></Grid>
+              <DataGrid x:Name="CapabilityGrid" Grid.Row="1" AutoGenerateColumns="False" IsReadOnly="True" CanUserAddRows="False" HeadersVisibility="Column" BorderThickness="0" RowHeight="46" SelectionMode="Single" AutomationProperties.Name="{DynamicResource Configuration.AdminTitle}"><DataGrid.Columns><DataGridTextColumn Header="{DynamicResource Common.Action}" Binding="{Binding DisplayName}" Width="*" /><DataGridTextColumn Header="{DynamicResource Common.Capability}" Binding="{Binding CapabilityId}" Width="1.2*" /><DataGridTextColumn Header="{DynamicResource Common.State}" Binding="{Binding StateLabel}" Width="*" /><DataGridTextColumn Header="{DynamicResource Common.Reason}" Binding="{Binding ReasonCode}" Width="1.5*" /></DataGrid.Columns></DataGrid>
+              <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="18,12"><Button Content="{DynamicResource Wpf.ReviewSelected}" Click="ReviewCapabilityClick" Margin="0,0,10,0" /><Button Content="{DynamicResource Configuration.ViewConfirmation}" Click="PreviewConfirmationClick" /></StackPanel>
             </Grid>
           </Border>
         </Grid>
@@ -259,14 +264,14 @@
             <TextBlock x:Name="StateSymbolText" TextAlignment="Center" FontSize="32" FontWeight="SemiBold" Foreground="{StaticResource BrandBrush}" />
             <TextBlock x:Name="StateTitleText" TextAlignment="Center" FontSize="22" FontWeight="SemiBold" Margin="0,12,0,0" />
             <TextBlock x:Name="StateMessageText" TextAlignment="Center" TextWrapping="Wrap" Foreground="{StaticResource MutedBrush}" FontSize="14" LineHeight="22" Margin="0,10,0,0" />
-            <Button x:Name="RetryButton" Content="Tentar novamente" Margin="0,22,0,0" Click="RetryButtonClick" AutomationProperties.HelpText="Retorna à demonstração de inventário carregado" />
+            <Button x:Name="RetryButton" Content="{DynamicResource Operational.Retry}" Margin="0,22,0,0" Click="RetryButtonClick" AutomationProperties.HelpText="{DynamicResource Operational.Retry}" />
           </StackPanel>
         </Border>
       </Grid>
     </ScrollViewer>
 
     <Border Grid.Row="2" Background="White" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,1,0,0" Padding="28,12">
-      <TextBlock Foreground="{StaticResource MutedBrush}" FontSize="12" Text="Nenhuma conexão externa é realizada nesta tela. Providers planejados não representam suporte público ou homologação." />
+      <TextBlock Foreground="{StaticResource MutedBrush}" FontSize="12" Text="{DynamicResource Footer.Disclaimer}" TextWrapping="Wrap" />
     </Border>
   </Grid>
 </Window>

@@ -2,6 +2,7 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import { App } from "./App";
+import { LocalisationProvider } from "./LocalisationProvider";
 import "./generated/design-tokens.css";
 import "./styles.css";
 
@@ -12,6 +13,8 @@ if (!root) {
 
 ReactDOM.createRoot(root).render(
   <React.StrictMode>
-    <App />
+    <LocalisationProvider>
+      <App />
+    </LocalisationProvider>
   </React.StrictMode>,
 );
