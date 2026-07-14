@@ -2,7 +2,7 @@
 
 ## Status and authority
 
-This pack contains the accepted `STATE-02 ARCHITECTURE` decisions and contracts. It defines boundaries and constraints but is not evidence of implementation. ADR-0001 through ADR-0006 were accepted by explicit product-owner decisions and govern subsequent phases until superseded by a new ADR.
+This pack contains the `STATE-02 ARCHITECTURE` decisions and contracts used by the technical implementation. It defines boundaries and constraints but is not evidence of implementation. ADR-0001 through ADR-0006 were historically recorded as accepted; the validator later contested whether that bundled Human Gate was informed, so its current lifecycle authority remains pending independent retrospective ratification. Existing implementation continues to follow the decisions until ratification rejects one or a superseding ADR is accepted.
 
 ## System context
 

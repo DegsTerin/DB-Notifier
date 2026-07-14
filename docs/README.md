@@ -15,7 +15,7 @@ Current discovery and migration artifacts:
 - [`STATE-05-Design-System-Implementation-Report.md`](STATE-05-Design-System-Implementation-Report.md): canonical token/schema foundation, deterministic CSS/XAML generation, theme contracts, verification and remaining implementation increments.
 - [`STATE-05-Localisation-Implementation-Report.md`](STATE-05-Localisation-Implementation-Report.md): shared `pt-BR`/`en-GB` catalogue, React/WPF language lifecycle, responsive scope and verification evidence.
 - [`STATE-01-Setup-Report.md`](STATE-01-Setup-Report.md): historical setup evidence, dependency remediation, compatibility migration and original Human Gate record, now ratified with reservations by the current addendum.
-- [`architecture/README.md`](architecture/README.md): accepted `STATE-02` architecture pack and decision index.
+- [`architecture/README.md`](architecture/README.md): `STATE-02` architecture pack and decision index currently awaiting retrospective Human Gate ratification.
 - [`STATE-02-Architecture-Report.md`](STATE-02-Architecture-Report.md): architecture audit, material decisions, walkthrough, and original Human Gate record.
 - [`data/README.md`](data/README.md): `STATE-03` logical model, retention, migrations, and recovery guidance.
 - [`STATE-03-Database-Modeling-Report.md`](STATE-03-Database-Modeling-Report.md): historical automatic/Human Gate evidence, migration verification, and recorded limits.
