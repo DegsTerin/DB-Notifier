@@ -8,6 +8,13 @@ Foram identificadas 37 unidades de requisito rastreáveis. Após esta atualizaç
 
 O estado permanece `STATE-05 FRONTEND_IMPLEMENTATION`, com Human Gate `PENDENTE`. Esta auditoria não aprova uma amostra humana, não altera um estado do ciclo de vida e não autoriza `STATE-06`, `STATE-07`, integração externa, controle de serviço ou homologação de provider.
 
+### Reconhecimento humano do inventário
+
+- Validador/data: `Bruno — 2026-07-14`.
+- Confirmação recebida: `A lista representa corretamente minhas solicitações. Reconheço a matriz como inventário documental, sem aprovar ainda o Human Gate de STATE-05.`
+- Efeito: o conjunto consolidado de requisitos foi reconhecido como representação correta das solicitações.
+- Limite: esse reconhecimento não aprova implementação, resultado técnico, amostra visual/acessível, `S05-HG-010`, Human Gate de `STATE-05` ou transição de estado.
+
 ## Escopo e método
 
 - Fonte de requisitos: solicitações e esclarecimentos do usuário presentes nesta sessão, incluindo as referências visuais fornecidas.
@@ -65,7 +72,7 @@ O estado permanece `STATE-05 FRONTEND_IMPLEMENTATION`, com Human Gate `PENDENTE`
 | `REQ-025` | Analisar os relatórios Lighthouse fornecidos e executar Lighthouse de forma reproduzível. | [`STATE-05-Lighthouse-Audit.md`](STATE-05-Lighthouse-Audit.md); estado atual. | Runner [`run-state05-lighthouse-audit.ps1`](../scripts/run-state05-lighthouse-audit.ps1), `robots.txt` e correção de token de contraste. | 30 relatórios limpos atuais: cinco rotas × dois perfis × três repetições. | `ATENDIDO` | Lighthouse não substitui amostras humanas nem produção. |
 | `REQ-026` | Explicar por que Lighthouse não ficou 100 em tudo. | [`STATE-05-Lighthouse-Audit.md`](STATE-05-Lighthouse-Audit.md); estado atual. | Política intencional `Disallow: /` para console interno; token de contraste corrigido. | Acessibilidade/Boas Práticas 100 em 30/30; Performance 99 em uma execução e medianas 100; SEO 66 por não rastreabilidade intencional. | `ATENDIDO COM LIMITES` | SEO 100 conflitaria com a política atual de console não indexável; Performance é medição variável, avaliada por repetição/mediana. |
 | `REQ-027` | Registrar aprovação de 390 px sem extrapolar para 320 px ou zoom 200%. | `S05-HG-008`; `HG05-03`; log de transição. | Correções responsivas já implementadas. | Aprovação explícita limitada a `390 px`; evidência automática também existe a `320 px`. | `PARCIAL` | Revisão humana `320 px` e zoom nativo 200% continuam obrigatórias. |
-| `REQ-028` | Manter rastreabilidade de novas solicitações nos Markdown. | [`AGENTS.md`](../AGENTS.md); Design System, Human Gate, estado e log de transições; esta auditoria. | Cada mudança funcional possui documento proprietário e evidência correspondente. | Verificação desta matriz contra 60 Markdown, código, testes e commits. | `ATENDIDO` | Manter esta matriz ou o documento proprietário sincronizado quando novos requisitos mudarem escopo/status. |
+| `REQ-028` | Manter rastreabilidade de novas solicitações nos Markdown. | [`AGENTS.md`](../AGENTS.md); Design System, Human Gate, estado e log de transições; esta auditoria. | Cada mudança funcional possui documento proprietário e evidência correspondente. | Verificação desta matriz contra 60 Markdown, código, testes e commits; inventário reconhecido por Bruno em 2026-07-14. | `ATENDIDO` | Manter esta matriz ou o documento proprietário sincronizado quando novos requisitos mudarem escopo/status. |
 
 ## Matriz C — Governança, Human Gates e orientação
 

@@ -706,6 +706,15 @@
 - Riscos/ressalvas: a auditoria documental não repete todos os testes citados, não aprova visual/acessibilidade humana, não implementa integração externa e não autoriza transição, provider, notificação real ou controle administrativo.
 - Aprovador: não aplicável a uma decisão de Human Gate; auditoria solicitada por Bruno.
 
+## 2026-07-14 — Reconhecimento humano da matriz de rastreabilidade
+
+- Estado anterior: `STATE-05 FRONTEND_IMPLEMENTATION`, Human Gate pendente.
+- Estado resultante: sem transição; `STATE-05` e seu Human Gate permanecem pendentes.
+- Decisão: reconhecer que a matriz consolidada representa corretamente as solicitações do usuário e aceitá-la somente como inventário documental.
+- Evidência: confirmação explícita de Bruno — `A lista representa corretamente minhas solicitações. Reconheço a matriz como inventário documental, sem aprovar ainda o Human Gate de STATE-05.`
+- Limite: o reconhecimento não aprova implementação, evidência técnica, experiência visual/acessível, `S05-HG-010`, Human Gate ou transição para `STATE-06`.
+- Aprovador: Bruno, exclusivamente quanto à representação documental da lista.
+
 ## Template de nova entrada
 
 - Data:
