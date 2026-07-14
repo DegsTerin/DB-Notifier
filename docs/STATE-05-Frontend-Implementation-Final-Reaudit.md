@@ -69,3 +69,7 @@ The historical `STATE-00` through `STATE-04` Human Gate authority also remains p
 - Retrospective `STATE-00` through `STATE-04` Human Gates: `PENDENTE` individually.
 - Transition to `STATE-06`: `NÃO AUTORIZADA`.
 - Next action: ratify `STATE-00` through `STATE-04` one state at a time, then perform the named `STATE-05` human samples and request one unambiguous `STATE-05` decision.
+
+## Post-audit lifecycle addendum — 2026-07-13
+
+After this automatic report was issued, validator Bruno completed independent retrospective ratification of `STATE-00` through `STATE-04` in [`Human-Gate-Retrospective-Ratification.md`](Human-Gate-Retrospective-Ratification.md). That later governance evidence supersedes only the retrospective-pending statements above; it does not change the automatic results, approve any `STATE-05` human sample or authorise `STATE-06`. The current next action is the named `STATE-05` Human Gate protocol.

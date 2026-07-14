@@ -4,7 +4,7 @@ Permanent repository-agent behaviour is consolidated in [`../AGENTS.md`](../AGEN
 
 Current discovery and migration artifacts:
 
-- [`Human-Gate-Retrospective-Ratification.md`](Human-Gate-Retrospective-Ratification.md): current ratification pack; `STATE-00` is approved, `STATE-01` through `STATE-03` are approved with reservations and `STATE-04` remains pending without rewriting the historical reports.
+- [`Human-Gate-Retrospective-Ratification.md`](Human-Gate-Retrospective-Ratification.md): completed independent retrospective ratification pack for `STATE-00` through `STATE-04`, without rewriting the historical reports.
 - [`Legacy-Inventory.md`](Legacy-Inventory.md): verified PgNotifier behavior, limitations, and capability truth.
 - [`Legacy-Migration-Plan.md`](Legacy-Migration-Plan.md): incremental PgNotifier → DB-Notifier milestones, compatibility, verification, and rollback.
 - [`Legacy-Compatibility.md`](Legacy-Compatibility.md): canonical names, deprecated shims, configuration preservation, and removal gate.
@@ -21,7 +21,7 @@ Current discovery and migration artifacts:
 - [`STATE-03-Database-Modeling-Report.md`](STATE-03-Database-Modeling-Report.md): historical automatic/Human Gate evidence and migration verification, now ratified with reservations by the current addendum.
 - [`STATE-04-Backend-Implementation-Report.md`](STATE-04-Backend-Implementation-Report.md): completed Domain/Application, open Provider SDK, PostgreSQL backend-slice evidence, and accepted limitations.
 - [`STATE-04-Backend-Implementation-Audit.md`](STATE-04-Backend-Implementation-Audit.md): automatic closure-gate evidence, findings, limitations, and remediation required before the Human Gate.
-- [`STATE-04-Backend-Implementation-Reaudit.md`](STATE-04-Backend-Implementation-Reaudit.md): approved automatic remediation re-audit plus the original Human Gate, reservations and transition record; Human Gate authority is pending ratification.
+- [`STATE-04-Backend-Implementation-Reaudit.md`](STATE-04-Backend-Implementation-Reaudit.md): approved automatic remediation re-audit plus the original Human Gate, reservations and transition record; Human Gate authority is now retrospectively ratified by the current addendum.
 - [`STATE-05-Frontend-Implementation-Report.md`](STATE-05-Frontend-Implementation-Report.md): Dashboard/WPF inventory-status increment, presentation semantics, accessibility evidence, checks, and remaining UI scope.
 - [`STATE-05-Frontend-Implementation-Audit.md`](STATE-05-Frontend-Implementation-Audit.md): rejected automatic closure audit, mobile/modal blockers, automated evidence and pending human screen-reader inventory.
 - [`STATE-05-Frontend-Implementation-Reaudit.md`](STATE-05-Frontend-Implementation-Reaudit.md): historical mobile/modal remediation evidence that predates Design System `2.1.0`; it is not the final current closure audit.

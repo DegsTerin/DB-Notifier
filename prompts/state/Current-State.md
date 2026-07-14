@@ -4,12 +4,12 @@
 
 - Posição técnica do workspace: `STATE-05 FRONTEND_IMPLEMENTATION`.
 - Progressão de ciclo de vida: `EM ESPERA`.
-- Motivo: o validador contestou em 2026-07-13 a aprovação informada dos Human Gates históricos; `STATE-00` a `STATE-03` já foram ratificados, mas `STATE-04` e o Human Gate atual ainda impedem progressão.
+- Motivo: a ratificação retrospectiva de `STATE-00` a `STATE-04` foi concluída; o Human Gate atual de `STATE-05` ainda impede progressão.
 - Human Gate de `STATE-00`: ratificação retrospectiva `APROVADA` por Bruno em 2026-07-13, limitada a discovery/planejamento e sem validar runtime real, integração, infraestrutura, providers ou testes operacionais futuros.
 - Human Gate de `STATE-01`: ratificação retrospectiva `APROVADA COM RESSALVAS` por Bruno em 2026-07-13, baseada em revisão documental; onboarding não repetido e execução remota da CI sem comprovação independente.
 - Human Gate de `STATE-02`: ratificação retrospectiva `APROVADA COM RESSALVAS` por Bruno em 2026-07-13; ADR-0001/2/3/4/6 aceitos e ADR-0005 aceito com ressalvas, sem prova operacional, homologação, penetration test, update real ou autorização administrativa.
 - Human Gate de `STATE-03`: ratificação retrospectiva `APROVADA COM RESSALVAS` por Bruno em 2026-07-13, limitada ao modelo, migrations revisadas e testes não produtivos; PostgreSQL real, produção, backup/PITR, restore, legal hold, exclusão e rollback operacional não foram executados.
-- Human Gate de `STATE-04`: registro histórico preservado, mas ratificação retrospectiva `PENDENTE`.
+- Human Gate de `STATE-04`: ratificação retrospectiva `APROVADA` por Bruno em 2026-07-13, limitada às evidências determinísticas disponíveis; homologação PostgreSQL permanece `None`, suporte público `No`, capabilities administrativas `Unsupported` e integrações/identidades/execução reais permanecem futuras.
 - Human Gate de `STATE-05`: `PENDENTE` e ainda dependente das amostras humanas visuais, de teclado, leitor de tela, zoom, scaling, High Contrast, TV e Tray.
 - Nenhuma transição para `STATE-06`, homologação, laboratório multi-provider, integração externa, execução administrativa ou release está autorizada.
 
@@ -50,15 +50,15 @@
 - Git worktree rastreado permanece limpo antes deste incremento; a referência interna longa e inválida encontrada na auditoria foi copiada para `%TEMP%`, removida pontualmente e `git show-ref`/`git fsck --full` voltaram a sair com código 0.
 - Evidência automática não substitui Human Gate nem prova runtime externo, provider real, acessibilidade humana ou produção.
 
-## Ratificação retrospectiva
+## Ratificação retrospectiva concluída
 
 - Pacote proprietário: `docs/Human-Gate-Retrospective-Ratification.md`.
 - `STATE-00`: `APROVADO` retrospectivamente em 2026-07-13, com limites explícitos de discovery/planejamento.
 - `STATE-01`: `APROVADO COM RESSALVAS` retrospectivamente em 2026-07-13; onboarding não repetido e CI remota não comprovada independentemente.
 - `STATE-02`: `APROVADO COM RESSALVAS` retrospectivamente em 2026-07-13; todos os ADRs aceitos, com ADR-0005 e limites operacionais registrados.
 - `STATE-03`: `APROVADO COM RESSALVAS` retrospectivamente em 2026-07-13; modelo/migrations não produtivos aceitos e limites de produção/recuperação preservados.
-- `STATE-04`: revisar provider PostgreSQL, autorização negativa, migrador, ausência de homologação e ausência de execução administrativa.
-- A decisão de `STATE-04` permanece `PENDENTE` até confirmação inequívoca do validador exclusiva para esse estado.
+- `STATE-04`: `APROVADO` retrospectivamente em 2026-07-13; provider/autorizações/migrador aceitos no escopo determinístico e limites de homologação/suporte/execução preservados.
+- Resultado: `STATE-00` a `STATE-04` possuem decisões retrospectivas inequívocas e independentes. Isso não aprova `STATE-05` nem autoriza `STATE-06`.
 
 ## Dívida e limitações atuais
 
@@ -71,6 +71,6 @@
 
 ## Próximo gate
 
-Ratificar `STATE-04 BACKEND_IMPLEMENTATION`. Depois executar as amostras humanas pendentes do `STATE-05` e solicitar uma decisão inequívoca exclusiva para `STATE-05`.
+Executar as amostras humanas pendentes do `STATE-05` conforme `docs/STATE-05-Human-Gate-Validation.md` e solicitar uma decisão inequívoca exclusiva para `STATE-05`.
 
 Este documento contém somente a verdade presente. Evolução e decisões históricas permanecem em `State-Transition-Log.md` e nos relatórios originais.

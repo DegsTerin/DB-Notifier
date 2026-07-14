@@ -2,7 +2,7 @@
 
 ## Status
 
-`PENDENTE — STATE-00 A STATE-03 RATIFICADOS; STATE-04 PENDENTE`
+`CONCLUÍDA — STATE-00 A STATE-04 RATIFICADOS`
 
 This document owns the retrospective ratification of the contested Human Gate records for `STATE-00` through `STATE-04`. It is an addendum: the original reports and transition log remain historical evidence and are not rewritten.
 
@@ -220,12 +220,19 @@ The remediation baseline was re-run after the CI/governance changes. The current
 
 ### Ratification record
 
-- Validator/date: `PENDENTE`
-- Samples repeated now: `PENDENTE`
-- Reservations accepted: `PENDENTE`
-- Decision: `PENDENTE`
-- Justification/evidence: `PENDENTE`
-- Required confirmation: `Ratifico a decisão acima exclusivamente para STATE-04 BACKEND_IMPLEMENTATION.`
+- Validator/date: `Bruno — 2026-07-13`
+- Samples reviewed now:
+  - Audit and remediation: `APROVADO` — configuration migration, typed discovery, negative fixtures, security and state documentation remained consistent after the original findings.
+  - PostgreSQL provider and states: `APROVADO` — typed validation/readiness, transport-limited TCP fallback, canonical classification, no shell execution and no unsupported administrative capability claim were reviewed.
+  - Human/Agent authorisation: `APROVADO` — deterministic tests cover RBAC, authenticated identity, permission scope, expiry, fail-closed denial and audit.
+  - Idempotency and delivery: `APROVADO` — command delivery, outbox, Agent/Server synchronisation, replay, sequence conflict, retry and invalid responses have defined tested behaviour.
+  - ConfigMigrator: `APROVADO` — dry-run, field validation, secret blocking, backup, atomic writing, idempotency and guarded rollback were reviewed.
+  - Capabilities and public support: `APROVADO` — the matrix distinguishes implementation, support, homologation and roadmap without claiming unsupported capability.
+- Samples not repeated: real PostgreSQL, real certificates, IdP, vault, external notifications, administrative execution, external integrations and real-environment homologation/infrastructure validation were not executed.
+- Reservations accepted: PostgreSQL homologation remains `None` and public support `No`; administrative capabilities remain unsupported in this increment; real integrations, certificates, external identity, vault, notifications and operational execution remain assigned to later authorised phases; approval is limited to the available `STATE-04` scope/evidence.
+- Decision: `APROVADO`
+- Justification/evidence: the validator reviewed all six named deterministic evidence groups, explicitly preserved every unexecuted infrastructure/operation boundary and approved only `STATE-04 BACKEND_IMPLEMENTATION`.
+- Confirmation received: `Ratifico a decisão acima exclusivamente para STATE-04 BACKEND_IMPLEMENTATION.`
 
 ## Overall result
 
@@ -233,8 +240,9 @@ The remediation baseline was re-run after the CI/governance changes. The current
 - `STATE-01`: `APROVADO COM RESSALVAS` — retrospectively ratified by Bruno on 2026-07-13; onboarding not repeated and remote CI not independently proved
 - `STATE-02`: `APROVADO COM RESSALVAS` — retrospectively ratified by Bruno on 2026-07-13; all ADRs accepted, with ADR-0005 and the recorded operational limits reserved
 - `STATE-03`: `APROVADO COM RESSALVAS` — retrospectively ratified by Bruno on 2026-07-13; no real PostgreSQL, production migration/deletion, PITR/restore, legal hold or operational rollback
-- `STATE-04`: `PENDENTE`
+- `STATE-04`: `APROVADO` — retrospectively ratified by Bruno on 2026-07-13 with the recorded homologation, support and external-integration limits
 - Lifecycle progression: `EM ESPERA`
-- Next ratification decision to present: `STATE-04 BACKEND_IMPLEMENTATION`
+- Retrospective ratification: `CONCLUÍDA`
+- Next Human Gate: `STATE-05 FRONTEND_IMPLEMENTATION`
 
-Only after all five independent records are completed may the project resume the `STATE-05` closure workflow. That resumption still requires the current automatic re-audit and its own Human Gate.
+All five independent retrospective records are complete. The project resumes only the `STATE-05` closure workflow: its automatic re-audit is approved in scope, but the named human visual/accessibility samples and the exclusive `STATE-05` decision remain pending. `STATE-06` is not authorised.

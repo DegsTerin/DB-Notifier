@@ -607,6 +607,17 @@
 - Riscos/limites: nenhuma migration real, exclusão, backup, restore ou mutação externa foi executada por esta ratificação.
 - Aprovador: Bruno — `Ratifico a decisão acima exclusivamente para STATE-03 DATABASE_MODELING.`
 
+## 2026-07-13 — Ratificação retrospectiva de STATE-04 BACKEND_IMPLEMENTATION
+
+- Estado anterior: posição técnica `STATE-05 FRONTEND_IMPLEMENTATION`, progressão `EM ESPERA`; `STATE-00` a `STATE-03` ratificados e `STATE-04` pendente.
+- Estado resultante: sem transição; `STATE-04` ratificado como `APROVADO`, retrospectiva `STATE-00` a `STATE-04` concluída, `STATE-05` Human Gate pendente e progressão `EM ESPERA`.
+- Decisão: Bruno aprovou auditoria/correções, provider/estados, autorização humana/Agent, idempotência/entrega, ConfigMigrator e verdade de capabilities/suporte no escopo determinístico apresentado.
+- Amostras não repetidas: PostgreSQL/certificados/IdP/vault/notificações reais, execução administrativa, integrações externas e homologação/infraestrutura reais.
+- Ressalvas: PostgreSQL homologation `None`/public support `No`; capabilities administrativas `Unsupported`; integração, identidades externas, vault, notificações e execução permanecem para fases futuras autorizadas; decisão limitada ao `STATE-04` evidenciado.
+- Evidências: confirmação inequívoca e revisão detalhada registradas em `docs/Human-Gate-Retrospective-Ratification.md`; estado e addendum de `STATE-05` sincronizados.
+- Riscos/limites: nenhuma conexão real, credencial, certificado, serviço, comando administrativo, deploy ou mutação externa foi executada por esta ratificação.
+- Aprovador: Bruno — `Ratifico a decisão acima exclusivamente para STATE-04 BACKEND_IMPLEMENTATION.`
+
 ## Template de nova entrada
 
 - Data:
