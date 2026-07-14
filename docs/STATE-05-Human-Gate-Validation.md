@@ -26,12 +26,12 @@ Mobile and tablet samples apply to the responsive Dashboard Web. There is no nat
 
 | Evidence | Current result |
 |---|---|
-| Design System implementation report | Design System `2.1.3` translation-icon, Light/Dark-only, outlined database-mark, ultrawide, TV-presentation, system-local time, compact TopBar, responsive summary bands, single-column operational cards and operational-Tray implementation gates approved; commit identifier is reported in the implementation hand-off |
-| Dashboard matrix | 56 standard locale/theme/viewport-route samples plus four TV samples across the current Light/Dark combinations; no global overflow or unnamed interactive control |
-| Lighthouse matrix | 24 clean reports (`4` routes × mobile/desktop × `3` runs); median Performance/Accessibility/Best Practices `100`; valid internal-console crawler policy; SEO `66` by intentional non-crawlability |
+| Design System implementation report | Design System `2.2.0` translation-icon, Light/Dark-only, outlined database-mark, operational Overview, ultrawide, TV-presentation, system-local time, responsive contracts and two-column operational-Tray implementation gates approved; commit identifier is reported in the implementation hand-off |
+| Dashboard matrix | 72 standard locale/theme/viewport-route samples plus four TV interactions across the current Light/Dark combinations; no global overflow or unnamed interactive control; Overview preserved four instances and three alerts at all sampled sizes |
+| Lighthouse matrix | 30 clean reports (`5` routes × mobile/desktop × `3` runs); every route/profile median is `100`; Accessibility/Best Practices `100` in `30/30`, Performance `100` in `29/30` and `99` in one mobile Overview run; valid internal-console crawler policy; SEO `66` by intentional non-crawlability |
 | WPF matrix | Eight current locale/theme/size samples: four at `1180×760` with 34 focusable controls and four at `820×620` with 21; none unnamed and sampled Tab focus remained contained |
 | WPF High Contrast/scaling | High Contrast responded to the real Windows flag in two technical samples; 125%/120 DPI and 150%/144 DPI minimum-window samples passed automatic checks; 200% was not offered by the active `1920×1080` display; human confirmation remains pending |
-| Automated tests | 31 Dashboard, 128 .NET unit/model/provider/presentation, 5 architecture and 10 legacy compatibility tests approved |
+| Automated tests | 32 Dashboard, 128 .NET unit/model/provider/presentation, 5 architecture and 10 legacy compatibility tests approved |
 | Security/dependencies | npm and NuGet reported no known vulnerabilities in the recorded audit |
 
 Primary automatic evidence:
@@ -280,6 +280,17 @@ Do not mark a row until the named human validator has performed it.
 - Human closure: PENDENTE; the corrected narrow-desktop Alert summary requires visible reviewer confirmation.
 - Lifecycle impact: the overall Human Gate remains pending; the incidental discovery does not invalidate the approved `390 px` sample.
 
+### `S05-HG-010` — Operational Overview and two-column notification-area flyout
+
+- Date requested: 2026-07-14.
+- Source: explicit user request to make the product work and look like the supplied DB Notifier reference while incorporating the functionality already present.
+- Classification: blocking visual/product-pattern confirmation; not a request to fabricate external monitoring or administrative support.
+- Interpreted target: dark navy enterprise shell, Overview-first navigation, compact metric band, fleet status with small trends, recent alerts, performance trend, provider distribution and a compact two-column Tray flyout. Vendor logos, claimed online providers, external notifications and enabled service control are excluded until their owning phases prove them.
+- Implementation: React and WPF now open on the operational Overview, built from the existing deterministic inventory/timeline fixture. Dashboard TV uses the same Overview. Tray status rows occupy the left column and safe Overview/Inventory/History/Configuration actions occupy the right; Restart remains unavailable and non-interactive.
+- Automatic evidence: 32 Dashboard tests, production Web/WPF builds, 72 responsive samples and 30 clean Lighthouse reports passed. The first Lighthouse run exposed `4.03:1` contrast in the trend-axis labels; the semantic token was corrected and the complete 30-report matrix was repeated with Accessibility `100` in `30/30` and all Performance medians at `100`.
+- Human closure: PENDENTE; the Overview and Tray must be reviewed visibly in the requested locale/theme combinations. Automatic evidence does not establish visual equivalence or usability of Windows notification-area activation.
+- Lifecycle impact: `STATE-05` and its Human Gate remain pending. Real API/Agent refresh and change notifications remain `STATE-06`; service Start/Stop/Restart remains dependent on exact implementation and homologation in `STATE-07`.
+
 ## Human Gate decision
 
 - Phase: `STATE-05 FRONTEND_IMPLEMENTATION`
@@ -289,7 +300,7 @@ Do not mark a row until the named human validator has performed it.
 - Critical samples repeated: PENDENTE
 - Experience and error messages: PENDENTE
 - Security/authorisation truth: PENDENTE
-- Remaining coverage: outlined database-mark, fullscreen/TV layout and controls, system-local time, compact mobile TopBar, `320 px` Alert/Configuration cards, corrected narrow-desktop Alert summary, display name, translation icon and Light/Dark-only control confirmation plus all keyboard, screen-reader, zoom, scaling, High Contrast and remaining samples above
+- Remaining coverage: operational Overview and two-column Tray, outlined database-mark, fullscreen/TV layout and controls, system-local time, compact mobile TopBar, `320 px` Alert/Configuration cards, corrected narrow-desktop Alert summary, display name, translation icon and Light/Dark-only control confirmation plus all keyboard, screen-reader, zoom, scaling, High Contrast and remaining samples above
 - Decision: `PENDENTE`
 - Justification/evidence: PENDENTE
 
@@ -297,4 +308,4 @@ Permitted decisions after the sample are `APROVADO`, `APROVADO COM RESSALVAS` or
 
 ## Recommended next step
 
-In the already dedicated review window, reload the rebuilt local Dashboard only after explicit consent, confirm the corrected three-metric Alert summary near `960` CSS px, then switch to the `320` CSS px sample for the remaining portion of `S05-HG-008`. Record the two decisions separately and do not infer the overall Human Gate decision.
+After explicit consent, open the rebuilt Dashboard in a new independent Chrome window on Overview and open the WPF Desktop/Tray sample separately. First review the Overview in `pt-BR`/Dark at desktop and `390 px`, including TV entry/exit; then review the two-column Tray and its safe/unavailable actions. Record `S05-HG-010` independently before returning to the pending `960` CSS px Alert summary and `320` CSS px sample. Do not infer the overall Human Gate decision.

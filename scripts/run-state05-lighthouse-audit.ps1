@@ -1,4 +1,4 @@
-# Module purpose: Runs repeatable STATE-05 Lighthouse audits against the four local Dashboard views in isolated mobile and desktop Chrome profiles.
+# Module purpose: Runs repeatable STATE-05 Lighthouse audits against the five local Dashboard views in isolated mobile and desktop Chrome profiles.
 [CmdletBinding()]
 param(
     [Uri]$DashboardUri = 'http://127.0.0.1:4173/',
@@ -74,6 +74,7 @@ $resolvedOutput = (Resolve-Path -LiteralPath $OutputDirectory).Path
 $chrome = Find-Chrome
 $samples = [System.Collections.Generic.List[object]]::new()
 $routes = @(
+    [pscustomobject]@{ Name = 'overview'; Fragment = 'overview' },
     [pscustomobject]@{ Name = 'inventory'; Fragment = 'inventory' },
     [pscustomobject]@{ Name = 'history'; Fragment = 'history' },
     [pscustomobject]@{ Name = 'alerts'; Fragment = 'alerts' },

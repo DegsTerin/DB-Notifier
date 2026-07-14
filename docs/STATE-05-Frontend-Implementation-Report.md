@@ -2,13 +2,13 @@
 
 ## Outcome
 
-Five `STATE-05 FRONTEND_IMPLEMENTATION` increments implement provider-neutral inventory/status, history/alert, configuration/capability and Tray/accessibility slices in React and .NET 10 WPF. All surfaces use deterministic local adapters; none calls the API, Agent, database, vault, IdP, notification channel or administrative executor.
+Six `STATE-05 FRONTEND_IMPLEMENTATION` increments implement provider-neutral Overview, inventory/status, history/alert, configuration/capability and Tray/accessibility slices in React and .NET 10 WPF. All surfaces use deterministic local adapters; none calls the API, Agent, database, vault, IdP, notification channel or administrative executor.
 
 This is an authorized implementation increment, not closure of `STATE-05`, external integration, provider activation or homologation. PostgreSQL remains implemented but unhomologated; MySQL, SQL Server and MongoDB appear only as clearly labelled planned demonstration rows and do not represent working providers.
 
 The rejected automatic closure audit and its later approved re-audit are recorded separately in `STATE-05-Frontend-Implementation-Audit.md` and `STATE-05-Frontend-Implementation-Reaudit.md`. The measured re-audit evidence supersedes the earlier scaled compact visual sample for closure purposes; the Human Gate remains pending.
 
-The subsequent Design System scope expansion and implementation foundation are recorded in `design/DB-Notifier-Design-System.md` and `STATE-05-Design-System-Implementation-Report.md`. Theme application remains pending before a new closure re-audit.
+The subsequent Design System scope expansion and implementation foundation are recorded in `design/DB-Notifier-Design-System.md` and `STATE-05-Design-System-Implementation-Report.md`. Automatic implementation evidence is current; visible human validation remains pending.
 
 ## Delivered scope
 
@@ -95,6 +95,14 @@ Temporary screenshots were stored outside the repository and were not committed.
 - The exact flyout timestamp is labelled as a local snapshot and the header continues to say that no external data is present. No change notification, API refresh, provider process lookup or service control was added.
 - The staged legacy mapping is explicit: authorised API/Agent data and change-only notifications belong to `STATE-06`; an exact service-control action may become visible only after implementation and per-provider/topology homologation in `STATE-07`.
 
+## Increment 6 — Operational Overview and two-column Tray
+
+- React and WPF open on an operational Overview which composes the existing local inventory and timeline fixture into summary metrics, fleet status, recent alerts, a deterministic demonstration trend and provider-fixture distribution.
+- The same Overview becomes the Dashboard TV surface so standard and distance-view presentation cannot drift into different operational claims.
+- Dashboard navigation now exposes Overview, Inventory, History, Alerts and Configuration; the Alerts item carries a factual active-alert count from the local fixture.
+- The Tray flyout adopts the requested compact two-column pattern: fleet status on the left and safe navigation on the right, with Restart retained only as a non-interactive unavailable explanation.
+- Dashboard and WPF continue to distinguish demonstration data, planned providers and unsupported administrative execution. No external notification, polling, connection or command execution was introduced.
+
 ## Security and phase boundaries
 
 - Demonstration data contains no connection string, credential reference, secret, token or real infrastructure identifier.
@@ -111,4 +119,4 @@ Temporary screenshots were stored outside the repository and were not committed.
 
 ## Recommendation
 
-Review the operational Tray flyout in visible `pt-BR`/Light and `en-GB`/Dark sessions, then continue the pending screen-reader, native-zoom/scaling and High Contrast samples. Do not transition to `STATE-06` before explicit Human Gate approval.
+Review the operational Overview and two-column Tray flyout in visible `pt-BR`/Light and `en-GB`/Dark sessions, then continue the pending screen-reader, native-zoom/scaling and High Contrast samples. Do not transition to `STATE-06` before explicit Human Gate approval.

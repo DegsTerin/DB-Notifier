@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Module purpose: Defines canonical Brazilian Portuguese interface messages shared by React and WPF adapters. -->
 <localisation schemaVersion="dbnotifier.localisation.v1" culture="pt-BR">
-  <message key="App.Title">DB Notifier — Inventário</message>
-  <message key="App.Description">Console multi-provider do DB Notifier para inventário e saúde de instâncias.</message>
+  <message key="App.Title">DB Notifier — Visão geral</message>
+  <message key="App.Description">Console multi-provider do DB Notifier para visão operacional, inventário e saúde de instâncias.</message>
   <message key="Brand.Subtitle">Console de operações</message>
   <message key="Demo.Badge">Dados de demonstração</message>
   <message key="Language.Label">Idioma</message>
@@ -20,6 +20,7 @@
   <message key="TV.Active">Modo TV · demonstração</message>
   <message key="TV.FullscreenUnavailable">Modo TV ativo; a tela cheia não está disponível neste navegador.</message>
   <message key="Navigation.Label">Navegação principal</message>
+  <message key="Navigation.Overview">Visão geral</message>
   <message key="Navigation.Inventory">Inventário</message>
   <message key="Navigation.History">Histórico</message>
   <message key="Navigation.Alerts">Alertas</message>
@@ -35,6 +36,9 @@
   <message key="Scenario.Error">Erro ao carregar</message>
   <message key="Scenario.Denied">Permissão negada</message>
   <message key="Scenario.Maintenance">Em manutenção</message>
+  <message key="View.Overview.Eyebrow">Panorama operacional</message>
+  <message key="View.Overview.Title">Visão geral</message>
+  <message key="View.Overview.Description">Saúde, exceções e tendências do snapshot local em uma única visão.</message>
   <message key="View.Inventory.Eyebrow">Visão da frota</message>
   <message key="View.Inventory.Title">Inventário de instâncias</message>
   <message key="View.Inventory.Description">Estado operacional, atualização e suporte declarado por provider.</message>
@@ -95,6 +99,19 @@
   <message key="Alerts.TotalVisible">Total visível</message>
   <message key="Alerts.Title">Alertas demonstrativos</message>
   <message key="Alerts.Description">Reconhecer e silenciar não estão habilitados neste incremento.</message>
+  <message key="Overview.FleetStatus">Estado das instâncias</message>
+  <message key="Overview.FleetDescription">Saúde, latência e evidência local mais recente.</message>
+  <message key="Overview.RecentAlerts">Alertas recentes</message>
+  <message key="Overview.AlertDescription">Exceções do fixture local, sem entrega externa.</message>
+  <message key="Overview.ViewInventory">Ver inventário</message>
+  <message key="Overview.ViewAlerts">Ver todos os alertas</message>
+  <message key="Overview.SampleTrend">Tendência da amostra</message>
+  <message key="Overview.DemonstrationChart">Série visual determinística; não representa telemetria externa.</message>
+  <message key="Overview.TrendAccessibleLabel">Gráfico demonstrativo com duas séries locais de latência.</message>
+  <message key="Overview.ProviderFixture">Providers no fixture</message>
+  <message key="Overview.ProviderDescription">Distribuição dos identificadores demonstrativos, não de suporte.</message>
+  <message key="Overview.ProviderAccessibleLabel">Distribuição de {0} instâncias demonstrativas por provider.</message>
+  <message key="Overview.ActiveAlertCount">{0} alerta ativo</message>
   <message key="AlertState.Active">Ativo</message>
   <message key="AlertState.Acknowledged">Reconhecido</message>
   <message key="AlertState.Silenced">Silenciado</message>
@@ -202,6 +219,7 @@
   <message key="Tray.FleetSummary">4 instâncias demonstrativas · sem dados externos</message>
   <message key="Tray.Instances">Instâncias monitoradas na demonstração local</message>
   <message key="Tray.LocalSnapshot">Snapshot local em {0} UTC</message>
+  <message key="Tray.OpenOverview">Abrir visão geral</message>
   <message key="Tray.OpenInventory">Abrir inventário</message>
   <message key="Tray.OpenHistoryAlerts">Abrir histórico e alertas</message>
   <message key="Tray.OpenConfiguration">Abrir configuração</message>

@@ -1,7 +1,7 @@
 /** Module purpose: Verifies that Dashboard timestamps follow the selected system time zone without changing their instants. */
 import assert from "node:assert/strict";
 import test from "node:test";
-import { formatSystemDateTime } from "../src/systemDateTime.ts";
+import { formatSystemDateTime, formatSystemTime } from "../src/systemDateTime.ts";
 
 test("system time presentation converts UTC instants and exposes the local zone", () => {
   const instant = "2026-07-14T01:34:40.000Z";
@@ -22,4 +22,11 @@ test("system time presentation preserves locale-specific date ordering", () => {
 
 test("invalid instants fail explicitly instead of presenting fabricated time", () => {
   assert.throws(() => formatSystemDateTime("not-an-instant", "en-GB"), RangeError);
+});
+
+test("compact operational time keeps the exact system zone without repeating the date", () => {
+  const local = formatSystemTime("2026-07-14T01:34:40.000Z", "pt-BR", "America/Sao_Paulo");
+
+  assert.match(local, /22:34:40/);
+  assert.doesNotMatch(local, /13\/07\/2026/);
 });

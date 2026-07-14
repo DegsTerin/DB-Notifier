@@ -28,29 +28,29 @@
 
 ## Frontend implementado em STATE-05
 
-- Cinco incrementos implementam inventário/status, histórico/alertas, configuração/capabilities, Tray seguro e flyout operacional em React e WPF .NET 10.
+- Seis incrementos implementam Overview operacional, inventário/status, histórico/alertas, configuração/capabilities, Tray seguro e flyout operacional em React e WPF .NET 10.
 - Todas as superfícies usam adapters determinísticos locais e identificam dados de demonstração; nenhuma chama API, Agent, database, IdP, vault, notification channel ou executor.
-- Design System `2.1.3` fornece tokens canônicos, geração CSS/XAML determinística, marca provider-neutral e shell empresarial compartilhado.
+- Design System `2.2.0` fornece tokens canônicos, geração CSS/XAML determinística, marca provider-neutral e shell empresarial compartilhado.
 - Idiomas atuais: `pt-BR` padrão e `en-GB`, com catálogos XML canônicos e adapters TypeScript/XAML gerados.
 - Temas selecionáveis atuais: Light e Dark. Valor antigo ou inválido System migra para Light; Windows High Contrast permanece override independente.
 - Dashboard Web é responsivo de 320 CSS px a ultrawide e atende desktop, tablet e mobile Web; não existe aplicativo móvel nativo.
-- Modo TV é session-only no Dashboard Web, com Fullscreen opcional, saída persistente, relógio/freshness e verdade de demonstração.
+- Modo TV é session-only no Dashboard Web, abre a Overview operacional, mantém Fullscreen opcional, saída persistente, relógio/freshness e verdade de demonstração.
 - O Dashboard preserva instantes ISO/UTC e cálculos de freshness, mas apresenta data/hora no fuso do sistema do navegador com rótulo explícito; idioma e tema permanecem disponíveis no modo TV.
 - Em mobile Web de `320` a `620` CSS px, marca abreviada e controles de idioma/tema/TV permanecem em uma única linha contida, com alvos de `44×44` CSS px.
 - Em larguras Web compactas abaixo de `768` CSS px, coleções de Alertas e capabilities administrativas usam uma única coluna; timestamps, providers e reason codes quebram dentro do próprio cartão.
 - O resumo de Alertas usa toda a largura operacional e três tracks para suas três métricas até o breakpoint compacto, sem herdar colunas vazias do Inventário.
 - O refresh atual recalcula apenas relógio e freshness sobre o snapshot local. Leitura API imediata e reconciliação não sobreposta a cada 30 segundos pertencem a `STATE-06`.
 - WPF é uma aplicação Windows desktop com mínimo de `820×620` DIP; não possui modo TV.
-- Flyout do Tray apresenta quatro instâncias demonstrativas, estados textuais/semânticos, snapshot local, atalhos seguros e Restart não interativo.
+- Flyout do Tray usa leitura compacta em duas colunas: quatro instâncias demonstrativas e seus estados à esquerda; atalhos seguros para Overview, Inventário, Histórico/Alertas e Configuração à direita; Restart permanece não interativo.
 
 ## Evidência automática atual
 
 - Restore locked, build Release, 128 testes unit/model/provider/presentation e 5 testes de arquitetura aprovados; 0 avisos e 0 erros.
-- `dotnet format`, auditoria NuGet, 31 testes Dashboard, typecheck, build Vite, auditoria npm, geração/drift de marca/tokens/localização e gate documental aprovados.
+- `dotnet format`, auditoria NuGet, 32 testes Dashboard, typecheck, build Vite, auditoria npm, geração/drift de marca/tokens/localização e gate documental aprovados.
 - 10 testes Pester e validação do bundle legado aprovados.
 - CI reproduz format, auditorias NuGet/npm, bundle, links Markdown, smoke fail-closed, integridade Git e matriz Dashboard headless, além dos builds/testes já existentes.
-- Matriz Dashboard atual cobre 56 amostras (`2 locales × 2 temas × 14 viewports/rotas`), sem overflow global ou controles interativos sem nome; modal e TV passaram nos quatro pares locale/tema. Mobile `320×568`/`390×844` manteve o TopBar contido em uma linha, Alertas/Configuração usaram uma coluna sem overflow interno e o resumo de Alertas a `960×1040` ocupou a linha com três métricas/tracks; TV preservou idioma/tema e evidenciou o fuso do sistema.
-- Matriz Lighthouse `13.4.0` pós-correção cobre 24 relatórios limpos (`4` rotas × mobile `390×844`/desktop `1440×1000` × `3` execuções): medianas de Performance, Acessibilidade e Boas Práticas `100`, CLS zero, `robots.txt` válido em `24/24` e nenhuma requisição de extensão. SEO `66` é consequência intencional de `Disallow: /` no console interno, não falha de sintaxe; isso não substitui o Human Gate.
+- Matriz Dashboard atual cobre 72 amostras (`2 locales × 2 temas × 18 viewports/rotas`), sem overflow global ou controles interativos sem nome; modal e TV passaram nos quatro pares locale/tema. A Overview preservou quatro instâncias e três alertas de demonstração em ultrawide, desktop, `390×844` e `320×568`; mobile manteve o TopBar contido, Alertas/Configuração usaram uma coluna e o resumo de Alertas a `960×1040` ocupou a linha completa. TV preservou idioma/tema, apresentou a Overview completa e evidenciou o fuso do sistema.
+- Matriz Lighthouse `13.4.0` pós-correção cobre 30 relatórios limpos (`5` rotas × mobile `390×844`/desktop `1440×1000` × `3` execuções): medianas de Performance/Acessibilidade/Boas Práticas `100`; Acessibilidade/Boas Práticas `100` em `30/30`, Performance `100` em `29/30` e `99` em uma execução mobile da Overview; CLS zero, `robots.txt` válido em `30/30` e nenhuma requisição de extensão. SEO `66` é consequência intencional de `Disallow: /` no console interno, não falha de sintaxe; isso não substitui o Human Gate.
 - Matriz WPF corrente cobre oito combinações de locale/tema/tamanho padrão e mínimo, sem controles focalizáveis sem nome e com foco Tab contido. High Contrast real foi reconhecido/restaurado e duas amostras técnicas permaneceram legíveis. Scaling real a 125%/120 DPI e 150%/144 DPI passou no mínimo com rolagem acessível; 200% não foi oferecido pelo monitor `1920×1080`. A janela é `PROCESS_SYSTEM_DPI_AWARE`; cenário mixed-DPI/per-monitor continua não provado.
 - API local respondeu liveness `200`, catálogo humano sem token `401` e poll de Agent sem certificado `403`; Agent permaneceu ativo com defaults desabilitados e foi encerrado após a amostra.
 - Git worktree rastreado permanece limpo antes deste incremento; a referência interna longa e inválida encontrada na auditoria foi copiada para `%TEMP%`, removida pontualmente e `git show-ref`/`git fsck --full` voltaram a sair com código 0.
@@ -69,9 +69,9 @@
 ## Dívida e limitações atuais
 
 - A documentação automática garante cabeçalhos de módulos e inventário; cobertura XML completa das APIs públicas preexistentes permanece incremental e exige revisão humana quando o arquivo proprietário for alterado.
-- A reauditoria automática final do Design System `2.1.0` e do flyout do Tray permanece aprovada em seu escopo histórico; os incrementos `2.1.1` de hora local/TV/TopBar, `2.1.2` de cartões compactos e `2.1.3` do resumo responsivo também passaram nos gates Dashboard aplicáveis, sem substituir o Human Gate.
+- A reauditoria automática final do Design System `2.1.0` permanece aprovada em seu escopo histórico; os incrementos `2.1.1` de hora local/TV/TopBar, `2.1.2` de cartões compactos, `2.1.3` do resumo responsivo e `2.2.0` da Overview/flyout em duas colunas também passaram nos gates automáticos aplicáveis, sem substituir o Human Gate.
 - Lighthouse é evidência laboratorial local; não prova experiência humana, produção ou telemetria real. O console bloqueia deliberadamente o rastreamento, portanto a nota SEO agregada não é um gate aplicável enquanto `robots.txt` bloquear crawlers.
-- Human Gate `STATE-05` ainda precisa confirmar visual do ícone/layout/nome/preferências/TV/Tray e executar Narrator, teclado, zoom, scaling e High Contrast em ambos os idiomas/temas aplicáveis.
+- Human Gate `STATE-05` ainda precisa confirmar visual da nova Overview, flyout em duas colunas, ícone/layout/nome/preferências/TV e executar Narrator, teclado, zoom, scaling e High Contrast em ambos os idiomas/temas aplicáveis.
 - O Narrator foi iniciado somente após autorização explícita e interrompido a pedido do validador, que informou não conseguir realizar a amostra. Fala, ordem auditiva e usabilidade permanecem `NÃO TESTADAS`, sem inferência de aprovação ou reprovação do produto.
 - `STATE-06`: integração API/Agent/UI, heartbeat/enrollment/revocation, reconciliação, SignalR hints, refresh TV real, notificações e E2E sandbox.
 - `STATE-07`: PostgreSQL real/homologação, control adapters/post-probe e providers adicionais independentes.

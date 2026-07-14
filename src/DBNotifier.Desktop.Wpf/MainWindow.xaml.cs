@@ -11,6 +11,7 @@ namespace DBNotifier.Desktop.Wpf;
 /// <summary>Identifies the safe read-only desktop destinations exposed by the notification-area flyout.</summary>
 internal enum DesktopView
 {
+    Overview,
     Inventory,
     HistoryAlerts,
     Configuration,
@@ -43,6 +44,8 @@ public partial class MainWindow : Window
         this.theme = theme;
         InitializeComponent();
         UpdatePreferenceButtons();
+        OverviewInventoryList.ItemsSource = rows;
+        OverviewAlertList.ItemsSource = alertRows;
         InventoryGrid.ItemsSource = rows;
         HistoryGrid.ItemsSource = timelineRows;
         AlertsGrid.ItemsSource = alertRows;
@@ -64,9 +67,10 @@ public partial class MainWindow : Window
     {
         int selectedIndex = view switch
         {
-            DesktopView.Inventory => 0,
-            DesktopView.HistoryAlerts => 1,
-            DesktopView.Configuration => 2,
+            DesktopView.Overview => 0,
+            DesktopView.Inventory => 1,
+            DesktopView.HistoryAlerts => 2,
+            DesktopView.Configuration => 3,
             _ => throw new ArgumentOutOfRangeException(nameof(view)),
         };
 
@@ -227,11 +231,16 @@ public partial class MainWindow : Window
         System.Windows.MessageBox.Show(this, Text(messageKey), Text(titleKey), MessageBoxButton.OK, MessageBoxImage.Information);
     }
 
-    /// <summary>Presents inventory, history and alerts, or configuration according to the selected view.</summary>
+    /// <summary>Presents the overview, inventory, history and alerts, or configuration according to the selected view.</summary>
     private void PresentReadyState()
     {
         DateTimeOffset now = TimeProvider.System.GetUtcNow();
         string? view = (ViewSelector.SelectedItem as ComboBoxItem)?.Tag?.ToString();
+        if (view == "Overview")
+        {
+            PresentOverview(now);
+            return;
+        }
         if (view == "HistoryAlerts")
         {
             PresentHistoryAndAlerts(now);
@@ -252,6 +261,21 @@ public partial class MainWindow : Window
         AttentionCountText.Text = summary.AttentionRequired.ToString(localisation.Culture);
         StaleCountText.Text = summary.Stale.ToString(localisation.Culture);
         ShowOnly(ReadySurface);
+    }
+
+    /// <summary>Composes the read-only operational overview from the same local inventory and alert fixtures as detailed views.</summary>
+    /// <param name="now">Current UTC clock used only for freshness evaluation and the local snapshot label.</param>
+    private void PresentOverview(DateTimeOffset now)
+    {
+        InventoryStatusSummary summary = snapshot.Summarize(now, StaleAfter);
+        Replace(rows, snapshot.Items.Select(item => InventoryRow.From(item, now, StaleAfter, localisation)));
+        Replace(alertRows, timelineSnapshot.Alerts.Select(item => AlertRow.From(item, localisation)));
+        UpdatedAtText.Text = Text("Wpf.UpdatedFromAdapters", FormatUtc(now));
+        OverviewTotalCountText.Text = summary.Total.ToString(localisation.Culture);
+        OverviewHealthyCountText.Text = summary.Healthy.ToString(localisation.Culture);
+        OverviewDegradedCountText.Text = summary.Degraded.ToString(localisation.Culture);
+        OverviewAttentionCountText.Text = summary.AttentionRequired.ToString(localisation.Culture);
+        ShowOnly(OverviewSurface);
     }
 
     /// <summary>Presents local event and alert fixtures using localised severity and state labels.</summary>
@@ -331,7 +355,7 @@ public partial class MainWindow : Window
     /// <summary>Shows one content surface and collapses the remaining mutually exclusive surfaces.</summary>
     private void ShowOnly(FrameworkElement selected)
     {
-        FrameworkElement[] surfaces = [ReadySurface, HistoryAlertSurface, ConfigurationSurface, StateSurface];
+        FrameworkElement[] surfaces = [OverviewSurface, ReadySurface, HistoryAlertSurface, ConfigurationSurface, StateSurface];
         foreach (FrameworkElement surface in surfaces)
         {
             surface.Visibility = ReferenceEquals(surface, selected) ? Visibility.Visible : Visibility.Collapsed;

@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Module purpose: Defines canonical British English interface messages shared by React and WPF adapters. -->
 <localisation schemaVersion="dbnotifier.localisation.v1" culture="en-GB">
-  <message key="App.Title">DB Notifier — Inventory</message>
-  <message key="App.Description">DB Notifier multi-provider console for instance inventory and health.</message>
+  <message key="App.Title">DB Notifier — Overview</message>
+  <message key="App.Description">DB Notifier multi-provider console for operational overview, instance inventory and health.</message>
   <message key="Brand.Subtitle">Operations console</message>
   <message key="Demo.Badge">Demonstration data</message>
   <message key="Language.Label">Language</message>
@@ -20,6 +20,7 @@
   <message key="TV.Active">TV mode · demonstration</message>
   <message key="TV.FullscreenUnavailable">TV mode is active; Fullscreen is unavailable in this browser.</message>
   <message key="Navigation.Label">Main navigation</message>
+  <message key="Navigation.Overview">Overview</message>
   <message key="Navigation.Inventory">Inventory</message>
   <message key="Navigation.History">History</message>
   <message key="Navigation.Alerts">Alerts</message>
@@ -35,6 +36,9 @@
   <message key="Scenario.Error">Loading error</message>
   <message key="Scenario.Denied">Permission denied</message>
   <message key="Scenario.Maintenance">Under maintenance</message>
+  <message key="View.Overview.Eyebrow">Operational panorama</message>
+  <message key="View.Overview.Title">Overview</message>
+  <message key="View.Overview.Description">Health, exceptions and local-snapshot trends in one view.</message>
   <message key="View.Inventory.Eyebrow">Fleet overview</message>
   <message key="View.Inventory.Title">Instance inventory</message>
   <message key="View.Inventory.Description">Operational state, freshness and declared provider support.</message>
@@ -95,6 +99,19 @@
   <message key="Alerts.TotalVisible">Total visible</message>
   <message key="Alerts.Title">Demonstration alerts</message>
   <message key="Alerts.Description">Acknowledge and silence are not enabled in this increment.</message>
+  <message key="Overview.FleetStatus">Instance status</message>
+  <message key="Overview.FleetDescription">Health, latency and latest local evidence.</message>
+  <message key="Overview.RecentAlerts">Recent alerts</message>
+  <message key="Overview.AlertDescription">Local-fixture exceptions without external delivery.</message>
+  <message key="Overview.ViewInventory">View inventory</message>
+  <message key="Overview.ViewAlerts">View all alerts</message>
+  <message key="Overview.SampleTrend">Sample trend</message>
+  <message key="Overview.DemonstrationChart">Deterministic visual series; this is not external telemetry.</message>
+  <message key="Overview.TrendAccessibleLabel">Demonstration chart containing two local latency series.</message>
+  <message key="Overview.ProviderFixture">Providers in fixture</message>
+  <message key="Overview.ProviderDescription">Distribution of demonstration identifiers, not support.</message>
+  <message key="Overview.ProviderAccessibleLabel">Distribution of {0} demonstration instances by provider.</message>
+  <message key="Overview.ActiveAlertCount">{0} active alert</message>
   <message key="AlertState.Active">Active</message>
   <message key="AlertState.Acknowledged">Acknowledged</message>
   <message key="AlertState.Silenced">Silenced</message>
@@ -202,6 +219,7 @@
   <message key="Tray.FleetSummary">4 demonstration instances · no external data</message>
   <message key="Tray.Instances">Instances monitored in the local demonstration</message>
   <message key="Tray.LocalSnapshot">Local snapshot at {0} UTC</message>
+  <message key="Tray.OpenOverview">Open overview</message>
   <message key="Tray.OpenInventory">Open inventory</message>
   <message key="Tray.OpenHistoryAlerts">Open history and alerts</message>
   <message key="Tray.OpenConfiguration">Open configuration</message>

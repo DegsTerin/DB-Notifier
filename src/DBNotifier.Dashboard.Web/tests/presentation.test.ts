@@ -54,17 +54,24 @@ test("modal and mobile regression guards remain in source", () => {
   assert.match(css, /\.sidebar nav \{[^}]*width: 100%;[^}]*min-width: 0;[^}]*display: flex;[^}]*overflow-x: auto;/s);
 });
 
-test("enterprise shell uses coherent icons and a consolidated responsive metric band", () => {
+test("enterprise shell uses coherent icons, overview navigation and consolidated metric bands", () => {
   const app = readFileSync(new URL("../src/App.tsx", import.meta.url), "utf8");
   const css = readFileSync(new URL("../src/styles.css", import.meta.url), "utf8");
 
   assert.match(app, /function AppIcon/);
   assert.match(app, /className="metric-icon"/);
-  assert.equal((app.match(/className={`nav-item/g) ?? []).length, 4);
+  assert.equal((app.match(/className={`nav-item/g) ?? []).length, 5);
   assert.doesNotMatch(app, /className={`nav-item[^>]*}><span aria-hidden="true">/s);
+  assert.match(app, /function OverviewView/);
+  assert.match(app, /className="overview-grid"/);
+  assert.match(app, /className="overview-instance-list"/);
+  assert.match(app, /className="overview-alert-list"/);
+  assert.match(app, /className="provider-ring"/);
   assert.match(css, /main \{[^}]*max-width: none;[^}]*justify-self: stretch;/s);
   assert.match(css, /\.summary-grid \{[^}]*overflow: hidden;[^}]*border:/s);
+  assert.match(css, /\.summary-grid\.overview-summary\s*\{[^}]*grid-template-columns:\s*repeat\(4,/s);
   assert.match(css, /\.summary-card \{[^}]*border-inline-end:/s);
+  assert.match(css, /\.overview-summary \.summary-card:last-child\s*\{\s*grid-column:\s*auto;/);
 });
 
 test("TV mode keeps a visible Fullscreen toggle and factual demonstration context", () => {
@@ -74,7 +81,7 @@ test("TV mode keeps a visible Fullscreen toggle and factual demonstration contex
 
   assert.match(app, /<TvModeButton active=\{tvMode\} onActiveChange=\{handleTvModeChange\}/);
   assert.match(app, /tvMode && <div className="tv-mode-status"/);
-  assert.match(app, /navigate\("inventory"\)/);
+  assert.match(app, /navigate\("overview"\)/);
   assert.match(control, /requestFullscreen\(\)/);
   assert.match(control, /typeof document\.documentElement\.requestFullscreen !== "function"/);
   assert.match(control, /TV\.FullscreenUnavailable/);
@@ -142,7 +149,7 @@ test("provider-neutral database mark is shared by active Web and Windows surface
   assert.deepEqual([...windowsIcon.subarray(0, 6)], [0, 0, 1, 0, 9, 0]);
   assert.match(html, /rel="icon"[^>]+dbnotifier-icon\.svg/);
   assert.match(app, /<img src="\/dbnotifier-icon\.svg\?v=1\.3\.3" alt=""/);
-  assert.match(html, /<title>DB Notifier — Inventário<\/title>/);
+  assert.match(html, /<title>DB Notifier — Visão geral<\/title>/);
   assert.match(app, /aria-label="DB Notifier"/);
   assert.match(app, /<strong>DB Notifier<\/strong>/);
   assert.match(desktopXaml, /Text="DB Notifier"/);
@@ -166,9 +173,11 @@ test("Tray flyout preserves operational scanning while administrative execution 
   assert.match(flyout, /DynamicResource Tray\.FleetSummary/);
   assert.match(flyoutCode, /localisation\.Text\("Tray\.LocalSnapshot"/);
   assert.match(flyout, /Click="OpenInventoryClick"/);
+  assert.match(flyout, /Click="OpenOverviewClick"/);
   assert.match(flyout, /Click="OpenHistoryAlertsClick"/);
   assert.match(flyout, /Click="OpenConfigurationClick"/);
   assert.match(flyout, /DynamicResource Tray\.RestartUnavailable/);
+  assert.match(flyout, /Grid\.Column="2"/);
   assert.doesNotMatch(flyout, /Click="Restart/);
   assert.match(controller, /new TrayFlyoutWindow\(localisation, ShowView/);
   assert.match(controller, /notifyIcon\.MouseClick \+= NotifyIconMouseClick/);

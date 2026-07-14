@@ -28,3 +28,25 @@ export function formatSystemDateTime(
     ...(timeZone ? { timeZone } : {}),
   }).format(typeof value === "string" ? new Date(value) : value);
 }
+
+/**
+ * Formats a compact system-local time for dense operational rows while the owning view retains the exact timestamp.
+ * @param value - ISO timestamp or Date containing the exact instant to present.
+ * @param locale - Supported interface locale used for the time presentation.
+ * @param timeZone - Optional deterministic override for tests; omission uses the browser system time zone.
+ * @returns The localised time with a short time-zone label.
+ * @throws {RangeError} When the instant or supplied time zone is invalid.
+ */
+export function formatSystemTime(
+  value: string | Date,
+  locale: SupportedLocale,
+  timeZone?: string,
+): string {
+  return new Intl.DateTimeFormat(locale, {
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    timeZoneName: "short",
+    ...(timeZone ? { timeZone } : {}),
+  }).format(typeof value === "string" ? new Date(value) : value);
+}

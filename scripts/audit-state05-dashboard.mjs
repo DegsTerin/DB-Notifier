@@ -7,7 +7,7 @@ import { join } from "node:path";
 import { tmpdir } from "node:os";
 
 const endpoint = process.env.DBNOTIFIER_AUDIT_CDP_ENDPOINT ?? "http://127.0.0.1:9224";
-const dashboardUrl = "http://127.0.0.1:4173/";
+const dashboardUrl = process.env.DBNOTIFIER_AUDIT_DASHBOARD_URL ?? "http://127.0.0.1:4173/";
 const requestedLocale = process.env.DBNOTIFIER_AUDIT_LOCALE;
 const locale = requestedLocale === "en-GB" ? "en-GB" : "pt-BR";
 const requestedTheme = process.env.DBNOTIFIER_AUDIT_THEME;
@@ -80,6 +80,8 @@ async function captureViewport(call, name, width, height, hash = "inventory", pa
     const alertList = document.querySelector(".alert-list");
     const alertSummary = document.querySelector(".alert-summary");
     const capabilityList = document.querySelector(".capability-list");
+    const overviewGrid = document.querySelector(".overview-grid");
+    const overviewSummary = document.querySelector(".overview-summary");
     const measureCardCollection = (list, selector) => {
       if (!list) return null;
       const cards = [...list.querySelectorAll(selector)];
@@ -112,6 +114,12 @@ async function captureViewport(call, name, width, height, hash = "inventory", pa
       } : null,
       alertCards: measureCardCollection(alertList, ".alert-card"),
       capabilityCards: measureCardCollection(capabilityList, ":scope > article"),
+      overview: overviewGrid ? {
+        instanceRows: document.querySelectorAll(".overview-instance-row").length,
+        alertRows: document.querySelectorAll(".overview-alert-list article").length,
+        summaryColumns: overviewSummary ? getComputedStyle(overviewSummary).gridTemplateColumns.split(" ").length : 0,
+        contentOverflow: overviewGrid.scrollWidth > overviewGrid.clientWidth + 1,
+      } : null,
       offenders,
       heading: document.querySelector("h1")?.textContent?.trim(),
     };
@@ -139,7 +147,7 @@ async function clickElement(call, selector) {
 /** Exercises the dedicated TV layout, native Fullscreen request and persistent visible exit control. */
 async function auditTvMode(call) {
   await call("Emulation.setDeviceMetricsOverride", { width: 1920, height: 1080, deviceScaleFactor: 1, mobile: false });
-  await call("Page.navigate", { url: `${dashboardUrl}#inventory` });
+  await call("Page.navigate", { url: `${dashboardUrl}#overview` });
   await settle(80);
   await call("Page.reload", { ignoreCache: true });
   await settle();
@@ -153,8 +161,8 @@ async function auditTvMode(call) {
     buttonName: document.querySelector(".tv-mode-button")?.getAttribute("aria-label"),
     sidebarDisplay: getComputedStyle(document.querySelector(".sidebar")).display,
     scenarioDisplay: getComputedStyle(document.querySelector(".scenario-control")).display,
-    filtersDisplay: getComputedStyle(document.querySelector(".inventory-panel .filters")).display,
-    tableDisplay: getComputedStyle(document.querySelector(".table-wrap")).display,
+    overviewDisplay: getComputedStyle(document.querySelector(".overview-grid")).display,
+    overviewInstanceRows: document.querySelectorAll(".overview-instance-row").length,
     demoDisplay: getComputedStyle(document.querySelector(".demo-badge")).display,
     languageDisplay: getComputedStyle(document.querySelector(".language-selector")).display,
     themeDisplay: getComputedStyle(document.querySelector(".theme-selector")).display,
@@ -163,7 +171,7 @@ async function auditTvMode(call) {
     statusText: document.querySelector(".tv-mode-status")?.textContent?.trim().replace(/\s+/g, " "),
   }))()`);
   const screenshot = await call("Page.captureScreenshot", { format: "png", captureBeyondViewport: false });
-  const screenshotPath = join(evidenceDirectory, "tv-mode-inventory-1920x1080.png");
+  const screenshotPath = join(evidenceDirectory, "tv-mode-overview-1920x1080.png");
   writeFileSync(screenshotPath, Buffer.from(screenshot.data, "base64"));
   await clickElement(call, ".tv-mode-button");
   await settle(250);
@@ -367,6 +375,10 @@ async function main() {
 
   const viewports = [];
   for (const [name, width, height, hash = "inventory", pageScaleFactor = 1] of [
+    ["overview-ultrawide-1920x1080", 1920, 1080, "overview"],
+    ["overview-desktop-1440x1000", 1440, 1000, "overview"],
+    ["overview-mobile-390x844", 390, 844, "overview"],
+    ["overview-minimum-320x568", 320, 568, "overview"],
     ["inventory-ultrawide-1920x1080", 1920, 1080],
     ["inventory-desktop-1440x1000", 1440, 1000],
     ["inventory-narrow-desktop-960x1040", 960, 1040],

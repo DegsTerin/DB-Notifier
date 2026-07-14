@@ -10,7 +10,7 @@ The local Dashboard passed the repeatable Lighthouse matrix after remediation of
 
 Bruno explicitly authorised Codex on 2026-07-14 to perform the recommended Lighthouse work. The authorised scope was limited to the local deterministic Dashboard and included:
 
-- Inventory, History, Alerts and Configuration;
+- Overview, Inventory, History, Alerts and Configuration;
 - mobile `390×844` and desktop `1440×1000` emulation;
 - three independent Lighthouse collections for every route/profile pair;
 - a clean, isolated headless Chrome profile with extensions disabled;
@@ -30,9 +30,9 @@ No visible Chrome window, existing browser profile, WPF process, Narrator, Windo
 | Chrome | `150.0.7871.115` |
 | Mobile profile | form factor `mobile`, `390×844`, device scale factor `1` |
 | Desktop profile | official Lighthouse desktop preset, `1440×1000`, device scale factor `1` |
-| Runs | `3` per route/profile; `24` final raw reports |
+| Runs | `3` per route/profile; `30` final raw reports |
 | Browser isolation | dedicated temporary user-data directories, headless, extensions disabled |
-| Raw evidence | `%TEMP%\DBNotifier-Lighthouse-STATE05-20260714-Final` |
+| Raw evidence | `%TEMP%\DBNotifier-Lighthouse-20260714-053200` |
 
 The repository runner is [`scripts/run-state05-lighthouse-audit.ps1`](../scripts/run-state05-lighthouse-audit.ps1). It accepts only a loopback HTTP Dashboard URI, validates the effective viewport, rejects Lighthouse runtime errors, rejects `chrome-extension://` traffic, requires a valid `robots.txt` audit, removes its Chrome profiles and emits `summary.json` plus the raw reports.
 
@@ -62,22 +62,30 @@ Remediation changes only that label to the existing secondary text token and add
 
 The first automated desktop collection used `form-factor=desktop` without the official desktop preset. That retained mobile simulation settings and produced an artificial Performance `90`. This was a runner configuration error, not a product performance defect. The final runner uses the official desktop preset plus explicit `1440×1000` screen emulation; the post-correction pilot measured FCP `329 ms`, LCP `373 ms` and Performance `100`.
 
+### `S05-AUTO-LH-003` — Overview trend-axis contrast
+
+The first five-route matrix measured Accessibility `96` on Overview because its small `100`, `50` and `0 ms` chart-axis labels used the Light muted token at `4.03:1`. Normal text requires at least `4.5:1`.
+
+Remediation changes only those axis labels to the existing semantic secondary-text token. The complete thirty-report matrix was rebuilt and repeated; Accessibility then passed at `100` for every route/profile/run.
+
 ## Final category results
 
 Every value below is the median of three final runs.
 
 | Profile | Route | Performance | Accessibility | Best Practices | SEO |
 |---|---|---:|---:|---:|---:|
+| Desktop | Overview | 100 | 100 | 100 | 66 |
 | Desktop | Inventory | 100 | 100 | 100 | 66 |
 | Desktop | History | 100 | 100 | 100 | 66 |
 | Desktop | Alerts | 100 | 100 | 100 | 66 |
 | Desktop | Configuration | 100 | 100 | 100 | 66 |
+| Mobile | Overview | 100 | 100 | 100 | 66 |
 | Mobile | Inventory | 100 | 100 | 100 | 66 |
 | Mobile | History | 100 | 100 | 100 | 66 |
 | Mobile | Alerts | 100 | 100 | 100 | 66 |
 | Mobile | Configuration | 100 | 100 | 100 | 66 |
 
-The SEO score of `66` is expected and accepted for this internal console. Lighthouse passed the syntax/content audit for `robots.txt` in `24/24` reports and reduced the category score only because `is-crawlable` correctly detected `Disallow: /`. Removing that restriction merely to increase the score would contradict the approved crawler policy.
+The SEO score of `66` is expected and accepted for this internal console. Lighthouse passed the syntax/content audit for `robots.txt` in `30/30` reports and reduced the category score only because `is-crawlable` correctly detected `Disallow: /`. Removing that restriction merely to increase the score would contradict the approved crawler policy.
 
 ## Final metric ranges
 
@@ -85,23 +93,25 @@ Ranges show the minimum and maximum across the three final runs.
 
 | Profile | Route | FCP | LCP | TBT | CLS | Speed Index |
 |---|---|---:|---:|---:|---:|---:|
-| Desktop | Inventory | 327–332 ms | 370–378 ms | 0 ms | 0 | 327–332 ms |
-| Desktop | History | 329–332 ms | 373–377 ms | 0 ms | 0 | 329–332 ms |
-| Desktop | Alerts | 332–367 ms | 378–421 ms | 0 ms | 0 | 332–367 ms |
-| Desktop | Configuration | 330–332 ms | 375–378 ms | 0 ms | 0 | 330–332 ms |
-| Mobile | Inventory | 1,359–1,362 ms | 1,513–1,518 ms | 17–28 ms | 0 | 1,359–1,362 ms |
-| Mobile | History | 1,360–1,406 ms | 1,515–1,561 ms | 0–37 ms | 0 | 1,360–1,406 ms |
-| Mobile | Alerts | 1,358–1,362 ms | 1,512–1,517 ms | 7–11 ms | 0 | 1,358–1,362 ms |
-| Mobile | Configuration | 1,358–1,360 ms | 1,512–1,515 ms | 0 ms | 0 | 1,358–1,360 ms |
+| Desktop | Overview | 327–331 ms | 411–416 ms | 0 ms | 0 | 327–331 ms |
+| Desktop | Inventory | 331–341 ms | 387–417 ms | 0 ms | 0 | 331–341 ms |
+| Desktop | History | 328–329 ms | 411–414 ms | 0 ms | 0 | 328–329 ms |
+| Desktop | Alerts | 327–328 ms | 411–412 ms | 0 ms | 0 | 327–328 ms |
+| Desktop | Configuration | 327–329 ms | 410–413 ms | 0 ms | 0 | 327–329 ms |
+| Mobile | Overview | 1,357–1,363 ms | 1,511–1,669 ms | 2–15 ms | 0 | 1,357–1,363 ms |
+| Mobile | Inventory | 1,359–1,360 ms | 1,513–1,515 ms | 13–38 ms | 0 | 1,359–1,360 ms |
+| Mobile | History | 1,360 ms | 1,515–1,665 ms | 8–23 ms | 0 | 1,360 ms |
+| Mobile | Alerts | 1,357–1,358 ms | 1,511–1,662 ms | 0 ms | 0 | 1,357–1,358 ms |
+| Mobile | Configuration | 1,358–1,359 ms | 1,513–1,664 ms | 0 ms | 0 | 1,358–1,359 ms |
 
-Performance was `100` in `23/24` reports and `99` in one mobile History run; every route/profile median was `100`. Accessibility and Best Practices were `100` in `24/24`. All reports had zero layout shift. The runner observed zero extension requests and removed both isolated Chrome profile directories.
+Every route/profile median was `100` for Performance, Accessibility and Best Practices. Accessibility and Best Practices were `100` in `30/30`; Performance was `100` in `29/30` and `99` in mobile Overview run 3 (`1,669 ms` LCP, `15 ms` TBT). All reports had zero layout shift, a valid crawler policy and no extension requests. The runner removed both isolated Chrome profile directories.
 
 ## Limitations
 
 - Lighthouse is laboratory automation and does not prove usability for a human keyboard, screen-reader or zoom user.
 - Results describe the local production bundle, host and tool versions above; they are not field telemetry or a production service-level objective.
 - The intentional crawler block makes aggregate SEO unsuitable as a quality gate for this internal console. The applicable crawler gate is a syntactically valid, explicit non-crawling policy.
-- The raw reports are temporary local evidence and are not committed because twenty-four Lighthouse payloads are large and environment-specific. The pinned runner and this sanitised consolidation are versioned.
+- The raw reports are temporary local evidence and are not committed because thirty Lighthouse payloads are large and environment-specific. The pinned runner and this sanitised consolidation are versioned.
 - The supplied PDF/HTML/JSON reports were diagnostic input only; the clean post-remediation matrix is the current automatic evidence.
 
 ## Lifecycle impact
@@ -110,4 +120,4 @@ The automatic Lighthouse increment is complete and approved in its stated scope.
 
 ## Recommended next step
 
-The human reviewer should now complete the still-pending `STATE-05` samples in [`STATE-05-Human-Gate-Validation.md`](STATE-05-Human-Gate-Validation.md), beginning with the corrected narrow-desktop Alert summary and the `320` CSS px/200% zoom samples. Record each observation separately; do not use the Lighthouse result as a substitute for visual, keyboard, Narrator, scaling, High Contrast, TV or WPF approval.
+The human reviewer should now complete the still-pending `STATE-05` samples in [`STATE-05-Human-Gate-Validation.md`](STATE-05-Human-Gate-Validation.md), beginning with the operational Overview and two-column Tray before returning to the corrected narrow-desktop Alert summary and `320` CSS px/200% zoom samples. Record each observation separately; do not use the Lighthouse result as a substitute for visual, keyboard, Narrator, scaling, High Contrast, TV or WPF approval.

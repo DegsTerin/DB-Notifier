@@ -683,6 +683,17 @@
 - Riscos/ressalvas: WPF reportou consciência de DPI do sistema, sem prova mixed-DPI/per-monitor; High Contrast e scaling ainda exigem aceitação humana; fala/ordem/usabilidade do Narrator não foram testadas.
 - Aprovador: evidência automática autorizada por Bruno; o validador não conseguiu executar Narrator e nenhuma decisão do Human Gate foi inferida.
 
+## 2026-07-14 — Overview operacional e flyout do Tray em duas colunas
+
+- Estado anterior: `STATE-05 FRONTEND_IMPLEMENTATION`, Human Gate pendente.
+- Estado resultante: sem transição; novo incremento frontend verificado automaticamente e Human Gate ainda pendente.
+- Decisão: incorporar o padrão visual/funcional fornecido pelo usuário às capacidades já existentes, preservando a verdade de dados demonstrativos, suporte e autorização.
+- Escopo: Design System `2.2.0`; Overview-first em React/WPF; métricas, frota, alertas, tendência demonstrativa e distribuição do fixture; TV sobre a mesma Overview; navegação de cinco itens; flyout WPF em duas colunas com ações seguras e Restart indisponível.
+- Gates: build Release .NET 10 com 0 avisos/erros; 128 testes unitários e 5 de arquitetura; 32 testes Dashboard, typecheck e build Vite; matriz responsiva de 72 amostras; Lighthouse final de 30 relatórios com todas as medianas de Performance/Acessibilidade/Boas Práticas em `100`, Acessibilidade/Boas Práticas `100` em `30/30`, Performance `100` em `29/30`, CLS zero e crawler policy válida.
+- Evidências: código React/CSS/WPF/localização, `docs/design/DB-Notifier-Design-System.md`, relatórios `STATE-05`, runners Dashboard/Lighthouse e payloads temporários sanitizados em `%TEMP%`.
+- Riscos/ressalvas: Overview, gráficos, providers e alertas continuam demonstrativos; nenhuma integração, notificação externa ou ação administrativa foi ativada. A primeira matriz Lighthouse detectou contraste `4.03:1` nos eixos; o token foi corrigido e a matriz completa repetida. Visual do Dashboard/WPF/Tray ainda requer confirmação humana.
+- Aprovador: implementação solicitada por Bruno; `S05-HG-010` e o Human Gate completo permanecem `PENDENTES`.
+
 ## Template de nova entrada
 
 - Data:

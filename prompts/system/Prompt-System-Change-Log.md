@@ -2,7 +2,7 @@
 
 ## Versão atual
 
-- Versão: `3.32.5`
+- Versão: `3.33.0`
 - Data: 2026-07-14
 - Status: corpus DB-Notifier consolidado
 - Escopo: 13 arquivos ativos
@@ -16,6 +16,12 @@ A versão do corpus é independente da versão do software.
 - PATCH: clareza, correção ou referência sem mudança de autoridade.
 
 Toda alteração atualiza este arquivo e, quando necessário, `../Start-Here.md`.
+
+## 3.33.0 — 2026-07-14
+
+- Design System `2.2.0` formaliza Overview operacional compartilhada por Dashboard padrão, modo TV e WPF, sem criar fonte de dados paralela ou declarar telemetria externa.
+- O flyout do Tray passa a usar leitura compacta em duas colunas, separando estado da frota e navegação segura; qualquer ação administrativa continua indisponível até implementação e homologação exatas.
+- A matriz Dashboard cobre 72 amostras e o Lighthouse cobre cinco rotas/30 relatórios. A confirmação visual permanece no finding humano `S05-HG-010`, sem transição de estado.
 
 ## 3.32.5 — 2026-07-14
 

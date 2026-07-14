@@ -295,6 +295,7 @@
           <WrapPanel Grid.Row="1" Margin="0,16,0,0" VerticalAlignment="Center">
             <TextBlock Text="{DynamicResource Wpf.ViewLabel}" VerticalAlignment="Center" Margin="0,0,8,0" />
             <ComboBox x:Name="ViewSelector" Width="155" Margin="0,0,18,0" SelectedIndex="0" SelectionChanged="ViewSelectionChanged" AutomationProperties.Name="{DynamicResource Wpf.ViewLabel}">
+              <ComboBoxItem Content="{DynamicResource Navigation.Overview}" Tag="Overview" />
               <ComboBoxItem Content="{DynamicResource Navigation.Inventory}" Tag="Inventory" />
               <ComboBoxItem Content="{DynamicResource Wpf.HistoryAlerts}" Tag="HistoryAlerts" />
               <ComboBoxItem Content="{DynamicResource Navigation.Configuration}" Tag="Configuration" />
@@ -316,7 +317,48 @@
           </WrapPanel>
         </Grid>
 
-        <Grid x:Name="ReadySurface" Grid.Row="1" Margin="0,22,0,0">
+        <!-- The overview reuses the same local collections as detailed views and never implies an external feed. -->
+        <Grid x:Name="OverviewSurface" Grid.Row="1" Margin="0,22,0,0">
+          <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+          <UniformGrid Columns="4">
+            <Border Style="{StaticResource SummaryCard}"><StackPanel><TextBlock Text="{DynamicResource Inventory.Total}" Foreground="{DynamicResource ColourTextSecondaryBrush}" FontSize="11" FontWeight="SemiBold" /><TextBlock x:Name="OverviewTotalCountText" FontSize="26" FontWeight="SemiBold" Margin="0,5,0,0" /></StackPanel></Border>
+            <Border Style="{StaticResource SummaryCard}"><StackPanel><TextBlock Text="{DynamicResource Inventory.Healthy}" Foreground="{DynamicResource ComponentStatusHealthyForegroundBrush}" FontSize="11" FontWeight="SemiBold" /><TextBlock x:Name="OverviewHealthyCountText" FontSize="26" FontWeight="SemiBold" Margin="0,5,0,0" /></StackPanel></Border>
+            <Border Style="{StaticResource SummaryCard}"><StackPanel><TextBlock Text="{DynamicResource Inventory.Degraded}" Foreground="{DynamicResource ComponentStatusDegradedForegroundBrush}" FontSize="11" FontWeight="SemiBold" /><TextBlock x:Name="OverviewDegradedCountText" FontSize="26" FontWeight="SemiBold" Margin="0,5,0,0" /></StackPanel></Border>
+            <Border Style="{StaticResource SummaryCard}" Margin="0"><StackPanel><TextBlock Text="{DynamicResource Inventory.Attention}" Foreground="{DynamicResource ComponentStatusCriticalForegroundBrush}" FontSize="11" FontWeight="SemiBold" /><TextBlock x:Name="OverviewAttentionCountText" FontSize="26" FontWeight="SemiBold" Margin="0,5,0,0" /></StackPanel></Border>
+          </UniformGrid>
+
+          <Grid Grid.Row="1" Margin="0,18,0,0">
+            <Grid.ColumnDefinitions><ColumnDefinition Width="2*" /><ColumnDefinition Width="16" /><ColumnDefinition Width="1*" /></Grid.ColumnDefinitions>
+            <Border Background="{DynamicResource ComponentCardBackgroundBrush}" BorderBrush="{DynamicResource ComponentCardBorderBrush}" BorderThickness="1" CornerRadius="10">
+              <Grid><Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+                <StackPanel Margin="18,14"><TextBlock Text="{DynamicResource Overview.FleetStatus}" FontSize="16" FontWeight="SemiBold" /><TextBlock Text="{DynamicResource Overview.FleetDescription}" Foreground="{DynamicResource ColourTextSecondaryBrush}" FontSize="12" Margin="0,4,0,0" /></StackPanel>
+                <ItemsControl x:Name="OverviewInventoryList" Grid.Row="1" AutomationProperties.Name="{DynamicResource Overview.FleetStatus}">
+                  <ItemsControl.ItemTemplate><DataTemplate><Grid MinHeight="48" Margin="18,0"><Grid.ColumnDefinitions><ColumnDefinition Width="1.4*" /><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions><StackPanel VerticalAlignment="Center"><TextBlock Text="{Binding DisplayName}" FontWeight="SemiBold" /><TextBlock Text="{Binding ProviderType}" Foreground="{DynamicResource ColourTextSecondaryBrush}" FontSize="11" Margin="0,3,0,0" /></StackPanel><TextBlock Grid.Column="1" Text="{Binding StatusLabel}" VerticalAlignment="Center" TextWrapping="Wrap" /><TextBlock Grid.Column="2" Text="{Binding LatencyLabel}" Foreground="{DynamicResource ColourTextSecondaryBrush}" VerticalAlignment="Center" Margin="12,0,0,0" /></Grid></DataTemplate></ItemsControl.ItemTemplate>
+                </ItemsControl>
+              </Grid>
+            </Border>
+            <Border Grid.Column="2" Background="{DynamicResource ComponentCardBackgroundBrush}" BorderBrush="{DynamicResource ComponentCardBorderBrush}" BorderThickness="1" CornerRadius="10">
+              <Grid><Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+                <StackPanel Margin="18,14"><TextBlock Text="{DynamicResource Overview.RecentAlerts}" FontSize="16" FontWeight="SemiBold" /><TextBlock Text="{DynamicResource Overview.AlertDescription}" Foreground="{DynamicResource ColourTextSecondaryBrush}" FontSize="12" Margin="0,4,0,0" TextWrapping="Wrap" /></StackPanel>
+                <ItemsControl x:Name="OverviewAlertList" Grid.Row="1" AutomationProperties.Name="{DynamicResource Overview.RecentAlerts}">
+                  <ItemsControl.ItemTemplate><DataTemplate><Grid MinHeight="60" Margin="16,0"><Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions><TextBlock Text="{Binding SeverityLabel}" VerticalAlignment="Center" Margin="0,0,10,0" /><StackPanel Grid.Column="1" VerticalAlignment="Center"><TextBlock Text="{Binding InstanceName}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" /><TextBlock Text="{Binding RuleName}" Foreground="{DynamicResource ColourTextSecondaryBrush}" FontSize="11" Margin="0,3,0,0" TextTrimming="CharacterEllipsis" /></StackPanel></Grid></DataTemplate></ItemsControl.ItemTemplate>
+                </ItemsControl>
+              </Grid>
+            </Border>
+          </Grid>
+
+          <Grid Grid.Row="2" Margin="0,18,0,0">
+            <Grid.ColumnDefinitions><ColumnDefinition Width="2*" /><ColumnDefinition Width="16" /><ColumnDefinition Width="1*" /></Grid.ColumnDefinitions>
+            <Border Background="{DynamicResource ComponentCardBackgroundBrush}" BorderBrush="{DynamicResource ComponentCardBorderBrush}" BorderThickness="1" CornerRadius="10" Padding="18,14">
+              <Grid><Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="110" /></Grid.RowDefinitions><StackPanel><TextBlock Text="{DynamicResource Overview.SampleTrend}" FontSize="16" FontWeight="SemiBold" /><TextBlock Text="{DynamicResource Overview.DemonstrationChart}" Foreground="{DynamicResource ColourTextSecondaryBrush}" FontSize="12" Margin="0,4,0,0" /></StackPanel><Grid Grid.Row="1" Margin="0,12,0,0" ClipToBounds="True"><Path Data="M 0,25 H 720 M 0,55 H 720 M 0,85 H 720" Stroke="{DynamicResource ColourBorderDefaultBrush}" StrokeThickness="1" /><Polyline Points="0,88 45,74 90,82 135,56 180,64 225,42 270,53 315,34 360,48 405,28 450,41 495,22 540,35 585,18 630,29 675,14 720,24" Stroke="{DynamicResource ColourActionPrimaryBackgroundBrush}" StrokeThickness="2" Fill="Transparent" Stretch="Fill" /><Polyline Points="0,67 45,61 90,49 135,57 180,45 225,52 270,36 315,44 360,31 405,39 450,27 495,35 540,24 585,31 630,20 675,27 720,17" Stroke="{DynamicResource ComponentStatusHealthyForegroundBrush}" StrokeThickness="2" Fill="Transparent" Stretch="Fill" /></Grid></Grid>
+            </Border>
+            <Border Grid.Column="2" Background="{DynamicResource ComponentCardBackgroundBrush}" BorderBrush="{DynamicResource ComponentCardBorderBrush}" BorderThickness="1" CornerRadius="10" Padding="18,14">
+              <StackPanel><TextBlock Text="{DynamicResource Overview.ProviderFixture}" FontSize="16" FontWeight="SemiBold" /><TextBlock Text="{DynamicResource Overview.ProviderDescription}" Foreground="{DynamicResource ColourTextSecondaryBrush}" FontSize="12" Margin="0,4,0,12" TextWrapping="Wrap" /><TextBlock Text="postgresql     1" Margin="0,5" /><TextBlock Text="mysql          1" Margin="0,5" /><TextBlock Text="sql-server     1" Margin="0,5" /><TextBlock Text="mongodb        1" Margin="0,5" /></StackPanel>
+            </Border>
+          </Grid>
+        </Grid>
+
+        <Grid x:Name="ReadySurface" Grid.Row="1" Margin="0,22,0,0" Visibility="Collapsed">
           <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />

@@ -23,7 +23,7 @@ import { LanguageSelector } from "./LanguageSelector";
 import { TvModeButton } from "./TvModeButton";
 import { useLocalisation } from "./LocalisationProvider";
 import type { MessageKey } from "./generated/localisation";
-import { formatSystemDateTime } from "./systemDateTime";
+import { formatSystemDateTime, formatSystemTime } from "./systemDateTime";
 
 const stateOptions: ReadonlyArray<{ value: InventoryState; labelKey: MessageKey }> = [
   { value: "ready", labelKey: "Scenario.Ready" },
@@ -44,15 +44,16 @@ const stateMessages: Record<Exclude<InventoryState, "ready">, { symbol: string; 
   maintenance: { symbol: "◆", titleKey: "Operational.Maintenance.Title", messageKey: "Operational.Maintenance.Message", retry: false },
 };
 
-type DashboardView = "inventory" | "history" | "alerts" | "configuration";
+type DashboardView = "overview" | "inventory" | "history" | "alerts" | "configuration";
 const viewCopy: Record<DashboardView, { eyebrowKey: MessageKey; titleKey: MessageKey; descriptionKey: MessageKey }> = {
+  overview: { eyebrowKey: "View.Overview.Eyebrow", titleKey: "View.Overview.Title", descriptionKey: "View.Overview.Description" },
   inventory: { eyebrowKey: "View.Inventory.Eyebrow", titleKey: "View.Inventory.Title", descriptionKey: "View.Inventory.Description" },
   history: { eyebrowKey: "View.History.Eyebrow", titleKey: "View.History.Title", descriptionKey: "View.History.Description" },
   alerts: { eyebrowKey: "View.Alerts.Eyebrow", titleKey: "View.Alerts.Title", descriptionKey: "View.Alerts.Description" },
   configuration: { eyebrowKey: "View.Configuration.Eyebrow", titleKey: "View.Configuration.Title", descriptionKey: "View.Configuration.Description" },
 };
 
-type AppIconName = "database" | "inventory" | "history" | "alerts" | "configuration" | "healthy" | "degraded" | "critical" | "stale";
+type AppIconName = "database" | "overview" | "inventory" | "history" | "alerts" | "configuration" | "healthy" | "degraded" | "critical" | "stale";
 
 /**
  * Renders the small outlined icon set owned by the DB-Notifier shell and operational summaries.
@@ -65,6 +66,9 @@ function AppIcon({ name, className = "" }: { name: AppIconName; className?: stri
   switch (name) {
     case "database":
       content = <><ellipse cx="12" cy="5" rx="7.5" ry="3" /><path d="M4.5 5v7c0 1.7 3.4 3 7.5 3s7.5-1.3 7.5-3V5" /><path d="M4.5 12v7c0 1.7 3.4 3 7.5 3s7.5-1.3 7.5-3v-7" /></>;
+      break;
+    case "overview":
+      content = <><path d="m4 11 8-7 8 7" /><path d="M6.5 10v9h11v-9" /><path d="M10 19v-5h4v5" /></>;
       break;
     case "inventory":
       content = <><rect x="4" y="4" width="6" height="6" rx="1" /><rect x="14" y="4" width="6" height="6" rx="1" /><rect x="4" y="14" width="6" height="6" rx="1" /><rect x="14" y="14" width="6" height="6" rx="1" /></>;
@@ -116,7 +120,7 @@ function StatusBadge({ item, now }: { item: InventoryItem; now: Date }) {
 export function App() {
   const { locale, t } = useLocalisation();
   const [view, setView] = useState<DashboardView>(() =>
-    window.location.hash === "#history" ? "history" : window.location.hash === "#alerts" ? "alerts" : window.location.hash === "#configuration" ? "configuration" : "inventory");
+    window.location.hash === "#inventory" ? "inventory" : window.location.hash === "#history" ? "history" : window.location.hash === "#alerts" ? "alerts" : window.location.hash === "#configuration" ? "configuration" : "overview");
   const [state, setState] = useState<InventoryState>("ready");
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | HealthStatus | "stale">("all");
@@ -133,7 +137,7 @@ export function App() {
   );
   const copy = viewCopy[view];
   const navigate = useCallback((nextView: DashboardView) => {
-    window.history.replaceState(null, "", nextView === "inventory" ? "#inventory" : `#${nextView}`);
+    window.history.replaceState(null, "", `#${nextView}`);
     setView(nextView);
   }, []);
 
@@ -147,7 +151,7 @@ export function App() {
   const handleTvModeChange = useCallback((active: boolean) => {
     setTvMode(active);
     if (active) {
-      navigate("inventory");
+      navigate("overview");
       setState("ready");
       setQuery("");
       setStatusFilter("all");
@@ -177,9 +181,10 @@ export function App() {
           <div className="sidebar-primary">
             <p className="sidebar-section-label">{t("Navigation.Label")}</p>
             <nav>
+              <button type="button" className={`nav-item ${view === "overview" ? "active" : ""}`} aria-current={view === "overview" ? "page" : undefined} onClick={() => navigate("overview")}><AppIcon name="overview" /><span className="nav-label">{t("Navigation.Overview")}</span></button>
               <button type="button" className={`nav-item ${view === "inventory" ? "active" : ""}`} aria-current={view === "inventory" ? "page" : undefined} onClick={() => navigate("inventory")}><AppIcon name="inventory" /><span className="nav-label">{t("Navigation.Inventory")}</span></button>
               <button type="button" className={`nav-item ${view === "history" ? "active" : ""}`} aria-current={view === "history" ? "page" : undefined} onClick={() => navigate("history")}><AppIcon name="history" /><span className="nav-label">{t("Navigation.History")}</span></button>
-              <button type="button" className={`nav-item ${view === "alerts" ? "active" : ""}`} aria-current={view === "alerts" ? "page" : undefined} onClick={() => navigate("alerts")}><AppIcon name="alerts" /><span className="nav-label">{t("Navigation.Alerts")}</span></button>
+              <button type="button" className={`nav-item ${view === "alerts" ? "active" : ""}`} aria-current={view === "alerts" ? "page" : undefined} onClick={() => navigate("alerts")}><AppIcon name="alerts" /><span className="nav-label">{t("Navigation.Alerts")}</span><span className="nav-count" aria-label={t("Overview.ActiveAlertCount", timelineSnapshot.alerts.filter((alert) => alert.state === "active").length)}>{timelineSnapshot.alerts.filter((alert) => alert.state === "active").length}</span></button>
               <button type="button" className={`nav-item ${view === "configuration" ? "active" : ""}`} aria-current={view === "configuration" ? "page" : undefined} onClick={() => navigate("configuration")}><AppIcon name="configuration" /><span className="nav-label">{t("Navigation.Configuration")}</span></button>
             </nav>
           </div>
@@ -201,7 +206,16 @@ export function App() {
             </label>
           </section>
 
-          {state === "ready" && view === "inventory" ? (
+          {state === "ready" && view === "overview" ? (
+            <OverviewView
+              items={snapshot.items}
+              alerts={timelineSnapshot.alerts}
+              now={now}
+              generatedAt={snapshot.generatedAt}
+              summary={summary}
+              onNavigate={navigate}
+            />
+          ) : state === "ready" && view === "inventory" ? (
             <ReadyInventory
               items={filteredItems}
               now={now}
@@ -229,6 +243,95 @@ export function App() {
       </footer>
     </div>
   );
+}
+
+/**
+ * Composes the operational overview from the same deterministic inventory and alert adapters used by the detailed views.
+ * @param props - Current local snapshot, freshness clock and safe navigation callback.
+ * @returns A dense read-only overview without external monitoring or administrative execution.
+ */
+function OverviewView({
+  items,
+  alerts,
+  now,
+  generatedAt,
+  summary,
+  onNavigate,
+}: {
+  items: readonly InventoryItem[];
+  alerts: readonly AlertItem[];
+  now: Date;
+  generatedAt: string;
+  summary: ReturnType<typeof summarizeInventory>;
+  onNavigate: (view: DashboardView) => void;
+}) {
+  const { locale, t } = useLocalisation();
+  const metrics = [
+    { label: t("Inventory.Total"), value: summary.total, icon: "database" as const, className: "" },
+    { label: t("Inventory.Healthy"), value: summary.healthy, icon: "healthy" as const, className: "healthy" },
+    { label: t("Inventory.Degraded"), value: summary.degraded, icon: "degraded" as const, className: "degraded" },
+    { label: t("Inventory.Attention"), value: summary.attentionRequired, icon: "critical" as const, className: "critical" },
+  ];
+
+  return <section className="overview-layout" aria-label={t("View.Overview.Title")}>
+    <p className="updated-at">{t("Inventory.UpdatedAt", formatSystemDateTime(generatedAt, locale), staleAfterMilliseconds / 60_000)}</p>
+    <div className="summary-grid overview-summary">
+      {metrics.map((metric) => <article className={`summary-card ${metric.className}`.trim()} key={metric.label}>
+        <span className="summary-label"><span className="metric-icon"><AppIcon name={metric.icon} /></span><span>{metric.label}</span></span>
+        <strong>{metric.value}</strong>
+      </article>)}
+    </div>
+
+    <div className="overview-grid">
+      <section className="overview-panel overview-fleet" aria-labelledby="overview-fleet-title">
+        <div className="overview-panel-heading"><div><h2 id="overview-fleet-title">{t("Overview.FleetStatus")}</h2><p>{t("Overview.FleetDescription")}</p></div><button type="button" onClick={() => onNavigate("inventory")}>{t("Overview.ViewInventory")}</button></div>
+        <div className="overview-instance-list">
+          {items.map((item, index) => <article className="overview-instance-row" key={item.instanceId}>
+            <span className={`overview-status-dot ${isStale(item, now) ? "stale" : statusPresentation[item.status].className}`} aria-hidden="true" />
+            <div className="overview-instance-name"><strong>{item.displayName}</strong><code>{item.providerType}</code></div>
+            <StatusBadge item={item} now={now} />
+            <span className="overview-latency">{item.latencyMilliseconds === null ? "—" : `${item.latencyMilliseconds} ms`}</span>
+            <svg className={`sparkline sparkline-${index + 1}`} viewBox="0 0 92 28" preserveAspectRatio="none" aria-hidden="true" focusable="false"><polyline points={index === 0 ? "0,20 10,18 20,21 30,12 40,15 50,7 60,13 70,9 80,17 92,8" : index === 1 ? "0,18 10,16 20,19 30,10 40,14 50,9 60,20 70,13 80,15 92,6" : index === 2 ? "0,9 10,14 20,8 30,20 40,12 50,22 60,17 70,24 80,18 92,25" : "0,18 12,18 24,18 36,18 48,18 60,18 72,18 84,18 92,18"} /></svg>
+          </article>)}
+        </div>
+      </section>
+
+      <section className="overview-panel overview-alerts" aria-labelledby="overview-alerts-title">
+        <div className="overview-panel-heading"><div><h2 id="overview-alerts-title">{t("Overview.RecentAlerts")}</h2><p>{t("Overview.AlertDescription")}</p></div></div>
+        <div className="overview-alert-list">
+          {alerts.map((alert) => <article key={alert.alertId}>
+            <SeverityBadge severity={alert.severity} />
+            <div><strong>{alert.instanceName}</strong><span>{alert.ruleName}</span></div>
+            <time dateTime={alert.updatedAt}>{formatSystemTime(alert.updatedAt, locale)}</time>
+          </article>)}
+        </div>
+        <button className="overview-panel-action" type="button" onClick={() => onNavigate("alerts")}>{t("Overview.ViewAlerts")}</button>
+      </section>
+
+      <section className="overview-panel overview-trend" aria-labelledby="overview-trend-title">
+        <div className="overview-panel-heading"><div><h2 id="overview-trend-title">{t("Overview.SampleTrend")}</h2><p>{t("Overview.DemonstrationChart")}</p></div><span className="read-only-label">{t("Demo.Badge")}</span></div>
+        <div className="trend-chart">
+          <div className="trend-axis" aria-hidden="true"><span>100</span><span>50</span><span>0 ms</span></div>
+          <svg viewBox="0 0 640 150" preserveAspectRatio="none" role="img" aria-label={t("Overview.TrendAccessibleLabel")}>
+            <path className="chart-grid" d="M0 25H640M0 75H640M0 125H640" />
+            <polyline className="trend-primary" points="0,118 40,102 80,109 120,82 160,91 200,64 240,76 280,55 320,70 360,48 400,61 440,44 480,54 520,34 560,47 600,29 640,38" />
+            <polyline className="trend-secondary" points="0,92 40,88 80,74 120,81 160,68 200,76 240,59 280,66 320,49 360,58 400,45 440,53 480,42 520,49 560,36 600,43 640,30" />
+          </svg>
+        </div>
+      </section>
+
+      <section className="overview-panel overview-providers" aria-labelledby="overview-providers-title">
+        <div className="overview-panel-heading"><div><h2 id="overview-providers-title">{t("Overview.ProviderFixture")}</h2><p>{t("Overview.ProviderDescription")}</p></div></div>
+        <div className="provider-figure">
+          <svg className="provider-ring" viewBox="0 0 44 44" role="img" aria-label={t("Overview.ProviderAccessibleLabel", items.length)}>
+            <circle className="provider-ring-track" cx="22" cy="22" r="15.9" />
+            {items.map((item, index) => <circle key={item.instanceId} className={`provider-ring-segment segment-${index + 1}`} cx="22" cy="22" r="15.9" strokeDasharray="24 76" strokeDashoffset={25 - index * 25} />)}
+          </svg>
+          <ul>{items.map((item, index) => <li key={item.instanceId}><span className={`provider-key segment-${index + 1}`} aria-hidden="true" /><code>{item.providerType}</code><strong>1</strong></li>)}</ul>
+        </div>
+      </section>
+    </div>
+  </section>;
 }
 
 const severityPresentation: Record<EventSeverity, { symbol: string; labelKey: MessageKey; className: string }> = {

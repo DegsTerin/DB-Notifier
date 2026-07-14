@@ -1,4 +1,4 @@
-<!-- Generated from dbnotifier.localisation.v1; culture:en-GB; source sha256:d4d26a80da7124c1d8b8beedeac08757ccb28089765bc78c623cc00c01e54ebf. Do not edit directly. -->
+<!-- Generated from dbnotifier.localisation.v1; culture:en-GB; source sha256:102c903a0ee6d37ebbfb65ef6bb6920bad4d7f2866d557d915e08ff94474dd1c. Do not edit directly. -->
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:sys="clr-namespace:System;assembly=System.Runtime">
@@ -15,8 +15,8 @@
   <sys:String x:Key="AlertState.Active">Active</sys:String>
   <sys:String x:Key="AlertState.Resolved">Resolved</sys:String>
   <sys:String x:Key="AlertState.Silenced">Silenced</sys:String>
-  <sys:String x:Key="App.Description">DB Notifier multi-provider console for instance inventory and health.</sys:String>
-  <sys:String x:Key="App.Title">DB Notifier — Inventory</sys:String>
+  <sys:String x:Key="App.Description">DB Notifier multi-provider console for operational overview, instance inventory and health.</sys:String>
+  <sys:String x:Key="App.Title">DB Notifier — Overview</sys:String>
   <sys:String x:Key="Brand.Subtitle">Operations console</sys:String>
   <sys:String x:Key="Common.Action">Action</sys:String>
   <sys:String x:Key="Common.All">All</sys:String>
@@ -86,6 +86,7 @@
   <sys:String x:Key="Navigation.History">History</sys:String>
   <sys:String x:Key="Navigation.Inventory">Inventory</sys:String>
   <sys:String x:Key="Navigation.Label">Main navigation</sys:String>
+  <sys:String x:Key="Navigation.Overview">Overview</sys:String>
   <sys:String x:Key="Navigation.Skip">Skip to content</sys:String>
   <sys:String x:Key="Operational.Denied.Message">Your identity does not have instances.read for this scope. No protected detail was displayed.</sys:String>
   <sys:String x:Key="Operational.Denied.Title">Access denied</sys:String>
@@ -100,6 +101,19 @@
   <sys:String x:Key="Operational.Offline.Message">The latest known data cannot be refreshed. Old status is never presented as healthy.</sys:String>
   <sys:String x:Key="Operational.Offline.Title">Agent offline</sys:String>
   <sys:String x:Key="Operational.Retry">Try again</sys:String>
+  <sys:String x:Key="Overview.ActiveAlertCount">{0} active alert</sys:String>
+  <sys:String x:Key="Overview.AlertDescription">Local-fixture exceptions without external delivery.</sys:String>
+  <sys:String x:Key="Overview.DemonstrationChart">Deterministic visual series; this is not external telemetry.</sys:String>
+  <sys:String x:Key="Overview.FleetDescription">Health, latency and latest local evidence.</sys:String>
+  <sys:String x:Key="Overview.FleetStatus">Instance status</sys:String>
+  <sys:String x:Key="Overview.ProviderAccessibleLabel">Distribution of {0} demonstration instances by provider.</sys:String>
+  <sys:String x:Key="Overview.ProviderDescription">Distribution of demonstration identifiers, not support.</sys:String>
+  <sys:String x:Key="Overview.ProviderFixture">Providers in fixture</sys:String>
+  <sys:String x:Key="Overview.RecentAlerts">Recent alerts</sys:String>
+  <sys:String x:Key="Overview.SampleTrend">Sample trend</sys:String>
+  <sys:String x:Key="Overview.TrendAccessibleLabel">Demonstration chart containing two local latency series.</sys:String>
+  <sys:String x:Key="Overview.ViewAlerts">View all alerts</sys:String>
+  <sys:String x:Key="Overview.ViewInventory">View inventory</sys:String>
   <sys:String x:Key="Preview.Confirmation.Message">A supported operation would require a reason, expiry and final confirmation. Execution is disabled in this demonstration.</sys:String>
   <sys:String x:Key="Preview.Confirmation.Title">Confirmation required</sys:String>
   <sys:String x:Key="Preview.Denied.Message">The demonstration identity does not have the specific permission in the instance scope.</sys:String>
@@ -181,6 +195,7 @@
   <sys:String x:Key="Tray.OpenConfiguration">Open configuration</sys:String>
   <sys:String x:Key="Tray.OpenHistoryAlerts">Open history and alerts</sys:String>
   <sys:String x:Key="Tray.OpenInventory">Open inventory</sys:String>
+  <sys:String x:Key="Tray.OpenOverview">Open overview</sys:String>
   <sys:String x:Key="Tray.RestartUnavailable">Restart service · unavailable</sys:String>
   <sys:String x:Key="Tray.RestartUnavailableHelp">Requires a homologated capability, authorisation, confirmation and audit.</sys:String>
   <sys:String x:Key="Tray.Status">Local demonstration · no external data</sys:String>
@@ -201,6 +216,9 @@
   <sys:String x:Key="View.Inventory.Description">Operational state, freshness and declared provider support.</sys:String>
   <sys:String x:Key="View.Inventory.Eyebrow">Fleet overview</sys:String>
   <sys:String x:Key="View.Inventory.Title">Instance inventory</sys:String>
+  <sys:String x:Key="View.Overview.Description">Health, exceptions and local-snapshot trends in one view.</sys:String>
+  <sys:String x:Key="View.Overview.Eyebrow">Operational panorama</sys:String>
+  <sys:String x:Key="View.Overview.Title">Overview</sys:String>
   <sys:String x:Key="Wpf.AlertSummary">{0} active · {1} open critical</sys:String>
   <sys:String x:Key="Wpf.ConfigurationTitle">Non-secret configuration</sys:String>
   <sys:String x:Key="Wpf.DemonstrationState">Demonstration state · no external connection</sys:String>

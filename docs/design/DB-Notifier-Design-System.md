@@ -5,7 +5,7 @@
 | Field | Value |
 |---|---|
 | Status | Official frontend specification |
-| Design System version | `2.1.3` |
+| Design System version | `2.2.0` |
 | Product phase | `STATE-05 FRONTEND_IMPLEMENTATION` |
 | Platforms | React Web Dashboard and .NET 10 WPF Desktop/Tray |
 | Themes | Light and Dark; Windows High Contrast is an accessibility override |
@@ -399,7 +399,7 @@ Breakpoints respond to content, not device names. Every component MUST tolerate 
 ### 9.2 Shell
 
 - Header: product identity, environment/demonstration context and user/theme controls.
-- Navigation: stable view order, clear selected state and accessible current item.
+- Navigation: Overview first, followed by stable detailed-view order, clear selected state and accessible current item.
 - Main: one page title, optional description/actions, then operational content.
 - Footer/status area: connectivity/data-source truth without competing with primary tasks.
 - Maximum readable prose line length: approximately 75 characters.
@@ -416,9 +416,9 @@ The WPF minimum window remains usable at `820×620` DIP. Below the comfortable t
 
 ### 9.4 TV and wallboard scope
 
-The Dashboard Web provides a dedicated, session-only TV presentation for continuous fleet observation. One upper-right expand icon enters the ready, unfiltered inventory view and requests browser Fullscreen; the same persistent control changes to a collapse icon and exits. Native Fullscreen is an enhancement rather than a prerequisite: denied or unavailable Fullscreen MUST leave the TV layout active, announce the limitation and retain the visible exit control. Escape or browser chrome leaving an established Fullscreen session MUST also restore the standard shell.
+The Dashboard Web provides a dedicated, session-only TV presentation for continuous fleet observation. One upper-right expand icon enters the ready operational Overview and requests browser Fullscreen; the same persistent control changes to a collapse icon and exits. Native Fullscreen is an enhancement rather than a prerequisite: denied or unavailable Fullscreen MUST leave the TV layout active, announce the limitation and retain the visible exit control. Escape or browser chrome leaving an established Fullscreen session MUST also restore the standard shell.
 
-TV presentation hides primary navigation, scenario selection and inventory filters, increases metric/table viewing distance, and preserves the product identity, language selector, theme selector, system-local clock with an explicit time-zone label, freshness/stale semantics, status text/shapes, read-only state, demonstration badge and footer truth. It MUST NOT auto-start, persist across sessions, rotate views without an approved contract, conceal degraded/unknown data or permit administrative execution.
+TV presentation hides primary navigation and scenario selection, increases Overview metric/panel viewing distance, and preserves the product identity, language selector, theme selector, system-local clock with an explicit time-zone label, freshness/stale semantics, status text/shapes, read-only state, demonstration badge and footer truth. It MUST NOT auto-start, persist across sessions, rotate views without an approved contract, conceal degraded/unknown data or permit administrative execution.
 
 The current `STATE-05` implementation recalculates visible freshness and its system-local presentation clock continuously from the in-memory demonstration snapshot. This proves presentation behaviour only; it is not evidence of an external real-time stream. In `STATE-06`, entering TV mode MUST perform an immediate authorised API read and MUST start a new authoritative read every 30 seconds while active, only after the previous read has completed. An authenticated SignalR hint MAY trigger an earlier read but MUST NOT replace periodic reconciliation. Failure MUST retain the last known snapshot and its timestamps while presenting the factual error, offline or stale state. Reconnection, backpressure and live-source health remain part of that integration work. WPF, native mobile, unattended kiosk provisioning and burn-in mitigation are outside this increment.
 
@@ -466,6 +466,12 @@ Related fleet metrics SHOULD form one bordered metric band with internal divider
 
 Summary bands MUST use the available width of their owning operational region and declare a column count that matches their visible metrics at each breakpoint. A general inventory-summary rule MUST NOT introduce empty implicit columns into a smaller alert or feature-specific summary.
 
+### 10.5.1 Operational overview
+
+`OperationalOverview` is the default Dashboard and Desktop landing view. It composes the existing inventory, alert and freshness presentation adapters into four summary metrics, a fleet-status list, recent-alert list, deterministic sample trend and provider-identifier distribution. Every panel MUST expose its demonstration or source truth and link only to existing safe detailed views. Trend and distribution graphics supplement visible text and MUST NOT imply external telemetry, support or homologation.
+
+At standard desktop width, fleet status and recent alerts form the primary two-column row, with trend and provider distribution beneath it. At compact widths all panels reflow to one content column, instance status/latency remain textual and decorative sparklines MAY be reduced without removing evidence. TV mode uses this same Overview rather than creating an independent data contract.
+
 ### 10.6 Status and support
 
 `StatusBadge`, `SeverityBadge`, `SupportBadge`, `FreshnessIndicator` and `CapabilityState` map only canonical domain/presentation states. Product code MUST NOT assemble arbitrary status colours.
@@ -502,7 +508,7 @@ Modal dialogue requirements include initial focus, forward/reverse containment, 
 
 ### 10.10 Tray
 
-The Tray surface is an extension of the Desktop client, not a separate design language. It uses the canonical database mark and Windows notification-area conventions. Primary or secondary activation opens a compact WPF flyout with product identity, explicit source truth, a provider-neutral fleet summary, status text and shapes, and safe shortcuts to Inventory, History/Alerts and non-secret Configuration. Escape, loss of activation or a repeated notification-area click dismisses the flyout; explicit Exit remains separated from navigation.
+The Tray surface is an extension of the Desktop client, not a separate design language. It uses the canonical database mark and Windows notification-area conventions. Primary or secondary activation opens a compact WPF flyout with product identity and explicit source truth. Its body uses two visual columns at supported desktop sizes: provider-neutral fleet status on the left and safe shortcuts to Overview, Inventory, History/Alerts and non-secret Configuration on the right. Escape, loss of activation or a repeated notification-area click dismisses the flyout; explanatory unavailable service control remains non-interactive and explicit Exit remains separated from navigation.
 
 During `STATE-05`, the flyout MUST identify its deterministic local demonstration, MUST NOT present its display timestamp as an external observation, and MAY show a non-interactive explanation that administrative Restart is unavailable. `STATE-06` owns binding the same surface to authorised API/Agent state, factual change-only notifications and integrated event/log navigation. Service Restart MUST remain unavailable until its exact provider/topology capability, privilege, confirmation, idempotency, audit and post-probe path is implemented and then homologated in `STATE-07`. Vendor artwork, native service identifiers, credentials and unsupported actions MUST NOT be copied from legacy references into this provider-neutral surface.
 
@@ -613,7 +619,7 @@ Dashboard visual regression samples MUST cover:
 Themes: Light and Dark
 Locales: pt-BR and en-GB
 Viewports: 320×568, 390×844, 768×1024, 1024×768, 1440×1000, 1920×1080; TV presentation at 1920×1080
-Views: Inventory, History, Alerts, Configuration
+Views: Overview, Inventory, History, Alerts, Configuration
 States: ready, loading, empty, offline, error, denied, maintenance, stale, filtered-empty
 Overlays: confirmation-required, denied, unsupported, unavailable, unknown
 Preferences: reduced motion and 200% native browser zoom
