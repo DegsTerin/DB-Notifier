@@ -241,7 +241,7 @@
         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
           <Image Width="38" Height="38" Source="Assets/DBNotifier.ico" Stretch="Uniform" AutomationProperties.Name="DB Notifier" />
           <StackPanel Margin="12,0,0,0" VerticalAlignment="Center">
-            <TextBlock Text="DB Notifier" Foreground="{DynamicResource ComponentShellChromeForegroundBrush}" FontWeight="SemiBold" FontSize="13" />
+            <StackPanel Orientation="Horizontal"><TextBlock Text="DB" Foreground="{DynamicResource ComponentBrandWordmarkAccentBrush}" FontWeight="Bold" FontSize="16" /><TextBlock Text="Notifier" Foreground="{DynamicResource ComponentShellChromeForegroundBrush}" FontWeight="Bold" FontSize="16" /></StackPanel>
             <TextBlock Text="{DynamicResource Brand.Subtitle}" Foreground="{DynamicResource ComponentShellChromeMutedBrush}" FontSize="12" Margin="0,3,0,0" />
           </StackPanel>
         </StackPanel>
@@ -267,6 +267,12 @@
                 </Canvas>
               </Viewbox>
             </Grid>
+          </Button>
+          <Button x:Name="NotificationButton" Style="{StaticResource TopbarIconButton}" Click="NotificationButtonClick" AutomationProperties.Name="{DynamicResource TopBar.NotificationsSimple}">
+            <Path Width="20" Height="20" Data="M 5,16 H 19 L 17.5,14 V 9.5 A 5.5,5.5 0 0 0 6.5,9.5 V 14 Z M 10,19 H 14" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="1.8" Fill="Transparent" Stretch="Uniform" />
+          </Button>
+          <Button x:Name="SettingsButton" Style="{StaticResource TopbarIconButton}" Click="SettingsButtonClick" AutomationProperties.Name="{DynamicResource TopBar.Settings}" Margin="4,0,10,0">
+            <Viewbox Width="20" Height="20"><Canvas Width="24" Height="24"><Ellipse Canvas.Left="8.5" Canvas.Top="8.5" Width="7" Height="7" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="1.8" /><Path Data="M 12,2 V 5 M 12,19 V 22 M 2,12 H 5 M 19,12 H 22 M 5,5 L 7,7 M 17,17 L 19,19 M 19,5 L 17,7 M 7,17 L 5,19" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="1.8" /></Canvas></Viewbox>
           </Button>
           <Border Background="{DynamicResource ComponentShellChromeSurfaceBrush}" CornerRadius="14" Padding="12,6" VerticalAlignment="Center">
             <TextBlock Text="{DynamicResource Demo.Badge}" Foreground="{DynamicResource ComponentShellChromeMutedBrush}" FontSize="11" FontWeight="SemiBold" />
@@ -321,10 +327,10 @@
         <Grid x:Name="OverviewSurface" Grid.Row="1" Margin="0,22,0,0">
           <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
           <UniformGrid Columns="4">
-            <Border Style="{StaticResource SummaryCard}"><StackPanel><TextBlock Text="{DynamicResource Inventory.Total}" Foreground="{DynamicResource ColourTextSecondaryBrush}" FontSize="11" FontWeight="SemiBold" /><TextBlock x:Name="OverviewTotalCountText" FontSize="26" FontWeight="SemiBold" Margin="0,5,0,0" /></StackPanel></Border>
+            <Border Style="{StaticResource SummaryCard}"><StackPanel><TextBlock Text="{DynamicResource Overview.TotalInstances}" Foreground="{DynamicResource ColourTextSecondaryBrush}" FontSize="11" FontWeight="SemiBold" /><TextBlock x:Name="OverviewTotalCountText" FontSize="26" FontWeight="SemiBold" Margin="0,5,0,0" /></StackPanel></Border>
             <Border Style="{StaticResource SummaryCard}"><StackPanel><TextBlock Text="{DynamicResource Inventory.Healthy}" Foreground="{DynamicResource ComponentStatusHealthyForegroundBrush}" FontSize="11" FontWeight="SemiBold" /><TextBlock x:Name="OverviewHealthyCountText" FontSize="26" FontWeight="SemiBold" Margin="0,5,0,0" /></StackPanel></Border>
-            <Border Style="{StaticResource SummaryCard}"><StackPanel><TextBlock Text="{DynamicResource Inventory.Degraded}" Foreground="{DynamicResource ComponentStatusDegradedForegroundBrush}" FontSize="11" FontWeight="SemiBold" /><TextBlock x:Name="OverviewDegradedCountText" FontSize="26" FontWeight="SemiBold" Margin="0,5,0,0" /></StackPanel></Border>
-            <Border Style="{StaticResource SummaryCard}" Margin="0"><StackPanel><TextBlock Text="{DynamicResource Inventory.Attention}" Foreground="{DynamicResource ComponentStatusCriticalForegroundBrush}" FontSize="11" FontWeight="SemiBold" /><TextBlock x:Name="OverviewAttentionCountText" FontSize="26" FontWeight="SemiBold" Margin="0,5,0,0" /></StackPanel></Border>
+            <Border Style="{StaticResource SummaryCard}"><StackPanel><TextBlock Text="{DynamicResource Overview.Warning}" Foreground="{DynamicResource ComponentStatusDegradedForegroundBrush}" FontSize="11" FontWeight="SemiBold" /><TextBlock x:Name="OverviewDegradedCountText" FontSize="26" FontWeight="SemiBold" Margin="0,5,0,0" /></StackPanel></Border>
+            <Border Style="{StaticResource SummaryCard}" Margin="0"><StackPanel><TextBlock Text="{DynamicResource Overview.Critical}" Foreground="{DynamicResource ComponentStatusCriticalForegroundBrush}" FontSize="11" FontWeight="SemiBold" /><TextBlock x:Name="OverviewAttentionCountText" FontSize="26" FontWeight="SemiBold" Margin="0,5,0,0" /></StackPanel></Border>
           </UniformGrid>
 
           <Grid Grid.Row="1" Margin="0,18,0,0">

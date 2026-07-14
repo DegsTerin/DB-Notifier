@@ -159,7 +159,7 @@ export function buildTimelineAlertSnapshot(now: Date, locale: SupportedLocale = 
     alerts: [
       { alertId: "alert-001", instanceId: "demo-003", instanceName: translate(locale, "Sample.Instance.Analytics"), providerType: "sql-server", severity: "critical", state: "active", ruleName: translate(locale, "Sample.Alert.TimeoutRule"), summary: translate(locale, "Sample.Alert.TimeoutSummary"), openedAt: at(16), updatedAt: at(3) },
       { alertId: "alert-002", instanceId: "demo-002", instanceName: translate(locale, "Sample.Instance.Orders"), providerType: "mysql", severity: "warning", state: "acknowledged", ruleName: translate(locale, "Sample.Alert.LatencyRule"), summary: translate(locale, "Sample.Alert.LatencySummary"), openedAt: at(22), updatedAt: at(8) },
-      { alertId: "alert-003", instanceId: "demo-004", instanceName: translate(locale, "Sample.Instance.Catalogue"), providerType: "mongodb", severity: "information", state: "silenced", ruleName: translate(locale, "Sample.Alert.MaintenanceRule"), summary: translate(locale, "Sample.Alert.MaintenanceSummary"), openedAt: at(26), updatedAt: at(24) },
+      { alertId: "alert-003", instanceId: "demo-001", instanceName: translate(locale, "Sample.Instance.Finance"), providerType: "postgresql", severity: "information", state: "resolved", ruleName: translate(locale, "Overview.Restarted"), summary: translate(locale, "Sample.Event.Recovered"), openedAt: at(26), updatedAt: at(24) },
     ],
   };
 }

@@ -2,7 +2,7 @@
 
 ## Outcome
 
-The first three DB-Notifier Design System increments, two `S05-HG-001` visual remediation iterations, the canonical product-mark refinement, the ultrawide shell correction, compact preference controls, Dashboard TV presentation, operational Overview and two-column Tray flyout are complete. They establish the canonical token/schema sources, deterministic React/WPF asset generation, explicit Light/Dark preference contracts and a cohesive enterprise shell required by Design System `2.2.0`.
+The first three DB-Notifier Design System increments, two `S05-HG-001` visual remediation iterations, the canonical product-mark refinements, the ultrawide shell correction, compact preference controls, Dashboard TV presentation, operational Overview and reference-aligned Dashboard/Tray refinement are complete. They establish the canonical token/schema sources, deterministic React/WPF asset generation, explicit Light/Dark preference contracts and a cohesive enterprise shell required by Design System `2.3.0`.
 
 The Dashboard and WPF Desktop now apply generated semantic tokens, expose one discreet translation/languages icon button and one cycling Light/Dark icon button in the upper-right TopBar and preserve the validated preferences. Localised accessible names and tooltips identify the current and next states without flags or permanently expanded groups. The translation symbol replaces the ambiguous globe, while sun/moon states replace the retired System/monitor option. WPF still gives Windows High Contrast precedence over the generated palette.
 
@@ -114,13 +114,14 @@ The React adapter accesses only versioned local UI preference storage and the do
 | .NET format verification | Approved |
 | Legacy compatibility | Approved; 10/10 Pester and bundle validation |
 | Dependency audit | Approved; no npm or NuGet vulnerabilities reported |
-| Documentation gate | Approved; 171 comment-capable source files |
-| React visual/responsive matrix | Approved; 72 locale/theme/viewport-route samples across the four current locale/theme combinations and 320–1920 CSS px |
+| Documentation gate | Approved; 172 comment-capable source files |
+| React visual/responsive matrix | Approved; 96 locale/theme/viewport-route samples across the four current locale/theme combinations and 320–1920 CSS px |
 | React overflow/accessibility | Approved; 0 global overflow and 0 unnamed interactive controls in all four locale/theme combinations |
 | Preference cycles | Approved; Web and WPF restored both locales and both themes after two activations in all four combinations, with 0 unnamed interactive/focusable controls |
 | Dashboard TV mode | Approved; four `1920×1080` locale/theme samples entered native Fullscreen, retained demonstration truth and the exit control, hid navigation/filters, displayed the complete Overview and restored the standard shell; the unavailable-Fullscreen fallback remains covered |
 | WPF UI Automation/visual matrix | Approved; four locale/theme combinations at `1180×760`, each with 34 focusable controls and none unnamed; earlier minimum-window and High Contrast evidence remains separate |
 | Tray flyout runtime | WPF compilation and structural/safety regression approved; direct Windows-shell activation could not be observed reliably through the non-interactive automation host, so the Light/Dark bilingual flyout remains an explicit Human Gate sample rather than a claimed visual pass |
+| Lighthouse regression | Approved; 16 current eight-route mobile/desktop reports, Accessibility and Best Practices `100` in `16/16`, Performance `99`–`100`; SEO `66` remains the intentional internal-console crawler policy |
 
 ## Security and phase boundaries
 
@@ -133,10 +134,10 @@ The React adapter accesses only versioned local UI preference storage and the do
 
 ## Remaining increments
 
-1. Confirm the operational Overview and two-column Tray flyout together with the outlined database mark, ultrawide/TV layouts, `DB Notifier` display name, translation icon and Light/Dark-only control in visible sessions.
+1. Confirm the remediated operational Overview and two-column Tray flyout together with the database-and-bell mark, green/white `DBNotifier` visual wordmark, eight-item navigation, TopBar alert/Settings actions, KPI cards, provider/status rows, charts and safe unavailable actions in visible sessions.
 2. Obtain explicit consent, then complete the keyboard/Narrator portion of `HG05-01`, native browser zoom, Windows scaling, High Contrast and remaining visual samples.
 3. Present the explicit Human Gate decision; no lifecycle transition occurs automatically.
 
 ## Recommendation
 
-Confirm the operational Overview and two-column Tray flyout together with the outlined canonical database mark, ultrawide/TV layouts, `DB Notifier` display name, translation icon and Light/Dark-only control in visible sessions, then obtain explicit consent before starting Narrator and continuing the remaining samples in [`STATE-05-Human-Gate-Validation.md`](STATE-05-Human-Gate-Validation.md).
+Confirm the remediated operational Overview and two-column Tray flyout together with the database-and-bell mark, eight-item navigation, TopBar actions, KPI/status/chart treatment, ultrawide/TV layouts, accessible `DB Notifier` name, visual `DBNotifier` wordmark, translation icon and Light/Dark-only control in visible sessions. Then obtain explicit consent before starting Narrator and continuing the remaining samples in [`STATE-05-Human-Gate-Validation.md`](STATE-05-Human-Gate-Validation.md).

@@ -391,8 +391,14 @@ async function main() {
     ["alerts-narrow-desktop-960x1040", 960, 1040, "alerts"],
     ["alerts-mobile-390x844", 390, 844, "alerts"],
     ["alerts-minimum-320x568", 320, 568, "alerts"],
+    ["performance-desktop-1440x1000", 1440, 1000, "performance"],
+    ["performance-minimum-320x568", 320, 568, "performance"],
     ["configuration-mobile-390x844", 390, 844, "configuration"],
     ["configuration-minimum-320x568", 320, 568, "configuration"],
+    ["providers-desktop-1440x1000", 1440, 1000, "providers"],
+    ["providers-minimum-320x568", 320, 568, "providers"],
+    ["settings-desktop-1440x1000", 1440, 1000, "settings"],
+    ["settings-minimum-320x568", 320, 568, "settings"],
   ]) viewports.push(await captureViewport(call, name, width, height, hash, pageScaleFactor));
 
   await call("Page.navigate", { url: `${dashboardUrl}#history` });

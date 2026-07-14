@@ -110,6 +110,16 @@ public partial class MainWindow : Window
         theme.SetPreference(next);
     }
 
+    /// <summary>Opens the local alerts surface without delivering or acknowledging an external notification.</summary>
+    /// <param name="sender">The notification button in the desktop TopBar.</param>
+    /// <param name="e">Button activation event data.</param>
+    private void NotificationButtonClick(object sender, RoutedEventArgs e) => ShowView(DesktopView.HistoryAlerts);
+
+    /// <summary>Opens the non-secret configuration surface used for current desktop settings.</summary>
+    /// <param name="sender">The settings button in the desktop TopBar.</param>
+    /// <param name="e">Button activation event data.</param>
+    private void SettingsButtonClick(object sender, RoutedEventArgs e) => ShowView(DesktopView.Configuration);
+
     /// <summary>Refreshes both icon controls, tooltips and accessible names from current validated preferences.</summary>
     private void UpdatePreferenceButtons()
     {

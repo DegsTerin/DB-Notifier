@@ -1,4 +1,4 @@
-<!-- Generated from dbnotifier.localisation.v1; culture:pt-BR; source sha256:102c903a0ee6d37ebbfb65ef6bb6920bad4d7f2866d557d915e08ff94474dd1c. Do not edit directly. -->
+<!-- Generated from dbnotifier.localisation.v1; culture:pt-BR; source sha256:0aee4b50a57ca69f4f59dcb6ef8ac65021ac13e559b485e24e0e329972471c9e. Do not edit directly. -->
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:sys="clr-namespace:System;assembly=System.Runtime">
@@ -84,9 +84,12 @@
   <sys:String x:Key="Navigation.Alerts">Alertas</sys:String>
   <sys:String x:Key="Navigation.Configuration">Configuração</sys:String>
   <sys:String x:Key="Navigation.History">Histórico</sys:String>
-  <sys:String x:Key="Navigation.Inventory">Inventário</sys:String>
+  <sys:String x:Key="Navigation.Inventory">Instâncias</sys:String>
   <sys:String x:Key="Navigation.Label">Navegação principal</sys:String>
   <sys:String x:Key="Navigation.Overview">Visão geral</sys:String>
+  <sys:String x:Key="Navigation.Performance">Desempenho</sys:String>
+  <sys:String x:Key="Navigation.Providers">Providers</sys:String>
+  <sys:String x:Key="Navigation.Settings">Configurações</sys:String>
   <sys:String x:Key="Navigation.Skip">Pular para o conteúdo</sys:String>
   <sys:String x:Key="Operational.Denied.Message">Sua identidade não possui instances.read para este escopo. Nenhum detalhe protegido foi exibido.</sys:String>
   <sys:String x:Key="Operational.Denied.Title">Acesso negado</sys:String>
@@ -103,17 +106,22 @@
   <sys:String x:Key="Operational.Retry">Tentar novamente</sys:String>
   <sys:String x:Key="Overview.ActiveAlertCount">{0} alerta ativo</sys:String>
   <sys:String x:Key="Overview.AlertDescription">Exceções do fixture local, sem entrega externa.</sys:String>
+  <sys:String x:Key="Overview.Critical">Crítico</sys:String>
   <sys:String x:Key="Overview.DemonstrationChart">Série visual determinística; não representa telemetria externa.</sys:String>
   <sys:String x:Key="Overview.FleetDescription">Saúde, latência e evidência local mais recente.</sys:String>
   <sys:String x:Key="Overview.FleetStatus">Estado das instâncias</sys:String>
   <sys:String x:Key="Overview.ProviderAccessibleLabel">Distribuição de {0} instâncias demonstrativas por provider.</sys:String>
   <sys:String x:Key="Overview.ProviderDescription">Distribuição dos identificadores demonstrativos, não de suporte.</sys:String>
-  <sys:String x:Key="Overview.ProviderFixture">Providers no fixture</sys:String>
+  <sys:String x:Key="Overview.ProviderFixture">Providers</sys:String>
   <sys:String x:Key="Overview.RecentAlerts">Alertas recentes</sys:String>
-  <sys:String x:Key="Overview.SampleTrend">Tendência da amostra</sys:String>
+  <sys:String x:Key="Overview.ResponseTime">Tempo de resposta (ms)</sys:String>
+  <sys:String x:Key="Overview.Restarted">Reiniciado</sys:String>
+  <sys:String x:Key="Overview.SampleTrend">Desempenho</sys:String>
+  <sys:String x:Key="Overview.TotalInstances">Total de instâncias</sys:String>
   <sys:String x:Key="Overview.TrendAccessibleLabel">Gráfico demonstrativo com duas séries locais de latência.</sys:String>
   <sys:String x:Key="Overview.ViewAlerts">Ver todos os alertas</sys:String>
   <sys:String x:Key="Overview.ViewInventory">Ver inventário</sys:String>
+  <sys:String x:Key="Overview.Warning">Aviso</sys:String>
   <sys:String x:Key="Preview.Confirmation.Message">Uma operação suportada exigiria motivo, expiração e confirmação final. A execução está desabilitada nesta demonstração.</sys:String>
   <sys:String x:Key="Preview.Confirmation.Title">Confirmação obrigatória</sys:String>
   <sys:String x:Key="Preview.Denied.Message">A identidade demonstrativa não possui a permissão específica no escopo da instância.</sys:String>
@@ -166,6 +174,9 @@
   <sys:String x:Key="Scenario.Maintenance">Em manutenção</sys:String>
   <sys:String x:Key="Scenario.Offline">Agent offline</sys:String>
   <sys:String x:Key="Scenario.Ready">Conteúdo carregado</sys:String>
+  <sys:String x:Key="Settings.NotificationTitle">Notificações do Windows</sys:String>
+  <sys:String x:Key="Settings.NotificationUnavailable">A entrega externa e as notificações do Windows somente em mudanças estão previstas para a integração do STATE-06.</sys:String>
+  <sys:String x:Key="Settings.PreferenceTitle">Preferências da interface</sys:String>
   <sys:String x:Key="Severity.Critical">Crítico</sys:String>
   <sys:String x:Key="Severity.Information">Informativo</sys:String>
   <sys:String x:Key="Severity.Warning">Aviso</sys:String>
@@ -184,6 +195,9 @@
   <sys:String x:Key="Theme.Label">Tema</sys:String>
   <sys:String x:Key="Theme.Light">Claro</sys:String>
   <sys:String x:Key="Theme.Toggle">Tema: {0}. Alternar para {1}</sys:String>
+  <sys:String x:Key="TopBar.Notifications">Abrir alertas; {0} ativo</sys:String>
+  <sys:String x:Key="TopBar.NotificationsSimple">Abrir alertas</sys:String>
+  <sys:String x:Key="TopBar.Settings">Abrir configurações</sys:String>
   <sys:String x:Key="Tray.BalloonMessage">A janela foi recolhida. Nenhum banco ou serviço foi controlado.</sys:String>
   <sys:String x:Key="Tray.BalloonTitle">DB Notifier continua disponível</sys:String>
   <sys:String x:Key="Tray.Exit">Sair</sys:String>
@@ -193,11 +207,13 @@
   <sys:String x:Key="Tray.LocalSnapshot">Snapshot local em {0} UTC</sys:String>
   <sys:String x:Key="Tray.Open">Abrir DB Notifier</sys:String>
   <sys:String x:Key="Tray.OpenConfiguration">Abrir configuração</sys:String>
-  <sys:String x:Key="Tray.OpenHistoryAlerts">Abrir histórico e alertas</sys:String>
+  <sys:String x:Key="Tray.OpenHistoryAlerts">Abrir logs</sys:String>
   <sys:String x:Key="Tray.OpenInventory">Abrir inventário</sys:String>
-  <sys:String x:Key="Tray.OpenOverview">Abrir visão geral</sys:String>
+  <sys:String x:Key="Tray.OpenOverview">Abrir Dashboard</sys:String>
   <sys:String x:Key="Tray.RestartUnavailable">Reiniciar serviço · indisponível</sys:String>
   <sys:String x:Key="Tray.RestartUnavailableHelp">Requer capability homologada, autorização, confirmação e auditoria.</sys:String>
+  <sys:String x:Key="Tray.SilentUnavailable">Modo silencioso · indisponível</sys:String>
+  <sys:String x:Key="Tray.SilentUnavailableHelp">A entrega de notificações não está integrada durante o STATE-05.</sys:String>
   <sys:String x:Key="Tray.Status">Demonstração local · sem dados externos</sys:String>
   <sys:String x:Key="Tray.Tooltip">DB Notifier · demonstração local</sys:String>
   <sys:String x:Key="TV.Active">Modo TV · demonstração</sys:String>
@@ -219,6 +235,15 @@
   <sys:String x:Key="View.Overview.Description">Saúde, exceções e tendências do snapshot local em uma única visão.</sys:String>
   <sys:String x:Key="View.Overview.Eyebrow">Panorama operacional</sys:String>
   <sys:String x:Key="View.Overview.Title">Visão geral</sys:String>
+  <sys:String x:Key="View.Performance.Description">Séries locais determinísticas para revisão da interface; nenhuma telemetria externa é carregada.</sys:String>
+  <sys:String x:Key="View.Performance.Eyebrow">Telemetria demonstrativa</sys:String>
+  <sys:String x:Key="View.Performance.Title">Desempenho</sys:String>
+  <sys:String x:Key="View.Providers.Description">Identificadores demonstrativos e estado de implementação declarado; presença não representa suporte público.</sys:String>
+  <sys:String x:Key="View.Providers.Eyebrow">Catálogo de providers</sys:String>
+  <sys:String x:Key="View.Providers.Title">Providers</sys:String>
+  <sys:String x:Key="View.Settings.Description">Idioma, tema e estado da integração de notificações locais, sem alterar segredos ou infraestrutura.</sys:String>
+  <sys:String x:Key="View.Settings.Eyebrow">Preferências da interface</sys:String>
+  <sys:String x:Key="View.Settings.Title">Configurações</sys:String>
   <sys:String x:Key="Wpf.AlertSummary">{0} ativo(s) · {1} crítico(s) aberto(s)</sys:String>
   <sys:String x:Key="Wpf.ConfigurationTitle">Configuração não secreta</sys:String>
   <sys:String x:Key="Wpf.DemonstrationState">Estado demonstrativo · nenhuma conexão externa</sys:String>

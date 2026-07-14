@@ -2,7 +2,7 @@
 
 ## Outcome
 
-Six `STATE-05 FRONTEND_IMPLEMENTATION` increments implement provider-neutral Overview, inventory/status, history/alert, configuration/capability and Tray/accessibility slices in React and .NET 10 WPF. All surfaces use deterministic local adapters; none calls the API, Agent, database, vault, IdP, notification channel or administrative executor.
+Seven `STATE-05 FRONTEND_IMPLEMENTATION` increments implement provider-neutral Overview, inventory/status, history/alert, performance/provider demonstrations, configuration/capability and Tray/accessibility slices in React and .NET 10 WPF. All surfaces use deterministic local adapters; none calls the API, Agent, database, vault, IdP, notification channel or administrative executor.
 
 This is an authorized implementation increment, not closure of `STATE-05`, external integration, provider activation or homologation. PostgreSQL remains implemented but unhomologated; MySQL, SQL Server and MongoDB appear only as clearly labelled planned demonstration rows and do not represent working providers.
 
@@ -102,6 +102,15 @@ Temporary screenshots were stored outside the repository and were not committed.
 - Dashboard navigation now exposes Overview, Inventory, History, Alerts and Configuration; the Alerts item carries a factual active-alert count from the local fixture.
 - The Tray flyout adopts the requested compact two-column pattern: fleet status on the left and safe navigation on the right, with Restart retained only as a non-interactive unavailable explanation.
 - Dashboard and WPF continue to distinguish demonstration data, planned providers and unsupported administrative execution. No external notification, polling, connection or command execution was introduced.
+
+## Increment 7 — Reference-aligned Dashboard and Tray refinement
+
+- Dashboard navigation follows the requested order: Overview, Instances, Alerts, Performance, History, Configuration, Providers and Settings. Performance, Providers and Settings are deterministic read-only destinations and do not imply integration.
+- The TopBar adds accessible notification and Settings actions. They navigate only within the local presentation; no external delivery, acknowledgement or settings mutation is claimed.
+- The visual `DBNotifier` wordmark uses the canonical green/foreground split while its accessible product name remains `DB Notifier`. The shared generated mark combines a provider-neutral database outline with a notification bell across Web, WPF, Tray and installer assets.
+- Overview uses four separate Total Instances, Healthy, Warning and Critical KPI cards, provider glyphs beside visible names, textual semantic status, alert-specific symbols including Restarted, a two-series Performance chart and provider distribution with visible counts.
+- The Windows notification icon now opens the flyout directly on either primary or secondary mouse release. Safe Dashboard, Configuration and log navigation remains separate from unavailable Restart and Silent Mode explanations; no native context menu race or administrative fallback is retained.
+- Automatic evidence comprises 32 Dashboard tests, typecheck/build, 96 bilingual Light/Dark responsive samples, 16 current Lighthouse route/profile reports and the .NET build/tests. The first current mobile Lighthouse pass found a prohibited `aria-label` on the brand container; assigning the correct image role removed the defect and the complete sixteen-report regression then achieved Accessibility and Best Practices `100` throughout.
 
 ## Security and phase boundaries
 

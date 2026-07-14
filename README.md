@@ -4,7 +4,7 @@ DB-Notifier is the successor to PgNotifier, which was conceptually inspired by M
 
 Agents are designed to monitor local, remote, datacenter, hybrid, and cloud databases from Windows, Linux, containers, or cloud workloads. Monitoring credentials, database administration credentials, OS service identities, and cloud control-plane identities remain separate and vault-backed.
 
-The workspace is technically positioned in `STATE-05 FRONTEND_IMPLEMENTATION`, with lifecycle progression on hold. Six frontend increments provide a provider-neutral operational Overview, inventory, history/alerts, configuration/capabilities, a safe Windows Tray and an operational demonstration flyout in React/.NET 10 WPF. Retrospective ratification of `STATE-00` through `STATE-04` is complete; the current `STATE-05` Human Gate remains pending. All views are demonstration-only, with no external integration, mutation, database/service control or provider homologation.
+The workspace is technically positioned in `STATE-05 FRONTEND_IMPLEMENTATION`, with lifecycle progression on hold. Seven frontend increments provide a provider-neutral operational Overview, eight-destination Dashboard navigation, inventory, history/alerts, performance/provider demonstrations, configuration/capabilities, a safe Windows Tray and an operational demonstration flyout in React/.NET 10 WPF. Retrospective ratification of `STATE-00` through `STATE-04` is complete; the current `STATE-05` Human Gate remains pending. All views are demonstration-only, with no external integration, mutation, database/service control or provider homologation.
 
 ## Start here
 
@@ -12,7 +12,7 @@ Repository agents start with [`AGENTS.md`](AGENTS.md), the primary source for pe
 
 Code and configuration documentation follows [`docs/Code-Documentation-Standards.md`](docs/Code-Documentation-Standards.md): comments use British English, document intent and remain synchronised with implementation. Run `npm run comments:verify` from `src/DBNotifier.Dashboard.Web` to check the project-wide module inventory.
 
-All frontend work follows the official [`DB-Notifier Design System`](docs/design/DB-Notifier-Design-System.md): a restrained modern enterprise identity, shared React/WPF semantic tokens, WCAG 2.2 AA and explicit Light/Dark theme contracts. Retired System values migrate safely to Light, while High Contrast remains an independent accessibility override. The current Design System is `2.2.0`; its implementation increments and automatic audits are approved only in their tested scope, while the Human Gate remains pending. The complete request-to-evidence cross-reference is maintained in the [`STATE-05 request traceability audit`](docs/STATE-05-Request-Traceability-Audit.md).
+All frontend work follows the official [`DB-Notifier Design System`](docs/design/DB-Notifier-Design-System.md): a restrained modern enterprise identity, shared React/WPF semantic tokens, WCAG 2.2 AA and explicit Light/Dark theme contracts. Retired System values migrate safely to Light, while High Contrast remains an independent accessibility override. The current Design System is `2.3.0`; its implementation increments and automatic audits are approved only in their tested scope, while the Human Gate remains pending. The complete request-to-evidence cross-reference is maintained in the [`STATE-05 request traceability audit`](docs/STATE-05-Request-Traceability-Audit.md).
 
 The discovery outputs for the transformation are:
 

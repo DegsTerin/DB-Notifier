@@ -24,6 +24,7 @@ import { TvModeButton } from "./TvModeButton";
 import { useLocalisation } from "./LocalisationProvider";
 import type { MessageKey } from "./generated/localisation";
 import { formatSystemDateTime, formatSystemTime } from "./systemDateTime";
+import { ProviderIcon } from "./ProviderIcon";
 
 const stateOptions: ReadonlyArray<{ value: InventoryState; labelKey: MessageKey }> = [
   { value: "ready", labelKey: "Scenario.Ready" },
@@ -44,16 +45,19 @@ const stateMessages: Record<Exclude<InventoryState, "ready">, { symbol: string; 
   maintenance: { symbol: "◆", titleKey: "Operational.Maintenance.Title", messageKey: "Operational.Maintenance.Message", retry: false },
 };
 
-type DashboardView = "overview" | "inventory" | "history" | "alerts" | "configuration";
+type DashboardView = "overview" | "inventory" | "alerts" | "performance" | "history" | "configuration" | "providers" | "settings";
 const viewCopy: Record<DashboardView, { eyebrowKey: MessageKey; titleKey: MessageKey; descriptionKey: MessageKey }> = {
   overview: { eyebrowKey: "View.Overview.Eyebrow", titleKey: "View.Overview.Title", descriptionKey: "View.Overview.Description" },
   inventory: { eyebrowKey: "View.Inventory.Eyebrow", titleKey: "View.Inventory.Title", descriptionKey: "View.Inventory.Description" },
   history: { eyebrowKey: "View.History.Eyebrow", titleKey: "View.History.Title", descriptionKey: "View.History.Description" },
   alerts: { eyebrowKey: "View.Alerts.Eyebrow", titleKey: "View.Alerts.Title", descriptionKey: "View.Alerts.Description" },
+  performance: { eyebrowKey: "View.Performance.Eyebrow", titleKey: "View.Performance.Title", descriptionKey: "View.Performance.Description" },
   configuration: { eyebrowKey: "View.Configuration.Eyebrow", titleKey: "View.Configuration.Title", descriptionKey: "View.Configuration.Description" },
+  providers: { eyebrowKey: "View.Providers.Eyebrow", titleKey: "View.Providers.Title", descriptionKey: "View.Providers.Description" },
+  settings: { eyebrowKey: "View.Settings.Eyebrow", titleKey: "View.Settings.Title", descriptionKey: "View.Settings.Description" },
 };
 
-type AppIconName = "database" | "overview" | "inventory" | "history" | "alerts" | "configuration" | "healthy" | "degraded" | "critical" | "stale";
+type AppIconName = "database" | "overview" | "inventory" | "history" | "alerts" | "performance" | "configuration" | "providers" | "settings" | "healthy" | "degraded" | "critical" | "stale" | "notifications" | "restart";
 
 /**
  * Renders the small outlined icon set owned by the DB-Notifier shell and operational summaries.
@@ -83,6 +87,21 @@ function AppIcon({ name, className = "" }: { name: AppIconName; className?: stri
       break;
     case "configuration":
       content = <><path d="M4 7h10M18 7h2M4 17h2M10 17h10" /><circle cx="16" cy="7" r="2" /><circle cx="8" cy="17" r="2" /></>;
+      break;
+    case "settings":
+      content = <><circle cx="12" cy="12" r="3" /><path d="M19 13.5v-3l-2.1-.7a7.4 7.4 0 0 0-.8-1.9l1-2-2.1-2.1-2 .9a7.4 7.4 0 0 0-2-.8L10.5 2h-3l-.7 2.1a7.4 7.4 0 0 0-1.9.8l-2-.9L.8 6.1l.9 2a7.4 7.4 0 0 0-.8 1.9L-1 10.5v3l2.1.7a7.4 7.4 0 0 0 .8 1.9l-.9 2 2.1 2.1 2-.9a7.4 7.4 0 0 0 1.9.8l.5 1.9h3l.7-2.1a7.4 7.4 0 0 0 1.9-.8l2 .9 2.1-2.1-.9-2a7.4 7.4 0 0 0 .8-1.9Z" transform="translate(2.5)" /></>;
+      break;
+    case "performance":
+      content = <><rect x="3" y="4" width="18" height="16" rx="2" /><path d="m6 15 3-3 3 2 5-6 2 2" /></>;
+      break;
+    case "providers":
+      content = <><circle cx="8" cy="8" r="3" /><circle cx="17" cy="7" r="2" /><circle cx="16" cy="17" r="3" /><path d="M10.5 9.5 14 8M9.5 10.5l4.5 4.5M17 9v5" /></>;
+      break;
+    case "notifications":
+      content = <><path d="M6 17h12l-1.4-2V10a4.6 4.6 0 0 0-9.2 0v5Z" /><path d="M10 20h4" /></>;
+      break;
+    case "restart":
+      content = <><path d="M19 8V3l-2 2a8 8 0 1 0 2.2 8" /><path d="M19 3h-5" /></>;
       break;
     case "healthy":
       content = <><circle cx="12" cy="12" r="8" /><path d="m8.5 12 2.25 2.25L15.75 9" /></>;
@@ -119,8 +138,10 @@ function StatusBadge({ item, now }: { item: InventoryItem; now: Date }) {
  */
 export function App() {
   const { locale, t } = useLocalisation();
-  const [view, setView] = useState<DashboardView>(() =>
-    window.location.hash === "#inventory" ? "inventory" : window.location.hash === "#history" ? "history" : window.location.hash === "#alerts" ? "alerts" : window.location.hash === "#configuration" ? "configuration" : "overview");
+  const [view, setView] = useState<DashboardView>(() => {
+    const requested = window.location.hash.slice(1) as DashboardView;
+    return requested in viewCopy ? requested : "overview";
+  });
   const [state, setState] = useState<InventoryState>("ready");
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | HealthStatus | "stale">("all");
@@ -163,15 +184,17 @@ export function App() {
     <div className={`app-shell ${tvMode ? "tv-mode" : ""}`}>
       <a className="skip-link" href="#main-content">{t("Navigation.Skip")}</a>
       <header className="topbar">
-        <div className="brand-lockup" aria-label="DB Notifier">
-          <span className="brand-mark"><img src="/dbnotifier-icon.svg?v=1.3.3" alt="" /></span>
-          <span><strong>DB Notifier</strong><small>{t("Brand.Subtitle")}</small></span>
+        <div className="brand-lockup" role="img" aria-label="DB Notifier">
+          <span className="brand-mark"><img src="/dbnotifier-icon.svg?v=1.4.0" alt="" /></span>
+          <span><strong className="brand-wordmark"><span>DB</span><span>Notifier</span></strong><small>{t("Brand.Subtitle")}</small></span>
         </div>
         {tvMode && <div className="tv-mode-status"><span aria-hidden="true" /><strong>{t("TV.Active")}</strong><time dateTime={now.toISOString()}>{formatSystemDateTime(now, locale)}</time></div>}
         <div className="topbar-controls">
           <LanguageSelector />
           <ThemeSelector />
           <TvModeButton active={tvMode} onActiveChange={handleTvModeChange} />
+          {!tvMode && <button type="button" className="preference-icon-button topbar-feature-button" title={t("TopBar.Notifications", timelineSnapshot.alerts.filter((alert) => alert.state === "active").length)} aria-label={t("TopBar.Notifications", timelineSnapshot.alerts.filter((alert) => alert.state === "active").length)} onClick={() => navigate("alerts")}><AppIcon name="notifications" /><span className="topbar-count" aria-hidden="true">{timelineSnapshot.alerts.filter((alert) => alert.state === "active").length}</span></button>}
+          {!tvMode && <button type="button" className="preference-icon-button topbar-feature-button" title={t("TopBar.Settings")} aria-label={t("TopBar.Settings")} onClick={() => navigate("settings")}><AppIcon name="settings" /></button>}
           <div className="demo-badge"><span aria-hidden="true" />{t("Demo.Badge")}</div>
         </div>
       </header>
@@ -183,9 +206,12 @@ export function App() {
             <nav>
               <button type="button" className={`nav-item ${view === "overview" ? "active" : ""}`} aria-current={view === "overview" ? "page" : undefined} onClick={() => navigate("overview")}><AppIcon name="overview" /><span className="nav-label">{t("Navigation.Overview")}</span></button>
               <button type="button" className={`nav-item ${view === "inventory" ? "active" : ""}`} aria-current={view === "inventory" ? "page" : undefined} onClick={() => navigate("inventory")}><AppIcon name="inventory" /><span className="nav-label">{t("Navigation.Inventory")}</span></button>
-              <button type="button" className={`nav-item ${view === "history" ? "active" : ""}`} aria-current={view === "history" ? "page" : undefined} onClick={() => navigate("history")}><AppIcon name="history" /><span className="nav-label">{t("Navigation.History")}</span></button>
               <button type="button" className={`nav-item ${view === "alerts" ? "active" : ""}`} aria-current={view === "alerts" ? "page" : undefined} onClick={() => navigate("alerts")}><AppIcon name="alerts" /><span className="nav-label">{t("Navigation.Alerts")}</span><span className="nav-count" aria-label={t("Overview.ActiveAlertCount", timelineSnapshot.alerts.filter((alert) => alert.state === "active").length)}>{timelineSnapshot.alerts.filter((alert) => alert.state === "active").length}</span></button>
+              <button type="button" className={`nav-item ${view === "performance" ? "active" : ""}`} aria-current={view === "performance" ? "page" : undefined} onClick={() => navigate("performance")}><AppIcon name="performance" /><span className="nav-label">{t("Navigation.Performance")}</span></button>
+              <button type="button" className={`nav-item ${view === "history" ? "active" : ""}`} aria-current={view === "history" ? "page" : undefined} onClick={() => navigate("history")}><AppIcon name="history" /><span className="nav-label">{t("Navigation.History")}</span></button>
               <button type="button" className={`nav-item ${view === "configuration" ? "active" : ""}`} aria-current={view === "configuration" ? "page" : undefined} onClick={() => navigate("configuration")}><AppIcon name="configuration" /><span className="nav-label">{t("Navigation.Configuration")}</span></button>
+              <button type="button" className={`nav-item ${view === "providers" ? "active" : ""}`} aria-current={view === "providers" ? "page" : undefined} onClick={() => navigate("providers")}><AppIcon name="providers" /><span className="nav-label">{t("Navigation.Providers")}</span></button>
+              <button type="button" className={`nav-item ${view === "settings" ? "active" : ""}`} aria-current={view === "settings" ? "page" : undefined} onClick={() => navigate("settings")}><AppIcon name="settings" /><span className="nav-label">{t("Navigation.Settings")}</span></button>
             </nav>
           </div>
           <div className="sidebar-note"><strong>{t("Sidebar.State")}</strong><span>{t("Sidebar.ReadOnly")}</span></div>
@@ -230,8 +256,14 @@ export function App() {
             <HistoryView snapshot={timelineSnapshot} />
           ) : state === "ready" && view === "alerts" ? (
             <AlertsView alerts={timelineSnapshot.alerts} generatedAt={timelineSnapshot.generatedAt} />
+          ) : state === "ready" && view === "performance" ? (
+            <PerformanceView />
           ) : state === "ready" && view === "configuration" ? (
             <ConfigurationView snapshot={configurationSnapshot} />
+          ) : state === "ready" && view === "providers" ? (
+            <ProvidersView items={snapshot.items} />
+          ) : state === "ready" && view === "settings" ? (
+            <SettingsView />
           ) : (
             <OperationalState state={state as Exclude<InventoryState, "ready">} onRetry={() => setState("ready")} />
           )}
@@ -267,28 +299,28 @@ function OverviewView({
 }) {
   const { locale, t } = useLocalisation();
   const metrics = [
-    { label: t("Inventory.Total"), value: summary.total, icon: "database" as const, className: "" },
+    { label: t("Overview.TotalInstances"), value: summary.total, icon: "database" as const, className: "" },
     { label: t("Inventory.Healthy"), value: summary.healthy, icon: "healthy" as const, className: "healthy" },
-    { label: t("Inventory.Degraded"), value: summary.degraded, icon: "degraded" as const, className: "degraded" },
-    { label: t("Inventory.Attention"), value: summary.attentionRequired, icon: "critical" as const, className: "critical" },
+    { label: t("Overview.Warning"), value: summary.degraded, icon: "degraded" as const, className: "degraded" },
+    { label: t("Overview.Critical"), value: summary.attentionRequired, icon: "critical" as const, className: "critical" },
   ];
 
   return <section className="overview-layout" aria-label={t("View.Overview.Title")}>
     <p className="updated-at">{t("Inventory.UpdatedAt", formatSystemDateTime(generatedAt, locale), staleAfterMilliseconds / 60_000)}</p>
-    <div className="summary-grid overview-summary">
+    <div className="summary-grid overview-summary overview-kpis">
       {metrics.map((metric) => <article className={`summary-card ${metric.className}`.trim()} key={metric.label}>
-        <span className="summary-label"><span className="metric-icon"><AppIcon name={metric.icon} /></span><span>{metric.label}</span></span>
-        <strong>{metric.value}</strong>
+        <span className="summary-label"><span>{metric.label}</span></span>
+        <strong>{metric.value}</strong><span className="metric-icon"><AppIcon name={metric.icon} /></span>
       </article>)}
     </div>
 
     <div className="overview-grid">
       <section className="overview-panel overview-fleet" aria-labelledby="overview-fleet-title">
-        <div className="overview-panel-heading"><div><h2 id="overview-fleet-title">{t("Overview.FleetStatus")}</h2><p>{t("Overview.FleetDescription")}</p></div><button type="button" onClick={() => onNavigate("inventory")}>{t("Overview.ViewInventory")}</button></div>
+        <div className="overview-panel-heading"><div><h2 id="overview-fleet-title">{t("Overview.FleetStatus")}</h2><p>{t("Overview.FleetDescription")}</p></div><span className="overview-column-label">{t("Overview.ResponseTime")}</span></div>
         <div className="overview-instance-list">
           {items.map((item, index) => <article className="overview-instance-row" key={item.instanceId}>
-            <span className={`overview-status-dot ${isStale(item, now) ? "stale" : statusPresentation[item.status].className}`} aria-hidden="true" />
-            <div className="overview-instance-name"><strong>{item.displayName}</strong><code>{item.providerType}</code></div>
+            <ProviderIcon providerType={item.providerType} />
+            <div className="overview-instance-name"><strong>{item.displayName}</strong><small>{item.providerType}</small></div>
             <StatusBadge item={item} now={now} />
             <span className="overview-latency">{item.latencyMilliseconds === null ? "—" : `${item.latencyMilliseconds} ms`}</span>
             <svg className={`sparkline sparkline-${index + 1}`} viewBox="0 0 92 28" preserveAspectRatio="none" aria-hidden="true" focusable="false"><polyline points={index === 0 ? "0,20 10,18 20,21 30,12 40,15 50,7 60,13 70,9 80,17 92,8" : index === 1 ? "0,18 10,16 20,19 30,10 40,14 50,9 60,20 70,13 80,15 92,6" : index === 2 ? "0,9 10,14 20,8 30,20 40,12 50,22 60,17 70,24 80,18 92,25" : "0,18 12,18 24,18 36,18 48,18 60,18 72,18 84,18 92,18"} /></svg>
@@ -300,7 +332,7 @@ function OverviewView({
         <div className="overview-panel-heading"><div><h2 id="overview-alerts-title">{t("Overview.RecentAlerts")}</h2><p>{t("Overview.AlertDescription")}</p></div></div>
         <div className="overview-alert-list">
           {alerts.map((alert) => <article key={alert.alertId}>
-            <SeverityBadge severity={alert.severity} />
+            <span className={`alert-symbol ${alert.alertId === "alert-003" ? "restart" : severityPresentation[alert.severity].className}`}><AppIcon name={alert.alertId === "alert-003" ? "restart" : alert.severity === "critical" ? "critical" : alert.severity === "warning" ? "degraded" : "notifications"} /></span>
             <div><strong>{alert.instanceName}</strong><span>{alert.ruleName}</span></div>
             <time dateTime={alert.updatedAt}>{formatSystemTime(alert.updatedAt, locale)}</time>
           </article>)}
@@ -310,28 +342,64 @@ function OverviewView({
 
       <section className="overview-panel overview-trend" aria-labelledby="overview-trend-title">
         <div className="overview-panel-heading"><div><h2 id="overview-trend-title">{t("Overview.SampleTrend")}</h2><p>{t("Overview.DemonstrationChart")}</p></div><span className="read-only-label">{t("Demo.Badge")}</span></div>
-        <div className="trend-chart">
-          <div className="trend-axis" aria-hidden="true"><span>100</span><span>50</span><span>0 ms</span></div>
-          <svg viewBox="0 0 640 150" preserveAspectRatio="none" role="img" aria-label={t("Overview.TrendAccessibleLabel")}>
-            <path className="chart-grid" d="M0 25H640M0 75H640M0 125H640" />
-            <polyline className="trend-primary" points="0,118 40,102 80,109 120,82 160,91 200,64 240,76 280,55 320,70 360,48 400,61 440,44 480,54 520,34 560,47 600,29 640,38" />
-            <polyline className="trend-secondary" points="0,92 40,88 80,74 120,81 160,68 200,76 240,59 280,66 320,49 360,58 400,45 440,53 480,42 520,49 560,36 600,43 640,30" />
-          </svg>
-        </div>
+        <PerformanceChart />
       </section>
 
       <section className="overview-panel overview-providers" aria-labelledby="overview-providers-title">
         <div className="overview-panel-heading"><div><h2 id="overview-providers-title">{t("Overview.ProviderFixture")}</h2><p>{t("Overview.ProviderDescription")}</p></div></div>
-        <div className="provider-figure">
-          <svg className="provider-ring" viewBox="0 0 44 44" role="img" aria-label={t("Overview.ProviderAccessibleLabel", items.length)}>
-            <circle className="provider-ring-track" cx="22" cy="22" r="15.9" />
-            {items.map((item, index) => <circle key={item.instanceId} className={`provider-ring-segment segment-${index + 1}`} cx="22" cy="22" r="15.9" strokeDasharray="24 76" strokeDashoffset={25 - index * 25} />)}
-          </svg>
-          <ul>{items.map((item, index) => <li key={item.instanceId}><span className={`provider-key segment-${index + 1}`} aria-hidden="true" /><code>{item.providerType}</code><strong>1</strong></li>)}</ul>
-        </div>
+        <ProviderChart items={items} />
       </section>
     </div>
   </section>;
+}
+
+/** Renders the deterministic two-series performance graph shared by overview and the read-only performance route. */
+function PerformanceChart() {
+  const { t } = useLocalisation();
+  return <div className="trend-chart">
+    <div className="trend-axis" aria-hidden="true"><span>100%</span><span>50%</span><span>0%</span></div>
+    <div className="trend-plot">
+      <svg viewBox="0 0 640 150" preserveAspectRatio="none" role="img" aria-label={t("Overview.TrendAccessibleLabel")}>
+        <path className="chart-grid" d="M0 25H640M0 75H640M0 125H640M0 0V150M128 0V150M256 0V150M384 0V150M512 0V150M640 0V150" />
+        <polyline className="trend-primary" points="0,92 28,72 56,84 84,54 112,42 140,76 168,103 196,78 224,95 252,70 280,88 308,74 336,92 364,81 392,101 420,88 448,94 476,73 504,83 532,66 560,79 588,61 616,84 640,92" />
+        <polyline className="trend-secondary" points="0,125 28,112 56,96 84,119 112,101 140,86 168,118 196,91 224,74 252,98 280,83 308,104 336,89 364,69 392,93 420,75 448,88 476,62 504,72 532,53 560,31 588,24 616,42 640,35" />
+      </svg>
+      <div className="trend-times" aria-hidden="true"><span>09:50</span><span>09:55</span><span>10:00</span><span>10:05</span><span>10:10</span><span>10:15</span></div>
+    </div>
+  </div>;
+}
+
+/** Renders a deterministic provider distribution while preserving visible counts and provider identifiers. */
+function ProviderChart({ items }: { items: readonly InventoryItem[] }) {
+  const { t } = useLocalisation();
+  const counts = [...items.reduce<Map<string, number>>((result, item) => result.set(item.providerType, (result.get(item.providerType) ?? 0) + 1), new Map())];
+  const segment = 100 / Math.max(counts.length, 1);
+  return <div className="provider-figure">
+    <svg className="provider-ring" viewBox="0 0 44 44" role="img" aria-label={t("Overview.ProviderAccessibleLabel", items.length)}>
+      <circle className="provider-ring-track" cx="22" cy="22" r="15.9" />
+      {counts.map(([provider], index) => <circle key={provider} className={`provider-ring-segment segment-${index + 1}`} cx="22" cy="22" r="15.9" strokeDasharray={`${segment} ${100 - segment}`} strokeDashoffset={25 - index * segment} />)}
+    </svg>
+    <ul>{counts.map(([provider, count], index) => <li key={provider}><span className={`provider-key segment-${index + 1}`} aria-hidden="true" /><span>{provider}</span><strong>{count}</strong></li>)}</ul>
+  </div>;
+}
+
+/** Presents the performance fixture in a dedicated safe navigation destination. */
+function PerformanceView() {
+  const { t } = useLocalisation();
+  return <section className="overview-panel feature-panel" aria-labelledby="performance-title"><div className="overview-panel-heading"><div><h2 id="performance-title">{t("Overview.SampleTrend")}</h2><p>{t("Overview.DemonstrationChart")}</p></div><span className="read-only-label">{t("Demo.Badge")}</span></div><PerformanceChart /></section>;
+}
+
+/** Presents provider identifiers and implementation truth without claiming public support or homologation. */
+function ProvidersView({ items }: { items: readonly InventoryItem[] }) {
+  const { t } = useLocalisation();
+  const providers = [...new Map(items.map((item) => [item.providerType, item])).values()];
+  return <section className="providers-layout"><section className="overview-panel"><div className="overview-panel-heading"><div><h2>{t("Overview.ProviderFixture")}</h2><p>{t("Overview.ProviderDescription")}</p></div></div><ProviderChart items={items} /></section><div className="provider-catalogue">{providers.map((item) => <article key={item.providerType}><ProviderIcon providerType={item.providerType} /><div><h2>{item.providerType}</h2><p>{item.supportLabel}</p></div><span className="read-only-label">{t("Common.ReadOnly")}</span></article>)}</div></section>;
+}
+
+/** Presents local interface preferences and the truthful future state of Windows notification integration. */
+function SettingsView() {
+  const { t } = useLocalisation();
+  return <section className="settings-layout"><article className="overview-panel settings-card"><AppIcon name="settings" /><div><h2>{t("Settings.PreferenceTitle")}</h2><p>{t("View.Settings.Description")}</p></div></article><article className="overview-panel settings-card"><AppIcon name="notifications" /><div><h2>{t("Settings.NotificationTitle")}</h2><p>{t("Settings.NotificationUnavailable")}</p></div><span className="capability-state unsupported">STATE-06</span></article></section>;
 }
 
 const severityPresentation: Record<EventSeverity, { symbol: string; labelKey: MessageKey; className: string }> = {

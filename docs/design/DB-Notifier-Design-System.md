@@ -5,7 +5,7 @@
 | Field | Value |
 |---|---|
 | Status | Official frontend specification |
-| Design System version | `2.2.0` |
+| Design System version | `2.3.0` |
 | Product phase | `STATE-05 FRONTEND_IMPLEMENTATION` |
 | Platforms | React Web Dashboard and .NET 10 WPF Desktop/Tray |
 | Themes | Light and Dark; Windows High Contrast is an accessibility override |
@@ -375,12 +375,12 @@ Body copy MUST NOT be smaller than 14 px by default. Uppercase is limited to sho
 - Status icons always have adjacent visible text.
 - Provider logos MAY appear in provider detail/catalogue contexts, never as the only provider name or status indicator.
 - Third-party icons MUST be vendored with recorded licence/provenance; runtime downloads are prohibited.
-- The DB-Notifier product mark is a simple outlined white database cylinder on a `palette.brand.600` rounded square. Rounded three-pixel strokes preserve a light enterprise appearance and legibility at 16 px. It is provider-neutral and MUST NOT be replaced by a PostgreSQL, MySQL or other vendor logo.
+- The DB-Notifier product mark combines a simple outlined white database cylinder with a compact green notification bell on a `palette.brand.600` rounded square. The bell expresses notification purpose without identifying a database vendor; restrained strokes preserve legibility at 16 px. The mark MUST NOT be replaced by a PostgreSQL, MySQL or other vendor logo.
 - `scripts/generate-brand-assets.mjs` is the canonical cross-platform generator. It emits the Design System/Web SVG and a multi-resolution Windows ICO at 16/20/24/32/40/48/64/128/256 px; CI MUST fail on generated drift.
 - Dashboard favicon/header, WPF header/window, Windows executable/shortcuts, Tray and installer MUST consume this same mark. Release signing remains a `STATE-08` concern and MUST NOT be claimed during frontend implementation.
 - When adjacent text already exposes the product name, Web treats the mark as decorative. Native surfaces provide the stable accessible name `DB Notifier` where the platform exposes the image independently.
 
-The user-facing display name and wordmark are written as `DB Notifier`. Architecture, governance and technical prose retain the canonical name `DB-Notifier`; identifiers use `DBNotifier` only where spaces or punctuation are not valid. The mark MUST retain clear space equal to at least half its icon height.
+The accessible user-facing product name remains `DB Notifier`. Its visual wordmark is the compact lockup `DBNotifier`, with `DB` in `component.brand.wordmark.accent` and `Notifier` in the shell foreground; it never changes the accessible name, architecture term `DB-Notifier`, installer display name or technical identifiers. The mark MUST retain clear space equal to at least half its icon height.
 
 ## 9. Layout and responsiveness
 
@@ -399,7 +399,7 @@ Breakpoints respond to content, not device names. Every component MUST tolerate 
 ### 9.2 Shell
 
 - Header: product identity, environment/demonstration context and user/theme controls.
-- Navigation: Overview first, followed by stable detailed-view order, clear selected state and accessible current item.
+- Navigation: the stable order is Overview, Instances, Alerts, Performance, History, Configuration, Providers and Settings, with a clear selected state and accessible current item.
 - Main: one page title, optional description/actions, then operational content.
 - Footer/status area: connectivity/data-source truth without competing with primary tasks.
 - Maximum readable prose line length: approximately 75 characters.
@@ -407,7 +407,7 @@ Breakpoints respond to content, not device names. Every component MUST tolerate 
 - Dense tables may use available width; forms and dialogues use controlled widths.
 - A navigation rail MUST NOT retain visible labels once its width forces wrapping or compression; switch to a labelled horizontal navigation region first.
 - Seven-column operational tables switch to the complete compact-card alternative at `1100` CSS px or below. The alternative preserves all fields and does not rely on horizontal page scrolling.
-- At compact mobile widths, the product identity and global icon controls MUST remain in one contained TopBar row where the supported `320` CSS px minimum permits it. Controls MUST retain `44×44` CSS px targets, predictable language/theme/TV ordering and no horizontal clipping.
+- At compact mobile widths, the product identity and global icon controls MUST remain in one contained TopBar row where the supported `320` CSS px minimum permits it. Controls MUST retain `44×44` CSS px targets, predictable language/theme/TV/notifications/settings ordering and no horizontal clipping; the wordmark MAY collapse while the accessible product mark remains.
 - Alert collections and administrative-capability collections MUST use one full-width card column below `768` CSS px. Headings, state labels, timestamps, provider identifiers and reason codes MUST wrap within their owning card instead of forcing narrow parallel columns or horizontal overflow.
 
 ### 9.3 WPF adaptation
@@ -429,6 +429,8 @@ All components define default, hover, pressed, focus-visible, selected, disabled
 ### 10.1 Application shell
 
 `AppShell`, `TopBar`, `SideNavigation`, `PageHeader`, `ContentRegion` and `FooterStatus` establish the common hierarchy. The shell owns theme application and responsive navigation; feature views MUST NOT recreate it. TopBar chrome remains cohesive across Light and Dark, while surface hierarchy and content colours communicate the effective theme.
+
+Outside TV presentation, TopBar includes a notification bell that opens Alerts and exposes the active demonstration count, plus a gear that opens Settings. These are internal navigation controls during `STATE-05`; they MUST NOT imply Windows delivery, acknowledgement, persistence or external integration. TV preserves only identity, language, theme and its exit control to protect viewing distance.
 
 ### 10.2 Theme selector
 
@@ -462,13 +464,13 @@ Disabled controls MUST remain legible and MUST provide adjacent explanation when
 
 `SurfaceCard`, `SummaryCard`, `MetricCard` and `AlertCard` use consistent padding, border, radius and heading order. A metric includes label, value, freshness/context and optional trend; it MUST NOT use colour alone.
 
-Related fleet metrics SHOULD form one bordered metric band with internal dividers at comfortable widths. This reduces competing card chrome and preserves scan order. The band reflows to two columns and then one column without removing labels, icons or values.
+Detailed inventory summaries MAY form one bordered metric band with internal dividers. The operational Overview uses four separate KPI cards named Total Instances, Healthy, Warning and Critical, with a large value and a non-colour-only icon; the cards reflow to two columns and then one column without removing labels, icons or values.
 
 Summary bands MUST use the available width of their owning operational region and declare a column count that matches their visible metrics at each breakpoint. A general inventory-summary rule MUST NOT introduce empty implicit columns into a smaller alert or feature-specific summary.
 
 ### 10.5.1 Operational overview
 
-`OperationalOverview` is the default Dashboard and Desktop landing view. It composes the existing inventory, alert and freshness presentation adapters into four summary metrics, a fleet-status list, recent-alert list, deterministic sample trend and provider-identifier distribution. Every panel MUST expose its demonstration or source truth and link only to existing safe detailed views. Trend and distribution graphics supplement visible text and MUST NOT imply external telemetry, support or homologation.
+`OperationalOverview` is the default Dashboard and Desktop landing view. It composes the existing inventory, alert and freshness presentation adapters into four summary metrics, a fleet-status list with recognisable provider glyphs and textual coloured states, a recent-alert list with semantic icons including a rotating-arrow Restarted symbol, a deterministic Performance chart and a Providers distribution. Every panel MUST expose its demonstration or source truth and link only to existing safe detailed views. Graphics supplement visible text and MUST NOT imply external telemetry, support or homologation.
 
 At standard desktop width, fleet status and recent alerts form the primary two-column row, with trend and provider distribution beneath it. At compact widths all panels reflow to one content column, instance status/latency remain textual and decorative sparklines MAY be reduced without removing evidence. TV mode uses this same Overview rather than creating an independent data contract.
 
@@ -508,7 +510,7 @@ Modal dialogue requirements include initial focus, forward/reverse containment, 
 
 ### 10.10 Tray
 
-The Tray surface is an extension of the Desktop client, not a separate design language. It uses the canonical database mark and Windows notification-area conventions. Primary or secondary activation opens a compact WPF flyout with product identity and explicit source truth. Its body uses two visual columns at supported desktop sizes: provider-neutral fleet status on the left and safe shortcuts to Overview, Inventory, History/Alerts and non-secret Configuration on the right. Escape, loss of activation or a repeated notification-area click dismisses the flyout; explanatory unavailable service control remains non-interactive and explicit Exit remains separated from navigation.
+The Tray surface is an extension of the Desktop client, not a separate design language. It uses the canonical database-and-bell mark and Windows notification-area conventions. Primary or secondary mouse release opens a compact WPF flyout directly, without an empty native context menu competing for activation. Its two columns show provider-neutral fleet status and safe shortcuts to Dashboard, Configuration and local History/Alerts logs; Restart Service and Silent Mode remain visibly unavailable with explanations, and Exit remains separated. Escape, focus loss or a repeated notification-area activation dismisses the flyout.
 
 During `STATE-05`, the flyout MUST identify its deterministic local demonstration, MUST NOT present its display timestamp as an external observation, and MAY show a non-interactive explanation that administrative Restart is unavailable. `STATE-06` owns binding the same surface to authorised API/Agent state, factual change-only notifications and integrated event/log navigation. Service Restart MUST remain unavailable until its exact provider/topology capability, privilege, confirmation, idempotency, audit and post-probe path is implemented and then homologated in `STATE-07`. Vendor artwork, native service identifiers, credentials and unsupported actions MUST NOT be copied from legacy references into this provider-neutral surface.
 
@@ -619,7 +621,7 @@ Dashboard visual regression samples MUST cover:
 Themes: Light and Dark
 Locales: pt-BR and en-GB
 Viewports: 320×568, 390×844, 768×1024, 1024×768, 1440×1000, 1920×1080; TV presentation at 1920×1080
-Views: Overview, Inventory, History, Alerts, Configuration
+Views: Overview, Instances, Alerts, Performance, History, Configuration, Providers, Settings
 States: ready, loading, empty, offline, error, denied, maintenance, stale, filtered-empty
 Overlays: confirmation-required, denied, unsupported, unavailable, unknown
 Preferences: reduced motion and 200% native browser zoom

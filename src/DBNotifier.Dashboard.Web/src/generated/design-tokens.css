@@ -1,4 +1,4 @@
-/* Generated from dbnotifier.design-tokens.v1; source sha256:affb438c4389038d509edfc2ac25930c2729cc8f68d374ba4185363037172807. Do not edit directly. */
+/* Generated from dbnotifier.design-tokens.v1; source sha256:aa7d74432e2ccc72592c2dc517cc1c0c7d88fce12da08b8b6ed3f2c415fd1daa. Do not edit directly. */
 :root {
   --db-control-height-comfortable: 44px;
   --db-control-height-compact: 40px;
@@ -57,6 +57,11 @@
   --db-palette-neutralstatus-dark-foreground: #C2CDD4;
   --db-palette-neutralstatus-light-background: #F0F3F5;
   --db-palette-neutralstatus-light-foreground: #4E5C69;
+  --db-palette-provider-mongodb: #63C44D;
+  --db-palette-provider-mysql: #D7A44B;
+  --db-palette-provider-oracle: #EF4B3F;
+  --db-palette-provider-postgresql: #5EA4D6;
+  --db-palette-provider-sqlserver: #EF6455;
   --db-palette-success-dark-background: #0F2A1E;
   --db-palette-success-dark-foreground: #75D69C;
   --db-palette-success-light-background: #EDF8F1;
@@ -65,6 +70,7 @@
   --db-palette-warning-dark-foreground: #F3C66D;
   --db-palette-warning-light-background: #FFF7E4;
   --db-palette-warning-light-foreground: #805300;
+  --db-palette-wordmark-accent: #58C936;
   --db-radius-control: 6px;
   --db-radius-large: 10px;
   --db-radius-medium: 8px;
@@ -131,6 +137,7 @@
   --db-colour-text-primary: #17202A;
   --db-colour-text-secondary: #526273;
   --db-component-app-background: #F4F7FA;
+  --db-component-brand-wordmark-accent: #58C936;
   --db-component-button-primary-background-active: #063A6C;
   --db-component-button-primary-background-default: #0B5CAD;
   --db-component-button-primary-background-hover: #084B8A;
@@ -144,6 +151,11 @@
   --db-component-input-background: #FFFFFF;
   --db-component-input-border: #9AACBC;
   --db-component-input-foreground: #17202A;
+  --db-component-provider-mongodb: #63C44D;
+  --db-component-provider-mysql: #D7A44B;
+  --db-component-provider-oracle: #EF4B3F;
+  --db-component-provider-postgresql: #5EA4D6;
+  --db-component-provider-sqlserver: #EF6455;
   --db-component-shell-chrome-background: #10283B;
   --db-component-shell-chrome-border: #3B586C;
   --db-component-shell-chrome-foreground: #F4F7FA;
@@ -210,6 +222,7 @@
   --db-colour-text-primary: #F2F6F8;
   --db-colour-text-secondary: #B8C5CF;
   --db-component-app-background: #0B1218;
+  --db-component-brand-wordmark-accent: #58C936;
   --db-component-button-primary-background-active: #2D8BD1;
   --db-component-button-primary-background-default: #63B3ED;
   --db-component-button-primary-background-hover: #86C4F4;
@@ -223,6 +236,11 @@
   --db-component-input-background: #111C24;
   --db-component-input-border: #58707D;
   --db-component-input-foreground: #F2F6F8;
+  --db-component-provider-mongodb: #63C44D;
+  --db-component-provider-mysql: #D7A44B;
+  --db-component-provider-oracle: #EF4B3F;
+  --db-component-provider-postgresql: #5EA4D6;
+  --db-component-provider-sqlserver: #EF6455;
   --db-component-shell-chrome-background: #0E1B25;
   --db-component-shell-chrome-border: #3B586C;
   --db-component-shell-chrome-foreground: #F4F7FA;

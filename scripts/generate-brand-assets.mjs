@@ -9,6 +9,7 @@ import { fileURLToPath } from "node:url";
 const root = resolve(fileURLToPath(new URL("..", import.meta.url)));
 const background = [11, 92, 173, 255];
 const foreground = [255, 255, 255, 255];
+const accent = [88, 201, 54, 255];
 const outputs = {
   designSystemSvg: join(root, "design-system/assets/dbnotifier-database.svg"),
   dashboardSvg: join(root, "src/DBNotifier.Dashboard.Web/public/dbnotifier-icon.svg"),
@@ -21,10 +22,12 @@ function buildSvg() {
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
   <rect x="2" y="2" width="60" height="60" rx="14" fill="#0B5CAD"/>
   <g fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-    <ellipse cx="32" cy="19" rx="16" ry="6"/>
-    <path d="M16 19v12c0 3.31 7.16 6 16 6s16-2.69 16-6V19"/>
-    <path d="M16 31v12c0 3.31 7.16 6 16 6s16-2.69 16-6V31"/>
+    <ellipse cx="27" cy="17" rx="15" ry="5.5"/>
+    <path d="M12 17v11c0 3.04 6.72 5.5 15 5.5S42 31.04 42 28V17"/>
+    <path d="M12 28v11c0 3.04 6.72 5.5 15 5.5 2.34 0 4.56-.2 6.54-.57"/>
   </g>
+  <path d="M39 45.5v-5.25a7 7 0 0 1 14 0v5.25l3 4.5H36Z" fill="#58C936" stroke="#FFFFFF" stroke-width="2.5" stroke-linejoin="round"/>
+  <path d="M43 52a3 3 0 0 0 6 0" fill="none" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round"/>
 </svg>
 `;
 }
@@ -48,25 +51,25 @@ function distanceToSegment(x, y, x1, y1, x2, y2) {
 /** Returns whether a point overlaps the balanced outline used by the database-cylinder mark. */
 function insideDatabaseStroke(x, y) {
   const strokeRadius = 1.5;
-  let previousX = 48;
-  let previousY = 19;
+  let previousX = 42;
+  let previousY = 17;
   for (let step = 1; step <= 64; step += 1) {
     const angle = (Math.PI * 2 * step) / 64;
-    const currentX = 32 + 16 * Math.cos(angle);
-    const currentY = 19 + 6 * Math.sin(angle);
+    const currentX = 27 + 15 * Math.cos(angle);
+    const currentY = 17 + 5.5 * Math.sin(angle);
     if (distanceToSegment(x, y, previousX, previousY, currentX, currentY) <= strokeRadius) return true;
     previousX = currentX;
     previousY = currentY;
   }
-  if (distanceToSegment(x, y, 16, 19, 16, 43) <= strokeRadius ||
-      distanceToSegment(x, y, 48, 19, 48, 43) <= strokeRadius) return true;
-  for (const centreY of [31, 43]) {
-    previousX = 16;
+  if (distanceToSegment(x, y, 12, 17, 12, 39) <= strokeRadius ||
+      distanceToSegment(x, y, 42, 17, 42, 28) <= strokeRadius) return true;
+  for (const centreY of [28, 39]) {
+    previousX = 12;
     let previousY = centreY;
     for (let step = 1; step <= 32; step += 1) {
       const angle = Math.PI - (Math.PI * step) / 32;
-      const currentX = 32 + 16 * Math.cos(angle);
-      const currentY = centreY + 6 * Math.sin(angle);
+      const currentX = 27 + 15 * Math.cos(angle);
+      const currentY = centreY + 5.5 * Math.sin(angle);
       if (distanceToSegment(x, y, previousX, previousY, currentX, currentY) <= strokeRadius) return true;
       previousX = currentX;
       previousY = currentY;
@@ -75,9 +78,36 @@ function insideDatabaseStroke(x, y) {
   return false;
 }
 
+/** Returns whether a point lies within the lower-right notification bell accent. */
+function insideBellFill(x, y) {
+  if (y >= 45.5 && y <= 50 && x >= 36 + (50 - y) * (3 / 4.5) && x <= 56 - (50 - y) * (3 / 4.5)) return true;
+  const bodyHalfWidth = 7 * Math.sqrt(Math.max(0, 1 - ((y - 40.25) / 7) ** 2));
+  return y >= 33.25 && y <= 45.5 && Math.abs(x - 46) <= bodyHalfWidth;
+}
+
+/** Returns whether a point overlaps the white bell outline or clapper. */
+function insideBellStroke(x, y) {
+  const strokeRadius = 1.25;
+  const segments = [[36, 50, 39, 45.5], [39, 45.5, 39, 40.25], [53, 40.25, 53, 45.5], [53, 45.5, 56, 50], [36, 50, 56, 50]];
+  if (segments.some(([x1, y1, x2, y2]) => distanceToSegment(x, y, x1, y1, x2, y2) <= strokeRadius)) return true;
+  let previousX = 39;
+  let previousY = 40.25;
+  for (let step = 1; step <= 32; step += 1) {
+    const angle = Math.PI - (Math.PI * step) / 32;
+    const currentX = 46 + 7 * Math.cos(angle);
+    const currentY = 40.25 - 7 * Math.sin(angle);
+    if (distanceToSegment(x, y, previousX, previousY, currentX, currentY) <= strokeRadius) return true;
+    previousX = currentX;
+    previousY = currentY;
+  }
+  return Math.abs(Math.hypot(x - 46, y - 52) - 3) <= strokeRadius && y >= 52;
+}
+
 /** Samples one superscaled point using premultiplied colours for clean transparent edges. */
 function samplePoint(x, y) {
   if (!insideRoundedSquare(x, y)) return [0, 0, 0, 0];
+  if (insideBellStroke(x, y)) return foreground;
+  if (insideBellFill(x, y)) return accent;
   if (insideDatabaseStroke(x, y)) return foreground;
   return background;
 }

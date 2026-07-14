@@ -2,8 +2,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
   <rect x="2" y="2" width="60" height="60" rx="14" fill="#0B5CAD"/>
   <g fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-    <ellipse cx="32" cy="19" rx="16" ry="6"/>
-    <path d="M16 19v12c0 3.31 7.16 6 16 6s16-2.69 16-6V19"/>
-    <path d="M16 31v12c0 3.31 7.16 6 16 6s16-2.69 16-6V31"/>
+    <ellipse cx="27" cy="17" rx="15" ry="5.5"/>
+    <path d="M12 17v11c0 3.04 6.72 5.5 15 5.5S42 31.04 42 28V17"/>
+    <path d="M12 28v11c0 3.04 6.72 5.5 15 5.5 2.34 0 4.56-.2 6.54-.57"/>
   </g>
+  <path d="M39 45.5v-5.25a7 7 0 0 1 14 0v5.25l3 4.5H36Z" fill="#58C936" stroke="#FFFFFF" stroke-width="2.5" stroke-linejoin="round"/>
+  <path d="M43 52a3 3 0 0 0 6 0" fill="none" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round"/>
 </svg>

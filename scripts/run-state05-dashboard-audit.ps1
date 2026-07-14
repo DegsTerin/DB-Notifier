@@ -86,7 +86,7 @@ try {
             $reportPath = Join-Path ([System.IO.Path]::GetTempPath()) "DBNotifier-State05-Audit\$locale\$theme\dashboard-audit.json"
             $report = Get-Content -LiteralPath $reportPath -Raw | ConvertFrom-Json
             $failures = [System.Collections.Generic.List[string]]::new()
-            if (@($report.viewports).Count -ne 18) { $failures.Add('Expected 18 viewport samples.') }
+            if (@($report.viewports).Count -ne 24) { $failures.Add('Expected 24 viewport samples.') }
             if (@($report.viewports | Where-Object { $_.layout.horizontalOverflow }).Count -gt 0) { $failures.Add('Horizontal overflow was detected.') }
             $mobileSamples = @($report.viewports | Where-Object { $_.width -le 390 })
             if (@($mobileSamples | Where-Object { -not $_.layout.topbarSingleRow -or -not $_.layout.topbarControlsContained }).Count -gt 0) { $failures.Add('Compact topbar controls wrapped or escaped their header.') }
@@ -111,7 +111,7 @@ try {
         }
     }
     $summaries | Format-Table -AutoSize
-    Write-Output 'STATE-05 Dashboard audit passed for 72 viewport samples across pt-BR/en-GB and Light/Dark.'
+    Write-Output 'STATE-05 Dashboard audit passed for 96 viewport samples across pt-BR/en-GB and Light/Dark.'
 }
 finally {
     Remove-Item Env:DBNOTIFIER_AUDIT_LOCALE, Env:DBNOTIFIER_AUDIT_THEME, Env:DBNOTIFIER_AUDIT_CDP_ENDPOINT, Env:DBNOTIFIER_AUDIT_DASHBOARD_URL -ErrorAction SilentlyContinue

@@ -68,6 +68,19 @@ The first five-route matrix measured Accessibility `96` on Overview because its 
 
 Remediation changes only those axis labels to the existing semantic secondary-text token. The complete thirty-report matrix was rebuilt and repeated; Accessibility then passed at `100` for every route/profile/run.
 
+### `S05-AUTO-LH-004` — Design System 2.3.0 mobile brand semantics
+
+The Design System `2.3.0` regression expanded the runner from five to all eight current routes: Overview, Instances, Alerts, Performance, History, Configuration, Providers and Settings. Its first current mobile pass found `aria-label="DB Notifier"` on a generic `div`, where that ARIA attribute was prohibited without a semantic role. The same single failure reduced Accessibility to `96`–`97` across the mobile routes even though the visible rendering was unchanged.
+
+The brand lockup now has the semantic image role that corresponds to its accessible name. Dashboard tests, typecheck and build passed, then all sixteen current route/profile reports were rebuilt. Accessibility and Best Practices reached `100` in `16/16`; Performance was `99`–`100`. The raw current regression summary is temporary local evidence under `%TEMP%\DBNotifier-Lighthouse-2.3.0-fixed-003a32b5ac40479d948a7413f4a9a488`.
+
+This single-run regression supplements rather than rewrites the three-run baseline below. It proves that every current route was sampled after the `2.3.0` navigation and visual changes; it does not claim the statistical stability of three repetitions for the new routes.
+
+| Profile | Routes | Reports | Performance | Accessibility | Best Practices | SEO |
+|---|---:|---:|---:|---:|---:|---:|
+| Desktop | 8 | 8 | 100 | 100 | 100 | 66 |
+| Mobile | 8 | 8 | 99–100 | 100 | 100 | 66 |
+
 ## Final category results
 
 Every value below is the median of three final runs.

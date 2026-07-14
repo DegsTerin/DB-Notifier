@@ -90,9 +90,6 @@ internal sealed partial class TrayFlyoutWindow : Window
     /// <summary>Formats an exact UTC timestamp without implying that an external source was read.</summary>
     private string FormatUtc(DateTimeOffset value) => value.UtcDateTime.ToString("yyyy-MM-dd HH:mm:ss", localisation.Culture);
 
-    /// <summary>Opens the inventory demonstration view and hides the transient flyout.</summary>
-    private void OpenInventoryClick(object sender, RoutedEventArgs e) => Open(DesktopView.Inventory);
-
     /// <summary>Opens the composed operational overview and hides the transient flyout.</summary>
     private void OpenOverviewClick(object sender, RoutedEventArgs e) => Open(DesktopView.Overview);
 

@@ -16,7 +16,6 @@ internal sealed class TrayApplicationController : IDisposable
     private readonly DesktopLocalisationService localisation;
     private readonly Icon applicationIcon;
     private readonly Forms.NotifyIcon notifyIcon;
-    private readonly Forms.ContextMenuStrip contextMenu;
     private readonly TrayFlyoutWindow flyout;
     private bool exiting;
     private bool firstHide = true;
@@ -28,16 +27,13 @@ internal sealed class TrayApplicationController : IDisposable
         this.application = application;
         this.localisation = localisation;
         flyout = new TrayFlyoutWindow(localisation, ShowView, () => Apply(TrayWindowIntent.Exit));
-        contextMenu = new Forms.ContextMenuStrip();
-        contextMenu.Opening += ContextMenuOpening;
         applicationIcon = LoadApplicationIcon();
         notifyIcon = new Forms.NotifyIcon
         {
             Icon = applicationIcon,
-            ContextMenuStrip = contextMenu,
             Visible = true,
         };
-        notifyIcon.MouseClick += NotifyIconMouseClick;
+        notifyIcon.MouseUp += NotifyIconMouseUp;
         notifyIcon.DoubleClick += (_, _) => Apply(TrayWindowIntent.Show);
         window.StateChanged += WindowStateChanged;
         window.Closing += WindowClosing;
@@ -51,12 +47,10 @@ internal sealed class TrayApplicationController : IDisposable
         window.StateChanged -= WindowStateChanged;
         window.Closing -= WindowClosing;
         localisation.LanguageChanged -= LanguageChanged;
-        notifyIcon.MouseClick -= NotifyIconMouseClick;
-        contextMenu.Opening -= ContextMenuOpening;
+        notifyIcon.MouseUp -= NotifyIconMouseUp;
         notifyIcon.Visible = false;
         flyout.CloseForApplicationExit();
         notifyIcon.Dispose();
-        contextMenu.Dispose();
         applicationIcon.Dispose();
     }
 
@@ -100,20 +94,13 @@ internal sealed class TrayApplicationController : IDisposable
         notifyIcon.Text = localisation.Text("Tray.Tooltip");
     }
 
-    /// <summary>Toggles the accessible WPF fleet flyout after primary notification-area activation.</summary>
-    private void NotifyIconMouseClick(object? sender, Forms.MouseEventArgs e)
+    /// <summary>Toggles the accessible WPF fleet flyout after primary or secondary notification-area activation.</summary>
+    private void NotifyIconMouseUp(object? sender, Forms.MouseEventArgs e)
     {
-        if (e.Button == Forms.MouseButtons.Left)
+        if (e.Button is Forms.MouseButtons.Left or Forms.MouseButtons.Right)
         {
             ToggleFlyout();
         }
-    }
-
-    /// <summary>Replaces the empty native secondary-click menu with the richer token-driven flyout.</summary>
-    private void ContextMenuOpening(object? sender, CancelEventArgs e)
-    {
-        e.Cancel = true;
-        ToggleFlyout();
     }
 
     /// <summary>Shows or dismisses the single transient notification-area surface.</summary>

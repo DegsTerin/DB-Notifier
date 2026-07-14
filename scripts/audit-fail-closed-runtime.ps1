@@ -24,10 +24,20 @@ function Get-AvailableLoopbackPort {
     finally { $listener.Stop() }
 }
 
-# Stops only the process tree created by this audit and tolerates an already-exited process.
+# Stops only the process tree created by this audit, waits for redirected streams to close and releases the process handle.
 function Stop-ProcessTree([System.Diagnostics.Process]$Process) {
-    if ($null -eq $Process -or $Process.HasExited) { return }
-    & taskkill.exe /PID $Process.Id /T /F 2>$null | Out-Null
+    if ($null -eq $Process) { return }
+    try {
+        if (-not $Process.HasExited) {
+            & taskkill.exe /PID $Process.Id /T /F 2>$null | Out-Null
+            if (-not $Process.WaitForExit(5000)) {
+                throw "The audit process $($Process.Id) did not exit within the cleanup timeout."
+            }
+        }
+    }
+    finally {
+        $Process.Dispose()
+    }
 }
 
 # Repeats a bounded local HTTP request until the exact fail-closed status is observed.
