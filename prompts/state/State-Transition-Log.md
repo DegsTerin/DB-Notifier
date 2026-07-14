@@ -694,6 +694,18 @@
 - Riscos/ressalvas: Overview, gráficos, providers e alertas continuam demonstrativos; nenhuma integração, notificação externa ou ação administrativa foi ativada. A primeira matriz Lighthouse detectou contraste `4.03:1` nos eixos; o token foi corrigido e a matriz completa repetida. Visual do Dashboard/WPF/Tray ainda requer confirmação humana.
 - Aprovador: implementação solicitada por Bruno; `S05-HG-010` e o Human Gate completo permanecem `PENDENTES`.
 
+## 2026-07-14 — Auditoria completa de rastreabilidade das solicitações
+
+- Estado anterior: `STATE-05 FRONTEND_IMPLEMENTATION`, Human Gate pendente.
+- Estado resultante: sem transição; `STATE-05` e seu Human Gate permanecem pendentes.
+- Decisão: consolidar toda a sequência de solicitações visuais, funcionais, de acessibilidade e governança em uma matriz requisito → documentação → implementação → teste/evidência → pendência.
+- Escopo: 37 unidades de requisito, 60 arquivos Markdown preexistentes, 287 entradas rastreadas pelo Git, histórico até `9069942`, componentes React/WPF, testes e runners de auditoria.
+- Resultado: toda solicitação consolidada possui documento proprietário ou evidência histórica identificada; requisitos substituídos, limitações de plataforma, amostras humanas e trabalho de `STATE-06/07` permanecem diferenciados. O `README.md` corrente foi sincronizado de cinco para seis incrementos e de Design System `2.1.0` para `2.2.0`; o índice documental passou a listar as evidências atuais.
+- Gates: 173 links Markdown em 61 arquivos; 171 arquivos de código no gate documental; marca/tokens/localização sem drift; 32 testes Dashboard, typecheck e build Vite; 128 testes .NET unit/model/provider/presentation e 5 de arquitetura; format .NET limpo; 10 testes Pester.
+- Evidências: `docs/STATE-05-Request-Traceability-Audit.md`, `docs/README.md`, `README.md` e `prompts/state/Current-State.md`.
+- Riscos/ressalvas: a auditoria documental não repete todos os testes citados, não aprova visual/acessibilidade humana, não implementa integração externa e não autoriza transição, provider, notificação real ou controle administrativo.
+- Aprovador: não aplicável a uma decisão de Human Gate; auditoria solicitada por Bruno.
+
 ## Template de nova entrada
 
 - Data:
