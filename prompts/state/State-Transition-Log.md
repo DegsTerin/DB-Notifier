@@ -596,6 +596,17 @@
 - Riscos/limites: arquitetura aceita não constitui implementação, release, segurança ofensiva, homologação ou autorização externa.
 - Aprovador: Bruno — `Ratifico a decisão acima exclusivamente para STATE-02 ARCHITECTURE.`
 
+## 2026-07-13 — Ratificação retrospectiva de STATE-03 DATABASE_MODELING
+
+- Estado anterior: posição técnica `STATE-05 FRONTEND_IMPLEMENTATION`, progressão `EM ESPERA`; `STATE-00` a `STATE-02` ratificados e `STATE-03`/`STATE-04` pendentes.
+- Estado resultante: sem transição; `STATE-03` ratificado como `APROVADO COM RESSALVAS`, `STATE-04`/`STATE-05` permanecem pendentes e a progressão continua `EM ESPERA`.
+- Decisão: Bruno aprovou propriedade de stores, modelo/invariantes e trigger; aprovou migrations Up/Down e retenção/rollback com ressalvas.
+- Amostras não repetidas: PostgreSQL real, migration produtiva, backup/PITR, restore operacional completo, legal hold, exclusão produtiva e rollback real.
+- Ressalvas: aprovação limitada ao modelo, migrations revisadas e testes não produtivos; produção depende de futuros gates de release, backup, autorização e recuperação; PostgreSQL permaneceu offline/não homologado; retenção não autoriza exclusão.
+- Evidências: confirmação inequívoca e revisão detalhada registradas em `docs/Human-Gate-Retrospective-Ratification.md`; autoridade ativa sincronizada em `docs/data/README.md`.
+- Riscos/limites: nenhuma migration real, exclusão, backup, restore ou mutação externa foi executada por esta ratificação.
+- Aprovador: Bruno — `Ratifico a decisão acima exclusivamente para STATE-03 DATABASE_MODELING.`
+
 ## Template de nova entrada
 
 - Data:

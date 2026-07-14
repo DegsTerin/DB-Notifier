@@ -4,6 +4,10 @@
 
 This pack defines the internal DB-Notifier storage model for `STATE-03 DATABASE_MODELING`. It does not alter or migrate any monitored database.
 
+## Status and authority
+
+On 2026-07-13, validator Bruno retrospectively ratified `STATE-03` as `APROVADO COM RESSALVAS`. The approval covers the architectural model, reviewed migrations and presented non-production tests. It does not prove or authorise real PostgreSQL migration, production deletion, backup/PITR, complete restore, legal-hold integration or operational rollback.
+
 ## Storage ownership
 
 | Store | Owner | Purpose | Provider |

@@ -4,7 +4,7 @@ Permanent repository-agent behaviour is consolidated in [`../AGENTS.md`](../AGEN
 
 Current discovery and migration artifacts:
 
-- [`Human-Gate-Retrospective-Ratification.md`](Human-Gate-Retrospective-Ratification.md): current ratification pack; `STATE-00` is approved, `STATE-01`/`STATE-02` are approved with reservations and `STATE-03`/`STATE-04` remain pending without rewriting the historical reports.
+- [`Human-Gate-Retrospective-Ratification.md`](Human-Gate-Retrospective-Ratification.md): current ratification pack; `STATE-00` is approved, `STATE-01` through `STATE-03` are approved with reservations and `STATE-04` remains pending without rewriting the historical reports.
 - [`Legacy-Inventory.md`](Legacy-Inventory.md): verified PgNotifier behavior, limitations, and capability truth.
 - [`Legacy-Migration-Plan.md`](Legacy-Migration-Plan.md): incremental PgNotifier → DB-Notifier milestones, compatibility, verification, and rollback.
 - [`Legacy-Compatibility.md`](Legacy-Compatibility.md): canonical names, deprecated shims, configuration preservation, and removal gate.
@@ -17,8 +17,8 @@ Current discovery and migration artifacts:
 - [`STATE-01-Setup-Report.md`](STATE-01-Setup-Report.md): historical setup evidence, dependency remediation, compatibility migration and original Human Gate record, now ratified with reservations by the current addendum.
 - [`architecture/README.md`](architecture/README.md): retrospectively ratified `STATE-02` architecture pack, decision index and current reservations.
 - [`STATE-02-Architecture-Report.md`](STATE-02-Architecture-Report.md): architecture audit, material decisions, walkthrough, and original Human Gate record.
-- [`data/README.md`](data/README.md): `STATE-03` logical model, retention, migrations, and recovery guidance.
-- [`STATE-03-Database-Modeling-Report.md`](STATE-03-Database-Modeling-Report.md): historical automatic/Human Gate evidence, migration verification, and recorded limits.
+- [`data/README.md`](data/README.md): retrospectively ratified `STATE-03` logical model, retention, migrations, recovery guidance and current reservations.
+- [`STATE-03-Database-Modeling-Report.md`](STATE-03-Database-Modeling-Report.md): historical automatic/Human Gate evidence and migration verification, now ratified with reservations by the current addendum.
 - [`STATE-04-Backend-Implementation-Report.md`](STATE-04-Backend-Implementation-Report.md): completed Domain/Application, open Provider SDK, PostgreSQL backend-slice evidence, and accepted limitations.
 - [`STATE-04-Backend-Implementation-Audit.md`](STATE-04-Backend-Implementation-Audit.md): automatic closure-gate evidence, findings, limitations, and remediation required before the Human Gate.
 - [`STATE-04-Backend-Implementation-Reaudit.md`](STATE-04-Backend-Implementation-Reaudit.md): approved automatic remediation re-audit plus the original Human Gate, reservations and transition record; Human Gate authority is pending ratification.

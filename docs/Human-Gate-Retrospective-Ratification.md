@@ -2,7 +2,7 @@
 
 ## Status
 
-`PENDENTE — STATE-00 A STATE-02 RATIFICADOS; STATE-03 E STATE-04 PENDENTES`
+`PENDENTE — STATE-00 A STATE-03 RATIFICADOS; STATE-04 PENDENTE`
 
 This document owns the retrospective ratification of the contested Human Gate records for `STATE-00` through `STATE-04`. It is an addendum: the original reports and transition log remain historical evidence and are not rewritten.
 
@@ -180,12 +180,18 @@ The remediation baseline was re-run after the CI/governance changes. The current
 
 ### Ratification record
 
-- Validator/date: `PENDENTE`
-- Samples repeated now: `PENDENTE`
-- Reservations accepted: `PENDENTE`
-- Decision: `PENDENTE`
-- Justification/evidence: `PENDENTE`
-- Required confirmation: `Ratifico a decisão acima exclusivamente para STATE-03 DATABASE_MODELING.`
+- Validator/date: `Bruno — 2026-07-13`
+- Samples reviewed now:
+  - Storage ownership: `APROVADO` — Agent SQLite and central Server/API PostgreSQL remain isolated; monitored databases are not internal persistence; credentials remain opaque vault references.
+  - Model and invariants: `APROVADO` — application IDs, UTC timestamps, concurrency tokens, idempotency indexes, separate inbox/outbox/checkpoints, database-level audit protection and non-secret persisted configuration were reviewed.
+  - Migration `Up`/`Down`: `APROVADO COM RESSALVAS` — reviewed migrations create only DB-Notifier structures and offer coherent non-production reversal; no real PostgreSQL execution occurred and production rollback cannot rely on `Down` alone.
+  - Audit trigger: `APROVADO` — PostgreSQL initial migration models append-only protection against `UPDATE`/`DELETE`, with ordered trigger/function removal during `Down`.
+  - Retention and rollback: `APROVADO COM RESSALVAS` — retention remains a design default; schema application does not enable deletion; bounded workers remain disabled/dry-run by default; legal hold, real backup/PITR and production deletion remain unvalidated.
+- Samples not repeated: real PostgreSQL; production migration; real backup/PITR; complete operational restore; legal-hold integration; production deletion; complete real-environment rollback.
+- Reservations accepted: approval is limited to the architectural model, reviewed migrations and presented non-production tests; production data operation requires future release, backup, authorisation and recovery gates; PostgreSQL migrations were reviewed offline without disposable-instance homologation; retention/deletion is designed capability, not operational authorisation.
+- Decision: `APROVADO COM RESSALVAS`
+- Justification/evidence: the validator reviewed all named ownership, invariant, migration, audit and retention samples and explicitly retained every unexecuted production/recovery limitation.
+- Confirmation received: `Ratifico a decisão acima exclusivamente para STATE-03 DATABASE_MODELING.`
 
 ## STATE-04 BACKEND_IMPLEMENTATION
 
@@ -226,9 +232,9 @@ The remediation baseline was re-run after the CI/governance changes. The current
 - `STATE-00`: `APROVADO` — retrospectively ratified by Bruno on 2026-07-13 with the recorded scope limitations
 - `STATE-01`: `APROVADO COM RESSALVAS` — retrospectively ratified by Bruno on 2026-07-13; onboarding not repeated and remote CI not independently proved
 - `STATE-02`: `APROVADO COM RESSALVAS` — retrospectively ratified by Bruno on 2026-07-13; all ADRs accepted, with ADR-0005 and the recorded operational limits reserved
-- `STATE-03`: `PENDENTE`
+- `STATE-03`: `APROVADO COM RESSALVAS` — retrospectively ratified by Bruno on 2026-07-13; no real PostgreSQL, production migration/deletion, PITR/restore, legal hold or operational rollback
 - `STATE-04`: `PENDENTE`
 - Lifecycle progression: `EM ESPERA`
-- Next ratification decision to present: `STATE-03 DATABASE_MODELING`
+- Next ratification decision to present: `STATE-04 BACKEND_IMPLEMENTATION`
 
 Only after all five independent records are completed may the project resume the `STATE-05` closure workflow. That resumption still requires the current automatic re-audit and its own Human Gate.
