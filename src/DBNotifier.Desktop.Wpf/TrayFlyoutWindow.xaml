@@ -23,7 +23,8 @@
   <Window.Resources>
     <Style x:Key="TrayActionButton" TargetType="Button">
       <Setter Property="MinHeight" Value="{DynamicResource ControlHeightCompact}" />
-      <Setter Property="Padding" Value="{DynamicResource Space3}" />
+      <!-- Padding is a Thickness; a numeric spacing resource cannot be assigned through a runtime resource lookup. -->
+      <Setter Property="Padding" Value="12" />
       <Setter Property="HorizontalContentAlignment" Value="Left" />
       <Setter Property="Foreground" Value="{DynamicResource ColourTextPrimaryBrush}" />
       <Setter Property="Background" Value="Transparent" />
@@ -38,7 +39,7 @@
                     Background="{TemplateBinding Background}"
                     BorderBrush="{TemplateBinding BorderBrush}"
                     BorderThickness="{TemplateBinding BorderThickness}"
-                    CornerRadius="{DynamicResource RadiusControl}">
+                    CornerRadius="6">
               <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="Center" />
             </Border>
             <ControlTemplate.Triggers>
@@ -63,7 +64,7 @@
   <Border Background="{DynamicResource ComponentCardBackgroundBrush}"
           BorderBrush="{DynamicResource ColourBorderStrongBrush}"
           BorderThickness="1"
-          CornerRadius="{DynamicResource RadiusXlarge}">
+          CornerRadius="12">
     <Grid>
       <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
 
@@ -72,7 +73,7 @@
         <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
         <Image Width="30" Height="30" Source="Assets/DBNotifier.ico" Stretch="Uniform" AutomationProperties.Name="DB Notifier" />
         <StackPanel Grid.Column="1" Margin="10,0,0,0" VerticalAlignment="Center"><StackPanel Orientation="Horizontal"><TextBlock Text="DB" Foreground="{DynamicResource ComponentBrandWordmarkAccentBrush}" FontSize="16" FontWeight="Bold" /><TextBlock Text="Notifier" FontSize="16" FontWeight="Bold" /></StackPanel><TextBlock Text="{DynamicResource Tray.FleetTitle}" Foreground="{DynamicResource ColourTextSecondaryBrush}" FontSize="11" Margin="0,2,0,0" /></StackPanel>
-        <Border Grid.Column="2" Padding="8,4" Background="{DynamicResource ColourStatusInformationBackgroundBrush}" CornerRadius="{DynamicResource RadiusPill}" VerticalAlignment="Center"><TextBlock Text="{DynamicResource Demo.Badge}" Foreground="{DynamicResource ColourStatusInformationForegroundBrush}" FontSize="10" FontWeight="SemiBold" /></Border>
+        <Border Grid.Column="2" Padding="8,4" Background="{DynamicResource ColourStatusInformationBackgroundBrush}" CornerRadius="999" VerticalAlignment="Center"><TextBlock Text="{DynamicResource Demo.Badge}" Foreground="{DynamicResource ColourStatusInformationForegroundBrush}" FontSize="10" FontWeight="SemiBold" /></Border>
       </Grid>
 
       <!-- The two-column body separates fleet evidence from safe application navigation. -->
@@ -94,8 +95,8 @@
             <Button Style="{StaticResource TrayActionButton}" Click="OpenOverviewClick" AutomationProperties.Name="{DynamicResource Tray.OpenOverview}"><StackPanel Orientation="Horizontal"><Path Width="17" Height="17" Data="M2,8 L8,2 L14,8 M4,7 V14 H12 V7 M7,14 V10 H9 V14" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="1.4" Stretch="Uniform" Margin="0,0,10,0" /><TextBlock Text="{DynamicResource Tray.OpenOverview}" FontWeight="SemiBold" /></StackPanel></Button>
             <Button Style="{StaticResource TrayActionButton}" Click="OpenConfigurationClick" AutomationProperties.Name="{DynamicResource Tray.OpenConfiguration}"><StackPanel Orientation="Horizontal"><Path Width="17" Height="17" Data="M2,4 H10 M13,4 H16 M2,12 H5 M8,12 H16 M11.5,2 V6 M6.5,10 V14" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="1.4" Stretch="Uniform" Margin="0,0,10,0" /><TextBlock Text="{DynamicResource Tray.OpenConfiguration}" FontWeight="SemiBold" /></StackPanel></Button>
             <Button Style="{StaticResource TrayActionButton}" Click="OpenHistoryAlertsClick" AutomationProperties.Name="{DynamicResource Tray.OpenHistoryAlerts}"><StackPanel Orientation="Horizontal"><Path Width="17" Height="17" Data="M3,2 H13 L16,5 V15 H3 Z M13,2 V5 H16 M6,8 H13 M6,11 H13" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="1.4" Fill="Transparent" Stretch="Uniform" Margin="0,0,10,0" /><TextBlock Text="{DynamicResource Tray.OpenHistoryAlerts}" FontWeight="SemiBold" /></StackPanel></Button>
-            <Border Background="{DynamicResource ColourSurfaceSubtleBrush}" CornerRadius="{DynamicResource RadiusControl}" Padding="10" Margin="2,4"><StackPanel><TextBlock Text="{DynamicResource Tray.RestartUnavailable}" Foreground="{DynamicResource ColourTextSecondaryBrush}" FontWeight="SemiBold" /><TextBlock Text="{DynamicResource Tray.RestartUnavailableHelp}" Foreground="{DynamicResource ColourTextMutedBrush}" FontSize="10" TextWrapping="Wrap" Margin="0,3,0,0" /></StackPanel></Border>
-            <Border Background="{DynamicResource ColourSurfaceSubtleBrush}" CornerRadius="{DynamicResource RadiusControl}" Padding="10" Margin="2,4"><StackPanel><TextBlock Text="{DynamicResource Tray.SilentUnavailable}" Foreground="{DynamicResource ColourTextSecondaryBrush}" FontWeight="SemiBold" /><TextBlock Text="{DynamicResource Tray.SilentUnavailableHelp}" Foreground="{DynamicResource ColourTextMutedBrush}" FontSize="10" TextWrapping="Wrap" Margin="0,3,0,0" /></StackPanel></Border>
+            <Border Background="{DynamicResource ColourSurfaceSubtleBrush}" CornerRadius="6" Padding="10" Margin="2,4"><StackPanel><TextBlock Text="{DynamicResource Tray.RestartUnavailable}" Foreground="{DynamicResource ColourTextSecondaryBrush}" FontWeight="SemiBold" /><TextBlock Text="{DynamicResource Tray.RestartUnavailableHelp}" Foreground="{DynamicResource ColourTextMutedBrush}" FontSize="10" TextWrapping="Wrap" Margin="0,3,0,0" /></StackPanel></Border>
+            <Border Background="{DynamicResource ColourSurfaceSubtleBrush}" CornerRadius="6" Padding="10" Margin="2,4"><StackPanel><TextBlock Text="{DynamicResource Tray.SilentUnavailable}" Foreground="{DynamicResource ColourTextSecondaryBrush}" FontWeight="SemiBold" /><TextBlock Text="{DynamicResource Tray.SilentUnavailableHelp}" Foreground="{DynamicResource ColourTextMutedBrush}" FontSize="10" TextWrapping="Wrap" Margin="0,3,0,0" /></StackPanel></Border>
             <Border Height="1" Background="{DynamicResource ColourBorderDefaultBrush}" Margin="2,6" />
             <Button Style="{StaticResource TrayActionButton}" Click="ExitClick" AutomationProperties.Name="{DynamicResource Tray.Exit}"><StackPanel Orientation="Horizontal"><Path Width="17" Height="17" Data="M7,2 H2 V14 H7 M10,5 L15,8 L10,11 M5,8 H15" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="1.4" Stretch="Uniform" Margin="0,0,10,0" /><TextBlock Text="{DynamicResource Tray.Exit}" FontWeight="SemiBold" /></StackPanel></Button>
           </StackPanel>

@@ -94,7 +94,7 @@ internal sealed partial class TrayFlyoutWindow : Window
     private void OpenOverviewClick(object sender, RoutedEventArgs e) => Open(DesktopView.Overview);
 
     /// <summary>Opens the local history and alerts demonstration view and hides the transient flyout.</summary>
-    private void OpenHistoryAlertsClick(object sender, RoutedEventArgs e) => Open(DesktopView.HistoryAlerts);
+    private void OpenHistoryAlertsClick(object sender, RoutedEventArgs e) => Open(DesktopView.Alerts);
 
     /// <summary>Opens the non-secret configuration demonstration view and hides the transient flyout.</summary>
     private void OpenConfigurationClick(object sender, RoutedEventArgs e) => Open(DesktopView.Configuration);

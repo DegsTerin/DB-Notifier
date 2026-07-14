@@ -726,6 +726,17 @@
 - Riscos/ressalvas: Performance/Providers/KPIs/alertas continuam fixtures; TopBar não entrega notificações externas; WPF Settings usa a configuração segura existente; Restart/Silent Mode não executam ações. A assinatura foi endurecida de `MouseUp` para o evento padrão `MouseClick`; UI Automation/ponteiro injetado não provaram o callback do shell, portanto um clique humano ainda é necessário antes de qualquer aceite do Tray.
 - Aprovador: implementação solicitada por Bruno; Human Gate `STATE-05` permanece `PENDENTE`.
 
+## 2026-07-14 — Correção do flyout e paridade estrutural WPF/Web
+
+- Estado anterior: `STATE-05 FRONTEND_IMPLEMENTATION`, Human Gate pendente e `S05-HG-010` reprovado na amostra WPF/Tray.
+- Estado resultante: sem transição; falha técnica corrigida e revisão visual humana ainda pendente.
+- Decisão: tratar a exceção informada pelo validador e a diferença WPF/Web como findings bloqueantes, sem inferir aprovação a partir do clique que encontrou o defeito.
+- Escopo: valores WPF tipados para `Padding`/`CornerRadius`, regressão arquitetural para templates diferidos, rail Desktop com Overview, Instances, Alerts, Performance, History, Configuration, Providers e Settings, títulos localizados, destinos somente leitura separados e reflow compacto.
+- Gates: build WPF Release com 0 avisos/erros; 7 testes de arquitetura; matriz UI Automation de oito combinações `pt-BR/en-GB × Light/Dark × 1180×760/820×620`, todas com 16 controles focalizáveis visíveis, nenhum sem nome e foco contido; ativação dirigida do `NotifyItemIcon` abriu o flyout `560×473` com processo responsivo e sem diálogo `.NET`.
+- Evidências: `S05-HG-010`, Design System `2.3.1`, matriz de rastreabilidade `REQ-045/046`, teste `WpfPresentationContractTests` e capturas sanitizadas temporárias sob `%TEMP%\DBNotifier-State05-Audit`.
+- Riscos/ressalvas: paridade é semântica e estrutural, não pixel-a-pixel; dados permanecem demonstrativos; notificações por mudança são `STATE-06`; ações administrativas reais continuam indisponíveis; o validador ainda precisa aceitar ou rejeitar visualmente o WPF/flyout corrigido.
+- Aprovador: correção solicitada por Bruno após encontrar a falha; nenhuma decisão do Human Gate foi inferida.
+
 ## Template de nova entrada
 
 - Data:

@@ -13,8 +13,12 @@ internal enum DesktopView
 {
     Overview,
     Inventory,
-    HistoryAlerts,
+    Alerts,
+    Performance,
+    History,
     Configuration,
+    Providers,
+    Settings,
 }
 
 /// <summary>
@@ -34,6 +38,7 @@ public partial class MainWindow : Window
     private InventorySnapshot snapshot = null!;
     private TimelineAlertSnapshot timelineSnapshot = null!;
     private ConfigurationCapabilitySnapshot configurationSnapshot = null!;
+    private DesktopView currentView = DesktopView.Overview;
 
     /// <summary>Initialises the local demonstration surface with the already loaded language and theme preferences.</summary>
     /// <param name="localisation">Desktop localisation owner shared with the application and tray controller.</param>
@@ -44,6 +49,8 @@ public partial class MainWindow : Window
         this.theme = theme;
         InitializeComponent();
         UpdatePreferenceButtons();
+        UpdateNavigationState();
+        UpdateResponsiveLayout();
         OverviewInventoryList.ItemsSource = rows;
         OverviewAlertList.ItemsSource = alertRows;
         InventoryGrid.ItemsSource = rows;
@@ -65,18 +72,21 @@ public partial class MainWindow : Window
     /// <param name="view">Known desktop destination; no administrative operation is performed.</param>
     internal void ShowView(DesktopView view)
     {
-        int selectedIndex = view switch
-        {
-            DesktopView.Overview => 0,
-            DesktopView.Inventory => 1,
-            DesktopView.HistoryAlerts => 2,
-            DesktopView.Configuration => 3,
-            _ => throw new ArgumentOutOfRangeException(nameof(view)),
-        };
-
+        currentView = Enum.IsDefined(view) ? view : throw new ArgumentOutOfRangeException(nameof(view));
         ScenarioSelector.SelectedIndex = 0;
-        ViewSelector.SelectedIndex = selectedIndex;
+        UpdateNavigationState();
         PresentReadyState();
+    }
+
+    /// <summary>Selects one of the eight read-only desktop destinations exposed by the shared product navigation.</summary>
+    /// <param name="sender">Navigation button whose tag contains a validated <see cref="DesktopView"/> value.</param>
+    /// <param name="e">Button activation event data.</param>
+    private void NavigationButtonClick(object sender, RoutedEventArgs e)
+    {
+        if (sender is System.Windows.Controls.Button button && Enum.TryParse(button.Tag?.ToString(), false, out DesktopView view))
+        {
+            ShowView(view);
+        }
     }
 
     /// <summary>Cycles to the other supported interface language without accepting arbitrary locale input.</summary>
@@ -113,12 +123,12 @@ public partial class MainWindow : Window
     /// <summary>Opens the local alerts surface without delivering or acknowledging an external notification.</summary>
     /// <param name="sender">The notification button in the desktop TopBar.</param>
     /// <param name="e">Button activation event data.</param>
-    private void NotificationButtonClick(object sender, RoutedEventArgs e) => ShowView(DesktopView.HistoryAlerts);
+    private void NotificationButtonClick(object sender, RoutedEventArgs e) => ShowView(DesktopView.Alerts);
 
     /// <summary>Opens the non-secret configuration surface used for current desktop settings.</summary>
     /// <param name="sender">The settings button in the desktop TopBar.</param>
     /// <param name="e">Button activation event data.</param>
-    private void SettingsButtonClick(object sender, RoutedEventArgs e) => ShowView(DesktopView.Configuration);
+    private void SettingsButtonClick(object sender, RoutedEventArgs e) => ShowView(DesktopView.Settings);
 
     /// <summary>Refreshes both icon controls, tooltips and accessible names from current validated preferences.</summary>
     private void UpdatePreferenceButtons()
@@ -155,12 +165,21 @@ public partial class MainWindow : Window
     /// <summary>Refreshes the theme icon and accessible state after explicit theme or High Contrast changes.</summary>
     /// <param name="sender">Theme service that applied the new effective state.</param>
     /// <param name="e">Theme-change event data.</param>
-    private void ThemeChanged(object? sender, EventArgs e) => UpdatePreferenceButtons();
+    private void ThemeChanged(object? sender, EventArgs e)
+    {
+        UpdatePreferenceButtons();
+        UpdateNavigationState();
+        if (currentView == DesktopView.Settings)
+        {
+            PresentReadyState();
+        }
+    }
 
     /// <summary>Rebuilds fixture-derived labels after the generated resource dictionary changes.</summary>
     private void LocalisationLanguageChanged(object? sender, EventArgs e)
     {
         UpdatePreferenceButtons();
+        UpdateNavigationState();
         RebuildLocalisedData();
         if (ScenarioSelector.SelectedItem is ComboBoxItem selected &&
             Enum.TryParse(selected.Tag?.ToString(), false, out InventorySurfaceState state) &&
@@ -169,15 +188,6 @@ public partial class MainWindow : Window
             PresentNonReadyState(state);
         }
         else
-        {
-            PresentReadyState();
-        }
-    }
-
-    /// <summary>Refreshes the selected ready view when navigation changes.</summary>
-    private void ViewSelectionChanged(object sender, SelectionChangedEventArgs e)
-    {
-        if (IsInitialized && ScenarioSelector.SelectedIndex == 0)
         {
             PresentReadyState();
         }
@@ -241,25 +251,34 @@ public partial class MainWindow : Window
         System.Windows.MessageBox.Show(this, Text(messageKey), Text(titleKey), MessageBoxButton.OK, MessageBoxImage.Information);
     }
 
-    /// <summary>Presents the overview, inventory, history and alerts, or configuration according to the selected view.</summary>
+    /// <summary>Presents the selected shared navigation destination from deterministic local demonstration data.</summary>
     private void PresentReadyState()
     {
         DateTimeOffset now = TimeProvider.System.GetUtcNow();
-        string? view = (ViewSelector.SelectedItem as ComboBoxItem)?.Tag?.ToString();
-        if (view == "Overview")
+        UpdateViewHeading();
+        switch (currentView)
         {
-            PresentOverview(now);
-            return;
-        }
-        if (view == "HistoryAlerts")
-        {
-            PresentHistoryAndAlerts(now);
-            return;
-        }
-        if (view == "Configuration")
-        {
-            PresentConfiguration(now);
-            return;
+            case DesktopView.Overview:
+                PresentOverview(now);
+                return;
+            case DesktopView.Alerts:
+            case DesktopView.History:
+                PresentHistoryAndAlerts(now, currentView);
+                return;
+            case DesktopView.Performance:
+                UpdatedAtText.Text = Text("Wpf.UpdatedFromAdapters", FormatUtc(now));
+                ShowOnly(PerformanceSurface);
+                return;
+            case DesktopView.Configuration:
+                PresentConfiguration(now);
+                return;
+            case DesktopView.Providers:
+                UpdatedAtText.Text = Text("Wpf.UpdatedFromAdapters", FormatUtc(now));
+                ShowOnly(ProvidersSurface);
+                return;
+            case DesktopView.Settings:
+                PresentSettings(now);
+                return;
         }
 
         InventoryStatusSummary summary = snapshot.Summarize(now, StaleAfter);
@@ -289,12 +308,15 @@ public partial class MainWindow : Window
     }
 
     /// <summary>Presents local event and alert fixtures using localised severity and state labels.</summary>
-    private void PresentHistoryAndAlerts(DateTimeOffset now)
+    private void PresentHistoryAndAlerts(DateTimeOffset now, DesktopView view)
     {
         Replace(timelineRows, timelineSnapshot.Events.Select(item => TimelineRow.From(item, localisation)));
         Replace(alertRows, timelineSnapshot.Alerts.Select(item => AlertRow.From(item, localisation)));
         AlertStatusSummary summary = timelineSnapshot.Summarize();
         AlertSummaryText.Text = Text("Wpf.AlertSummary", summary.Active, summary.UnresolvedCritical);
+        HistoryPanel.Visibility = view == DesktopView.History ? Visibility.Visible : Visibility.Collapsed;
+        AlertsPanel.Visibility = view == DesktopView.Alerts ? Visibility.Visible : Visibility.Collapsed;
+        AlertsPanel.Margin = view == DesktopView.Alerts ? new Thickness(0) : new Thickness(0, 18, 0, 0);
         UpdatedAtText.Text = Text("Wpf.UpdatedFromAdapters", FormatUtc(now));
         ShowOnly(HistoryAlertSurface);
     }
@@ -308,6 +330,16 @@ public partial class MainWindow : Window
         CapabilityGrid.SelectedIndex = capabilityRows.Count > 0 ? 0 : -1;
         UpdatedAtText.Text = Text("Wpf.LocalPreview", FormatUtc(now));
         ShowOnly(ConfigurationSurface);
+    }
+
+    /// <summary>Presents local interface preferences and the factual future-integration status of Windows notifications.</summary>
+    /// <param name="now">Current UTC clock used only for the local preview timestamp.</param>
+    private void PresentSettings(DateTimeOffset now)
+    {
+        SettingsLanguageText.Text = LanguageLabel(localisation.CurrentLanguage);
+        SettingsThemeText.Text = ThemeLabel(theme.CurrentPreference);
+        UpdatedAtText.Text = Text("Wpf.LocalPreview", FormatUtc(now));
+        ShowOnly(SettingsSurface);
     }
 
     /// <summary>Presents a complete, non-colour-only state with bounded retry visibility.</summary>
@@ -365,11 +397,76 @@ public partial class MainWindow : Window
     /// <summary>Shows one content surface and collapses the remaining mutually exclusive surfaces.</summary>
     private void ShowOnly(FrameworkElement selected)
     {
-        FrameworkElement[] surfaces = [OverviewSurface, ReadySurface, HistoryAlertSurface, ConfigurationSurface, StateSurface];
+        FrameworkElement[] surfaces = [OverviewSurface, ReadySurface, HistoryAlertSurface, PerformanceSurface, ConfigurationSurface, ProvidersSurface, SettingsSurface, StateSurface];
         foreach (FrameworkElement surface in surfaces)
         {
             surface.Visibility = ReferenceEquals(surface, selected) ? Visibility.Visible : Visibility.Collapsed;
         }
+    }
+
+    /// <summary>Updates the shared page heading from the current desktop destination without duplicating localised strings.</summary>
+    private void UpdateViewHeading()
+    {
+        string key = currentView switch
+        {
+            DesktopView.Overview => "Overview",
+            DesktopView.Inventory => "Inventory",
+            DesktopView.Alerts => "Alerts",
+            DesktopView.Performance => "Performance",
+            DesktopView.History => "History",
+            DesktopView.Configuration => "Configuration",
+            DesktopView.Providers => "Providers",
+            DesktopView.Settings => "Settings",
+            _ => throw new ArgumentOutOfRangeException(nameof(currentView)),
+        };
+        ViewEyebrowText.Text = Text($"View.{key}.Eyebrow");
+        ViewTitleText.Text = Text($"View.{key}.Title");
+        ViewDescriptionText.Text = Text($"View.{key}.Description");
+        Title = $"DB Notifier — {ViewTitleText.Text}";
+    }
+
+    /// <summary>Synchronises the eight navigation buttons with the current route and active theme resources.</summary>
+    private void UpdateNavigationState()
+    {
+        System.Windows.Controls.Button[] buttons = [OverviewNavigationButton, InventoryNavigationButton, AlertsNavigationButton, PerformanceNavigationButton, HistoryNavigationButton, ConfigurationNavigationButton, ProvidersNavigationButton, SettingsNavigationButton];
+        foreach (System.Windows.Controls.Button button in buttons)
+        {
+            bool active = Enum.TryParse(button.Tag?.ToString(), false, out DesktopView view) && view == currentView;
+            button.SetResourceReference(BackgroundProperty, active ? "ColourSelectionBackgroundBrush" : "ComponentShellChromeBackgroundBrush");
+            button.SetResourceReference(ForegroundProperty, active ? "ColourSelectionForegroundBrush" : "ComponentShellChromeMutedBrush");
+        }
+    }
+
+    /// <summary>Reflows dense overview and settings panels when the native window enters or leaves its compact width.</summary>
+    /// <param name="sender">The resized desktop window.</param>
+    /// <param name="e">The new and previous native layout sizes.</param>
+    private void WindowSizeChanged(object sender, SizeChangedEventArgs e) => UpdateResponsiveLayout();
+
+    /// <summary>Applies the WPF compact layout without changing route, data or accessibility semantics.</summary>
+    private void UpdateResponsiveLayout()
+    {
+        double availableWidth = ActualWidth > 0 ? ActualWidth : Width;
+        bool compact = availableWidth < 1000;
+        OverviewSummaryGrid.Columns = compact ? 2 : 4;
+        SidebarStateCard.Visibility = ActualHeight > 0 && ActualHeight < 700 ? Visibility.Collapsed : Visibility.Visible;
+        ArrangeAdaptivePair(OverviewFleetPanel, OverviewAlertsPanel, compact);
+        ArrangeAdaptivePair(OverviewPerformancePanel, OverviewProvidersPanel, compact);
+        ArrangeAdaptivePair(SettingsPreferencePanel, SettingsNotificationsPanel, compact);
+    }
+
+    /// <summary>Places a related pair side by side at comfortable widths and in one readable column when compact.</summary>
+    /// <param name="primary">The larger or first panel in reading order.</param>
+    /// <param name="secondary">The supporting panel that follows the primary panel.</param>
+    /// <param name="compact">Whether both panels must span the available content width.</param>
+    private static void ArrangeAdaptivePair(FrameworkElement primary, FrameworkElement secondary, bool compact)
+    {
+        Grid.SetRow(primary, 0);
+        Grid.SetColumn(primary, 0);
+        Grid.SetColumnSpan(primary, compact ? 3 : 1);
+        Grid.SetRow(secondary, compact ? 1 : 0);
+        Grid.SetColumn(secondary, compact ? 0 : 2);
+        Grid.SetColumnSpan(secondary, compact ? 3 : 1);
+        secondary.Margin = compact ? new Thickness(0, 16, 0, 0) : new Thickness(0);
     }
 
     /// <summary>Replaces observable rows as one local presentation update.</summary>

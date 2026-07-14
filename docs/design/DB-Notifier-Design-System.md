@@ -5,7 +5,7 @@
 | Field | Value |
 |---|---|
 | Status | Official frontend specification |
-| Design System version | `2.3.0` |
+| Design System version | `2.3.1` |
 | Product phase | `STATE-05 FRONTEND_IMPLEMENTATION` |
 | Platforms | React Web Dashboard and .NET 10 WPF Desktop/Tray |
 | Themes | Light and Dark; Windows High Contrast is an accessibility override |
@@ -142,6 +142,7 @@ Theme preference is presentation-only data. It MUST NOT contain identity, provid
 - Load theme-specific `ResourceDictionary` instances atomically and reference theme resources using `DynamicResource`.
 - Persist only versioned UI preferences in `%LocalAppData%\DB-Notifier\ui-preferences.v1.json` using atomic replacement and current-user access.
 - Invalid, retired System or unreadable preference data MUST fail safely to Light; it MUST NOT prevent application startup.
+- Generated numeric spacing and radius primitives MUST NOT be assigned through `DynamicResource` to `Thickness` or `CornerRadius` properties. WPF adapters MUST use a correctly typed resource or a parser-created typed literal; build success alone does not prove deferred control templates can be materialised.
 - Theme switching MUST preserve window, selected view, scenario, focus and Tray ownership.
 - Windows High Contrast MUST take precedence over DB-Notifier theme colours and preserve native system resources where required.
 
@@ -412,7 +413,9 @@ Breakpoints respond to content, not device names. Every component MUST tolerate 
 
 ### 9.3 WPF adaptation
 
-The WPF minimum window remains usable at `820×620` DIP. Below the comfortable table width, content SHOULD use controlled scrolling or a compact item template; columns MUST NOT silently truncate critical support/status text. Windows scaling at 100%, 125%, 150% and 200% MUST be sampled before release.
+The WPF minimum window remains usable at `820×620` DIP. Below `1000` DIP window width, the Overview KPI band reflows from four to two columns and paired operational/insight/Settings panels stack in reading order; the redundant sidebar state card may collapse below `700` DIP height so all eight destinations remain visible. Below the comfortable table width, content SHOULD use controlled scrolling or a compact item template; columns MUST NOT silently truncate critical support/status text. Windows scaling at 100%, 125%, 150% and 200% MUST be sampled before release.
+
+The Desktop shell preserves the same primary information architecture as the Dashboard in this order: Overview, Instances, Alerts, Performance, History, Configuration, Providers and Settings. Native WPF presentation MAY differ in control details, but every destination has its own selected navigation state, localised heading and read-only content outcome; the shell MUST NOT collapse those destinations into a four-item view selector.
 
 ### 9.4 TV and wallboard scope
 

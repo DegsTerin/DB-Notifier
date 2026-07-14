@@ -12,6 +12,7 @@
         Foreground="{DynamicResource ColourTextPrimaryBrush}"
         FontFamily="{DynamicResource TypographyFontfamilySans}"
         WindowStartupLocation="CenterScreen"
+        SizeChanged="WindowSizeChanged"
         KeyboardNavigation.TabNavigation="Cycle">
   <Window.Resources>
     <Style TargetType="Button">
@@ -222,6 +223,33 @@
         </Setter.Value>
       </Setter>
     </Style>
+    <Style x:Key="SidebarNavigationButton" TargetType="Button">
+      <Setter Property="MinHeight" Value="44" />
+      <Setter Property="Margin" Value="10,2" />
+      <Setter Property="Padding" Value="12,9" />
+      <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="HorizontalContentAlignment" Value="Left" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="Button">
+            <Border x:Name="NavigationBorder" Padding="{TemplateBinding Padding}" Background="{TemplateBinding Background}" CornerRadius="6">
+              <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="Center" />
+            </Border>
+            <ControlTemplate.Triggers>
+              <Trigger Property="IsMouseOver" Value="True">
+                <Setter TargetName="NavigationBorder" Property="Background" Value="{DynamicResource ComponentShellChromeSurfaceBrush}" />
+                <Setter Property="Foreground" Value="{DynamicResource ComponentShellChromeForegroundBrush}" />
+              </Trigger>
+              <Trigger Property="IsKeyboardFocused" Value="True">
+                <Setter TargetName="NavigationBorder" Property="BorderBrush" Value="{DynamicResource ComponentFocusRingBrush}" />
+                <Setter TargetName="NavigationBorder" Property="BorderThickness" Value="2" />
+              </Trigger>
+            </ControlTemplate.Triggers>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
   </Window.Resources>
 
   <Grid>
@@ -281,7 +309,32 @@
       </Grid>
     </Border>
 
-    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" AutomationProperties.Name="{DynamicResource App.Title}">
+    <!-- Desktop navigation mirrors the Web information architecture while retaining native WPF behaviour. -->
+    <Grid Grid.Row="1">
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="190" />
+        <ColumnDefinition Width="*" />
+      </Grid.ColumnDefinitions>
+      <Border Grid.Column="0" Background="{DynamicResource ComponentShellChromeBackgroundBrush}" BorderBrush="{DynamicResource ComponentShellChromeBorderBrush}" BorderThickness="0,0,1,0">
+        <DockPanel LastChildFill="True">
+          <Border x:Name="SidebarStateCard" DockPanel.Dock="Bottom" Margin="14" Padding="12" BorderBrush="{DynamicResource ComponentShellChromeBorderBrush}" BorderThickness="1" CornerRadius="7">
+            <StackPanel><TextBlock Text="STATE-05" Foreground="{DynamicResource ColourActionPrimaryBackgroundBrush}" FontWeight="SemiBold" /><TextBlock Text="{DynamicResource Common.ReadOnly}" Foreground="{DynamicResource ComponentShellChromeMutedBrush}" FontSize="11" Margin="0,4,0,0" /></StackPanel>
+          </Border>
+          <StackPanel Margin="0,18,0,0" AutomationProperties.Name="{DynamicResource Navigation.Label}">
+            <TextBlock Text="{DynamicResource Navigation.Label}" Foreground="{DynamicResource ComponentShellChromeMutedBrush}" FontSize="10" Margin="22,0,0,8" />
+            <Button x:Name="OverviewNavigationButton" Style="{StaticResource SidebarNavigationButton}" Tag="Overview" Click="NavigationButtonClick" AutomationProperties.Name="{DynamicResource Navigation.Overview}"><StackPanel Orientation="Horizontal"><TextBlock Text="⌂" FontSize="18" Width="26" /><TextBlock Text="{DynamicResource Navigation.Overview}" VerticalAlignment="Center" /></StackPanel></Button>
+            <Button x:Name="InventoryNavigationButton" Style="{StaticResource SidebarNavigationButton}" Tag="Inventory" Click="NavigationButtonClick" AutomationProperties.Name="{DynamicResource Navigation.Inventory}"><StackPanel Orientation="Horizontal"><TextBlock Text="▤" FontSize="16" Width="26" /><TextBlock Text="{DynamicResource Navigation.Inventory}" VerticalAlignment="Center" /></StackPanel></Button>
+            <Button x:Name="AlertsNavigationButton" Style="{StaticResource SidebarNavigationButton}" Tag="Alerts" Click="NavigationButtonClick" AutomationProperties.Name="{DynamicResource Navigation.Alerts}"><StackPanel Orientation="Horizontal"><TextBlock Text="△" FontSize="18" Width="26" /><TextBlock Text="{DynamicResource Navigation.Alerts}" VerticalAlignment="Center" /></StackPanel></Button>
+            <Button x:Name="PerformanceNavigationButton" Style="{StaticResource SidebarNavigationButton}" Tag="Performance" Click="NavigationButtonClick" AutomationProperties.Name="{DynamicResource Navigation.Performance}"><StackPanel Orientation="Horizontal"><TextBlock Text="⌁" FontSize="18" Width="26" /><TextBlock Text="{DynamicResource Navigation.Performance}" VerticalAlignment="Center" /></StackPanel></Button>
+            <Button x:Name="HistoryNavigationButton" Style="{StaticResource SidebarNavigationButton}" Tag="History" Click="NavigationButtonClick" AutomationProperties.Name="{DynamicResource Navigation.History}"><StackPanel Orientation="Horizontal"><TextBlock Text="◷" FontSize="17" Width="26" /><TextBlock Text="{DynamicResource Navigation.History}" VerticalAlignment="Center" /></StackPanel></Button>
+            <Button x:Name="ConfigurationNavigationButton" Style="{StaticResource SidebarNavigationButton}" Tag="Configuration" Click="NavigationButtonClick" AutomationProperties.Name="{DynamicResource Navigation.Configuration}"><StackPanel Orientation="Horizontal"><TextBlock Text="⚙" FontSize="15" Width="26" /><TextBlock Text="{DynamicResource Navigation.Configuration}" VerticalAlignment="Center" /></StackPanel></Button>
+            <Button x:Name="ProvidersNavigationButton" Style="{StaticResource SidebarNavigationButton}" Tag="Providers" Click="NavigationButtonClick" AutomationProperties.Name="{DynamicResource Navigation.Providers}"><StackPanel Orientation="Horizontal"><TextBlock Text="◫" FontSize="17" Width="26" /><TextBlock Text="{DynamicResource Navigation.Providers}" VerticalAlignment="Center" /></StackPanel></Button>
+            <Button x:Name="SettingsNavigationButton" Style="{StaticResource SidebarNavigationButton}" Tag="Settings" Click="NavigationButtonClick" AutomationProperties.Name="{DynamicResource Navigation.Settings}"><StackPanel Orientation="Horizontal"><TextBlock Text="⚙" FontSize="15" Width="26" /><TextBlock Text="{DynamicResource Navigation.Settings}" VerticalAlignment="Center" /></StackPanel></Button>
+          </StackPanel>
+        </DockPanel>
+      </Border>
+
+    <ScrollViewer Grid.Column="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" AutomationProperties.Name="{DynamicResource App.Title}">
       <Grid Margin="32,28">
         <Grid.RowDefinitions>
           <RowDefinition Height="Auto" />
@@ -295,17 +348,12 @@
             <RowDefinition Height="Auto" />
           </Grid.RowDefinitions>
           <StackPanel>
-            <TextBlock Text="{DynamicResource Wpf.HealthTitle}" FontSize="24" FontWeight="SemiBold" />
+            <TextBlock x:Name="ViewEyebrowText" Foreground="{DynamicResource ColourActionPrimaryBackgroundBrush}" FontSize="11" FontWeight="SemiBold" />
+            <TextBlock x:Name="ViewTitleText" FontSize="28" FontWeight="SemiBold" Margin="0,4,0,0" />
+            <TextBlock x:Name="ViewDescriptionText" Foreground="{DynamicResource ColourTextSecondaryBrush}" Margin="0,5,0,0" TextWrapping="Wrap" />
             <TextBlock x:Name="UpdatedAtText" Foreground="{DynamicResource ColourTextSecondaryBrush}" Margin="0,5,0,0" />
           </StackPanel>
-          <WrapPanel Grid.Row="1" Margin="0,16,0,0" VerticalAlignment="Center">
-            <TextBlock Text="{DynamicResource Wpf.ViewLabel}" VerticalAlignment="Center" Margin="0,0,8,0" />
-            <ComboBox x:Name="ViewSelector" Width="155" Margin="0,0,18,0" SelectedIndex="0" SelectionChanged="ViewSelectionChanged" AutomationProperties.Name="{DynamicResource Wpf.ViewLabel}">
-              <ComboBoxItem Content="{DynamicResource Navigation.Overview}" Tag="Overview" />
-              <ComboBoxItem Content="{DynamicResource Navigation.Inventory}" Tag="Inventory" />
-              <ComboBoxItem Content="{DynamicResource Wpf.HistoryAlerts}" Tag="HistoryAlerts" />
-              <ComboBoxItem Content="{DynamicResource Navigation.Configuration}" Tag="Configuration" />
-            </ComboBox>
+          <WrapPanel Grid.Row="1" Margin="0,16,0,0" HorizontalAlignment="Right" VerticalAlignment="Center">
             <TextBlock Text="{DynamicResource Scenario.Label}" VerticalAlignment="Center" Margin="0,0,10,0" />
             <ComboBox x:Name="ScenarioSelector"
                       Width="180"
@@ -326,16 +374,17 @@
         <!-- The overview reuses the same local collections as detailed views and never implies an external feed. -->
         <Grid x:Name="OverviewSurface" Grid.Row="1" Margin="0,22,0,0">
           <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
-          <UniformGrid Columns="4">
+          <UniformGrid x:Name="OverviewSummaryGrid" Columns="4">
             <Border Style="{StaticResource SummaryCard}"><StackPanel><TextBlock Text="{DynamicResource Overview.TotalInstances}" Foreground="{DynamicResource ColourTextSecondaryBrush}" FontSize="11" FontWeight="SemiBold" /><TextBlock x:Name="OverviewTotalCountText" FontSize="26" FontWeight="SemiBold" Margin="0,5,0,0" /></StackPanel></Border>
             <Border Style="{StaticResource SummaryCard}"><StackPanel><TextBlock Text="{DynamicResource Inventory.Healthy}" Foreground="{DynamicResource ComponentStatusHealthyForegroundBrush}" FontSize="11" FontWeight="SemiBold" /><TextBlock x:Name="OverviewHealthyCountText" FontSize="26" FontWeight="SemiBold" Margin="0,5,0,0" /></StackPanel></Border>
             <Border Style="{StaticResource SummaryCard}"><StackPanel><TextBlock Text="{DynamicResource Overview.Warning}" Foreground="{DynamicResource ComponentStatusDegradedForegroundBrush}" FontSize="11" FontWeight="SemiBold" /><TextBlock x:Name="OverviewDegradedCountText" FontSize="26" FontWeight="SemiBold" Margin="0,5,0,0" /></StackPanel></Border>
             <Border Style="{StaticResource SummaryCard}" Margin="0"><StackPanel><TextBlock Text="{DynamicResource Overview.Critical}" Foreground="{DynamicResource ComponentStatusCriticalForegroundBrush}" FontSize="11" FontWeight="SemiBold" /><TextBlock x:Name="OverviewAttentionCountText" FontSize="26" FontWeight="SemiBold" Margin="0,5,0,0" /></StackPanel></Border>
           </UniformGrid>
 
-          <Grid Grid.Row="1" Margin="0,18,0,0">
+          <Grid x:Name="OverviewOperationalGrid" Grid.Row="1" Margin="0,18,0,0">
+            <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
             <Grid.ColumnDefinitions><ColumnDefinition Width="2*" /><ColumnDefinition Width="16" /><ColumnDefinition Width="1*" /></Grid.ColumnDefinitions>
-            <Border Background="{DynamicResource ComponentCardBackgroundBrush}" BorderBrush="{DynamicResource ComponentCardBorderBrush}" BorderThickness="1" CornerRadius="10">
+            <Border x:Name="OverviewFleetPanel" Background="{DynamicResource ComponentCardBackgroundBrush}" BorderBrush="{DynamicResource ComponentCardBorderBrush}" BorderThickness="1" CornerRadius="10">
               <Grid><Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
                 <StackPanel Margin="18,14"><TextBlock Text="{DynamicResource Overview.FleetStatus}" FontSize="16" FontWeight="SemiBold" /><TextBlock Text="{DynamicResource Overview.FleetDescription}" Foreground="{DynamicResource ColourTextSecondaryBrush}" FontSize="12" Margin="0,4,0,0" /></StackPanel>
                 <ItemsControl x:Name="OverviewInventoryList" Grid.Row="1" AutomationProperties.Name="{DynamicResource Overview.FleetStatus}">
@@ -343,22 +392,23 @@
                 </ItemsControl>
               </Grid>
             </Border>
-            <Border Grid.Column="2" Background="{DynamicResource ComponentCardBackgroundBrush}" BorderBrush="{DynamicResource ComponentCardBorderBrush}" BorderThickness="1" CornerRadius="10">
+            <Border x:Name="OverviewAlertsPanel" Grid.Column="2" Background="{DynamicResource ComponentCardBackgroundBrush}" BorderBrush="{DynamicResource ComponentCardBorderBrush}" BorderThickness="1" CornerRadius="10">
               <Grid><Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
                 <StackPanel Margin="18,14"><TextBlock Text="{DynamicResource Overview.RecentAlerts}" FontSize="16" FontWeight="SemiBold" /><TextBlock Text="{DynamicResource Overview.AlertDescription}" Foreground="{DynamicResource ColourTextSecondaryBrush}" FontSize="12" Margin="0,4,0,0" TextWrapping="Wrap" /></StackPanel>
                 <ItemsControl x:Name="OverviewAlertList" Grid.Row="1" AutomationProperties.Name="{DynamicResource Overview.RecentAlerts}">
-                  <ItemsControl.ItemTemplate><DataTemplate><Grid MinHeight="60" Margin="16,0"><Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions><TextBlock Text="{Binding SeverityLabel}" VerticalAlignment="Center" Margin="0,0,10,0" /><StackPanel Grid.Column="1" VerticalAlignment="Center"><TextBlock Text="{Binding InstanceName}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" /><TextBlock Text="{Binding RuleName}" Foreground="{DynamicResource ColourTextSecondaryBrush}" FontSize="11" Margin="0,3,0,0" TextTrimming="CharacterEllipsis" /></StackPanel></Grid></DataTemplate></ItemsControl.ItemTemplate>
+                  <ItemsControl.ItemTemplate><DataTemplate><Grid MinHeight="60" Margin="16,0"><Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions><TextBlock Text="{Binding SeverityLabel}" VerticalAlignment="Center" Margin="0,0,10,0" /><StackPanel Grid.Column="1" VerticalAlignment="Center"><TextBlock Text="{Binding InstanceName}" FontWeight="SemiBold" TextWrapping="Wrap" /><TextBlock Text="{Binding RuleName}" Foreground="{DynamicResource ColourTextSecondaryBrush}" FontSize="11" Margin="0,3,0,0" TextWrapping="Wrap" /></StackPanel></Grid></DataTemplate></ItemsControl.ItemTemplate>
                 </ItemsControl>
               </Grid>
             </Border>
           </Grid>
 
-          <Grid Grid.Row="2" Margin="0,18,0,0">
+          <Grid x:Name="OverviewInsightsGrid" Grid.Row="2" Margin="0,18,0,0">
+            <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
             <Grid.ColumnDefinitions><ColumnDefinition Width="2*" /><ColumnDefinition Width="16" /><ColumnDefinition Width="1*" /></Grid.ColumnDefinitions>
-            <Border Background="{DynamicResource ComponentCardBackgroundBrush}" BorderBrush="{DynamicResource ComponentCardBorderBrush}" BorderThickness="1" CornerRadius="10" Padding="18,14">
+            <Border x:Name="OverviewPerformancePanel" Background="{DynamicResource ComponentCardBackgroundBrush}" BorderBrush="{DynamicResource ComponentCardBorderBrush}" BorderThickness="1" CornerRadius="10" Padding="18,14">
               <Grid><Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="110" /></Grid.RowDefinitions><StackPanel><TextBlock Text="{DynamicResource Overview.SampleTrend}" FontSize="16" FontWeight="SemiBold" /><TextBlock Text="{DynamicResource Overview.DemonstrationChart}" Foreground="{DynamicResource ColourTextSecondaryBrush}" FontSize="12" Margin="0,4,0,0" /></StackPanel><Grid Grid.Row="1" Margin="0,12,0,0" ClipToBounds="True"><Path Data="M 0,25 H 720 M 0,55 H 720 M 0,85 H 720" Stroke="{DynamicResource ColourBorderDefaultBrush}" StrokeThickness="1" /><Polyline Points="0,88 45,74 90,82 135,56 180,64 225,42 270,53 315,34 360,48 405,28 450,41 495,22 540,35 585,18 630,29 675,14 720,24" Stroke="{DynamicResource ColourActionPrimaryBackgroundBrush}" StrokeThickness="2" Fill="Transparent" Stretch="Fill" /><Polyline Points="0,67 45,61 90,49 135,57 180,45 225,52 270,36 315,44 360,31 405,39 450,27 495,35 540,24 585,31 630,20 675,27 720,17" Stroke="{DynamicResource ComponentStatusHealthyForegroundBrush}" StrokeThickness="2" Fill="Transparent" Stretch="Fill" /></Grid></Grid>
             </Border>
-            <Border Grid.Column="2" Background="{DynamicResource ComponentCardBackgroundBrush}" BorderBrush="{DynamicResource ComponentCardBorderBrush}" BorderThickness="1" CornerRadius="10" Padding="18,14">
+            <Border x:Name="OverviewProvidersPanel" Grid.Column="2" Background="{DynamicResource ComponentCardBackgroundBrush}" BorderBrush="{DynamicResource ComponentCardBorderBrush}" BorderThickness="1" CornerRadius="10" Padding="18,14">
               <StackPanel><TextBlock Text="{DynamicResource Overview.ProviderFixture}" FontSize="16" FontWeight="SemiBold" /><TextBlock Text="{DynamicResource Overview.ProviderDescription}" Foreground="{DynamicResource ColourTextSecondaryBrush}" FontSize="12" Margin="0,4,0,12" TextWrapping="Wrap" /><TextBlock Text="postgresql     1" Margin="0,5" /><TextBlock Text="mysql          1" Margin="0,5" /><TextBlock Text="sql-server     1" Margin="0,5" /><TextBlock Text="mongodb        1" Margin="0,5" /></StackPanel>
             </Border>
           </Grid>
@@ -450,7 +500,7 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
           </Grid.RowDefinitions>
-          <Border Background="{DynamicResource ComponentCardBackgroundBrush}" BorderBrush="{DynamicResource ComponentCardBorderBrush}" BorderThickness="1" CornerRadius="10">
+          <Border x:Name="HistoryPanel" Background="{DynamicResource ComponentCardBackgroundBrush}" BorderBrush="{DynamicResource ComponentCardBorderBrush}" BorderThickness="1" CornerRadius="10">
             <Grid>
               <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
               <Grid Margin="18,14"><Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions><TextBlock Text="{DynamicResource History.Title}" FontSize="16" FontWeight="SemiBold" /><TextBlock Grid.Column="1" Text="{DynamicResource Common.ReadOnly}" Foreground="{DynamicResource ColourTextSecondaryBrush}" /></Grid>
@@ -466,7 +516,7 @@
               </DataGrid>
             </Grid>
           </Border>
-          <Border Grid.Row="1" Background="{DynamicResource ComponentCardBackgroundBrush}" BorderBrush="{DynamicResource ComponentCardBorderBrush}" BorderThickness="1" CornerRadius="10" Margin="0,18,0,0">
+          <Border x:Name="AlertsPanel" Grid.Row="1" Background="{DynamicResource ComponentCardBackgroundBrush}" BorderBrush="{DynamicResource ComponentCardBorderBrush}" BorderThickness="1" CornerRadius="10" Margin="0,18,0,0">
             <Grid>
               <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
               <Grid Margin="18,14"><Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions><TextBlock Text="{DynamicResource Alerts.Title}" FontSize="16" FontWeight="SemiBold" /><TextBlock Grid.Column="1" x:Name="AlertSummaryText" Foreground="{DynamicResource ColourTextSecondaryBrush}" /></Grid>
@@ -484,6 +534,15 @@
           </Border>
         </Grid>
 
+        <!-- Standalone performance and provider destinations preserve the Web route contract without loading external telemetry. -->
+        <Border x:Name="PerformanceSurface" Grid.Row="1" Visibility="Collapsed" Background="{DynamicResource ComponentCardBackgroundBrush}" BorderBrush="{DynamicResource ComponentCardBorderBrush}" BorderThickness="1" CornerRadius="10" Padding="22" Margin="0,22,0,0">
+          <Grid><Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="280" /></Grid.RowDefinitions><StackPanel><TextBlock Text="{DynamicResource Overview.SampleTrend}" FontSize="18" FontWeight="SemiBold" /><TextBlock Text="{DynamicResource Overview.DemonstrationChart}" Foreground="{DynamicResource ColourTextSecondaryBrush}" Margin="0,5,0,0" /></StackPanel><Grid Grid.Row="1" Margin="0,18,0,0" ClipToBounds="True"><Path Data="M 0,40 H 900 M 0,130 H 900 M 0,220 H 900" Stroke="{DynamicResource ColourBorderDefaultBrush}" StrokeThickness="1" Stretch="Fill" /><Polyline Points="0,230 55,180 110,205 165,132 220,162 275,98 330,145 385,84 440,126 495,72 550,112 605,58 660,94 715,45 770,78 825,34 880,68" Stroke="{DynamicResource ColourActionPrimaryBackgroundBrush}" StrokeThickness="3" Fill="Transparent" Stretch="Fill" /><Polyline Points="0,190 55,168 110,126 165,150 220,110 275,136 330,88 385,120 440,76 495,102 550,65 605,92 660,54 715,80 770,44 825,70 880,36" Stroke="{DynamicResource ComponentStatusHealthyForegroundBrush}" StrokeThickness="3" Fill="Transparent" Stretch="Fill" /></Grid></Grid>
+        </Border>
+
+        <Border x:Name="ProvidersSurface" Grid.Row="1" Visibility="Collapsed" Background="{DynamicResource ComponentCardBackgroundBrush}" BorderBrush="{DynamicResource ComponentCardBorderBrush}" BorderThickness="1" CornerRadius="10" Padding="22" Margin="0,22,0,0">
+          <StackPanel><TextBlock Text="{DynamicResource Overview.ProviderFixture}" FontSize="18" FontWeight="SemiBold" /><TextBlock Text="{DynamicResource Overview.ProviderDescription}" Foreground="{DynamicResource ColourTextSecondaryBrush}" Margin="0,5,0,18" TextWrapping="Wrap" /><UniformGrid Columns="2"><Border Background="{DynamicResource ColourSurfaceSubtleBrush}" CornerRadius="8" Margin="0,0,10,10" Padding="18"><StackPanel Orientation="Horizontal"><TextBlock Text="PG" Foreground="{DynamicResource ColourActionPrimaryBackgroundBrush}" FontWeight="Bold" Width="42" /><TextBlock Text="PostgreSQL" FontWeight="SemiBold" /><TextBlock Text="1" HorizontalAlignment="Right" Margin="24,0,0,0" /></StackPanel></Border><Border Background="{DynamicResource ColourSurfaceSubtleBrush}" CornerRadius="8" Margin="10,0,0,10" Padding="18"><StackPanel Orientation="Horizontal"><TextBlock Text="MY" Foreground="{DynamicResource ComponentStatusDegradedForegroundBrush}" FontWeight="Bold" Width="42" /><TextBlock Text="MySQL" FontWeight="SemiBold" /><TextBlock Text="1" Margin="24,0,0,0" /></StackPanel></Border><Border Background="{DynamicResource ColourSurfaceSubtleBrush}" CornerRadius="8" Margin="0,10,10,0" Padding="18"><StackPanel Orientation="Horizontal"><TextBlock Text="MS" Foreground="{DynamicResource ComponentStatusCriticalForegroundBrush}" FontWeight="Bold" Width="42" /><TextBlock Text="SQL Server" FontWeight="SemiBold" /><TextBlock Text="1" Margin="24,0,0,0" /></StackPanel></Border><Border Background="{DynamicResource ColourSurfaceSubtleBrush}" CornerRadius="8" Margin="10,10,0,0" Padding="18"><StackPanel Orientation="Horizontal"><TextBlock Text="MO" Foreground="{DynamicResource ComponentStatusHealthyForegroundBrush}" FontWeight="Bold" Width="42" /><TextBlock Text="MongoDB" FontWeight="SemiBold" /><TextBlock Text="1" Margin="24,0,0,0" /></StackPanel></Border></UniformGrid></StackPanel>
+        </Border>
+
         <Grid x:Name="ConfigurationSurface" Grid.Row="1" Margin="0,22,0,0" Visibility="Collapsed">
           <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
           <Border Background="{DynamicResource ComponentCardBackgroundBrush}" BorderBrush="{DynamicResource ComponentCardBorderBrush}" BorderThickness="1" CornerRadius="10">
@@ -499,6 +558,13 @@
               <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="18,12"><Button Content="{DynamicResource Wpf.ReviewSelected}" Click="ReviewCapabilityClick" Margin="0,0,10,0" /><Button Content="{DynamicResource Configuration.ViewConfirmation}" Click="PreviewConfirmationClick" /></StackPanel>
             </Grid>
           </Border>
+        </Grid>
+
+        <Grid x:Name="SettingsSurface" Grid.Row="1" Margin="0,22,0,0" Visibility="Collapsed">
+          <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+          <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="18" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+          <Border x:Name="SettingsPreferencePanel" Background="{DynamicResource ComponentCardBackgroundBrush}" BorderBrush="{DynamicResource ComponentCardBorderBrush}" BorderThickness="1" CornerRadius="10" Padding="22"><StackPanel><TextBlock Text="{DynamicResource Settings.PreferenceTitle}" FontSize="18" FontWeight="SemiBold" /><TextBlock Text="{DynamicResource View.Settings.Description}" Foreground="{DynamicResource ColourTextSecondaryBrush}" Margin="0,6,0,18" TextWrapping="Wrap" /><TextBlock Text="{DynamicResource Language.Label}" FontWeight="SemiBold" /><TextBlock x:Name="SettingsLanguageText" Foreground="{DynamicResource ColourTextSecondaryBrush}" Margin="0,4,0,14" /><TextBlock Text="{DynamicResource Theme.Label}" FontWeight="SemiBold" /><TextBlock x:Name="SettingsThemeText" Foreground="{DynamicResource ColourTextSecondaryBrush}" Margin="0,4,0,0" /></StackPanel></Border>
+          <Border x:Name="SettingsNotificationsPanel" Grid.Column="2" Background="{DynamicResource ComponentCardBackgroundBrush}" BorderBrush="{DynamicResource ComponentCardBorderBrush}" BorderThickness="1" CornerRadius="10" Padding="22"><StackPanel><TextBlock Text="{DynamicResource Settings.NotificationTitle}" FontSize="18" FontWeight="SemiBold" /><TextBlock Text="{DynamicResource Settings.NotificationUnavailable}" Foreground="{DynamicResource ColourTextSecondaryBrush}" Margin="0,6,0,18" TextWrapping="Wrap" /><Border HorizontalAlignment="Left" Background="{DynamicResource ColourSurfaceSubtleBrush}" CornerRadius="12" Padding="12,6"><TextBlock Text="STATE-06" Foreground="{DynamicResource ComponentStatusNeutralForegroundBrush}" FontWeight="SemiBold" /></Border></StackPanel></Border>
         </Grid>
 
         <Border x:Name="StateSurface"
@@ -522,6 +588,7 @@
         </Border>
       </Grid>
     </ScrollViewer>
+    </Grid>
 
     <Border Grid.Row="2" Background="{DynamicResource ComponentCardBackgroundBrush}" BorderBrush="{DynamicResource ComponentCardBorderBrush}" BorderThickness="0,1,0,0" Padding="28,12">
       <TextBlock Foreground="{DynamicResource ColourTextSecondaryBrush}" FontSize="12" Text="{DynamicResource Footer.Disclaimer}" TextWrapping="Wrap" />

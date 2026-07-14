@@ -38,6 +38,10 @@ The Release build completed with zero warnings and zero errors. Eight current UI
 
 Every combination completed and restored the `pt-BR` ↔ `en-GB` and Light ↔ Dark preference cycles. The sample is deterministic and read-only.
 
+### Design System 2.3.1 shell revalidation
+
+The complete eight-sample locale/theme/size matrix was repeated after the four-destination selector was replaced by the shared eight-destination navigation rail and the compact Overview reflow was introduced. All eight reports passed with 16 visible focusable controls, zero unnamed focusable controls and 12 contained Tab steps. The `820×620` samples used two KPI columns, stacked paired panels and suppressed the redundant state card so the complete navigation remained available. This revalidation did not repeat Windows scaling, High Contrast or Narrator; their evidence and limitations below remain separate.
+
 ## Windows High Contrast
 
 High Contrast was enabled through the documented Windows `SPI_SETHIGHCONTRAST` mechanism and confirmed simultaneously by the native flag and WPF `SystemParameters.HighContrast`.
