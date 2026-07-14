@@ -1,4 +1,4 @@
-<!-- Generated from dbnotifier.localisation.v1; culture:en-GB; source sha256:01fe3e0c32ecbfe2bdb9efd1de9f166fd14ce684dd4257d236a2d0da37db766d. Do not edit directly. -->
+<!-- Generated from dbnotifier.localisation.v1; culture:en-GB; source sha256:d4d26a80da7124c1d8b8beedeac08757ccb28089765bc78c623cc00c01e54ebf. Do not edit directly. -->
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:sys="clr-namespace:System;assembly=System.Runtime">
@@ -10,7 +10,7 @@
   <sys:String x:Key="Alerts.Description">Acknowledge and silence are not enabled in this increment.</sys:String>
   <sys:String x:Key="Alerts.Title">Demonstration alerts</sys:String>
   <sys:String x:Key="Alerts.TotalVisible">Total visible</sys:String>
-  <sys:String x:Key="Alerts.UpdatedAt">Updated at {0} UTC</sys:String>
+  <sys:String x:Key="Alerts.UpdatedAt">Updated at {0}</sys:String>
   <sys:String x:Key="AlertState.Acknowledged">Acknowledged</sys:String>
   <sys:String x:Key="AlertState.Active">Active</sys:String>
   <sys:String x:Key="AlertState.Resolved">Resolved</sys:String>
@@ -75,7 +75,7 @@
   <sys:String x:Key="Inventory.Stale">Stale</sys:String>
   <sys:String x:Key="Inventory.Title">Monitored instances</sys:String>
   <sys:String x:Key="Inventory.Total">Total</sys:String>
-  <sys:String x:Key="Inventory.UpdatedAt">Updated at {0} UTC · stale after {1} min</sys:String>
+  <sys:String x:Key="Inventory.UpdatedAt">Updated at {0} · stale after {1} min</sys:String>
   <sys:String x:Key="Language.Announcement">Interface language: {0}</sys:String>
   <sys:String x:Key="Language.EnGb">English (UK)</sys:String>
   <sys:String x:Key="Language.Label">Language</sys:String>
@@ -195,7 +195,7 @@
   <sys:String x:Key="View.Configuration.Description">Non-secret values and administrative decisions without persistence or execution.</sys:String>
   <sys:String x:Key="View.Configuration.Eyebrow">Policy and capabilities</sys:String>
   <sys:String x:Key="View.Configuration.Title">Configuration</sys:String>
-  <sys:String x:Key="View.History.Description">Read-only timeline with severity, source and UTC timestamps.</sys:String>
+  <sys:String x:Key="View.History.Description">Read-only timeline with severity, source and exact times.</sys:String>
   <sys:String x:Key="View.History.Eyebrow">Canonical events</sys:String>
   <sys:String x:Key="View.History.Title">Operational history</sys:String>
   <sys:String x:Key="View.Inventory.Description">Operational state, freshness and declared provider support.</sys:String>

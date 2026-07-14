@@ -22,7 +22,8 @@ import { ThemeSelector } from "./ThemeSelector";
 import { LanguageSelector } from "./LanguageSelector";
 import { TvModeButton } from "./TvModeButton";
 import { useLocalisation } from "./LocalisationProvider";
-import type { MessageKey, SupportedLocale } from "./generated/localisation";
+import type { MessageKey } from "./generated/localisation";
+import { formatSystemDateTime } from "./systemDateTime";
 
 const stateOptions: ReadonlyArray<{ value: InventoryState; labelKey: MessageKey }> = [
   { value: "ready", labelKey: "Scenario.Ready" },
@@ -99,14 +100,6 @@ const statusPresentation: Record<HealthStatus, { symbol: string; labelKey: Messa
   unknown: { symbol: "○", labelKey: "Status.Unknown", className: "unknown" },
 };
 
-function formatUtc(value: string, locale: SupportedLocale): string {
-  return new Intl.DateTimeFormat(locale, {
-    dateStyle: "short",
-    timeStyle: "medium",
-    timeZone: "UTC",
-  }).format(new Date(value));
-}
-
 function StatusBadge({ item, now }: { item: InventoryItem; now: Date }) {
   const { t } = useLocalisation();
   if (isStale(item, now)) {
@@ -145,7 +138,7 @@ export function App() {
   }, []);
 
   useEffect(() => {
-    // TV mode updates the visible UTC clock each second; standard views only need bounded freshness recalculation.
+    // TV mode updates the visible system-local clock each second; standard views only need bounded freshness recalculation.
     const interval = window.setInterval(() => setNow(new Date()), tvMode ? 1_000 : 30_000);
     return () => window.clearInterval(interval);
   }, [tvMode]);
@@ -170,7 +163,7 @@ export function App() {
           <span className="brand-mark"><img src="/dbnotifier-icon.svg?v=1.3.3" alt="" /></span>
           <span><strong>DB Notifier</strong><small>{t("Brand.Subtitle")}</small></span>
         </div>
-        {tvMode && <div className="tv-mode-status"><span aria-hidden="true" /><strong>{t("TV.Active")}</strong><time dateTime={now.toISOString()}>{formatUtc(now.toISOString(), locale)} UTC</time></div>}
+        {tvMode && <div className="tv-mode-status"><span aria-hidden="true" /><strong>{t("TV.Active")}</strong><time dateTime={now.toISOString()}>{formatSystemDateTime(now, locale)}</time></div>}
         <div className="topbar-controls">
           <LanguageSelector />
           <ThemeSelector />
@@ -264,14 +257,14 @@ function HistoryView({ snapshot }: { snapshot: ReturnType<typeof buildTimelineAl
 
 function TimelineRow({ event }: { event: TimelineEventItem }) {
   const { locale } = useLocalisation();
-  return <li className={`timeline-item ${event.severity}`}><div className="timeline-marker" aria-hidden="true" /><article><div className="timeline-heading"><div><h3>{event.eventType}</h3><p>{event.instanceName} · <code>{event.providerType}</code></p></div><SeverityBadge severity={event.severity} /></div><p className="timeline-summary">{event.summary}</p><time dateTime={event.occurredAt}>{formatUtc(event.occurredAt, locale)} UTC</time></article></li>;
+  return <li className={`timeline-item ${event.severity}`}><div className="timeline-marker" aria-hidden="true" /><article><div className="timeline-heading"><div><h3>{event.eventType}</h3><p>{event.instanceName} · <code>{event.providerType}</code></p></div><SeverityBadge severity={event.severity} /></div><p className="timeline-summary">{event.summary}</p><time dateTime={event.occurredAt}>{formatSystemDateTime(event.occurredAt, locale)}</time></article></li>;
 }
 
 function AlertsView({ alerts, generatedAt }: { alerts: readonly AlertItem[]; generatedAt: string }) {
   const { locale, t } = useLocalisation();
   const active = alerts.filter((alert) => alert.state === "active").length;
   const critical = alerts.filter((alert) => alert.severity === "critical" && alert.state !== "resolved").length;
-  return <section aria-labelledby="alerts-title"><p className="updated-at">{t("Alerts.UpdatedAt", formatUtc(generatedAt, locale))}</p><div className="summary-grid alert-summary"><article className="summary-card critical"><span><i aria-hidden="true">■</i> {t("Alerts.CriticalOpen")}</span><strong>{critical}</strong></article><article className="summary-card degraded"><span><i aria-hidden="true">▲</i> {t("Alerts.Active")}</span><strong>{active}</strong></article><article className="summary-card"><span><i aria-hidden="true">✓</i> {t("Alerts.TotalVisible")}</span><strong>{alerts.length}</strong></article></div><div className="inventory-panel"><div className="panel-header"><div><h2 id="alerts-title">{t("Alerts.Title")}</h2><p>{t("Alerts.Description")}</p></div><span className="read-only-label">{t("Common.ReadOnly")}</span></div><div className="alert-list">{alerts.map((alert) => <article className="alert-card" key={alert.alertId}><div className="alert-card-heading"><SeverityBadge severity={alert.severity} /><span className="alert-state">{t(alert.state === "active" ? "AlertState.Active" : alert.state === "acknowledged" ? "AlertState.Acknowledged" : alert.state === "silenced" ? "AlertState.Silenced" : "AlertState.Resolved")}</span></div><h3>{alert.ruleName}</h3><p>{alert.summary}</p><dl><div><dt>{t("Common.Instance")}</dt><dd>{alert.instanceName}</dd></div><div><dt>{t("Common.Provider")}</dt><dd><code>{alert.providerType}</code></dd></div><div><dt>{t("Common.Updated")}</dt><dd><time dateTime={alert.updatedAt}>{formatUtc(alert.updatedAt, locale)} UTC</time></dd></div></dl></article>)}</div></div></section>;
+  return <section aria-labelledby="alerts-title"><p className="updated-at">{t("Alerts.UpdatedAt", formatSystemDateTime(generatedAt, locale))}</p><div className="summary-grid alert-summary"><article className="summary-card critical"><span><i aria-hidden="true">■</i> {t("Alerts.CriticalOpen")}</span><strong>{critical}</strong></article><article className="summary-card degraded"><span><i aria-hidden="true">▲</i> {t("Alerts.Active")}</span><strong>{active}</strong></article><article className="summary-card"><span><i aria-hidden="true">✓</i> {t("Alerts.TotalVisible")}</span><strong>{alerts.length}</strong></article></div><div className="inventory-panel"><div className="panel-header"><div><h2 id="alerts-title">{t("Alerts.Title")}</h2><p>{t("Alerts.Description")}</p></div><span className="read-only-label">{t("Common.ReadOnly")}</span></div><div className="alert-list">{alerts.map((alert) => <article className="alert-card" key={alert.alertId}><div className="alert-card-heading"><SeverityBadge severity={alert.severity} /><span className="alert-state">{t(alert.state === "active" ? "AlertState.Active" : alert.state === "acknowledged" ? "AlertState.Acknowledged" : alert.state === "silenced" ? "AlertState.Silenced" : "AlertState.Resolved")}</span></div><h3>{alert.ruleName}</h3><p>{alert.summary}</p><dl><div><dt>{t("Common.Instance")}</dt><dd>{alert.instanceName}</dd></div><div><dt>{t("Common.Provider")}</dt><dd><code>{alert.providerType}</code></dd></div><div><dt>{t("Common.Updated")}</dt><dd><time dateTime={alert.updatedAt}>{formatSystemDateTime(alert.updatedAt, locale)}</time></dd></div></dl></article>)}</div></div></section>;
 }
 
 const previewCopy: Record<ActionPreview, { symbol: string; titleKey: MessageKey; messageKey: MessageKey }> = {
@@ -392,7 +385,7 @@ function ReadyInventory({
 
   return (
     <section id="inventory" aria-label={t("Inventory.Caption")}>
-      <p className="updated-at">{t("Inventory.UpdatedAt", formatUtc(generatedAt, locale), staleAfterMilliseconds / 60_000)}</p>
+      <p className="updated-at">{t("Inventory.UpdatedAt", formatSystemDateTime(generatedAt, locale), staleAfterMilliseconds / 60_000)}</p>
       <div className="summary-grid">
         {cards.map((card) => (
           <article className={`summary-card ${card.className}`} key={card.label}>
@@ -434,12 +427,12 @@ function ReadyInventory({
 
 function InventoryTableRow({ item, now }: { item: InventoryItem; now: Date }) {
   const { locale } = useLocalisation();
-  return <tr><th scope="row"><strong>{item.displayName}</strong><small>{item.locationLabel}</small></th><td><code>{item.providerType}</code></td><td>{item.supportLabel}</td><td>{item.environment}</td><td><StatusBadge item={item} now={now} /></td><td><time dateTime={item.observedAt}>{formatUtc(item.observedAt, locale)} UTC</time></td><td>{item.latencyMilliseconds === null ? "—" : `${item.latencyMilliseconds} ms`}</td></tr>;
+  return <tr><th scope="row"><strong>{item.displayName}</strong><small>{item.locationLabel}</small></th><td><code>{item.providerType}</code></td><td>{item.supportLabel}</td><td>{item.environment}</td><td><StatusBadge item={item} now={now} /></td><td><time dateTime={item.observedAt}>{formatSystemDateTime(item.observedAt, locale)}</time></td><td>{item.latencyMilliseconds === null ? "—" : `${item.latencyMilliseconds} ms`}</td></tr>;
 }
 
 function InventoryMobileCard({ item, now }: { item: InventoryItem; now: Date }) {
   const { locale, t } = useLocalisation();
-  return <article className="instance-card"><div className="instance-card-heading"><div><h3>{item.displayName}</h3><p>{item.locationLabel}</p></div><StatusBadge item={item} now={now} /></div><dl><div><dt>{t("Common.Provider")}</dt><dd><code>{item.providerType}</code></dd></div><div><dt>{t("Common.Support")}</dt><dd>{item.supportLabel}</dd></div><div><dt>{t("Common.Environment")}</dt><dd>{item.environment}</dd></div><div><dt>{t("Common.ObservedAt")}</dt><dd><time dateTime={item.observedAt}>{formatUtc(item.observedAt, locale)} UTC</time></dd></div><div><dt>{t("Common.Latency")}</dt><dd>{item.latencyMilliseconds === null ? "—" : `${item.latencyMilliseconds} ms`}</dd></div></dl></article>;
+  return <article className="instance-card"><div className="instance-card-heading"><div><h3>{item.displayName}</h3><p>{item.locationLabel}</p></div><StatusBadge item={item} now={now} /></div><dl><div><dt>{t("Common.Provider")}</dt><dd><code>{item.providerType}</code></dd></div><div><dt>{t("Common.Support")}</dt><dd>{item.supportLabel}</dd></div><div><dt>{t("Common.Environment")}</dt><dd>{item.environment}</dd></div><div><dt>{t("Common.ObservedAt")}</dt><dd><time dateTime={item.observedAt}>{formatSystemDateTime(item.observedAt, locale)}</time></dd></div><div><dt>{t("Common.Latency")}</dt><dd>{item.latencyMilliseconds === null ? "—" : `${item.latencyMilliseconds} ms`}</dd></div></dl></article>;
 }
 
 function OperationalState({ state, onRetry }: { state: Exclude<InventoryState, "ready">; onRetry: () => void }) {

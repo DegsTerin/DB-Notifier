@@ -74,6 +74,9 @@ async function captureViewport(call, name, width, height, hash = "inventory", pa
     const root = document.documentElement;
     const main = document.querySelector("main")?.getBoundingClientRect();
     const primaryPanel = document.querySelector(".inventory-panel")?.getBoundingClientRect();
+    const topbar = document.querySelector(".topbar")?.getBoundingClientRect();
+    const brand = document.querySelector(".brand-lockup")?.getBoundingClientRect();
+    const topbarControls = document.querySelector(".topbar-controls")?.getBoundingClientRect();
     const offenders = [...document.querySelectorAll("body *")]
       .filter((element) => element.scrollWidth > element.clientWidth + 1)
       .filter((element) => !["auto", "scroll"].includes(getComputedStyle(element).overflowX))
@@ -88,6 +91,8 @@ async function captureViewport(call, name, width, height, hash = "inventory", pa
       horizontalOverflow: root.scrollWidth > root.clientWidth + 1,
       mainRightGap: main ? Math.round(innerWidth - main.right) : null,
       primaryContentRightGap: primaryPanel ? Math.round(innerWidth - primaryPanel.right) : null,
+      topbarSingleRow: brand && topbarControls ? Math.abs((brand.top + brand.height / 2) - (topbarControls.top + topbarControls.height / 2)) <= 2 : null,
+      topbarControlsContained: topbar && topbarControls ? topbarControls.left >= topbar.left && topbarControls.right <= topbar.right : null,
       offenders,
       heading: document.querySelector("h1")?.textContent?.trim(),
     };
@@ -129,6 +134,10 @@ async function auditTvMode(call) {
     filtersDisplay: getComputedStyle(document.querySelector(".inventory-panel .filters")).display,
     tableDisplay: getComputedStyle(document.querySelector(".table-wrap")).display,
     demoDisplay: getComputedStyle(document.querySelector(".demo-badge")).display,
+    languageDisplay: getComputedStyle(document.querySelector(".language-selector")).display,
+    themeDisplay: getComputedStyle(document.querySelector(".theme-selector")).display,
+    systemTimeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+    clockText: document.querySelector(".tv-mode-status time")?.textContent?.trim(),
     statusText: document.querySelector(".tv-mode-status")?.textContent?.trim().replace(/\s+/g, " "),
   }))()`);
   const screenshot = await call("Page.captureScreenshot", { format: "png", captureBeyondViewport: false });

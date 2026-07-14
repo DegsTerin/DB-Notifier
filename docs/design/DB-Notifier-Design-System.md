@@ -5,7 +5,7 @@
 | Field | Value |
 |---|---|
 | Status | Official frontend specification |
-| Design System version | `2.1.0` |
+| Design System version | `2.1.1` |
 | Product phase | `STATE-05 FRONTEND_IMPLEMENTATION` |
 | Platforms | React Web Dashboard and .NET 10 WPF Desktop/Tray |
 | Themes | Light and Dark; Windows High Contrast is an accessibility override |
@@ -407,6 +407,7 @@ Breakpoints respond to content, not device names. Every component MUST tolerate 
 - Dense tables may use available width; forms and dialogues use controlled widths.
 - A navigation rail MUST NOT retain visible labels once its width forces wrapping or compression; switch to a labelled horizontal navigation region first.
 - Seven-column operational tables switch to the complete compact-card alternative at `1100` CSS px or below. The alternative preserves all fields and does not rely on horizontal page scrolling.
+- At compact mobile widths, the product identity and global icon controls MUST remain in one contained TopBar row where the supported `320` CSS px minimum permits it. Controls MUST retain `44×44` CSS px targets, predictable language/theme/TV ordering and no horizontal clipping.
 
 ### 9.3 WPF adaptation
 
@@ -416,9 +417,9 @@ The WPF minimum window remains usable at `820×620` DIP. Below the comfortable t
 
 The Dashboard Web provides a dedicated, session-only TV presentation for continuous fleet observation. One upper-right expand icon enters the ready, unfiltered inventory view and requests browser Fullscreen; the same persistent control changes to a collapse icon and exits. Native Fullscreen is an enhancement rather than a prerequisite: denied or unavailable Fullscreen MUST leave the TV layout active, announce the limitation and retain the visible exit control. Escape or browser chrome leaving an established Fullscreen session MUST also restore the standard shell.
 
-TV presentation hides primary navigation, scenario selection and inventory filters, increases metric/table viewing distance, and preserves the product identity, UTC clock, freshness/stale semantics, status text/shapes, read-only state, demonstration badge and footer truth. It MUST NOT auto-start, persist across sessions, rotate views without an approved contract, conceal degraded/unknown data or permit administrative execution.
+TV presentation hides primary navigation, scenario selection and inventory filters, increases metric/table viewing distance, and preserves the product identity, language selector, theme selector, system-local clock with an explicit time-zone label, freshness/stale semantics, status text/shapes, read-only state, demonstration badge and footer truth. It MUST NOT auto-start, persist across sessions, rotate views without an approved contract, conceal degraded/unknown data or permit administrative execution.
 
-The current `STATE-05` implementation recalculates visible freshness and its UTC clock continuously from the in-memory demonstration snapshot. This proves presentation behaviour only; it is not evidence of an external real-time stream. In `STATE-06`, entering TV mode MUST perform an immediate authorised API read and MUST start a new authoritative read every 30 seconds while active, only after the previous read has completed. An authenticated SignalR hint MAY trigger an earlier read but MUST NOT replace periodic reconciliation. Failure MUST retain the last known snapshot and its timestamps while presenting the factual error, offline or stale state. Reconnection, backpressure and live-source health remain part of that integration work. WPF, native mobile, unattended kiosk provisioning and burn-in mitigation are outside this increment.
+The current `STATE-05` implementation recalculates visible freshness and its system-local presentation clock continuously from the in-memory demonstration snapshot. This proves presentation behaviour only; it is not evidence of an external real-time stream. In `STATE-06`, entering TV mode MUST perform an immediate authorised API read and MUST start a new authoritative read every 30 seconds while active, only after the previous read has completed. An authenticated SignalR hint MAY trigger an earlier read but MUST NOT replace periodic reconciliation. Failure MUST retain the last known snapshot and its timestamps while presenting the factual error, offline or stale state. Reconnection, backpressure and live-source health remain part of that integration work. WPF, native mobile, unattended kiosk provisioning and burn-in mitigation are outside this increment.
 
 ## 10. Reusable component catalogue
 
@@ -432,11 +433,11 @@ All components define default, hover, pressed, focus-visible, selected, disabled
 
 `ThemeSelector` is one discreet icon button that cycles Light → Dark → Light. Its code-native sun or moon icon represents the current preference; no System/monitor state is exposed. The button MUST expose a localised accessible name and tooltip containing both the current and next preference, announce the applied state, persist safely, respond to keyboard activation and retain focus after the change. The icon MUST NOT be the only programmatic state indication.
 
-On desktop and tablet-width shells, the selector belongs in the upper-right TopBar preference region. At compact mobile widths it MAY wrap beneath the brand, but MUST remain right-aligned, fully visible and ahead of feature content.
+On desktop and tablet-width shells, the selector belongs in the upper-right TopBar preference region. At compact mobile widths it remains in the same contained row as the shortened brand lockup, fully visible and ahead of feature content. It also remains available while TV presentation is active.
 
 ### 10.2.1 Language selector
 
-`LanguageSelector` is one discreet translation/languages-icon button in the same upper-right TopBar preference region. Its symbol combines recognisable multi-script translation strokes instead of an ambiguous globe or national flags. It cycles only `pt-BR` ↔ `en-GB`; its localised accessible name and tooltip expose the full current and next language names. It applies immediately, persists only the validated BCP 47 value, updates document/window and assistive-technology labels, retains focus and remains usable at compact widths.
+`LanguageSelector` is one discreet translation/languages-icon button in the same upper-right TopBar preference region. Its symbol combines recognisable multi-script translation strokes instead of an ambiguous globe or national flags. It cycles only `pt-BR` ↔ `en-GB`; its localised accessible name and tooltip expose the full current and next language names. It applies immediately, persists only the validated BCP 47 value, updates document/window and assistive-technology labels, retains focus, remains usable at compact widths and remains available while TV presentation is active.
 
 Language and theme buttons MUST retain separate accessible names, a programmatically determinable current state and an obvious focus indicator. Their compact presentation MUST NOT obscure the product brand or cause document-level horizontal overflow.
 
@@ -546,7 +547,7 @@ Interactive and meaningful data elements require appropriate `AutomationProperti
 - Interface copy uses concise `pt-BR` or `en-GB` in sentence case according to the active supported preference.
 - Code comments remain British English under the project documentation standard.
 - Provider identifiers remain stable machine values; visible provider names may be localised separately.
-- UTC timestamps include `UTC`; local time requires an explicit timezone label.
+- Canonical operational instants remain UTC in contracts and machine-readable values. Dashboard presentation uses the browser system time zone and includes an explicit short time-zone label; UTC presentation includes `UTC`.
 - Relative time supplements, never replaces, an exact timestamp for operational evidence.
 - Error messages state what failed, safe impact and recovery without exposing secrets or internals.
 - Buttons use explicit verbs. Avoid generic “OK” where a meaningful action exists.

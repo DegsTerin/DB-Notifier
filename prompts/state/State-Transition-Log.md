@@ -618,6 +618,17 @@
 - Riscos/limites: nenhuma conexão real, credencial, certificado, serviço, comando administrativo, deploy ou mutação externa foi executada por esta ratificação.
 - Aprovador: Bruno — `Ratifico a decisão acima exclusivamente para STATE-04 BACKEND_IMPLEMENTATION.`
 
+## 2026-07-13 — Correção de hora local, controles TV e TopBar mobile
+
+- Estado anterior: `STATE-05 FRONTEND_IMPLEMENTATION`, Human Gate pendente.
+- Estado resultante: sem transição; `STATE-05` e seu Human Gate permanecem pendentes.
+- Decisão: corrigir três divergências observadas na revisão humana do Dashboard e tornar nova guia dedicada o padrão de futuras amostras Chrome autorizadas.
+- Escopo: Design System `2.1.1`, formatter system-local com zona explícita, preservação de ISO/UTC e freshness, idioma/tema visíveis no modo TV, TopBar mobile em uma linha com alvos `44×44`, regressões e protocolo de revisão em nova guia.
+- Gates: 27 testes Dashboard, typecheck e build Vite aprovados; matriz headless de 44 viewports aprovada em `pt-BR`/`en-GB` e Light/Dark. Amostras `320×568`/`390×844` sem overflow e com TopBar contido; quatro amostras TV com idioma/tema visíveis, Fullscreen/restauração e fuso do sistema evidenciado.
+- Evidências: código React/CSS e teste de hora determinístico; `docs/design/DB-Notifier-Design-System.md`; finding `S05-HG-007` em `docs/STATE-05-Human-Gate-Validation.md`; relatórios sanitizados temporários em `%TEMP%`.
+- Riscos/ressalvas: resultado automático não constitui aprovação visual; nenhuma interface visível, WPF, Narrator, High Contrast ou scaling foi aberta/alterada durante a correção. Snapshot continua demonstrativo e integração real permanece em `STATE-06`.
+- Aprovador: PENDENTE para a revalidação visual dos três pontos; nenhuma decisão de Human Gate foi inferida.
+
 ## Template de nova entrada
 
 - Data:

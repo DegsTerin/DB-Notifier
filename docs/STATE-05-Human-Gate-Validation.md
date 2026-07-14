@@ -26,10 +26,10 @@ Mobile and tablet samples apply to the responsive Dashboard Web. There is no nat
 
 | Evidence | Current result |
 |---|---|
-| Design System implementation report | Design System `2.1.0` translation-icon, Light/Dark-only, outlined database-mark, ultrawide, TV-presentation and operational-Tray implementation gates approved; commit identifier is reported in the implementation hand-off |
+| Design System implementation report | Design System `2.1.1` translation-icon, Light/Dark-only, outlined database-mark, ultrawide, TV-presentation, system-local time, compact TopBar and operational-Tray implementation gates approved; commit identifier is reported in the implementation hand-off |
 | Dashboard matrix | 44 standard locale/theme/viewport-route samples plus four TV samples across the current Light/Dark combinations; no global overflow or unnamed interactive control |
 | WPF matrix | Four current locale/theme combinations at `1180×760`, each with 34 focusable controls and none unnamed; minimum-window and High Contrast samples remain separately recorded |
-| Automated tests | 23 Dashboard, 128 .NET unit/model/provider/presentation, 5 architecture and 10 legacy compatibility tests approved |
+| Automated tests | 27 Dashboard, 128 .NET unit/model/provider/presentation, 5 architecture and 10 legacy compatibility tests approved |
 | Security/dependencies | npm and NuGet reported no known vulnerabilities in the recorded audit |
 
 Primary automatic evidence:
@@ -77,7 +77,7 @@ npm run build
 node.exe node_modules/vite/bin/vite.js preview --host 127.0.0.1 --port 4173
 ```
 
-Open `http://127.0.0.1:4173/` in a dedicated Chrome window. Use the visible TopBar buttons to select the required locale and theme. Start or stop Narrator with `Windows+Ctrl+Enter` only when ready to listen to the sample.
+Open `http://127.0.0.1:4173/` in a new dedicated Chrome tab without navigating or reusing an existing user tab. Use the visible TopBar buttons to select the required locale and theme. Start or stop Narrator with `Windows+Ctrl+Enter` only when ready to listen to the sample.
 
 ### Keyboard and Narrator tasks
 
@@ -224,7 +224,7 @@ Do not mark a row until the named human validator has performed it.
 - Classification: new Dashboard presentation capability; it does not authorise integration or imply a live external source.
 - Human request: include TV mode for real-time Dashboard monitoring with one expand/collapse icon button.
 - Implementation: Design System `1.4.0` adds a session-only Dashboard Web TV mode. The button enters the ready, unfiltered inventory, requests browser Fullscreen, hides navigation/scenario/filters, enlarges metrics/table and remains visible as the exit control. Escape from established Fullscreen also restores the standard shell.
-- Operational truth: the UTC clock and freshness evaluation update continuously, but the current snapshot remains demonstration-only. Real API/SignalR ingestion and live-source health belong to `STATE-06` and are not claimed here.
+- Operational truth at the `1.4.0` implementation checkpoint: the UTC clock and freshness evaluation updated continuously, while the snapshot remained demonstration-only. `S05-HG-007` supersedes only the visible clock presentation with system-local time and an explicit zone label. Real API/SignalR ingestion and live-source health belong to `STATE-06` and are not claimed here.
 - Automatic evidence: 66 standard browser samples plus six `1920×1080` TV samples passed. Every locale/theme combination entered native Fullscreen, retained the demonstration badge and footer truth, exposed the collapse control, hid navigation/filters, displayed the table, exited and restored the standard shell with no global overflow or unnamed interactive control. A separate unavailable-Fullscreen sample kept TV active, retained the exit control and announced the limitation.
 - Human closure: PENDENTE; viewing distance, visual density and enter/exit behaviour require confirmation in `HG05-10`.
 - Lifecycle impact: Narrator remains off and the Human Gate remains pending.
@@ -240,6 +240,18 @@ Do not mark a row until the named human validator has performed it.
 - Human closure: PENDENTE; the reviewer must confirm that the replacement icon is visually clear and that the two-state theme control is accepted.
 - Lifecycle impact: Narrator remains off and the Human Gate remains pending.
 
+### `S05-HG-007` — Use system-local time and retain global controls across TV and mobile layouts
+
+- Date observed: 2026-07-13.
+- Source: explicit user review of the visible local Dashboard in Light mode, supported by sanitised screenshots supplied in the conversation and not committed to the repository.
+- Classification: blocking responsive and presentation-consistency finding.
+- Human feedback: the displayed date/time appeared incorrect because the UI forced UTC rather than the system-local time; TV mode must retain language and theme controls; compact mobile TopBar icons require alignment refinement; future Chrome reviews must open in a new separate tab.
+- Root cause: Dashboard instants originated from the system clock but `App.tsx` forced every visible formatter to UTC; TV CSS explicitly hid the language/theme selectors; the `620` CSS px breakpoint forced all TopBar controls into a separate full-width row.
+- Remediation: Design System `2.1.1` renders exact instants in the browser system time zone with an explicit short zone label while retaining ISO/UTC machine values and freshness calculations. TV mode keeps language, theme and expand/collapse controls visible. The `320`–`620` CSS px TopBar keeps the shortened brand and three `44×44` controls in one contained row.
+- Automatic evidence: 27 Dashboard tests, typecheck and production build passed. The repeated 44-sample browser matrix passed across `pt-BR`/`en-GB`, Light/Dark and 11 viewports. The `320×568` and `390×844` samples kept the TopBar in one contained row without horizontal overflow. All four TV samples retained language/theme controls, entered/exited Fullscreen and reported their browser system time zone; the local `pt-BR`/Light evidence resolved `America/Sao_Paulo` and displayed `13/07/2026, 22:54:43 BRT` for the corresponding UTC instant.
+- Human closure: PENDENTE; system-local time, TV preferences and the compact TopBar require visible reviewer confirmation.
+- Lifecycle impact: the Human Gate remains pending; this remediation does not authorise Narrator, WPF, High Contrast, scaling or `STATE-06` integration.
+
 ## Human Gate decision
 
 - Phase: `STATE-05 FRONTEND_IMPLEMENTATION`
@@ -249,7 +261,7 @@ Do not mark a row until the named human validator has performed it.
 - Critical samples repeated: PENDENTE
 - Experience and error messages: PENDENTE
 - Security/authorisation truth: PENDENTE
-- Remaining coverage: outlined database-mark, fullscreen/TV layout, display name, translation icon and Light/Dark-only control confirmation plus all keyboard, screen-reader, zoom, scaling, High Contrast and remaining samples above
+- Remaining coverage: outlined database-mark, fullscreen/TV layout and controls, system-local time, compact mobile TopBar, display name, translation icon and Light/Dark-only control confirmation plus all keyboard, screen-reader, zoom, scaling, High Contrast and remaining samples above
 - Decision: `PENDENTE`
 - Justification/evidence: PENDENTE
 

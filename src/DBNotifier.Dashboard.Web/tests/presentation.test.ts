@@ -84,7 +84,16 @@ test("TV mode keeps a visible Fullscreen toggle and factual demonstration contex
   assert.match(control, /data-tv-mode-control=\{active \? "exit" : "enter"\}/);
   assert.match(css, /\.app-shell\.tv-mode \.sidebar \{ display: none; \}/);
   assert.match(css, /\.app-shell\.tv-mode \.filters \{ display: none; \}/);
+  assert.match(css, /\.app-shell\.tv-mode \.language-selector, \.app-shell\.tv-mode \.theme-selector \{ display: grid; \}/);
   assert.match(css, /\.app-shell\.tv-mode \.demo-badge \{ display: flex; \}/);
+});
+
+test("mobile topbar keeps brand and controls in one accessible row", () => {
+  const css = readFileSync(new URL("../src/styles.css", import.meta.url), "utf8");
+
+  assert.match(css, /@media \(max-width: 620px\) \{[^}]*\.topbar \{[^}]*flex-direction: row;[^}]*align-items: center;/s);
+  assert.match(css, /@media \(max-width: 620px\)[\s\S]*?\.preference-icon-button \{[^}]*width: 44px;[^}]*height: 44px;/);
+  assert.doesNotMatch(css, /@media \(max-width: 620px\) \{[^}]*\.topbar \{[^}]*flex-direction: column;/s);
 });
 
 test("provider-neutral database mark is shared by active Web and Windows surfaces", () => {

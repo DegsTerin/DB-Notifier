@@ -75,9 +75,13 @@ try {
             $failures = [System.Collections.Generic.List[string]]::new()
             if (@($report.viewports).Count -ne 11) { $failures.Add('Expected 11 viewport samples.') }
             if (@($report.viewports | Where-Object { $_.layout.horizontalOverflow }).Count -gt 0) { $failures.Add('Horizontal overflow was detected.') }
+            $mobileSamples = @($report.viewports | Where-Object { $_.width -le 390 })
+            if (@($mobileSamples | Where-Object { -not $_.layout.topbarSingleRow -or -not $_.layout.topbarControlsContained }).Count -gt 0) { $failures.Add('Compact topbar controls wrapped or escaped their header.') }
             if (@($report.accessibilityTree.unnamedInteractive).Count -gt 0) { $failures.Add('Unnamed interactive controls were detected.') }
             if (-not $report.modal.closesWithEscape -or -not $report.modal.focusRestored) { $failures.Add('Modal Escape or focus restoration failed.') }
             if ($report.tvMode.active.tvMode -ne 'true' -or $report.tvMode.active.buttonState -ne 'exit') { $failures.Add('TV mode did not become active.') }
+            if ($report.tvMode.active.languageDisplay -eq 'none' -or $report.tvMode.active.themeDisplay -eq 'none') { $failures.Add('TV mode hid a global preference control.') }
+            if ([string]::IsNullOrWhiteSpace($report.tvMode.active.clockText) -or [string]::IsNullOrWhiteSpace($report.tvMode.active.systemTimeZone)) { $failures.Add('TV mode did not expose system-time evidence.') }
             if ($null -ne $report.tvMode.restored.tvMode -or $report.tvMode.restored.buttonState -ne 'enter') { $failures.Add('TV mode did not restore the standard layout.') }
             if ($report.tvMode.unavailableFullscreen.tvMode -ne 'true' -or $report.tvMode.unavailableFullscreen.nativeFullscreen) { $failures.Add('TV mode fullscreen fallback failed.') }
             if ($failures.Count -gt 0) { throw "Dashboard audit failed for $locale/${theme}: $($failures -join ' ')" }

@@ -40,7 +40,7 @@
   <message key="View.Inventory.Description">Estado operacional, atualização e suporte declarado por provider.</message>
   <message key="View.History.Eyebrow">Eventos canônicos</message>
   <message key="View.History.Title">Histórico operacional</message>
-  <message key="View.History.Description">Timeline somente leitura com severidade, origem e timestamps UTC.</message>
+  <message key="View.History.Description">Timeline somente leitura com severidade, origem e horários exatos.</message>
   <message key="View.Alerts.Eyebrow">Atenção operacional</message>
   <message key="View.Alerts.Title">Alertas</message>
   <message key="View.Alerts.Description">Estado de alertas e regras demonstrativas sem entrega externa ou alteração.</message>
@@ -89,7 +89,7 @@
   <message key="History.Severity">Severidade</message>
   <message key="History.AllSeverities">Todas</message>
   <message key="History.FilteredEmpty">Ajuste a busca ou o filtro de severidade.</message>
-  <message key="Alerts.UpdatedAt">Atualizado em {0} UTC</message>
+  <message key="Alerts.UpdatedAt">Atualizado em {0}</message>
   <message key="Alerts.CriticalOpen">Críticos abertos</message>
   <message key="Alerts.Active">Ativos</message>
   <message key="Alerts.TotalVisible">Total visível</message>
@@ -123,7 +123,7 @@
   <message key="Dialog.Close">Fechar</message>
   <message key="Dialog.ExecuteDisabled">Executar — desabilitado</message>
   <message key="FilteredEmpty.Title">Nenhum resultado</message>
-  <message key="Inventory.UpdatedAt">Atualizado em {0} UTC · stale após {1} min</message>
+  <message key="Inventory.UpdatedAt">Atualizado em {0} · stale após {1} min</message>
   <message key="Inventory.Total">Total</message>
   <message key="Inventory.Healthy">Saudáveis</message>
   <message key="Inventory.Degraded">Degradadas</message>
