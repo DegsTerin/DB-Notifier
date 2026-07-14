@@ -4,7 +4,7 @@ Permanent repository-agent behaviour is consolidated in [`../AGENTS.md`](../AGEN
 
 Current discovery and migration artifacts:
 
-- [`Human-Gate-Retrospective-Ratification.md`](Human-Gate-Retrospective-Ratification.md): current ratification pack; `STATE-00` is approved retrospectively and `STATE-01` through `STATE-04` remain pending without rewriting the historical reports.
+- [`Human-Gate-Retrospective-Ratification.md`](Human-Gate-Retrospective-Ratification.md): current ratification pack; `STATE-00` is approved, `STATE-01` is approved with reservations and `STATE-02` through `STATE-04` remain pending without rewriting the historical reports.
 - [`Legacy-Inventory.md`](Legacy-Inventory.md): verified PgNotifier behavior, limitations, and capability truth.
 - [`Legacy-Migration-Plan.md`](Legacy-Migration-Plan.md): incremental PgNotifier → DB-Notifier milestones, compatibility, verification, and rollback.
 - [`Legacy-Compatibility.md`](Legacy-Compatibility.md): canonical names, deprecated shims, configuration preservation, and removal gate.
@@ -14,7 +14,7 @@ Current discovery and migration artifacts:
 - [`design/DB-Notifier-Design-System.md`](design/DB-Notifier-Design-System.md): official modern enterprise visual language, shared tokens, explicit Light/Dark architecture, component contracts and STATE-05 re-audit criteria.
 - [`STATE-05-Design-System-Implementation-Report.md`](STATE-05-Design-System-Implementation-Report.md): canonical token/schema foundation, deterministic CSS/XAML generation, theme contracts, verification and remaining implementation increments.
 - [`STATE-05-Localisation-Implementation-Report.md`](STATE-05-Localisation-Implementation-Report.md): shared `pt-BR`/`en-GB` catalogue, React/WPF language lifecycle, responsive scope and verification evidence.
-- [`STATE-01-Setup-Report.md`](STATE-01-Setup-Report.md): historical setup evidence, dependency remediation, compatibility migration, and original Human Gate record.
+- [`STATE-01-Setup-Report.md`](STATE-01-Setup-Report.md): historical setup evidence, dependency remediation, compatibility migration and original Human Gate record, now ratified with reservations by the current addendum.
 - [`architecture/README.md`](architecture/README.md): accepted `STATE-02` architecture pack and decision index.
 - [`STATE-02-Architecture-Report.md`](STATE-02-Architecture-Report.md): architecture audit, material decisions, walkthrough, and original Human Gate record.
 - [`data/README.md`](data/README.md): `STATE-03` logical model, retention, migrations, and recovery guidance.

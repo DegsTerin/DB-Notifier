@@ -574,6 +574,17 @@
 - Riscos/limites: nenhuma ação externa, banco, serviço, deploy ou infraestrutura foi executada por esta ratificação.
 - Aprovador: Bruno — `Ratifico a decisão acima exclusivamente para STATE-00 DISCOVERY_MIGRATION.`
 
+## 2026-07-13 — Ratificação retrospectiva de STATE-01 PROJECT_SETUP
+
+- Estado anterior: posição técnica `STATE-05 FRONTEND_IMPLEMENTATION`, progressão `EM ESPERA`; `STATE-00` ratificado e `STATE-01` a `STATE-04` pendentes.
+- Estado resultante: sem transição; `STATE-01` ratificado como `APROVADO COM RESSALVAS`, `STATE-02` a `STATE-05` permanecem pendentes e a progressão continua `EM ESPERA`.
+- Decisão: o validador Bruno aprovou retrospectivamente somente `STATE-01 PROJECT_SETUP` após revisar estrutura/fronteiras, baseline .NET 10, compatibilidade legada, ausência de comportamento provider prematuro/deploy e falta de prova remota da CI.
+- Amostra humana: onboarding `NÃO REPETIDO`; o validador não executou restore, build, testes ou validação e não confirmou independentemente os resultados automáticos registrados.
+- Ressalvas: decisão baseada exclusivamente na documentação/evidência apresentada; onboarding não repetido; CI remota sem comprovação independente.
+- Evidências: confirmação inequívoca recebida e registrada em `docs/Human-Gate-Retrospective-Ratification.md`; baseline automático corrente permanece válido apenas em seu escopo local.
+- Riscos/limites: nenhuma ação externa, banco, serviço, deploy ou infraestrutura foi executada por esta ratificação.
+- Aprovador: Bruno — `Ratifico a decisão acima exclusivamente para STATE-01 PROJECT_SETUP.`
+
 ## Template de nova entrada
 
 - Data:

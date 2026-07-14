@@ -2,7 +2,7 @@
 
 ## Status
 
-`PENDENTE — STATE-00 RATIFICADO; STATE-01 A STATE-04 PENDENTES`
+`PENDENTE — STATE-00 E STATE-01 RATIFICADOS; STATE-02 A STATE-04 PENDENTES`
 
 This document owns the retrospective ratification of the contested Human Gate records for `STATE-00` through `STATE-04`. It is an addendum: the original reports and transition log remain historical evidence and are not rewritten.
 
@@ -107,12 +107,13 @@ The remediation baseline was re-run after the CI/governance changes. The current
 
 ### Ratification record
 
-- Validator/date: `PENDENTE`
-- Samples repeated now: `PENDENTE`
-- Reservations accepted: `PENDENTE`
-- Decision: `PENDENTE`
-- Justification/evidence: `PENDENTE`
-- Required confirmation: `Ratifico a decisão acima exclusivamente para STATE-01 PROJECT_SETUP.`
+- Validator/date: `Bruno — 2026-07-13`
+- Samples reviewed now (document review): solution structure and project boundaries; current .NET 10 targets; legacy delegation without overwriting legacy configuration; absence of premature provider behaviour or deployment; remote CI remains unproved.
+- Onboarding sample: `NÃO REPETIDA` — the validator did not execute restore, build, tests or validation commands and therefore did not independently confirm the report results.
+- Reservations accepted: ratification relies exclusively on the documentation and presented evidence; onboarding was not repeated by the validator; remote CI execution remains without independent proof.
+- Decision: `APROVADO COM RESSALVAS`
+- Justification/evidence: the validator explicitly accepted the setup structure and boundaries while retaining all three evidence limitations above.
+- Confirmation received: `Ratifico a decisão acima exclusivamente para STATE-01 PROJECT_SETUP.`
 
 ## STATE-02 ARCHITECTURE
 
@@ -216,11 +217,11 @@ The remediation baseline was re-run after the CI/governance changes. The current
 ## Overall result
 
 - `STATE-00`: `APROVADO` — retrospectively ratified by Bruno on 2026-07-13 with the recorded scope limitations
-- `STATE-01`: `PENDENTE`
+- `STATE-01`: `APROVADO COM RESSALVAS` — retrospectively ratified by Bruno on 2026-07-13; onboarding not repeated and remote CI not independently proved
 - `STATE-02`: `PENDENTE`
 - `STATE-03`: `PENDENTE`
 - `STATE-04`: `PENDENTE`
 - Lifecycle progression: `EM ESPERA`
-- Next ratification decision to present: `STATE-01 PROJECT_SETUP`
+- Next ratification decision to present: `STATE-02 ARCHITECTURE`
 
 Only after all five independent records are completed may the project resume the `STATE-05` closure workflow. That resumption still requires the current automatic re-audit and its own Human Gate.
