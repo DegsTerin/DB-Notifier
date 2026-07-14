@@ -77,7 +77,7 @@ npm run build
 node.exe node_modules/vite/bin/vite.js preview --host 127.0.0.1 --port 4173
 ```
 
-Open `http://127.0.0.1:4173/` in a new dedicated Chrome tab without navigating or reusing an existing user tab. Use the visible TopBar buttons to select the required locale and theme. Start or stop Narrator with `Windows+Ctrl+Enter` only when ready to listen to the sample.
+Open `http://127.0.0.1:4173/` in a new independent Chrome window, not as another tab in an existing window. Do not navigate, reuse or rearrange existing user windows or tabs. Use the visible TopBar buttons to select the required locale and theme. Start or stop Narrator with `Windows+Ctrl+Enter` only when ready to listen to the sample.
 
 ### Keyboard and Narrator tasks
 
@@ -245,7 +245,7 @@ Do not mark a row until the named human validator has performed it.
 - Date observed: 2026-07-13.
 - Source: explicit user review of the visible local Dashboard in Light mode, supported by sanitised screenshots supplied in the conversation and not committed to the repository.
 - Classification: blocking responsive and presentation-consistency finding.
-- Human feedback: the displayed date/time appeared incorrect because the UI forced UTC rather than the system-local time; TV mode must retain language and theme controls; compact mobile TopBar icons require alignment refinement; future Chrome reviews must open in a new separate tab.
+- Human feedback: the displayed date/time appeared incorrect because the UI forced UTC rather than the system-local time; TV mode must retain language and theme controls; compact mobile TopBar icons require alignment refinement; future Chrome reviews must open in a new independent Chrome window rather than another tab in an existing window.
 - Root cause: Dashboard instants originated from the system clock but `App.tsx` forced every visible formatter to UTC; TV CSS explicitly hid the language/theme selectors; the `620` CSS px breakpoint forced all TopBar controls into a separate full-width row.
 - Remediation: Design System `2.1.1` renders exact instants in the browser system time zone with an explicit short zone label while retaining ISO/UTC machine values and freshness calculations. TV mode keeps language, theme and expand/collapse controls visible. The `320`–`620` CSS px TopBar keeps the shortened brand and three `44×44` controls in one contained row.
 - Automatic evidence: 27 Dashboard tests, typecheck and production build passed. The repeated 44-sample browser matrix passed across `pt-BR`/`en-GB`, Light/Dark and 11 viewports. The `320×568` and `390×844` samples kept the TopBar in one contained row without horizontal overflow. All four TV samples retained language/theme controls, entered/exited Fullscreen and reported their browser system time zone; the local `pt-BR`/Light evidence resolved `America/Sao_Paulo` and displayed `13/07/2026, 22:54:43 BRT` for the corresponding UTC instant.

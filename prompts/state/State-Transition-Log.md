@@ -629,6 +629,16 @@
 - Riscos/ressalvas: resultado automático não constitui aprovação visual; nenhuma interface visível, WPF, Narrator, High Contrast ou scaling foi aberta/alterada durante a correção. Snapshot continua demonstrativo e integração real permanece em `STATE-06`.
 - Aprovador: PENDENTE para a revalidação visual dos três pontos; nenhuma decisão de Human Gate foi inferida.
 
+## 2026-07-13 — Esclarecimento de janela independente para revisão Chrome
+
+- Estado anterior: `STATE-05 FRONTEND_IMPLEMENTATION`, Human Gate pendente.
+- Estado resultante: sem transição; `STATE-05` e seu Human Gate permanecem pendentes.
+- Decisão: corrigir a interpretação anterior de “nova guia dedicada”; amostras visíveis autorizadas do Dashboard devem abrir em uma nova janela independente do Chrome.
+- Escopo: regra permanente em `AGENTS.md`, protocolo do Human Gate e changelog do corpus `3.32.3`; nenhuma mudança funcional no Dashboard.
+- Evidência: esclarecimento explícito do validador acompanhado por capturas que diferenciam uma guia na janela existente de uma janela Chrome separada.
+- Riscos/ressalvas: o controle do navegador não deve navegar, reorganizar ou fechar janelas/guias preexistentes; a janela de revisão continua sujeita a autorização interativa específica.
+- Aprovador: Bruno esclareceu o comportamento esperado; isso não constitui decisão do Human Gate.
+
 ## Template de nova entrada
 
 - Data:

@@ -2,7 +2,7 @@
 
 ## Versão atual
 
-- Versão: `3.32.2`
+- Versão: `3.32.3`
 - Data: 2026-07-13
 - Status: corpus DB-Notifier consolidado
 - Escopo: 13 arquivos ativos
@@ -16,6 +16,12 @@ A versão do corpus é independente da versão do software.
 - PATCH: clareza, correção ou referência sem mudança de autoridade.
 
 Toda alteração atualiza este arquivo e, quando necessário, `../Start-Here.md`.
+
+## 3.32.3 — 2026-07-13
+
+- A instrução de revisão visível no Chrome foi esclarecida: usar uma nova janela independente, não apenas uma nova guia na janela existente.
+- Janelas e guias preexistentes permanecem intocadas; somente a janela dedicada de revisão pode ser entregue ou encerrada conforme o fluxo autorizado.
+- Esta correção supersede a interpretação de “nova guia dedicada” registrada em `3.32.2` sem ocultar o histórico da instrução anterior.
 
 ## 3.32.2 — 2026-07-13
 
