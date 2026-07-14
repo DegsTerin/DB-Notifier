@@ -2,7 +2,7 @@
 
 ## Outcome
 
-The first three DB-Notifier Design System increments, two `S05-HG-001` visual remediation iterations, the canonical product-mark refinements, the ultrawide shell correction, compact preference controls, Dashboard TV presentation, operational Overview, reference-aligned Dashboard/Tray refinement and WPF parity/runtime-hardening increment are complete. They establish the canonical token/schema sources, deterministic React/WPF asset generation, explicit Light/Dark preference contracts and a cohesive enterprise shell required by Design System `2.3.1`.
+The first three DB-Notifier Design System increments, two `S05-HG-001` visual remediation iterations, the canonical product-mark refinements, the ultrawide shell correction, compact preference controls, Dashboard TV presentation, operational Overview, reference-aligned Dashboard/Tray refinement, WPF parity/runtime hardening and notification-area-first increment are complete. They establish the canonical token/schema sources, deterministic React/WPF asset generation, explicit Light/Dark preference contracts and the distinct Web/Windows product roles required by Design System `2.4.0`.
 
 The Dashboard and WPF Desktop now apply generated semantic tokens, expose one discreet translation/languages icon button and one cycling Light/Dark icon button in the upper-right TopBar and preserve the validated preferences. Localised accessible names and tooltips identify the current and next states without flags or permanently expanded groups. The translation symbol replaces the ambiguous globe, while sun/moon states replace the retired System/monitor option. WPF still gives Windows High Contrast precedence over the generated palette.
 
@@ -98,6 +98,15 @@ The React adapter accesses only versioned local UI preference storage and the do
 - Restart is deliberately rendered as a non-interactive unavailable explanation. It does not dispatch a command and states the future capability, authorisation, confirmation and audit prerequisites.
 - Left-click activation and the Windows secondary-click menu path both route to the same flyout; Escape, focus loss and repeated activation dismiss it. The first close-to-Tray notification remains native to Windows.
 
+## Notification-area-first Windows role
+
+- Normal WPF startup creates the Windows notification icon without showing the full desktop shell or an ordinary taskbar window.
+- Activating the icon opens the compact fleet flyout as the primary Windows interaction. Its safe Dashboard action opens the existing full WPF shell as a secondary drill-down.
+- `--show-desktop` is a bounded development/accessibility-audit override. The reproducible WPF audit uses it explicitly; unknown arguments retain the notification-area default.
+- The hierarchy is conceptually informed by Oracle's archived MySQL Notifier taskbar workflow. DB Notifier does not reuse Oracle code/artwork and rejects automatic name-filter discovery, WMI/DCOM/firewall mutation and unconditional service control.
+- Status-change notifications, authorised Agent/API state and aggregate icon updates remain integration work in `STATE-06`. Start/Stop/Restart remain unavailable until their exact capability and authorisation path is implemented and homologated in `STATE-07`.
+- Runtime smoke evidence observed a zero normal-startup main-window handle, found and activated the real DB Notifier `NotifyItemIcon`, opened the localised flyout and then the secondary shell, with a responsive process and no `.NET` dialogue.
+
 ## Verification
 
 | Gate | Result |
@@ -110,17 +119,17 @@ The React adapter accesses only versioned local UI preference storage and the do
 | Dashboard tests | Approved; 32/32, including Overview, Tray structure/safety and system-time regression guards |
 | Dashboard production build | Approved |
 | .NET 10 Release build | Approved; 0 warnings/errors |
-| .NET tests | Approved; 128 unit/model/provider/presentation + 5 architecture = 133/133 |
+| .NET tests | Approved; 132 unit/model/provider/presentation + 7 architecture = 139/139 |
 | .NET format verification | Approved |
 | Legacy compatibility | Approved; 10/10 Pester and bundle validation |
 | Dependency audit | Approved; no npm or NuGet vulnerabilities reported |
-| Documentation gate | Approved; 172 comment-capable source files |
+| Documentation gate | Approved; 173 comment-capable source files and 175 local Markdown links in 61 files |
 | React visual/responsive matrix | Approved; 96 locale/theme/viewport-route samples across the four current locale/theme combinations and 320–1920 CSS px |
 | React overflow/accessibility | Approved; 0 global overflow and 0 unnamed interactive controls in all four locale/theme combinations |
 | Preference cycles | Approved; Web and WPF restored both locales and both themes after two activations in all four combinations, with 0 unnamed interactive/focusable controls |
 | Dashboard TV mode | Approved; four `1920×1080` locale/theme samples entered native Fullscreen, retained demonstration truth and the exit control, hid navigation/filters, displayed the complete Overview and restored the standard shell; the unavailable-Fullscreen fallback remains covered |
-| WPF UI Automation/visual matrix | Approved; four locale/theme combinations at `1180×760`, each with 34 focusable controls and none unnamed; earlier minimum-window and High Contrast evidence remains separate |
-| Tray flyout runtime | WPF compilation and structural/safety regression approved; direct Windows-shell activation could not be observed reliably through the non-interactive automation host, so the Light/Dark bilingual flyout remains an explicit Human Gate sample rather than a claimed visual pass |
+| WPF UI Automation/visual matrix | Approved; eight locale/theme/size combinations at `1180×760` and `820×620`, each with 16 visible focusable controls, none unnamed and 12 contained Tab steps; earlier High Contrast evidence remains separate |
+| Tray flyout runtime | Approved automatically in its local fixture scope; normal startup exposed no main window, the real notification icon opened the localised flyout, its safe action opened the secondary shell, the process remained responsive and no `.NET` dialogue appeared. Human visual acceptance remains pending |
 | Lighthouse regression | Approved; 16 current eight-route mobile/desktop reports, Accessibility and Best Practices `100` in `16/16`, Performance `99`–`100`; SEO `66` remains the intentional internal-console crawler policy |
 
 ## Security and phase boundaries

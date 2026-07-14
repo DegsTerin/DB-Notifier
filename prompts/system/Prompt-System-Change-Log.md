@@ -2,7 +2,7 @@
 
 ## Versão atual
 
-- Versão: `3.33.0`
+- Versão: `3.34.0`
 - Data: 2026-07-14
 - Status: corpus DB-Notifier consolidado
 - Escopo: 13 arquivos ativos
@@ -16,6 +16,12 @@ A versão do corpus é independente da versão do software.
 - PATCH: clareza, correção ou referência sem mudança de autoridade.
 
 Toda alteração atualiza este arquivo e, quando necessário, `../Start-Here.md`.
+
+## 3.34.0 — 2026-07-14
+
+- O cliente Windows passa a ser notification-area-first: inicialização normal mantém o shell WPF completo oculto, um clique no ícone abre o flyout primário e a janela ampla é somente um drill-down secundário.
+- O padrão é inspirado conceitualmente no fluxo documentado do Oracle MySQL Notifier, sem reutilizar código, arte, identidade MySQL, WMI/DCOM, mudanças de firewall ou controle administrativo implícito.
+- O Design System `2.4.0`, `S05-HG-011`, o plano de migração e a rastreabilidade separam experiência adotada, comportamentos recusados, integração `STATE-06` e homologação administrativa `STATE-07`.
 
 ## 3.33.0 — 2026-07-14
 

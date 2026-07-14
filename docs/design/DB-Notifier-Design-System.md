@@ -5,7 +5,7 @@
 | Field | Value |
 |---|---|
 | Status | Official frontend specification |
-| Design System version | `2.3.1` |
+| Design System version | `2.4.0` |
 | Product phase | `STATE-05 FRONTEND_IMPLEMENTATION` |
 | Platforms | React Web Dashboard and .NET 10 WPF Desktop/Tray |
 | Themes | Light and Dark; Windows High Contrast is an accessibility override |
@@ -513,9 +513,15 @@ Modal dialogue requirements include initial focus, forward/reverse containment, 
 
 ### 10.10 Tray
 
-The Tray surface is an extension of the Desktop client, not a separate design language. It uses the canonical database-and-bell mark and Windows notification-area conventions. A complete primary or secondary shell click opens a compact WPF flyout directly, without an empty native context menu competing for activation. The implementation MUST use the stable `NotifyIcon.MouseClick` event rather than a raw mouse-release event because Windows 11 overflow-host activation does not reliably forward the latter. Its two columns show provider-neutral fleet status and safe shortcuts to Dashboard, Configuration and local History/Alerts logs; Restart Service and Silent Mode remain visibly unavailable with explanations, and Exit remains separated. Escape, focus loss or a repeated notification-area activation dismisses the flyout.
+The Windows client is notification-area-first, conceptually inspired by the taskbar interaction model documented for Oracle MySQL Notifier without copying its code, artwork, MySQL-specific assumptions or legacy security model. Normal startup MUST create the notification icon without showing the full WPF shell or adding an ordinary taskbar window. The compact flyout is the primary Windows surface; the full WPF shell is a secondary drill-down destination for richer local inspection and preference management. This difference from the Web Dashboard is intentional product-role separation, while status semantics, language, theme and accessibility remain aligned.
+
+The Tray uses the canonical database-and-bell mark and Windows notification-area conventions. A complete primary or secondary icon click opens the compact WPF flyout directly, without an empty native context menu competing for activation. The implementation MUST use the stable `NotifyIcon.MouseClick` event rather than a raw mouse-release event because Windows 11 overflow-host activation does not reliably forward the latter. Its two columns show provider-neutral fleet status and safe shortcuts to Dashboard, Configuration and local History/Alerts logs; Restart Service and Silent Mode remain visibly unavailable with explanations, and Exit remains separated. Escape, focus loss or a repeated notification-area activation dismisses the flyout. Development and accessibility audits MAY request the secondary shell through the explicit `--show-desktop` process argument; unknown arguments MUST preserve notification-area-first startup.
 
 During `STATE-05`, the flyout MUST identify its deterministic local demonstration, MUST NOT present its display timestamp as an external observation, and MAY show a non-interactive explanation that administrative Restart is unavailable. `STATE-06` owns binding the same surface to authorised API/Agent state, factual change-only notifications and integrated event/log navigation. Service Restart MUST remain unavailable until its exact provider/topology capability, privilege, confirmation, idempotency, audit and post-probe path is implemented and then homologated in `STATE-07`. Vendor artwork, native service identifiers, credentials and unsupported actions MUST NOT be copied from legacy references into this provider-neutral surface.
+
+Concepts deliberately retained from the official MySQL Notifier model are persistent notification-area presence, one-click status access, per-instance status scanning and secondary management entry points. The aggregate icon/tooltip contract, optional change notifications and safe manual refresh are target behaviours whose factual implementation requires authorised Application/Agent state in `STATE-06`; they are not claimed by the local fixture. DB Notifier MUST NOT adopt MySQL Notifier's name-filter auto-add behaviour, direct WMI/DCOM remote-service model, firewall changes, plaintext connection handling or unconditional Start/Stop/Restart commands.
+
+Automatic launch at Windows sign-in is a separate signed-packaging capability, not an implied effect of tray-first process startup. It MUST remain disabled until `STATE-08` provides an explicit user preference, reversible registration, installer ownership and uninstall cleanup.
 
 ## 11. Interaction states
 

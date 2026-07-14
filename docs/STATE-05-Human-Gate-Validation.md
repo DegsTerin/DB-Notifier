@@ -31,7 +31,7 @@ Mobile and tablet samples apply to the responsive Dashboard Web. There is no nat
 | Lighthouse matrix | Thirty-report three-run baseline plus 16 current Design System `2.3.0` reports covering all eight routes in mobile/desktop; current Accessibility/Best Practices `100` in `16/16`, Performance `99`–`100`; valid internal-console crawler policy; SEO `66` by intentional non-crawlability |
 | WPF matrix | Eight current Design System `2.3.1` locale/theme/size samples: four at `1180×760` and four at `820×620`, each with 16 visible focusable controls, none unnamed and 12 sampled Tab steps contained; earlier scaling/High Contrast samples remain separately limited |
 | WPF High Contrast/scaling | High Contrast responded to the real Windows flag in two technical samples; 125%/120 DPI and 150%/144 DPI minimum-window samples passed automatic checks; 200% was not offered by the active `1920×1080` display; human confirmation remains pending |
-| Automated tests | 32 Dashboard, 128 .NET unit/model/provider/presentation, 5 architecture and 10 legacy compatibility tests approved |
+| Automated tests | 32 Dashboard, 132 .NET unit/model/provider/presentation, 7 architecture and 10 legacy compatibility tests approved |
 | Security/dependencies | npm and NuGet reported no known vulnerabilities in the recorded audit |
 
 Primary automatic evidence:
@@ -299,6 +299,18 @@ Do not mark a row until the named human validator has performed it.
 - Revalidation evidence: the WPF Release build and seven architecture tests passed. The existing UI Automation audit rendered the new shell at `1180×760` and `820×620`, exercised both languages/themes and found sixteen visible focusable controls with no unnamed control. The compact pass reflowed KPIs to two columns, stacked paired panels and kept all eight destinations available. A targeted invocation of the exact Windows `NotifyItemIcon` named `DB Notifier · demonstração local` opened the `Visão rápida da frota` flyout at `560×473`; the process remained responsive and no `.NET` exception dialog was present. Screenshots remain sanitised and temporary under `%TEMP%\DBNotifier-State05-Audit`.
 - Human closure: `PENDENTE`. The runtime failure is fixed automatically, but the validator still needs to decide whether the revised WPF shell and flyout are visually acceptable. No approval is inferred from the bug report or from automated activation.
 
+### `S05-HG-011` — Make the Windows client notification-area-first
+
+- Date requested: 2026-07-14.
+- Source: explicit product-owner clarification that WPF primarily exists as the DB Notifier presence in the Windows notification area and should take conceptual inspiration from Oracle MySQL Notifier.
+- Classification: product-role correction and blocking Tray workflow sample; it supersedes only the assumption that the full WPF shell should appear automatically or compete with the Web Dashboard.
+- Reference analysis: Oracle's archived MySQL Notifier manual describes a taskbar-resident notifier whose icon opens the primary status menu, lists monitored servers separately, reflects aggregate state, can notify on status changes and delegates richer management to secondary applications. Its final documented series is under Lifetime Sustaining Support. The reference is used for interaction hierarchy only; no Oracle code, artwork or vendor-specific implementation is reused.
+- Adopted contract: ordinary DB Notifier startup creates the Windows notification icon and leaves the full WPF shell hidden. One icon activation opens the compact fleet flyout. The full WPF shell remains a secondary drill-down destination. The explicit `--show-desktop` argument exists only for development and bounded accessibility/visual audits.
+- Rejected legacy behaviours: no service auto-add by name, WMI/DCOM reverse callback, firewall mutation, provider connection-file coupling or unconditional Start/Stop/Restart. Authorised Agent/API state and change-only Windows notifications remain `STATE-06`; administrative actions remain gated by exact capability and `STATE-07` homologation.
+- Automatic evidence: the focused WPF Release build completed with zero warnings/errors and all nine Tray presentation cases passed. Normal startup produced no main-window handle; the Windows notification icon was found, its activation opened the localised fleet flyout, the safe Dashboard action opened the secondary WPF shell, the process remained responsive and no `.NET` dialogue appeared. The `--show-desktop` audit override rendered `pt-BR`/Dark at `820×620` with sixteen focusable controls, none unnamed and twelve contained Tab steps. The full revalidation passed 132 unit/presentation tests, seven architecture tests, 32 Dashboard tests, ten Pester tests, format, generated-asset drift, Markdown/documentation, dependency and fail-closed runtime gates.
+- Human closure: `PENDENTE`. The validator must launch DB Notifier normally, confirm that no full WPF window appears, activate the notification icon, inspect the flyout and then open the secondary desktop from its safe action.
+- Lifecycle impact: no transition. `STATE-05` and its overall Human Gate remain pending.
+
 ## Human Gate decision
 
 - Phase: `STATE-05 FRONTEND_IMPLEMENTATION`
@@ -308,7 +320,7 @@ Do not mark a row until the named human validator has performed it.
 - Critical samples repeated: PENDENTE
 - Experience and error messages: PENDENTE
 - Security/authorisation truth: PENDENTE
-- Remaining coverage: remediated Design System `2.3.1` Overview, revised eight-destination WPF shell, database-and-bell mark and corrected Tray visual, fullscreen/TV layout and controls, system-local time, compact mobile TopBar, `320 px` Alert/Configuration cards, corrected narrow-desktop Alert summary, wordmark, translation icon and Light/Dark-only control confirmation plus all keyboard, screen-reader, zoom, scaling, High Contrast and remaining samples above
+- Remaining coverage: Design System `2.4.0` notification-area-first startup/flyout and secondary WPF shell, remediated Overview, database-and-bell mark, fullscreen/TV layout and controls, system-local time, compact mobile TopBar, `320 px` Alert/Configuration cards, corrected narrow-desktop Alert summary, wordmark, translation icon and Light/Dark-only control confirmation plus all keyboard, screen-reader, zoom, scaling, High Contrast and remaining samples above
 - Decision: `PENDENTE`
 - Justification/evidence: PENDENTE
 
@@ -316,4 +328,4 @@ Permitted decisions after the sample are `APROVADO`, `APROVADO COM RESSALVAS` or
 
 ## Recommended next step
 
-After the automatic gates pass and with new explicit consent, open the rebuilt Dashboard in a new independent Chrome window and open the WPF Desktop/Tray sample separately. Review the eight-item navigation, TopBar bell/gear, wordmark/mark, four KPI cards, provider/status rows, Recent Alerts and both charts in `pt-BR`/Dark at desktop and `390 px`; then activate the Tray with both primary and secondary notification-area clicks and inspect safe/unavailable actions. Record the repeated `S05-HG-010` result independently. Do not infer the overall Human Gate decision.
+After the automatic gates pass and with new explicit consent, launch the rebuilt Windows client normally and confirm that it remains only in the notification area. Activate the icon with primary and secondary clicks, inspect fleet status/source/freshness and unavailable actions, open the secondary WPF shell from the flyout, and close it back to the Tray. Record `S05-HG-011` independently from the still-pending visual details of `S05-HG-010`; do not infer the overall Human Gate decision.

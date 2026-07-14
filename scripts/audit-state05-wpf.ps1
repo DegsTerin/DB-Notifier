@@ -75,7 +75,8 @@ if ($previousDpiAwarenessContext -eq [IntPtr]::Zero) {
 
 try {
     [System.IO.File]::WriteAllText($preferencePath, $requestedPreferences)
-    $process = Start-Process -FilePath $executable -PassThru
+    # The product is notification-area-first; the explicit review switch exposes the secondary desktop shell for this bounded audit.
+    $process = Start-Process -FilePath $executable -ArgumentList "--show-desktop" -PassThru
     $deadline = [DateTime]::UtcNow.AddSeconds(15)
     do {
         Start-Sleep -Milliseconds 200

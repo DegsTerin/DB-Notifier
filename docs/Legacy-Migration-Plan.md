@@ -15,6 +15,23 @@ Proposed in `STATE-00 DISCOVERY_MIGRATION`. Approval of this plan and the target
 - Announce only the provider/platform combinations proven by tests and homologation.
 - Keep the provider catalog open to every database engine while implementing and homologating one bounded provider slice at a time.
 
+## MySQL Notifier conceptual benchmark
+
+The product owner clarified on 2026-07-14 that the Windows WPF client is primarily a Windows notification-area notifier. The benchmark is the interaction model documented by Oracle for MySQL Notifier 1.1, not its source code, artwork, vendor identity or security architecture. Oracle's archived [MySQL Notifier manual](https://downloads.mysql.com/docs/mysql-notifier-en.pdf) and [release notes](https://downloads.mysql.com/docs/mysql-notifier-relnotes-en.pdf) establish the following reference behaviours:
+
+- the application resides in the Microsoft Windows taskbar notification area and may start with Windows;
+- activating its icon opens the main status menu, with each monitored server and its current state;
+- the icon reflects aggregate monitored status and status changes can produce Windows notifications;
+- monitored services/instances can be managed separately, refreshed manually and checked on a configurable interval;
+- larger management tools are secondary destinations opened from the notifier;
+- the final documented series is under Oracle Lifetime Sustaining Support, so it is a historical benchmark rather than a current dependency.
+
+DB Notifier adopts the tray-first hierarchy, rapid fleet scan, aggregate-state concept, change-only notification intent and secondary-management navigation. It deliberately replaces MySQL-specific service assumptions with provider-neutral Application contracts, canonical health states, explicit freshness and Agent/API ownership. Normal WPF startup remains in the notification area; the full WPF shell is a secondary local drill-down, while the Web Dashboard owns the complete responsive fleet experience.
+
+DB Notifier does not adopt automatic service addition by name, direct remote WMI/DCOM callbacks, automatic firewall changes, vendor connection-file coupling or unconditional Start/Stop/Restart. Discovery must be typed and authorised. Remote monitoring follows the accepted outbound Agent/API architecture. Administrative actions remain unavailable until capability, identity, permission, confirmation, replay protection, audit, post-probe and exact homologation are proved.
+
+Starting automatically at Windows sign-in is not implemented by this `STATE-05` increment. It requires an explicit user preference and the signed installer/startup-registration contract owned by `STATE-08`; normal process startup being tray-first must not be confused with automatic operating-system registration.
+
 ## Proposed technical baseline for the gate
 
 The baseline proposed by the project vision is suitable for project setup:
@@ -112,6 +129,7 @@ Deliverables:
 
 - Production WPF Tray/Desktop bound to Application contracts rather than mocks.
 - Provider-neutral notification-area flyout with factual fleet summary, non-colour-only states, local navigation and explicit unavailability for administrative operations not yet integrated or homologated.
+- Notification-area-first startup; the compact flyout is the primary Windows surface and the full WPF shell is a secondary drill-down destination.
 - Empty, loading, offline, error, stale, maintenance, unsupported, and denied states.
 - Keyboard/accessibility support and status not communicated by color alone.
 - PgNotifier and DB-Notifier side-by-side configuration choice during the compatibility window.

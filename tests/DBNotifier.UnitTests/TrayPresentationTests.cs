@@ -5,6 +5,21 @@ namespace DBNotifier.UnitTests;
 
 public sealed class TrayPresentationTests
 {
+    /// <summary>Verifies that normal startup remains hidden and only the exact review switch reveals the desktop shell.</summary>
+    /// <param name="expected">The startup mode expected for the supplied arguments.</param>
+    /// <param name="arguments">The command-line arguments under test.</param>
+    [Theory]
+    [InlineData(TrayStartupMode.NotificationArea)]
+    [InlineData(TrayStartupMode.ShowDesktop, "--show-desktop")]
+    [InlineData(TrayStartupMode.ShowDesktop, "--SHOW-DESKTOP")]
+    [InlineData(TrayStartupMode.NotificationArea, "--unknown")]
+    public void StartupDefaultsToNotificationAreaAndRequiresExactDesktopReviewSwitch(
+        TrayStartupMode expected,
+        params string[] arguments)
+    {
+        Assert.Equal(expected, TrayStartupPolicy.Resolve(arguments));
+    }
+
     [Theory]
     [InlineData(TrayWindowIntent.Minimize, TrayWindowAction.HideToTray)]
     [InlineData(TrayWindowIntent.CloseRequest, TrayWindowAction.HideToTray)]

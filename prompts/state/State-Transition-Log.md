@@ -737,6 +737,17 @@
 - Riscos/ressalvas: paridade é semântica e estrutural, não pixel-a-pixel; dados permanecem demonstrativos; notificações por mudança são `STATE-06`; ações administrativas reais continuam indisponíveis; o validador ainda precisa aceitar ou rejeitar visualmente o WPF/flyout corrigido.
 - Aprovador: correção solicitada por Bruno após encontrar a falha; nenhuma decisão do Human Gate foi inferida.
 
+## 2026-07-14 — Cliente Windows notification-area-first inspirado no MySQL Notifier
+
+- Estado anterior: `STATE-05 FRONTEND_IMPLEMENTATION`, Human Gate pendente e shell WPF ainda exibido na inicialização normal.
+- Estado resultante: sem transição; hierarquia Windows corrigida e `S05-HG-011` permanece pendente de revisão humana.
+- Decisão: tratar o WPF principalmente como notificador da área de notificação, usando o Oracle MySQL Notifier como referência conceitual de interação e mantendo o Dashboard Web como superfície completa.
+- Escopo: Design System `2.4.0`; pesquisa nos manuais oficiais arquivados; inicialização normal somente no Tray; flyout como superfície primária; shell WPF como drill-down; argumento `--show-desktop` para auditoria; instrução permanente e matriz `REQ-047`.
+- Gates: build completo com zero avisos/erros; 132 testes unit/model/provider/presentation, sete de arquitetura, 32 Dashboard e dez Pester; format, marca/tokens/localização, 175 links Markdown, 173 arquivos no gate documental, auditorias npm/NuGet e runtime fail-closed aprovados. O smoke dirigido confirmou startup sem main-window handle, NotifyIcon/flyout e shell secundário, processo responsivo e ausência de diálogo `.NET`; a auditoria `pt-BR`/Dark `820×620` encontrou 16 controles focalizáveis, nenhum sem nome e 12 passos de Tab contidos.
+- Evidências: `docs/design/DB-Notifier-Design-System.md`, `docs/Legacy-Migration-Plan.md`, `docs/STATE-05-Human-Gate-Validation.md`, `docs/STATE-05-Request-Traceability-Audit.md`, política `TrayStartupPolicy` e runner WPF.
+- Riscos/ressalvas: MySQL Notifier está em Lifetime Sustaining Support e não é dependência; código, arte, identidade MySQL, WMI/DCOM, firewall e controle direto não foram reutilizados. Notificações reais/ícone agregado são `STATE-06`; Start/Stop/Restart dependem de `STATE-07`.
+- Aprovador: implementação solicitada por Bruno; nenhuma aprovação de `S05-HG-011` ou do Human Gate foi inferida.
+
 ## Template de nova entrada
 
 - Data:

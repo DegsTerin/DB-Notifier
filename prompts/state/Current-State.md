@@ -28,9 +28,9 @@
 
 ## Frontend implementado em STATE-05
 
-- Oito incrementos implementam Overview operacional, navegação compartilhada de oito destinos, inventário/status, histórico/alertas, demonstrações de desempenho/providers, configuração/capabilities, Tray seguro e flyout operacional em React e WPF .NET 10.
+- Nove incrementos implementam Overview operacional, navegação compartilhada de oito destinos, inventário/status, histórico/alertas, demonstrações de desempenho/providers, configuração/capabilities, Tray seguro, flyout operacional e inicialização Windows notification-area-first em React e WPF .NET 10.
 - Todas as superfícies usam adapters determinísticos locais e identificam dados de demonstração; nenhuma chama API, Agent, database, IdP, vault, notification channel ou executor.
-- Design System `2.3.1` fornece tokens canônicos, geração CSS/XAML determinística, marca provider-neutral de banco com sino, wordmark visual `DBNotifier` verde/branco, shell empresarial compartilhado e contrato WPF para propriedades de valor composto.
+- Design System `2.4.0` fornece tokens canônicos, geração CSS/XAML determinística, marca provider-neutral de banco com sino, wordmark visual `DBNotifier` verde/branco, shell empresarial compartilhado, contrato WPF para propriedades de valor composto e hierarquia Windows notification-area-first.
 - Idiomas atuais: `pt-BR` padrão e `en-GB`, com catálogos XML canônicos e adapters TypeScript/XAML gerados.
 - Temas selecionáveis atuais: Light e Dark. Valor antigo ou inválido System migra para Light; Windows High Contrast permanece override independente.
 - Dashboard Web é responsivo de 320 CSS px a ultrawide e atende desktop, tablet e mobile Web; não existe aplicativo móvel nativo.
@@ -40,20 +40,21 @@
 - Em larguras Web compactas abaixo de `768` CSS px, coleções de Alertas e capabilities administrativas usam uma única coluna; timestamps, providers e reason codes quebram dentro do próprio cartão.
 - O resumo de Alertas usa toda a largura operacional e três tracks para suas três métricas até o breakpoint compacto, sem herdar colunas vazias do Inventário.
 - O refresh atual recalcula apenas relógio e freshness sobre o snapshot local. Leitura API imediata e reconciliação não sobreposta a cada 30 segundos pertencem a `STATE-06`.
-- WPF é uma aplicação Windows desktop com mínimo de `820×620` DIP; não possui modo TV. Seu rail nativo preserva os mesmos oito destinos e a mesma ordem do Dashboard, com títulos localizados e superfícies somente leitura separadas; abaixo de `1000` DIP, KPIs refluem para duas colunas e painéis empilham sem ocultar a navegação.
+- WPF é o cliente Windows notification-area-first e não possui modo TV. A inicialização normal mantém somente o NotifyIcon; um clique abre o flyout primário e o shell WPF completo é um drill-down secundário. O argumento explícito `--show-desktop` existe para desenvolvimento/auditoria. O shell possui mínimo de `820×620` DIP, preserva os mesmos oito destinos e ordem do Dashboard e reflui KPIs/painéis abaixo de `1000` DIP.
 - Flyout do Tray usa leitura compacta em duas colunas: quatro instâncias demonstrativas e seus estados à esquerda; atalhos seguros para Dashboard, Configuração e logs à direita; Restart e Silent Mode permanecem explicativos e não interativos. O clique humano inicial provou o callback `MouseClick` e revelou valores compostos XAML inválidos; depois da correção tipada, a ativação dirigida do `NotifyItemIcon` abriu o flyout sem diálogo `.NET`. O aceite visual humano do resultado corrigido permanece pendente.
 
 ## Evidência automática atual
 
-- Restore locked, build Release, 128 testes unit/model/provider/presentation e 7 testes de arquitetura aprovados; 0 avisos e 0 erros na revalidação deste incremento.
+- Restore locked, build Release, 132 testes unit/model/provider/presentation e 7 testes de arquitetura aprovados; 0 avisos e 0 erros na revalidação deste incremento.
 - `dotnet format`, auditoria NuGet, 32 testes Dashboard, typecheck, build Vite, auditoria npm, geração/drift de marca/tokens/localização e gate documental aprovados.
 - 10 testes Pester e validação do bundle legado aprovados.
 - CI reproduz format, auditorias NuGet/npm, bundle, links Markdown, smoke fail-closed, integridade Git e matriz Dashboard headless, além dos builds/testes já existentes.
-- A auditoria de rastreabilidade `docs/STATE-05-Request-Traceability-Audit.md` consolida 46 unidades de requisito desta sequência de trabalho e liga cada uma a documento, implementação, teste/evidência e pendência; ela não altera o Human Gate.
+- A auditoria de rastreabilidade `docs/STATE-05-Request-Traceability-Audit.md` consolida 47 unidades de requisito desta sequência de trabalho e liga cada uma a documento, implementação, teste/evidência e pendência; ela não altera o Human Gate.
 - Bruno reconheceu em 2026-07-14 que a matriz representa corretamente suas solicitações e a aceitou somente como inventário documental, declarando explicitamente que isso não aprova o Human Gate de `STATE-05`.
 - Matriz Dashboard atual cobre 96 amostras (`2 locales × 2 temas × 24 viewports/rotas`), sem overflow global ou controles interativos sem nome; modal e TV passaram nos quatro pares locale/tema. As oito rotas atuais incluem Overview, Instances, Alerts, Performance, History, Configuration, Providers e Settings. A Overview preserva quatro instâncias e três alertas de demonstração; mobile mantém os cinco controles globais contidos, Alertas/Configuração usam uma coluna e o resumo de Alertas a `960×1040` ocupa a linha completa.
 - A baseline Lighthouse `13.4.0` preserva 30 relatórios limpos de três repetições sobre as cinco rotas anteriores. A regressão Design System `2.3.0` acrescenta 16 relatórios atuais (`8` rotas × mobile/desktop × `1` execução): Acessibilidade/Boas Práticas `100` em `16/16`, Performance `99`–`100` e crawler policy válida. O primeiro passe móvel detectou `aria-label` proibido no contêiner de marca; após correção do papel semântico, as 16 amostras foram repetidas. SEO `66` é consequência intencional de `Disallow: /` no console interno, não falha de sintaxe; isso não substitui o Human Gate.
 - Matriz WPF Design System `2.3.1` cobre oito combinações de locale/tema/tamanho padrão e mínimo, cada uma com 16 controles focalizáveis visíveis, nenhum sem nome e 12 passos de Tab contidos. High Contrast real foi reconhecido/restaurado e duas amostras técnicas anteriores permaneceram legíveis. Scaling real anterior a 125%/120 DPI e 150%/144 DPI passou no mínimo com rolagem acessível; 200% não foi oferecido pelo monitor `1920×1080`. A janela é `PROCESS_SYSTEM_DPI_AWARE`; cenário mixed-DPI/per-monitor continua não provado.
+- O incremento `2.4.0` repetiu startup normal sem janela principal, ativação do NotifyIcon/flyout, abertura segura do shell secundário e ausência de diálogo `.NET`; o processo permaneceu responsivo. O runner WPF passou a usar `--show-desktop` e repetiu `pt-BR`/Dark a `820×620` com 16 controles focalizáveis, nenhum sem nome e 12 passos de Tab contidos.
 - API local respondeu liveness `200`, catálogo humano sem token `401` e poll de Agent sem certificado `403`; Agent permaneceu ativo com defaults desabilitados e foi encerrado após a amostra.
 - Git worktree rastreado permanece limpo antes deste incremento; a referência interna longa e inválida encontrada na auditoria foi copiada para `%TEMP%`, removida pontualmente e `git show-ref`/`git fsck --full` voltaram a sair com código 0.
 - Evidência automática não substitui Human Gate nem prova runtime externo, provider real, acessibilidade humana ou produção.
@@ -71,14 +72,15 @@
 ## Dívida e limitações atuais
 
 - A documentação automática garante cabeçalhos de módulos e inventário; cobertura XML completa das APIs públicas preexistentes permanece incremental e exige revisão humana quando o arquivo proprietário for alterado.
-- A reauditoria automática final do Design System `2.1.0` permanece aprovada em seu escopo histórico; os incrementos `2.1.1` de hora local/TV/TopBar, `2.1.2` de cartões compactos, `2.1.3` do resumo responsivo, `2.2.0` da Overview/flyout em duas colunas, `2.3.0` do refinamento solicitado e `2.3.1` da paridade/robustez WPF também passaram nos gates automáticos aplicáveis, sem substituir o Human Gate.
-- Relatórios iniciais de localização/Design System preservam controles e contagens da época como evidência histórica; o contrato atual é Design System `2.3.1`, ícone único de tradução, Light/Dark e oito incrementos frontend.
+- A reauditoria automática final do Design System `2.1.0` permanece aprovada em seu escopo histórico; os incrementos `2.1.1` de hora local/TV/TopBar, `2.1.2` de cartões compactos, `2.1.3` do resumo responsivo, `2.2.0` da Overview/flyout em duas colunas, `2.3.0` do refinamento solicitado, `2.3.1` da paridade/robustez WPF e `2.4.0` da hierarquia tray-first também passaram nos gates automáticos aplicáveis, sem substituir o Human Gate.
+- Relatórios iniciais de localização/Design System preservam controles e contagens da época como evidência histórica; o contrato atual é Design System `2.4.0`, ícone único de tradução, Light/Dark e nove incrementos frontend.
 - Lighthouse é evidência laboratorial local; não prova experiência humana, produção ou telemetria real. O console bloqueia deliberadamente o rastreamento, portanto a nota SEO agregada não é um gate aplicável enquanto `robots.txt` bloquear crawlers.
 - Human Gate `STATE-05` ainda precisa confirmar visual da Overview remediada, wordmark/marca, oito destinos, TopBar, KPIs, providers/status, alertas/gráficos, flyout/ativação do Tray, layout/preferências/TV e executar Narrator, teclado, zoom, scaling e High Contrast em ambos os idiomas/temas aplicáveis.
 - O Narrator foi iniciado somente após autorização explícita e interrompido a pedido do validador, que informou não conseguir realizar a amostra. Fala, ordem auditiva e usabilidade permanecem `NÃO TESTADAS`, sem inferência de aprovação ou reprovação do produto.
 - `STATE-06`: integração API/Agent/UI, heartbeat/enrollment/revocation, reconciliação, SignalR hints, refresh TV real, notificações e E2E sandbox.
 - `STATE-07`: PostgreSQL real/homologação, control adapters/post-probe e providers adicionais independentes.
 - `STATE-08`: MSI/WiX ou equivalente, Authenticode, SBOM, update channel, backup/restore, rollout e rollback.
+- A inicialização automática do WPF no logon do Windows ainda não existe; ela depende de preferência explícita, registro reversível e ownership do instalador assinado em `STATE-08`. A inicialização tray-first atual aplica-se somente quando o processo é executado.
 
 ## Próximo gate
 

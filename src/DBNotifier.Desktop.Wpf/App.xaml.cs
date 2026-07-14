@@ -1,5 +1,6 @@
 // Module purpose: Implements App xaml for the Windows desktop shell without controlling database services implicitly.
 using System.Windows;
+using DBNotifier.Application.Presentation;
 
 namespace DBNotifier.Desktop.Wpf;
 
@@ -9,7 +10,8 @@ public partial class App : System.Windows.Application, IDisposable
     private DesktopLocalisationService? localisation;
     private DesktopThemeService? theme;
 
-    /// <summary>Loads safe language and theme preferences before constructing any visible desktop surface.</summary>
+    /// <summary>Loads safe preferences and starts in the notification area unless an explicit audit switch requests the desktop.</summary>
+    /// <param name="e">Startup arguments; only <c>--show-desktop</c> changes the tray-first default.</param>
     protected override void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
@@ -21,7 +23,10 @@ public partial class App : System.Windows.Application, IDisposable
         MainWindow window = new(localisation, theme);
         MainWindow = window;
         trayController = new TrayApplicationController(window, this, localisation);
-        window.Show();
+        if (TrayStartupPolicy.Resolve(e.Args) == TrayStartupMode.ShowDesktop)
+        {
+            window.Show();
+        }
     }
 
     /// <summary>Releases tray and theme-observation resources when the WPF application exits.</summary>
