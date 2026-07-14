@@ -26,6 +26,22 @@ using System.Runtime.InteropServices;
 /// <summary>Provides the target-window-only capture required by the WPF audit.</summary>
 public static class AuditNativeMethods
 {
+    /// <summary>Returns the DPI-awareness context currently associated with the audited window.</summary>
+    [DllImport("user32.dll")]
+    public static extern IntPtr GetWindowDpiAwarenessContext(IntPtr windowHandle);
+
+    /// <summary>Maps a DPI-awareness context to the documented awareness classification.</summary>
+    [DllImport("user32.dll")]
+    public static extern int GetAwarenessFromDpiAwarenessContext(IntPtr awarenessContext);
+
+    /// <summary>Returns the effective DPI applied by Windows to the audited WPF window.</summary>
+    [DllImport("user32.dll")]
+    public static extern uint GetDpiForWindow(IntPtr windowHandle);
+
+    /// <summary>Changes only the audit thread's DPI context so UI Automation bounds and captures use physical pixels.</summary>
+    [DllImport("user32.dll")]
+    public static extern IntPtr SetThreadDpiAwarenessContext(IntPtr awarenessContext);
+
     /// <summary>Renders one identified native window into the supplied device context.</summary>
     [DllImport("user32.dll")]
     public static extern bool PrintWindow(IntPtr windowHandle, IntPtr deviceContext, uint flags);
@@ -52,6 +68,10 @@ $requestedPreferences = [ordered]@{
     Theme = $Theme
 } | ConvertTo-Json -Compress
 $process = $null
+$previousDpiAwarenessContext = [AuditNativeMethods]::SetThreadDpiAwarenessContext([IntPtr]::new(-4))
+if ($previousDpiAwarenessContext -eq [IntPtr]::Zero) {
+    throw "The WPF audit thread could not enter the Per-Monitor V2 DPI-awareness context."
+}
 
 try {
     [System.IO.File]::WriteAllText($preferencePath, $requestedPreferences)
@@ -118,6 +138,25 @@ try {
             }
         }
     )
+    $inventoryGridCondition = [System.Windows.Automation.PropertyCondition]::new(
+        [System.Windows.Automation.AutomationElement]::AutomationIdProperty,
+        "InventoryGrid")
+    $inventoryGrid = $window.FindFirst([System.Windows.Automation.TreeScope]::Descendants, $inventoryGridCondition)
+    $inventoryScroll = $null
+    if ($null -ne $inventoryGrid) {
+        $scrollPatternObject = $null
+        if ($inventoryGrid.TryGetCurrentPattern([System.Windows.Automation.ScrollPattern]::Pattern, [ref]$scrollPatternObject)) {
+            $scrollPattern = [System.Windows.Automation.ScrollPattern]$scrollPatternObject
+            $inventoryScroll = [ordered]@{
+                horizontallyScrollable = $scrollPattern.Current.HorizontallyScrollable
+                horizontalViewSize = $scrollPattern.Current.HorizontalViewSize
+                horizontalScrollPercent = $scrollPattern.Current.HorizontalScrollPercent
+                verticallyScrollable = $scrollPattern.Current.VerticallyScrollable
+                verticalViewSize = $scrollPattern.Current.VerticalViewSize
+                verticalScrollPercent = $scrollPattern.Current.VerticalScrollPercent
+            }
+        }
+    }
 
     # Window focus establishes a repeatable starting point before native Tab traversal.
     $window.SetFocus()
@@ -139,6 +178,10 @@ try {
     }
 
     $bounds = $window.Current.BoundingRectangle
+    $windowDpi = [AuditNativeMethods]::GetDpiForWindow($process.MainWindowHandle)
+    $windowScalePercent = [Math]::Round(($windowDpi / 96) * 100)
+    $windowDpiAwareness = [AuditNativeMethods]::GetAwarenessFromDpiAwarenessContext(
+        [AuditNativeMethods]::GetWindowDpiAwarenessContext($process.MainWindowHandle))
     $bitmap = [System.Drawing.Bitmap]::new([int]$bounds.Width, [int]$bounds.Height)
     $graphics = [System.Drawing.Graphics]::FromImage($bitmap)
     try {
@@ -151,7 +194,7 @@ try {
         finally {
             $graphics.ReleaseHdc($deviceContext)
         }
-        $screenshotPath = Join-Path $evidenceDirectory "wpf-main-window-$($Width)x$($Height).png"
+        $screenshotPath = Join-Path $evidenceDirectory "wpf-main-window-$($Width)x$($Height)-$($windowDpi)dpi.png"
         $bitmap.Save($screenshotPath, [System.Drawing.Imaging.ImageFormat]::Png)
     }
     finally {
@@ -167,14 +210,18 @@ try {
         processId = $process.Id
         windowName = $window.Current.Name
         bounds = [ordered]@{ width = $bounds.Width; height = $bounds.Height }
+        windowDpi = $windowDpi
+        windowScalePercent = $windowScalePercent
+        windowDpiAwareness = $windowDpiAwareness
         focusableControlCount = $focusable.Count
         unnamedFocusable = @($focusable | Where-Object { [string]::IsNullOrWhiteSpace($_.name) })
         focusableControls = $focusable
+        inventoryScroll = $inventoryScroll
         preferenceCycles = [ordered]@{ language = $languageCycle; theme = $themeCycle }
         tabSequence = $tabSequence
         screenshotPath = $screenshotPath
     }
-    $reportPath = Join-Path $evidenceDirectory "wpf-audit-$($Width)x$($Height).json"
+    $reportPath = Join-Path $evidenceDirectory "wpf-audit-$($Width)x$($Height)-$($windowDpi)dpi.json"
     $report | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath $reportPath -Encoding utf8
     [ordered]@{ reportPath = $reportPath; report = $report } | ConvertTo-Json -Depth 8
 }
@@ -191,4 +238,5 @@ finally {
     elseif ([System.IO.File]::Exists($preferencePath)) {
         Remove-Item -LiteralPath $preferencePath -Force
     }
+    [AuditNativeMethods]::SetThreadDpiAwarenessContext($previousDpiAwarenessContext) | Out-Null
 }

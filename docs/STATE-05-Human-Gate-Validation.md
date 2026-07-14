@@ -29,7 +29,8 @@ Mobile and tablet samples apply to the responsive Dashboard Web. There is no nat
 | Design System implementation report | Design System `2.1.3` translation-icon, Light/Dark-only, outlined database-mark, ultrawide, TV-presentation, system-local time, compact TopBar, responsive summary bands, single-column operational cards and operational-Tray implementation gates approved; commit identifier is reported in the implementation hand-off |
 | Dashboard matrix | 56 standard locale/theme/viewport-route samples plus four TV samples across the current Light/Dark combinations; no global overflow or unnamed interactive control |
 | Lighthouse matrix | 24 clean reports (`4` routes × mobile/desktop × `3` runs); median Performance/Accessibility/Best Practices `100`; valid internal-console crawler policy; SEO `66` by intentional non-crawlability |
-| WPF matrix | Four current locale/theme combinations at `1180×760`, each with 34 focusable controls and none unnamed; minimum-window and High Contrast samples remain separately recorded |
+| WPF matrix | Eight current locale/theme/size samples: four at `1180×760` with 34 focusable controls and four at `820×620` with 21; none unnamed and sampled Tab focus remained contained |
+| WPF High Contrast/scaling | High Contrast responded to the real Windows flag in two technical samples; 125%/120 DPI and 150%/144 DPI minimum-window samples passed automatic checks; 200% was not offered by the active `1920×1080` display; human confirmation remains pending |
 | Automated tests | 31 Dashboard, 128 .NET unit/model/provider/presentation, 5 architecture and 10 legacy compatibility tests approved |
 | Security/dependencies | npm and NuGet reported no known vulnerabilities in the recorded audit |
 
@@ -39,6 +40,7 @@ Primary automatic evidence:
 - [`STATE-05-Localisation-Implementation-Report.md`](STATE-05-Localisation-Implementation-Report.md)
 - [`STATE-05-Frontend-Implementation-Reaudit.md`](STATE-05-Frontend-Implementation-Reaudit.md)
 - [`STATE-05-Lighthouse-Audit.md`](STATE-05-Lighthouse-Audit.md)
+- [`STATE-05-WPF-Accessibility-Audit.md`](STATE-05-WPF-Accessibility-Audit.md)
 
 ## Validation environment preflight
 
@@ -158,11 +160,11 @@ Do not mark a row until the named human validator has performed it.
 | `HG05-01` | Dashboard `pt-BR` Light, keyboard and Narrator | SHELL VISUAL APROVADO — ÍCONE/TECLADO/NARRATOR PENDENTES | The human reviewer accepted the second shell refinement, rejected the first filled database mark and has not yet reviewed its outlined replacement. Keyboard and Narrator were not performed. |
 | `HG05-02` | Dashboard `en-GB` Dark, keyboard and Narrator | PENDENTE | |
 | `HG05-03` | Dashboard native 200% zoom and compact reflow | 390 PX APROVADO — 320 PX/200% PENDENTES | Bruno approved the visible `390×844` Alert/Configuration sample on 2026-07-14; minimum width and native 200% zoom remain unreviewed. |
-| `HG05-04` | WPF `pt-BR` Light, default/minimum, keyboard and Narrator | PENDENTE | |
-| `HG05-05` | WPF `en-GB` Dark, default/minimum, keyboard and Narrator | PENDENTE | |
+| `HG05-04` | WPF `pt-BR` Light, default/minimum, keyboard and Narrator | PENDENTE | Default/minimum UI Automation passed; the validator could not perform Narrator. |
+| `HG05-05` | WPF `en-GB` Dark, default/minimum, keyboard and Narrator | PENDENTE | Default/minimum UI Automation passed; Narrator was not repeated in this combination. |
 | `HG05-06` | Explicit Light/Dark stability across Windows application-mode changes | PENDENTE | |
-| `HG05-07` | Windows High Contrast on both interfaces | PENDENTE | |
-| `HG05-08` | WPF Windows scaling at 125%, 150% and 200% where permitted | PENDENTE | |
+| `HG05-07` | Windows High Contrast on both interfaces | PENDENTE | Real Windows flag and WPF override were observed and restored automatically; Dashboard and human confirmation remain pending. |
+| `HG05-08` | WPF Windows scaling at 125%, 150% and 200% where permitted | PENDENTE | Effective 120/144 DPI proved automatically; 200% was unavailable on the active display; human confirmation remains pending. |
 | `HG05-09` | Visual hierarchy and operational-truth review | PENDENTE | |
 | `HG05-10` | Dashboard TV mode at `1920×1080`, Fullscreen entry/exit and viewing distance | PENDENTE | |
 

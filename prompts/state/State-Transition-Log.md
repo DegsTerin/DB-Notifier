@@ -672,6 +672,17 @@
 - Riscos/ressalvas: Lighthouse não substitui revisão humana; não houve browser visível, WPF, Narrator, zoom nativo, High Contrast, scaling, integração externa ou execução administrativa. `robots.txt` é orientação de crawler, não controle de acesso.
 - Aprovador: resultado automático autorizado por Bruno; Human Gate `STATE-05` permanece `PENDENTE`.
 
+## 2026-07-14 — WPF, High Contrast, scaling e limite da amostra Narrator
+
+- Estado anterior: `STATE-05 FRONTEND_IMPLEMENTATION`, Human Gate pendente.
+- Estado resultante: sem transição; evidência técnica WPF ampliada e Narrator permanece não testado.
+- Decisão: repetir a matriz WPF em tamanho padrão/mínimo, testar High Contrast e scaling reais com restauração, e não inferir resultado auditivo quando o validador informou não conseguir testar Narrator.
+- Escopo: oito amostras WPF bilíngues Light/Dark, High Contrast nativo, 125%/120 DPI e 150%/144 DPI, opções reais de scaling, foco/UI Automation e correção DPI-aware do capturador.
+- Gates: build WPF sem avisos/erros; nenhuma amostra com controle focalizável sem nome; foco Tab contido; High Contrast restaurado para Off; scaling restaurado para 100%; 200% indisponível no monitor `1920×1080`.
+- Evidências: `docs/STATE-05-WPF-Accessibility-Audit.md`, `scripts/audit-state05-wpf.ps1` e relatórios/capturas temporários em `%TEMP%\DBNotifier-State05-Audit`.
+- Riscos/ressalvas: WPF reportou consciência de DPI do sistema, sem prova mixed-DPI/per-monitor; High Contrast e scaling ainda exigem aceitação humana; fala/ordem/usabilidade do Narrator não foram testadas.
+- Aprovador: evidência automática autorizada por Bruno; o validador não conseguiu executar Narrator e nenhuma decisão do Human Gate foi inferida.
+
 ## Template de nova entrada
 
 - Data:
