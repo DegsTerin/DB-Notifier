@@ -650,6 +650,17 @@
 - Riscos/ressalvas: nenhuma interface visível foi aberta e a correção automática não constitui aprovação visual. WPF, Narrator, High Contrast, scaling, integração externa e execução administrativa não foram exercitados.
 - Aprovador: PENDENTE para revalidação visual mobile; Human Gate completo permanece pendente.
 
+## 2026-07-14 — Aprovação de 390 px e correção do resumo de Alertas
+
+- Estado anterior: `STATE-05 FRONTEND_IMPLEMENTATION`, Human Gate pendente.
+- Estado resultante: sem transição; `STATE-05` e seu Human Gate permanecem pendentes.
+- Decisão: registrar a aprovação explícita apenas da amostra `390 px` de `S05-HG-008` e tratar separadamente o espaço vazio descoberto na faixa narrow-desktop como `S05-HG-009`.
+- Escopo: Design System `2.1.3`, largura integral do resumo de Alertas, três tracks para três métricas até `1100` CSS px, regressão de fonte e nova amostra `960×1040`.
+- Gates: 29 testes Dashboard, typecheck e build Vite aprovados; matriz headless ampliada para 56 amostras em `pt-BR`/`en-GB` e Light/Dark. As quatro novas amostras de Alertas mediram três métricas/tracks, zero pixel de lacuna direita e nenhum overflow global.
+- Evidências: captura humana não versionada; CSS/teste de apresentação; relatórios/capturas sanitizados em `%TEMP%`; findings `S05-HG-008` e `S05-HG-009`.
+- Riscos/ressalvas: `320 px`, 200% zoom e confirmação visual do resumo corrigido permanecem pendentes. Nenhum WPF, Narrator, High Contrast, scaling ou integração externa foi exercitado.
+- Aprovador: Bruno aprovou exclusivamente a amostra `390 px`; nenhuma aprovação de `S05-HG-009` ou do Human Gate completo foi inferida.
+
 ## Template de nova entrada
 
 - Data:

@@ -2,8 +2,8 @@
 
 ## Versão atual
 
-- Versão: `3.32.4`
-- Data: 2026-07-13
+- Versão: `3.32.5`
+- Data: 2026-07-14
 - Status: corpus DB-Notifier consolidado
 - Escopo: 13 arquivos ativos
 
@@ -16,6 +16,12 @@ A versão do corpus é independente da versão do software.
 - PATCH: clareza, correção ou referência sem mudança de autoridade.
 
 Toda alteração atualiza este arquivo e, quando necessário, `../Start-Here.md`.
+
+## 3.32.5 — 2026-07-14
+
+- O Design System `2.1.3` exige que bandas de resumo usem a largura operacional disponível e tenham o mesmo número de tracks e métricas visíveis em cada breakpoint.
+- Regras gerais do Inventário não podem introduzir colunas vazias em resumos menores de Alertas ou outras features.
+- A matriz automática passa a incluir Alertas a `960×1040`; a aprovação humana de `390 px` permanece separada das amostras pendentes de `320 px` e da nova correção intermediária.
 
 ## 3.32.4 — 2026-07-13
 

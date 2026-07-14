@@ -5,7 +5,7 @@
 | Field | Value |
 |---|---|
 | Status | Official frontend specification |
-| Design System version | `2.1.2` |
+| Design System version | `2.1.3` |
 | Product phase | `STATE-05 FRONTEND_IMPLEMENTATION` |
 | Platforms | React Web Dashboard and .NET 10 WPF Desktop/Tray |
 | Themes | Light and Dark; Windows High Contrast is an accessibility override |
@@ -463,6 +463,8 @@ Disabled controls MUST remain legible and MUST provide adjacent explanation when
 `SurfaceCard`, `SummaryCard`, `MetricCard` and `AlertCard` use consistent padding, border, radius and heading order. A metric includes label, value, freshness/context and optional trend; it MUST NOT use colour alone.
 
 Related fleet metrics SHOULD form one bordered metric band with internal dividers at comfortable widths. This reduces competing card chrome and preserves scan order. The band reflows to two columns and then one column without removing labels, icons or values.
+
+Summary bands MUST use the available width of their owning operational region and declare a column count that matches their visible metrics at each breakpoint. A general inventory-summary rule MUST NOT introduce empty implicit columns into a smaller alert or feature-specific summary.
 
 ### 10.6 Status and support
 

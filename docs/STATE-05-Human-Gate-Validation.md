@@ -26,10 +26,10 @@ Mobile and tablet samples apply to the responsive Dashboard Web. There is no nat
 
 | Evidence | Current result |
 |---|---|
-| Design System implementation report | Design System `2.1.2` translation-icon, Light/Dark-only, outlined database-mark, ultrawide, TV-presentation, system-local time, compact TopBar, single-column operational cards and operational-Tray implementation gates approved; commit identifier is reported in the implementation hand-off |
-| Dashboard matrix | 52 standard locale/theme/viewport-route samples plus four TV samples across the current Light/Dark combinations; no global overflow or unnamed interactive control |
+| Design System implementation report | Design System `2.1.3` translation-icon, Light/Dark-only, outlined database-mark, ultrawide, TV-presentation, system-local time, compact TopBar, responsive summary bands, single-column operational cards and operational-Tray implementation gates approved; commit identifier is reported in the implementation hand-off |
+| Dashboard matrix | 56 standard locale/theme/viewport-route samples plus four TV samples across the current Light/Dark combinations; no global overflow or unnamed interactive control |
 | WPF matrix | Four current locale/theme combinations at `1180×760`, each with 34 focusable controls and none unnamed; minimum-window and High Contrast samples remain separately recorded |
-| Automated tests | 28 Dashboard, 128 .NET unit/model/provider/presentation, 5 architecture and 10 legacy compatibility tests approved |
+| Automated tests | 29 Dashboard, 128 .NET unit/model/provider/presentation, 5 architecture and 10 legacy compatibility tests approved |
 | Security/dependencies | npm and NuGet reported no known vulnerabilities in the recorded audit |
 
 Primary automatic evidence:
@@ -155,7 +155,7 @@ Do not mark a row until the named human validator has performed it.
 |---|---|---|---|
 | `HG05-01` | Dashboard `pt-BR` Light, keyboard and Narrator | SHELL VISUAL APROVADO — ÍCONE/TECLADO/NARRATOR PENDENTES | The human reviewer accepted the second shell refinement, rejected the first filled database mark and has not yet reviewed its outlined replacement. Keyboard and Narrator were not performed. |
 | `HG05-02` | Dashboard `en-GB` Dark, keyboard and Narrator | PENDENTE | |
-| `HG05-03` | Dashboard native 200% zoom and compact reflow | PENDENTE | |
+| `HG05-03` | Dashboard native 200% zoom and compact reflow | 390 PX APROVADO — 320 PX/200% PENDENTES | Bruno approved the visible `390×844` Alert/Configuration sample on 2026-07-14; minimum width and native 200% zoom remain unreviewed. |
 | `HG05-04` | WPF `pt-BR` Light, default/minimum, keyboard and Narrator | PENDENTE | |
 | `HG05-05` | WPF `en-GB` Dark, default/minimum, keyboard and Narrator | PENDENTE | |
 | `HG05-06` | Explicit Light/Dark stability across Windows application-mode changes | PENDENTE | |
@@ -261,8 +261,20 @@ Do not mark a row until the named human validator has performed it.
 - Root cause: the tablet rule changed both collections from three columns to two at `1100` CSS px, but the compact `760` CSS px breakpoint did not reset them to one column. Long timestamps and capability reason codes also lacked local wrapping safeguards.
 - Remediation: Design System `2.1.2` requires one full-width column for these operational collections below `768` CSS px. Dashboard CSS now resets both grids at the compact breakpoint, removes fixed alert-summary height pressure and safely wraps timestamps, provider identifiers and capability reason codes without changing their text.
 - Automatic evidence: 28 Dashboard tests, typecheck and production build passed. The browser matrix expanded to 52 samples across `pt-BR`/`en-GB`, Light/Dark and 13 routes/viewports. Alert and Configuration samples at `390×844` and `320×568` each measured one card column with no card-content or document-level horizontal overflow.
-- Human closure: PENDENTE; the corrected mobile Alert and Configuration views require visible reviewer confirmation.
+- Human closure: PARCIALMENTE APROVADO; Bruno explicitly approved the visible `390 px` sample on 2026-07-14. The `320 px` minimum-width sample remains pending, so this finding is not closed.
 - Lifecycle impact: `HG05-03` and the overall Human Gate remain pending; automatic reflow evidence is not a human visual approval.
+
+### `S05-HG-009` — Alert summary leaves unused columns at narrow-desktop width
+
+- Date observed: 2026-07-14.
+- Source: incidental human review of the dedicated local Dashboard window after the `390 px` approval, supported by a sanitised screenshot supplied in the conversation and not committed to the repository.
+- Classification: responsive visual-density finding separate from the approved `390 px` card flow.
+- Human feedback: the Alert summary displayed a conspicuous unused region to the right of its three visible metrics.
+- Root cause: at `1100` CSS px or below, the general Inventory summary rule replaced the Alert-specific three-column grid with five columns. The Alert view supplied only three metrics, leaving two empty grid tracks; its historical `760 px` maximum also prevented the band from using the full operational width.
+- Remediation: Design System `2.1.3` requires feature summary bands to use their owning width and match their grid tracks to visible metrics. The Alert band now has no fixed maximum and explicitly retains three columns through the narrow-desktop breakpoint before reflowing to one column below `768` CSS px.
+- Automatic evidence: 29 Dashboard tests, typecheck and production build passed. The matrix expanded to 56 standard samples, including `alerts-narrow-desktop-960x1040` in every locale/theme pair; each sample measured three cards, three grid columns, a zero-pixel parent right gap and no document overflow.
+- Human closure: PENDENTE; the corrected narrow-desktop Alert summary requires visible reviewer confirmation.
+- Lifecycle impact: the overall Human Gate remains pending; the incidental discovery does not invalidate the approved `390 px` sample.
 
 ## Human Gate decision
 
@@ -273,7 +285,7 @@ Do not mark a row until the named human validator has performed it.
 - Critical samples repeated: PENDENTE
 - Experience and error messages: PENDENTE
 - Security/authorisation truth: PENDENTE
-- Remaining coverage: outlined database-mark, fullscreen/TV layout and controls, system-local time, compact mobile TopBar, single-column Alert/Configuration cards, display name, translation icon and Light/Dark-only control confirmation plus all keyboard, screen-reader, zoom, scaling, High Contrast and remaining samples above
+- Remaining coverage: outlined database-mark, fullscreen/TV layout and controls, system-local time, compact mobile TopBar, `320 px` Alert/Configuration cards, corrected narrow-desktop Alert summary, display name, translation icon and Light/Dark-only control confirmation plus all keyboard, screen-reader, zoom, scaling, High Contrast and remaining samples above
 - Decision: `PENDENTE`
 - Justification/evidence: PENDENTE
 
@@ -281,4 +293,4 @@ Permitted decisions after the sample are `APROVADO`, `APROVADO COM RESSALVAS` or
 
 ## Recommended next step
 
-Open the Dashboard only after explicit consent in a new independent Chrome window, confirm the corrected Alert and Configuration cards at approximately `390` and `320` CSS px in `pt-BR`/Dark, and record whether `S05-HG-008` is visually approved. Then continue the remaining identity, TV and accessibility samples separately without inferring the final Human Gate decision.
+In the already dedicated review window, reload the rebuilt local Dashboard only after explicit consent, confirm the corrected three-metric Alert summary near `960` CSS px, then switch to the `320` CSS px sample for the remaining portion of `S05-HG-008`. Record the two decisions separately and do not infer the overall Human Gate decision.

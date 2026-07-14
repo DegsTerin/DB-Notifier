@@ -78,6 +78,7 @@ async function captureViewport(call, name, width, height, hash = "inventory", pa
     const brand = document.querySelector(".brand-lockup")?.getBoundingClientRect();
     const topbarControls = document.querySelector(".topbar-controls")?.getBoundingClientRect();
     const alertList = document.querySelector(".alert-list");
+    const alertSummary = document.querySelector(".alert-summary");
     const capabilityList = document.querySelector(".capability-list");
     const measureCardCollection = (list, selector) => {
       if (!list) return null;
@@ -104,6 +105,11 @@ async function captureViewport(call, name, width, height, hash = "inventory", pa
       primaryContentRightGap: primaryPanel ? Math.round(innerWidth - primaryPanel.right) : null,
       topbarSingleRow: brand && topbarControls ? Math.abs((brand.top + brand.height / 2) - (topbarControls.top + topbarControls.height / 2)) <= 2 : null,
       topbarControlsContained: topbar && topbarControls ? topbarControls.left >= topbar.left && topbarControls.right <= topbar.right : null,
+      alertSummary: alertSummary ? {
+        columns: getComputedStyle(alertSummary).gridTemplateColumns.split(" ").filter(Boolean).length,
+        cardCount: alertSummary.querySelectorAll(":scope > .summary-card").length,
+        parentRightGap: Math.round(alertSummary.parentElement.getBoundingClientRect().right - alertSummary.getBoundingClientRect().right),
+      } : null,
       alertCards: measureCardCollection(alertList, ".alert-card"),
       capabilityCards: measureCardCollection(capabilityList, ":scope > article"),
       offenders,
@@ -370,6 +376,7 @@ async function main() {
     ["inventory-minimum-320x568", 320, 568],
     ["inventory-200-percent-reflow-equivalent-640", 640, 800],
     ["history-desktop-1440x1000", 1440, 1000, "history"],
+    ["alerts-narrow-desktop-960x1040", 960, 1040, "alerts"],
     ["alerts-mobile-390x844", 390, 844, "alerts"],
     ["alerts-minimum-320x568", 320, 568, "alerts"],
     ["configuration-mobile-390x844", 390, 844, "configuration"],
