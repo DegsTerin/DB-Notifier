@@ -112,7 +112,7 @@ button:focus-visible, select:focus-visible, input:focus-visible, a:focus-visible
   border-right: 1px solid var(--db-colour-border-default);
 }
 .sidebar-primary { min-width: 0; }
-.sidebar-section-label { margin: 0 var(--db-space-3) var(--db-space-3); color: var(--db-colour-text-muted); font-size: .7rem; font-weight: var(--db-typography-weight-semibold); letter-spacing: .06em; text-transform: uppercase; }
+.sidebar-section-label { margin: 0 var(--db-space-3) var(--db-space-3); color: var(--db-colour-text-secondary); font-size: .7rem; font-weight: var(--db-typography-weight-semibold); letter-spacing: .06em; text-transform: uppercase; }
 .sidebar nav { min-width: 0; display: grid; gap: var(--db-space-2); }
 .nav-item {
   position: relative;

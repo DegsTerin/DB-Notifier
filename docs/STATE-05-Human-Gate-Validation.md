@@ -28,8 +28,9 @@ Mobile and tablet samples apply to the responsive Dashboard Web. There is no nat
 |---|---|
 | Design System implementation report | Design System `2.1.3` translation-icon, Light/Dark-only, outlined database-mark, ultrawide, TV-presentation, system-local time, compact TopBar, responsive summary bands, single-column operational cards and operational-Tray implementation gates approved; commit identifier is reported in the implementation hand-off |
 | Dashboard matrix | 56 standard locale/theme/viewport-route samples plus four TV samples across the current Light/Dark combinations; no global overflow or unnamed interactive control |
+| Lighthouse matrix | 24 clean reports (`4` routes × mobile/desktop × `3` runs); median Performance/Accessibility/Best Practices `100`; valid internal-console crawler policy; SEO `66` by intentional non-crawlability |
 | WPF matrix | Four current locale/theme combinations at `1180×760`, each with 34 focusable controls and none unnamed; minimum-window and High Contrast samples remain separately recorded |
-| Automated tests | 29 Dashboard, 128 .NET unit/model/provider/presentation, 5 architecture and 10 legacy compatibility tests approved |
+| Automated tests | 31 Dashboard, 128 .NET unit/model/provider/presentation, 5 architecture and 10 legacy compatibility tests approved |
 | Security/dependencies | npm and NuGet reported no known vulnerabilities in the recorded audit |
 
 Primary automatic evidence:
@@ -37,6 +38,7 @@ Primary automatic evidence:
 - [`STATE-05-Design-System-Implementation-Report.md`](STATE-05-Design-System-Implementation-Report.md)
 - [`STATE-05-Localisation-Implementation-Report.md`](STATE-05-Localisation-Implementation-Report.md)
 - [`STATE-05-Frontend-Implementation-Reaudit.md`](STATE-05-Frontend-Implementation-Reaudit.md)
+- [`STATE-05-Lighthouse-Audit.md`](STATE-05-Lighthouse-Audit.md)
 
 ## Validation environment preflight
 

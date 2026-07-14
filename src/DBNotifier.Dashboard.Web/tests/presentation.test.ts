@@ -111,6 +111,21 @@ test("alert summary uses its full row without inheriting empty inventory columns
   assert.match(css, /@media \(max-width: 1100px\)[\s\S]*?\.summary-grid \{ grid-template-columns: repeat\(5, minmax\(0, 1fr\)\); \}[\s\S]*?\.alert-summary \{ grid-template-columns: repeat\(3, minmax\(0, 1fr\)\); \}/);
 });
 
+test("crawler policy explicitly blocks crawler access to the operational console", () => {
+  const robots = readFileSync(new URL("../public/robots.txt", import.meta.url), "utf8");
+
+  assert.match(robots, /^# Module purpose:/);
+  assert.match(robots, /^User-agent: \*$/m);
+  assert.match(robots, /^Disallow: \/$/m);
+});
+
+test("desktop sidebar label uses the AA-safe secondary text token", () => {
+  const css = readFileSync(new URL("../src/styles.css", import.meta.url), "utf8");
+
+  assert.match(css, /\.sidebar-section-label \{[^}]*color: var\(--db-colour-text-secondary\);/);
+  assert.doesNotMatch(css, /\.sidebar-section-label \{[^}]*color: var\(--db-colour-text-muted\);/);
+});
+
 test("provider-neutral database mark is shared by active Web and Windows surfaces", () => {
   const app = readFileSync(new URL("../src/App.tsx", import.meta.url), "utf8");
   const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");

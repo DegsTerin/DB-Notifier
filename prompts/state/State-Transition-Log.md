@@ -661,6 +661,17 @@
 - Riscos/ressalvas: `320 px`, 200% zoom e confirmação visual do resumo corrigido permanecem pendentes. Nenhum WPF, Narrator, High Contrast, scaling ou integração externa foi exercitado.
 - Aprovador: Bruno aprovou exclusivamente a amostra `390 px`; nenhuma aprovação de `S05-HG-009` ou do Human Gate completo foi inferida.
 
+## 2026-07-14 — Auditoria Lighthouse reproduzível e correção de contraste
+
+- Estado anterior: `STATE-05 FRONTEND_IMPLEMENTATION`, Human Gate pendente.
+- Estado resultante: sem transição; `STATE-05` e seu Human Gate permanecem pendentes.
+- Decisão: executar diretamente a auditoria Lighthouse recomendada, tornar a coleta reproduzível e corrigir os findings automáticos confirmados sem inferir aprovação humana.
+- Escopo: quatro rotas Dashboard, mobile `390×844`, desktop `1440×1000`, três repetições, Chrome headless isolado sem extensões, Lighthouse `13.4.0`, política `robots.txt` para console interno e contraste do rótulo lateral Light.
+- Gates: 31 testes Dashboard, typecheck e build Vite aprovados; matriz final de 24 relatórios com medianas Performance/Acessibilidade/Boas Práticas `100`, CLS zero, crawler policy válida em `24/24` e zero requisições de extensão. SEO `66` decorre exclusivamente do bloqueio intencional `Disallow: /`.
+- Evidências: `docs/STATE-05-Lighthouse-Audit.md`, `scripts/run-state05-lighthouse-audit.ps1`, relatórios sanitizados consolidados e payloads brutos temporários em `%TEMP%`.
+- Riscos/ressalvas: Lighthouse não substitui revisão humana; não houve browser visível, WPF, Narrator, zoom nativo, High Contrast, scaling, integração externa ou execução administrativa. `robots.txt` é orientação de crawler, não controle de acesso.
+- Aprovador: resultado automático autorizado por Bruno; Human Gate `STATE-05` permanece `PENDENTE`.
+
 ## Template de nova entrada
 
 - Data:

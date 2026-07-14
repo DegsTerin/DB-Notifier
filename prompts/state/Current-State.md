@@ -46,10 +46,11 @@
 ## Evidência automática atual
 
 - Restore locked, build Release, 128 testes unit/model/provider/presentation e 5 testes de arquitetura aprovados; 0 avisos e 0 erros.
-- `dotnet format`, auditoria NuGet, 29 testes Dashboard, typecheck, build Vite, auditoria npm, geração/drift de marca/tokens/localização e gate documental aprovados.
+- `dotnet format`, auditoria NuGet, 31 testes Dashboard, typecheck, build Vite, auditoria npm, geração/drift de marca/tokens/localização e gate documental aprovados.
 - 10 testes Pester e validação do bundle legado aprovados.
 - CI reproduz format, auditorias NuGet/npm, bundle, links Markdown, smoke fail-closed, integridade Git e matriz Dashboard headless, além dos builds/testes já existentes.
 - Matriz Dashboard atual cobre 56 amostras (`2 locales × 2 temas × 14 viewports/rotas`), sem overflow global ou controles interativos sem nome; modal e TV passaram nos quatro pares locale/tema. Mobile `320×568`/`390×844` manteve o TopBar contido em uma linha, Alertas/Configuração usaram uma coluna sem overflow interno e o resumo de Alertas a `960×1040` ocupou a linha com três métricas/tracks; TV preservou idioma/tema e evidenciou o fuso do sistema.
+- Matriz Lighthouse `13.4.0` pós-correção cobre 24 relatórios limpos (`4` rotas × mobile `390×844`/desktop `1440×1000` × `3` execuções): medianas de Performance, Acessibilidade e Boas Práticas `100`, CLS zero, `robots.txt` válido em `24/24` e nenhuma requisição de extensão. SEO `66` é consequência intencional de `Disallow: /` no console interno, não falha de sintaxe; isso não substitui o Human Gate.
 - API local respondeu liveness `200`, catálogo humano sem token `401` e poll de Agent sem certificado `403`; Agent permaneceu ativo com defaults desabilitados e foi encerrado após a amostra.
 - Git worktree rastreado permanece limpo antes deste incremento; a referência interna longa e inválida encontrada na auditoria foi copiada para `%TEMP%`, removida pontualmente e `git show-ref`/`git fsck --full` voltaram a sair com código 0.
 - Evidência automática não substitui Human Gate nem prova runtime externo, provider real, acessibilidade humana ou produção.
@@ -68,6 +69,7 @@
 
 - A documentação automática garante cabeçalhos de módulos e inventário; cobertura XML completa das APIs públicas preexistentes permanece incremental e exige revisão humana quando o arquivo proprietário for alterado.
 - A reauditoria automática final do Design System `2.1.0` e do flyout do Tray permanece aprovada em seu escopo histórico; os incrementos `2.1.1` de hora local/TV/TopBar, `2.1.2` de cartões compactos e `2.1.3` do resumo responsivo também passaram nos gates Dashboard aplicáveis, sem substituir o Human Gate.
+- Lighthouse é evidência laboratorial local; não prova experiência humana, produção ou telemetria real. O console bloqueia deliberadamente o rastreamento, portanto a nota SEO agregada não é um gate aplicável enquanto `robots.txt` bloquear crawlers.
 - Human Gate `STATE-05` ainda precisa confirmar visual do ícone/layout/nome/preferências/TV/Tray e executar Narrator, teclado, zoom, scaling e High Contrast em ambos os idiomas/temas aplicáveis.
 - `STATE-06`: integração API/Agent/UI, heartbeat/enrollment/revocation, reconciliação, SignalR hints, refresh TV real, notificações e E2E sandbox.
 - `STATE-07`: PostgreSQL real/homologação, control adapters/post-probe e providers adicionais independentes.

@@ -1,0 +1,3 @@
+# Module purpose: Instructs search-engine crawlers not to access the internal DB-Notifier operational console.
+User-agent: *
+Disallow: /
