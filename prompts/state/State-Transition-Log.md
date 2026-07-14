@@ -639,6 +639,17 @@
 - Riscos/ressalvas: o controle do navegador não deve navegar, reorganizar ou fechar janelas/guias preexistentes; a janela de revisão continua sujeita a autorização interativa específica.
 - Aprovador: Bruno esclareceu o comportamento esperado; isso não constitui decisão do Human Gate.
 
+## 2026-07-13 — Correção de cartões operacionais no mobile
+
+- Estado anterior: `STATE-05 FRONTEND_IMPLEMENTATION`, Human Gate pendente.
+- Estado resultante: sem transição; `STATE-05` e seu Human Gate permanecem pendentes.
+- Decisão: registrar a captura humana como finding `S05-HG-008` e corrigir a compressão em duas colunas das telas Alertas e Configuração.
+- Escopo: Design System `2.1.2`, uma coluna abaixo de `768` CSS px, quebra segura de timestamps/providers/reason codes, regressão de fonte e amostras adicionais a `320×568`.
+- Gates: 28 testes Dashboard, typecheck e build Vite aprovados; matriz headless ampliada para 52 amostras em `pt-BR`/`en-GB` e Light/Dark. Alertas e Configuração passaram a `390×844` e `320×568` com uma coluna, sem overflow de cartão ou documento.
+- Evidências: CSS e teste de apresentação; capturas/relatórios sanitizados em `%TEMP%`; Design System; finding `S05-HG-008`.
+- Riscos/ressalvas: nenhuma interface visível foi aberta e a correção automática não constitui aprovação visual. WPF, Narrator, High Contrast, scaling, integração externa e execução administrativa não foram exercitados.
+- Aprovador: PENDENTE para revalidação visual mobile; Human Gate completo permanece pendente.
+
 ## Template de nova entrada
 
 - Data:

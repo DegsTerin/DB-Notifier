@@ -73,10 +73,13 @@ try {
             $reportPath = Join-Path ([System.IO.Path]::GetTempPath()) "DBNotifier-State05-Audit\$locale\$theme\dashboard-audit.json"
             $report = Get-Content -LiteralPath $reportPath -Raw | ConvertFrom-Json
             $failures = [System.Collections.Generic.List[string]]::new()
-            if (@($report.viewports).Count -ne 11) { $failures.Add('Expected 11 viewport samples.') }
+            if (@($report.viewports).Count -ne 13) { $failures.Add('Expected 13 viewport samples.') }
             if (@($report.viewports | Where-Object { $_.layout.horizontalOverflow }).Count -gt 0) { $failures.Add('Horizontal overflow was detected.') }
             $mobileSamples = @($report.viewports | Where-Object { $_.width -le 390 })
             if (@($mobileSamples | Where-Object { -not $_.layout.topbarSingleRow -or -not $_.layout.topbarControlsContained }).Count -gt 0) { $failures.Add('Compact topbar controls wrapped or escaped their header.') }
+            $compactOperationalSamples = @($report.viewports | Where-Object { $_.width -le 390 -and ($null -ne $_.layout.alertCards -or $null -ne $_.layout.capabilityCards) })
+            if ($compactOperationalSamples.Count -ne 4) { $failures.Add('Expected four compact alert and capability samples.') }
+            if (@($compactOperationalSamples | Where-Object { ($null -ne $_.layout.alertCards -and ($_.layout.alertCards.columns -ne 1 -or $_.layout.alertCards.contentOverflow)) -or ($null -ne $_.layout.capabilityCards -and ($_.layout.capabilityCards.columns -ne 1 -or $_.layout.capabilityCards.contentOverflow)) }).Count -gt 0) { $failures.Add('Compact alert or capability cards were compressed into multiple columns or overflowed.') }
             if (@($report.accessibilityTree.unnamedInteractive).Count -gt 0) { $failures.Add('Unnamed interactive controls were detected.') }
             if (-not $report.modal.closesWithEscape -or -not $report.modal.focusRestored) { $failures.Add('Modal Escape or focus restoration failed.') }
             if ($report.tvMode.active.tvMode -ne 'true' -or $report.tvMode.active.buttonState -ne 'exit') { $failures.Add('TV mode did not become active.') }
@@ -89,7 +92,7 @@ try {
         }
     }
     $summaries | Format-Table -AutoSize
-    Write-Output 'STATE-05 Dashboard audit passed for 44 viewport samples across pt-BR/en-GB and Light/Dark.'
+    Write-Output 'STATE-05 Dashboard audit passed for 52 viewport samples across pt-BR/en-GB and Light/Dark.'
 }
 finally {
     Remove-Item Env:DBNOTIFIER_AUDIT_LOCALE, Env:DBNOTIFIER_AUDIT_THEME, Env:DBNOTIFIER_AUDIT_CDP_ENDPOINT -ErrorAction SilentlyContinue

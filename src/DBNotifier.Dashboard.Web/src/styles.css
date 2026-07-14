@@ -247,14 +247,14 @@ code { padding: var(--db-space-1) var(--db-space-2); color: var(--db-colour-sele
 .timeline-item time { color: var(--db-colour-text-secondary); font-size: .74rem; }
 .alert-summary { max-width: 760px; grid-template-columns: repeat(3, minmax(150px, 1fr)); }
 .alert-list { padding: var(--db-space-4); display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--db-space-4); background: var(--db-colour-surface-subtle); }
-.alert-card { padding: var(--db-space-4); background: var(--db-colour-surface-default); border: 1px solid var(--db-colour-border-default); border-radius: var(--db-radius-medium); }
+.alert-card { min-width: 0; padding: var(--db-space-4); background: var(--db-colour-surface-default); border: 1px solid var(--db-colour-border-default); border-radius: var(--db-radius-medium); }
 .alert-card h3 { margin-top: var(--db-space-4); }
 .alert-card > p { min-height: 2.8rem; color: var(--db-colour-text-secondary); line-height: 1.45; }
 .alert-state { color: var(--db-colour-text-secondary); font-size: .75rem; font-weight: var(--db-typography-weight-semibold); }
 .alert-card dl { margin: var(--db-space-4) 0 0; display: grid; gap: var(--db-space-2); }
-.alert-card dl div { display: flex; justify-content: space-between; gap: var(--db-space-4); font-size: .76rem; }
+.alert-card dl div { display: grid; grid-template-columns: minmax(0, .8fr) minmax(0, 1.2fr); gap: var(--db-space-4); font-size: .76rem; }
 .alert-card dt { color: var(--db-colour-text-secondary); }
-.alert-card dd { margin: 0; text-align: right; }
+.alert-card dd { min-width: 0; margin: 0; overflow-wrap: anywhere; text-align: right; }
 .configuration-layout { display: grid; gap: var(--db-space-4); }
 .configuration-fields { padding: var(--db-space-4); display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--db-space-3); background: var(--db-colour-surface-subtle); }
 .configuration-fields article { padding: var(--db-space-4); background: var(--db-colour-surface-default); border: 1px solid var(--db-colour-border-default); border-radius: var(--db-radius-medium); }
@@ -263,8 +263,9 @@ code { padding: var(--db-space-1) var(--db-space-2); color: var(--db-colour-sele
 .configuration-fields p, .capability-list p, .confirmation-example p { margin: var(--db-space-2) 0 0; color: var(--db-colour-text-secondary); font-size: .78rem; }
 .permission-toggle { min-width: 170px; display: grid; gap: var(--db-space-1); color: var(--db-colour-text-secondary); font-size: .72rem; font-weight: var(--db-typography-weight-semibold); }
 .capability-list { padding: var(--db-space-4); display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--db-space-3); }
-.capability-list article { padding: var(--db-space-4); border: 1px solid var(--db-colour-border-default); border-radius: var(--db-radius-medium); }
+.capability-list article { min-width: 0; padding: var(--db-space-4); border: 1px solid var(--db-colour-border-default); border-radius: var(--db-radius-medium); }
 .capability-list h3 { margin: 0 0 var(--db-space-1); }
+.capability-list article > code, .capability-list article > p { max-width: 100%; overflow-wrap: anywhere; white-space: normal; }
 .capability-list button, .confirmation-example button, .dialog-actions button {
   min-height: var(--db-control-height-compact);
   padding: var(--db-space-2) var(--db-space-3);
@@ -366,7 +367,7 @@ html[data-tv-mode="true"], html[data-tv-mode="true"] body, html[data-tv-mode="tr
   .mobile-list { padding: var(--db-space-4); display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--db-space-4); background: var(--db-colour-surface-subtle); }
 }
 
-@media (max-width: 760px) {
+@media (max-width: 767px) {
   .topbar { min-height: 68px; padding: var(--db-space-2) var(--db-space-4); }
   .brand-lockup small { display: none; }
   .topbar-controls { flex-wrap: nowrap; gap: var(--db-space-2); }
@@ -384,7 +385,10 @@ html[data-tv-mode="true"], html[data-tv-mode="true"] body, html[data-tv-mode="tr
   .summary-card:nth-child(2n) { border-inline-end: 0; }
   .summary-card:last-child { border-inline-end: 0; border-bottom: 0; }
   .alert-summary, .configuration-fields { grid-template-columns: 1fr; }
+  /* Compact operational cards use one readable flow before metadata or capability identifiers become compressed. */
+  .alert-list, .capability-list { grid-template-columns: 1fr; }
   .alert-summary .summary-card { border-inline-end: 0; }
+  .alert-card > p { min-height: 0; }
   .confirmation-example, .capability-panel .panel-header { align-items: stretch; flex-direction: column; }
   .summary-card:last-child { grid-column: 1 / -1; }
   .filters { grid-template-columns: 1fr; }

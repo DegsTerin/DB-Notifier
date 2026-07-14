@@ -77,6 +77,17 @@ async function captureViewport(call, name, width, height, hash = "inventory", pa
     const topbar = document.querySelector(".topbar")?.getBoundingClientRect();
     const brand = document.querySelector(".brand-lockup")?.getBoundingClientRect();
     const topbarControls = document.querySelector(".topbar-controls")?.getBoundingClientRect();
+    const alertList = document.querySelector(".alert-list");
+    const capabilityList = document.querySelector(".capability-list");
+    const measureCardCollection = (list, selector) => {
+      if (!list) return null;
+      const cards = [...list.querySelectorAll(selector)];
+      return {
+        columns: getComputedStyle(list).gridTemplateColumns.split(" ").filter(Boolean).length,
+        minimumCardWidth: cards.length ? Math.round(Math.min(...cards.map((card) => card.getBoundingClientRect().width))) : null,
+        contentOverflow: cards.some((card) => card.scrollWidth > card.clientWidth + 1),
+      };
+    };
     const offenders = [...document.querySelectorAll("body *")]
       .filter((element) => element.scrollWidth > element.clientWidth + 1)
       .filter((element) => !["auto", "scroll"].includes(getComputedStyle(element).overflowX))
@@ -93,10 +104,15 @@ async function captureViewport(call, name, width, height, hash = "inventory", pa
       primaryContentRightGap: primaryPanel ? Math.round(innerWidth - primaryPanel.right) : null,
       topbarSingleRow: brand && topbarControls ? Math.abs((brand.top + brand.height / 2) - (topbarControls.top + topbarControls.height / 2)) <= 2 : null,
       topbarControlsContained: topbar && topbarControls ? topbarControls.left >= topbar.left && topbarControls.right <= topbar.right : null,
+      alertCards: measureCardCollection(alertList, ".alert-card"),
+      capabilityCards: measureCardCollection(capabilityList, ":scope > article"),
       offenders,
       heading: document.querySelector("h1")?.textContent?.trim(),
     };
   })()`);
+  if (hash === "alerts") await evaluate(call, 'document.querySelector(".inventory-panel")?.scrollIntoView({ block: "start" }); true');
+  if (hash === "configuration") await evaluate(call, 'document.querySelector(".capability-panel")?.scrollIntoView({ block: "start" }); true');
+  await settle(80);
   const screenshot = await call("Page.captureScreenshot", { format: "png", captureBeyondViewport: false });
   const screenshotPath = join(evidenceDirectory, `${name}.png`);
   writeFileSync(screenshotPath, Buffer.from(screenshot.data, "base64"));
@@ -355,7 +371,9 @@ async function main() {
     ["inventory-200-percent-reflow-equivalent-640", 640, 800],
     ["history-desktop-1440x1000", 1440, 1000, "history"],
     ["alerts-mobile-390x844", 390, 844, "alerts"],
+    ["alerts-minimum-320x568", 320, 568, "alerts"],
     ["configuration-mobile-390x844", 390, 844, "configuration"],
+    ["configuration-minimum-320x568", 320, 568, "configuration"],
   ]) viewports.push(await captureViewport(call, name, width, height, hash, pageScaleFactor));
 
   await call("Page.navigate", { url: `${dashboardUrl}#history` });

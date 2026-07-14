@@ -96,6 +96,14 @@ test("mobile topbar keeps brand and controls in one accessible row", () => {
   assert.doesNotMatch(css, /@media \(max-width: 620px\) \{[^}]*\.topbar \{[^}]*flex-direction: column;/s);
 });
 
+test("compact alert and capability cards keep a readable single-column flow", () => {
+  const css = readFileSync(new URL("../src/styles.css", import.meta.url), "utf8");
+
+  assert.match(css, /@media \(max-width: 767px\)[\s\S]*?\.alert-list, \.capability-list \{ grid-template-columns: 1fr; \}/);
+  assert.match(css, /\.alert-card dd \{[^}]*overflow-wrap: anywhere;/);
+  assert.match(css, /\.capability-list article > code, \.capability-list article > p \{[^}]*overflow-wrap: anywhere;[^}]*white-space: normal;/);
+});
+
 test("provider-neutral database mark is shared by active Web and Windows surfaces", () => {
   const app = readFileSync(new URL("../src/App.tsx", import.meta.url), "utf8");
   const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");

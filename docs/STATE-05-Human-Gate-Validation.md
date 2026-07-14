@@ -26,10 +26,10 @@ Mobile and tablet samples apply to the responsive Dashboard Web. There is no nat
 
 | Evidence | Current result |
 |---|---|
-| Design System implementation report | Design System `2.1.1` translation-icon, Light/Dark-only, outlined database-mark, ultrawide, TV-presentation, system-local time, compact TopBar and operational-Tray implementation gates approved; commit identifier is reported in the implementation hand-off |
-| Dashboard matrix | 44 standard locale/theme/viewport-route samples plus four TV samples across the current Light/Dark combinations; no global overflow or unnamed interactive control |
+| Design System implementation report | Design System `2.1.2` translation-icon, Light/Dark-only, outlined database-mark, ultrawide, TV-presentation, system-local time, compact TopBar, single-column operational cards and operational-Tray implementation gates approved; commit identifier is reported in the implementation hand-off |
+| Dashboard matrix | 52 standard locale/theme/viewport-route samples plus four TV samples across the current Light/Dark combinations; no global overflow or unnamed interactive control |
 | WPF matrix | Four current locale/theme combinations at `1180×760`, each with 34 focusable controls and none unnamed; minimum-window and High Contrast samples remain separately recorded |
-| Automated tests | 27 Dashboard, 128 .NET unit/model/provider/presentation, 5 architecture and 10 legacy compatibility tests approved |
+| Automated tests | 28 Dashboard, 128 .NET unit/model/provider/presentation, 5 architecture and 10 legacy compatibility tests approved |
 | Security/dependencies | npm and NuGet reported no known vulnerabilities in the recorded audit |
 
 Primary automatic evidence:
@@ -252,6 +252,18 @@ Do not mark a row until the named human validator has performed it.
 - Human closure: PENDENTE; system-local time, TV preferences and the compact TopBar require visible reviewer confirmation.
 - Lifecycle impact: the Human Gate remains pending; this remediation does not authorise Narrator, WPF, High Contrast, scaling or `STATE-06` integration.
 
+### `S05-HG-008` — Alert and administrative-capability cards are compressed on mobile
+
+- Date observed: 2026-07-13.
+- Source: explicit user review of compact Dashboard Alert and Configuration views, supported by sanitised screenshots supplied in the conversation and not committed to the repository.
+- Classification: blocking compact-reflow and readability finding.
+- Human feedback: the mobile presentation requires correction; alert cards and administrative controls appeared in narrow parallel columns, producing excessive wrapping, clipped technical reason codes and poor use of the available width.
+- Root cause: the tablet rule changed both collections from three columns to two at `1100` CSS px, but the compact `760` CSS px breakpoint did not reset them to one column. Long timestamps and capability reason codes also lacked local wrapping safeguards.
+- Remediation: Design System `2.1.2` requires one full-width column for these operational collections below `768` CSS px. Dashboard CSS now resets both grids at the compact breakpoint, removes fixed alert-summary height pressure and safely wraps timestamps, provider identifiers and capability reason codes without changing their text.
+- Automatic evidence: 28 Dashboard tests, typecheck and production build passed. The browser matrix expanded to 52 samples across `pt-BR`/`en-GB`, Light/Dark and 13 routes/viewports. Alert and Configuration samples at `390×844` and `320×568` each measured one card column with no card-content or document-level horizontal overflow.
+- Human closure: PENDENTE; the corrected mobile Alert and Configuration views require visible reviewer confirmation.
+- Lifecycle impact: `HG05-03` and the overall Human Gate remain pending; automatic reflow evidence is not a human visual approval.
+
 ## Human Gate decision
 
 - Phase: `STATE-05 FRONTEND_IMPLEMENTATION`
@@ -261,7 +273,7 @@ Do not mark a row until the named human validator has performed it.
 - Critical samples repeated: PENDENTE
 - Experience and error messages: PENDENTE
 - Security/authorisation truth: PENDENTE
-- Remaining coverage: outlined database-mark, fullscreen/TV layout and controls, system-local time, compact mobile TopBar, display name, translation icon and Light/Dark-only control confirmation plus all keyboard, screen-reader, zoom, scaling, High Contrast and remaining samples above
+- Remaining coverage: outlined database-mark, fullscreen/TV layout and controls, system-local time, compact mobile TopBar, single-column Alert/Configuration cards, display name, translation icon and Light/Dark-only control confirmation plus all keyboard, screen-reader, zoom, scaling, High Contrast and remaining samples above
 - Decision: `PENDENTE`
 - Justification/evidence: PENDENTE
 
@@ -269,4 +281,4 @@ Permitted decisions after the sample are `APROVADO`, `APROVADO COM RESSALVAS` or
 
 ## Recommended next step
 
-Confirm the outlined canonical database mark, standard/TV layouts, `DB Notifier` display name, translation icon and Light/Dark-only control in the visible `pt-BR` Dashboard, then obtain explicit consent before starting Narrator and continuing the keyboard/accessibility protocol; record every result without inferring the final Human Gate decision.
+Open the Dashboard only after explicit consent in a new independent Chrome window, confirm the corrected Alert and Configuration cards at approximately `390` and `320` CSS px in `pt-BR`/Dark, and record whether `S05-HG-008` is visually approved. Then continue the remaining identity, TV and accessibility samples separately without inferring the final Human Gate decision.

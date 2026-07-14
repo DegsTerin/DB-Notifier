@@ -5,7 +5,7 @@
 | Field | Value |
 |---|---|
 | Status | Official frontend specification |
-| Design System version | `2.1.1` |
+| Design System version | `2.1.2` |
 | Product phase | `STATE-05 FRONTEND_IMPLEMENTATION` |
 | Platforms | React Web Dashboard and .NET 10 WPF Desktop/Tray |
 | Themes | Light and Dark; Windows High Contrast is an accessibility override |
@@ -408,6 +408,7 @@ Breakpoints respond to content, not device names. Every component MUST tolerate 
 - A navigation rail MUST NOT retain visible labels once its width forces wrapping or compression; switch to a labelled horizontal navigation region first.
 - Seven-column operational tables switch to the complete compact-card alternative at `1100` CSS px or below. The alternative preserves all fields and does not rely on horizontal page scrolling.
 - At compact mobile widths, the product identity and global icon controls MUST remain in one contained TopBar row where the supported `320` CSS px minimum permits it. Controls MUST retain `44×44` CSS px targets, predictable language/theme/TV ordering and no horizontal clipping.
+- Alert collections and administrative-capability collections MUST use one full-width card column below `768` CSS px. Headings, state labels, timestamps, provider identifiers and reason codes MUST wrap within their owning card instead of forcing narrow parallel columns or horizontal overflow.
 
 ### 9.3 WPF adaptation
 
@@ -470,6 +471,8 @@ Related fleet metrics SHOULD form one bordered metric band with internal divider
 ### 10.7 Data presentation
 
 `DataTable`/WPF `DataGrid`, `DefinitionList`, `Timeline`, `KeyValueList` and responsive item cards share field labels and ordering. Tables require caption/accessible name, column headers, keyboard navigation, loading/empty/error treatment and a compact alternative where global reflow would otherwise fail.
+
+Compact card alternatives MUST preserve a readable label/value relationship and at least one uncompressed content column. Long machine identifiers MAY wrap at arbitrary safe points for reflow, while their underlying text value remains unchanged.
 
 ### 10.8 Feedback and overlays
 

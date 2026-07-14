@@ -2,7 +2,7 @@
 
 ## Versão atual
 
-- Versão: `3.32.3`
+- Versão: `3.32.4`
 - Data: 2026-07-13
 - Status: corpus DB-Notifier consolidado
 - Escopo: 13 arquivos ativos
@@ -16,6 +16,12 @@ A versão do corpus é independente da versão do software.
 - PATCH: clareza, correção ou referência sem mudança de autoridade.
 
 Toda alteração atualiza este arquivo e, quando necessário, `../Start-Here.md`.
+
+## 3.32.4 — 2026-07-13
+
+- O contrato responsivo do Design System `2.1.2` exige uma única coluna para coleções de Alertas e capabilities administrativas abaixo de `768` CSS px.
+- Identificadores técnicos, timestamps e reason codes devem permanecer dentro do cartão, com quebra segura e sem alterar o valor textual subjacente.
+- A matriz automática passa a amostrar Alertas e Configuração também no mínimo suportado de `320` CSS px; isso não substitui a confirmação visual humana.
 
 ## 3.32.3 — 2026-07-13
 
