@@ -2,7 +2,7 @@
 
 ## Status
 
-`PENDENTE — STATE-00 E STATE-01 RATIFICADOS; STATE-02 A STATE-04 PENDENTES`
+`PENDENTE — STATE-00 A STATE-02 RATIFICADOS; STATE-03 E STATE-04 PENDENTES`
 
 This document owns the retrospective ratification of the contested Human Gate records for `STATE-00` through `STATE-04`. It is an addendum: the original reports and transition log remain historical evidence and are not rewritten.
 
@@ -139,13 +139,20 @@ The remediation baseline was re-run after the CI/governance changes. The current
 
 ### Ratification record
 
-- Validator/date: `PENDENTE`
-- ADR decisions: `PENDENTE`
-- Samples repeated now: `PENDENTE`
-- Reservations accepted: `PENDENTE`
-- Decision: `PENDENTE`
-- Justification/evidence: `PENDENTE`
-- Required confirmation: `Ratifico a decisão acima exclusivamente para STATE-02 ARCHITECTURE.`
+- Validator/date: `Bruno — 2026-07-13`
+- ADR decisions:
+  - `ADR-0001`: `ACEITO` — .NET 10 LTS, incremental migration and legacy-reference preservation remain appropriate.
+  - `ADR-0002`: `ACEITO` — secret references, separate identities, vaults and mTLS remain appropriate; real provisioning, complete rotation and operational validation remain future work.
+  - `ADR-0003`: `ACEITO` — outbound HTTPS/mTLS, versioned contracts, idempotency, durable queues and offline/replay handling remain appropriate; operational validation remains future integration work.
+  - `ADR-0004`: `ACEITO` — Agent SQLite/central PostgreSQL separation, controlled migrations, explicit retention and ownership isolation remain appropriate; retention remains architectural guidance until operational validation.
+  - `ADR-0005`: `ACEITO COM RESSALVAS` — reproducible MSI, signing and secure update direction accepted; WiX/equivalent, signing service and operational release flow remain unimplemented.
+  - `ADR-0006`: `ACEITO` — declared capabilities, monitoring/administration separation, RBAC, audit and post-probe remain appropriate; no provider or administrative command is homologated by this decision.
+- Samples reviewed now (architectural/document walkthrough): standalone/offline, outbound-only hybrid, credential separation, replay/timeout with `UnknownOutcome`, update/rollback and AIOps initially restricted to `OBSERVER` without executor access.
+- Samples not repeated: no operational execution, penetration test, provider homologation, real update test or infrastructure validation was performed.
+- Reservations accepted: no operational provider homologation; ADR-0005 release pipeline remains future work; ADR-0002 provisioning/rotation/mTLS require future validation; ADR-0006 does not authorise real administrative control without capability/provider-specific homologation.
+- Decision: `APROVADO COM RESSALVAS`
+- Justification/evidence: the validator decided all six ADRs individually, completed the documented scenario walkthrough and explicitly retained the implementation and operational-proof limits.
+- Confirmation received: `Ratifico a decisão acima exclusivamente para STATE-02 ARCHITECTURE.`
 
 ## STATE-03 DATABASE_MODELING
 
@@ -218,10 +225,10 @@ The remediation baseline was re-run after the CI/governance changes. The current
 
 - `STATE-00`: `APROVADO` — retrospectively ratified by Bruno on 2026-07-13 with the recorded scope limitations
 - `STATE-01`: `APROVADO COM RESSALVAS` — retrospectively ratified by Bruno on 2026-07-13; onboarding not repeated and remote CI not independently proved
-- `STATE-02`: `PENDENTE`
+- `STATE-02`: `APROVADO COM RESSALVAS` — retrospectively ratified by Bruno on 2026-07-13; all ADRs accepted, with ADR-0005 and the recorded operational limits reserved
 - `STATE-03`: `PENDENTE`
 - `STATE-04`: `PENDENTE`
 - Lifecycle progression: `EM ESPERA`
-- Next ratification decision to present: `STATE-02 ARCHITECTURE`
+- Next ratification decision to present: `STATE-03 DATABASE_MODELING`
 
 Only after all five independent records are completed may the project resume the `STATE-05` closure workflow. That resumption still requires the current automatic re-audit and its own Human Gate.

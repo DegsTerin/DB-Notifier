@@ -26,7 +26,7 @@ Agents and Desktop clients run with different privileges and must be updated wit
 
 ## Consequences
 
-- The original `STATE-02` record accepted the reproducible signed MSI direction with WiX or an equivalent toolchain; that Human Gate is now pending retrospective ratification. The exact installer version, signing service and operational integration remain unimplemented decisions for `STATE-08` regardless of ratification.
+- The reproducible signed MSI direction with WiX or an equivalent toolchain was retrospectively ratified with reservations in `STATE-02`. The exact installer version, signing service and operational integration remain unimplemented decisions for `STATE-08`; architecture ratification is not release evidence.
 - Update compatibility must be exercised across Agent/API version pairs.
 - Rollback preserves identity, configuration, SQLite backup, logs, and audit while reverting binaries only unless a separate schema procedure is approved.
 - Downgrade is blocked when local schema/protocol is incompatible with the target binary.

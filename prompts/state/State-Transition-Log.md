@@ -585,6 +585,17 @@
 - Riscos/limites: nenhuma ação externa, banco, serviço, deploy ou infraestrutura foi executada por esta ratificação.
 - Aprovador: Bruno — `Ratifico a decisão acima exclusivamente para STATE-01 PROJECT_SETUP.`
 
+## 2026-07-13 — Ratificação retrospectiva de STATE-02 ARCHITECTURE
+
+- Estado anterior: posição técnica `STATE-05 FRONTEND_IMPLEMENTATION`, progressão `EM ESPERA`; `STATE-00`/`STATE-01` ratificados e `STATE-02` a `STATE-04` pendentes.
+- Estado resultante: sem transição; `STATE-02` ratificado como `APROVADO COM RESSALVAS`, `STATE-03` a `STATE-05` permanecem pendentes e a progressão continua `EM ESPERA`.
+- Decisão: Bruno aceitou individualmente ADR-0001/2/3/4/6 e aceitou ADR-0005 com ressalvas; revisou standalone/offline, híbrido outbound-only, separação de credenciais, replay/timeout, update/rollback e AIOps `OBSERVER`.
+- Amostras não repetidas: nenhuma execução operacional, penetration test, homologação de provider, update real ou validação de infraestrutura.
+- Ressalvas: sem homologação operacional; pipeline MSI/assinatura/update futuro; provisionamento/rotação/mTLS ainda exigem validação; nenhuma capability/provider foi autorizada para controle administrativo real.
+- Evidências: confirmação inequívoca e decisões individuais registradas em `docs/Human-Gate-Retrospective-Ratification.md`; pacote ativo sincronizado em `docs/architecture/README.md`.
+- Riscos/limites: arquitetura aceita não constitui implementação, release, segurança ofensiva, homologação ou autorização externa.
+- Aprovador: Bruno — `Ratifico a decisão acima exclusivamente para STATE-02 ARCHITECTURE.`
+
 ## Template de nova entrada
 
 - Data:

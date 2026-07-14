@@ -2,7 +2,7 @@
 
 ## Status and authority
 
-This pack contains the `STATE-02 ARCHITECTURE` decisions and contracts used by the technical implementation. It defines boundaries and constraints but is not evidence of implementation. ADR-0001 through ADR-0006 were historically recorded as accepted; the validator later contested whether that bundled Human Gate was informed, so its current lifecycle authority remains pending independent retrospective ratification. Existing implementation continues to follow the decisions until ratification rejects one or a superseding ADR is accepted.
+This pack contains the `STATE-02 ARCHITECTURE` decisions and contracts used by the technical implementation. It defines boundaries and constraints but is not evidence of implementation. On 2026-07-13, validator Bruno retrospectively ratified `STATE-02` as `APROVADO COM RESSALVAS`: ADR-0001/2/3/4/6 were accepted and ADR-0005 was accepted with reservations. The ratification does not prove operational infrastructure, provider homologation, penetration testing, real updates or administrative execution; each decision governs subsequent work until superseded by an accepted ADR.
 
 ## System context
 
