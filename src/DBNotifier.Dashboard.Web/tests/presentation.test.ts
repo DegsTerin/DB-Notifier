@@ -186,7 +186,7 @@ test("Tray flyout preserves operational scanning while administrative execution 
   assert.match(flyout, /Grid\.Column="2"/);
   assert.doesNotMatch(flyout, /Click="Restart/);
   assert.match(controller, /new TrayFlyoutWindow\(localisation, ShowView/);
-  assert.match(controller, /notifyIcon\.MouseUp \+= NotifyIconMouseUp/);
+  assert.match(controller, /notifyIcon\.MouseClick \+= NotifyIconMouseClick/);
   assert.match(controller, /Forms\.MouseButtons\.Left or Forms\.MouseButtons\.Right/);
   assert.doesNotMatch(controller, /ContextMenuStrip|ContextMenuOpening/);
 });

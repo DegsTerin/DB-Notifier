@@ -33,7 +33,7 @@ internal sealed class TrayApplicationController : IDisposable
             Icon = applicationIcon,
             Visible = true,
         };
-        notifyIcon.MouseUp += NotifyIconMouseUp;
+        notifyIcon.MouseClick += NotifyIconMouseClick;
         notifyIcon.DoubleClick += (_, _) => Apply(TrayWindowIntent.Show);
         window.StateChanged += WindowStateChanged;
         window.Closing += WindowClosing;
@@ -47,7 +47,7 @@ internal sealed class TrayApplicationController : IDisposable
         window.StateChanged -= WindowStateChanged;
         window.Closing -= WindowClosing;
         localisation.LanguageChanged -= LanguageChanged;
-        notifyIcon.MouseUp -= NotifyIconMouseUp;
+        notifyIcon.MouseClick -= NotifyIconMouseClick;
         notifyIcon.Visible = false;
         flyout.CloseForApplicationExit();
         notifyIcon.Dispose();
@@ -94,8 +94,8 @@ internal sealed class TrayApplicationController : IDisposable
         notifyIcon.Text = localisation.Text("Tray.Tooltip");
     }
 
-    /// <summary>Toggles the accessible WPF fleet flyout after primary or secondary notification-area activation.</summary>
-    private void NotifyIconMouseUp(object? sender, Forms.MouseEventArgs e)
+    /// <summary>Toggles the accessible WPF fleet flyout after the Windows shell reports a complete primary or secondary click.</summary>
+    private void NotifyIconMouseClick(object? sender, Forms.MouseEventArgs e)
     {
         if (e.Button is Forms.MouseButtons.Left or Forms.MouseButtons.Right)
         {

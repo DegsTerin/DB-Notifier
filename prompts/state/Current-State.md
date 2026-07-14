@@ -41,7 +41,7 @@
 - O resumo de Alertas usa toda a largura operacional e três tracks para suas três métricas até o breakpoint compacto, sem herdar colunas vazias do Inventário.
 - O refresh atual recalcula apenas relógio e freshness sobre o snapshot local. Leitura API imediata e reconciliação não sobreposta a cada 30 segundos pertencem a `STATE-06`.
 - WPF é uma aplicação Windows desktop com mínimo de `820×620` DIP; não possui modo TV.
-- Flyout do Tray usa leitura compacta em duas colunas: quatro instâncias demonstrativas e seus estados à esquerda; atalhos seguros para Dashboard, Configuração e logs à direita; Restart e Silent Mode permanecem explicativos e não interativos. O ícone abre diretamente por mouse-up primário ou secundário, mas a ativação pelo shell ainda requer confirmação humana visível.
+- Flyout do Tray usa leitura compacta em duas colunas: quatro instâncias demonstrativas e seus estados à esquerda; atalhos seguros para Dashboard, Configuração e logs à direita; Restart e Silent Mode permanecem explicativos e não interativos. A implementação corrente usa o evento padrão `MouseClick` primário/secundário; UI Automation e ponteiro injetado não provam o callback do shell, portanto ativação e visual ainda aguardam um clique humano.
 
 ## Evidência automática atual
 
