@@ -215,10 +215,9 @@ test("provider-neutral database mark is shared by active Web and Windows surface
     for (let pixel = 0; pixel < 16 * 16; pixel += 1) {
       if (icon[smallestBitmapOffset + pixel * 4 + 3] >= 128) opaqueSmallPixels += 1;
     }
-    assert.ok(opaqueSmallPixels >= 150);
+    assert.ok(opaqueSmallPixels >= 90);
 
-    for (const entry of [0, 1]) {
-      const size = entry === 0 ? 16 : 20;
+    for (const [entry, size] of [16, 20, 24, 32].entries()) {
       const entryOffset = 6 + entry * 16;
       const smallBitmapOffset = icon.readUInt32LE(entryOffset + 12) + 40;
       let partialAlphaPixels = 0;
@@ -240,17 +239,16 @@ test("provider-neutral database mark is shared by active Web and Windows surface
   assert.notDeepEqual(warningFavicon, criticalFavicon);
   assert.notDeepEqual(criticalFavicon, unknownFavicon);
   assert.doesNotMatch(dashboardSvg.toString("utf8"), /<rect/);
-  assert.match(dashboardSvg.toString("utf8"), /fill="none" stroke="#55B4FF"/);
-  assert.match(dashboardSvg.toString("utf8"), /stroke="#0F2940" stroke-width="5\.5"/);
-  assert.doesNotMatch(dashboardSvg.toString("utf8"), /#082F4F/);
-  assert.match(brandGenerator, /const includeMiddleSeam = true;/);
-  assert.match(brandGenerator, /Math\.max\(1\.5, 48 \/ size\)/);
-  assert.match(brandGenerator, /const supersampling = size <= 20 \? 1 : size <= 24 \? 2 : 4;/);
-  assert.match(brandGenerator, /const rasterBellStroke = size <= 32 \? accent : bellStroke;/);
-  assert.match(html, /rel="icon"[^>]+dbnotifier-favicon\.unknown\.ico\?v=2\.6\.3/);
+  assert.match(dashboardSvg.toString("utf8"), /fill="none" stroke="#0078D4"/);
+  assert.doesNotMatch(dashboardSvg.toString("utf8"), /#0F2940|#F8FAFC|#55B4FF/);
+  assert.match(brandGenerator, /const includeMiddleSeam = size >= 24;/);
+  assert.match(brandGenerator, /Math\.max\(1\.3, 48 \/ size\)/);
+  assert.match(brandGenerator, /const supersampling = size <= 32 \? 1 : size <= 48 \? 2 : 4;/);
+  assert.match(brandGenerator, /const colours = \[accent, databaseStroke, transparent\];/);
+  assert.match(html, /rel="icon"[^>]+dbnotifier-favicon\.unknown\.ico\?v=2\.6\.4/);
   assert.match(app, /summarizeFleetAggregate\(snapshot, now\)/);
-  assert.match(app, /const brandIconPath = `\/dbnotifier-icon\.\$\{aggregateState\}\.svg\?v=2\.6\.3`/);
-  assert.match(app, /const brandFaviconPath = `\/dbnotifier-favicon\.\$\{aggregateState\}\.ico\?v=2\.6\.3`/);
+  assert.match(app, /const brandIconPath = `\/dbnotifier-icon\.\$\{aggregateState\}\.svg\?v=2\.6\.4`/);
+  assert.match(app, /const brandFaviconPath = `\/dbnotifier-favicon\.\$\{aggregateState\}\.ico\?v=2\.6\.4`/);
   assert.match(app, /favicon\.href = brandFaviconPath/);
   assert.match(app, /<img src=\{brandIconPath\} alt=""/);
   assert.match(html, /<title>DB Notifier — Visão geral<\/title>/);
@@ -259,6 +257,8 @@ test("provider-neutral database mark is shared by active Web and Windows surface
   assert.match(desktopXaml, /Text="DB"[^>]+ComponentBrandWordmarkAccentBrush/);
   assert.match(desktopXaml, /Text="Notifier"[^>]+ComponentShellChromeForegroundBrush/);
   assert.match(desktopProject, /<ApplicationIcon>Assets\\DBNotifier\.ico<\/ApplicationIcon>/);
+  assert.match(desktopProject, /<AssemblyTitle>DB Notifier<\/AssemblyTitle>/);
+  assert.match(desktopProject, /<Product>DB Notifier<\/Product>/);
   assert.doesNotMatch(desktopXaml, /Icon="Assets\/DBNotifier\.ico"/);
   assert.match(desktopXaml, /x:Name="BrandStatusImage"/);
   assert.match(desktopCode, /Icon = brandStatusIcon/);

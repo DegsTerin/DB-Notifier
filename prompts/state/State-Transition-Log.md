@@ -825,6 +825,17 @@
 - Riscos/ressalvas: a nitidez comparativa ainda exige nova inspeção humana em favicon, título, taskbar, overflow de notificações e flyout. Estado Agent/API real continua `STATE-06`; `S05-HG-011` não foi reaberto porque fluxo e mapeamento semântico permaneceram intactos.
 - Aprovador: finding relatado por Bruno; nenhuma aprovação de `S05-HG-010`, do Human Gate ou de transição foi inferida.
 
+## 2026-07-15 — Marca compacta e nome canônico nas notificações Windows
+
+- Estado anterior: `STATE-05 FRONTEND_IMPLEMENTATION`, Human Gate e `S05-HG-010` pendentes; `S05-HG-011` aprovado.
+- Estado resultante: sem transição; Design System `2.6.4` implementado automaticamente e a decisão visual de `S05-HG-010` permanece pendente.
+- Decisão: aceitar que `2.6.3` melhorou materialmente apenas a notificação Windows, tratar a menor nitidez das demais superfícies como falha válida e impedir que o shell exponha `DBNotifier.Desktop.Wpf` como nome visual.
+- Escopo: SVG/ICO canônico de camada única, alfa binário em 16/20/24/32 px, contorno `#0078D4`, sino/clapper semântico sólido, Critical `#C62828`, favicons e ICOs regenerados, cache-busting Web, metadados WPF File Description/Product Name `DB Notifier`, regressões e matriz `REQ-055/056`.
+- Gates: restore locked, build Release sem avisos/erros, 135 testes unitários, oito de arquitetura, format, 33 testes Dashboard, typecheck/build, geração/drift, documentação/links, dependências, dez Pester, bundle, runtime fail-closed, integridade Git e 96 amostras Dashboard aprovados.
+- Evidências: Design System `2.6.4`, `docs/STATE-05-Design-System-Implementation-Report.md`, `docs/STATE-05-Human-Gate-Validation.md`, `docs/STATE-05-Request-Traceability-Audit.md`; executável Release expõe File Description e Product Name `DB Notifier`; regressão exige zero alfa parcial nas quatro menores entradas ICO.
+- Riscos/ressalvas: nitidez comparativa, cache/atribuição efetiva do shell e aparência nas superfícies reais ainda exigem repetição humana de `S05-HG-010`. Estado Agent/API real continua `STATE-06`; `S05-HG-011` não foi reaberto porque fluxo notification-area-first e política semântica não mudaram.
+- Aprovador: correções solicitadas por Bruno; nenhuma aprovação de `S05-HG-010`, do Human Gate ou de transição foi inferida.
+
 ## Template de nova entrada
 
 - Data:

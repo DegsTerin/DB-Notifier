@@ -42,6 +42,21 @@ public sealed class WpfPresentationContractTests
         }
     }
 
+    /// <summary>Ensures Windows shell and notification attribution use the canonical visual product name.</summary>
+    [Fact]
+    public void WpfAssemblyMetadataUsesCanonicalDisplayName()
+    {
+        string project = File.ReadAllText(Path.Combine(
+            RepositoryRoot(),
+            "src",
+            "DBNotifier.Desktop.Wpf",
+            "DBNotifier.Desktop.Wpf.csproj"));
+
+        Assert.Contains("<AssemblyTitle>DB Notifier</AssemblyTitle>", project, StringComparison.Ordinal);
+        Assert.Contains("<Product>DB Notifier</Product>", project, StringComparison.Ordinal);
+        Assert.DoesNotContain("<AssemblyName>DB Notifier</AssemblyName>", project, StringComparison.Ordinal);
+    }
+
     /// <summary>Finds the repository root from the compiled test output without depending on the caller's working directory.</summary>
     /// <returns>The absolute directory containing the solution file.</returns>
     /// <exception cref="DirectoryNotFoundException">Thrown when the test assembly is not running below the repository.</exception>

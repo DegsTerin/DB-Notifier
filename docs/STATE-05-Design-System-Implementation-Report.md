@@ -2,7 +2,7 @@
 
 ## Outcome
 
-The first three DB-Notifier Design System increments, two `S05-HG-001` visual remediation iterations, the canonical product-mark refinements, the ultrawide shell correction, compact preference controls, Dashboard TV presentation, operational Overview, reference-aligned Dashboard/Tray refinement, WPF parity/runtime hardening, notification-area-first increment, clean-room aggregate-policy increment, transparent semantic-icon increment, cross-surface aggregate-colour increment, Light/Dark mark refinement and two small-surface legibility refinements are complete. They establish the canonical token/schema sources, deterministic React/WPF asset generation, explicit Light/Dark preference contracts and the distinct Web/Windows product roles required by Design System `2.6.3`.
+The first three DB-Notifier Design System increments, two `S05-HG-001` visual remediation iterations, the canonical product-mark refinements, the ultrawide shell correction, compact preference controls, Dashboard TV presentation, operational Overview, reference-aligned Dashboard/Tray refinement, WPF parity/runtime hardening, notification-area-first increment, clean-room aggregate-policy increment, transparent semantic-icon increment, cross-surface aggregate-colour increment, Light/Dark mark refinement and three small-surface legibility refinements are complete. They establish the canonical token/schema sources, deterministic React/WPF asset generation, explicit Light/Dark preference contracts and the distinct Web/Windows product roles required by Design System `2.6.4`.
 
 The Dashboard and WPF Desktop now apply generated semantic tokens, expose one discreet translation/languages icon button and one cycling Light/Dark icon button in the upper-right TopBar and preserve the validated preferences. Localised accessible names and tooltips identify the current and next states without flags or permanently expanded groups. The translation symbol replaces the ambiguous globe, while sun/moon states replace the retired System/monitor option. WPF still gives Windows High Contrast precedence over the generated palette.
 
@@ -148,19 +148,28 @@ The React adapter accesses only versioned local UI preference storage and the do
 - The 16/20 px entries use pixel-aligned coverage with no partially transparent edge pixels; 24 px uses bounded two-by-two coverage and 32 px keeps smooth coverage with the compact palette. Larger Windows and Web header marks retain the detailed vector treatment.
 - Four-resolution semantic ICOs now drive the browser favicon independently from the full SVG header mark. The favicon and Windows families are still generated from the same geometry, aggregate state and canonical generator.
 
+## Compact single-layer shell-mark refinement
+
+- The visible `2.6.3` sample proved that the Windows notification itself was clearer, but the browser tab, title bar, taskbar, notification overflow and product headers still looked softer than adjacent platform icons. The same sample also exposed the technical attribution `DBNotifier.Desktop.Wpf` in the Windows notification.
+- Design System `2.6.4` removes the remaining deep-navy/white outline stack from the active vector and raster families. One Windows-blue `#0078D4` cylinder outline and one solid semantic bell/clapper now form the complete transparent mark; Critical remains `#C62828`.
+- All 16/20/24/32 px entries now use binary, pixel-aligned alpha. The 16/20 px entries omit the middle seam, 24 px and larger restore it, and only the 40 px and larger entries retain bounded antialiasing. The canonical SVG uses the same simplified geometry so Dashboard and WPF headers no longer retain the detailed multilayer form.
+- WPF assembly metadata now exposes `DB Notifier` as both File Description and Product Name while retaining the technical assembly filename. This provides the Windows shell with the canonical visual attribution without renaming namespaces or compatibility identifiers.
+
 ## Verification
 
 | Gate | Result |
 |---|---|
 | Token generation | Approved; four adapters generated |
 | Deterministic drift verification | Approved; neutral defaults plus four semantic SVG, four-resolution favicon ICO and nine-resolution Windows ICO variants |
+| Compact raster geometry | Approved; 16/20/24/32 px entries use binary alpha, one blue database outline and one solid semantic bell/clapper |
+| Windows display metadata | Approved; Release executable File Description and Product Name are both `DB Notifier`, while the technical filename remains unchanged |
 | Schema/reference/type/theme parity | Approved |
 | Light/Dark canonical contrast pairs | Approved; all tested pairs `>= 4.5:1` |
 | Dashboard typecheck | Approved |
 | Dashboard tests | Approved; 33/33, including cross-surface aggregate precedence, Overview, Tray structure/safety and system-time regression guards |
 | Dashboard production build | Approved |
 | .NET 10 Release build | Approved; 0 warnings/errors |
-| .NET tests | Approved; 135 unit/model/provider/presentation + 7 architecture = 142/142 |
+| .NET tests | Approved; 135 unit/model/provider/presentation + 8 architecture = 143/143 |
 | .NET format verification | Approved |
 | Legacy compatibility | Approved; 10/10 Pester and bundle validation |
 | Dependency audit | Approved; no npm or NuGet vulnerabilities reported |

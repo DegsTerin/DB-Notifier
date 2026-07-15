@@ -2,7 +2,7 @@
 
 ## Versão atual
 
-- Versão: `3.40.0`
+- Versão: `3.41.0`
 - Data: 2026-07-15
 - Status: corpus DB-Notifier consolidado
 - Escopo: 13 arquivos ativos
@@ -16,6 +16,12 @@ A versão do corpus é independente da versão do software.
 - PATCH: clareza, correção ou referência sem mudança de autoridade.
 
 Toda alteração atualiza este arquivo e, quando necessário, `../Start-Here.md`.
+
+## 3.41.0 — 2026-07-15
+
+- O Design System `2.6.4` substitui a geometria multicamada por um contorno único `#0078D4` e sino/clapper semântico sólido sobre canvas transparente; Critical permanece `#C62828`.
+- Entradas ICO de 16/20/24/32 px passam a usar alfa binário e pixels alinhados, enquanto o SVG ativo compartilha a mesma forma compacta; `REQ-055` registra a nova remediação visual pendente de confirmação humana.
+- Metadados File Description e Product Name do WPF passam a usar `DB Notifier`, preservando o identificador técnico do assembly; `REQ-056` exige confirmação do nome efetivamente apresentado pelo shell Windows.
 
 ## 3.40.0 — 2026-07-15
 

@@ -7,6 +7,9 @@
     <UseWindowsForms>true</UseWindowsForms>
     <EnableWindowsTargeting>true</EnableWindowsTargeting>
     <ApplicationIcon>Assets\DBNotifier.ico</ApplicationIcon>
+    <AssemblyTitle>DB Notifier</AssemblyTitle>
+    <Product>DB Notifier</Product>
+    <Description>DB Notifier Windows notification-area client</Description>
   </PropertyGroup>
   <ItemGroup>
     <Resource Include="Assets\DBNotifier*.ico" />
