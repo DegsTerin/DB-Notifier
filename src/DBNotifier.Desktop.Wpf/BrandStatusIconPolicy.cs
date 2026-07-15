@@ -34,23 +34,28 @@ internal static class BrandStatusIconPolicy
         _ => "DBNotifier.Unknown.ico",
     };
 
-    /// <summary>Loads the nearest native ICO frame without letting WPF downsample the default 128 px frame.</summary>
+    /// <summary>Loads the exact or next-larger native ICO frame for a logical WPF size at the current DPI.</summary>
     /// <param name="state">Provider-neutral aggregate state.</param>
-    /// <param name="targetPixelSize">Requested square frame size in physical pixels.</param>
-    /// <returns>A frozen image source decoded from the nearest packaged ICO frame.</returns>
-    /// <exception cref="ArgumentOutOfRangeException">Thrown when the requested size is not positive.</exception>
+    /// <param name="targetDipSize">Requested square display size in device-independent pixels.</param>
+    /// <param name="dpi">Current visual DPI scale used to derive the physical target size.</param>
+    /// <returns>A frozen image source decoded from the smallest packaged frame that does not require upscaling, or the largest fallback.</returns>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown when the requested size or DPI scale is not positive.</exception>
     /// <exception cref="InvalidOperationException">Thrown when the selected icon resource or its frames are unavailable.</exception>
-    internal static ImageSource LoadImageSource(TrayAggregateState state, int targetPixelSize)
+    internal static ImageSource LoadImageSource(TrayAggregateState state, double targetDipSize, DpiScale dpi)
     {
-        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(targetPixelSize);
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(targetDipSize);
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(dpi.DpiScaleX);
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(dpi.DpiScaleY);
+        int targetPixelSize = (int)Math.Ceiling(targetDipSize * Math.Max(dpi.DpiScaleX, dpi.DpiScaleY));
         System.Windows.Resources.StreamResourceInfo resource = System.Windows.Application.GetResourceStream(PackUri(state))
             ?? throw new InvalidOperationException("The selected packaged DB Notifier status icon resource is unavailable.");
         using Stream stream = resource.Stream;
         IconBitmapDecoder decoder = new(stream, BitmapCreateOptions.PreservePixelFormat, BitmapCacheOption.OnLoad);
         BitmapFrame frame = decoder.Frames
-            .OrderBy(candidate => Math.Abs(candidate.PixelWidth - targetPixelSize))
-            .ThenBy(candidate => candidate.PixelWidth)
+            .Where(candidate => candidate.PixelWidth >= targetPixelSize && candidate.PixelHeight >= targetPixelSize)
+            .OrderBy(candidate => candidate.PixelWidth)
             .FirstOrDefault()
+            ?? decoder.Frames.OrderByDescending(candidate => candidate.PixelWidth).FirstOrDefault()
             ?? throw new InvalidOperationException("The selected packaged DB Notifier status icon contains no decodable frame.");
         frame.Freeze();
         return frame;

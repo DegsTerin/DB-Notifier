@@ -3,6 +3,7 @@ using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Media;
 using DBNotifier.Application.Presentation;
 using DBNotifier.Domain;
 
@@ -52,8 +53,6 @@ public partial class MainWindow : Window
         this.theme = theme;
         this.aggregateState = aggregateState;
         InitializeComponent();
-        Icon = BrandStatusIconPolicy.LoadImageSource(aggregateState, 32);
-        BrandStatusImage.Source = BrandStatusIconPolicy.LoadImageSource(aggregateState, 40);
         SourceInitialized += MainWindowSourceInitialized;
         UpdatePreferenceButtons();
         UpdateNavigationState();
@@ -80,8 +79,13 @@ public partial class MainWindow : Window
     /// <summary>Assigns independent native title and taskbar icon sizes once the WPF window handle exists.</summary>
     /// <param name="sender">Owning window instance.</param>
     /// <param name="e">Source-initialisation event data.</param>
-    private void MainWindowSourceInitialized(object? sender, EventArgs e) =>
+    private void MainWindowSourceInitialized(object? sender, EventArgs e)
+    {
+        DpiScale dpi = VisualTreeHelper.GetDpi(this);
+        Icon = BrandStatusIconPolicy.LoadImageSource(aggregateState, 32, dpi);
+        BrandStatusImage.Source = BrandStatusIconPolicy.LoadImageSource(aggregateState, 40, dpi);
         windowIconLease = BrandStatusIconPolicy.ApplyNativeWindowIcons(this, aggregateState);
+    }
 
     /// <summary>Shows a validated read-only destination requested by the notification-area flyout.</summary>
     /// <param name="view">Known desktop destination; no administrative operation is performed.</param>

@@ -17,6 +17,36 @@ import {
 
 const now = new Date("2026-07-12T15:00:00.000Z");
 
+type IcoFrame = {
+  size: number;
+  dib: Buffer;
+  pixels: Buffer;
+};
+
+/** Parses uncompressed 32-bit DIB frames from one deterministic generated ICO asset. */
+function readIcoFrames(icon: Buffer): IcoFrame[] {
+  const frameCount = icon.readUInt16LE(4);
+  return Array.from({ length: frameCount }, (_, entry) => {
+    const entryOffset = 6 + entry * 16;
+    const size = icon[entryOffset] === 0 ? 256 : icon[entryOffset];
+    const dataLength = icon.readUInt32LE(entryOffset + 8);
+    const dataOffset = icon.readUInt32LE(entryOffset + 12);
+    const dib = icon.subarray(dataOffset, dataOffset + dataLength);
+    return {
+      size,
+      dib,
+      pixels: dib.subarray(40, 40 + size * size * 4),
+    };
+  });
+}
+
+/** Extracts frame alpha bytes so semantic colours can be proved to share one silhouette. */
+function alphaMask(frame: IcoFrame): Buffer {
+  const alpha = Buffer.alloc(frame.size * frame.size);
+  for (let pixel = 0; pixel < alpha.length; pixel += 1) alpha[pixel] = frame.pixels[pixel * 4 + 3];
+  return alpha;
+}
+
 test("summary does not report stale data as freshly healthy", () => {
   const snapshot = buildDemonstrationSnapshot(now);
   const summary = summarizeInventory(snapshot, now);
@@ -196,59 +226,90 @@ test("provider-neutral database mark is shared by active Web and Windows surface
   assert.notDeepEqual(criticalSvg, unknownSvg);
   assert.deepEqual([...windowsIcon.subarray(0, 6)], [0, 0, 1, 0, 9, 0]);
   assert.deepEqual(windowsIcon, unknownIcon);
-  for (const icon of [healthyIcon, warningIcon, criticalIcon, unknownIcon]) {
+  const semanticWindowsIcons = [healthyIcon, warningIcon, criticalIcon, unknownIcon];
+  const referenceFrames = readIcoFrames(unknownIcon);
+  for (const icon of semanticWindowsIcons) {
     assert.deepEqual([...icon.subarray(0, 6)], [0, 0, 1, 0, 9, 0]);
-    const largestEntry = 6 + 8 * 16;
-    const bitmapOffset = icon.readUInt32LE(largestEntry + 12) + 40;
+    const frames = readIcoFrames(icon);
+    assert.deepEqual(frames.map((frame) => frame.size), [16, 20, 24, 32, 40, 48, 64, 128, 256]);
+    frames.forEach((frame, index) => assert.deepEqual(alphaMask(frame), alphaMask(referenceFrames[index])));
+
+    const largestFrame = frames[frames.length - 1];
     let transparentPixels = 0;
     for (let pixel = 0; pixel < 256 * 256; pixel += 1) {
-      if (icon[bitmapOffset + pixel * 4 + 3] === 0) transparentPixels += 1;
+      if (largestFrame.pixels[pixel * 4 + 3] === 0) transparentPixels += 1;
     }
     assert.ok(transparentPixels > 256 * 256 * 0.5);
     const transparentInteriorX = 100;
     const transparentInteriorY = 80;
     const storedInteriorRow = 255 - transparentInteriorY;
-    assert.equal(icon[bitmapOffset + (storedInteriorRow * 256 + transparentInteriorX) * 4 + 3], 0);
+    assert.equal(largestFrame.pixels[(storedInteriorRow * 256 + transparentInteriorX) * 4 + 3], 0);
 
-    const smallestBitmapOffset = icon.readUInt32LE(6 + 12) + 40;
+    const smallestFrame = frames[0];
     let opaqueSmallPixels = 0;
     for (let pixel = 0; pixel < 16 * 16; pixel += 1) {
-      if (icon[smallestBitmapOffset + pixel * 4 + 3] >= 128) opaqueSmallPixels += 1;
+      if (smallestFrame.pixels[pixel * 4 + 3] >= 128) opaqueSmallPixels += 1;
     }
     assert.ok(opaqueSmallPixels >= 90);
 
-    for (const [entry, size] of [16, 20, 24, 32].entries()) {
-      const entryOffset = 6 + entry * 16;
-      const smallBitmapOffset = icon.readUInt32LE(entryOffset + 12) + 40;
+    for (const frame of frames) {
       let partialAlphaPixels = 0;
-      for (let pixel = 0; pixel < size * size; pixel += 1) {
-        const alpha = icon[smallBitmapOffset + pixel * 4 + 3];
+      for (let pixel = 0; pixel < frame.size * frame.size; pixel += 1) {
+        const alpha = frame.pixels[pixel * 4 + 3];
         if (alpha > 0 && alpha < 255) partialAlphaPixels += 1;
       }
-      assert.equal(partialAlphaPixels, 0);
+      assert.ok(partialAlphaPixels > 0);
     }
   }
   assert.notDeepEqual(healthyIcon, warningIcon);
   assert.notDeepEqual(warningIcon, criticalIcon);
   assert.notDeepEqual(criticalIcon, unknownIcon);
   assert.deepEqual(favicon, unknownFavicon);
-  for (const favicon of [healthyFavicon, warningFavicon, criticalFavicon, unknownFavicon]) {
+  const semanticFavicons = [healthyFavicon, warningFavicon, criticalFavicon, unknownFavicon];
+  for (const favicon of semanticFavicons) {
     assert.deepEqual([...favicon.subarray(0, 6)], [0, 0, 1, 0, 4, 0]);
   }
+  semanticFavicons.forEach((faviconAsset, stateIndex) => {
+    const faviconFrames = readIcoFrames(faviconAsset);
+    const windowsFrames = readIcoFrames(semanticWindowsIcons[stateIndex]);
+    assert.deepEqual(faviconFrames.map((frame) => frame.size), [16, 20, 24, 32]);
+    faviconFrames.forEach((frame, frameIndex) => assert.deepEqual(frame.dib, windowsFrames[frameIndex].dib));
+  });
   assert.notDeepEqual(healthyFavicon, warningFavicon);
   assert.notDeepEqual(warningFavicon, criticalFavicon);
   assert.notDeepEqual(criticalFavicon, unknownFavicon);
+
+  for (const frame of readIcoFrames(criticalIcon)) {
+    let straightBlueEdge = false;
+    let straightRedEdge = false;
+    for (let pixel = 0; pixel < frame.size * frame.size; pixel += 1) {
+      const offset = pixel * 4;
+      const alpha = frame.pixels[offset + 3];
+      if (alpha === 0 || alpha === 255) continue;
+      const blue = frame.pixels[offset];
+      const green = frame.pixels[offset + 1];
+      const red = frame.pixels[offset + 2];
+      if (red === 0 && green === 120 && blue === 212) straightBlueEdge = true;
+      if (red === 198 && green === 40 && blue === 40) straightRedEdge = true;
+    }
+    assert.ok(straightBlueEdge, `${frame.size} px frame lost the canonical blue on a partially covered edge.`);
+    assert.ok(straightRedEdge, `${frame.size} px frame lost the canonical Critical red on a partially covered edge.`);
+  }
+
   assert.doesNotMatch(dashboardSvg.toString("utf8"), /<rect/);
   assert.match(dashboardSvg.toString("utf8"), /fill="none" stroke="#0078D4"/);
   assert.doesNotMatch(dashboardSvg.toString("utf8"), /#0F2940|#F8FAFC|#55B4FF/);
-  assert.match(brandGenerator, /const includeMiddleSeam = size >= 24;/);
-  assert.match(brandGenerator, /Math\.max\(1\.3, 48 \/ size\)/);
-  assert.match(brandGenerator, /const supersampling = size <= 32 \? 1 : size <= 48 \? 2 : 4;/);
-  assert.match(brandGenerator, /const colours = \[accent, databaseStroke, transparent\];/);
-  assert.match(html, /rel="icon"[^>]+dbnotifier-favicon\.unknown\.ico\?v=2\.6\.5/);
+  assert.match(brandGenerator, /const markGeometry = Object\.freeze/);
+  assert.match(brandGenerator, /const \{ database, bell \} = markGeometry;/);
+  assert.match(brandGenerator, /for \(const centreY of \[database\.seamCentreY, database\.bottomCentreY\]\)/);
+  assert.match(brandGenerator, /const supersampling = size <= 24 \? 2 : 4;/);
+  assert.match(brandGenerator, /const visibleSamples = coverage\[coverageOffset\] \+ coverage\[coverageOffset \+ 1\]/);
+  assert.match(brandGenerator, /pixels\[offset \+ 3\] = Math\.round\(\(visibleSamples \/ samples\) \* 255\)/);
+  assert.doesNotMatch(brandGenerator, /includeMiddleSeam|databaseStrokeRadius = Math\.max/);
+  assert.match(html, /rel="icon"[^>]+dbnotifier-favicon\.unknown\.ico\?v=2\.6\.6/);
   assert.match(app, /summarizeFleetAggregate\(snapshot, now\)/);
-  assert.match(app, /const brandIconPath = `\/dbnotifier-icon\.\$\{aggregateState\}\.svg\?v=2\.6\.5`/);
-  assert.match(app, /const brandFaviconPath = `\/dbnotifier-favicon\.\$\{aggregateState\}\.ico\?v=2\.6\.5`/);
+  assert.match(app, /const brandIconPath = `\/dbnotifier-icon\.\$\{aggregateState\}\.svg\?v=2\.6\.6`/);
+  assert.match(app, /const brandFaviconPath = `\/dbnotifier-favicon\.\$\{aggregateState\}\.ico\?v=2\.6\.6`/);
   assert.match(app, /favicon\.href = brandFaviconPath/);
   assert.match(app, /<img src=\{brandIconPath\} alt=""/);
   assert.match(html, /<title>DB Notifier — Visão geral<\/title>/);
@@ -261,17 +322,21 @@ test("provider-neutral database mark is shared by active Web and Windows surface
   assert.match(desktopProject, /<Product>DB Notifier<\/Product>/);
   assert.doesNotMatch(desktopXaml, /Icon="Assets\/DBNotifier\.ico"/);
   assert.match(desktopXaml, /x:Name="BrandStatusImage"/);
-  assert.match(desktopCode, /Icon = BrandStatusIconPolicy\.LoadImageSource\(aggregateState, 32\)/);
-  assert.match(desktopCode, /BrandStatusImage\.Source = BrandStatusIconPolicy\.LoadImageSource\(aggregateState, 40\)/);
+  assert.match(desktopCode, /DpiScale dpi = VisualTreeHelper\.GetDpi\(this\)/);
+  assert.match(desktopCode, /Icon = BrandStatusIconPolicy\.LoadImageSource\(aggregateState, 32, dpi\)/);
+  assert.match(desktopCode, /BrandStatusImage\.Source = BrandStatusIconPolicy\.LoadImageSource\(aggregateState, 40, dpi\)/);
   assert.match(desktopCode, /BrandStatusIconPolicy\.ApplyNativeWindowIcons\(this, aggregateState\)/);
   assert.match(desktopApp, /CreateDemonstrationSummary\(\)/);
   assert.match(desktopApp, /new\(localisation, theme, fleetSummary\.State\)/);
   assert.match(flyoutXaml, /x:Name="BrandStatusImage"/);
-  assert.match(flyoutCode, /BrandStatusIconPolicy\.LoadImageSource\(fleetSummary\.State, 32\)/);
+  assert.match(flyoutCode, /DpiScale dpi = VisualTreeHelper\.GetDpi\(this\)/);
+  assert.match(flyoutCode, /BrandStatusIconPolicy\.LoadImageSource\(fleetSummary\.State, 32, dpi\)/);
   assert.match(trayController, /Icon = applicationIcon/);
   assert.match(trayController, /BrandStatusIconPolicy\.LoadWindowsIcon\([\s\S]*fleetSummary\.State,[\s\S]*Forms\.SystemInformation\.SmallIconSize\.Width\)/);
   assert.match(brandStatusPolicy, /IconBitmapDecoder/);
-  assert.match(brandStatusPolicy, /Math\.Abs\(candidate\.PixelWidth - targetPixelSize\)/);
+  assert.match(brandStatusPolicy, /Math\.Ceiling\(targetDipSize \* Math\.Max\(dpi\.DpiScaleX, dpi\.DpiScaleY\)\)/);
+  assert.match(brandStatusPolicy, /candidate\.PixelWidth >= targetPixelSize/);
+  assert.match(brandStatusPolicy, /OrderByDescending\(candidate => candidate\.PixelWidth\)/);
   assert.doesNotMatch(brandStatusPolicy, /BitmapImage image = new\(\)/);
   assert.match(brandStatusPolicy, /SendMessage\(windowHandle, WmSetIcon, IconSmall2/);
   assert.match(brandStatusPolicy, /SendMessage\(windowHandle, WmSetIcon, IconBig/);
@@ -309,6 +374,8 @@ test("Tray flyout preserves operational scanning while administrative execution 
   assert.match(controller, /Tray\.TooltipSummary/);
   assert.match(controller, /notifyIcon\.MouseClick \+= NotifyIconMouseClick/);
   assert.match(controller, /Forms\.MouseButtons\.Left or Forms\.MouseButtons\.Right/);
+  assert.match(controller, /Forms\.ToolTipIcon\.None/);
+  assert.doesNotMatch(controller, /Forms\.ToolTipIcon\.Info/);
   assert.doesNotMatch(controller, /ContextMenuStrip|ContextMenuOpening/);
 });
 

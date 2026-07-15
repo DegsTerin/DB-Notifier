@@ -699,81 +699,198 @@ function Get-StateColour {
     }
 }
 
+<#
+.SYNOPSIS
+Resolves a canonical generated DB Notifier icon for the requested aggregate state.
+
+.DESCRIPTION
+Looks first beside a packaged compatibility executable and then in the canonical WPF
+asset directory used during source execution. Unsupported states fail closed to the
+Unknown semantic icon. A missing generated asset is reported instead of recreating a
+parallel legacy mark.
+
+.PARAMETER State
+Aggregate semantic state whose bell colour should be displayed.
+
+.OUTPUTS
+System.String. The absolute path to the selected generated ICO file.
+
+.EXAMPLE
+Resolve-CanonicalTrayIconPath -State "Critical"
+#>
+function Resolve-CanonicalTrayIconPath {
+    [CmdletBinding()]
+    param([string]$State = "Unknown")
+
+    $iconFiles = @{
+        Healthy  = "DBNotifier.Healthy.ico"
+        Warning  = "DBNotifier.Warning.ico"
+        Critical = "DBNotifier.Critical.ico"
+        Unknown  = "DBNotifier.Unknown.ico"
+    }
+    $safeState = if (-not [string]::IsNullOrWhiteSpace($State) -and $iconFiles.ContainsKey($State)) { $State } else { "Unknown" }
+    $assetDirectories = @(
+        (Join-Path -Path $PSScriptRoot -ChildPath "Assets"),
+        (Join-Path -Path $PSScriptRoot -ChildPath "..\..\DBNotifier.Desktop.Wpf\Assets")
+    )
+
+    foreach ($assetDirectory in $assetDirectories) {
+        $candidate = Join-Path -Path $assetDirectory -ChildPath $iconFiles[$safeState]
+        if (Test-Path -LiteralPath $candidate -PathType Leaf) {
+            return [System.IO.Path]::GetFullPath($candidate)
+        }
+    }
+
+    if ($safeState -ne "Unknown") {
+        foreach ($assetDirectory in $assetDirectories) {
+            $fallback = Join-Path -Path $assetDirectory -ChildPath $iconFiles.Unknown
+            if (Test-Path -LiteralPath $fallback -PathType Leaf) {
+                return [System.IO.Path]::GetFullPath($fallback)
+            }
+        }
+    }
+
+    throw "The canonical DB Notifier Unknown icon is missing. Regenerate and package the brand assets before starting the compatibility client."
+}
+
+<#
+.SYNOPSIS
+Loads the canonical multi-frame DB Notifier icon for a notification-area surface.
+
+.DESCRIPTION
+Selects a native ICO frame at the requested size and clones it away from the source
+stream so the caller owns a stable disposable icon. Unsupported semantic states are
+resolved to Unknown by Resolve-CanonicalTrayIconPath.
+
+.PARAMETER State
+Aggregate semantic state represented by the bell colour.
+
+.PARAMETER Size
+Requested square icon size in device pixels. The default follows the current Windows
+small-icon metric so the notification area receives a native frame.
+
+.OUTPUTS
+System.Drawing.Icon. The caller must dispose the returned icon.
+
+.EXAMPLE
+New-TrayIcon -State "Healthy" -Size 32
+#>
 function New-TrayIcon {
     [CmdletBinding()]
-    param([System.Drawing.Color]$BadgeColour = [System.Drawing.Color]::FromArgb(99, 245, 112))
+    param(
+        [string]$State = "Unknown",
+        [ValidateRange(16, 256)][int]$Size = [System.Windows.Forms.SystemInformation]::SmallIconSize.Width
+    )
 
-    $bitmap = New-Object System.Drawing.Bitmap 32, 32
-    $graphics = [System.Drawing.Graphics]::FromImage($bitmap)
+    $iconPath = Resolve-CanonicalTrayIconPath -State $State
+    $stream = [System.IO.File]::OpenRead($iconPath)
+    $sourceIcon = $null
 
     try {
-        $graphics.SmoothingMode = [System.Drawing.Drawing2D.SmoothingMode]::AntiAlias
-        $graphics.Clear([System.Drawing.Color]::Transparent)
-        $background = New-Object System.Drawing.SolidBrush([System.Drawing.Color]::FromArgb(30, 48, 66))
-        $green = New-Object System.Drawing.SolidBrush($BadgeColour)
-        $whitePen = New-Object System.Drawing.Pen([System.Drawing.Color]::FromArgb(230, 255, 235), 2)
-        $font = New-Object System.Drawing.Font("Segoe UI", 9, [System.Drawing.FontStyle]::Bold, [System.Drawing.GraphicsUnit]::Pixel)
-        $text = New-Object System.Drawing.SolidBrush([System.Drawing.Color]::FromArgb(14, 28, 38))
-
-        $graphics.FillRectangle($background, 1, 1, 30, 30)
-        $graphics.FillEllipse($green, 6, 5, 20, 20)
-        $graphics.DrawArc($whitePen, 8, 7, 8, 12, 90, 230)
-        $graphics.DrawArc($whitePen, 16, 7, 8, 12, 220, 230)
-        $graphics.DrawLine($whitePen, 15, 18, 15, 27)
-        $graphics.DrawLine($whitePen, 15, 27, 20, 25)
-        $graphics.DrawString("P", $font, $text, 10, 11)
-
-        $background.Dispose()
-        $green.Dispose()
-        $whitePen.Dispose()
-        $font.Dispose()
-        $text.Dispose()
-        $handle = $bitmap.GetHicon()
-        return [System.Drawing.Icon]::FromHandle($handle).Clone()
+        $sourceIcon = New-Object System.Drawing.Icon -ArgumentList @($stream, $Size, $Size)
+        return $sourceIcon.Clone()
     }
     finally {
-        $graphics.Dispose()
-        $bitmap.Dispose()
+        if ($sourceIcon) {
+            $sourceIcon.Dispose()
+        }
+        $stream.Dispose()
     }
 }
 
+<#
+.SYNOPSIS
+Creates a WinForms picture box that displays the canonical DB Notifier mark.
+
+.DESCRIPTION
+Uses the same generated ICO family as the notification-area icon. The picture box
+owns the resulting bitmap, and callers must dispose it with the containing form.
+
+.PARAMETER X
+Horizontal location in the parent control.
+
+.PARAMETER Y
+Vertical location in the parent control.
+
+.PARAMETER Size
+Square display size in device pixels.
+
+.PARAMETER State
+Aggregate semantic state represented by the bell colour.
+
+.OUTPUTS
+System.Windows.Forms.PictureBox.
+#>
 function New-LogoPictureBox {
     [CmdletBinding()]
-    param([int]$X, [int]$Y, [int]$Size = 28)
+    param(
+        [int]$X,
+        [int]$Y,
+        [int]$Size = 32,
+        [string]$State = "Unknown"
+    )
 
-    $bitmap = New-Object System.Drawing.Bitmap $Size, $Size
-    $graphics = [System.Drawing.Graphics]::FromImage($bitmap)
-
+    $icon = New-TrayIcon -State $State -Size 32
     try {
-        $graphics.SmoothingMode = [System.Drawing.Drawing2D.SmoothingMode]::AntiAlias
-        $graphics.Clear([System.Drawing.Color]::Transparent)
-        $green = New-Object System.Drawing.SolidBrush([System.Drawing.Color]::FromArgb(99, 245, 112))
-        $dark = New-Object System.Drawing.SolidBrush([System.Drawing.Color]::FromArgb(11, 24, 34))
-        $whitePen = New-Object System.Drawing.Pen([System.Drawing.Color]::FromArgb(230, 255, 235), 2)
-        $font = New-Object System.Drawing.Font("Segoe UI", 8, [System.Drawing.FontStyle]::Bold, [System.Drawing.GraphicsUnit]::Pixel)
-
-        $graphics.FillEllipse($green, 3, 4, $Size - 7, $Size - 8)
-        $graphics.DrawArc($whitePen, 6, 7, 8, 12, 90, 230)
-        $graphics.DrawArc($whitePen, 14, 7, 8, 12, 220, 230)
-        $graphics.DrawLine($whitePen, 13, 17, 13, 25)
-        $graphics.DrawLine($whitePen, 13, 25, 19, 23)
-        $graphics.DrawString("P", $font, $dark, 9, 10)
-
-        $green.Dispose()
-        $dark.Dispose()
-        $whitePen.Dispose()
-        $font.Dispose()
+        $bitmap = $icon.ToBitmap()
     }
     finally {
-        $graphics.Dispose()
+        $icon.Dispose()
     }
 
     $picture = New-Object System.Windows.Forms.PictureBox
     $picture.Location = New-Object System.Drawing.Point($X, $Y)
     $picture.Size = New-Object System.Drawing.Size($Size, $Size)
     $picture.BackColor = [System.Drawing.Color]::Transparent
+    $picture.SizeMode = [System.Windows.Forms.PictureBoxSizeMode]::Zoom
     $picture.Image = $bitmap
+    $picture.Add_Disposed({
+        $ownedImage = $this.Image
+        $this.Image = $null
+        if ($ownedImage) {
+            $ownedImage.Dispose()
+        }
+    })
     return $picture
+}
+
+<#
+.SYNOPSIS
+Replaces a logo picture box image with the canonical icon for an aggregate state.
+
+.DESCRIPTION
+Creates the replacement before disposing the previous bitmap so a failed asset load
+does not blank the current UI. The picture box owns the replacement bitmap.
+
+.PARAMETER PictureBox
+Existing logo picture box to update.
+
+.PARAMETER State
+Aggregate semantic state represented by the bell colour.
+
+.OUTPUTS
+None.
+#>
+function Set-LogoPictureBoxState {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)][System.Windows.Forms.PictureBox]$PictureBox,
+        [string]$State = "Unknown"
+    )
+
+    $icon = New-TrayIcon -State $State -Size 32
+    try {
+        $replacement = $icon.ToBitmap()
+    }
+    finally {
+        $icon.Dispose()
+    }
+
+    $previous = $PictureBox.Image
+    $PictureBox.Image = $replacement
+    if ($previous) {
+        $previous.Dispose()
+    }
 }
 
 function Add-Control {
@@ -878,7 +995,7 @@ function New-PopupForm {
     $form.Add_Shown({ Set-RoundedRegion -Control $this -Radius 10 })
     $form.Add_Resize({ Set-RoundedRegion -Control $this -Radius 10 })
 
-    $icon = New-LogoPictureBox -X 13 -Y 10 -Size 28
+    $icon = New-LogoPictureBox -X 13 -Y 8 -Size 32 -State "Unknown"
     $header = New-Label -Text "Checking PostgreSQL instances" -X 52 -Y 17 -Width 206 -Height 18 -Colour ([System.Drawing.Color]::FromArgb(120, 255, 120)) -Size 8.25
     Add-Control -Parent $panel -Child $icon
     Add-Control -Parent $panel -Child $header
@@ -940,6 +1057,7 @@ function New-PopupForm {
     $form.Add_Deactivate({ $Context.Popup.Hide() })
 
     $Context.PopupControls = @{
+        Logo            = $icon
         Header          = $header
         List            = $list
         ServiceButton   = $serviceButton
@@ -970,6 +1088,20 @@ function Set-SelectedInstance {
     Update-Popup -Context $Context
 }
 
+<#
+.SYNOPSIS
+Builds the legacy compatibility client's aggregate status presentation.
+
+.DESCRIPTION
+Summarises the current instance states for text, tooltip colour and the canonical
+semantic icon family. Empty or unproved state fails closed to Unknown.
+
+.PARAMETER Context
+Application context containing configuration and current instance states.
+
+.OUTPUTS
+System.Management.Automation.PSCustomObject with Header, Tooltip, Colour and IconState.
+#>
 function Get-Summary {
     param([hashtable]$Context)
 
@@ -979,6 +1111,7 @@ function Get-Summary {
             Header = "No PostgreSQL instances detected"
             Tooltip = "$($Context.Configuration.Application.DisplayName): no PostgreSQL instances"
             Colour = [System.Drawing.Color]::FromArgb(255, 205, 70)
+            IconState = "Unknown"
         }
     }
 
@@ -988,6 +1121,7 @@ function Get-Summary {
             Header = "All instances are healthy"
             Tooltip = "$($Context.Configuration.Application.DisplayName): all instances healthy"
             Colour = [System.Drawing.Color]::FromArgb(99, 245, 112)
+            IconState = "Healthy"
         }
     }
 
@@ -995,6 +1129,7 @@ function Get-Summary {
         Header = "$attention instance(s) need attention"
         Tooltip = "$($Context.Configuration.Application.DisplayName): $attention instance(s) need attention"
         Colour = [System.Drawing.Color]::FromArgb(255, 102, 83)
+        IconState = "Critical"
     }
 }
 
@@ -1008,6 +1143,9 @@ function Update-Popup {
 
     $summary = Get-Summary -Context $Context
     $Context.PopupControls.Header.Text = $summary.Header
+    if ($Context.PopupControls.ContainsKey("Logo") -and $Context.PopupControls.Logo) {
+        Set-LogoPictureBoxState -PictureBox $Context.PopupControls.Logo -State $summary.IconState
+    }
     $list = $Context.PopupControls.List
     $list.Controls.Clear()
 
@@ -1069,6 +1207,20 @@ function Update-Popup {
     $Context.PopupControls.RestartMenuItem.Enabled = $canControl -and ($selected.CurrentStateKey -ne "STOPPED")
 }
 
+<#
+.SYNOPSIS
+Synchronises the legacy notification-area icon with the current aggregate state.
+
+.DESCRIPTION
+Updates tooltip text and replaces the previous disposable icon with the canonical
+generated ICO for the summary state.
+
+.PARAMETER Context
+Application context containing the NotifyIcon and current instance states.
+
+.OUTPUTS
+None.
+#>
 function Update-NotifyIcon {
     [CmdletBinding()]
     param([Parameter(Mandatory)][hashtable]$Context)
@@ -1076,7 +1228,7 @@ function Update-NotifyIcon {
     $summary = Get-Summary -Context $Context
     $Context.NotifyIcon.Text = if ($summary.Tooltip.Length -gt 63) { $summary.Tooltip.Substring(0, 63) } else { $summary.Tooltip }
     $oldIcon = $Context.NotifyIcon.Icon
-    $Context.NotifyIcon.Icon = New-TrayIcon -BadgeColour $summary.Colour
+    $Context.NotifyIcon.Icon = New-TrayIcon -State $summary.IconState
     if ($oldIcon) {
         $oldIcon.Dispose()
     }

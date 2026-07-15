@@ -30,6 +30,7 @@ Compatibility code must forward to the canonical implementation, emit a deprecat
 - New artifacts are `DBNotifier.exe`, `DBNotifier-Setup.exe`, `DBNotifierDesktop.exe`, `DBNotifierTray.exe`, and `DBNotifierPixelUI.exe`.
 - The DB-Notifier installer has a distinct application ID and `%ProgramData%\DB-Notifier` configuration root, allowing side-by-side rollback.
 - The compatibility `.iss` path does not recreate PgNotifier output names; it only keeps automation from failing immediately while producing the canonical package.
+- The functional PowerShell compatibility client consumes the generated `DBNotifier.{Healthy,Warning,Critical,Unknown}.ico` family for its notification-area and popup marks. Packaging copies those assets into `Assets`; the compatibility path must fail safely to Unknown and must not draw or ship a separate legacy logo.
 - Build scripts report missing prerequisites and never install `ps2exe`, PyInstaller, or Inno Setup automatically.
 
 ## Removal gate

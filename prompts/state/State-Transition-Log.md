@@ -847,6 +847,17 @@
 - Riscos/ressalvas: a correção remove uma causa técnica objetiva de suavização, mas comparação perceptual com ícones vizinhos ainda exige repetição humana. Estado Agent/API real continua `STATE-06`; `S05-HG-011` não foi reaberto porque fluxo notification-area-first e política semântica não mudaram.
 - Aprovador: refinamento solicitado por Bruno; nenhuma aprovação de `S05-HG-010`, do Human Gate ou de transição foi inferida.
 
+## 2026-07-15 — Unificação do modelo canônico da marca
+
+- Estado anterior: `STATE-05 FRONTEND_IMPLEMENTATION`, Human Gate e `S05-HG-010` pendentes; `S05-HG-011` aprovado.
+- Estado resultante: sem transição; Design System `2.6.6` implementado no escopo de ativos e a decisão visual de `S05-HG-010` permanece pendente.
+- Decisão: tratar como finding válido as diferenças de desenho ainda visíveis após `2.6.5` e exigir um único modelo bonito, nítido e de boa qualidade em todas as superfícies, com a mesma geometria, proporções e transparência; somente a cor semântica do sino e a densidade de amostragem da resolução podem variar.
+- Escopo: um contrato geométrico para SVG/ICO, cilindro/costuras/sino compartilhados, canvas e interior transparentes, supersampling 2×/4×, BGRA com alfa direto, payload favicon/Windows equivalente em 16/20/24/32 px, substituição do logo GDI do cliente PowerShell por carregamento/empacotamento da família canônica, retirada do glyph Info não relacionado do balloon WPF, seleção WPF DPI-aware com quadro exato/imediatamente maior, ativos semânticos regenerados, cache-busting Web, regressões e matriz `REQ-058`; política agregada e fluxo notification-area-first foram preservados.
+- Gates: `brand:verify`, build Release com zero avisos/erros, 135/135 testes unitários, 9/9 de arquitetura, 33/33 Dashboard, 11/11 Pester, validação do bundle, 174 fontes no gate documental, 179 links em 61 Markdown, matriz Web de 96 amostras, auditorias NuGet/npm e runtime fail-closed foram aprovados. As regressões comparam a fonte geométrica, máscaras alfa entre estados, canais de cor nas bordas parcialmente transparentes e igualdade byte-a-byte dos quadros favicon/Windows de mesmo tamanho; a aceitação perceptual continua humana.
+- Evidências: Design System `2.6.6`, `docs/STATE-05-Design-System-Implementation-Report.md`, `docs/STATE-05-Human-Gate-Validation.md`, `docs/STATE-05-Request-Traceability-Audit.md`, gerador canônico e famílias SVG/ICO produzidas.
+- Riscos/ressalvas: equivalência estrutural não prova beleza ou nitidez percebida nas superfícies reais; browser tab/header, WPF title/header/flyout, taskbar, overflow e notificação Windows ainda exigem repetição humana de `S05-HG-010`. Estado Agent/API real continua `STATE-06`; `S05-HG-011` permanece aprovado porque seu fluxo e mapeamento semântico não mudaram.
+- Aprovador: padronização solicitada por Bruno; nenhuma aprovação de `S05-HG-010`, do Human Gate ou de transição foi inferida.
+
 ## Template de nova entrada
 
 - Data:

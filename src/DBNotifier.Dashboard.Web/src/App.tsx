@@ -154,8 +154,8 @@ export function App() {
   const configurationSnapshot = useMemo(() => buildConfigurationSnapshot(locale), [locale]);
   const summary = useMemo(() => summarizeInventory(snapshot, now), [snapshot, now]);
   const aggregateState = useMemo(() => summarizeFleetAggregate(snapshot, now), [snapshot, now]);
-  const brandIconPath = `/dbnotifier-icon.${aggregateState}.svg?v=2.6.5`;
-  const brandFaviconPath = `/dbnotifier-favicon.${aggregateState}.ico?v=2.6.5`;
+  const brandIconPath = `/dbnotifier-icon.${aggregateState}.svg?v=2.6.6`;
+  const brandFaviconPath = `/dbnotifier-favicon.${aggregateState}.ico?v=2.6.6`;
   const filteredItems = useMemo(
     () => filterInventory(snapshot.items, query, statusFilter, now, locale),
     [snapshot.items, query, statusFilter, now, locale],

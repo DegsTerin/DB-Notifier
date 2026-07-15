@@ -32,6 +32,7 @@ Name: "desktopicon"; Description: "Create a Desktop shortcut"; GroupDescription:
 [Files]
 Source: "{#SourceDir}\DBNotifier.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#SourceDir}\README.md"; DestDir: "{app}"; Flags: ignoreversion
+Source: "{#SourceDir}\Assets\*.ico"; DestDir: "{app}\Assets"; Flags: ignoreversion
 Source: "{#SourceDir}\config\appsettings.json"; DestDir: "{commonappdata}\DB-Notifier"; Flags: ignoreversion onlyifdoesntexist
 
 [Icons]

@@ -2,7 +2,7 @@
 
 ## Versão atual
 
-- Versão: `3.42.0`
+- Versão: `3.43.0`
 - Data: 2026-07-15
 - Status: corpus DB-Notifier consolidado
 - Escopo: 13 arquivos ativos
@@ -16,6 +16,12 @@ A versão do corpus é independente da versão do software.
 - PATCH: clareza, correção ou referência sem mudança de autoridade.
 
 Toda alteração atualiza este arquivo e, quando necessário, `../Start-Here.md`.
+
+## 3.43.0 — 2026-07-15
+
+- O Design System `2.6.6` exige um único contrato geométrico para SVG, favicon, ICO Windows e o cliente PowerShell funcional; todas as superfícies preservam cilindro, costuras, sino, proporções e transparência, variando somente a cor semântica do sino e a densidade de amostragem por resolução.
+- Raster 16/20/24 px usa supersampling 2×, 32 px ou maior usa 4× e o BGRA armazena cor com alfa direto para evitar halos escuros/cinzentos; favicons reutilizam os payloads dos quadros Windows equivalentes em 16/20/24/32 px, o balloon WPF deixa de solicitar um glyph Info alheio à marca e hosts WPF selecionam o quadro físico pelo `DpiScale` sem upscale evitável.
+- `REQ-058` e a décima remediação de `S05-HG-010` registram o finding de modelos divergentes; a comparação perceptual continua pendente e `S05-HG-011` permanece aprovado.
 
 ## 3.42.0 — 2026-07-15
 

@@ -57,7 +57,7 @@ public sealed class WpfPresentationContractTests
         Assert.DoesNotContain("<AssemblyName>DB Notifier</AssemblyName>", project, StringComparison.Ordinal);
     }
 
-    /// <summary>Ensures WPF selects resolution-matched ICO frames instead of resampling one large bitmap across shell roles.</summary>
+    /// <summary>Ensures WPF selects DPI-aware native ICO frames instead of upscaling a fixed bitmap across shell roles.</summary>
     [Fact]
     public void WpfBrandIconsUseNativeResolutionFrames()
     {
@@ -70,11 +70,15 @@ public sealed class WpfPresentationContractTests
         string trayController = File.ReadAllText(Path.Combine(desktopDirectory, "TrayApplicationController.cs"));
 
         Assert.Contains("IconBitmapDecoder", policy, StringComparison.Ordinal);
-        Assert.Contains("Math.Abs(candidate.PixelWidth - targetPixelSize)", policy, StringComparison.Ordinal);
+        Assert.Contains("Math.Ceiling(targetDipSize * Math.Max(dpi.DpiScaleX, dpi.DpiScaleY))", policy, StringComparison.Ordinal);
+        Assert.Contains("candidate.PixelWidth >= targetPixelSize", policy, StringComparison.Ordinal);
+        Assert.Contains("OrderByDescending(candidate => candidate.PixelWidth)", policy, StringComparison.Ordinal);
         Assert.DoesNotContain("BitmapImage image = new()", policy, StringComparison.Ordinal);
         Assert.Contains("ApplyNativeWindowIcons(this, aggregateState)", mainWindow, StringComparison.Ordinal);
-        Assert.Contains("LoadImageSource(aggregateState, 40)", mainWindow, StringComparison.Ordinal);
-        Assert.Contains("LoadImageSource(fleetSummary.State, 32)", flyout, StringComparison.Ordinal);
+        Assert.Contains("DpiScale dpi = VisualTreeHelper.GetDpi(this)", mainWindow, StringComparison.Ordinal);
+        Assert.Contains("LoadImageSource(aggregateState, 40, dpi)", mainWindow, StringComparison.Ordinal);
+        Assert.Contains("DpiScale dpi = VisualTreeHelper.GetDpi(this)", flyout, StringComparison.Ordinal);
+        Assert.Contains("LoadImageSource(fleetSummary.State, 32, dpi)", flyout, StringComparison.Ordinal);
         Assert.Contains("Stretch=\"None\" SnapsToDevicePixels=\"True\"", mainWindowMarkup, StringComparison.Ordinal);
         Assert.Contains("Stretch=\"None\" SnapsToDevicePixels=\"True\"", flyoutMarkup, StringComparison.Ordinal);
         Assert.Contains("Forms.SystemInformation.SmallIconSize.Width", trayController, StringComparison.Ordinal);

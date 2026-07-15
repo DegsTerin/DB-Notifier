@@ -141,7 +141,8 @@ internal sealed class TrayApplicationController : IDisposable
                 window.Hide();
                 if (firstHide)
                 {
-                    notifyIcon.ShowBalloonTip(3000, localisation.Text("Tray.BalloonTitle"), localisation.Text("Tray.BalloonMessage"), Forms.ToolTipIcon.Info);
+                    // Keep notification attribution on the canonical application mark instead of introducing a second native information glyph.
+                    notifyIcon.ShowBalloonTip(3000, localisation.Text("Tray.BalloonTitle"), localisation.Text("Tray.BalloonMessage"), Forms.ToolTipIcon.None);
                     firstHide = false;
                 }
                 break;

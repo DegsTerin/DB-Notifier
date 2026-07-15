@@ -44,7 +44,6 @@ internal sealed partial class TrayFlyoutWindow : Window
         };
         activationTimer.Tick += CompleteActivation;
         InitializeComponent();
-        BrandStatusImage.Source = BrandStatusIconPolicy.LoadImageSource(fleetSummary.State, 32);
         RefreshPresentation();
     }
 
@@ -55,9 +54,10 @@ internal sealed partial class TrayFlyoutWindow : Window
         dismissOnDeactivation = false;
         activationTimer.Stop();
         Show();
+        DpiScale dpi = VisualTreeHelper.GetDpi(this);
+        BrandStatusImage.Source = BrandStatusIconPolicy.LoadImageSource(fleetSummary.State, 32, dpi);
         UpdateLayout();
 
-        DpiScale dpi = VisualTreeHelper.GetDpi(this);
         System.Drawing.Rectangle workingArea = Forms.Screen.FromPoint(Forms.Cursor.Position).WorkingArea;
         Left = (workingArea.Right / dpi.DpiScaleX) - ActualWidth - 12;
         Top = (workingArea.Bottom / dpi.DpiScaleY) - ActualHeight - 12;

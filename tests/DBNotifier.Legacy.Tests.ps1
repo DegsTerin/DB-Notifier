@@ -8,6 +8,40 @@ Describe "DB-Notifier legacy compatibility" {
         $manifest.Name | Should Be "DBNotifier"
     }
 
+    It "uses the canonical generated icon family for legacy notification-area states" {
+        $modulePath = Join-Path -Path $PSScriptRoot -ChildPath "..\src\modules\DBNotifier\DBNotifier.psm1"
+        Import-Module $modulePath -Force
+        $module = Get-Module DBNotifier
+
+        $criticalPath = & $module { Resolve-CanonicalTrayIconPath -State "Critical" }
+        $unknownPath = & $module { Resolve-CanonicalTrayIconPath -State "unsupported-state" }
+        $icon = & $module { New-TrayIcon -State "Critical" -Size 32 }
+        $nativeSmallIcon = & $module { New-TrayIcon -State "Critical" }
+
+        try {
+            (Split-Path -Path $criticalPath -Leaf) | Should Be "DBNotifier.Critical.ico"
+            (Split-Path -Path $unknownPath -Leaf) | Should Be "DBNotifier.Unknown.ico"
+            $icon.Width | Should Be 32
+            $icon.Height | Should Be 32
+            $nativeSmallIcon.Width | Should Be ([System.Windows.Forms.SystemInformation]::SmallIconSize.Width)
+            $nativeSmallIcon.Height | Should Be ([System.Windows.Forms.SystemInformation]::SmallIconSize.Height)
+        }
+        finally {
+            $icon.Dispose()
+            $nativeSmallIcon.Dispose()
+        }
+
+        $moduleSource = Get-Content -LiteralPath $modulePath -Raw
+        $moduleSource | Should Not Match 'DrawString\("P"'
+        $moduleSource | Should Not Match 'BadgeColour'
+
+        $buildSource = Get-Content -LiteralPath (Join-Path $PSScriptRoot "..\build\build.ps1") -Raw
+        $installerSource = Get-Content -LiteralPath (Join-Path $PSScriptRoot "..\packaging\inno\DBNotifier.iss") -Raw
+        $buildSource | Should Match 'runtimeIconNames'
+        $buildSource | Should Match 'packageIconDirectory'
+        $installerSource | Should Match 'Assets\\\*\.ico'
+    }
+
     It "contains a valid sample configuration" {
         $configPath = Join-Path -Path $PSScriptRoot -ChildPath "..\examples\appsettings.sample.json"
         { Get-Content -LiteralPath $configPath -Raw | ConvertFrom-Json } | Should Not Throw

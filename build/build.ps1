@@ -15,10 +15,24 @@ $packagePath = Join-Path -Path $root -ChildPath "dist\package"
 $installerPath = Join-Path -Path $root -ChildPath "dist\installers"
 $bundlePath = Join-Path -Path ([System.IO.Path]::GetTempPath()) -ChildPath ("dbnotifier-bundle-{0}.ps1" -f [guid]::NewGuid().ToString("N"))
 $exePath = Join-Path -Path $packagePath -ChildPath "DBNotifier.exe"
-$iconPath = Join-Path -Path $root -ChildPath "src\DBNotifier.Desktop.Wpf\Assets\DBNotifier.ico"
+$canonicalIconDirectory = Join-Path -Path $root -ChildPath "src\DBNotifier.Desktop.Wpf\Assets"
+$iconPath = Join-Path -Path $canonicalIconDirectory -ChildPath "DBNotifier.ico"
+$runtimeIconNames = @(
+    "DBNotifier.Healthy.ico"
+    "DBNotifier.Warning.ico"
+    "DBNotifier.Critical.ico"
+    "DBNotifier.Unknown.ico"
+)
 
 if (-not (Test-Path -LiteralPath $iconPath -PathType Leaf)) {
     throw "Generate the canonical DB-Notifier icon before building compatibility packaging."
+}
+
+foreach ($runtimeIconName in $runtimeIconNames) {
+    $runtimeIconPath = Join-Path -Path $canonicalIconDirectory -ChildPath $runtimeIconName
+    if (-not (Test-Path -LiteralPath $runtimeIconPath -PathType Leaf)) {
+        throw "Generate the complete canonical DB-Notifier semantic icon family before building compatibility packaging. Missing: $runtimeIconName"
+    }
 }
 
 if (-not $ValidateOnly -and (Test-Path -LiteralPath (Join-Path -Path $root -ChildPath "dist"))) {
@@ -84,6 +98,11 @@ if (-not (Test-Path -LiteralPath $exePath -PathType Leaf)) {
 }
 
 Copy-Item -LiteralPath (Join-Path -Path $root -ChildPath "README.md") -Destination $packagePath -Force
+$packageIconDirectory = Join-Path -Path $packagePath -ChildPath "Assets"
+New-Item -Path $packageIconDirectory -ItemType Directory -Force | Out-Null
+foreach ($runtimeIconName in $runtimeIconNames) {
+    Copy-Item -LiteralPath (Join-Path -Path $canonicalIconDirectory -ChildPath $runtimeIconName) -Destination $packageIconDirectory -Force
+}
 $packageConfigPath = Join-Path -Path $packagePath -ChildPath "config"
 New-Item -Path $packageConfigPath -ItemType Directory -Force | Out-Null
 Copy-Item -LiteralPath (Join-Path -Path $root -ChildPath "config\appsettings.json") -Destination $packageConfigPath -Force
