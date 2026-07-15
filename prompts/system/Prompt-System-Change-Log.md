@@ -2,7 +2,7 @@
 
 ## Versão atual
 
-- Versão: `3.38.0`
+- Versão: `3.39.0`
 - Data: 2026-07-15
 - Status: corpus DB-Notifier consolidado
 - Escopo: 13 arquivos ativos
@@ -16,6 +16,12 @@ A versão do corpus é independente da versão do software.
 - PATCH: clareza, correção ou referência sem mudança de autoridade.
 
 Toda alteração atualiza este arquivo e, quando necessário, `../Start-Here.md`.
+
+## 3.39.0 — 2026-07-15
+
+- O Design System `2.6.2` adiciona keyline adaptativa `#0F2940` e peso raster mínimo para preservar a marca transparente sobre superfícies claras e em tamanhos Windows pequenos.
+- ICOs de 16/20 px omitem a costura intermediária; 24 px ou mais preservam a geometria completa, sem alterar o vermelho Critical `#C62828` ou a política agregada.
+- `REQ-053` e a sexta remediação de `S05-HG-010` registram a decisão; a aceitação humana continua pendente e `S05-HG-011` não foi reaberto.
 
 ## 3.38.0 — 2026-07-15
 

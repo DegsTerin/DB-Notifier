@@ -2,7 +2,7 @@
 
 ## Outcome
 
-The first three DB-Notifier Design System increments, two `S05-HG-001` visual remediation iterations, the canonical product-mark refinements, the ultrawide shell correction, compact preference controls, Dashboard TV presentation, operational Overview, reference-aligned Dashboard/Tray refinement, WPF parity/runtime hardening, notification-area-first increment, clean-room aggregate-policy increment, transparent semantic-icon increment, cross-surface aggregate-colour increment and Light/Dark mark refinement are complete. They establish the canonical token/schema sources, deterministic React/WPF asset generation, explicit Light/Dark preference contracts and the distinct Web/Windows product roles required by Design System `2.6.1`.
+The first three DB-Notifier Design System increments, two `S05-HG-001` visual remediation iterations, the canonical product-mark refinements, the ultrawide shell correction, compact preference controls, Dashboard TV presentation, operational Overview, reference-aligned Dashboard/Tray refinement, WPF parity/runtime hardening, notification-area-first increment, clean-room aggregate-policy increment, transparent semantic-icon increment, cross-surface aggregate-colour increment, Light/Dark mark refinement and small-surface legibility refinement are complete. They establish the canonical token/schema sources, deterministic React/WPF asset generation, explicit Light/Dark preference contracts and the distinct Web/Windows product roles required by Design System `2.6.2`.
 
 The Dashboard and WPF Desktop now apply generated semantic tokens, expose one discreet translation/languages icon button and one cycling Light/Dark icon button in the upper-right TopBar and preserve the validated preferences. Localised accessible names and tooltips identify the current and next states without flags or permanently expanded groups. The translation symbol replaces the ambiguous globe, while sun/moon states replace the retired System/monitor option. WPF still gives Windows High Contrast precedence over the generated palette.
 
@@ -132,7 +132,14 @@ The React adapter accesses only versioned local UI preference storage and the do
 
 - The first synchronised Critical sample exposed two human visual findings: `#EB4C4C` appeared orange and the opaque dark cylinder body conflicted with Light mode.
 - Design System `2.6.1` deepens Critical to `#C62828` and eliminates the body-fill layer from both vector and multi-resolution Windows raster generation. The blue database outline and white bell outline remain unchanged for recognition at small sizes.
-- Regression evidence rejects the old fill and colour, verifies more than seventy per cent fully transparent pixels in every 256 px ICO variant and preserves byte-for-byte generation checks. Visual acceptance in both themes remains a human decision in `S05-HG-010`.
+- The `2.6.1` regression rejected the old fill and colour and initially used a broad transparency percentage as supporting evidence. The current regression uses the stronger invariant that a representative cylinder-interior pixel has alpha zero; keyline coverage is assessed separately and intentionally increases visible edge pixels. Visual acceptance in both themes remains a human decision in `S05-HG-010`.
+
+## Small-surface legibility refinement
+
+- The Light Windows sample showed that transparent assets were technically correct but the bright-blue outline alone became pale over white selection surfaces, while sub-pixel strokes made the 16 px title/notification-area asset resemble a document.
+- Design System `2.6.2` adds a deep-navy `#0F2940` keyline behind the blue database and white bell strokes. The keyline is visible against Light surfaces and visually recedes behind the brighter foreground strokes on Dark surfaces; it does not fill the cylinder or add an enclosing tile.
+- Raster generation enforces resolution-aware minimum stroke radii. The 16/20 px variants omit the middle seam, while 24 px and larger variants retain the full geometry. Regression evidence requires at least 150 substantially opaque pixels in each 16 px ICO, alpha zero at a representative database-interior point and more than half of the 256 px canvas fully transparent.
+- The Critical bell remains `#C62828`; provider-neutral aggregation, user-facing state text, WPF/Web bindings and `S05-HG-011` workflow are unchanged.
 
 ## Verification
 

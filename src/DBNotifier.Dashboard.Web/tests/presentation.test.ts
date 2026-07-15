@@ -178,6 +178,7 @@ test("provider-neutral database mark is shared by active Web and Windows surface
   const trayController = readFileSync(new URL("../../DBNotifier.Desktop.Wpf/TrayApplicationController.cs", import.meta.url), "utf8");
   const installer = readFileSync(new URL("../../../packaging/inno/DBNotifier.iss", import.meta.url), "utf8");
   const compatibilityBuild = readFileSync(new URL("../../../build/build.ps1", import.meta.url), "utf8");
+  const brandGenerator = readFileSync(new URL("../../../scripts/generate-brand-assets.mjs", import.meta.url), "utf8");
 
   assert.deepEqual(dashboardSvg, designSystemSvg);
   assert.deepEqual(dashboardSvg, unknownSvg);
@@ -198,17 +199,31 @@ test("provider-neutral database mark is shared by active Web and Windows surface
     for (let pixel = 0; pixel < 256 * 256; pixel += 1) {
       if (icon[bitmapOffset + pixel * 4 + 3] === 0) transparentPixels += 1;
     }
-    assert.ok(transparentPixels > 256 * 256 * 0.7);
+    assert.ok(transparentPixels > 256 * 256 * 0.5);
+    const transparentInteriorX = 100;
+    const transparentInteriorY = 80;
+    const storedInteriorRow = 255 - transparentInteriorY;
+    assert.equal(icon[bitmapOffset + (storedInteriorRow * 256 + transparentInteriorX) * 4 + 3], 0);
+
+    const smallestBitmapOffset = icon.readUInt32LE(6 + 12) + 40;
+    let opaqueSmallPixels = 0;
+    for (let pixel = 0; pixel < 16 * 16; pixel += 1) {
+      if (icon[smallestBitmapOffset + pixel * 4 + 3] >= 128) opaqueSmallPixels += 1;
+    }
+    assert.ok(opaqueSmallPixels >= 150);
   }
   assert.notDeepEqual(healthyIcon, warningIcon);
   assert.notDeepEqual(warningIcon, criticalIcon);
   assert.notDeepEqual(criticalIcon, unknownIcon);
   assert.doesNotMatch(dashboardSvg.toString("utf8"), /<rect/);
   assert.match(dashboardSvg.toString("utf8"), /fill="none" stroke="#55B4FF"/);
+  assert.match(dashboardSvg.toString("utf8"), /stroke="#0F2940" stroke-width="5\.5"/);
   assert.doesNotMatch(dashboardSvg.toString("utf8"), /#082F4F/);
-  assert.match(html, /rel="icon"[^>]+dbnotifier-icon\.unknown\.svg\?v=2\.6\.1/);
+  assert.match(brandGenerator, /const includeMiddleSeam = size > 20;/);
+  assert.match(brandGenerator, /Math\.max\(1\.5, 48 \/ size\)/);
+  assert.match(html, /rel="icon"[^>]+dbnotifier-icon\.unknown\.svg\?v=2\.6\.2/);
   assert.match(app, /summarizeFleetAggregate\(snapshot, now\)/);
-  assert.match(app, /const brandIconPath = `\/dbnotifier-icon\.\$\{aggregateState\}\.svg\?v=2\.6\.1`/);
+  assert.match(app, /const brandIconPath = `\/dbnotifier-icon\.\$\{aggregateState\}\.svg\?v=2\.6\.2`/);
   assert.match(app, /favicon\.href = brandIconPath/);
   assert.match(app, /<img src=\{brandIconPath\} alt=""/);
   assert.match(html, /<title>DB Notifier — Visão geral<\/title>/);
