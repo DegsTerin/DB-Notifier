@@ -858,6 +858,17 @@
 - Riscos/ressalvas: equivalência estrutural não prova beleza ou nitidez percebida nas superfícies reais; browser tab/header, WPF title/header/flyout, taskbar, overflow e notificação Windows ainda exigem repetição humana de `S05-HG-010`. Estado Agent/API real continua `STATE-06`; `S05-HG-011` permanece aprovado porque seu fluxo e mapeamento semântico não mudaram.
 - Aprovador: padronização solicitada por Bruno; nenhuma aprovação de `S05-HG-010`, do Human Gate ou de transição foi inferida.
 
+## 2026-07-15 — Associação semântica de favicon e fonte da notificação
+
+- Estado anterior: `STATE-05 FRONTEND_IMPLEMENTATION`, Human Gate e `S05-HG-010` pendentes; `S05-HG-011` aprovado.
+- Estado resultante: sem transição; Design System `2.6.7` implementado no escopo controlável de favicon e origem do quadro de notificação, com decisão visual de `S05-HG-010` ainda pendente.
+- Decisão: tratar como finding válido as duas últimas divergências relatadas após `2.6.6`, sem confundir cache do navegador ou renderização do Windows Shell com estado Healthy comprovado e sem prometer controle dinâmico sobre atribuição pertencente ao sistema operacional.
+- Escopo: helper tipado único para caminhos de header/favicon por estado e revisão, substituição atômica de candidatos identificados/legados em `useLayoutEffect`, remoção de duplicatas, estado explícito no nó, quadro WPF maior da mesma variante oferecido durante `ShowBalloonTip`, restauração imediata do quadro pequeno do NotifyIcon, criação exception-safe dos recursos nativos, regressões e matriz `REQ-059`; geometria, política agregada e fluxo notification-area-first permanecem inalterados.
+- Gates: restore locked, formato .NET, build Release com zero avisos/erros, 135/135 testes unitários, 9/9 de arquitetura, 34/34 Dashboard, typecheck/build Vite, 11/11 Pester, validação do bundle, geração/drift, documentação/links e auditorias NuGet/npm foram aprovados. Chrome headless isolado encontrou exatamente um favicon ativo com estado/path `critical` e revisão `2.6.7-critical`.
+- Evidências: Design System `2.6.7`, `docs/STATE-05-Design-System-Implementation-Report.md`, `docs/STATE-05-Human-Gate-Validation.md`, `docs/STATE-05-Request-Traceability-Audit.md`, helper `semanticBrand.ts` e regressões de substituição/restauração.
+- Riscos/ressalvas: Chromium e Windows podem preservar associações/entradas históricas; a repetição deve usar uma nova janela/guia e uma notificação recém-entregue. O Windows Shell controla a apresentação final da atribuição, e atualização por Agent/API real e notificações por mudança pertencem a `STATE-06`. `S05-HG-011` permanece aprovado porque seu fluxo e política de estado não mudaram.
+- Aprovador: correção solicitada por Bruno; nenhuma aprovação de `S05-HG-010`, do Human Gate ou de transição foi inferida.
+
 ## Template de nova entrada
 
 - Data:

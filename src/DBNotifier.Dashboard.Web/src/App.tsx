@@ -1,5 +1,5 @@
 /** Module purpose: Implements App for the provider-neutral DB-Notifier Dashboard without direct database access. */
-import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import {
   buildDemonstrationSnapshot,
   buildConfigurationSnapshot,
@@ -26,6 +26,7 @@ import { useLocalisation } from "./LocalisationProvider";
 import type { MessageKey } from "./generated/localisation";
 import { formatSystemDateTime, formatSystemTime } from "./systemDateTime";
 import { ProviderIcon } from "./ProviderIcon";
+import { replaceSemanticFavicon, semanticBrandAssets } from "./semanticBrand";
 
 const stateOptions: ReadonlyArray<{ value: InventoryState; labelKey: MessageKey }> = [
   { value: "ready", labelKey: "Scenario.Ready" },
@@ -154,8 +155,7 @@ export function App() {
   const configurationSnapshot = useMemo(() => buildConfigurationSnapshot(locale), [locale]);
   const summary = useMemo(() => summarizeInventory(snapshot, now), [snapshot, now]);
   const aggregateState = useMemo(() => summarizeFleetAggregate(snapshot, now), [snapshot, now]);
-  const brandIconPath = `/dbnotifier-icon.${aggregateState}.svg?v=2.6.6`;
-  const brandFaviconPath = `/dbnotifier-favicon.${aggregateState}.ico?v=2.6.6`;
+  const brandAssets = semanticBrandAssets(aggregateState);
   const filteredItems = useMemo(
     () => filterInventory(snapshot.items, query, statusFilter, now, locale),
     [snapshot.items, query, statusFilter, now, locale],
@@ -172,11 +172,10 @@ export function App() {
     return () => window.clearInterval(interval);
   }, [tvMode]);
 
-  useEffect(() => {
-    // The favicon uses the same factual aggregate with a dedicated pixel-hinted raster for browser tab sizes.
-    const favicon = document.querySelector<HTMLLinkElement>('link[rel="icon"]');
-    if (favicon) favicon.href = brandFaviconPath;
-  }, [brandFaviconPath]);
+  useLayoutEffect(() => {
+    // Replacing legacy candidates makes Chromium re-evaluate the favicon and reduces reuse of an older aggregate or build.
+    replaceSemanticFavicon(document, brandAssets.faviconPath, aggregateState);
+  }, [aggregateState, brandAssets.faviconPath]);
 
   /** Enters the factual fleet view for TV presentation and restores only the presentation shell on exit. */
   const handleTvModeChange = useCallback((active: boolean) => {
@@ -195,7 +194,7 @@ export function App() {
       <a className="skip-link" href="#main-content">{t("Navigation.Skip")}</a>
       <header className="topbar">
         <div className="brand-lockup" role="img" aria-label="DB Notifier">
-          <span className="brand-mark"><img src={brandIconPath} alt="" /></span>
+          <span className="brand-mark"><img src={brandAssets.iconPath} alt="" /></span>
           <span><strong className="brand-wordmark"><span>DB</span><span>Notifier</span></strong><small>{t("Brand.Subtitle")}</small></span>
         </div>
         {tvMode && <div className="tv-mode-status"><span aria-hidden="true" /><strong>{t("TV.Active")}</strong><time dateTime={now.toISOString()}>{formatSystemDateTime(now, locale)}</time></div>}

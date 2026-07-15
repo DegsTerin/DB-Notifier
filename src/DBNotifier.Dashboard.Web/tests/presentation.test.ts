@@ -14,6 +14,12 @@ import {
   summarizeFleetAggregate,
   summarizeInventory,
 } from "../src/presentation.ts";
+import {
+  designSystemVersion,
+  replaceSemanticFavicon,
+  semanticBrandAssets,
+  semanticFaviconId,
+} from "../src/semanticBrand.ts";
 
 const now = new Date("2026-07-12T15:00:00.000Z");
 
@@ -67,6 +73,101 @@ test("fleet aggregate drives every semantic product-mark state with Tray precede
   assert.equal(summarizeFleetAggregate(snapshot("timeout"), now), "critical");
   assert.equal(summarizeFleetAggregate(snapshot("healthy", new Date(now.getTime() - staleAfterMilliseconds - 1).toISOString()), now), "unknown");
   assert.equal(summarizeFleetAggregate({ ...snapshot("healthy"), items: [] }, now), "unknown");
+});
+
+test("semantic brand replacement keeps header and favicon on the same aggregate without reusing the old node", () => {
+  for (const state of ["healthy", "warning", "critical", "unknown"] as const) {
+    const stateAssets = semanticBrandAssets(state);
+    assert.equal(stateAssets.iconPath, `/dbnotifier-icon.${state}.svg?v=2.6.7-${state}`);
+    assert.equal(stateAssets.faviconPath, `/dbnotifier-favicon.${state}.ico?v=2.6.7-${state}`);
+  }
+
+  const assets = semanticBrandAssets("critical");
+  let replacement: HTMLLinkElement | undefined;
+  let appended = false;
+  const current = {
+    replaceWith(node: HTMLLinkElement) {
+      replacement = node;
+    },
+  };
+  const ownerDocument = {
+    createElement(tagName: string) {
+      assert.equal(tagName, "link");
+      return {
+        dataset: {},
+        setAttribute(name: string, value: string) {
+          if (name === "sizes") this.sizesValue = value;
+        },
+      };
+    },
+    getElementById(id: string) {
+      assert.equal(id, semanticFaviconId);
+      return current;
+    },
+    querySelector() {
+      return undefined;
+    },
+    querySelectorAll() {
+      return replacement ? [replacement] : [];
+    },
+    head: {
+      append() {
+        appended = true;
+      },
+    },
+  } as unknown as Document;
+
+  replaceSemanticFavicon(ownerDocument, assets.faviconPath, "critical");
+
+  assert.equal(designSystemVersion, "2.6.7");
+  assert.equal(assets.iconPath, "/dbnotifier-icon.critical.svg?v=2.6.7-critical");
+  assert.equal(assets.faviconPath, "/dbnotifier-favicon.critical.ico?v=2.6.7-critical");
+  assert.equal(replacement?.id, semanticFaviconId);
+  assert.equal(replacement?.href, assets.faviconPath);
+  assert.equal(replacement?.dataset.aggregateState, "critical");
+  assert.equal(appended, false);
+
+  let legacyReplacement: HTMLLinkElement | undefined;
+  let staleCandidateRemoved = false;
+  const legacyCandidate = {
+    replaceWith(node: HTMLLinkElement) {
+      legacyReplacement = node;
+    },
+  };
+  const staleCandidate = {
+    remove() {
+      staleCandidateRemoved = true;
+    },
+  };
+  const legacyDocument = {
+    createElement() {
+      return {
+        dataset: {},
+        setAttribute() {},
+      };
+    },
+    getElementById() {
+      return undefined;
+    },
+    querySelector(selector: string) {
+      assert.equal(selector, 'link[rel~="icon"]');
+      return legacyCandidate;
+    },
+    querySelectorAll(selector: string) {
+      assert.equal(selector, 'link[rel~="icon"]');
+      return legacyReplacement ? [legacyReplacement, staleCandidate] : [staleCandidate];
+    },
+    head: {
+      append() {
+        assert.fail("The legacy favicon should be replaced instead of duplicated");
+      },
+    },
+  } as unknown as Document;
+
+  replaceSemanticFavicon(legacyDocument, assets.faviconPath, "critical");
+
+  assert.equal(legacyReplacement?.id, semanticFaviconId);
+  assert.equal(staleCandidateRemoved, true);
 });
 
 test("administrative preview distinguishes denied, unsupported and unknown", () => {
@@ -186,6 +287,7 @@ test("desktop sidebar label uses the AA-safe secondary text token", () => {
 
 test("provider-neutral database mark is shared by active Web and Windows surfaces", () => {
   const app = readFileSync(new URL("../src/App.tsx", import.meta.url), "utf8");
+  const semanticBrand = readFileSync(new URL("../src/semanticBrand.ts", import.meta.url), "utf8");
   const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
   const dashboardSvg = readFileSync(new URL("../public/dbnotifier-icon.svg", import.meta.url));
   const healthySvg = readFileSync(new URL("../public/dbnotifier-icon.healthy.svg", import.meta.url));
@@ -306,12 +408,15 @@ test("provider-neutral database mark is shared by active Web and Windows surface
   assert.match(brandGenerator, /const visibleSamples = coverage\[coverageOffset\] \+ coverage\[coverageOffset \+ 1\]/);
   assert.match(brandGenerator, /pixels\[offset \+ 3\] = Math\.round\(\(visibleSamples \/ samples\) \* 255\)/);
   assert.doesNotMatch(brandGenerator, /includeMiddleSeam|databaseStrokeRadius = Math\.max/);
-  assert.match(html, /rel="icon"[^>]+dbnotifier-favicon\.unknown\.ico\?v=2\.6\.6/);
+  assert.match(html, /id="dbnotifier-favicon"[^>]+dbnotifier-favicon\.unknown\.ico\?v=2\.6\.7-unknown/);
   assert.match(app, /summarizeFleetAggregate\(snapshot, now\)/);
-  assert.match(app, /const brandIconPath = `\/dbnotifier-icon\.\$\{aggregateState\}\.svg\?v=2\.6\.6`/);
-  assert.match(app, /const brandFaviconPath = `\/dbnotifier-favicon\.\$\{aggregateState\}\.ico\?v=2\.6\.6`/);
-  assert.match(app, /favicon\.href = brandFaviconPath/);
-  assert.match(app, /<img src=\{brandIconPath\} alt=""/);
+  assert.match(app, /useLayoutEffect\(\(\) =>/);
+  assert.match(app, /replaceSemanticFavicon\(document, brandAssets\.faviconPath, aggregateState\)/);
+  assert.match(semanticBrand, /querySelector<HTMLLinkElement>\('link\[rel~="icon"\]'\)/);
+  assert.match(semanticBrand, /replacement\.dataset\.aggregateState = state/);
+  assert.match(semanticBrand, /current\.replaceWith\(replacement\)/);
+  assert.match(semanticBrand, /if \(candidate !== replacement\) candidate\.remove\(\)/);
+  assert.match(app, /<img src=\{brandAssets\.iconPath\} alt=""/);
   assert.match(html, /<title>DB Notifier — Visão geral<\/title>/);
   assert.match(app, /aria-label="DB Notifier"/);
   assert.match(app, /className="brand-wordmark"/);
@@ -332,7 +437,10 @@ test("provider-neutral database mark is shared by active Web and Windows surface
   assert.match(flyoutCode, /DpiScale dpi = VisualTreeHelper\.GetDpi\(this\)/);
   assert.match(flyoutCode, /BrandStatusIconPolicy\.LoadImageSource\(fleetSummary\.State, 32, dpi\)/);
   assert.match(trayController, /Icon = applicationIcon/);
-  assert.match(trayController, /BrandStatusIconPolicy\.LoadWindowsIcon\([\s\S]*fleetSummary\.State,[\s\S]*Forms\.SystemInformation\.SmallIconSize\.Width\)/);
+  assert.match(trayController, /CreateNotificationAreaResources\(fleetSummary\.State\)/);
+  assert.match(trayController, /BrandStatusIconPolicy\.LoadWindowsIcon\([\s\S]*state,[\s\S]*Forms\.SystemInformation\.SmallIconSize\.Width\)/);
+  assert.match(trayController, /Forms\.SystemInformation\.IconSize\.Width/);
+  assert.match(trayController, /notifyIcon\.Icon = notificationIcon;[\s\S]*ShowBalloonTip\([\s\S]*Forms\.ToolTipIcon\.None[\s\S]*notifyIcon\.Icon = applicationIcon;/);
   assert.match(brandStatusPolicy, /IconBitmapDecoder/);
   assert.match(brandStatusPolicy, /Math\.Ceiling\(targetDipSize \* Math\.Max\(dpi\.DpiScaleX, dpi\.DpiScaleY\)\)/);
   assert.match(brandStatusPolicy, /candidate\.PixelWidth >= targetPixelSize/);

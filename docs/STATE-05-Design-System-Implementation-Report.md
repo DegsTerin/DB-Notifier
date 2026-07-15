@@ -2,7 +2,7 @@
 
 ## Outcome
 
-The first three DB-Notifier Design System increments, two `S05-HG-001` visual remediation iterations, the canonical product-mark refinements, the ultrawide shell correction, compact preference controls, Dashboard TV presentation, operational Overview, reference-aligned Dashboard/Tray refinement, WPF parity/runtime hardening, notification-area-first increment, clean-room aggregate-policy increment, transparent semantic-icon increment, cross-surface aggregate-colour increment, Light/Dark mark refinement and five small-surface legibility refinements are complete. They establish the canonical token/schema sources, deterministic React/WPF asset generation, explicit Light/Dark preference contracts and the distinct Web/Windows product roles required by Design System `2.6.6`.
+The first three DB-Notifier Design System increments, two `S05-HG-001` visual remediation iterations, the canonical product-mark refinements, the ultrawide shell correction, compact preference controls, Dashboard TV presentation, operational Overview, reference-aligned Dashboard/Tray refinement, WPF parity/runtime hardening, notification-area-first increment, clean-room aggregate-policy increment, transparent semantic-icon increment, cross-surface aggregate-colour increment, Light/Dark mark refinement and six small-surface legibility/refresh refinements are complete. They establish the canonical token/schema sources, deterministic React/WPF asset generation, explicit Light/Dark preference contracts and the distinct Web/Windows product roles required by Design System `2.6.7`.
 
 The Dashboard and WPF Desktop now apply generated semantic tokens, expose one discreet translation/languages icon button and one cycling Light/Dark icon button in the upper-right TopBar and preserve the validated preferences. Localised accessible names and tooltips identify the current and next states without flags or permanently expanded groups. The translation symbol replaces the ambiguous globe, while sun/moon states replace the retired System/monitor option. WPF still gives Windows High Contrast precedence over the generated palette.
 
@@ -171,6 +171,13 @@ The React adapter accesses only versioned local UI preference storage and the do
 - The retained functional PowerShell compatibility client no longer draws its former GDI logo. It loads the same generated semantic ICO family, fails safely to Unknown when state is unsupported and packages those assets beside the compatibility executable; the installer consumes that package instead of introducing another mark model. The WPF first-hide balloon also stops requesting the unrelated native information glyph, leaving Windows attribution on the canonical application mark.
 - Native WPF frame selection now converts the 32/40 DIP hosts through the owning visual's effective DPI. It chooses an exact frame or the smallest next-larger frame, rather than upscaling a fixed 32/40 px source above 100%; Windows notification/title/taskbar roles retain their native metric handling. This is a rendering correction, not a change to notification-area-first behaviour or provider-neutral state mapping; `S05-HG-011` remains approved and perceptual acceptance remains within pending `S05-HG-010`.
 
+## Semantic favicon and Windows-notification source refinement
+
+- The authorised `2.6.6` repetition showed that the browser tab and Windows first-hide notification remained visually different while header, WPF, taskbar and notification-area occurrences were consistent. The Dashboard fixture and generated assets were audited before changing code: its initial aggregate is Critical, the Critical favicon contains the canonical `#C62828` bell and the production/public assets are byte-identical. Those facts rule out a Healthy current payload and are consistent with a stale Chromium page-to-favicon association; the browser's internal cache decision was not independently observable.
+- Design System `2.6.7` moves state/revision path construction into one typed helper used by both header and favicon. The initial HTML remains Unknown, but React uses `useLayoutEffect` to atomically replace identified or legacy favicon candidates with a state-and-revision-specific node instead of mutating an old link's `href` or leaving competing nodes. The replacement records the aggregate explicitly and exposes the four available ICO sizes, forcing a new deterministic candidate evaluation without a temporal cache buster and reducing the risk of historical association reuse.
+- The WPF first-hide notification continues to use the approved WinForms `NotifyIcon.MouseClick` lifecycle and `ToolTipIcon.None`; no stock information/error glyph or second mark is introduced. Immediately around the synchronous Shell notification call, the controller supplies the 32 px native frame for the same aggregate and restores the Windows small-icon frame in `finally`. This offers the Shell a sharper state-correct source without changing Tray activation, provider policy or notification delivery semantics.
+- Windows still owns the top attribution glyph, its scale, notification snapshots and identity cache. WinForms `ShowBalloonTip` does not expose the Win32 `hBalloonIcon`/`NIIF_USER` custom-icon path, and modern Windows attribution cannot be truthfully promised as dynamically replaceable. Current code therefore improves the controllable source while documentation preserves this platform limit; change-only application notifications and state text/content remain `STATE-06` work.
+
 ## Verification
 
 | Gate | Result |
@@ -179,19 +186,20 @@ The React adapter accesses only versioned local UI preference storage and the do
 | Deterministic drift verification | Approved; neutral defaults plus four semantic SVG, four-resolution favicon ICO and nine-resolution Windows ICO variants |
 | Unified mark geometry | Approved in the focused regression; SVG and ICO consume one geometry contract, retain both database seams and use identical alpha masks across the four semantic variants |
 | Straight-alpha raster composition | Approved in the focused regression; partial-alpha edges retain canonical colour channels, and 16/20/24/32 px favicon payloads match the corresponding Windows frames byte-for-byte |
-| Native WPF frame selection | Approved structurally; DIP-to-physical DPI conversion, exact/next-larger decoding, largest-only terminal fallback, Windows small-icon metric, separate title/taskbar roles and no-stretch pixel-snapped hosts are covered by regression tests |
+| Native WPF frame selection | Approved structurally; DIP-to-physical DPI conversion, exact/next-larger decoding, largest-only terminal fallback, Windows small-icon metric, semantic 32 px notification source, separate title/taskbar roles and no-stretch pixel-snapped hosts are covered by regression tests |
 | Windows display metadata | Approved; Release executable File Description and Product Name are both `DB Notifier`, while the technical filename remains unchanged |
 | Schema/reference/type/theme parity | Approved |
 | Light/Dark canonical contrast pairs | Approved; all tested pairs `>= 4.5:1` |
 | Dashboard typecheck | Approved |
-| Dashboard tests | Approved; 33/33, including cross-surface aggregate precedence, Overview, Tray structure/safety and system-time regression guards |
+| Dashboard tests | Approved; 34/34, including atomic semantic-favicon replacement, cross-surface aggregate precedence, Overview, Tray structure/safety and system-time regression guards |
+| Headless semantic favicon | Approved in an isolated Chrome profile; the active DOM contained exactly one favicon node with `critical` path, `critical` aggregate metadata and revision `2.6.7-critical` |
 | Dashboard production build | Approved |
 | .NET 10 Release build | Approved; 0 warnings/errors |
 | .NET tests | Approved; 135 unit/model/provider/presentation + 9 architecture = 144/144 |
 | .NET format verification | Approved |
 | Legacy compatibility | Approved; 11/11 Pester plus bundle validation, including canonical semantic ICO loading/packaging instead of GDI drawing |
 | Dependency audit | Approved; no npm or NuGet vulnerabilities reported |
-| Documentation gate | Approved; 174 comment-capable source files and 179 local Markdown links in 61 files |
+| Documentation gate | Approved; 175 comment-capable source files and 179 local Markdown links in 61 files |
 | Fail-closed runtime | Approved; the existing API/Agent security smoke retained its expected closed defaults and responses |
 | React visual/responsive matrix | Approved; 96 locale/theme/viewport-route samples across the four current locale/theme combinations and 320–1920 CSS px |
 | React overflow/accessibility | Approved; 0 global overflow and 0 unnamed interactive controls in all four locale/theme combinations |
@@ -212,10 +220,10 @@ The React adapter accesses only versioned local UI preference storage and the do
 
 ## Remaining increments
 
-1. Confirm the remediated operational Overview and two-column Tray flyout together with the unified `2.6.6` database-and-bell mark across browser/WPF/Windows surfaces, green/white `DBNotifier` visual wordmark, eight-item navigation, TopBar alert/Settings actions, KPI cards, provider/status rows, charts and safe unavailable actions in visible sessions.
+1. Confirm the remediated operational Overview and two-column Tray flyout together with the unified `2.6.7` database-and-bell mark across browser/WPF/Windows surfaces, including a fresh browser tab and a newly delivered Windows notification rather than cached snapshots, plus the green/white `DBNotifier` visual wordmark, eight-item navigation, TopBar alert/Settings actions, KPI cards, provider/status rows, charts and safe unavailable actions in visible sessions.
 2. Obtain explicit consent, then complete the keyboard/Narrator portion of `HG05-01`, native browser zoom, Windows scaling, High Contrast and remaining visual samples.
 3. Present the explicit Human Gate decision; no lifecycle transition occurs automatically.
 
 ## Recommendation
 
-Confirm the remediated operational Overview and two-column Tray flyout together with the unified `2.6.6` database-and-bell mark in the browser tab/header, WPF title/header/flyout, taskbar, notification overflow and Windows notification attribution, plus the eight-item navigation, TopBar actions, KPI/status/chart treatment, ultrawide/TV layouts, accessible `DB Notifier` name, visual `DBNotifier` wordmark, translation icon and Light/Dark-only control. Then obtain explicit consent before starting Narrator and continuing the remaining samples in [`STATE-05-Human-Gate-Validation.md`](STATE-05-Human-Gate-Validation.md).
+Confirm the remediated operational Overview and two-column Tray flyout together with the unified `2.6.7` database-and-bell mark in a fresh browser tab/header, WPF title/header/flyout, taskbar and notification overflow. Deliver a new Windows notification and distinguish its current semantic source from the Shell-owned attribution scale/cache and older immutable Notification Centre entries. Then review the eight-item navigation, TopBar actions, KPI/status/chart treatment, ultrawide/TV layouts, accessible `DB Notifier` name, visual `DBNotifier` wordmark, translation icon and Light/Dark-only control. Obtain explicit consent before starting Narrator and continuing the remaining samples in [`STATE-05-Human-Gate-Validation.md`](STATE-05-Human-Gate-Validation.md).

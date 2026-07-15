@@ -2,7 +2,7 @@
 
 ## Versão atual
 
-- Versão: `3.43.0`
+- Versão: `3.44.0`
 - Data: 2026-07-15
 - Status: corpus DB-Notifier consolidado
 - Escopo: 13 arquivos ativos
@@ -16,6 +16,12 @@ A versão do corpus é independente da versão do software.
 - PATCH: clareza, correção ou referência sem mudança de autoridade.
 
 Toda alteração atualiza este arquivo e, quando necessário, `../Start-Here.md`.
+
+## 3.44.0 — 2026-07-15
+
+- O Design System `2.6.7` exige que header e favicon Web derivem caminho, revisão e estado da mesma função; candidatos de favicon identificados ou legados são substituídos atomicamente antes da pintura para forçar nova avaliação e reduzir o risco de uma associação antiga do Chrome representar estado diferente do agregado corrente.
+- Durante a notificação inicial, o WPF fornece ao Windows um quadro nativo maior da mesma variante semântica e restaura imediatamente o quadro pequeno do NotifyIcon. Atribuição, escala, cache e entradas históricas da Central de Notificações continuam sob autoridade do Windows Shell; o aplicativo não declara controle dinâmico que a plataforma não oferece.
+- `REQ-059` e a décima primeira remediação de `S05-HG-010` registram as duas exceções visuais reportadas. A revisão humana permanece pendente, estado/notificações reconciliados continuam em `STATE-06` e a aprovação de `S05-HG-011` permanece inalterada.
 
 ## 3.43.0 — 2026-07-15
 

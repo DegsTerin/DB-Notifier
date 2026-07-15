@@ -82,6 +82,10 @@ public sealed class WpfPresentationContractTests
         Assert.Contains("Stretch=\"None\" SnapsToDevicePixels=\"True\"", mainWindowMarkup, StringComparison.Ordinal);
         Assert.Contains("Stretch=\"None\" SnapsToDevicePixels=\"True\"", flyoutMarkup, StringComparison.Ordinal);
         Assert.Contains("Forms.SystemInformation.SmallIconSize.Width", trayController, StringComparison.Ordinal);
+        Assert.Contains("Forms.SystemInformation.IconSize.Width", trayController, StringComparison.Ordinal);
+        Assert.Contains("notifyIcon.Icon = notificationIcon", trayController, StringComparison.Ordinal);
+        Assert.Contains("notifyIcon.Icon = applicationIcon", trayController, StringComparison.Ordinal);
+        Assert.Contains("Forms.ToolTipIcon.None", trayController, StringComparison.Ordinal);
         Assert.Contains("WmSetIcon", policy, StringComparison.Ordinal);
         Assert.Contains("IconSmall2", policy, StringComparison.Ordinal);
         Assert.Contains("IconBig", policy, StringComparison.Ordinal);
