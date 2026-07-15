@@ -5,7 +5,7 @@
 | Field | Value |
 |---|---|
 | Status | Official frontend specification |
-| Design System version | `2.4.1` |
+| Design System version | `2.5.0` |
 | Product phase | `STATE-05 FRONTEND_IMPLEMENTATION` |
 | Platforms | React Web Dashboard and .NET 10 WPF Desktop/Tray |
 | Themes | Light and Dark; Windows High Contrast is an accessibility override |
@@ -376,8 +376,8 @@ Body copy MUST NOT be smaller than 14 px by default. Uppercase is limited to sho
 - Status icons always have adjacent visible text.
 - Provider logos MAY appear in provider detail/catalogue contexts, never as the only provider name or status indicator.
 - Third-party icons MUST be vendored with recorded licence/provenance; runtime downloads are prohibited.
-- The DB-Notifier product mark combines a simple outlined white database cylinder with a compact green notification bell on a `palette.brand.600` rounded square. The bell expresses notification purpose without identifying a database vendor; restrained strokes preserve legibility at 16 px. The mark MUST NOT be replaced by a PostgreSQL, MySQL or other vendor logo.
-- `scripts/generate-brand-assets.mjs` is the canonical cross-platform generator. It emits the Design System/Web SVG and a multi-resolution Windows ICO at 16/20/24/32/40/48/64/128/256 px; CI MUST fail on generated drift.
+- The DB-Notifier product mark uses a large dark database cylinder with a clear blue outline and a compact notification bell on a transparent canvas. It has no enclosing blue tile. The default bell is green; notification-area variants use green for Healthy, yellow for Warning, red for Critical and neutral grey for Unknown. The bell expresses state and notification purpose without identifying a database vendor; shape and adjacent text keep status independent of colour. The mark MUST NOT be replaced by a PostgreSQL, MySQL or other vendor logo.
+- `scripts/generate-brand-assets.mjs` is the canonical cross-platform generator. It emits the Design System/Web SVG plus default, Healthy, Warning, Critical and Unknown multi-resolution Windows ICOs at 16/20/24/32/40/48/64/128/256 px; CI MUST fail on generated drift.
 - Dashboard favicon/header, WPF header/window, Windows executable/shortcuts, Tray and installer MUST consume this same mark. Release signing remains a `STATE-08` concern and MUST NOT be claimed during frontend implementation.
 - When adjacent text already exposes the product name, Web treats the mark as decorative. Native surfaces provide the stable accessible name `DB Notifier` where the platform exposes the image independently.
 
@@ -519,7 +519,7 @@ The Tray uses the canonical database-and-bell mark and Windows notification-area
 
 During `STATE-05`, the flyout MUST identify its deterministic local demonstration, MUST NOT present its display timestamp as an external observation, and MAY show a non-interactive explanation that administrative Restart is unavailable. `STATE-06` owns binding the same surface to authorised API/Agent state, factual change-only notifications and integrated event/log navigation. Service Restart MUST remain unavailable until its exact provider/topology capability, privilege, confirmation, idempotency, audit and post-probe path is implemented and then homologated in `STATE-07`. Vendor artwork, native service identifiers, credentials and unsupported actions MUST NOT be copied from legacy references into this provider-neutral surface.
 
-Concepts deliberately retained from the documented MySQL Notifier model are persistent notification-area presence, one-click status access, per-instance status scanning and secondary management entry points. A provider-neutral aggregate policy MUST classify stale evidence as unknown and apply `Critical > Warning > Unknown > Healthy` precedence. During `STATE-05`, its visible text and tooltip may use only the clearly labelled deterministic fixture; the icon remains static so it cannot imply live infrastructure state. Optional change notifications MUST be opt-in, must suppress the initial snapshot and must be emitted only for a materially changed reconciled summary after authorised Application/Agent integration in `STATE-06`. DB Notifier MUST NOT adopt MySQL Notifier's name-filter auto-add behaviour, direct WMI/DCOM remote-service model, firewall changes, plaintext connection handling or unconditional Start/Stop/Restart commands.
+Concepts deliberately retained from the documented MySQL Notifier model are persistent notification-area presence, one-click status access, per-instance status scanning and secondary management entry points. A provider-neutral aggregate policy MUST classify stale evidence as unknown and apply `Critical > Warning > Unknown > Healthy` precedence. During `STATE-05`, visible text, tooltip and the selected semantic-bell variant may reflect only the clearly labelled deterministic fixture; this proves presentation mapping, not live infrastructure state or notification delivery. After authorised Application/Agent integration in `STATE-06`, the icon MUST be updated from reconciled factual state. Optional change notifications MUST be opt-in, must suppress the initial snapshot and must be emitted only for a materially changed reconciled summary. DB Notifier MUST NOT adopt MySQL Notifier's name-filter auto-add behaviour, direct WMI/DCOM remote-service model, firewall changes, plaintext connection handling or unconditional Start/Stop/Restart commands.
 
 Automatic launch at Windows sign-in is a separate signed-packaging capability, not an implied effect of tray-first process startup. It MUST remain disabled until `STATE-08` provides an explicit user preference, reversible registration, installer ownership and uninstall cleanup.
 

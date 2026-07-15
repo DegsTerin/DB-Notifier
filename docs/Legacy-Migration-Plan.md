@@ -36,6 +36,35 @@ DB Notifier does not adopt automatic service addition by name, direct remote WMI
 
 Starting automatically at Windows sign-in is not implemented by this `STATE-05` increment. It requires an explicit user preference and the signed installer/startup-registration contract owned by `STATE-08`; normal process startup being tray-first must not be confused with automatic operating-system registration.
 
+### Complete public-function coverage matrix
+
+“All MySQL Notifier functionality” means that every behaviour publicly documented in the reference manual is accounted for below. It does not mean copying its implementation or preserving vendor coupling. DB Notifier adopts the user outcome when it is safe, adapts it to the provider-neutral Agent/API architecture when necessary, and explicitly rejects mechanisms that weaken security or contradict accepted ADRs.
+
+| Public reference capability | DB Notifier clean-room disposition | Current evidence | Owning phase and remaining exit condition |
+|---|---|---|---|
+| Notification-area residency and one-click fleet menu | `ADOPT` | Normal WPF startup is hidden; one icon activation opens the compact fleet flyout and the full shell is secondary. | `STATE-05`: human acceptance in `S05-HG-011` remains pending. |
+| Tray icon reflects aggregate status | `ADAPT` | Transparent database mark has Healthy/Warning/Critical/Unknown bell variants selected from the provider-neutral summary. Current selection is explicitly demonstration-only. | `STATE-06`: bind icon replacement to reconciled authorised Agent/API state. |
+| Status-change and newly discovered-item notifications | `ADAPT` | Pure opt-in/change-only policy suppresses the initial snapshot; no delivery channel is active. | `STATE-06`: implement Windows delivery, deduplication, acknowledgement, quiet policy and audit evidence. |
+| Separate local and remote monitoring | `ADAPT` | Canonical topology and outbound Agent architecture represent both without direct Dashboard/database access. | `STATE-06`: integrate authorised state; `STATE-07`: homologate each provider/version/topology independently. |
+| Automatic local-service discovery and removal | `ADAPT` | Typed PostgreSQL discovery exists; blind name-filter auto-add is prohibited. | `STATE-06`: reconcile typed candidates and require explicit policy/approval before catalogue mutation. |
+| Add, edit and remove monitored services/instances | `ADAPT` | Provider-neutral catalogue and configuration contracts exist; STATE-05 surfaces are read-only fixtures. | `STATE-06`: authorised catalogue workflows, validation, audit and conflict handling. |
+| Per-item participation in notifications and aggregate icon | `ADAPT` | Aggregate and notification policies are independent of provider identity. | `STATE-06`: persist validated preferences and apply them to authorised state. |
+| Configurable status interval and manual refresh | `ADOPT` | Timing/reconciliation contracts are documented; current UI refreshes only demonstration time/freshness. | `STATE-06`: bounded non-overlapping polling, immediate manual re-read and freshness/error evidence. |
+| Start, Stop and Restart | `ADAPT` | Commands are explicitly `Unsupported`; RBAC, expiry, idempotency and audit contracts exist. | `STATE-07`: implement and homologate each exact provider/topology capability with confirmation, reason and post-probe. |
+| Connection creation and connection test | `ADAPT` | Typed non-secret provider configuration and opaque credential references are architectural contracts. | `STATE-07`: implement provider-owned forms/tests against disposable targets without exposing secrets. |
+| TCP and verified TLS connection modes | `ADOPT` | Provider SDK and transport architecture allow provider-owned secure connection modes. | `STATE-07`: implement and homologate each provider-specific mode; insecure downgrade remains denied by default. |
+| SSH tunnel creation and credential fallback | `REJECT/REPLACE` | DB Notifier never opens an unapproved tunnel or stores password/key material. | Use an approved pre-existing network path or deploy an outbound Agent near the target; any future managed tunnel needs a separate accepted security ADR. |
+| Direct remote WMI/DCOM callbacks and firewall mutation | `REJECT/REPLACE` | No reverse callback, WMI/DCOM dependency or firewall mutation is present. | Replaced permanently by outbound authenticated Agent/API communication. |
+| Manage Instance, SQL Editor, Installer and Utilities shortcuts | `ADAPT` | Flyout opens DB Notifier Overview, Configuration and logs; arbitrary vendor executables are not launched. | `STATE-07`: optional provider-owned, allow-listed external-tool descriptors may be proposed with provenance and safe arguments. |
+| MySQL Workbench connection import/migration | `REJECT/REPLACE` | No vendor configuration coupling exists; ConfigMigrator handles only the owned PgNotifier legacy contract with sanitised reports. | A future provider import requires a separate versioned, secret-safe migrator and Human Gate. |
+| General, notification and connection options with defaults | `ADAPT` | Language/theme persistence exists; monitoring and notification settings are not yet active. | `STATE-06`: versioned operational preferences and safe reset; provider connection options remain provider-owned in `STATE-07`. |
+| Colourful-status-icon preference | `ADAPT` | Semantic bell colours are mandatory and paired with text/shape; colour is never the only status evidence. | No unsafe monochrome ambiguity is introduced; accessibility confirmation remains in the Human Gate. |
+| Launch at Windows startup | `ADOPT` | Not registered in STATE-05. | `STATE-08`: explicit opt-in, reversible signed-installer registration and uninstall cleanup. |
+| Check for product updates | `ADAPT` | No unsigned or vendor-installer update check is active. | `STATE-08`: signed update channel, SBOM, rollout, rollback and release evidence. |
+| About, troubleshooting, logs and explicit exit | `ADOPT/ADAPT` | Logs navigation and explicit Exit exist; diagnostics remain sanitised. | Complete product/version/about and packaged support evidence in `STATE-08`; operational log integration begins in `STATE-06`. |
+
+This matrix is the exhaustive clean-room coverage baseline for the reference manual's user-visible capabilities. A row marked future is an accepted requirement, not a claim that the function already works. A rejected mechanism cannot be reintroduced merely to obtain visual or behavioural similarity.
+
 ## Proposed technical baseline for the gate
 
 The baseline proposed by the project vision is suitable for project setup:

@@ -144,6 +144,10 @@ test("provider-neutral database mark is shared by active Web and Windows surface
   const dashboardSvg = readFileSync(new URL("../public/dbnotifier-icon.svg", import.meta.url));
   const designSystemSvg = readFileSync(new URL("../../../design-system/assets/dbnotifier-database.svg", import.meta.url));
   const windowsIcon = readFileSync(new URL("../../DBNotifier.Desktop.Wpf/Assets/DBNotifier.ico", import.meta.url));
+  const healthyIcon = readFileSync(new URL("../../DBNotifier.Desktop.Wpf/Assets/DBNotifier.Healthy.ico", import.meta.url));
+  const warningIcon = readFileSync(new URL("../../DBNotifier.Desktop.Wpf/Assets/DBNotifier.Warning.ico", import.meta.url));
+  const criticalIcon = readFileSync(new URL("../../DBNotifier.Desktop.Wpf/Assets/DBNotifier.Critical.ico", import.meta.url));
+  const unknownIcon = readFileSync(new URL("../../DBNotifier.Desktop.Wpf/Assets/DBNotifier.Unknown.ico", import.meta.url));
   const desktopProject = readFileSync(new URL("../../DBNotifier.Desktop.Wpf/DBNotifier.Desktop.Wpf.csproj", import.meta.url), "utf8");
   const desktopXaml = readFileSync(new URL("../../DBNotifier.Desktop.Wpf/MainWindow.xaml", import.meta.url), "utf8");
   const trayController = readFileSync(new URL("../../DBNotifier.Desktop.Wpf/TrayApplicationController.cs", import.meta.url), "utf8");
@@ -152,8 +156,22 @@ test("provider-neutral database mark is shared by active Web and Windows surface
 
   assert.deepEqual(dashboardSvg, designSystemSvg);
   assert.deepEqual([...windowsIcon.subarray(0, 6)], [0, 0, 1, 0, 9, 0]);
+  for (const icon of [healthyIcon, warningIcon, criticalIcon, unknownIcon]) {
+    assert.deepEqual([...icon.subarray(0, 6)], [0, 0, 1, 0, 9, 0]);
+    const largestEntry = 6 + 8 * 16;
+    const bitmapOffset = icon.readUInt32LE(largestEntry + 12) + 40;
+    let transparentPixels = 0;
+    for (let pixel = 0; pixel < 256 * 256; pixel += 1) {
+      if (icon[bitmapOffset + pixel * 4 + 3] === 0) transparentPixels += 1;
+    }
+    assert.ok(transparentPixels > 256 * 256 * 0.4);
+  }
+  assert.notDeepEqual(healthyIcon, warningIcon);
+  assert.notDeepEqual(warningIcon, criticalIcon);
+  assert.notDeepEqual(criticalIcon, unknownIcon);
+  assert.doesNotMatch(dashboardSvg.toString("utf8"), /<rect/);
   assert.match(html, /rel="icon"[^>]+dbnotifier-icon\.svg/);
-  assert.match(app, /<img src="\/dbnotifier-icon\.svg\?v=1\.4\.0" alt=""/);
+  assert.match(app, /<img src="\/dbnotifier-icon\.svg\?v=2\.5\.0" alt=""/);
   assert.match(html, /<title>DB Notifier — Visão geral<\/title>/);
   assert.match(app, /aria-label="DB Notifier"/);
   assert.match(app, /className="brand-wordmark"/);
@@ -162,6 +180,10 @@ test("provider-neutral database mark is shared by active Web and Windows surface
   assert.match(desktopProject, /<ApplicationIcon>Assets\\DBNotifier\.ico<\/ApplicationIcon>/);
   assert.match(desktopXaml, /Icon="Assets\/DBNotifier\.ico"/);
   assert.match(trayController, /Icon = applicationIcon/);
+  assert.match(trayController, /TrayAggregateState\.Healthy => "DBNotifier\.Healthy\.ico"/);
+  assert.match(trayController, /TrayAggregateState\.Warning => "DBNotifier\.Warning\.ico"/);
+  assert.match(trayController, /TrayAggregateState\.Critical => "DBNotifier\.Critical\.ico"/);
+  assert.match(trayController, /TrayAggregateState\.Unknown => "DBNotifier\.Unknown\.ico"/);
   assert.doesNotMatch(trayController, /SystemIcons\.Application/);
   assert.match(installer, /SetupIconFile=.*DBNotifier\.ico/);
   assert.match(installer, /#define AppDisplayName "DB Notifier"/);

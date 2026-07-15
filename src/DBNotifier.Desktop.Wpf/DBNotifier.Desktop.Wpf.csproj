@@ -9,7 +9,7 @@
     <ApplicationIcon>Assets\DBNotifier.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
-    <Resource Include="Assets\DBNotifier.ico" />
+    <Resource Include="Assets\DBNotifier*.ico" />
     <ProjectReference Include="..\DBNotifier.Application\DBNotifier.Application.csproj" />
     <ProjectReference Include="..\DBNotifier.Infrastructure\DBNotifier.Infrastructure.csproj" />
   </ItemGroup>

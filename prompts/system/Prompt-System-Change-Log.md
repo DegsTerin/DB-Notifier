@@ -2,7 +2,7 @@
 
 ## Versão atual
 
-- Versão: `3.35.0`
+- Versão: `3.36.0`
 - Data: 2026-07-14
 - Status: corpus DB-Notifier consolidado
 - Escopo: 13 arquivos ativos
@@ -16,6 +16,12 @@ A versão do corpus é independente da versão do software.
 - PATCH: clareza, correção ou referência sem mudança de autoridade.
 
 Toda alteração atualiza este arquivo e, quando necessário, `../Start-Here.md`.
+
+## 3.36.0 — 2026-07-14
+
+- O Design System `2.5.0` remove o fundo azul do ícone, amplia o banco em canvas transparente e define variantes de sino Healthy/Warning/Critical/Unknown geradas pelo mesmo algoritmo clean-room.
+- Pedidos de paridade funcional ampla passam a exigir matriz explícita de cobertura; adotar, adaptar e rejeitar/substituir preservam proveniência, provider neutrality, least privilege e gates de ciclo de vida.
+- Todas as capacidades públicas documentadas do MySQL Notifier possuem destino na matriz, mas itens de integração, administração e release continuam pertencendo respectivamente a `STATE-06`, `STATE-07` e `STATE-08`, sem antecipar suporte ou autorização.
 
 ## 3.35.0 — 2026-07-14
 

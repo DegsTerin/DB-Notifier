@@ -30,7 +30,7 @@ internal sealed class TrayApplicationController : IDisposable
         this.localisation = localisation;
         fleetSummary = CreateDemonstrationSummary();
         flyout = new TrayFlyoutWindow(localisation, fleetSummary, ShowView, () => Apply(TrayWindowIntent.Exit));
-        applicationIcon = LoadApplicationIcon();
+        applicationIcon = LoadApplicationIcon(fleetSummary.State);
         notifyIcon = new Forms.NotifyIcon
         {
             Icon = applicationIcon,
@@ -57,14 +57,23 @@ internal sealed class TrayApplicationController : IDisposable
         applicationIcon.Dispose();
     }
 
-    /// <summary>Loads an independent icon instance from the WPF resource shared by the executable and window.</summary>
+    /// <summary>Loads an independent transparent icon whose bell reflects the aggregate fleet state.</summary>
+    /// <param name="state">The provider-neutral aggregate state used to select the semantic bell colour.</param>
     /// <returns>A disposable Windows icon that remains valid after the resource stream closes.</returns>
-    /// <exception cref="InvalidOperationException">Thrown when the packaged DB-Notifier icon resource is unavailable.</exception>
-    private static Icon LoadApplicationIcon()
+    /// <exception cref="InvalidOperationException">Thrown when the selected packaged DB Notifier icon resource is unavailable.</exception>
+    private static Icon LoadApplicationIcon(TrayAggregateState state)
     {
-        Uri resourceUri = new("pack://application:,,,/Assets/DBNotifier.ico", UriKind.Absolute);
+        string assetName = state switch
+        {
+            TrayAggregateState.Healthy => "DBNotifier.Healthy.ico",
+            TrayAggregateState.Warning => "DBNotifier.Warning.ico",
+            TrayAggregateState.Critical => "DBNotifier.Critical.ico",
+            TrayAggregateState.Unknown => "DBNotifier.Unknown.ico",
+            _ => "DBNotifier.Unknown.ico",
+        };
+        Uri resourceUri = new($"pack://application:,,,/Assets/{assetName}", UriKind.Absolute);
         System.Windows.Resources.StreamResourceInfo resource = System.Windows.Application.GetResourceStream(resourceUri)
-            ?? throw new InvalidOperationException("The packaged DB-Notifier icon resource is unavailable.");
+            ?? throw new InvalidOperationException("The selected packaged DB Notifier status icon resource is unavailable.");
         using Stream stream = resource.Stream;
         using Icon source = new(stream);
         return (Icon)source.Clone();

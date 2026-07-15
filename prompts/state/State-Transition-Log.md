@@ -759,6 +759,17 @@
 - Riscos/ressalvas: nenhum código, binário, ativo, logótipo, trade dress, texto ou arquitetura Oracle/MySQL foi incorporado. O ícone continua estático e a entrega Windows não foi implementada; ambos exigem estado autorizado e integração de `STATE-06`.
 - Aprovador: direção clean-room escolhida por Bruno; nenhuma aprovação de `S05-HG-011`, do Human Gate ou de transição foi inferida.
 
+## 2026-07-14 — Ícone transparente semântico e cobertura funcional completa da referência
+
+- Estado anterior: `STATE-05 FRONTEND_IMPLEMENTATION`, Human Gate e revisão `S05-HG-011` pendentes.
+- Estado resultante: sem transição; Design System `2.5.0` implementado em seu escopo demonstrativo e capacidades futuras explicitamente faseadas.
+- Decisão: remover o fundo azul, ampliar o banco, usar sino verde/amarelo/vermelho/cinza conforme o agregado provider-neutral e inventariar todas as capacidades públicas documentadas do MySQL Notifier sem copiar código, arte, identidade ou mecanismos inseguros.
+- Escopo: gerador clean-room canônico; SVG transparente; ICO padrão e variantes Healthy/Warning/Critical/Unknown em nove resoluções; seleção do ícone pela fixture agregada; `REQ-049/050`; matriz adotar/adaptar/rejeitar-ou-substituir com destino `STATE-05/06/07/08`.
+- Gates: validação completa registrada no relatório de implementação após geração determinística, builds, testes, documentação, dependências e checks de segurança aplicáveis.
+- Evidências: Design System `2.5.0`, `docs/Legacy-Migration-Plan.md`, `docs/STATE-05-Request-Traceability-Audit.md`, assets gerados, `TrayApplicationController` e testes de apresentação.
+- Riscos/ressalvas: a fixture atual demonstra Critical/vermelho, mas não existe atualização por Agent/API ou entrega Windows real em `STATE-05`; Start/Stop/Restart, auto-start/update e integrações permanecem nos estados posteriores indicados. Cobertura de requisito não significa implementação, homologação ou suporte.
+- Aprovador: implementação solicitada por Bruno; nenhuma aprovação visual de `S05-HG-011`, do Human Gate ou de transição foi inferida.
+
 ## Template de nova entrada
 
 - Data:

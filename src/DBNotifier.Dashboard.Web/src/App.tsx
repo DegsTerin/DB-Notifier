@@ -185,7 +185,7 @@ export function App() {
       <a className="skip-link" href="#main-content">{t("Navigation.Skip")}</a>
       <header className="topbar">
         <div className="brand-lockup" role="img" aria-label="DB Notifier">
-          <span className="brand-mark"><img src="/dbnotifier-icon.svg?v=1.4.0" alt="" /></span>
+          <span className="brand-mark"><img src="/dbnotifier-icon.svg?v=2.5.0" alt="" /></span>
           <span><strong className="brand-wordmark"><span>DB</span><span>Notifier</span></strong><small>{t("Brand.Subtitle")}</small></span>
         </div>
         {tvMode && <div className="tv-mode-status"><span aria-hidden="true" /><strong>{t("TV.Active")}</strong><time dateTime={now.toISOString()}>{formatSystemDateTime(now, locale)}</time></div>}
