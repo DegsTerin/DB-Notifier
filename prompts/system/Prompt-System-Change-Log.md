@@ -2,7 +2,7 @@
 
 ## Versão atual
 
-- Versão: `3.44.0`
+- Versão: `3.45.0`
 - Data: 2026-07-15
 - Status: corpus DB-Notifier consolidado
 - Escopo: 13 arquivos ativos
@@ -16,6 +16,12 @@ A versão do corpus é independente da versão do software.
 - PATCH: clareza, correção ou referência sem mudança de autoridade.
 
 Toda alteração atualiza este arquivo e, quando necessário, `../Start-Here.md`.
+
+## 3.45.0 — 2026-07-15
+
+- O Design System `2.6.8` introduz uma exceção visual limitada para a confirmação inicial não-state-bearing: durante `ShowBalloonTip`, o WPF oferece ao Windows a marca canônica transparente com sino verde fixo para comunicar somente que o aplicativo continua disponível.
+- O ícone semântico agregado do Tray é restaurado em `finally`; header, favicon, janela, taskbar, flyout, NotifyIcon e futuras notificações state-bearing continuam obrigados a representar o estado factual aplicável. A apresentação final da atribuição permanece sob controle do Windows Shell.
+- `REQ-060` e a décima segunda remediação de `S05-HG-010` registram a solicitação. O Human Gate continua pendente e a aprovação notification-area-first de `S05-HG-011` permanece inalterada.
 
 ## 3.44.0 — 2026-07-15
 

@@ -15,7 +15,7 @@ internal sealed class TrayApplicationController : IDisposable
     private readonly System.Windows.Application application;
     private readonly DesktopLocalisationService localisation;
     private readonly Icon applicationIcon;
-    private readonly Icon notificationIcon;
+    private readonly Icon availabilityNotificationIcon;
     private readonly Forms.NotifyIcon notifyIcon;
     private readonly TrayFlyoutWindow flyout;
     private readonly TrayFleetSummary fleetSummary;
@@ -38,7 +38,7 @@ internal sealed class TrayApplicationController : IDisposable
         this.localisation = localisation;
         this.fleetSummary = fleetSummary;
         flyout = new TrayFlyoutWindow(localisation, fleetSummary, ShowView, () => Apply(TrayWindowIntent.Exit));
-        (applicationIcon, notificationIcon, notifyIcon) = CreateNotificationAreaResources(fleetSummary.State);
+        (applicationIcon, availabilityNotificationIcon, notifyIcon) = CreateNotificationAreaResources(fleetSummary.State);
         notifyIcon.MouseClick += NotifyIconMouseClick;
         notifyIcon.DoubleClick += (_, _) => Apply(TrayWindowIntent.Show);
         window.StateChanged += WindowStateChanged;
@@ -57,7 +57,7 @@ internal sealed class TrayApplicationController : IDisposable
         notifyIcon.Visible = false;
         flyout.CloseForApplicationExit();
         notifyIcon.Dispose();
-        notificationIcon.Dispose();
+        availabilityNotificationIcon.Dispose();
         applicationIcon.Dispose();
     }
 
@@ -71,16 +71,16 @@ internal sealed class TrayApplicationController : IDisposable
         new(HealthStatus.Unknown, IsStale: true),
     ]);
 
-    /// <summary>Creates the small Tray icon, larger notification source and native NotifyIcon as one exception-safe resource set.</summary>
-    /// <param name="state">Provider-neutral aggregate used to select both semantic icon frames.</param>
+    /// <summary>Creates the semantic Tray icon, fixed green availability-notification source and native NotifyIcon as one exception-safe resource set.</summary>
+    /// <param name="state">Provider-neutral aggregate used only to select the state-bearing Tray icon.</param>
     /// <returns>The two owned icon frames and configured notification-area component.</returns>
     /// <exception cref="ArgumentOutOfRangeException">Thrown when Windows reports an invalid native icon metric.</exception>
     /// <exception cref="InvalidOperationException">Thrown when a packaged semantic icon resource is unavailable.</exception>
-    private static (Icon ApplicationIcon, Icon NotificationIcon, Forms.NotifyIcon NotifyIcon) CreateNotificationAreaResources(
+    private static (Icon ApplicationIcon, Icon AvailabilityNotificationIcon, Forms.NotifyIcon NotifyIcon) CreateNotificationAreaResources(
         TrayAggregateState state)
     {
         Icon? applicationIcon = null;
-        Icon? notificationIcon = null;
+        Icon? availabilityNotificationIcon = null;
         Forms.NotifyIcon? notifyIcon = null;
 
         try
@@ -88,13 +88,13 @@ internal sealed class TrayApplicationController : IDisposable
             applicationIcon = BrandStatusIconPolicy.LoadWindowsIcon(
                 state,
                 Forms.SystemInformation.SmallIconSize.Width);
-            notificationIcon = BrandStatusIconPolicy.LoadWindowsIcon(
-                state,
+            availabilityNotificationIcon = BrandStatusIconPolicy.LoadWindowsIcon(
+                TrayAggregateState.Healthy,
                 Forms.SystemInformation.IconSize.Width);
             notifyIcon = new Forms.NotifyIcon();
             notifyIcon.Icon = applicationIcon;
             notifyIcon.Visible = true;
-            return (applicationIcon, notificationIcon, notifyIcon);
+            return (applicationIcon, availabilityNotificationIcon, notifyIcon);
         }
         catch
         {
@@ -104,7 +104,7 @@ internal sealed class TrayApplicationController : IDisposable
                 notifyIcon.Dispose();
             }
 
-            notificationIcon?.Dispose();
+            availabilityNotificationIcon?.Dispose();
             applicationIcon?.Dispose();
             throw;
         }
@@ -193,12 +193,12 @@ internal sealed class TrayApplicationController : IDisposable
         }
     }
 
-    /// <summary>Dispatches the local hide confirmation with the larger frame of the same semantic mark, then restores the Tray metric.</summary>
+    /// <summary>Dispatches the local hide confirmation with the transparent green availability mark, then restores the state-bearing Tray icon.</summary>
     private void ShowFirstHideNotification()
     {
-        // WinForms exposes only stock balloon glyphs. Supplying the larger semantic NotifyIcon frame during the synchronous Shell call
-        // gives Windows the best canonical source available without replacing the approved MouseClick lifecycle or claiming Shell ownership.
-        notifyIcon.Icon = notificationIcon;
+        // This notification confirms that DB Notifier remains available after its window is hidden; it does not report fleet health.
+        // Supplying the fixed green variant gives Windows the best transparent availability source without claiming Shell rendering control.
+        notifyIcon.Icon = availabilityNotificationIcon;
         try
         {
             notifyIcon.ShowBalloonTip(

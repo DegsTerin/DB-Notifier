@@ -78,8 +78,8 @@ test("fleet aggregate drives every semantic product-mark state with Tray precede
 test("semantic brand replacement keeps header and favicon on the same aggregate without reusing the old node", () => {
   for (const state of ["healthy", "warning", "critical", "unknown"] as const) {
     const stateAssets = semanticBrandAssets(state);
-    assert.equal(stateAssets.iconPath, `/dbnotifier-icon.${state}.svg?v=2.6.7-${state}`);
-    assert.equal(stateAssets.faviconPath, `/dbnotifier-favicon.${state}.ico?v=2.6.7-${state}`);
+    assert.equal(stateAssets.iconPath, `/dbnotifier-icon.${state}.svg?v=2.6.8-${state}`);
+    assert.equal(stateAssets.faviconPath, `/dbnotifier-favicon.${state}.ico?v=2.6.8-${state}`);
   }
 
   const assets = semanticBrandAssets("critical");
@@ -119,9 +119,9 @@ test("semantic brand replacement keeps header and favicon on the same aggregate 
 
   replaceSemanticFavicon(ownerDocument, assets.faviconPath, "critical");
 
-  assert.equal(designSystemVersion, "2.6.7");
-  assert.equal(assets.iconPath, "/dbnotifier-icon.critical.svg?v=2.6.7-critical");
-  assert.equal(assets.faviconPath, "/dbnotifier-favicon.critical.ico?v=2.6.7-critical");
+  assert.equal(designSystemVersion, "2.6.8");
+  assert.equal(assets.iconPath, "/dbnotifier-icon.critical.svg?v=2.6.8-critical");
+  assert.equal(assets.faviconPath, "/dbnotifier-favicon.critical.ico?v=2.6.8-critical");
   assert.equal(replacement?.id, semanticFaviconId);
   assert.equal(replacement?.href, assets.faviconPath);
   assert.equal(replacement?.dataset.aggregateState, "critical");
@@ -366,6 +366,18 @@ test("provider-neutral database mark is shared by active Web and Windows surface
   assert.notDeepEqual(healthyIcon, warningIcon);
   assert.notDeepEqual(warningIcon, criticalIcon);
   assert.notDeepEqual(criticalIcon, unknownIcon);
+  const healthyNotificationFrame = readIcoFrames(healthyIcon).find((frame) => frame.size === 32);
+  assert.ok(healthyNotificationFrame);
+  let hasCanonicalGreenBellPixel = false;
+  for (let pixel = 0; pixel < healthyNotificationFrame.size * healthyNotificationFrame.size; pixel += 1) {
+    const offset = pixel * 4;
+    const blue = healthyNotificationFrame.pixels[offset];
+    const green = healthyNotificationFrame.pixels[offset + 1];
+    const red = healthyNotificationFrame.pixels[offset + 2];
+    const alpha = healthyNotificationFrame.pixels[offset + 3];
+    if (red === 72 && green === 199 && blue === 95 && alpha > 0) hasCanonicalGreenBellPixel = true;
+  }
+  assert.ok(hasCanonicalGreenBellPixel, "The 32 px availability source lost the canonical Healthy green bell.");
   assert.deepEqual(favicon, unknownFavicon);
   const semanticFavicons = [healthyFavicon, warningFavicon, criticalFavicon, unknownFavicon];
   for (const favicon of semanticFavicons) {
@@ -408,7 +420,7 @@ test("provider-neutral database mark is shared by active Web and Windows surface
   assert.match(brandGenerator, /const visibleSamples = coverage\[coverageOffset\] \+ coverage\[coverageOffset \+ 1\]/);
   assert.match(brandGenerator, /pixels\[offset \+ 3\] = Math\.round\(\(visibleSamples \/ samples\) \* 255\)/);
   assert.doesNotMatch(brandGenerator, /includeMiddleSeam|databaseStrokeRadius = Math\.max/);
-  assert.match(html, /id="dbnotifier-favicon"[^>]+dbnotifier-favicon\.unknown\.ico\?v=2\.6\.7-unknown/);
+  assert.match(html, /id="dbnotifier-favicon"[^>]+dbnotifier-favicon\.unknown\.ico\?v=2\.6\.8-unknown/);
   assert.match(app, /summarizeFleetAggregate\(snapshot, now\)/);
   assert.match(app, /useLayoutEffect\(\(\) =>/);
   assert.match(app, /replaceSemanticFavicon\(document, brandAssets\.faviconPath, aggregateState\)/);
@@ -439,8 +451,8 @@ test("provider-neutral database mark is shared by active Web and Windows surface
   assert.match(trayController, /Icon = applicationIcon/);
   assert.match(trayController, /CreateNotificationAreaResources\(fleetSummary\.State\)/);
   assert.match(trayController, /BrandStatusIconPolicy\.LoadWindowsIcon\([\s\S]*state,[\s\S]*Forms\.SystemInformation\.SmallIconSize\.Width\)/);
-  assert.match(trayController, /Forms\.SystemInformation\.IconSize\.Width/);
-  assert.match(trayController, /notifyIcon\.Icon = notificationIcon;[\s\S]*ShowBalloonTip\([\s\S]*Forms\.ToolTipIcon\.None[\s\S]*notifyIcon\.Icon = applicationIcon;/);
+  assert.match(trayController, /BrandStatusIconPolicy\.LoadWindowsIcon\([\s\S]*TrayAggregateState\.Healthy,[\s\S]*Forms\.SystemInformation\.IconSize\.Width\)/);
+  assert.match(trayController, /notifyIcon\.Icon = availabilityNotificationIcon;[\s\S]*ShowBalloonTip\([\s\S]*Forms\.ToolTipIcon\.None[\s\S]*notifyIcon\.Icon = applicationIcon;/);
   assert.match(brandStatusPolicy, /IconBitmapDecoder/);
   assert.match(brandStatusPolicy, /Math\.Ceiling\(targetDipSize \* Math\.Max\(dpi\.DpiScaleX, dpi\.DpiScaleY\)\)/);
   assert.match(brandStatusPolicy, /candidate\.PixelWidth >= targetPixelSize/);

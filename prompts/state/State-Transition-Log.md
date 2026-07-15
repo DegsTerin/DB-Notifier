@@ -869,6 +869,17 @@
 - Riscos/ressalvas: Chromium e Windows podem preservar associações/entradas históricas; a repetição deve usar uma nova janela/guia e uma notificação recém-entregue. O Windows Shell controla a apresentação final da atribuição, e atualização por Agent/API real e notificações por mudança pertencem a `STATE-06`. `S05-HG-011` permanece aprovado porque seu fluxo e política de estado não mudaram.
 - Aprovador: correção solicitada por Bruno; nenhuma aprovação de `S05-HG-010`, do Human Gate ou de transição foi inferida.
 
+## 2026-07-15 — Ícone verde fixo da confirmação de disponibilidade
+
+- Estado anterior: `STATE-05 FRONTEND_IMPLEMENTATION`, Human Gate e `S05-HG-010` pendentes; `S05-HG-011` aprovado.
+- Estado resultante: sem transição; Design System `2.6.8` implementado no escopo controlável da confirmação inicial, com decisão visual de `S05-HG-010` ainda pendente.
+- Decisão: tratar a primeira notificação de recolhimento como confirmação não-state-bearing de disponibilidade do aplicativo e oferecer ao Windows a marca canônica transparente com sino verde fixo, sem representar esse verde como saúde da frota.
+- Escopo: `availabilityNotificationIcon` nativo separado, variante canônica verde de 32 px somente durante `ShowBalloonTip`, restauração do `applicationIcon` agregado em `finally`, revisão determinística `2.6.8`, regressões e matriz `REQ-060`; demais superfícies state-bearing, agregação, geometria e fluxo notification-area-first permanecem inalterados.
+- Gates: formato .NET, build Release com zero avisos/erros, 135/135 testes unitários, 9/9 de arquitetura, 34/34 Dashboard, typecheck/build Vite, 11/11 Pester, bundle legado, marca/tokens/localização, 175 fontes no gate documental, 179 links em 61 Markdown, 96 amostras headless, auditorias NuGet/npm e runtime fail-closed aprovados. Chrome headless isolado encontrou exatamente um favicon com estado/path `critical` e revisão `2.6.8-critical`; o quadro Healthy de 32 px foi verificado com transparência e verde canônico `#48C75F`.
+- Evidências: Design System `2.6.8`, `docs/STATE-05-Design-System-Implementation-Report.md`, `docs/STATE-05-Human-Gate-Validation.md`, `docs/STATE-05-Request-Traceability-Audit.md`, `TrayApplicationController.cs` e regressões de seleção/restauração.
+- Riscos/ressalvas: o Windows Shell continua controlando a atribuição, escala, cache e snapshots históricos; uma nova notificação precisa ser revisada humanamente. Futuras notificações de estado permanecem em `STATE-06` e devem usar estado factual mais texto explícito. `S05-HG-011` permanece aprovado porque ativação, flyout e Tray semântico não mudaram.
+- Aprovador: refinamento solicitado por Bruno; nenhuma aprovação de `S05-HG-010`, do Human Gate ou de transição foi inferida.
+
 ## Template de nova entrada
 
 - Data:
