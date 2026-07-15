@@ -7,7 +7,6 @@
         Height="760"
         MinWidth="820"
         MinHeight="620"
-        Icon="Assets/DBNotifier.ico"
         Background="{DynamicResource ComponentAppBackgroundBrush}"
         Foreground="{DynamicResource ColourTextPrimaryBrush}"
         FontFamily="{DynamicResource TypographyFontfamilySans}"
@@ -267,7 +266,7 @@
           <ColumnDefinition Width="Auto" />
         </Grid.ColumnDefinitions>
         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-          <Image Width="38" Height="38" Source="Assets/DBNotifier.ico" Stretch="Uniform" AutomationProperties.Name="DB Notifier" />
+          <Image x:Name="BrandStatusImage" Width="38" Height="38" Stretch="Uniform" AutomationProperties.Name="DB Notifier" />
           <StackPanel Margin="12,0,0,0" VerticalAlignment="Center">
             <StackPanel Orientation="Horizontal"><TextBlock Text="DB" Foreground="{DynamicResource ComponentBrandWordmarkAccentBrush}" FontWeight="Bold" FontSize="16" /><TextBlock Text="Notifier" Foreground="{DynamicResource ComponentShellChromeForegroundBrush}" FontWeight="Bold" FontSize="16" /></StackPanel>
             <TextBlock Text="{DynamicResource Brand.Subtitle}" Foreground="{DynamicResource ComponentShellChromeMutedBrush}" FontSize="12" Margin="0,3,0,0" />

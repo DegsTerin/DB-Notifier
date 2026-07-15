@@ -10,6 +10,7 @@ export type EventSeverity = "information" | "warning" | "critical";
 export type AlertState = "active" | "acknowledged" | "silenced" | "resolved";
 export type CapabilityState = "supported" | "unsupported" | "unavailable" | "unknown";
 export type ActionPreview = "confirmationRequired" | "denied" | "unsupported" | "unavailable" | "unknown";
+export type FleetAggregateState = "healthy" | "warning" | "critical" | "unknown";
 export type HealthStatus =
   | "healthy"
   | "degraded"
@@ -85,6 +86,33 @@ export function summarizeInventory(snapshot: InventorySnapshot, now: Date): Inve
     },
     { total: 0, healthy: 0, degraded: 0, attentionRequired: 0, stale: 0 },
   );
+}
+
+/**
+ * Reduces provider-neutral health and freshness evidence to the semantic state used by every product-mark surface.
+ * @param snapshot - Current inventory evidence without provider-specific branches.
+ * @param now - Clock instant used to classify stale observations consistently with the visible inventory.
+ * @returns Critical, Warning, Unknown or Healthy using the same precedence as the Windows Tray policy.
+ */
+export function summarizeFleetAggregate(snapshot: InventorySnapshot, now: Date): FleetAggregateState {
+  let warning = false;
+  let critical = false;
+  let unknown = snapshot.items.length === 0;
+
+  for (const item of snapshot.items) {
+    if (isStale(item, now)) {
+      unknown = true;
+      continue;
+    }
+    if (["unavailable", "authFailed", "timeout"].includes(item.status)) critical = true;
+    else if (["degraded", "maintenance"].includes(item.status)) warning = true;
+    else if (item.status === "unknown") unknown = true;
+  }
+
+  if (critical) return "critical";
+  if (warning) return "warning";
+  if (unknown) return "unknown";
+  return "healthy";
 }
 
 export function filterInventory(

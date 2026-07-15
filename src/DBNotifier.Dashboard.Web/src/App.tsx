@@ -16,6 +16,7 @@ import {
   isStale,
   previewAction,
   staleAfterMilliseconds,
+  summarizeFleetAggregate,
   summarizeInventory,
 } from "./presentation";
 import { ThemeSelector } from "./ThemeSelector";
@@ -152,6 +153,8 @@ export function App() {
   const timelineSnapshot = useMemo(() => buildTimelineAlertSnapshot(snapshotTime, locale), [snapshotTime, locale]);
   const configurationSnapshot = useMemo(() => buildConfigurationSnapshot(locale), [locale]);
   const summary = useMemo(() => summarizeInventory(snapshot, now), [snapshot, now]);
+  const aggregateState = useMemo(() => summarizeFleetAggregate(snapshot, now), [snapshot, now]);
+  const brandIconPath = `/dbnotifier-icon.${aggregateState}.svg?v=2.6.0`;
   const filteredItems = useMemo(
     () => filterInventory(snapshot.items, query, statusFilter, now, locale),
     [snapshot.items, query, statusFilter, now, locale],
@@ -167,6 +170,12 @@ export function App() {
     const interval = window.setInterval(() => setNow(new Date()), tvMode ? 1_000 : 30_000);
     return () => window.clearInterval(interval);
   }, [tvMode]);
+
+  useEffect(() => {
+    // The favicon and visible product mark share the same factual aggregate instead of diverging by surface.
+    const favicon = document.querySelector<HTMLLinkElement>('link[rel="icon"]');
+    if (favicon) favicon.href = brandIconPath;
+  }, [brandIconPath]);
 
   /** Enters the factual fleet view for TV presentation and restores only the presentation shell on exit. */
   const handleTvModeChange = useCallback((active: boolean) => {
@@ -185,7 +194,7 @@ export function App() {
       <a className="skip-link" href="#main-content">{t("Navigation.Skip")}</a>
       <header className="topbar">
         <div className="brand-lockup" role="img" aria-label="DB Notifier">
-          <span className="brand-mark"><img src="/dbnotifier-icon.svg?v=2.5.0" alt="" /></span>
+          <span className="brand-mark"><img src={brandIconPath} alt="" /></span>
           <span><strong className="brand-wordmark"><span>DB</span><span>Notifier</span></strong><small>{t("Brand.Subtitle")}</small></span>
         </div>
         {tvMode && <div className="tv-mode-status"><span aria-hidden="true" /><strong>{t("TV.Active")}</strong><time dateTime={now.toISOString()}>{formatSystemDateTime(now, locale)}</time></div>}

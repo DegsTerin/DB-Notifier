@@ -1,7 +1,6 @@
 // Module purpose: Coordinates the localised Windows tray lifecycle without controlling database or operating-system services.
 using System.ComponentModel;
 using System.Drawing;
-using System.IO;
 using System.Windows;
 using DBNotifier.Application.Presentation;
 using DBNotifier.Domain;
@@ -22,15 +21,23 @@ internal sealed class TrayApplicationController : IDisposable
     private bool exiting;
     private bool firstHide = true;
 
-    /// <summary>Initialises tray controls and subscribes to window and language state changes.</summary>
-    public TrayApplicationController(MainWindow window, System.Windows.Application application, DesktopLocalisationService localisation)
+    /// <summary>Initialises tray controls from the shared fleet summary and subscribes to window and language state changes.</summary>
+    /// <param name="window">Secondary WPF shell controlled by notification-area intents.</param>
+    /// <param name="application">Owning WPF application lifecycle.</param>
+    /// <param name="localisation">Localisation owner used by Tray text and the flyout.</param>
+    /// <param name="fleetSummary">Provider-neutral state shared by every operational product-mark surface.</param>
+    public TrayApplicationController(
+        MainWindow window,
+        System.Windows.Application application,
+        DesktopLocalisationService localisation,
+        TrayFleetSummary fleetSummary)
     {
         this.window = window;
         this.application = application;
         this.localisation = localisation;
-        fleetSummary = CreateDemonstrationSummary();
+        this.fleetSummary = fleetSummary;
         flyout = new TrayFlyoutWindow(localisation, fleetSummary, ShowView, () => Apply(TrayWindowIntent.Exit));
-        applicationIcon = LoadApplicationIcon(fleetSummary.State);
+        applicationIcon = BrandStatusIconPolicy.LoadWindowsIcon(fleetSummary.State);
         notifyIcon = new Forms.NotifyIcon
         {
             Icon = applicationIcon,
@@ -57,31 +64,9 @@ internal sealed class TrayApplicationController : IDisposable
         applicationIcon.Dispose();
     }
 
-    /// <summary>Loads an independent transparent icon whose bell reflects the aggregate fleet state.</summary>
-    /// <param name="state">The provider-neutral aggregate state used to select the semantic bell colour.</param>
-    /// <returns>A disposable Windows icon that remains valid after the resource stream closes.</returns>
-    /// <exception cref="InvalidOperationException">Thrown when the selected packaged DB Notifier icon resource is unavailable.</exception>
-    private static Icon LoadApplicationIcon(TrayAggregateState state)
-    {
-        string assetName = state switch
-        {
-            TrayAggregateState.Healthy => "DBNotifier.Healthy.ico",
-            TrayAggregateState.Warning => "DBNotifier.Warning.ico",
-            TrayAggregateState.Critical => "DBNotifier.Critical.ico",
-            TrayAggregateState.Unknown => "DBNotifier.Unknown.ico",
-            _ => "DBNotifier.Unknown.ico",
-        };
-        Uri resourceUri = new($"pack://application:,,,/Assets/{assetName}", UriKind.Absolute);
-        System.Windows.Resources.StreamResourceInfo resource = System.Windows.Application.GetResourceStream(resourceUri)
-            ?? throw new InvalidOperationException("The selected packaged DB Notifier status icon resource is unavailable.");
-        using Stream stream = resource.Stream;
-        using Icon source = new(stream);
-        return (Icon)source.Clone();
-    }
-
     /// <summary>Creates the deterministic STATE-05 fleet summary without reading an Agent, API or monitored database.</summary>
     /// <returns>The provider-neutral summary used by the local Tray demonstration.</returns>
-    private static TrayFleetSummary CreateDemonstrationSummary() => TrayFleetPresentationPolicy.Summarise(
+    internal static TrayFleetSummary CreateDemonstrationSummary() => TrayFleetPresentationPolicy.Summarise(
     [
         new(HealthStatus.Healthy, IsStale: false),
         new(HealthStatus.Degraded, IsStale: false),

@@ -781,6 +781,17 @@
 - Riscos/ressalvas: a aprovação não prova estado Agent/API real, entrega Windows, provider homologado, ação administrativa, acessibilidade restante ou produção. `S05-HG-010` e o Human Gate geral continuam pendentes.
 - Aprovador: Bruno, exclusivamente para `S05-HG-011`.
 
+## 2026-07-15 — Cor semântica única da marca entre Web e WPF
+
+- Estado anterior: `STATE-05 FRONTEND_IMPLEMENTATION`, Human Gate e `S05-HG-010` pendentes; `S05-HG-011` aprovado.
+- Estado resultante: sem transição; Design System `2.6.0` implementado automaticamente e `S05-HG-010` ainda requer revisão humana.
+- Decisão: todas as ocorrências operacionais da marca banco+sino devem consumir o mesmo agregado provider-neutral, com Healthy verde, Warning amarelo, Critical vermelho e Unknown cinzento; ícones de navegação permanecem funcionais e não representam saúde.
+- Escopo: gerador de cinco SVGs Web e cinco ICOs Windows; favicon/header Dashboard freshness-aware; header, janela/taskbar, flyout e NotifyIcon WPF alimentados pela mesma `TrayFleetSummary.State`; defaults estáticos Unknown; matriz `REQ-051`.
+- Gates: geração e drift da marca, typecheck, 33 testes Dashboard, build Web, build WPF Release, suíte .NET, formatação, documentação, dependências e smoke tray-first conforme evidência do incremento.
+- Evidências: Design System `2.6.0`, `docs/STATE-05-Design-System-Implementation-Report.md`, `docs/STATE-05-Human-Gate-Validation.md`, `docs/STATE-05-Request-Traceability-Audit.md`, assets gerados e políticas Web/WPF.
+- Riscos/ressalvas: a fixture local atual seleciona Critical/vermelho; estado Agent/API real permanece `STATE-06`. A alteração não reabre a hierarquia notification-area-first já aprovada em `S05-HG-011`, mas a coerência visual precisa ser repetida em `S05-HG-010`.
+- Aprovador: correção solicitada por Bruno; nenhuma aprovação de `S05-HG-010`, do Human Gate ou de transição foi inferida.
+
 ## Template de nova entrada
 
 - Data:

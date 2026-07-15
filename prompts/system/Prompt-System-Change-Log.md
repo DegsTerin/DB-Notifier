@@ -2,8 +2,8 @@
 
 ## Versão atual
 
-- Versão: `3.36.0`
-- Data: 2026-07-14
+- Versão: `3.37.0`
+- Data: 2026-07-15
 - Status: corpus DB-Notifier consolidado
 - Escopo: 13 arquivos ativos
 
@@ -16,6 +16,12 @@ A versão do corpus é independente da versão do software.
 - PATCH: clareza, correção ou referência sem mudança de autoridade.
 
 Toda alteração atualiza este arquivo e, quando necessário, `../Start-Here.md`.
+
+## 3.37.0 — 2026-07-15
+
+- O Design System `2.6.0` exige que header/favicon Web, header/janela/taskbar/flyout/NotifyIcon WPF usem a mesma cor Healthy/Warning/Critical/Unknown do agregado provider-neutral.
+- Superfícies estáticas sem acesso a evidência usam Unknown/cinza em vez de um default verde que poderia declarar saúde inexistente.
+- O finding `REQ-051` mantém `S05-HG-010` pendente de nova revisão visual; integração com estado Agent/API real continua pertencendo a `STATE-06`.
 
 ## 3.36.0 — 2026-07-14
 

@@ -40,14 +40,18 @@ public partial class MainWindow : Window
     private ConfigurationCapabilitySnapshot configurationSnapshot = null!;
     private DesktopView currentView = DesktopView.Overview;
 
-    /// <summary>Initialises the local demonstration surface with the already loaded language and theme preferences.</summary>
+    /// <summary>Initialises the local demonstration surface with loaded preferences and one factual aggregate icon state.</summary>
     /// <param name="localisation">Desktop localisation owner shared with the application and tray controller.</param>
     /// <param name="theme">Desktop theme owner shared with the application.</param>
-    internal MainWindow(DesktopLocalisationService localisation, DesktopThemeService theme)
+    /// <param name="aggregateState">Provider-neutral fleet state shared by the window, flyout and notification icon.</param>
+    internal MainWindow(DesktopLocalisationService localisation, DesktopThemeService theme, TrayAggregateState aggregateState)
     {
         this.localisation = localisation;
         this.theme = theme;
         InitializeComponent();
+        System.Windows.Media.ImageSource brandStatusIcon = BrandStatusIconPolicy.LoadImageSource(aggregateState);
+        Icon = brandStatusIcon;
+        BrandStatusImage.Source = brandStatusIcon;
         UpdatePreferenceButtons();
         UpdateNavigationState();
         UpdateResponsiveLayout();

@@ -20,9 +20,10 @@ public partial class App : System.Windows.Application, IDisposable
         theme = new DesktopThemeService(this, preferences);
         localisation.Initialise();
         theme.Initialise();
-        MainWindow window = new(localisation, theme);
+        TrayFleetSummary fleetSummary = TrayApplicationController.CreateDemonstrationSummary();
+        MainWindow window = new(localisation, theme, fleetSummary.State);
         MainWindow = window;
-        trayController = new TrayApplicationController(window, this, localisation);
+        trayController = new TrayApplicationController(window, this, localisation, fleetSummary);
         if (TrayStartupPolicy.Resolve(e.Args) == TrayStartupMode.ShowDesktop)
         {
             window.Show();

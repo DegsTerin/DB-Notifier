@@ -17,10 +17,22 @@ const statusAccents = {
   Critical: [235, 76, 76, 255],
   Unknown: [148, 163, 184, 255],
 };
+const statusAccentHex = {
+  Healthy: "#48C75F",
+  Warning: "#FAB82A",
+  Critical: "#EB4C4C",
+  Unknown: "#94A3B8",
+};
 const iconSizes = [16, 20, 24, 32, 40, 48, 64, 128, 256];
 const outputs = {
   designSystemSvg: join(root, "design-system/assets/dbnotifier-database.svg"),
-  dashboardSvg: join(root, "src/DBNotifier.Dashboard.Web/public/dbnotifier-icon.svg"),
+  dashboardSvgs: {
+    Default: join(root, "src/DBNotifier.Dashboard.Web/public/dbnotifier-icon.svg"),
+    Healthy: join(root, "src/DBNotifier.Dashboard.Web/public/dbnotifier-icon.healthy.svg"),
+    Warning: join(root, "src/DBNotifier.Dashboard.Web/public/dbnotifier-icon.warning.svg"),
+    Critical: join(root, "src/DBNotifier.Dashboard.Web/public/dbnotifier-icon.critical.svg"),
+    Unknown: join(root, "src/DBNotifier.Dashboard.Web/public/dbnotifier-icon.unknown.svg"),
+  },
   windowsIcons: {
     Default: join(root, "src/DBNotifier.Desktop.Wpf/Assets/DBNotifier.ico"),
     Healthy: join(root, "src/DBNotifier.Desktop.Wpf/Assets/DBNotifier.Healthy.ico"),
@@ -226,13 +238,13 @@ function processOutput(path, bytes, verify) {
 }
 
 const verify = process.argv.includes("--verify");
-const healthyAccentHex = "#48C75F";
-const svg = Buffer.from(buildSvg(healthyAccentHex), "utf8");
 const coverageBySize = new Map(iconSizes.map((size) => [size, renderCoverage(size)]));
-processOutput(outputs.designSystemSvg, svg, verify);
-processOutput(outputs.dashboardSvg, svg, verify);
-processOutput(outputs.windowsIcons.Default, buildIco(statusAccents.Healthy, coverageBySize), verify);
+const defaultSvg = Buffer.from(buildSvg(statusAccentHex.Unknown), "utf8");
+processOutput(outputs.designSystemSvg, defaultSvg, verify);
+processOutput(outputs.dashboardSvgs.Default, defaultSvg, verify);
+processOutput(outputs.windowsIcons.Default, buildIco(statusAccents.Unknown, coverageBySize), verify);
 for (const [state, accent] of Object.entries(statusAccents)) {
+  processOutput(outputs.dashboardSvgs[state], Buffer.from(buildSvg(statusAccentHex[state]), "utf8"), verify);
   processOutput(outputs.windowsIcons[state], buildIco(accent, coverageBySize), verify);
 }
 console.log(verify ? "DB-Notifier brand assets verified." : "DB-Notifier brand assets generated.");

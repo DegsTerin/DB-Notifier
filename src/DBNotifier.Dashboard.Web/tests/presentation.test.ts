@@ -11,6 +11,7 @@ import {
   isStale,
   previewAction,
   staleAfterMilliseconds,
+  summarizeFleetAggregate,
   summarizeInventory,
 } from "../src/presentation.ts";
 
@@ -21,6 +22,21 @@ test("summary does not report stale data as freshly healthy", () => {
   const summary = summarizeInventory(snapshot, now);
 
   assert.deepEqual(summary, { total: 4, healthy: 1, degraded: 1, attentionRequired: 1, stale: 1 });
+});
+
+test("fleet aggregate drives every semantic product-mark state with Tray precedence", () => {
+  const template = buildDemonstrationSnapshot(now).items[0];
+  const snapshot = (status: typeof template.status, receivedAt = now.toISOString()) => ({
+    schemaVersion: "inventory.v1" as const,
+    generatedAt: now.toISOString(),
+    items: [{ ...template, status, receivedAt }],
+  });
+
+  assert.equal(summarizeFleetAggregate(snapshot("healthy"), now), "healthy");
+  assert.equal(summarizeFleetAggregate(snapshot("degraded"), now), "warning");
+  assert.equal(summarizeFleetAggregate(snapshot("timeout"), now), "critical");
+  assert.equal(summarizeFleetAggregate(snapshot("healthy", new Date(now.getTime() - staleAfterMilliseconds - 1).toISOString()), now), "unknown");
+  assert.equal(summarizeFleetAggregate({ ...snapshot("healthy"), items: [] }, now), "unknown");
 });
 
 test("administrative preview distinguishes denied, unsupported and unknown", () => {
@@ -142,6 +158,10 @@ test("provider-neutral database mark is shared by active Web and Windows surface
   const app = readFileSync(new URL("../src/App.tsx", import.meta.url), "utf8");
   const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
   const dashboardSvg = readFileSync(new URL("../public/dbnotifier-icon.svg", import.meta.url));
+  const healthySvg = readFileSync(new URL("../public/dbnotifier-icon.healthy.svg", import.meta.url));
+  const warningSvg = readFileSync(new URL("../public/dbnotifier-icon.warning.svg", import.meta.url));
+  const criticalSvg = readFileSync(new URL("../public/dbnotifier-icon.critical.svg", import.meta.url));
+  const unknownSvg = readFileSync(new URL("../public/dbnotifier-icon.unknown.svg", import.meta.url));
   const designSystemSvg = readFileSync(new URL("../../../design-system/assets/dbnotifier-database.svg", import.meta.url));
   const windowsIcon = readFileSync(new URL("../../DBNotifier.Desktop.Wpf/Assets/DBNotifier.ico", import.meta.url));
   const healthyIcon = readFileSync(new URL("../../DBNotifier.Desktop.Wpf/Assets/DBNotifier.Healthy.ico", import.meta.url));
@@ -150,12 +170,26 @@ test("provider-neutral database mark is shared by active Web and Windows surface
   const unknownIcon = readFileSync(new URL("../../DBNotifier.Desktop.Wpf/Assets/DBNotifier.Unknown.ico", import.meta.url));
   const desktopProject = readFileSync(new URL("../../DBNotifier.Desktop.Wpf/DBNotifier.Desktop.Wpf.csproj", import.meta.url), "utf8");
   const desktopXaml = readFileSync(new URL("../../DBNotifier.Desktop.Wpf/MainWindow.xaml", import.meta.url), "utf8");
+  const desktopCode = readFileSync(new URL("../../DBNotifier.Desktop.Wpf/MainWindow.xaml.cs", import.meta.url), "utf8");
+  const desktopApp = readFileSync(new URL("../../DBNotifier.Desktop.Wpf/App.xaml.cs", import.meta.url), "utf8");
+  const flyoutXaml = readFileSync(new URL("../../DBNotifier.Desktop.Wpf/TrayFlyoutWindow.xaml", import.meta.url), "utf8");
+  const flyoutCode = readFileSync(new URL("../../DBNotifier.Desktop.Wpf/TrayFlyoutWindow.xaml.cs", import.meta.url), "utf8");
+  const brandStatusPolicy = readFileSync(new URL("../../DBNotifier.Desktop.Wpf/BrandStatusIconPolicy.cs", import.meta.url), "utf8");
   const trayController = readFileSync(new URL("../../DBNotifier.Desktop.Wpf/TrayApplicationController.cs", import.meta.url), "utf8");
   const installer = readFileSync(new URL("../../../packaging/inno/DBNotifier.iss", import.meta.url), "utf8");
   const compatibilityBuild = readFileSync(new URL("../../../build/build.ps1", import.meta.url), "utf8");
 
   assert.deepEqual(dashboardSvg, designSystemSvg);
+  assert.deepEqual(dashboardSvg, unknownSvg);
+  assert.match(healthySvg.toString("utf8"), /#48C75F/);
+  assert.match(warningSvg.toString("utf8"), /#FAB82A/);
+  assert.match(criticalSvg.toString("utf8"), /#EB4C4C/);
+  assert.match(unknownSvg.toString("utf8"), /#94A3B8/);
+  assert.notDeepEqual(healthySvg, warningSvg);
+  assert.notDeepEqual(warningSvg, criticalSvg);
+  assert.notDeepEqual(criticalSvg, unknownSvg);
   assert.deepEqual([...windowsIcon.subarray(0, 6)], [0, 0, 1, 0, 9, 0]);
+  assert.deepEqual(windowsIcon, unknownIcon);
   for (const icon of [healthyIcon, warningIcon, criticalIcon, unknownIcon]) {
     assert.deepEqual([...icon.subarray(0, 6)], [0, 0, 1, 0, 9, 0]);
     const largestEntry = 6 + 8 * 16;
@@ -170,20 +204,31 @@ test("provider-neutral database mark is shared by active Web and Windows surface
   assert.notDeepEqual(warningIcon, criticalIcon);
   assert.notDeepEqual(criticalIcon, unknownIcon);
   assert.doesNotMatch(dashboardSvg.toString("utf8"), /<rect/);
-  assert.match(html, /rel="icon"[^>]+dbnotifier-icon\.svg/);
-  assert.match(app, /<img src="\/dbnotifier-icon\.svg\?v=2\.5\.0" alt=""/);
+  assert.match(html, /rel="icon"[^>]+dbnotifier-icon\.unknown\.svg\?v=2\.6\.0/);
+  assert.match(app, /summarizeFleetAggregate\(snapshot, now\)/);
+  assert.match(app, /const brandIconPath = `\/dbnotifier-icon\.\$\{aggregateState\}\.svg\?v=2\.6\.0`/);
+  assert.match(app, /favicon\.href = brandIconPath/);
+  assert.match(app, /<img src=\{brandIconPath\} alt=""/);
   assert.match(html, /<title>DB Notifier — Visão geral<\/title>/);
   assert.match(app, /aria-label="DB Notifier"/);
   assert.match(app, /className="brand-wordmark"/);
   assert.match(desktopXaml, /Text="DB"[^>]+ComponentBrandWordmarkAccentBrush/);
   assert.match(desktopXaml, /Text="Notifier"[^>]+ComponentShellChromeForegroundBrush/);
   assert.match(desktopProject, /<ApplicationIcon>Assets\\DBNotifier\.ico<\/ApplicationIcon>/);
-  assert.match(desktopXaml, /Icon="Assets\/DBNotifier\.ico"/);
+  assert.doesNotMatch(desktopXaml, /Icon="Assets\/DBNotifier\.ico"/);
+  assert.match(desktopXaml, /x:Name="BrandStatusImage"/);
+  assert.match(desktopCode, /Icon = brandStatusIcon/);
+  assert.match(desktopCode, /BrandStatusImage\.Source = brandStatusIcon/);
+  assert.match(desktopApp, /CreateDemonstrationSummary\(\)/);
+  assert.match(desktopApp, /new\(localisation, theme, fleetSummary\.State\)/);
+  assert.match(flyoutXaml, /x:Name="BrandStatusImage"/);
+  assert.match(flyoutCode, /BrandStatusIconPolicy\.LoadImageSource\(fleetSummary\.State\)/);
   assert.match(trayController, /Icon = applicationIcon/);
-  assert.match(trayController, /TrayAggregateState\.Healthy => "DBNotifier\.Healthy\.ico"/);
-  assert.match(trayController, /TrayAggregateState\.Warning => "DBNotifier\.Warning\.ico"/);
-  assert.match(trayController, /TrayAggregateState\.Critical => "DBNotifier\.Critical\.ico"/);
-  assert.match(trayController, /TrayAggregateState\.Unknown => "DBNotifier\.Unknown\.ico"/);
+  assert.match(trayController, /BrandStatusIconPolicy\.LoadWindowsIcon\(fleetSummary\.State\)/);
+  assert.match(brandStatusPolicy, /TrayAggregateState\.Healthy => "DBNotifier\.Healthy\.ico"/);
+  assert.match(brandStatusPolicy, /TrayAggregateState\.Warning => "DBNotifier\.Warning\.ico"/);
+  assert.match(brandStatusPolicy, /TrayAggregateState\.Critical => "DBNotifier\.Critical\.ico"/);
+  assert.match(brandStatusPolicy, /TrayAggregateState\.Unknown => "DBNotifier\.Unknown\.ico"/);
   assert.doesNotMatch(trayController, /SystemIcons\.Application/);
   assert.match(installer, /SetupIconFile=.*DBNotifier\.ico/);
   assert.match(installer, /#define AppDisplayName "DB Notifier"/);
