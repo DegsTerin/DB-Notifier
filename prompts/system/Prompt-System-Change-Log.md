@@ -2,7 +2,7 @@
 
 ## Versão atual
 
-- Versão: `3.39.0`
+- Versão: `3.40.0`
 - Data: 2026-07-15
 - Status: corpus DB-Notifier consolidado
 - Escopo: 13 arquivos ativos
@@ -16,6 +16,12 @@ A versão do corpus é independente da versão do software.
 - PATCH: clareza, correção ou referência sem mudança de autoridade.
 
 Toda alteração atualiza este arquivo e, quando necessário, `../Start-Here.md`.
+
+## 3.40.0 — 2026-07-15
+
+- O Design System `2.6.3` substitui a simplificação insuficiente de `2.6.2` por raster pixel-alinhado em 16/20 px, cobertura reduzida em 24 px e paleta compacta até 32 px.
+- A marca pequena preserva costuras do banco, usa azul Windows `#0078D4`, sino semântico sólido, transparência e Critical `#C62828`; favicon ICO próprio passa a usar a mesma família em quatro resoluções.
+- `REQ-054` e a sétima remediação de `S05-HG-010` registram o finding de nitidez; a aceitação humana continua pendente e `S05-HG-011` permanece aprovado.
 
 ## 3.39.0 — 2026-07-15
 

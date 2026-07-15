@@ -168,6 +168,11 @@ test("provider-neutral database mark is shared by active Web and Windows surface
   const warningIcon = readFileSync(new URL("../../DBNotifier.Desktop.Wpf/Assets/DBNotifier.Warning.ico", import.meta.url));
   const criticalIcon = readFileSync(new URL("../../DBNotifier.Desktop.Wpf/Assets/DBNotifier.Critical.ico", import.meta.url));
   const unknownIcon = readFileSync(new URL("../../DBNotifier.Desktop.Wpf/Assets/DBNotifier.Unknown.ico", import.meta.url));
+  const favicon = readFileSync(new URL("../public/dbnotifier-favicon.ico", import.meta.url));
+  const healthyFavicon = readFileSync(new URL("../public/dbnotifier-favicon.healthy.ico", import.meta.url));
+  const warningFavicon = readFileSync(new URL("../public/dbnotifier-favicon.warning.ico", import.meta.url));
+  const criticalFavicon = readFileSync(new URL("../public/dbnotifier-favicon.critical.ico", import.meta.url));
+  const unknownFavicon = readFileSync(new URL("../public/dbnotifier-favicon.unknown.ico", import.meta.url));
   const desktopProject = readFileSync(new URL("../../DBNotifier.Desktop.Wpf/DBNotifier.Desktop.Wpf.csproj", import.meta.url), "utf8");
   const desktopXaml = readFileSync(new URL("../../DBNotifier.Desktop.Wpf/MainWindow.xaml", import.meta.url), "utf8");
   const desktopCode = readFileSync(new URL("../../DBNotifier.Desktop.Wpf/MainWindow.xaml.cs", import.meta.url), "utf8");
@@ -211,20 +216,42 @@ test("provider-neutral database mark is shared by active Web and Windows surface
       if (icon[smallestBitmapOffset + pixel * 4 + 3] >= 128) opaqueSmallPixels += 1;
     }
     assert.ok(opaqueSmallPixels >= 150);
+
+    for (const entry of [0, 1]) {
+      const size = entry === 0 ? 16 : 20;
+      const entryOffset = 6 + entry * 16;
+      const smallBitmapOffset = icon.readUInt32LE(entryOffset + 12) + 40;
+      let partialAlphaPixels = 0;
+      for (let pixel = 0; pixel < size * size; pixel += 1) {
+        const alpha = icon[smallBitmapOffset + pixel * 4 + 3];
+        if (alpha > 0 && alpha < 255) partialAlphaPixels += 1;
+      }
+      assert.equal(partialAlphaPixels, 0);
+    }
   }
   assert.notDeepEqual(healthyIcon, warningIcon);
   assert.notDeepEqual(warningIcon, criticalIcon);
   assert.notDeepEqual(criticalIcon, unknownIcon);
+  assert.deepEqual(favicon, unknownFavicon);
+  for (const favicon of [healthyFavicon, warningFavicon, criticalFavicon, unknownFavicon]) {
+    assert.deepEqual([...favicon.subarray(0, 6)], [0, 0, 1, 0, 4, 0]);
+  }
+  assert.notDeepEqual(healthyFavicon, warningFavicon);
+  assert.notDeepEqual(warningFavicon, criticalFavicon);
+  assert.notDeepEqual(criticalFavicon, unknownFavicon);
   assert.doesNotMatch(dashboardSvg.toString("utf8"), /<rect/);
   assert.match(dashboardSvg.toString("utf8"), /fill="none" stroke="#55B4FF"/);
   assert.match(dashboardSvg.toString("utf8"), /stroke="#0F2940" stroke-width="5\.5"/);
   assert.doesNotMatch(dashboardSvg.toString("utf8"), /#082F4F/);
-  assert.match(brandGenerator, /const includeMiddleSeam = size > 20;/);
+  assert.match(brandGenerator, /const includeMiddleSeam = true;/);
   assert.match(brandGenerator, /Math\.max\(1\.5, 48 \/ size\)/);
-  assert.match(html, /rel="icon"[^>]+dbnotifier-icon\.unknown\.svg\?v=2\.6\.2/);
+  assert.match(brandGenerator, /const supersampling = size <= 20 \? 1 : size <= 24 \? 2 : 4;/);
+  assert.match(brandGenerator, /const rasterBellStroke = size <= 32 \? accent : bellStroke;/);
+  assert.match(html, /rel="icon"[^>]+dbnotifier-favicon\.unknown\.ico\?v=2\.6\.3/);
   assert.match(app, /summarizeFleetAggregate\(snapshot, now\)/);
-  assert.match(app, /const brandIconPath = `\/dbnotifier-icon\.\$\{aggregateState\}\.svg\?v=2\.6\.2`/);
-  assert.match(app, /favicon\.href = brandIconPath/);
+  assert.match(app, /const brandIconPath = `\/dbnotifier-icon\.\$\{aggregateState\}\.svg\?v=2\.6\.3`/);
+  assert.match(app, /const brandFaviconPath = `\/dbnotifier-favicon\.\$\{aggregateState\}\.ico\?v=2\.6\.3`/);
+  assert.match(app, /favicon\.href = brandFaviconPath/);
   assert.match(app, /<img src=\{brandIconPath\} alt=""/);
   assert.match(html, /<title>DB Notifier — Visão geral<\/title>/);
   assert.match(app, /aria-label="DB Notifier"/);

@@ -10,6 +10,7 @@ const root = resolve(fileURLToPath(new URL("..", import.meta.url)));
 const transparent = [0, 0, 0, 0];
 const adaptiveKeyline = [15, 41, 64, 255];
 const databaseStroke = [85, 180, 255, 255];
+const smallDatabaseStroke = [0, 120, 212, 255];
 const bellStroke = [248, 250, 252, 255];
 const statusAccents = {
   Healthy: [72, 199, 95, 255],
@@ -24,6 +25,7 @@ const statusAccentHex = {
   Unknown: "#94A3B8",
 };
 const iconSizes = [16, 20, 24, 32, 40, 48, 64, 128, 256];
+const faviconSizes = [16, 20, 24, 32];
 const outputs = {
   designSystemSvg: join(root, "design-system/assets/dbnotifier-database.svg"),
   dashboardSvgs: {
@@ -32,6 +34,13 @@ const outputs = {
     Warning: join(root, "src/DBNotifier.Dashboard.Web/public/dbnotifier-icon.warning.svg"),
     Critical: join(root, "src/DBNotifier.Dashboard.Web/public/dbnotifier-icon.critical.svg"),
     Unknown: join(root, "src/DBNotifier.Dashboard.Web/public/dbnotifier-icon.unknown.svg"),
+  },
+  dashboardFavicons: {
+    Default: join(root, "src/DBNotifier.Dashboard.Web/public/dbnotifier-favicon.ico"),
+    Healthy: join(root, "src/DBNotifier.Dashboard.Web/public/dbnotifier-favicon.healthy.ico"),
+    Warning: join(root, "src/DBNotifier.Dashboard.Web/public/dbnotifier-favicon.warning.ico"),
+    Critical: join(root, "src/DBNotifier.Dashboard.Web/public/dbnotifier-favicon.critical.ico"),
+    Unknown: join(root, "src/DBNotifier.Dashboard.Web/public/dbnotifier-favicon.unknown.ico"),
   },
   windowsIcons: {
     Default: join(root, "src/DBNotifier.Desktop.Wpf/Assets/DBNotifier.ico"),
@@ -158,9 +167,9 @@ function insideBellStroke(x, y, strokeRadius) {
  */
 function sampleLayer(x, y, size) {
   const databaseStrokeRadius = Math.max(1.5, 48 / size);
-  const bellStrokeRadius = Math.max(1.25, 40 / size);
-  const keylineDelta = Math.max(1.25, 32 / size);
-  const includeMiddleSeam = size > 20;
+  const bellStrokeRadius = size <= 24 ? 28 / size : 1.25;
+  const keylineDelta = size <= 24 ? 24 / size : 1.25;
+  const includeMiddleSeam = true;
   if (insideBellStroke(x, y, bellStrokeRadius)) return 0;
   if (insideBellFill(x, y)) return 1;
   if (insideBellStroke(x, y, bellStrokeRadius + keylineDelta)) return 2;
@@ -175,7 +184,8 @@ function sampleLayer(x, y, size) {
  * @returns {Buffer} Six-layer coverage counts for every output pixel.
  */
 function renderCoverage(size) {
-  const supersampling = 4;
+  const supersampling = size <= 20 ? 1 : size <= 24 ? 2 : 4;
+  const sampleWeight = 16 / (supersampling ** 2);
   const coverage = Buffer.alloc(size * size * 6);
   for (let y = 0; y < size; y += 1) {
     for (let x = 0; x < size; x += 1) {
@@ -186,7 +196,7 @@ function renderCoverage(size) {
             ((y + (sampleY + 0.5) / supersampling) / size) * 64,
             size,
           );
-          coverage[(y * size + x) * 6 + layer] += 1;
+          coverage[(y * size + x) * 6 + layer] += sampleWeight;
         }
       }
     }
@@ -204,7 +214,9 @@ function renderCoverage(size) {
 function renderBitmap(size, accent, coverage) {
   const samples = 16;
   const pixels = Buffer.alloc(size * size * 4);
-  const colours = [bellStroke, accent, adaptiveKeyline, databaseStroke, adaptiveKeyline, transparent];
+  const rasterDatabaseStroke = size <= 32 ? smallDatabaseStroke : databaseStroke;
+  const rasterBellStroke = size <= 32 ? accent : bellStroke;
+  const colours = [rasterBellStroke, accent, adaptiveKeyline, rasterDatabaseStroke, adaptiveKeyline, transparent];
   for (let y = 0; y < size; y += 1) {
     for (let x = 0; x < size; x += 1) {
       const totals = [0, 0, 0, 0];
@@ -243,15 +255,21 @@ function buildDib(size, accent, coverage) {
   return Buffer.concat([header, bottomUpPixels, mask]);
 }
 
-/** Builds a multi-resolution Windows icon for the executable, window, Tray and installer. */
-function buildIco(accent, coverageBySize) {
-  const images = iconSizes.map((size) => buildDib(size, accent, coverageBySize.get(size)));
-  const header = Buffer.alloc(6 + iconSizes.length * 16);
+/**
+ * Builds a multi-resolution icon for Windows shell surfaces or the browser favicon.
+ * @param {number[]} accent Semantic bell colour as RGBA channels.
+ * @param {Map<number, Buffer>} coverageBySize Shared resolution-specific layer coverage.
+ * @param {number[]} sizes Ordered icon resolutions to include in the ICO directory.
+ * @returns {Buffer} Complete multi-resolution ICO bytes.
+ */
+function buildIco(accent, coverageBySize, sizes = iconSizes) {
+  const images = sizes.map((size) => buildDib(size, accent, coverageBySize.get(size)));
+  const header = Buffer.alloc(6 + sizes.length * 16);
   header.writeUInt16LE(0, 0);
   header.writeUInt16LE(1, 2);
-  header.writeUInt16LE(iconSizes.length, 4);
+  header.writeUInt16LE(sizes.length, 4);
   let offset = header.length;
-  iconSizes.forEach((size, index) => {
+  sizes.forEach((size, index) => {
     const entry = 6 + index * 16;
     header.writeUInt8(size === 256 ? 0 : size, entry);
     header.writeUInt8(size === 256 ? 0 : size, entry + 1);
@@ -279,9 +297,11 @@ const coverageBySize = new Map(iconSizes.map((size) => [size, renderCoverage(siz
 const defaultSvg = Buffer.from(buildSvg(statusAccentHex.Unknown), "utf8");
 processOutput(outputs.designSystemSvg, defaultSvg, verify);
 processOutput(outputs.dashboardSvgs.Default, defaultSvg, verify);
+processOutput(outputs.dashboardFavicons.Default, buildIco(statusAccents.Unknown, coverageBySize, faviconSizes), verify);
 processOutput(outputs.windowsIcons.Default, buildIco(statusAccents.Unknown, coverageBySize), verify);
 for (const [state, accent] of Object.entries(statusAccents)) {
   processOutput(outputs.dashboardSvgs[state], Buffer.from(buildSvg(statusAccentHex[state]), "utf8"), verify);
+  processOutput(outputs.dashboardFavicons[state], buildIco(accent, coverageBySize, faviconSizes), verify);
   processOutput(outputs.windowsIcons[state], buildIco(accent, coverageBySize), verify);
 }
 console.log(verify ? "DB-Notifier brand assets verified." : "DB-Notifier brand assets generated.");

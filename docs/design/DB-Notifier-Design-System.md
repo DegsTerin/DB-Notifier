@@ -5,7 +5,7 @@
 | Field | Value |
 |---|---|
 | Status | Official frontend specification |
-| Design System version | `2.6.2` |
+| Design System version | `2.6.3` |
 | Product phase | `STATE-05 FRONTEND_IMPLEMENTATION` |
 | Platforms | React Web Dashboard and .NET 10 WPF Desktop/Tray |
 | Themes | Light and Dark; Windows High Contrast is an accessibility override |
@@ -377,8 +377,8 @@ Body copy MUST NOT be smaller than 14 px by default. Uppercase is limited to sho
 - Provider logos MAY appear in provider detail/catalogue contexts, never as the only provider name or status indicator.
 - Third-party icons MUST be vendored with recorded licence/provenance; runtime downloads are prohibited.
 - The DB-Notifier product mark uses a large database cylinder with a clear blue outline, a fully transparent interior and a compact notification bell on a transparent canvas. It has no enclosing tile or theme-specific backing fill. An adaptive deep-navy `#0F2940` keyline sits behind the blue database and white bell strokes: it preserves the silhouette on Light surfaces while receding behind the brighter strokes on Dark surfaces. Every operational occurrence MUST share the same provider-neutral aggregate: green for Healthy, yellow for Warning, deep red `#C62828` for Critical and neutral grey for Unknown. The bell expresses state and notification purpose without identifying a database vendor; shape and adjacent text keep status independent of colour. Static executable, installer, shortcut and documentation assets that cannot observe fleet state MUST use Unknown rather than implying Healthy. The mark MUST remain readable over both Light and Dark shell surfaces and MUST NOT be replaced by a PostgreSQL, MySQL or other vendor logo.
-- `scripts/generate-brand-assets.mjs` is the canonical cross-platform generator. It emits one neutral default plus Healthy, Warning, Critical and Unknown Web SVGs and multi-resolution Windows ICOs at 16/20/24/32/40/48/64/128/256 px; CI MUST fail on generated drift.
-- Raster variants at 16 and 20 px MUST omit the middle database seam and increase stroke coverage to avoid a document-like or washed-out silhouette. Variants from 24 px retain the complete database geometry. Resolution-specific simplification MUST NOT introduce an opaque body, enclosing tile or different semantic colour.
+- `scripts/generate-brand-assets.mjs` is the canonical cross-platform generator. It emits one neutral default plus Healthy, Warning, Critical and Unknown Web SVGs, browser favicon ICOs at 16/20/24/32 px and Windows ICOs at 16/20/24/32/40/48/64/128/256 px; CI MUST fail on generated drift.
+- Raster variants at 16 and 20 px MUST use pixel-aligned coverage without partially transparent edge pixels. Variants at 24 px use bounded two-by-two coverage, and variants at 32 px retain smooth coverage while sharing the compact palette. The 16–32 px glyphs use the Windows blue `#0078D4`, preserve the database seams and render the bell as a solid semantic silhouette over the deep-navy keyline. This keeps the cylinder recognisable and the status accent crisp in browser tabs, window titles, the taskbar and the notification area. Resolution-specific adaptation MUST NOT introduce an opaque body, enclosing tile or different Critical colour.
 - Dashboard favicon/header, WPF header/window, Windows executable/shortcuts, Tray and installer MUST consume this same mark. Release signing remains a `STATE-08` concern and MUST NOT be claimed during frontend implementation.
 - When adjacent text already exposes the product name, Web treats the mark as decorative. Native surfaces provide the stable accessible name `DB Notifier` where the platform exposes the image independently.
 

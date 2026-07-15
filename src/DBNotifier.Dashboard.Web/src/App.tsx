@@ -154,7 +154,8 @@ export function App() {
   const configurationSnapshot = useMemo(() => buildConfigurationSnapshot(locale), [locale]);
   const summary = useMemo(() => summarizeInventory(snapshot, now), [snapshot, now]);
   const aggregateState = useMemo(() => summarizeFleetAggregate(snapshot, now), [snapshot, now]);
-  const brandIconPath = `/dbnotifier-icon.${aggregateState}.svg?v=2.6.2`;
+  const brandIconPath = `/dbnotifier-icon.${aggregateState}.svg?v=2.6.3`;
+  const brandFaviconPath = `/dbnotifier-favicon.${aggregateState}.ico?v=2.6.3`;
   const filteredItems = useMemo(
     () => filterInventory(snapshot.items, query, statusFilter, now, locale),
     [snapshot.items, query, statusFilter, now, locale],
@@ -172,10 +173,10 @@ export function App() {
   }, [tvMode]);
 
   useEffect(() => {
-    // The favicon and visible product mark share the same factual aggregate instead of diverging by surface.
+    // The favicon uses the same factual aggregate with a dedicated pixel-hinted raster for browser tab sizes.
     const favicon = document.querySelector<HTMLLinkElement>('link[rel="icon"]');
-    if (favicon) favicon.href = brandIconPath;
-  }, [brandIconPath]);
+    if (favicon) favicon.href = brandFaviconPath;
+  }, [brandFaviconPath]);
 
   /** Enters the factual fleet view for TV presentation and restores only the presentation shell on exit. */
   const handleTvModeChange = useCallback((active: boolean) => {

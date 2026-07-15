@@ -2,7 +2,7 @@
 
 ## Outcome
 
-The first three DB-Notifier Design System increments, two `S05-HG-001` visual remediation iterations, the canonical product-mark refinements, the ultrawide shell correction, compact preference controls, Dashboard TV presentation, operational Overview, reference-aligned Dashboard/Tray refinement, WPF parity/runtime hardening, notification-area-first increment, clean-room aggregate-policy increment, transparent semantic-icon increment, cross-surface aggregate-colour increment, Light/Dark mark refinement and small-surface legibility refinement are complete. They establish the canonical token/schema sources, deterministic React/WPF asset generation, explicit Light/Dark preference contracts and the distinct Web/Windows product roles required by Design System `2.6.2`.
+The first three DB-Notifier Design System increments, two `S05-HG-001` visual remediation iterations, the canonical product-mark refinements, the ultrawide shell correction, compact preference controls, Dashboard TV presentation, operational Overview, reference-aligned Dashboard/Tray refinement, WPF parity/runtime hardening, notification-area-first increment, clean-room aggregate-policy increment, transparent semantic-icon increment, cross-surface aggregate-colour increment, Light/Dark mark refinement and two small-surface legibility refinements are complete. They establish the canonical token/schema sources, deterministic React/WPF asset generation, explicit Light/Dark preference contracts and the distinct Web/Windows product roles required by Design System `2.6.3`.
 
 The Dashboard and WPF Desktop now apply generated semantic tokens, expose one discreet translation/languages icon button and one cycling Light/Dark icon button in the upper-right TopBar and preserve the validated preferences. Localised accessible names and tooltips identify the current and next states without flags or permanently expanded groups. The translation symbol replaces the ambiguous globe, while sun/moon states replace the retired System/monitor option. WPF still gives Windows High Contrast precedence over the generated palette.
 
@@ -141,12 +141,19 @@ The React adapter accesses only versioned local UI preference storage and the do
 - Raster generation enforces resolution-aware minimum stroke radii. The 16/20 px variants omit the middle seam, while 24 px and larger variants retain the full geometry. Regression evidence requires at least 150 substantially opaque pixels in each 16 px ICO, alpha zero at a representative database-interior point and more than half of the 256 px canvas fully transparent.
 - The Critical bell remains `#C62828`; provider-neutral aggregation, user-facing state text, WPF/Web bindings and `S05-HG-011` workflow are unchanged.
 
+## Pixel-hinted small-icon refinement
+
+- The next authorised sample showed that the `2.6.2` mark remained less sharp than neighbouring Windows icons in the taskbar, notification overflow, title bar and browser tab. The keyline improved contrast, but multi-layer antialiasing still produced pale edge pixels and the simplified cylinder lost a recognisable database seam.
+- Design System `2.6.3` keeps the transparent canvas, deep-navy keyline and Critical `#C62828`, but gives the 16–32 px raster family a dedicated compact treatment. Database strokes use Windows blue `#0078D4`, the seams remain visible and the bell becomes a solid semantic silhouette rather than a white-outline stack.
+- The 16/20 px entries use pixel-aligned coverage with no partially transparent edge pixels; 24 px uses bounded two-by-two coverage and 32 px keeps smooth coverage with the compact palette. Larger Windows and Web header marks retain the detailed vector treatment.
+- Four-resolution semantic ICOs now drive the browser favicon independently from the full SVG header mark. The favicon and Windows families are still generated from the same geometry, aggregate state and canonical generator.
+
 ## Verification
 
 | Gate | Result |
 |---|---|
 | Token generation | Approved; four adapters generated |
-| Deterministic drift verification | Approved; neutral defaults plus four semantic SVG and nine-resolution ICO variants |
+| Deterministic drift verification | Approved; neutral defaults plus four semantic SVG, four-resolution favicon ICO and nine-resolution Windows ICO variants |
 | Schema/reference/type/theme parity | Approved |
 | Light/Dark canonical contrast pairs | Approved; all tested pairs `>= 4.5:1` |
 | Dashboard typecheck | Approved |

@@ -814,6 +814,17 @@
 - Riscos/ressalvas: keyline e simplificação ainda requerem inspeção humana real em Light/Dark, título, taskbar e área de notificação. Estado Agent/API real continua `STATE-06`; `S05-HG-011` não foi reaberto porque fluxo e mapeamento semântico permaneceram intactos.
 - Aprovador: Bruno concordou explicitamente com o refinamento; nenhuma aprovação de `S05-HG-010`, do Human Gate ou de transição foi inferida.
 
+## 2026-07-15 — Raster pixel-alinhado e favicon pequeno dedicado
+
+- Estado anterior: `STATE-05 FRONTEND_IMPLEMENTATION`, Human Gate e `S05-HG-010` pendentes; `S05-HG-011` aprovado.
+- Estado resultante: sem transição; Design System `2.6.3` implementado automaticamente e a decisão visual de `S05-HG-010` permanece pendente.
+- Decisão: tratar como falha válida a menor nitidez de `2.6.2` diante dos ícones vizinhos e preservar transparência/Critical `#C62828` enquanto se reduz a mistura de bordas em superfícies pequenas.
+- Escopo: raster 16/20 px pixel-alinhado, cobertura 24 px reduzida, paleta compacta até 32 px, costuras do banco restauradas, sino sólido, cinco favicons ICO de quatro resoluções, cache-busting Web, regressões e matriz `REQ-054`; SVG grande, agregação e capacidades operacionais não mudaram.
+- Gates: geração/drift da marca, tokens/localização, typecheck, 33 testes Dashboard, build Web, npm sem vulnerabilidades, build .NET Release com zero avisos/erros, 135 testes unitários, sete de arquitetura, format, dez Pester, bundle, NuGet, documentação/links, 96 amostras Dashboard e startup WPF oculto sem janela principal aprovados.
+- Evidências: Design System `2.6.3`, `docs/STATE-05-Design-System-Implementation-Report.md`, `docs/STATE-05-Human-Gate-Validation.md`, `docs/STATE-05-Request-Traceability-Audit.md`; regressão exige zero pixels com alfa parcial em 16/20 px, interior transparente e divergência entre as quatro cores semânticas.
+- Riscos/ressalvas: a nitidez comparativa ainda exige nova inspeção humana em favicon, título, taskbar, overflow de notificações e flyout. Estado Agent/API real continua `STATE-06`; `S05-HG-011` não foi reaberto porque fluxo e mapeamento semântico permaneceram intactos.
+- Aprovador: finding relatado por Bruno; nenhuma aprovação de `S05-HG-010`, do Human Gate ou de transição foi inferida.
+
 ## Template de nova entrada
 
 - Data:
