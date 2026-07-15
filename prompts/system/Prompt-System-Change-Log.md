@@ -2,7 +2,7 @@
 
 ## Versão atual
 
-- Versão: `3.46.0`
+- Versão: `3.47.0`
 - Data: 2026-07-15
 - Status: corpus DB-Notifier consolidado
 - Escopo: 13 arquivos ativos
@@ -16,6 +16,12 @@ A versão do corpus é independente da versão do software.
 - PATCH: clareza, correção ou referência sem mudança de autoridade.
 
 Toda alteração atualiza este arquivo e, quando necessário, `../Start-Here.md`.
+
+## 3.47.0 — 2026-07-15
+
+- O Design System `2.6.10` exige que a máscara AND legada de cada quadro ICO marque exatamente os pixels BGRA totalmente transparentes, preservando o alfa direto nos pixels visíveis ou parcialmente cobertos e evitando um canvas retangular opaco em consumidores Windows de compatibilidade.
+- A transparência pertence ao ativo fornecido pelo DB Notifier; o fundo do cartão, a escala/atribuição, o cache e snapshots históricos da notificação continuam controlados pelo Windows Shell e não são apresentados como superfícies transparentes do produto.
+- `REQ-062` e a décima quarta remediação de `S05-HG-010` registram o finding e a correção. Uma notificação nova ainda precisa de revisão humana; o Human Gate continua pendente e `S05-HG-011` permanece aprovado.
 
 ## 3.46.0 — 2026-07-15
 

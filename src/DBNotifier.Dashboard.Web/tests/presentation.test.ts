@@ -27,6 +27,7 @@ type IcoFrame = {
   size: number;
   dib: Buffer;
   pixels: Buffer;
+  mask: Buffer;
 };
 
 /** Parses uncompressed 32-bit DIB frames from one deterministic generated ICO asset. */
@@ -38,10 +39,13 @@ function readIcoFrames(icon: Buffer): IcoFrame[] {
     const dataLength = icon.readUInt32LE(entryOffset + 8);
     const dataOffset = icon.readUInt32LE(entryOffset + 12);
     const dib = icon.subarray(dataOffset, dataOffset + dataLength);
+    const pixelLength = size * size * 4;
+    const maskLength = Math.ceil(size / 32) * 4 * size;
     return {
       size,
       dib,
-      pixels: dib.subarray(40, 40 + size * size * 4),
+      pixels: dib.subarray(40, 40 + pixelLength),
+      mask: dib.subarray(40 + pixelLength, 40 + pixelLength + maskLength),
     };
   });
 }
@@ -78,8 +82,8 @@ test("fleet aggregate drives every semantic product-mark state with Tray precede
 test("semantic brand replacement keeps header and favicon on the same aggregate without reusing the old node", () => {
   for (const state of ["healthy", "warning", "critical", "unknown"] as const) {
     const stateAssets = semanticBrandAssets(state);
-    assert.equal(stateAssets.iconPath, `/dbnotifier-icon.${state}.svg?v=2.6.9-${state}`);
-    assert.equal(stateAssets.faviconPath, `/dbnotifier-favicon.${state}.ico?v=2.6.9-${state}`);
+    assert.equal(stateAssets.iconPath, `/dbnotifier-icon.${state}.svg?v=2.6.10-${state}`);
+    assert.equal(stateAssets.faviconPath, `/dbnotifier-favicon.${state}.ico?v=2.6.10-${state}`);
   }
 
   const assets = semanticBrandAssets("critical");
@@ -119,9 +123,9 @@ test("semantic brand replacement keeps header and favicon on the same aggregate 
 
   replaceSemanticFavicon(ownerDocument, assets.faviconPath, "critical");
 
-  assert.equal(designSystemVersion, "2.6.9");
-  assert.equal(assets.iconPath, "/dbnotifier-icon.critical.svg?v=2.6.9-critical");
-  assert.equal(assets.faviconPath, "/dbnotifier-favicon.critical.ico?v=2.6.9-critical");
+  assert.equal(designSystemVersion, "2.6.10");
+  assert.equal(assets.iconPath, "/dbnotifier-icon.critical.svg?v=2.6.10-critical");
+  assert.equal(assets.faviconPath, "/dbnotifier-favicon.critical.ico?v=2.6.10-critical");
   assert.equal(replacement?.id, semanticFaviconId);
   assert.equal(replacement?.href, assets.faviconPath);
   assert.equal(replacement?.dataset.aggregateState, "critical");
@@ -358,6 +362,11 @@ test("provider-neutral database mark is shared by active Web and Windows surface
       let partialAlphaPixels = 0;
       for (let pixel = 0; pixel < frame.size * frame.size; pixel += 1) {
         const alpha = frame.pixels[pixel * 4 + 3];
+        const row = Math.floor(pixel / frame.size);
+        const column = pixel % frame.size;
+        const maskStride = Math.ceil(frame.size / 32) * 4;
+        const maskBit = frame.mask[row * maskStride + Math.floor(column / 8)] & (0x80 >> (column % 8));
+        assert.equal(maskBit !== 0, alpha === 0, `${frame.size} px legacy mask disagrees with BGRA transparency.`);
         if (alpha > 0 && alpha < 255) partialAlphaPixels += 1;
       }
       assert.ok(partialAlphaPixels > 0);
@@ -420,7 +429,7 @@ test("provider-neutral database mark is shared by active Web and Windows surface
   assert.match(brandGenerator, /const visibleSamples = coverage\[coverageOffset\] \+ coverage\[coverageOffset \+ 1\]/);
   assert.match(brandGenerator, /pixels\[offset \+ 3\] = Math\.round\(\(visibleSamples \/ samples\) \* 255\)/);
   assert.doesNotMatch(brandGenerator, /includeMiddleSeam|databaseStrokeRadius = Math\.max/);
-  assert.match(html, /id="dbnotifier-favicon"[^>]+dbnotifier-favicon\.unknown\.ico\?v=2\.6\.9-unknown/);
+  assert.match(html, /id="dbnotifier-favicon"[^>]+dbnotifier-favicon\.unknown\.ico\?v=2\.6\.10-unknown/);
   assert.match(app, /summarizeFleetAggregate\(snapshot, now\)/);
   assert.match(app, /useLayoutEffect\(\(\) =>/);
   assert.match(app, /replaceSemanticFavicon\(document, brandAssets\.faviconPath, aggregateState\)/);

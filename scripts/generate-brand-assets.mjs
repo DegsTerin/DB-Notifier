@@ -256,11 +256,27 @@ function renderBitmap(size, accent, coverage) {
   return pixels;
 }
 
+/**
+ * Builds the legacy ICO AND mask for consumers that do not honour 32-bit alpha consistently.
+ * Fully transparent pixels are masked out; visible and partially covered pixels remain governed by their BGRA alpha.
+ */
+function buildTransparencyMask(size, bottomUpPixels) {
+  const maskStride = Math.ceil(size / 32) * 4;
+  const mask = Buffer.alloc(maskStride * size);
+  for (let row = 0; row < size; row += 1) {
+    for (let column = 0; column < size; column += 1) {
+      const alpha = bottomUpPixels[(row * size + column) * 4 + 3];
+      if (alpha !== 0) continue;
+      const maskOffset = row * maskStride + Math.floor(column / 8);
+      mask[maskOffset] |= 0x80 >> (column % 8);
+    }
+  }
+  return mask;
+}
+
 /** Wraps a rendered BGRA bitmap in the Windows device-independent bitmap structure used by ICO files. */
 function buildDib(size, accent, coverage) {
   const pixels = renderBitmap(size, accent, coverage);
-  const maskStride = Math.ceil(size / 32) * 4;
-  const mask = Buffer.alloc(maskStride * size);
   const header = Buffer.alloc(40);
   header.writeUInt32LE(40, 0);
   header.writeInt32LE(size, 4);
@@ -273,6 +289,7 @@ function buildDib(size, accent, coverage) {
   for (let row = 0; row < size; row += 1) {
     pixels.copy(bottomUpPixels, row * rowBytes, (size - row - 1) * rowBytes, (size - row) * rowBytes);
   }
+  const mask = buildTransparencyMask(size, bottomUpPixels);
   return Buffer.concat([header, bottomUpPixels, mask]);
 }
 

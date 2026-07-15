@@ -891,6 +891,17 @@
 - Riscos/ressalvas: integração `STATE-06` ainda deve classificar transições tipadas, serializar entregas para impedir cruzamento de ícones, aplicar opt-in/deduplicação/quiet policy e nomear instância/estado no texto. O Windows Shell mantém autoridade sobre atribuição, escala, cache e snapshots históricos. `S05-HG-010` continua pendente e `S05-HG-011` não foi reaberto.
 - Aprovador: esclarecimento funcional solicitado por Bruno; nenhuma aprovação visual, do Human Gate ou de transição foi inferida.
 
+## 2026-07-15 — Compatibilidade da transparência ICO no Windows
+
+- Estado anterior: `STATE-05 FRONTEND_IMPLEMENTATION`, Human Gate e `S05-HG-010` pendentes; `S05-HG-011` aprovado.
+- Estado resultante: sem transição; Design System `2.6.10` implementado no ativo canônico, com nova revisão humana ainda necessária.
+- Decisão: manter o canvas do ícone transparente tanto no canal alfa BGRA quanto na máscara AND legada do ICO, sem afirmar que o cartão de notificação controlado pelo Windows seja transparente.
+- Escopo: gerador canônico de ativos, cinco favicons ICO, cinco famílias ICO Windows, regressão pixel a pixel da máscara legada, revisão Web determinística `2.6.10`, Design System, Human Gate e matriz `REQ-062`. Geometria, cores semânticas, seleção por significado, fluxo notification-area-first e capacidades operacionais permanecem inalterados.
+- Gates: restore locked, formato .NET, build Release com zero avisos/erros, 140/140 testes unitários, 9/9 de arquitetura, 34/34 Dashboard, typecheck/build Vite, 11/11 Pester, bundle legado, marca/tokens/localização, 175 fontes no gate documental, 179 links em 61 Markdown, 96 amostras headless, auditorias NuGet/npm e runtime fail-closed aprovados. A auditoria dos nove quadros Windows encontrou zero divergências entre pixels totalmente transparentes e bits AND, e Chrome headless isolado encontrou exatamente um favicon `critical` na revisão `2.6.10-critical`.
+- Evidências: Design System `2.6.10`, `docs/STATE-05-Design-System-Implementation-Report.md`, `docs/STATE-05-Human-Gate-Validation.md`, `docs/STATE-05-Request-Traceability-Audit.md`, `docs/Legacy-Migration-Plan.md`, gerador, ativos regenerados e regressão de transparência.
+- Riscos/ressalvas: notificações antigas são snapshots e não mudam retroativamente; o Windows Shell continua responsável pelo fundo do cartão, atribuição, escala e cache. Uma notificação recém-entregue ainda precisa de inspeção humana em `S05-HG-010`; `S05-HG-011` não foi reaberto.
+- Aprovador: correção solicitada por Bruno; nenhuma aprovação visual, do Human Gate ou de transição foi inferida.
+
 ## Template de nova entrada
 
 - Data:
