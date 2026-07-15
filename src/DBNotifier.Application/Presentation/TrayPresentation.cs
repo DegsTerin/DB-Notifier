@@ -101,6 +101,39 @@ public enum TrayAggregateState
     Unknown,
 }
 
+/// <summary>Identifies the provider-neutral meaning conveyed by one Windows notification.</summary>
+public enum TrayNotificationMeaning
+{
+    /// <summary>Confirms application availability or reports that an observed target has recovered.</summary>
+    AvailabilityOrRecovery,
+
+    /// <summary>Reports a degraded condition that requires attention without proving a critical failure.</summary>
+    Warning,
+
+    /// <summary>Reports a proved critical availability, authentication or timeout failure.</summary>
+    Critical,
+
+    /// <summary>Reports information or an unknown condition that must not imply health.</summary>
+    InformationalOrUnknown,
+}
+
+/// <summary>Maps notification meaning to the shared semantic icon family without delivering a notification.</summary>
+public static class TrayNotificationPresentationPolicy
+{
+    /// <summary>Returns the safe icon state for the meaning conveyed by one notification.</summary>
+    /// <param name="meaning">Provider-neutral notification meaning selected by the owning presentation adapter.</param>
+    /// <returns>Green for availability or recovery, yellow for warning, red for critical, and neutral grey otherwise.</returns>
+    /// <remarks>Future delivery adapters must also identify the affected instance in text; colour alone is never sufficient evidence.</remarks>
+    public static TrayAggregateState ResolveIconState(TrayNotificationMeaning meaning) => meaning switch
+    {
+        TrayNotificationMeaning.AvailabilityOrRecovery => TrayAggregateState.Healthy,
+        TrayNotificationMeaning.Warning => TrayAggregateState.Warning,
+        TrayNotificationMeaning.Critical => TrayAggregateState.Critical,
+        TrayNotificationMeaning.InformationalOrUnknown => TrayAggregateState.Unknown,
+        _ => TrayAggregateState.Unknown,
+    };
+}
+
 /// <summary>Supplies the minimum factual evidence needed to classify one instance for the Tray.</summary>
 /// <param name="Status">The provider-neutral health status.</param>
 /// <param name="IsStale">Whether freshness policy prevents the status from being treated as current.</param>

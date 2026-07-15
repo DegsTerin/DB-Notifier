@@ -76,6 +76,22 @@ public sealed class TrayPresentationTests
         Assert.Equal(0, summary.TotalCount);
     }
 
+    /// <summary>Verifies that each notification meaning selects its corresponding semantic bell without inferring fleet health.</summary>
+    /// <param name="meaning">The provider-neutral meaning conveyed by the notification.</param>
+    /// <param name="expected">The shared icon state expected for that meaning.</param>
+    [Theory]
+    [InlineData(TrayNotificationMeaning.AvailabilityOrRecovery, TrayAggregateState.Healthy)]
+    [InlineData(TrayNotificationMeaning.Warning, TrayAggregateState.Warning)]
+    [InlineData(TrayNotificationMeaning.Critical, TrayAggregateState.Critical)]
+    [InlineData(TrayNotificationMeaning.InformationalOrUnknown, TrayAggregateState.Unknown)]
+    [InlineData((TrayNotificationMeaning)int.MaxValue, TrayAggregateState.Unknown)]
+    public void NotificationMeaningSelectsCorrespondingSemanticIcon(
+        TrayNotificationMeaning meaning,
+        TrayAggregateState expected)
+    {
+        Assert.Equal(expected, TrayNotificationPresentationPolicy.ResolveIconState(meaning));
+    }
+
     /// <summary>Verifies that future delivery is change-only, opt-in and suppressed for the initial snapshot.</summary>
     [Fact]
     public void NotificationPolicyRequiresOptInPriorStateAndMaterialChange()

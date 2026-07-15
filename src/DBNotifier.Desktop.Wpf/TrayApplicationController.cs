@@ -71,7 +71,7 @@ internal sealed class TrayApplicationController : IDisposable
         new(HealthStatus.Unknown, IsStale: true),
     ]);
 
-    /// <summary>Creates the semantic Tray icon, fixed green availability-notification source and native NotifyIcon as one exception-safe resource set.</summary>
+    /// <summary>Creates the semantic Tray icon, policy-selected availability-notification source and native NotifyIcon as one exception-safe resource set.</summary>
     /// <param name="state">Provider-neutral aggregate used only to select the state-bearing Tray icon.</param>
     /// <returns>The two owned icon frames and configured notification-area component.</returns>
     /// <exception cref="ArgumentOutOfRangeException">Thrown when Windows reports an invalid native icon metric.</exception>
@@ -89,7 +89,7 @@ internal sealed class TrayApplicationController : IDisposable
                 state,
                 Forms.SystemInformation.SmallIconSize.Width);
             availabilityNotificationIcon = BrandStatusIconPolicy.LoadWindowsIcon(
-                TrayAggregateState.Healthy,
+                TrayNotificationPresentationPolicy.ResolveIconState(TrayNotificationMeaning.AvailabilityOrRecovery),
                 Forms.SystemInformation.IconSize.Width);
             notifyIcon = new Forms.NotifyIcon();
             notifyIcon.Icon = applicationIcon;

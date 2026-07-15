@@ -83,10 +83,14 @@ public sealed class WpfPresentationContractTests
         Assert.Contains("Stretch=\"None\" SnapsToDevicePixels=\"True\"", flyoutMarkup, StringComparison.Ordinal);
         Assert.Contains("Forms.SystemInformation.SmallIconSize.Width", trayController, StringComparison.Ordinal);
         Assert.Contains("Forms.SystemInformation.IconSize.Width", trayController, StringComparison.Ordinal);
-        Assert.Contains("TrayAggregateState.Healthy", trayController, StringComparison.Ordinal);
+        Assert.Contains("TrayNotificationMeaning.AvailabilityOrRecovery", trayController, StringComparison.Ordinal);
+        Assert.Contains("TrayNotificationPresentationPolicy.ResolveIconState", trayController, StringComparison.Ordinal);
         Assert.Contains("notifyIcon.Icon = availabilityNotificationIcon", trayController, StringComparison.Ordinal);
         Assert.Contains("notifyIcon.Icon = applicationIcon", trayController, StringComparison.Ordinal);
         Assert.Contains("Forms.ToolTipIcon.None", trayController, StringComparison.Ordinal);
+        Assert.True(
+            Regex.Count(trayController, "\\bShowBalloonTip\\s*\\(", RegexOptions.CultureInvariant) == 1,
+            "STATE-05 must keep exactly one local availability notification and no change-delivery publisher.");
         Assert.Contains("WmSetIcon", policy, StringComparison.Ordinal);
         Assert.Contains("IconSmall2", policy, StringComparison.Ordinal);
         Assert.Contains("IconBig", policy, StringComparison.Ordinal);

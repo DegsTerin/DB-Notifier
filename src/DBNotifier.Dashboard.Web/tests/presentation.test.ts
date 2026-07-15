@@ -78,8 +78,8 @@ test("fleet aggregate drives every semantic product-mark state with Tray precede
 test("semantic brand replacement keeps header and favicon on the same aggregate without reusing the old node", () => {
   for (const state of ["healthy", "warning", "critical", "unknown"] as const) {
     const stateAssets = semanticBrandAssets(state);
-    assert.equal(stateAssets.iconPath, `/dbnotifier-icon.${state}.svg?v=2.6.8-${state}`);
-    assert.equal(stateAssets.faviconPath, `/dbnotifier-favicon.${state}.ico?v=2.6.8-${state}`);
+    assert.equal(stateAssets.iconPath, `/dbnotifier-icon.${state}.svg?v=2.6.9-${state}`);
+    assert.equal(stateAssets.faviconPath, `/dbnotifier-favicon.${state}.ico?v=2.6.9-${state}`);
   }
 
   const assets = semanticBrandAssets("critical");
@@ -119,9 +119,9 @@ test("semantic brand replacement keeps header and favicon on the same aggregate 
 
   replaceSemanticFavicon(ownerDocument, assets.faviconPath, "critical");
 
-  assert.equal(designSystemVersion, "2.6.8");
-  assert.equal(assets.iconPath, "/dbnotifier-icon.critical.svg?v=2.6.8-critical");
-  assert.equal(assets.faviconPath, "/dbnotifier-favicon.critical.ico?v=2.6.8-critical");
+  assert.equal(designSystemVersion, "2.6.9");
+  assert.equal(assets.iconPath, "/dbnotifier-icon.critical.svg?v=2.6.9-critical");
+  assert.equal(assets.faviconPath, "/dbnotifier-favicon.critical.ico?v=2.6.9-critical");
   assert.equal(replacement?.id, semanticFaviconId);
   assert.equal(replacement?.href, assets.faviconPath);
   assert.equal(replacement?.dataset.aggregateState, "critical");
@@ -420,7 +420,7 @@ test("provider-neutral database mark is shared by active Web and Windows surface
   assert.match(brandGenerator, /const visibleSamples = coverage\[coverageOffset\] \+ coverage\[coverageOffset \+ 1\]/);
   assert.match(brandGenerator, /pixels\[offset \+ 3\] = Math\.round\(\(visibleSamples \/ samples\) \* 255\)/);
   assert.doesNotMatch(brandGenerator, /includeMiddleSeam|databaseStrokeRadius = Math\.max/);
-  assert.match(html, /id="dbnotifier-favicon"[^>]+dbnotifier-favicon\.unknown\.ico\?v=2\.6\.8-unknown/);
+  assert.match(html, /id="dbnotifier-favicon"[^>]+dbnotifier-favicon\.unknown\.ico\?v=2\.6\.9-unknown/);
   assert.match(app, /summarizeFleetAggregate\(snapshot, now\)/);
   assert.match(app, /useLayoutEffect\(\(\) =>/);
   assert.match(app, /replaceSemanticFavicon\(document, brandAssets\.faviconPath, aggregateState\)/);
@@ -451,7 +451,7 @@ test("provider-neutral database mark is shared by active Web and Windows surface
   assert.match(trayController, /Icon = applicationIcon/);
   assert.match(trayController, /CreateNotificationAreaResources\(fleetSummary\.State\)/);
   assert.match(trayController, /BrandStatusIconPolicy\.LoadWindowsIcon\([\s\S]*state,[\s\S]*Forms\.SystemInformation\.SmallIconSize\.Width\)/);
-  assert.match(trayController, /BrandStatusIconPolicy\.LoadWindowsIcon\([\s\S]*TrayAggregateState\.Healthy,[\s\S]*Forms\.SystemInformation\.IconSize\.Width\)/);
+  assert.match(trayController, /BrandStatusIconPolicy\.LoadWindowsIcon\([\s\S]*TrayNotificationPresentationPolicy\.ResolveIconState\(TrayNotificationMeaning\.AvailabilityOrRecovery\),[\s\S]*Forms\.SystemInformation\.IconSize\.Width\)/);
   assert.match(trayController, /notifyIcon\.Icon = availabilityNotificationIcon;[\s\S]*ShowBalloonTip\([\s\S]*Forms\.ToolTipIcon\.None[\s\S]*notifyIcon\.Icon = applicationIcon;/);
   assert.match(brandStatusPolicy, /IconBitmapDecoder/);
   assert.match(brandStatusPolicy, /Math\.Ceiling\(targetDipSize \* Math\.Max\(dpi\.DpiScaleX, dpi\.DpiScaleY\)\)/);

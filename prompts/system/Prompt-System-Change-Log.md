@@ -2,7 +2,7 @@
 
 ## Versão atual
 
-- Versão: `3.45.0`
+- Versão: `3.46.0`
 - Data: 2026-07-15
 - Status: corpus DB-Notifier consolidado
 - Escopo: 13 arquivos ativos
@@ -16,6 +16,12 @@ A versão do corpus é independente da versão do software.
 - PATCH: clareza, correção ou referência sem mudança de autoridade.
 
 Toda alteração atualiza este arquivo e, quando necessário, `../Start-Here.md`.
+
+## 3.46.0 — 2026-07-15
+
+- O Design System `2.6.9` exige que cada notificação selecione a variante canônica pelo significado factual da própria mensagem: disponibilidade/recuperação verde, aviso amarelo, crítico vermelho profundo e informativo/desconhecido cinza; valor inválido falha de forma segura para Unknown.
+- A confirmação first-hide usa essa política para disponibilidade, enquanto o ícone do Tray continua representando o agregado independente e é restaurado em `finally`. Texto visível continua obrigatório, pois cor e atribuição controlada pelo Windows não bastam para provar estado ou instância.
+- `REQ-061` e a décima terceira clarificação/remediação de `S05-HG-010` registram a seleção tipada. Entrega real permanece em `STATE-06`, o Human Gate continua pendente e `S05-HG-011` permanece aprovado.
 
 ## 3.45.0 — 2026-07-15
 
