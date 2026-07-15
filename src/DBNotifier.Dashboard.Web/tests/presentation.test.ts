@@ -183,7 +183,7 @@ test("provider-neutral database mark is shared by active Web and Windows surface
   assert.deepEqual(dashboardSvg, unknownSvg);
   assert.match(healthySvg.toString("utf8"), /#48C75F/);
   assert.match(warningSvg.toString("utf8"), /#FAB82A/);
-  assert.match(criticalSvg.toString("utf8"), /#EB4C4C/);
+  assert.match(criticalSvg.toString("utf8"), /#C62828/);
   assert.match(unknownSvg.toString("utf8"), /#94A3B8/);
   assert.notDeepEqual(healthySvg, warningSvg);
   assert.notDeepEqual(warningSvg, criticalSvg);
@@ -198,15 +198,17 @@ test("provider-neutral database mark is shared by active Web and Windows surface
     for (let pixel = 0; pixel < 256 * 256; pixel += 1) {
       if (icon[bitmapOffset + pixel * 4 + 3] === 0) transparentPixels += 1;
     }
-    assert.ok(transparentPixels > 256 * 256 * 0.4);
+    assert.ok(transparentPixels > 256 * 256 * 0.7);
   }
   assert.notDeepEqual(healthyIcon, warningIcon);
   assert.notDeepEqual(warningIcon, criticalIcon);
   assert.notDeepEqual(criticalIcon, unknownIcon);
   assert.doesNotMatch(dashboardSvg.toString("utf8"), /<rect/);
-  assert.match(html, /rel="icon"[^>]+dbnotifier-icon\.unknown\.svg\?v=2\.6\.0/);
+  assert.match(dashboardSvg.toString("utf8"), /fill="none" stroke="#55B4FF"/);
+  assert.doesNotMatch(dashboardSvg.toString("utf8"), /#082F4F/);
+  assert.match(html, /rel="icon"[^>]+dbnotifier-icon\.unknown\.svg\?v=2\.6\.1/);
   assert.match(app, /summarizeFleetAggregate\(snapshot, now\)/);
-  assert.match(app, /const brandIconPath = `\/dbnotifier-icon\.\$\{aggregateState\}\.svg\?v=2\.6\.0`/);
+  assert.match(app, /const brandIconPath = `\/dbnotifier-icon\.\$\{aggregateState\}\.svg\?v=2\.6\.1`/);
   assert.match(app, /favicon\.href = brandIconPath/);
   assert.match(app, /<img src=\{brandIconPath\} alt=""/);
   assert.match(html, /<title>DB Notifier — Visão geral<\/title>/);

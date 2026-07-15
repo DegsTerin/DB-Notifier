@@ -792,6 +792,17 @@
 - Riscos/ressalvas: a fixture local atual seleciona Critical/vermelho; estado Agent/API real permanece `STATE-06`. A alteração não reabre a hierarquia notification-area-first já aprovada em `S05-HG-011`, mas a coerência visual precisa ser repetida em `S05-HG-010`.
 - Aprovador: correção solicitada por Bruno; nenhuma aprovação de `S05-HG-010`, do Human Gate ou de transição foi inferida.
 
+## 2026-07-15 — Refinamento Light/Dark do ícone semântico
+
+- Estado anterior: `STATE-05 FRONTEND_IMPLEMENTATION`, Human Gate e `S05-HG-010` pendentes; `S05-HG-011` aprovado.
+- Estado resultante: sem transição; Design System `2.6.1` implementado automaticamente e a decisão visual de `S05-HG-010` permanece pendente.
+- Decisão: substituir o Critical alaranjado por vermelho profundo `#C62828` e tornar o interior do cilindro do banco totalmente transparente, preservando contorno azul, sino semântico e a mesma política agregada em todas as superfícies.
+- Escopo: gerador SVG/ICO canônico, cinco SVGs Web, cinco ICOs Windows, cache-busting Web, regressão estrutural, Design System, Human Gate e matriz `REQ-052`; nenhum fluxo Tray, estado, provider ou capacidade operacional foi alterado.
+- Gates: geração/drift da marca, tokens/localização, typecheck, 33 testes Dashboard, build Web, npm sem vulnerabilidades, build .NET Release com zero avisos/erros, 135 testes unitários, sete de arquitetura, format, dez Pester, bundle, NuGet, documentação/links, runtime fail-closed, 96 amostras Dashboard e startup WPF oculto sem janela principal aprovados.
+- Evidências: Design System `2.6.1`, `docs/STATE-05-Design-System-Implementation-Report.md`, `docs/STATE-05-Human-Gate-Validation.md`, `docs/STATE-05-Request-Traceability-Audit.md`, ativos gerados e regressão de transparência superior a 70% nos ICOs de 256 px.
+- Riscos/ressalvas: Light/Dark ainda precisam de comparação humana visível dentro de `S05-HG-010`; a nova tonalidade não prova acessibilidade subjetiva nem estado Agent/API real. A aprovação de `S05-HG-011` permanece limitada ao fluxo notification-area-first e ao mapeamento semântico já aceitos.
+- Aprovador: refinamento solicitado por Bruno; nenhuma aprovação de `S05-HG-010`, do Human Gate ou de transição foi inferida.
+
 ## Template de nova entrada
 
 - Data:

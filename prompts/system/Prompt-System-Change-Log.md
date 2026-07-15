@@ -2,7 +2,7 @@
 
 ## Versão atual
 
-- Versão: `3.37.0`
+- Versão: `3.38.0`
 - Data: 2026-07-15
 - Status: corpus DB-Notifier consolidado
 - Escopo: 13 arquivos ativos
@@ -16,6 +16,12 @@ A versão do corpus é independente da versão do software.
 - PATCH: clareza, correção ou referência sem mudança de autoridade.
 
 Toda alteração atualiza este arquivo e, quando necessário, `../Start-Here.md`.
+
+## 3.38.0 — 2026-07-15
+
+- O Design System `2.6.1` exige interior totalmente transparente no cilindro da marca em SVG e ICO, sem tile ou preenchimento específico de Light/Dark.
+- O sino Critical usa vermelho profundo `#C62828` para evitar aparência alaranjada, mantendo texto/forma como evidência não dependente somente de cor.
+- `REQ-052` e a quinta remediação de `S05-HG-010` registram a solicitação; a decisão visual humana continua pendente e `S05-HG-011` permanece aprovado em seu escopo notification-area-first.
 
 ## 3.37.0 — 2026-07-15
 
