@@ -17,6 +17,10 @@ Proposed in `STATE-00 DISCOVERY_MIGRATION`. Approval of this plan and the target
 
 ## MySQL Notifier conceptual benchmark
 
+### Clean-room product decision
+
+On 2026-07-14, the product owner explicitly selected option 1: a clean implementation inspired functionally by MySQL Notifier while preserving DB Notifier's MIT licence and independent identity. This decision is a provenance and implementation constraint, not permission to copy or derive from the reference repository. Public behavioural documentation may be converted into provider-neutral DB Notifier requirements; Oracle/MySQL source, binaries, artwork, logos, trade dress, product copy and vendor-specific architecture must not enter this repository. Every implementation claim must be supported by DB Notifier-owned code, tests and evidence.
+
 The product owner clarified on 2026-07-14 that the Windows WPF client is primarily a Windows notification-area notifier. The benchmark is the interaction model documented by Oracle for MySQL Notifier 1.1, not its source code, artwork, vendor identity or security architecture. Oracle's archived [MySQL Notifier manual](https://downloads.mysql.com/docs/mysql-notifier-en.pdf) and [release notes](https://downloads.mysql.com/docs/mysql-notifier-relnotes-en.pdf) establish the following reference behaviours:
 
 - the application resides in the Microsoft Windows taskbar notification area and may start with Windows;

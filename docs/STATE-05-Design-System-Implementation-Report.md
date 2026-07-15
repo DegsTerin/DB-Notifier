@@ -2,7 +2,7 @@
 
 ## Outcome
 
-The first three DB-Notifier Design System increments, two `S05-HG-001` visual remediation iterations, the canonical product-mark refinements, the ultrawide shell correction, compact preference controls, Dashboard TV presentation, operational Overview, reference-aligned Dashboard/Tray refinement, WPF parity/runtime hardening and notification-area-first increment are complete. They establish the canonical token/schema sources, deterministic React/WPF asset generation, explicit Light/Dark preference contracts and the distinct Web/Windows product roles required by Design System `2.4.0`.
+The first three DB-Notifier Design System increments, two `S05-HG-001` visual remediation iterations, the canonical product-mark refinements, the ultrawide shell correction, compact preference controls, Dashboard TV presentation, operational Overview, reference-aligned Dashboard/Tray refinement, WPF parity/runtime hardening, notification-area-first increment and clean-room aggregate-policy increment are complete. They establish the canonical token/schema sources, deterministic React/WPF asset generation, explicit Light/Dark preference contracts and the distinct Web/Windows product roles required by Design System `2.4.1`.
 
 The Dashboard and WPF Desktop now apply generated semantic tokens, expose one discreet translation/languages icon button and one cycling Light/Dark icon button in the upper-right TopBar and preserve the validated preferences. Localised accessible names and tooltips identify the current and next states without flags or permanently expanded groups. The translation symbol replaces the ambiguous globe, while sun/moon states replace the retired System/monitor option. WPF still gives Windows High Contrast precedence over the generated palette.
 
@@ -107,6 +107,13 @@ The React adapter accesses only versioned local UI preference storage and the do
 - Status-change notifications, authorised Agent/API state and aggregate icon updates remain integration work in `STATE-06`. Start/Stop/Restart remain unavailable until their exact capability and authorisation path is implemented and homologated in `STATE-07`.
 - Runtime smoke evidence observed a zero normal-startup main-window handle, found and activated the real DB Notifier `NotifyItemIcon`, opened the localised flyout and then the secondary shell, with a responsive process and no `.NET` dialogue.
 
+## Clean-room aggregate policy
+
+- The product owner selected a clean-room implementation based on public behaviour, preserving the MIT licence and DB Notifier identity. No Oracle/MySQL source, binary, artwork, logo, trade dress, product copy or vendor-specific architecture is incorporated.
+- Application-owned policy maps canonical health and freshness to `Healthy`, `Warning`, `Critical` and `Unknown` without provider-name branches. Stale evidence is always unknown; aggregate precedence is `Critical > Warning > Unknown > Healthy`, and an empty fleet is unknown.
+- The STATE-05 deterministic flyout and tooltip expose the aggregate text while retaining demonstration/source/freshness truth. The notification icon remains static because no authorised live state is connected.
+- A pure future-delivery policy suppresses the initial snapshot and requires explicit opt-in plus a materially changed reconciled summary. It does not deliver notifications; authorised Application/Agent integration and Windows delivery remain `STATE-06`.
+
 ## Verification
 
 | Gate | Result |
@@ -119,7 +126,7 @@ The React adapter accesses only versioned local UI preference storage and the do
 | Dashboard tests | Approved; 32/32, including Overview, Tray structure/safety and system-time regression guards |
 | Dashboard production build | Approved |
 | .NET 10 Release build | Approved; 0 warnings/errors |
-| .NET tests | Approved; 132 unit/model/provider/presentation + 7 architecture = 139/139 |
+| .NET tests | Approved; 135 unit/model/provider/presentation + 7 architecture = 142/142 |
 | .NET format verification | Approved |
 | Legacy compatibility | Approved; 10/10 Pester and bundle validation |
 | Dependency audit | Approved; no npm or NuGet vulnerabilities reported |

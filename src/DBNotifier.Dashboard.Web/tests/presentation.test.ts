@@ -177,7 +177,9 @@ test("Tray flyout preserves operational scanning while administrative execution 
 
   assert.equal((flyout.match(/DynamicResource Sample\.Instance\./g) ?? []).length, 4);
   assert.match(flyout, /DynamicResource Tray\.FleetSummary/);
+  assert.match(flyout, /x:Name="AggregateText"/);
   assert.match(flyoutCode, /localisation\.Text\("Tray\.LocalSnapshot"/);
+  assert.match(flyoutCode, /localisation\.Text\("Tray\.AggregateSummary"/);
   assert.doesNotMatch(flyout, /Click="OpenInventoryClick"/);
   assert.match(flyout, /Click="OpenOverviewClick"/);
   assert.match(flyout, /Click="OpenHistoryAlertsClick"/);
@@ -185,7 +187,9 @@ test("Tray flyout preserves operational scanning while administrative execution 
   assert.match(flyout, /DynamicResource Tray\.RestartUnavailable/);
   assert.match(flyout, /Grid\.Column="2"/);
   assert.doesNotMatch(flyout, /Click="Restart/);
-  assert.match(controller, /new TrayFlyoutWindow\(localisation, ShowView/);
+  assert.match(controller, /new TrayFlyoutWindow\(localisation, fleetSummary, ShowView/);
+  assert.match(controller, /TrayFleetPresentationPolicy\.Summarise/);
+  assert.match(controller, /Tray\.TooltipSummary/);
   assert.match(controller, /notifyIcon\.MouseClick \+= NotifyIconMouseClick/);
   assert.match(controller, /Forms\.MouseButtons\.Left or Forms\.MouseButtons\.Right/);
   assert.doesNotMatch(controller, /ContextMenuStrip|ContextMenuOpening/);

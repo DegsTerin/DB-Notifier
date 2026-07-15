@@ -2,7 +2,7 @@
 
 ## Versão atual
 
-- Versão: `3.34.0`
+- Versão: `3.35.0`
 - Data: 2026-07-14
 - Status: corpus DB-Notifier consolidado
 - Escopo: 13 arquivos ativos
@@ -16,6 +16,12 @@ A versão do corpus é independente da versão do software.
 - PATCH: clareza, correção ou referência sem mudança de autoridade.
 
 Toda alteração atualiza este arquivo e, quando necessário, `../Start-Here.md`.
+
+## 3.35.0 — 2026-07-14
+
+- O product owner selecionou explicitamente uma implementação clean-room inspirada apenas no comportamento público documentado do MySQL Notifier, preservando a licença MIT e a identidade independente do DB Notifier.
+- Código, binários, arte, logótipos, trade dress, textos de produto e arquitetura específica Oracle/MySQL não podem ser importados, traduzidos ou adaptados.
+- O Design System `2.4.1` formaliza o resumo agregado provider-neutral, impede que evidência stale seja saudável e mantém entrega de notificações/ícone dinâmico dependentes da integração autorizada de `STATE-06`.
 
 ## 3.34.0 — 2026-07-14
 

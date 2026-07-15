@@ -252,6 +252,12 @@
   <message key="Tray.SilentUnavailableHelp">Notification delivery is not integrated during STATE-05.</message>
   <message key="Tray.Exit">Exit</message>
   <message key="Tray.Tooltip">DB Notifier · local demonstration</message>
+  <message key="Tray.TooltipSummary">DB Notifier · demo · {0}</message>
+  <message key="Tray.AggregateSummary">Aggregate state: {0}</message>
+  <message key="Tray.Aggregate.Healthy">Healthy</message>
+  <message key="Tray.Aggregate.Warning">Warning</message>
+  <message key="Tray.Aggregate.Critical">Critical</message>
+  <message key="Tray.Aggregate.Unknown">Unknown</message>
   <message key="Tray.BalloonTitle">DB Notifier remains available</message>
   <message key="Tray.BalloonMessage">The window was hidden. No database or service was controlled.</message>
 </localisation>

@@ -103,7 +103,8 @@
         </Border>
       </Grid>
 
-      <Grid Grid.Row="2" Margin="16,10"><Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions><StackPanel><TextBlock Text="{DynamicResource Tray.FleetSummary}" FontSize="11" FontWeight="SemiBold" /><TextBlock x:Name="SnapshotText" Foreground="{DynamicResource ColourTextMutedBrush}" FontSize="10" Margin="0,3,0,0" /></StackPanel><TextBlock Grid.Column="1" Text="STATE-05" Foreground="{DynamicResource ColourActionPrimaryBackgroundBrush}" FontSize="10" FontWeight="SemiBold" VerticalAlignment="Center" /></Grid>
+      <!-- Aggregate state is textual and freshness remains explicit; the static icon does not claim live integration. -->
+      <Grid Grid.Row="2" Margin="16,10"><Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions><StackPanel><TextBlock Text="{DynamicResource Tray.FleetSummary}" FontSize="11" FontWeight="SemiBold" /><TextBlock x:Name="AggregateText" Foreground="{DynamicResource ColourTextSecondaryBrush}" FontSize="10" Margin="0,3,0,0" /><TextBlock x:Name="SnapshotText" Foreground="{DynamicResource ColourTextMutedBrush}" FontSize="10" Margin="0,3,0,0" /></StackPanel><TextBlock Grid.Column="1" Text="STATE-05" Foreground="{DynamicResource ColourActionPrimaryBackgroundBrush}" FontSize="10" FontWeight="SemiBold" VerticalAlignment="Center" /></Grid>
     </Grid>
   </Border>
 </Window>

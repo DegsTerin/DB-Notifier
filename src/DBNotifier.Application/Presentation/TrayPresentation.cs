@@ -1,4 +1,6 @@
-// Module purpose: Defines Tray Presentation application behaviour without depending on concrete providers or user interfaces.
+// Module purpose: Defines provider-neutral Tray Presentation behaviour without depending on concrete providers, delivery channels or user interfaces.
+using DBNotifier.Domain;
+
 namespace DBNotifier.Application.Presentation;
 
 /// <summary>Identifies whether the Windows client starts in its normal notification-area mode or an explicit desktop-review mode.</summary>
@@ -82,3 +84,119 @@ public sealed record TrayStatusPresentation(
     string FreshnessLabel,
     string SupportLabel,
     bool UsesExternalData);
+
+/// <summary>Identifies the aggregate state exposed by the notification-area presentation.</summary>
+public enum TrayAggregateState
+{
+    /// <summary>All current, classified observations are healthy.</summary>
+    Healthy,
+
+    /// <summary>At least one current observation requires attention without proving a critical failure.</summary>
+    Warning,
+
+    /// <summary>At least one current observation proves a critical availability, authentication or timeout failure.</summary>
+    Critical,
+
+    /// <summary>No current conclusion can be made because data is absent, stale or explicitly unknown.</summary>
+    Unknown,
+}
+
+/// <summary>Supplies the minimum factual evidence needed to classify one instance for the Tray.</summary>
+/// <param name="Status">The provider-neutral health status.</param>
+/// <param name="IsStale">Whether freshness policy prevents the status from being treated as current.</param>
+public sealed record TrayFleetSignal(HealthStatus Status, bool IsStale);
+
+/// <summary>Contains provider-neutral fleet counts and their aggregate notification-area state.</summary>
+/// <param name="State">The aggregate state selected by severity precedence.</param>
+/// <param name="TotalCount">The number of classified instance signals.</param>
+/// <param name="HealthyCount">The number of current healthy signals.</param>
+/// <param name="WarningCount">The number of current warning signals.</param>
+/// <param name="CriticalCount">The number of current critical signals.</param>
+/// <param name="UnknownCount">The number of stale or explicitly unknown signals.</param>
+public sealed record TrayFleetSummary(
+    TrayAggregateState State,
+    int TotalCount,
+    int HealthyCount,
+    int WarningCount,
+    int CriticalCount,
+    int UnknownCount);
+
+/// <summary>Classifies fleet evidence for compact notification-area presentation without provider-specific branches.</summary>
+public static class TrayFleetPresentationPolicy
+{
+    /// <summary>Creates a deterministic fleet summary while preventing stale evidence from being reported as healthy.</summary>
+    /// <param name="signals">The bounded set of provider-neutral instance signals to classify.</param>
+    /// <returns>Counts and aggregate state using critical, warning, unknown and healthy precedence.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="signals"/> is null.</exception>
+    public static TrayFleetSummary Summarise(IEnumerable<TrayFleetSignal> signals)
+    {
+        ArgumentNullException.ThrowIfNull(signals);
+
+        int healthy = 0;
+        int warning = 0;
+        int critical = 0;
+        int unknown = 0;
+
+        foreach (TrayFleetSignal signal in signals)
+        {
+            switch (Classify(signal))
+            {
+                case TrayAggregateState.Healthy:
+                    healthy++;
+                    break;
+                case TrayAggregateState.Warning:
+                    warning++;
+                    break;
+                case TrayAggregateState.Critical:
+                    critical++;
+                    break;
+                case TrayAggregateState.Unknown:
+                    unknown++;
+                    break;
+            }
+        }
+
+        int total = healthy + warning + critical + unknown;
+        TrayAggregateState state = critical > 0
+            ? TrayAggregateState.Critical
+            : warning > 0
+                ? TrayAggregateState.Warning
+                : unknown > 0 || total == 0
+                    ? TrayAggregateState.Unknown
+                    : TrayAggregateState.Healthy;
+
+        return new(state, total, healthy, warning, critical, unknown);
+    }
+
+    /// <summary>Determines whether a later lifecycle phase should deliver a change notification.</summary>
+    /// <param name="previous">The prior reconciled fleet summary, or null for the initial snapshot.</param>
+    /// <param name="current">The current reconciled fleet summary.</param>
+    /// <param name="notificationsEnabled">Whether the user has explicitly enabled change notifications.</param>
+    /// <returns>True only for an enabled, non-initial and materially changed summary.</returns>
+    /// <remarks>This policy does not deliver a Windows notification; delivery remains an integration responsibility.</remarks>
+    public static bool ShouldNotify(
+        TrayFleetSummary? previous,
+        TrayFleetSummary current,
+        bool notificationsEnabled) =>
+        notificationsEnabled && previous is not null && previous != current;
+
+    /// <summary>Maps one freshness-aware domain status to its compact aggregate class.</summary>
+    /// <param name="signal">The signal to classify.</param>
+    /// <returns>The provider-neutral aggregate class.</returns>
+    private static TrayAggregateState Classify(TrayFleetSignal signal)
+    {
+        if (signal.IsStale)
+        {
+            return TrayAggregateState.Unknown;
+        }
+
+        return signal.Status switch
+        {
+            HealthStatus.Healthy => TrayAggregateState.Healthy,
+            HealthStatus.Degraded or HealthStatus.Maintenance => TrayAggregateState.Warning,
+            HealthStatus.Unavailable or HealthStatus.AuthFailed or HealthStatus.Timeout => TrayAggregateState.Critical,
+            HealthStatus.Unknown => TrayAggregateState.Unknown,
+            _ => TrayAggregateState.Unknown,
+        };
+    }
+}

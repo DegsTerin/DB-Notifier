@@ -252,6 +252,12 @@
   <message key="Tray.SilentUnavailableHelp">A entrega de notificações não está integrada durante o STATE-05.</message>
   <message key="Tray.Exit">Sair</message>
   <message key="Tray.Tooltip">DB Notifier · demonstração local</message>
+  <message key="Tray.TooltipSummary">DB Notifier · demo · {0}</message>
+  <message key="Tray.AggregateSummary">Estado agregado: {0}</message>
+  <message key="Tray.Aggregate.Healthy">Saudável</message>
+  <message key="Tray.Aggregate.Warning">Aviso</message>
+  <message key="Tray.Aggregate.Critical">Crítico</message>
+  <message key="Tray.Aggregate.Unknown">Desconhecido</message>
   <message key="Tray.BalloonTitle">DB Notifier continua disponível</message>
   <message key="Tray.BalloonMessage">A janela foi recolhida. Nenhum banco ou serviço foi controlado.</message>
 </localisation>

@@ -1,5 +1,6 @@
 // Module purpose: Verifies Tray Presentation Tests behaviour and protects the documented project contract.
 using DBNotifier.Application.Presentation;
+using DBNotifier.Domain;
 
 namespace DBNotifier.UnitTests;
 
@@ -43,5 +44,48 @@ public sealed class TrayPresentationTests
 
         Assert.False(status.UsesExternalData);
         Assert.Contains("externos", status.FreshnessLabel, StringComparison.Ordinal);
+    }
+
+    /// <summary>Verifies provider-neutral status mapping, freshness protection and severity precedence.</summary>
+    [Fact]
+    public void FleetSummaryClassifiesSignalsAndUsesCriticalPrecedence()
+    {
+        TrayFleetSummary summary = TrayFleetPresentationPolicy.Summarise(
+        [
+            new(HealthStatus.Healthy, IsStale: false),
+            new(HealthStatus.Degraded, IsStale: false),
+            new(HealthStatus.Timeout, IsStale: false),
+            new(HealthStatus.Healthy, IsStale: true),
+        ]);
+
+        Assert.Equal(TrayAggregateState.Critical, summary.State);
+        Assert.Equal(4, summary.TotalCount);
+        Assert.Equal(1, summary.HealthyCount);
+        Assert.Equal(1, summary.WarningCount);
+        Assert.Equal(1, summary.CriticalCount);
+        Assert.Equal(1, summary.UnknownCount);
+    }
+
+    /// <summary>Verifies that absence of evidence remains unknown rather than silently healthy.</summary>
+    [Fact]
+    public void EmptyFleetSummaryIsUnknown()
+    {
+        TrayFleetSummary summary = TrayFleetPresentationPolicy.Summarise([]);
+
+        Assert.Equal(TrayAggregateState.Unknown, summary.State);
+        Assert.Equal(0, summary.TotalCount);
+    }
+
+    /// <summary>Verifies that future delivery is change-only, opt-in and suppressed for the initial snapshot.</summary>
+    [Fact]
+    public void NotificationPolicyRequiresOptInPriorStateAndMaterialChange()
+    {
+        TrayFleetSummary healthy = TrayFleetPresentationPolicy.Summarise([new(HealthStatus.Healthy, IsStale: false)]);
+        TrayFleetSummary warning = TrayFleetPresentationPolicy.Summarise([new(HealthStatus.Degraded, IsStale: false)]);
+
+        Assert.False(TrayFleetPresentationPolicy.ShouldNotify(null, healthy, notificationsEnabled: true));
+        Assert.False(TrayFleetPresentationPolicy.ShouldNotify(healthy, warning, notificationsEnabled: false));
+        Assert.False(TrayFleetPresentationPolicy.ShouldNotify(healthy, healthy, notificationsEnabled: true));
+        Assert.True(TrayFleetPresentationPolicy.ShouldNotify(healthy, warning, notificationsEnabled: true));
     }
 }

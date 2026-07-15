@@ -748,6 +748,17 @@
 - Riscos/ressalvas: MySQL Notifier está em Lifetime Sustaining Support e não é dependência; código, arte, identidade MySQL, WMI/DCOM, firewall e controle direto não foram reutilizados. Notificações reais/ícone agregado são `STATE-06`; Start/Stop/Restart dependem de `STATE-07`.
 - Aprovador: implementação solicitada por Bruno; nenhuma aprovação de `S05-HG-011` ou do Human Gate foi inferida.
 
+## 2026-07-14 — Decisão clean-room e política agregada do Tray
+
+- Estado anterior: `STATE-05 FRONTEND_IMPLEMENTATION`, Human Gate pendente e hierarquia notification-area-first implementada.
+- Estado resultante: sem transição; Design System `2.4.1` e `S05-HG-011` continuam pendentes de revisão humana.
+- Decisão: o product owner escolheu a implementação clean-room funcionalmente inspirada no comportamento público do MySQL Notifier, preservando licença MIT e identidade independente do DB Notifier.
+- Escopo: regra permanente de proveniência; matriz `REQ-048`; resumo provider-neutral Healthy/Warning/Critical/Unknown; stale tratado como unknown; precedência de severidade; política futura opt-in/change-only; texto agregado demonstrativo no Tray.
+- Gates: geração de localização aprovada; 135 testes unit/model/provider/presentation aprovados; build WPF Release aprovado com zero avisos/erros; validação completa registrada no relatório de implementação.
+- Evidências: `AGENTS.md`, Design System `2.4.1`, `docs/Legacy-Migration-Plan.md`, `docs/STATE-05-Request-Traceability-Audit.md`, `TrayFleetPresentationPolicy` e testes de Tray.
+- Riscos/ressalvas: nenhum código, binário, ativo, logótipo, trade dress, texto ou arquitetura Oracle/MySQL foi incorporado. O ícone continua estático e a entrega Windows não foi implementada; ambos exigem estado autorizado e integração de `STATE-06`.
+- Aprovador: direção clean-room escolhida por Bruno; nenhuma aprovação de `S05-HG-011`, do Human Gate ou de transição foi inferida.
+
 ## Template de nova entrada
 
 - Data:

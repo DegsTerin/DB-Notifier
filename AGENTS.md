@@ -11,7 +11,7 @@ Resolve conflicts using the precedence in `prompts/Start-Here.md`. A current exp
 ## General project conventions
 
 - `DB-Notifier` is the canonical product name in architecture, governance and technical prose. User-facing visual surfaces use the display name `DB Notifier`; use `DBNotifier` only where a technical identifier cannot contain spaces or punctuation.
-- DB-Notifier is the independent successor to PgNotifier, which was conceptually inspired by MySQL Notifier. This lineage does not imply code reuse, affiliation, or technical compatibility with MySQL Notifier.
+- DB-Notifier is the independent successor to PgNotifier, which was conceptually inspired by MySQL Notifier. Implement comparable notification-area behaviour only through a clean-room implementation based on public behavioural documentation. Preserve the DB-Notifier MIT licence and independent identity; never import, translate or adapt Oracle/MySQL Notifier source, binaries, artwork, logos, trade dress or vendor-specific architecture. This lineage does not imply code reuse, affiliation, endorsement or technical compatibility with MySQL Notifier.
 - Build an open, professional, provider-neutral database monitoring and controlled-administration platform, not a PostgreSQL-only product.
 - Treat roadmap, implementation, homologation, public support, runtime availability, and authorisation as distinct facts.
 - Never invent implementation, support, evidence, test results, credentials, approvals, runtime state, or environment capabilities.

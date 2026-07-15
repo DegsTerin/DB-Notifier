@@ -4,6 +4,7 @@ using System.Drawing;
 using System.IO;
 using System.Windows;
 using DBNotifier.Application.Presentation;
+using DBNotifier.Domain;
 using Forms = System.Windows.Forms;
 
 namespace DBNotifier.Desktop.Wpf;
@@ -17,6 +18,7 @@ internal sealed class TrayApplicationController : IDisposable
     private readonly Icon applicationIcon;
     private readonly Forms.NotifyIcon notifyIcon;
     private readonly TrayFlyoutWindow flyout;
+    private readonly TrayFleetSummary fleetSummary;
     private bool exiting;
     private bool firstHide = true;
 
@@ -26,7 +28,8 @@ internal sealed class TrayApplicationController : IDisposable
         this.window = window;
         this.application = application;
         this.localisation = localisation;
-        flyout = new TrayFlyoutWindow(localisation, ShowView, () => Apply(TrayWindowIntent.Exit));
+        fleetSummary = CreateDemonstrationSummary();
+        flyout = new TrayFlyoutWindow(localisation, fleetSummary, ShowView, () => Apply(TrayWindowIntent.Exit));
         applicationIcon = LoadApplicationIcon();
         notifyIcon = new Forms.NotifyIcon
         {
@@ -67,6 +70,16 @@ internal sealed class TrayApplicationController : IDisposable
         return (Icon)source.Clone();
     }
 
+    /// <summary>Creates the deterministic STATE-05 fleet summary without reading an Agent, API or monitored database.</summary>
+    /// <returns>The provider-neutral summary used by the local Tray demonstration.</returns>
+    private static TrayFleetSummary CreateDemonstrationSummary() => TrayFleetPresentationPolicy.Summarise(
+    [
+        new(HealthStatus.Healthy, IsStale: false),
+        new(HealthStatus.Degraded, IsStale: false),
+        new(HealthStatus.Timeout, IsStale: false),
+        new(HealthStatus.Unknown, IsStale: true),
+    ]);
+
     /// <summary>Applies the minimise-to-tray policy when the WPF window is minimised.</summary>
     private void WindowStateChanged(object? sender, EventArgs e)
     {
@@ -91,7 +104,8 @@ internal sealed class TrayApplicationController : IDisposable
     /// <summary>Updates all tray-visible strings from the generated localisation dictionary.</summary>
     private void RefreshText()
     {
-        notifyIcon.Text = localisation.Text("Tray.Tooltip");
+        string aggregateLabel = localisation.Text($"Tray.Aggregate.{fleetSummary.State}");
+        notifyIcon.Text = localisation.Text("Tray.TooltipSummary", aggregateLabel);
     }
 
     /// <summary>Toggles the accessible WPF fleet flyout after the Windows shell reports a complete primary or secondary click.</summary>

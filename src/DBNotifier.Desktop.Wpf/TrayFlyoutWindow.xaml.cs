@@ -4,6 +4,7 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
+using DBNotifier.Application.Presentation;
 using Forms = System.Windows.Forms;
 
 namespace DBNotifier.Desktop.Wpf;
@@ -15,6 +16,7 @@ namespace DBNotifier.Desktop.Wpf;
 internal sealed partial class TrayFlyoutWindow : Window
 {
     private readonly DesktopLocalisationService localisation;
+    private readonly TrayFleetSummary fleetSummary;
     private readonly Action<DesktopView> openView;
     private readonly Action exitApplication;
     private readonly DispatcherTimer activationTimer;
@@ -23,11 +25,17 @@ internal sealed partial class TrayFlyoutWindow : Window
 
     /// <summary>Initialises the flyout with safe callbacks owned by the tray lifecycle controller.</summary>
     /// <param name="localisation">Generated localisation resource owner.</param>
+    /// <param name="fleetSummary">Provider-neutral summary of the deterministic local fixture.</param>
     /// <param name="openView">Callback that opens one validated read-only desktop destination.</param>
     /// <param name="exitApplication">Callback that explicitly exits DB Notifier.</param>
-    internal TrayFlyoutWindow(DesktopLocalisationService localisation, Action<DesktopView> openView, Action exitApplication)
+    internal TrayFlyoutWindow(
+        DesktopLocalisationService localisation,
+        TrayFleetSummary fleetSummary,
+        Action<DesktopView> openView,
+        Action exitApplication)
     {
         this.localisation = localisation;
+        this.fleetSummary = fleetSummary;
         this.openView = openView;
         this.exitApplication = exitApplication;
         activationTimer = new DispatcherTimer(DispatcherPriority.ApplicationIdle)
@@ -36,6 +44,7 @@ internal sealed partial class TrayFlyoutWindow : Window
         };
         activationTimer.Tick += CompleteActivation;
         InitializeComponent();
+        RefreshPresentation();
     }
 
     /// <summary>Shows and positions the flyout inside the working area nearest the notification icon.</summary>
@@ -59,10 +68,9 @@ internal sealed partial class TrayFlyoutWindow : Window
     /// <summary>Refreshes code-created presentation text after a supported language change.</summary>
     internal void RefreshPresentation()
     {
-        if (IsVisible)
-        {
-            SnapshotText.Text = localisation.Text("Tray.LocalSnapshot", FormatUtc(TimeProvider.System.GetUtcNow()));
-        }
+        string aggregateLabel = localisation.Text($"Tray.Aggregate.{fleetSummary.State}");
+        AggregateText.Text = localisation.Text("Tray.AggregateSummary", aggregateLabel);
+        SnapshotText.Text = localisation.Text("Tray.LocalSnapshot", FormatUtc(TimeProvider.System.GetUtcNow()));
     }
 
     /// <summary>Closes the reusable flyout during application disposal.</summary>

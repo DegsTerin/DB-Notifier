@@ -1,4 +1,4 @@
-<!-- Generated from dbnotifier.localisation.v1; culture:pt-BR; source sha256:0aee4b50a57ca69f4f59dcb6ef8ac65021ac13e559b485e24e0e329972471c9e. Do not edit directly. -->
+<!-- Generated from dbnotifier.localisation.v1; culture:pt-BR; source sha256:ac2e7805722966c09a98aa46ede301f954c178147a73aa6e9b3421a5f9989855. Do not edit directly. -->
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:sys="clr-namespace:System;assembly=System.Runtime">
@@ -198,6 +198,11 @@
   <sys:String x:Key="TopBar.Notifications">Abrir alertas; {0} ativo</sys:String>
   <sys:String x:Key="TopBar.NotificationsSimple">Abrir alertas</sys:String>
   <sys:String x:Key="TopBar.Settings">Abrir configurações</sys:String>
+  <sys:String x:Key="Tray.Aggregate.Critical">Crítico</sys:String>
+  <sys:String x:Key="Tray.Aggregate.Healthy">Saudável</sys:String>
+  <sys:String x:Key="Tray.Aggregate.Unknown">Desconhecido</sys:String>
+  <sys:String x:Key="Tray.Aggregate.Warning">Aviso</sys:String>
+  <sys:String x:Key="Tray.AggregateSummary">Estado agregado: {0}</sys:String>
   <sys:String x:Key="Tray.BalloonMessage">A janela foi recolhida. Nenhum banco ou serviço foi controlado.</sys:String>
   <sys:String x:Key="Tray.BalloonTitle">DB Notifier continua disponível</sys:String>
   <sys:String x:Key="Tray.Exit">Sair</sys:String>
@@ -216,6 +221,7 @@
   <sys:String x:Key="Tray.SilentUnavailableHelp">A entrega de notificações não está integrada durante o STATE-05.</sys:String>
   <sys:String x:Key="Tray.Status">Demonstração local · sem dados externos</sys:String>
   <sys:String x:Key="Tray.Tooltip">DB Notifier · demonstração local</sys:String>
+  <sys:String x:Key="Tray.TooltipSummary">DB Notifier · demo · {0}</sys:String>
   <sys:String x:Key="TV.Active">Modo TV · demonstração</sys:String>
   <sys:String x:Key="TV.Enter">Ativar modo TV</sys:String>
   <sys:String x:Key="TV.Exit">Sair do modo TV</sys:String>
