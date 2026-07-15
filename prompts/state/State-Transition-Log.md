@@ -770,6 +770,17 @@
 - Riscos/ressalvas: a fixture atual demonstra Critical/vermelho, mas não existe atualização por Agent/API ou entrega Windows real em `STATE-05`; Start/Stop/Restart, auto-start/update e integrações permanecem nos estados posteriores indicados. Cobertura de requisito não significa implementação, homologação ou suporte.
 - Aprovador: implementação solicitada por Bruno; nenhuma aprovação visual de `S05-HG-011`, do Human Gate ou de transição foi inferida.
 
+## 2026-07-15 — Aprovação humana limitada de S05-HG-011
+
+- Estado anterior: `STATE-05 FRONTEND_IMPLEMENTATION`, Human Gate e `S05-HG-011` pendentes.
+- Estado resultante: sem transição; `S05-HG-011` aprovado e Human Gate geral de `STATE-05` ainda pendente.
+- Decisão: Bruno respondeu explicitamente `S05-HG-011 APROVADO` após a amostra autorizada do WPF/Tray.
+- Escopo: inicialização normal somente na área de notificação, ausência de shell principal automático, ícone transparente com sino semântico, flyout compacto e shell WPF como destino secundário.
+- Gates: processo `aa47af2` iniciou responsivo com `MainWindowHandle = 0`; nenhum Narrator, High Contrast ou scaling foi acionado; o processo WPF foi encerrado após a decisão.
+- Evidências: resposta humana inequívoca de 2026-07-15, `docs/STATE-05-Human-Gate-Validation.md`, Design System `2.5.0` e matriz `REQ-047/048/049`.
+- Riscos/ressalvas: a aprovação não prova estado Agent/API real, entrega Windows, provider homologado, ação administrativa, acessibilidade restante ou produção. `S05-HG-010` e o Human Gate geral continuam pendentes.
+- Aprovador: Bruno, exclusivamente para `S05-HG-011`.
+
 ## Template de nova entrada
 
 - Data:

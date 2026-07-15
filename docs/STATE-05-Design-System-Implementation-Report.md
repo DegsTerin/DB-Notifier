@@ -143,7 +143,7 @@ The React adapter accesses only versioned local UI preference storage and the do
 | Preference cycles | Approved; Web and WPF restored both locales and both themes after two activations in all four combinations, with 0 unnamed interactive/focusable controls |
 | Dashboard TV mode | Approved; four `1920×1080` locale/theme samples entered native Fullscreen, retained demonstration truth and the exit control, hid navigation/filters, displayed the complete Overview and restored the standard shell; the unavailable-Fullscreen fallback remains covered |
 | WPF UI Automation/visual matrix | Approved; eight locale/theme/size combinations at `1180×760` and `820×620`, each with 16 visible focusable controls, none unnamed and 12 contained Tab steps; earlier High Contrast evidence remains separate |
-| Tray flyout runtime | Approved automatically in its local fixture scope; normal startup exposed no main window, the real notification icon opened the localised flyout, its safe action opened the secondary shell, the process remained responsive and no `.NET` dialogue appeared. Human visual acceptance remains pending |
+| Tray flyout runtime | Approved automatically in its local fixture scope; normal startup exposed no main window, the real notification icon opened the localised flyout, its safe action opened the secondary shell, the process remained responsive and no `.NET` dialogue appeared. Bruno approved the bounded `S05-HG-011` human sample on 2026-07-15; the overall Human Gate remains pending |
 | Lighthouse regression | Approved; 16 current eight-route mobile/desktop reports, Accessibility and Best Practices `100` in `16/16`, Performance `99`–`100`; SEO `66` remains the intentional internal-console crawler policy |
 
 ## Security and phase boundaries
