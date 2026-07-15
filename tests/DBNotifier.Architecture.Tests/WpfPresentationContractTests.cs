@@ -57,6 +57,32 @@ public sealed class WpfPresentationContractTests
         Assert.DoesNotContain("<AssemblyName>DB Notifier</AssemblyName>", project, StringComparison.Ordinal);
     }
 
+    /// <summary>Ensures WPF selects resolution-matched ICO frames instead of resampling one large bitmap across shell roles.</summary>
+    [Fact]
+    public void WpfBrandIconsUseNativeResolutionFrames()
+    {
+        string desktopDirectory = Path.Combine(RepositoryRoot(), "src", "DBNotifier.Desktop.Wpf");
+        string policy = File.ReadAllText(Path.Combine(desktopDirectory, "BrandStatusIconPolicy.cs"));
+        string mainWindow = File.ReadAllText(Path.Combine(desktopDirectory, "MainWindow.xaml.cs"));
+        string mainWindowMarkup = File.ReadAllText(Path.Combine(desktopDirectory, "MainWindow.xaml"));
+        string flyout = File.ReadAllText(Path.Combine(desktopDirectory, "TrayFlyoutWindow.xaml.cs"));
+        string flyoutMarkup = File.ReadAllText(Path.Combine(desktopDirectory, "TrayFlyoutWindow.xaml"));
+        string trayController = File.ReadAllText(Path.Combine(desktopDirectory, "TrayApplicationController.cs"));
+
+        Assert.Contains("IconBitmapDecoder", policy, StringComparison.Ordinal);
+        Assert.Contains("Math.Abs(candidate.PixelWidth - targetPixelSize)", policy, StringComparison.Ordinal);
+        Assert.DoesNotContain("BitmapImage image = new()", policy, StringComparison.Ordinal);
+        Assert.Contains("ApplyNativeWindowIcons(this, aggregateState)", mainWindow, StringComparison.Ordinal);
+        Assert.Contains("LoadImageSource(aggregateState, 40)", mainWindow, StringComparison.Ordinal);
+        Assert.Contains("LoadImageSource(fleetSummary.State, 32)", flyout, StringComparison.Ordinal);
+        Assert.Contains("Stretch=\"None\" SnapsToDevicePixels=\"True\"", mainWindowMarkup, StringComparison.Ordinal);
+        Assert.Contains("Stretch=\"None\" SnapsToDevicePixels=\"True\"", flyoutMarkup, StringComparison.Ordinal);
+        Assert.Contains("Forms.SystemInformation.SmallIconSize.Width", trayController, StringComparison.Ordinal);
+        Assert.Contains("WmSetIcon", policy, StringComparison.Ordinal);
+        Assert.Contains("IconSmall2", policy, StringComparison.Ordinal);
+        Assert.Contains("IconBig", policy, StringComparison.Ordinal);
+    }
+
     /// <summary>Finds the repository root from the compiled test output without depending on the caller's working directory.</summary>
     /// <returns>The absolute directory containing the solution file.</returns>
     /// <exception cref="DirectoryNotFoundException">Thrown when the test assembly is not running below the repository.</exception>

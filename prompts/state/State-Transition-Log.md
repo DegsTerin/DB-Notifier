@@ -836,6 +836,17 @@
 - Riscos/ressalvas: nitidez comparativa, cache/atribuição efetiva do shell e aparência nas superfícies reais ainda exigem repetição humana de `S05-HG-010`. Estado Agent/API real continua `STATE-06`; `S05-HG-011` não foi reaberto porque fluxo notification-area-first e política semântica não mudaram.
 - Aprovador: correções solicitadas por Bruno; nenhuma aprovação de `S05-HG-010`, do Human Gate ou de transição foi inferida.
 
+## 2026-07-15 — Seleção nativa de quadros ICO no WPF
+
+- Estado anterior: `STATE-05 FRONTEND_IMPLEMENTATION`, Human Gate e `S05-HG-010` pendentes; `S05-HG-011` aprovado.
+- Estado resultante: sem transição; Design System `2.6.5` implementado automaticamente e a decisão visual de `S05-HG-010` permanece pendente.
+- Decisão: tratar a melhora parcial de `2.6.4` como insuficiente e corrigir o downsampling adicional comprovado no caminho de renderização WPF, preservando a geometria, transparência e Critical `#C62828` já definidos.
+- Escopo: decoder WPF por quadro nativo, header de 40 px, flyout de 32 px, métrica pequena do Windows para NotifyIcon, papéis nativos separados para título/taskbar, hosts sem stretch e pixel-snapped, cache-busting Web, regressões e matriz `REQ-057`; nenhuma política de estado, provider ou capacidade operacional mudou.
+- Gates: build WPF Release sem avisos/erros, nove testes de arquitetura e 33 testes Dashboard aprovados no passe focado; a revalidação completa permanece registrada no relatório de implementação.
+- Evidências: Design System `2.6.5`, `docs/STATE-05-Design-System-Implementation-Report.md`, `docs/STATE-05-Human-Gate-Validation.md`, `docs/STATE-05-Request-Traceability-Audit.md`; regressões rejeitam o antigo `BitmapImage` genérico e exigem tamanho por superfície, métrica do shell e `WM_SETICON` independente.
+- Riscos/ressalvas: a correção remove uma causa técnica objetiva de suavização, mas comparação perceptual com ícones vizinhos ainda exige repetição humana. Estado Agent/API real continua `STATE-06`; `S05-HG-011` não foi reaberto porque fluxo notification-area-first e política semântica não mudaram.
+- Aprovador: refinamento solicitado por Bruno; nenhuma aprovação de `S05-HG-010`, do Human Gate ou de transição foi inferida.
+
 ## Template de nova entrada
 
 - Data:

@@ -2,7 +2,7 @@
 
 ## Versão atual
 
-- Versão: `3.41.0`
+- Versão: `3.42.0`
 - Data: 2026-07-15
 - Status: corpus DB-Notifier consolidado
 - Escopo: 13 arquivos ativos
@@ -16,6 +16,12 @@ A versão do corpus é independente da versão do software.
 - PATCH: clareza, correção ou referência sem mudança de autoridade.
 
 Toda alteração atualiza este arquivo e, quando necessário, `../Start-Here.md`.
+
+## 3.42.0 — 2026-07-15
+
+- O Design System `2.6.5` exige seleção explícita do quadro ICO WPF mais próximo em vez de downsampling implícito do quadro de 128 px.
+- Header/flyout usam respectivamente 40/32 px sem stretching, o NotifyIcon usa a métrica pequena do Windows e a janela recebe ícones nativos independentes para título e taskbar.
+- `REQ-057` e a nona remediação de `S05-HG-010` registram o finding; a comparação perceptual continua pendente e `S05-HG-011` permanece aprovado.
 
 ## 3.41.0 — 2026-07-15
 

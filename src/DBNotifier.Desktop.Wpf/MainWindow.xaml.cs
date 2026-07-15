@@ -31,6 +31,7 @@ public partial class MainWindow : Window
     private static readonly TimeSpan StaleAfter = TimeSpan.FromMinutes(5);
     private readonly DesktopLocalisationService localisation;
     private readonly DesktopThemeService theme;
+    private readonly TrayAggregateState aggregateState;
     private readonly ObservableCollection<InventoryRow> rows = [];
     private readonly ObservableCollection<TimelineRow> timelineRows = [];
     private readonly ObservableCollection<AlertRow> alertRows = [];
@@ -39,6 +40,7 @@ public partial class MainWindow : Window
     private TimelineAlertSnapshot timelineSnapshot = null!;
     private ConfigurationCapabilitySnapshot configurationSnapshot = null!;
     private DesktopView currentView = DesktopView.Overview;
+    private IDisposable? windowIconLease;
 
     /// <summary>Initialises the local demonstration surface with loaded preferences and one factual aggregate icon state.</summary>
     /// <param name="localisation">Desktop localisation owner shared with the application and tray controller.</param>
@@ -48,10 +50,11 @@ public partial class MainWindow : Window
     {
         this.localisation = localisation;
         this.theme = theme;
+        this.aggregateState = aggregateState;
         InitializeComponent();
-        System.Windows.Media.ImageSource brandStatusIcon = BrandStatusIconPolicy.LoadImageSource(aggregateState);
-        Icon = brandStatusIcon;
-        BrandStatusImage.Source = brandStatusIcon;
+        Icon = BrandStatusIconPolicy.LoadImageSource(aggregateState, 32);
+        BrandStatusImage.Source = BrandStatusIconPolicy.LoadImageSource(aggregateState, 40);
+        SourceInitialized += MainWindowSourceInitialized;
         UpdatePreferenceButtons();
         UpdateNavigationState();
         UpdateResponsiveLayout();
@@ -65,12 +68,20 @@ public partial class MainWindow : Window
         theme.ThemeChanged += ThemeChanged;
         Closed += (_, _) =>
         {
+            SourceInitialized -= MainWindowSourceInitialized;
+            windowIconLease?.Dispose();
             localisation.LanguageChanged -= LocalisationLanguageChanged;
             theme.ThemeChanged -= ThemeChanged;
         };
         RebuildLocalisedData();
         PresentReadyState();
     }
+
+    /// <summary>Assigns independent native title and taskbar icon sizes once the WPF window handle exists.</summary>
+    /// <param name="sender">Owning window instance.</param>
+    /// <param name="e">Source-initialisation event data.</param>
+    private void MainWindowSourceInitialized(object? sender, EventArgs e) =>
+        windowIconLease = BrandStatusIconPolicy.ApplyNativeWindowIcons(this, aggregateState);
 
     /// <summary>Shows a validated read-only destination requested by the notification-area flyout.</summary>
     /// <param name="view">Known desktop destination; no administrative operation is performed.</param>

@@ -266,7 +266,7 @@
           <ColumnDefinition Width="Auto" />
         </Grid.ColumnDefinitions>
         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-          <Image x:Name="BrandStatusImage" Width="38" Height="38" Stretch="Uniform" AutomationProperties.Name="DB Notifier" />
+          <Image x:Name="BrandStatusImage" Width="40" Height="40" Stretch="None" SnapsToDevicePixels="True" AutomationProperties.Name="DB Notifier" />
           <StackPanel Margin="12,0,0,0" VerticalAlignment="Center">
             <StackPanel Orientation="Horizontal"><TextBlock Text="DB" Foreground="{DynamicResource ComponentBrandWordmarkAccentBrush}" FontWeight="Bold" FontSize="16" /><TextBlock Text="Notifier" Foreground="{DynamicResource ComponentShellChromeForegroundBrush}" FontWeight="Bold" FontSize="16" /></StackPanel>
             <TextBlock Text="{DynamicResource Brand.Subtitle}" Foreground="{DynamicResource ComponentShellChromeMutedBrush}" FontSize="12" Margin="0,3,0,0" />

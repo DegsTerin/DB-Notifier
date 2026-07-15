@@ -44,7 +44,7 @@ internal sealed partial class TrayFlyoutWindow : Window
         };
         activationTimer.Tick += CompleteActivation;
         InitializeComponent();
-        BrandStatusImage.Source = BrandStatusIconPolicy.LoadImageSource(fleetSummary.State);
+        BrandStatusImage.Source = BrandStatusIconPolicy.LoadImageSource(fleetSummary.State, 32);
         RefreshPresentation();
     }
 

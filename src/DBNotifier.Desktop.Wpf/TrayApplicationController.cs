@@ -37,7 +37,9 @@ internal sealed class TrayApplicationController : IDisposable
         this.localisation = localisation;
         this.fleetSummary = fleetSummary;
         flyout = new TrayFlyoutWindow(localisation, fleetSummary, ShowView, () => Apply(TrayWindowIntent.Exit));
-        applicationIcon = BrandStatusIconPolicy.LoadWindowsIcon(fleetSummary.State);
+        applicationIcon = BrandStatusIconPolicy.LoadWindowsIcon(
+            fleetSummary.State,
+            Forms.SystemInformation.SmallIconSize.Width);
         notifyIcon = new Forms.NotifyIcon
         {
             Icon = applicationIcon,
