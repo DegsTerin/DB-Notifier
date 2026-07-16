@@ -83,7 +83,7 @@ npm run build
 node.exe node_modules/vite/bin/vite.js preview --host 127.0.0.1 --port 4173
 ```
 
-Open `http://127.0.0.1:4173/` in a new independent Chrome window, not as another tab in an existing window. Do not navigate, reuse or rearrange existing user windows or tabs. Use the visible TopBar buttons to select the required locale and theme. Start or stop Narrator with `Windows+Ctrl+Enter` only when ready to listen to the sample.
+Open `http://127.0.0.1:4173/` in a dedicated browser process with an isolated temporary profile, never in the browser/profile the validator is already using and never as another tab or window of that active browser. Do not attach automation to, navigate, reuse or rearrange existing user browser processes, profiles, windows or tabs. Use the visible TopBar buttons in the dedicated review browser to select the required locale and theme. Start or stop Narrator with `Windows+Ctrl+Enter` only when ready to listen to the sample. Close only the dedicated browser after the review and remove its temporary profile only after its process has ended.
 
 ### Keyboard and Narrator tasks
 

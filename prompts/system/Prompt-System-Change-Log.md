@@ -2,7 +2,7 @@
 
 ## Versão atual
 
-- Versão: `3.53.0`
+- Versão: `3.53.1`
 - Data: 2026-07-16
 - Status: corpus DB-Notifier consolidado
 - Escopo: 13 arquivos ativos
@@ -16,6 +16,11 @@ A versão do corpus é independente da versão do software.
 - PATCH: clareza, correção ou referência sem mudança de autoridade.
 
 Toda alteração atualiza este arquivo e, quando necessário, `../Start-Here.md`.
+
+## 3.53.1 — 2026-07-16
+
+- Bruno determinou que toda revisão local do Dashboard deve abrir em um processo de navegador dedicado com perfil temporário isolado, nunca no navegador ou perfil que ele já esteja usando.
+- Uma janela separada no navegador ativo deixa de satisfazer o protocolo. Processos, perfis, janelas e abas preexistentes permanecem intocados; somente o navegador dedicado pode ser entregue ou fechado, e seu perfil temporário só pode ser removido depois que o processo terminar.
 
 ## 3.53.0 — 2026-07-16
 
