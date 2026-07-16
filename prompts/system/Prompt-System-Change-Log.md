@@ -2,7 +2,7 @@
 
 ## Versão atual
 
-- Versão: `3.52.0`
+- Versão: `3.52.1`
 - Data: 2026-07-16
 - Status: corpus DB-Notifier consolidado
 - Escopo: 13 arquivos ativos
@@ -16,6 +16,12 @@ A versão do corpus é independente da versão do software.
 - PATCH: clareza, correção ou referência sem mudança de autoridade.
 
 Toda alteração atualiza este arquivo e, quando necessário, `../Start-Here.md`.
+
+## 3.52.1 — 2026-07-16
+
+- A repetição humana limitada de freshness e Tray/flyout/ativação confirmou que o refresh atualiza resumo, ícone e superfícies, mas não solicita uma notificação Windows para cada mudança de estado efetivo.
+- O comentário exato de Bruno foi registrado como finding funcional bloqueante da nova amostra de `S05-HG-011`, sem alterar a decisão histórica, aprovar o Human Gate ou avançar o ciclo.
+- `MN-004` permanece o requisito proprietário, com entrega factual, opt-in, supressão inicial, identificação por instância, deduplicação e quiet policy em `STATE-06`; qualquer exceção demonstrativa em `STATE-05` exige autorização e especificação explícitas.
 
 ## 3.52.0 — 2026-07-16
 

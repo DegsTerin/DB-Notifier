@@ -989,6 +989,16 @@
 - Riscos/ressalvas: `M-02`, `M-03` e `M-05` são contenções, não funcionalidades — delivery e command polling recusam startup e raw observations são preservadas. Nenhuma migration foi aplicada a PostgreSQL; somente stores SQLite efêmeros de teste foram usados. Nenhum banco externo/monitorado, serviço real, credential, certificado, IdP, vault, canal, CI remota, deploy, publicação, instalação externa ou infraestrutura real foi exercido.
 - Aprovador: Bruno, exclusivamente para a remediação local dos lotes 1–5 sob os limites citados; nenhuma decisão de Human Gate ou progressão foi inferida.
 
+## 2026-07-16 — Finding humano de ausência de notificação por mudança de status
+
+- Estado anterior: `STATE-05 FRONTEND_IMPLEMENTATION`, progressão em espera, Human Gate pendente e decisão histórica `S05-HG-011` não reutilizável após as mudanças do Design System `3.0.0`.
+- Estado resultante: sem transição; a nova amostra de freshness/Tray permanece pendente por finding funcional bloqueante, e `STATE-06` continua não autorizado.
+- Decisão: registrar a observação exata de Bruno, `Deveria está notificando a cada mudança de status`, sem convertê-la em aprovação ou reprovação do Human Gate completo e sem inferir autorização para antecipar notification delivery.
+- Escopo: Dashboard local e WPF notification-area-first com fixture demonstrativa compartilhada; startup oculto, uma ativação primária do ícone, flyout, atualização de freshness em cadência de 30 segundos e inspeção do caminho de publicação Windows. Narrator, High Contrast, scaling, banco/serviço real, Agent/API, canal externo e transição permaneceram fora da amostra.
+- Evidências: Dashboard e WPF iniciaram com uma instância Healthy, uma Degraded, uma Timeout e uma Stale; as superfícies e o ícone envelheceram sem substituir o snapshot. A inspeção comprovou que `RefreshFleetPresentation` não solicita publicação e que o publicador atual trata somente a confirmação local de `CloseRequest`; portanto a ausência observada não foi mera supressão do Windows ou Focus Assist. A janela dedicada, o WPF e o listener local iniciados para a amostra foram encerrados depois do finding.
+- Riscos/ressalvas: `MN-004` já exige notificações opt-in, supressão do snapshot inicial, transições factuais por instância, deduplicação, quiet policy e integração autorizada em `STATE-06`. Uma exceção de demonstração que publique banners durante `STATE-05` exige decisão e especificação explícitas; o comentário atual não as substitui.
+- Aprovador: Bruno atuou como validador e identificou o finding; nenhuma decisão formal sobre a amostra completa, o Human Gate ou a progressão foi inferida.
+
 ## Template de nova entrada
 
 - Data:
