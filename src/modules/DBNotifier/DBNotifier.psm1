@@ -1,4 +1,4 @@
-# Module purpose: Provides DBNotifier for the legacy-compatible DB-Notifier tooling without changing database services implicitly.
+# Module purpose: Provides read-only DBNotifier legacy compatibility monitoring without controlling database services.
 Set-StrictMode -Version Latest
 
 Add-Type -AssemblyName System.Windows.Forms
@@ -120,6 +120,17 @@ function Get-Value {
     return $property.Value
 }
 
+<#
+.SYNOPSIS
+Creates the fail-closed legacy compatibility defaults.
+
+.DESCRIPTION
+Returns a mutable configuration baseline with discovery and administrative control
+disabled. The caller may merge explicitly supplied monitoring settings into it.
+
+.OUTPUTS
+System.Collections.Hashtable containing the legacy configuration baseline.
+#>
 function New-DefaultConfiguration {
     [CmdletBinding()]
     param()
@@ -130,7 +141,7 @@ function New-DefaultConfiguration {
             intervalSeconds     = 5
             restartBadgeSeconds = 10
             startMinimized      = $true
-            autoDiscover        = $true
+            autoDiscover        = $false
             silentMode          = $false
         }
         logging = @{
@@ -219,6 +230,23 @@ function Write-AppLog {
     }
 }
 
+<#
+.SYNOPSIS
+Normalises a parsed legacy configuration for runtime use.
+
+.DESCRIPTION
+Bounds operational values, resolves local paths and deliberately suppresses both the
+unhomologated service-control capability and untyped readiness arguments regardless of legacy input.
+
+.PARAMETER Configuration
+Parsed configuration values merged over the fail-closed defaults.
+
+.PARAMETER ConfigPath
+Absolute or relative path used to resolve local configuration artefacts.
+
+.OUTPUTS
+System.Management.Automation.PSCustomObject containing normalised runtime settings.
+#>
 function ConvertTo-NormalizedConfiguration {
     [CmdletBinding()]
     param(
@@ -247,7 +275,7 @@ function ConvertTo-NormalizedConfiguration {
             PostgresExe          = if ([string]::IsNullOrWhiteSpace($postgresExe)) { $null } else { Resolve-ConfiguredPath -Candidate $postgresExe -ConfigPath $ConfigPath }
             Enabled              = [bool](Get-Value -Object $instance -Name "enabled" -DefaultValue $true)
             NotificationsEnabled = [bool](Get-Value -Object $instance -Name "notificationsEnabled" -DefaultValue $true)
-            RestartAllowed       = [bool](Get-Value -Object $instance -Name "restartAllowed" -DefaultValue (-not [string]::IsNullOrWhiteSpace($serviceName)))
+            RestartAllowed       = $false
             IsLocalService       = -not [string]::IsNullOrWhiteSpace($serviceName)
         })
     }
@@ -265,7 +293,7 @@ function ConvertTo-NormalizedConfiguration {
             IntervalSeconds     = [Math]::Max(1, [int](Get-Value -Object $application -Name "intervalSeconds" -DefaultValue 5))
             RestartBadgeSeconds = [Math]::Max(1, [int](Get-Value -Object $application -Name "restartBadgeSeconds" -DefaultValue 10))
             StartMinimized      = [bool](Get-Value -Object $application -Name "startMinimized" -DefaultValue $true)
-            AutoDiscover        = [bool](Get-Value -Object $application -Name "autoDiscover" -DefaultValue $true)
+            AutoDiscover        = [bool](Get-Value -Object $application -Name "autoDiscover" -DefaultValue $false)
             SilentMode          = [bool](Get-Value -Object $application -Name "silentMode" -DefaultValue $false)
         }
         Logging       = [pscustomobject]@{
@@ -283,12 +311,29 @@ function ConvertTo-NormalizedConfiguration {
             TimeoutSeconds = [Math]::Max(1, [int](Get-Value -Object $pgIsReady -Name "timeoutSeconds" -DefaultValue 5))
             RetryCount     = [Math]::Max(0, [int](Get-Value -Object $pgIsReady -Name "retryCount" -DefaultValue 1))
             RetryDelayMs   = [Math]::Max(0, [int](Get-Value -Object $pgIsReady -Name "retryDelayMs" -DefaultValue 500))
-            ExtraArguments = @((Get-Value -Object $pgIsReady -Name "extraArguments" -DefaultValue @()))
+            ExtraArguments = @()
         }
         Instances     = @($instances)
     }
 }
 
+<#
+.SYNOPSIS
+Loads and normalises a legacy JSON configuration.
+
+.DESCRIPTION
+Uses safe defaults when the file is absent, but rejects malformed content instead of
+silently enabling fallback behaviour. Error details never include the file content.
+
+.PARAMETER Path
+Path of the optional legacy JSON configuration file.
+
+.OUTPUTS
+System.Management.Automation.PSCustomObject containing normalised runtime settings.
+
+.NOTES
+Throws System.IO.InvalidDataException when an existing file cannot be parsed or merged.
+#>
 function Get-JsonConfiguration {
     [CmdletBinding()]
     param([Parameter(Mandatory)][string]$Path)
@@ -305,64 +350,111 @@ function Get-JsonConfiguration {
             }
         }
         catch {
-            $configuration = New-DefaultConfiguration
+            throw [System.IO.InvalidDataException]::new(
+                "The DB-Notifier configuration file is invalid and was not loaded.",
+                $_.Exception)
         }
     }
 
     return ConvertTo-NormalizedConfiguration -Configuration $configuration -ConfigPath $resolvedPath
 }
 
-function Resolve-ExecutablePath {
+<#
+.SYNOPSIS
+Returns operating-system-owned PostgreSQL installation roots for legacy discovery.
+
+.OUTPUTS
+System.String[] containing existing PostgreSQL directories below Program Files.
+#>
+function Get-PostgreSqlInstallationRoots {
     [CmdletBinding()]
-    param(
-        [string]$Candidate,
-        [string[]]$BasePaths = @(),
-        [string[]]$AdditionalCandidates = @()
-    )
+    param()
 
-    $candidates = @()
-    if (-not [string]::IsNullOrWhiteSpace($Candidate)) {
-        $expanded = [System.Environment]::ExpandEnvironmentVariables($Candidate)
-        $candidates += $expanded
-
-        if (-not [System.IO.Path]::IsPathRooted($expanded)) {
-            foreach ($basePath in @($BasePaths)) {
-                if (-not [string]::IsNullOrWhiteSpace($basePath)) {
-                    $candidates += (Join-Path -Path $basePath -ChildPath $expanded)
-                }
-            }
-        }
-    }
-
-    $candidates += @($AdditionalCandidates)
-
-    foreach ($candidatePath in $candidates) {
-        if ([string]::IsNullOrWhiteSpace($candidatePath)) {
+    $roots = New-Object System.Collections.Generic.List[string]
+    foreach ($specialFolder in @(
+        [System.Environment+SpecialFolder]::ProgramFiles,
+        [System.Environment+SpecialFolder]::ProgramFilesX86)) {
+        $programFiles = [System.Environment]::GetFolderPath($specialFolder)
+        if ([string]::IsNullOrWhiteSpace($programFiles)) {
             continue
         }
 
-        try {
-            if (Test-Path -LiteralPath $candidatePath -PathType Leaf) {
-                return [System.IO.Path]::GetFullPath($candidatePath)
-            }
-        }
-        catch {
+        $root = Join-Path -Path $programFiles -ChildPath "PostgreSQL"
+        if ((Test-Path -LiteralPath $root -PathType Container) -and -not $roots.Contains($root)) {
+            [void]$roots.Add([System.IO.Path]::GetFullPath($root))
         }
     }
 
-    if (-not [string]::IsNullOrWhiteSpace($Candidate) -and -not [System.IO.Path]::IsPathRooted($Candidate)) {
-        $command = Get-Command -Name $Candidate -CommandType Application -ErrorAction SilentlyContinue
-        if ($command) {
-            return $command.Source
-        }
-    }
-
-    return $null
+    return @($roots)
 }
 
+<#
+.SYNOPSIS
+Determines whether a legacy PostgreSQL utility is safe to execute.
+
+.DESCRIPTION
+Requires the exact executable name, an ordinary non-reparse file and a canonical path
+below an operating-system-owned PostgreSQL Program Files root.
+
+.PARAMETER Path
+Candidate executable path to validate.
+
+.PARAMETER ExecutableName
+Exact provider utility filename expected by the caller.
+
+.OUTPUTS
+System.Boolean indicating whether the path satisfies the legacy execution boundary.
+#>
+function Test-IsTrustedPostgreSqlUtilityPath {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)][string]$Path,
+        [Parameter(Mandatory)][string]$ExecutableName
+    )
+
+    try {
+        $fullPath = [System.IO.Path]::GetFullPath([System.Environment]::ExpandEnvironmentVariables($Path))
+        if (-not [string]::Equals([System.IO.Path]::GetFileName($fullPath), $ExecutableName, [System.StringComparison]::OrdinalIgnoreCase)) {
+            return $false
+        }
+
+        $item = Get-Item -LiteralPath $fullPath -Force -ErrorAction Stop
+        if ($item.PSIsContainer -or (($item.Attributes -band [System.IO.FileAttributes]::ReparsePoint) -ne 0)) {
+            return $false
+        }
+
+        foreach ($root in (Get-PostgreSqlInstallationRoots)) {
+            $prefix = $root.TrimEnd([System.IO.Path]::DirectorySeparatorChar, [System.IO.Path]::AltDirectorySeparatorChar) + [System.IO.Path]::DirectorySeparatorChar
+            if ($fullPath.StartsWith($prefix, [System.StringComparison]::OrdinalIgnoreCase)) {
+                return $true
+            }
+        }
+    }
+    catch {
+    }
+
+    return $false
+}
+
+<#
+.SYNOPSIS
+Enumerates trusted PostgreSQL bin directories for legacy readiness discovery.
+
+.DESCRIPTION
+Uses only version directories below operating-system-owned Program Files roots. Paths
+embedded in legacy instance configuration are not treated as executable trust roots.
+
+.PARAMETER Configuration
+Normalised legacy configuration retained by this private compatibility signature.
+
+.OUTPUTS
+System.String[] containing existing trusted bin directories.
+#>
 function Get-PostgreSqlBinDirectoryCandidates {
     [CmdletBinding()]
     param([Parameter(Mandatory)][pscustomobject]$Configuration)
+
+    $null = $Configuration
 
     $directories = New-Object System.Collections.Generic.List[string]
     $add = {
@@ -372,26 +464,7 @@ function Get-PostgreSqlBinDirectoryCandidates {
         }
     }
 
-    foreach ($instance in @($Configuration.Instances)) {
-        if (-not [string]::IsNullOrWhiteSpace($instance.PostgresExe) -and (Test-Path -LiteralPath $instance.PostgresExe -PathType Leaf)) {
-            & $add (Split-Path -Path $instance.PostgresExe -Parent)
-        }
-    }
-
-    $roots = @()
-    if (-not [string]::IsNullOrWhiteSpace($env:ProgramFiles)) {
-        $roots += (Join-Path -Path $env:ProgramFiles -ChildPath "PostgreSQL")
-    }
-    $programFilesX86 = [System.Environment]::GetEnvironmentVariable("ProgramFiles(x86)")
-    if (-not [string]::IsNullOrWhiteSpace($programFilesX86)) {
-        $roots += (Join-Path -Path $programFilesX86 -ChildPath "PostgreSQL")
-    }
-
-    foreach ($root in $roots) {
-        if (-not (Test-Path -LiteralPath $root -PathType Container)) {
-            continue
-        }
-
+    foreach ($root in (Get-PostgreSqlInstallationRoots)) {
         foreach ($versionDirectory in @(Get-ChildItem -LiteralPath $root -Directory -ErrorAction SilentlyContinue)) {
             & $add (Join-Path -Path $versionDirectory.FullName -ChildPath "bin")
         }
@@ -400,25 +473,49 @@ function Get-PostgreSqlBinDirectoryCandidates {
     return @($directories)
 }
 
+<#
+.SYNOPSIS
+Resolves the trusted legacy PostgreSQL readiness utility.
+
+.DESCRIPTION
+Accepts only the exact pg_isready executable below a PostgreSQL Program Files root.
+Configuration folders, arbitrary PATH entries and reparse files are never executable roots.
+
+.PARAMETER Configuration
+Normalised legacy configuration whose filename preference is validated but never trusted as a root.
+
+.OUTPUTS
+System.String containing a trusted canonical path, or null when the utility cannot be proved safe.
+#>
 function Resolve-PgIsReadyPath {
     [CmdletBinding()]
     param([Parameter(Mandatory)][pscustomobject]$Configuration)
 
-    $candidate = $Configuration.PgIsReady.Path
+    $candidate = [System.Environment]::ExpandEnvironmentVariables([string]$Configuration.PgIsReady.Path)
     if ([string]::IsNullOrWhiteSpace($candidate)) {
         $candidate = "pg_isready.exe"
     }
 
-    $configDirectory = Split-Path -Path $Configuration.ConfigPath -Parent
-    $additional = @()
+    if ([System.IO.Path]::IsPathRooted($candidate)) {
+        if (Test-IsTrustedPostgreSqlUtilityPath -Path $candidate -ExecutableName "pg_isready.exe") {
+            return [System.IO.Path]::GetFullPath($candidate)
+        }
+        return $null
+    }
+
+    if (-not [string]::Equals([System.IO.Path]::GetFileName($candidate), $candidate, [System.StringComparison]::Ordinal) -or
+        -not [string]::Equals($candidate, "pg_isready.exe", [System.StringComparison]::OrdinalIgnoreCase)) {
+        return $null
+    }
+
     foreach ($binDirectory in (Get-PostgreSqlBinDirectoryCandidates -Configuration $Configuration)) {
-        $additional += (Join-Path -Path $binDirectory -ChildPath "pg_isready.exe")
-        if (-not [System.IO.Path]::IsPathRooted($candidate)) {
-            $additional += (Join-Path -Path $binDirectory -ChildPath $candidate)
+        $resolved = Join-Path -Path $binDirectory -ChildPath "pg_isready.exe"
+        if (Test-IsTrustedPostgreSqlUtilityPath -Path $resolved -ExecutableName "pg_isready.exe") {
+            return [System.IO.Path]::GetFullPath($resolved)
         }
     }
 
-    return Resolve-ExecutablePath -Candidate $candidate -BasePaths @($configDirectory) -AdditionalCandidates $additional
+    return $null
 }
 
 function Get-PostgreSqlServicePort {
@@ -469,6 +566,20 @@ function Get-PostgreSqlWindowsServices {
     return $result
 }
 
+<#
+.SYNOPSIS
+Builds the read-only instance inventory for the legacy client.
+
+.DESCRIPTION
+Combines explicitly enabled instances with optional local discovery while ensuring
+that neither source grants service-control permission.
+
+.PARAMETER Configuration
+Normalised configuration containing explicit instances and discovery preference.
+
+.OUTPUTS
+System.Object[] containing unique monitorable instance descriptions.
+#>
 function Resolve-ConfiguredInstances {
     [CmdletBinding()]
     param([Parameter(Mandatory)][pscustomobject]$Configuration)
@@ -502,7 +613,7 @@ function Resolve-ConfiguredInstances {
                 PostgresExe          = $null
                 Enabled              = $true
                 NotificationsEnabled = $true
-                RestartAllowed       = $true
+                RestartAllowed       = $false
                 IsLocalService       = $true
             })
             $seen[$service.Name] = $true
@@ -664,12 +775,22 @@ function New-InstanceState {
     }
 }
 
+<#
+.SYNOPSIS
+Maps a legacy state key to concise operator-facing text.
+
+.PARAMETER StateKey
+Legacy monitoring state key to present.
+
+.OUTPUTS
+System.String. Unknown values are presented as Checking.
+#>
 function Get-StateDisplayName {
     param([string]$StateKey)
 
     switch ($StateKey) {
         "UP" { "Running" }
-        "UP_TCP_ONLY" { "Running" }
+        "UP_TCP_ONLY" { "Transport only" }
         "RESTARTED" { "Restarted" }
         "STOPPED" { "Stopped" }
         "RUNNING_NO_CONN" { "Connection issue" }
@@ -680,17 +801,37 @@ function Get-StateDisplayName {
     }
 }
 
+<#
+.SYNOPSIS
+Determines whether a legacy state proves database health.
+
+.PARAMETER StateKey
+Legacy monitoring state key to classify.
+
+.OUTPUTS
+System.Boolean. TCP-only transport evidence always returns false.
+#>
 function Test-IsHealthyState {
     param([string]$StateKey)
-    return $StateKey -eq "UP" -or $StateKey -eq "UP_TCP_ONLY" -or $StateKey -eq "RESTARTED"
+    return $StateKey -eq "UP" -or $StateKey -eq "RESTARTED"
 }
 
+<#
+.SYNOPSIS
+Returns the visual colour associated with a legacy state.
+
+.PARAMETER StateKey
+Legacy monitoring state key to present.
+
+.OUTPUTS
+System.Drawing.Color. Unproved and TCP-only states use the caution colour.
+#>
 function Get-StateColour {
     param([string]$StateKey)
 
     switch ($StateKey) {
         "UP" { [System.Drawing.Color]::FromArgb(99, 245, 112) }
-        "UP_TCP_ONLY" { [System.Drawing.Color]::FromArgb(99, 245, 112) }
+        "UP_TCP_ONLY" { [System.Drawing.Color]::FromArgb(255, 205, 70) }
         "RESTARTED" { [System.Drawing.Color]::FromArgb(255, 205, 70) }
         "STOPPED" { [System.Drawing.Color]::FromArgb(255, 102, 83) }
         "MISSING" { [System.Drawing.Color]::FromArgb(255, 102, 83) }
@@ -971,6 +1112,20 @@ function New-StatusDot {
     return $picture
 }
 
+<#
+.SYNOPSIS
+Creates the legacy notification-area popup.
+
+.DESCRIPTION
+Builds monitoring and local-file actions while presenting service control as disabled;
+the compatibility client contains no service executor in the current lifecycle state.
+
+.PARAMETER Context
+Application context that receives the popup control references.
+
+.OUTPUTS
+System.Windows.Forms.Form containing the legacy popup surface.
+#>
 function New-PopupForm {
     [CmdletBinding()]
     param([hashtable]$Context)
@@ -1018,7 +1173,9 @@ function New-PopupForm {
     $line2.BackColor = [System.Drawing.Color]::FromArgb(64, 78, 92)
     Add-Control -Parent $panel -Child $line2
 
-    $serviceButton = New-ActionButton -Text "Restart service" -Y 199 -IconText ([string][char]0x21BB)
+    # Legacy service control remains visible as unavailable until the governed capability is homologated.
+    $serviceButton = New-ActionButton -Text "Service control unavailable" -Y 199 -IconText ([string][char]0x2298)
+    $serviceButton.Enabled = $false
     $logButton = New-ActionButton -Text "Open log" -Y 224 -IconText ([string][char]0x25A4)
     $configButton = New-ActionButton -Text "Open config" -Y 249 -IconText ([string][char]0x2699)
     $reloadButton = New-ActionButton -Text "Reload configuration" -Y 266 -IconText ([string][char]0x21BB)
@@ -1027,20 +1184,6 @@ function New-PopupForm {
         Add-Control -Parent $panel -Child $button
     }
 
-    $serviceMenu = New-Object System.Windows.Forms.ContextMenuStrip
-    $serviceMenu.BackColor = [System.Drawing.Color]::FromArgb(13, 26, 38)
-    $serviceMenu.ForeColor = [System.Drawing.Color]::White
-    $startMenuItem = New-Object System.Windows.Forms.ToolStripMenuItem("Start")
-    $stopMenuItem = New-Object System.Windows.Forms.ToolStripMenuItem("Stop")
-    $restartMenuItem = New-Object System.Windows.Forms.ToolStripMenuItem("Restart")
-    [void]$serviceMenu.Items.Add($startMenuItem)
-    [void]$serviceMenu.Items.Add($stopMenuItem)
-    [void]$serviceMenu.Items.Add($restartMenuItem)
-
-    $serviceButton.Add_Click({ $serviceMenu.Show($serviceButton, 0, $serviceButton.Height) })
-    $startMenuItem.Add_Click({ Invoke-ServiceAction -Context $Context -Action "Start" })
-    $stopMenuItem.Add_Click({ Invoke-ServiceAction -Context $Context -Action "Stop" })
-    $restartMenuItem.Add_Click({ Invoke-ServiceAction -Context $Context -Action "Restart" })
     $logButton.Add_Click({ Start-FileSafe -Path $Context.Configuration.Logging.LogPath })
     $configButton.Add_Click({ Start-FileSafe -Path $Context.Configuration.ConfigPath })
     $reloadButton.Add_Click({ Reload-Configuration -Context $Context })
@@ -1057,13 +1200,10 @@ function New-PopupForm {
     $form.Add_Deactivate({ $Context.Popup.Hide() })
 
     $Context.PopupControls = @{
-        Logo            = $icon
-        Header          = $header
-        List            = $list
-        ServiceButton   = $serviceButton
-        StartMenuItem   = $startMenuItem
-        StopMenuItem    = $stopMenuItem
-        RestartMenuItem = $restartMenuItem
+        Logo          = $icon
+        Header        = $header
+        List          = $list
+        ServiceButton = $serviceButton
     }
 
     return $form
@@ -1115,8 +1255,28 @@ function Get-Summary {
         }
     }
 
-    $attention = @($states | Where-Object { -not (Test-IsHealthyState -StateKey $_.CurrentStateKey) }).Count
-    if ($attention -eq 0) {
+    $criticalStates = @("STOPPED", "RUNNING_NO_CONN", "TIMEOUT", "MISSING", "ERROR")
+    $critical = @($states | Where-Object { $criticalStates -contains $_.CurrentStateKey }).Count
+    if ($critical -gt 0) {
+        return [pscustomobject]@{
+            Header = "$critical instance(s) need attention"
+            Tooltip = "$($Context.Configuration.Application.DisplayName): $critical instance(s) need attention"
+            Colour = [System.Drawing.Color]::FromArgb(255, 102, 83)
+            IconState = "Critical"
+        }
+    }
+
+    $unproved = @($states | Where-Object { -not (Test-IsHealthyState -StateKey $_.CurrentStateKey) }).Count
+    if ($unproved -gt 0) {
+        return [pscustomobject]@{
+            Header = "$unproved instance(s) have unproved database health"
+            Tooltip = "$($Context.Configuration.Application.DisplayName): $unproved instance(s) unproved"
+            Colour = [System.Drawing.Color]::FromArgb(255, 205, 70)
+            IconState = "Unknown"
+        }
+    }
+
+    if ($states.Count -gt 0) {
         return [pscustomobject]@{
             Header = "All instances are healthy"
             Tooltip = "$($Context.Configuration.Application.DisplayName): all instances healthy"
@@ -1125,14 +1285,19 @@ function Get-Summary {
         }
     }
 
-    return [pscustomobject]@{
-        Header = "$attention instance(s) need attention"
-        Tooltip = "$($Context.Configuration.Application.DisplayName): $attention instance(s) need attention"
-        Colour = [System.Drawing.Color]::FromArgb(255, 102, 83)
-        IconState = "Critical"
-    }
+    throw "The legacy status summary could not classify the current instance states."
 }
 
+<#
+.SYNOPSIS
+Refreshes the legacy popup from the current in-memory observations.
+
+.PARAMETER Context
+Application context containing popup controls and current instance states.
+
+.OUTPUTS
+None.
+#>
 function Update-Popup {
     [CmdletBinding()]
     param([Parameter(Mandatory)][hashtable]$Context)
@@ -1155,10 +1320,6 @@ function Update-Popup {
         $hint = New-Label -Text "Install PostgreSQL or add local/remote instances in appsettings.json." -X 24 -Y 58 -Width 238 -Height 36 -Colour ([System.Drawing.Color]::FromArgb(205, 211, 218)) -Size 8
         Add-Control -Parent $list -Child $empty
         Add-Control -Parent $list -Child $hint
-        $Context.PopupControls.ServiceButton.Enabled = $true
-        $Context.PopupControls.StartMenuItem.Enabled = $false
-        $Context.PopupControls.StopMenuItem.Enabled = $false
-        $Context.PopupControls.RestartMenuItem.Enabled = $false
         return
     }
 
@@ -1199,12 +1360,6 @@ function Update-Popup {
         $Context.SelectedInstanceKey = $states[0].InstanceKey
     }
 
-    $selected = $Context.InstanceStates[$Context.SelectedInstanceKey]
-    $canControl = $selected.IsLocalService -and $selected.RestartAllowed -and $selected.CurrentStateKey -ne "MISSING"
-    $Context.PopupControls.ServiceButton.Enabled = $true
-    $Context.PopupControls.StartMenuItem.Enabled = $canControl -and ($selected.CurrentStateKey -eq "STOPPED")
-    $Context.PopupControls.StopMenuItem.Enabled = $canControl -and ($selected.CurrentStateKey -ne "STOPPED")
-    $Context.PopupControls.RestartMenuItem.Enabled = $canControl -and ($selected.CurrentStateKey -ne "STOPPED")
 }
 
 <#
@@ -1294,7 +1449,7 @@ function Test-AndUpdateInstanceState {
 
     if ($ready.IsReady) {
         $State.CurrentStateKey = if ($ready.Method -eq "tcp") { "UP_TCP_ONLY" } else { "UP" }
-        if ($pidChanged) {
+        if ($pidChanged -and $ready.Method -ne "tcp") {
             $State.CurrentStateKey = "RESTARTED"
             $State.YellowUntil = (Get-Date).AddSeconds($Context.Configuration.Application.RestartBadgeSeconds)
         }
@@ -1360,43 +1515,6 @@ function Reload-Configuration {
     Write-AppLog -Context $Context -Message "Configuration reloaded."
 }
 
-function Invoke-ServiceAction {
-    [CmdletBinding()]
-    param(
-        [Parameter(Mandatory)][hashtable]$Context,
-        [Parameter(Mandatory)][ValidateSet("Start", "Stop", "Restart")][string]$Action
-    )
-
-    if ([string]::IsNullOrWhiteSpace($Context.SelectedInstanceKey) -or -not $Context.InstanceStates.ContainsKey($Context.SelectedInstanceKey)) {
-        return
-    }
-
-    $state = $Context.InstanceStates[$Context.SelectedInstanceKey]
-    if (-not $state.IsLocalService -or -not $state.RestartAllowed -or [string]::IsNullOrWhiteSpace($state.ServiceName)) {
-        return
-    }
-
-    try {
-        switch ($Action) {
-            "Start" { Start-Service -Name $state.ServiceName -ErrorAction Stop }
-            "Stop" { Stop-Service -Name $state.ServiceName -ErrorAction Stop }
-            "Restart" {
-                Restart-Service -Name $state.ServiceName -ErrorAction Stop
-            }
-        }
-        Write-AppLog -Context $Context -Message ("{0} requested for {1}." -f $Action, $state.ServiceName)
-        Start-Sleep -Milliseconds 500
-        Invoke-HealthCheckCycle -Context $Context
-    }
-    catch {
-        $state.CurrentStateKey = "ERROR"
-        $state.LastMessage = $_.Exception.Message
-        Write-AppLog -Context $Context -Level "ERROR" -Message ("{0} failed for {1}: {2}" -f $Action, $state.ServiceName, $_.Exception.Message)
-        Update-Popup -Context $Context
-        Update-NotifyIcon -Context $Context
-    }
-}
-
 function New-AppContext {
     [CmdletBinding()]
     param([Parameter(Mandatory)][pscustomobject]$Configuration)
@@ -1443,6 +1561,20 @@ function Stop-DBNotifierApplication {
     try { $Context.ApplicationContext.ExitThread() } catch {}
 }
 
+<#
+.SYNOPSIS
+Starts the local legacy-compatible DB-Notifier notification-area client.
+
+.DESCRIPTION
+Loads a fail-closed local configuration, performs read-only monitoring and starts the
+Windows message loop. It does not expose or invoke database service control.
+
+.PARAMETER ConfigPath
+Path of the local legacy JSON configuration.
+
+.OUTPUTS
+None. Startup failures are recorded locally and shown as a fatal error.
+#>
 function Start-DBNotifierApplication {
     [CmdletBinding()]
     param([Parameter(Mandatory)][string]$ConfigPath)
@@ -1477,7 +1609,7 @@ function Start-DBNotifierApplication {
             Write-AppLog -Context $context -Message ("pg_isready resolved to '{0}'." -f $context.PgIsReadyPath)
         }
         else {
-            Write-AppLog -Context $context -Level "WARN" -Message "pg_isready was not found. DB-Notifier will use TCP fallback when services exist."
+            Write-AppLog -Context $context -Level "WARN" -Message "pg_isready was not found. TCP fallback will report transport evidence only and will not report database health."
         }
 
         Initialize-InstanceStates -Context $context

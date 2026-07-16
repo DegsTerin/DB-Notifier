@@ -11,7 +11,7 @@
 [Setup]
 AppId={{7B133F29-9D33-4F17-A07E-69FB64685EFE}
 AppName={#AppDisplayName}
-AppVersion=1.1.0
+AppVersion=1.1.1
 AppPublisher=DegsTerin
 DefaultDirName={autopf}\{#AppName}
 DefaultGroupName={#AppDisplayName}

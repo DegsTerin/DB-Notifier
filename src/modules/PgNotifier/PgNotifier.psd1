@@ -1,7 +1,7 @@
-# Module purpose: Provides Pg Notifier for the legacy-compatible DB-Notifier tooling without changing database services implicitly.
+# Module purpose: Describes the deprecated read-only PgNotifier compatibility shim.
 @{
     RootModule        = 'PgNotifier.psm1'
-    ModuleVersion     = '1.1.0'
+    ModuleVersion     = '1.1.1'
     GUID              = '53f1cf21-4a90-4126-8222-f49afda37cb8'
     Author            = 'Bruno Araújo Ávila'
     CompanyName       = 'DegsTerin'

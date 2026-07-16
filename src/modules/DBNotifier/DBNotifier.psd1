@@ -1,7 +1,7 @@
-# Module purpose: Provides DBNotifier for the legacy-compatible DB-Notifier tooling without changing database services implicitly.
+# Module purpose: Describes the read-only DBNotifier legacy compatibility monitoring module.
 @{
     RootModule        = 'DBNotifier.psm1'
-    ModuleVersion     = '1.1.0'
+    ModuleVersion     = '1.1.1'
     GUID              = '53b34684-2b1d-417a-b4cd-6f4ff4c09763'
     Author            = 'Bruno Araújo Ávila'
     CompanyName       = 'DegsTerin'
