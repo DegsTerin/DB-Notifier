@@ -1010,6 +1010,17 @@
 - Riscos/ressalvas: Windows/Focus Assist pode suprimir banners mesmo após aceitar a publicação; o fallback é best-effort e limitado. Persistência de preferência/deduplicação, acknowledgement, quiet policy operacional, auditoria, estado reconciliado e canais reais permanecem `STATE-06`. A nova amostra deve confirmar ausência de banner inicial e observar Analytics, Orders e Finance separadamente antes de qualquer decisão humana.
 - Aprovador: implementação autorizada por Bruno dentro do limite demonstrativo citado; nenhuma aprovação de amostra, Human Gate ou progressão foi inferida.
 
+## 2026-07-16 — Execução focada das notificações demonstrativas locais 3.0.1
+
+- Estado anterior: `STATE-05 FRONTEND_IMPLEMENTATION`, progressão em espera, Human Gate pendente e repetição humana da correção `3.0.1` ainda não executada.
+- Estado resultante: sem transição; o baseline de notificações de mudança permaneceu silencioso e três entradas individuais possuem evidência runtime local, mas a classificação visual direta do validador continua pendente. `STATE-06` permanece não autorizado.
+- Decisão: Bruno declarou exatamente `AUTORIZO nova amostra humana do WPF 3.0.1 para confirmar ausência de notificação inicial e as três mudanças demonstrativas, sem Narrator, High Contrast, scaling, ações externas ou transição.` A autorização não incluiu shell, mudança de preferência, Agent, API, banco ou canal externo.
+- Escopo: um único processo WPF Release normal em `en-GB`, sem argumentos, executado por 330 segundos; observação auxiliar em memória filtrada apenas pelo título e pelas três mensagens esperadas; leitura compartilhada restrita à presença desses textos no store/WAL local do Windows; nenhuma ativação ou CloseRequest do Tray/shell.
+- Gates: aos 15,5 segundos o processo estava responsivo e sem janela principal; nenhuma das três mensagens apareceu no store local nos primeiros 120 segundos, e a UI Automation não expôs título ou mensagem alvo. Analytics materializou aos 127,7 segundos, Regional orders aos 187,7 segundos e Primary finance aos 276,6 segundos. O processo estava responsivo novamente ao concluir a observação e foi encerrado pelo PID próprio, sem processo residual.
+- Evidências: os três textos `en-GB` exatos apareceram separadamente no store/WAL local. O listener UI Automation e duas inspeções filtradas da Central de Notificações não expuseram banner correspondente. Classificação técnica corrente: solicitada/materializada localmente, visibilidade não observada; supressão do Shell e limite de automação permanecem indistinguíveis sem o relato direto de Bruno.
+- Riscos/ressalvas: presença de texto no store privado do Windows é evidência auxiliar de aceitação/materialização, não prova de apresentação visível. Nenhum screenshot amplo ou conteúdo de outra notificação foi coletado. Narrator, High Contrast, scaling, acessibilidade restante, integração, provider real, ação externa e transição permaneceram fora do escopo.
+- Aprovador: Bruno autorizou a execução; nenhuma decisão de aprovação/reprovação da amostra, do Human Gate ou da progressão foi inferida. A classificação visual de cada uma das três entradas ainda deve ser fornecida por Bruno.
+
 ## Template de nova entrada
 
 - Data:
