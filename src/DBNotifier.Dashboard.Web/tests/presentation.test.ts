@@ -452,6 +452,8 @@ test("provider-neutral database mark is shared by active Web and Windows surface
   const compatibilityBuild = readFileSync(new URL("../../../build/build.ps1", import.meta.url), "utf8");
   const brandGenerator = readFileSync(new URL("../../../scripts/generate-brand-assets.mjs", import.meta.url), "utf8");
   const notificationAsset = readFileSync(new URL("../../DBNotifier.Desktop.Wpf/NotificationAssets/DBNotifier.Availability.png", import.meta.url));
+  const semanticNotificationAssets = ["Healthy", "Warning", "Critical", "Unknown"].map((state) =>
+    readFileSync(new URL(`../../DBNotifier.Desktop.Wpf/NotificationAssets/DBNotifier.${state}.png`, import.meta.url)));
   const notificationPublisher = readFileSync(new URL("../../DBNotifier.Desktop.Wpf/WindowsAppNotificationPublisher.cs", import.meta.url), "utf8");
 
   assert.deepEqual(dashboardSvg, designSystemSvg);
@@ -586,6 +588,34 @@ test("provider-neutral database mark is shared by active Web and Windows surface
   assert.ok(notificationPartial > 0);
   assert.ok(notificationBlue > 0);
   assert.ok(notificationGreen > 0);
+  assert.deepEqual(notificationAsset, semanticNotificationAssets[0]);
+  semanticNotificationAssets.forEach((asset, stateIndex) => {
+    const png = readRgbaPng(asset);
+    const matchingFrame = readIcoFrames(semanticWindowsIcons[stateIndex]).find((frame) => frame.size === 64);
+    assert.ok(matchingFrame);
+    let transparentPixels = 0;
+    let partialPixels = 0;
+    for (let pixel = 0; pixel < 64 * 64; pixel += 1) {
+      const offset = pixel * 4;
+      const x = pixel % 64;
+      const y = Math.floor(pixel / 64);
+      const icoOffset = ((63 - y) * 64 + x) * 4;
+      if (png.pixels[offset + 3] === 0) transparentPixels += 1;
+      if (png.pixels[offset + 3] > 0 && png.pixels[offset + 3] < 255) partialPixels += 1;
+      assert.deepEqual(
+        [...png.pixels.subarray(offset, offset + 4)],
+        [
+          matchingFrame.pixels[icoOffset + 2],
+          matchingFrame.pixels[icoOffset + 1],
+          matchingFrame.pixels[icoOffset],
+          matchingFrame.pixels[icoOffset + 3],
+        ],
+        `The ${stateIndex} semantic notification PNG diverged from its canonical 64 px ICO frame at ${x},${y}.`,
+      );
+    }
+    assert.ok(transparentPixels > 64 * 64 * 0.5);
+    assert.ok(partialPixels > 0);
+  });
   assert.deepEqual(favicon, unknownFavicon);
   const semanticFavicons = [healthyFavicon, warningFavicon, criticalFavicon, unknownFavicon];
   for (const favicon of semanticFavicons) {
@@ -647,6 +677,7 @@ test("provider-neutral database mark is shared by active Web and Windows surface
   assert.match(brandGenerator, /const \{ database, bell \} = markGeometry;/);
   assert.match(brandGenerator, /for \(const centreY of \[database\.seamCentreY, database\.bottomCentreY\]\)/);
   assert.match(brandGenerator, /const supersampling = 4;/);
+  assert.match(brandGenerator, /notificationPngs:[\s\S]*Availability:[\s\S]*Healthy:[\s\S]*Warning:[\s\S]*Critical:[\s\S]*Unknown:/);
   assert.match(brandGenerator, /const visibleSamples = coverage\[coverageOffset\] \+ coverage\[coverageOffset \+ 1\]/);
   assert.match(brandGenerator, /pixels\[offset \+ 3\] = Math\.round\(\(visibleSamples \/ samples\) \* 255\)/);
   assert.match(brandGenerator, /const coverageBySize = new Map\(iconSizes\.map\(\(size\) => \[size, renderCoverage\(size\)\]\)\)/);
@@ -686,20 +717,33 @@ test("provider-neutral database mark is shared by active Web and Windows surface
   assert.match(trayController, /Icon = applicationIcon/);
   assert.match(trayController, /CreateNotificationAreaResources\(initialSummary\.State\)/);
   assert.match(trayController, /BrandStatusIconPolicy\.LoadWindowsIcon\([\s\S]*state,[\s\S]*Forms\.SystemInformation\.SmallIconSize\.Width\)/);
-  assert.match(trayController, /BrandStatusIconPolicy\.LoadWindowsIcon\([\s\S]*TrayNotificationPresentationPolicy\.ResolveIconState\(TrayNotificationMeaning\.AvailabilityOrRecovery\),[\s\S]*Forms\.SystemInformation\.SmallIconSize\.Width\)/);
-  assert.match(trayController, /notifyIcon\.BalloonTipShown \+= NotifyIconBalloonTipShown/);
+  assert.match(trayController, /BrandStatusIconPolicy\.LoadWindowsIcon\([\s\S]*TrayNotificationPresentationPolicy\.ResolveIconState\(request\.Meaning\),[\s\S]*Forms\.SystemInformation\.SmallIconSize\.Width\)/);
+  assert.doesNotMatch(trayController, /notifyIcon\.BalloonTipShown \+=/);
+  assert.doesNotMatch(trayController, /notifyIcon\.BalloonTipClosed \+=/);
+  assert.match(trayController, /notifyIcon\.BalloonTipClicked \+= NotifyIconBalloonTipClicked/);
   assert.match(trayController, /TrayPresentationPolicy\.ShouldRequestAvailabilityConfirmation\(intent\)/);
   assert.match(trayController, /ShowCloseToTrayNotification\(\)/);
   assert.match(trayController, /WindowsAppNotificationPublisher\.TryCreate/);
   assert.match(trayController, /appNotificationPublisher\?\.TryPublishAvailability\(title, message\)/);
-  assert.match(trayController, /ShowLegacyCloseToTrayNotification\(title, message\)/);
+  assert.match(trayController, /instanceStates = evidence\.CaptureInstanceStates\(evidence\.GeneratedAt\)/);
+  assert.match(trayController, /TrayInstanceStateChangePolicy\.DetectChanges\([\s\S]*instanceStates,[\s\S]*nextInstanceStates\)/);
+  assert.match(trayController, /instanceStates = nextInstanceStates;[\s\S]*PublishDemonstrationStatusChanges\(changes\)/);
+  assert.match(trayController, /TryPublishDemonstrationStatusChange\([\s\S]*change\.InstanceId,[\s\S]*title,[\s\S]*message,[\s\S]*meaning/);
+  assert.match(trayController, /QueueLegacyNotification\(title, message, meaning\)/);
+  assert.match(trayController, /MaximumLegacyNotificationQueueLength = 16/);
+  assert.match(trayController, /legacyNotificationQueue\.Enqueue/);
+  assert.match(trayController, /legacyNotificationInFlight/);
+  assert.match(trayController, /Stopwatch\.GetElapsedTime\(notificationIconLeaseStartedTimestamp\)/);
+  assert.match(trayController, /Stopwatch\.GetElapsedTime\(legacyNotificationStartedTimestamp\)/);
   assert.doesNotMatch(trayController, /firstHide|ShowFirstHideNotification/);
-  assert.match(trayController, /try[\s\S]*notificationIconRestoreTimer\.Stop\(\);[\s\S]*notifyIcon\.Icon = availabilityNotificationIcon;[\s\S]*TrayNotificationIconLeaseSignal\.Begin[\s\S]*notificationIconRestoreTimer\.Start\(\);[\s\S]*ShowBalloonTip\([\s\S]*Forms\.ToolTipIcon\.None/);
-  assert.match(trayController, /TrayNotificationIconLeaseSignal\.BalloonShown/);
+  assert.match(trayController, /try[\s\S]*notificationIconRestoreTimer\.Stop\(\);[\s\S]*notifyIcon\.Icon = notificationMeaningIcon;[\s\S]*TrayNotificationIconLeaseSignal\.Begin[\s\S]*legacyNotificationAdvanceTimer\.Start\(\);[\s\S]*ShowBalloonTip\([\s\S]*Forms\.ToolTipIcon\.None/);
+  assert.equal((trayController.match(/\bShowBalloonTip\s*\(/g) ?? []).length, 1);
   assert.match(trayController, /TrayNotificationIconLeaseSignal\.FallbackElapsed/);
   assert.match(trayController, /TrayNotificationIconLeaseSignal\.DeliveryFailed/);
   assert.match(trayController, /TrayNotificationIconLeaseSignal\.Disposed/);
   assert.match(trayController, /RestoreAggregateIconAfterNotificationCapture\(TrayNotificationIconLeaseSignal signal\)[\s\S]*notifyIcon\.Icon = applicationIcon;[\s\S]*TrayNotificationIconLeasePolicy\.Resolve[\s\S]*notificationIconRestoreTimer\.Stop\(\);/);
+  assert.match(trayController, /CompleteLegacyNotification\(TrayNotificationIconLeaseSignal signal\)[\s\S]*legacyNotificationInFlight = false;[\s\S]*TryShowNextLegacyNotification\(\)/);
+  assert.match(trayController, /NotifyIconBalloonTipClicked[\s\S]*Apply\(TrayWindowIntent\.Show\)/);
   assert.doesNotMatch(trayController, /notificationIconRestorePending/);
   assert.match(brandStatusPolicy, /IconBitmapDecoder/);
   assert.match(brandStatusPolicy, /Math\.Ceiling\(targetDipSize \* Math\.Max\(dpi\.DpiScaleX, dpi\.DpiScaleY\)\)/);
@@ -717,10 +761,29 @@ test("provider-neutral database mark is shared by active Web and Windows surface
   assert.match(notificationPublisher, /runtime-initialisation-failed/);
   assert.match(notificationPublisher, /manager\.Register\(DisplayName, new Uri\(iconPath\)\)/);
   assert.match(notificationPublisher, /DBNotifier\.Availability\.png/);
+  assert.match(notificationPublisher, /TryPublishDemonstrationStatusChange/);
+  assert.match(notificationPublisher, /SetAppLogoOverride\(new Uri\(iconPath\), AppNotificationImageCrop\.Default, title\)/);
+  assert.match(notificationPublisher, /DBNotifier\.Healthy\.png/);
+  assert.match(notificationPublisher, /DBNotifier\.Warning\.png/);
+  assert.match(notificationPublisher, /DBNotifier\.Critical\.png/);
+  assert.match(notificationPublisher, /DBNotifier\.Unknown\.png/);
+  assert.match(notificationPublisher, /AvailabilityGroup = "local-avail"/);
+  assert.match(notificationPublisher, /DemonstrationStatusGroup = "local-demo"/);
+  assert.match(notificationPublisher, /WindowsNotificationIdentifierMaximumLength = 16/);
+  assert.match(notificationPublisher, /Guid\.NewGuid\(\)\.ToString\("N"\)\[\.\.4\]/);
+  assert.match(notificationPublisher, /instanceId\.ToString\("N"\)\[\^3\.\.\]/);
+  assert.match(notificationPublisher, /\$"d\{demonstrationStatusSession\}\{instanceSuffix\}\{sequence:x8\}"/);
+  assert.match(notificationPublisher, /CreateDemonstrationStatusTag\(instanceId\)/);
+  assert.match(notificationPublisher, /Interlocked\.Increment\(ref demonstrationStatusSequence\)/);
+  assert.match(notificationPublisher, /tag\.Length <= WindowsNotificationIdentifierMaximumLength/);
+  assert.match(notificationPublisher, /DemonstrationStatusGroup/);
+  assert.match(notificationPublisher, /\.MuteAudio\(\)/);
   assert.match(notificationPublisher, /manager\.Show\(notification\)/);
   assert.match(notificationPublisher, /notification\.SuppressDisplay = false/);
   assert.match(desktopProject, /<PackageReference Include="Microsoft\.WindowsAppSDK" \/>/);
-  assert.match(desktopProject, /NotificationAssets\\DBNotifier\.Availability\.png/);
+  for (const asset of ["Availability", "Healthy", "Warning", "Critical", "Unknown"]) {
+    assert.match(desktopProject, new RegExp(`NotificationAssets\\\\DBNotifier\\.${asset}\\.png`));
+  }
   assert.match(installer, /SetupIconFile=.*DBNotifier\.ico/);
   assert.match(installer, /#define AppDisplayName "DB Notifier"/);
   assert.match(installer, /AppName=\{#AppDisplayName\}/);

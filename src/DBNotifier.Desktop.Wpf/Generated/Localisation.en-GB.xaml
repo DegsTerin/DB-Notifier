@@ -1,4 +1,4 @@
-<!-- Generated from dbnotifier.localisation.v1; culture:en-GB; source sha256:8c5690895b95ebb84e73f28795e53d6202ad7347cf28c08ab5db5df0c3f0052e. Do not edit directly. -->
+<!-- Generated from dbnotifier.localisation.v1; culture:en-GB; source sha256:98cf5a40e66fd6d259c48b13d9ea8054d379fa612860a210c3d94912d71ca7ed. Do not edit directly. -->
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:sys="clr-namespace:System;assembly=System.Runtime">
@@ -178,7 +178,7 @@
   <sys:String x:Key="Scenario.Offline">Agent offline</sys:String>
   <sys:String x:Key="Scenario.Ready">Loaded content</sys:String>
   <sys:String x:Key="Settings.NotificationTitle">Windows notifications</sys:String>
-  <sys:String x:Key="Settings.NotificationUnavailable">External delivery and change-only Windows notifications are scheduled for STATE-06 integration.</sys:String>
+  <sys:String x:Key="Settings.NotificationUnavailable">The local demonstration requests Windows notifications for status changes. Preferences and external delivery remain in STATE-06.</sys:String>
   <sys:String x:Key="Settings.PreferenceTitle">Interface preferences</sys:String>
   <sys:String x:Key="Severity.Critical">Critical</sys:String>
   <sys:String x:Key="Severity.Information">Information</sys:String>
@@ -221,8 +221,10 @@
   <sys:String x:Key="Tray.RestartUnavailable">Restart service · unavailable</sys:String>
   <sys:String x:Key="Tray.RestartUnavailableHelp">Requires a homologated capability, authorisation, confirmation and audit.</sys:String>
   <sys:String x:Key="Tray.SilentUnavailable">Silent mode · unavailable</sys:String>
-  <sys:String x:Key="Tray.SilentUnavailableHelp">Notification delivery is not integrated during STATE-05.</sys:String>
+  <sys:String x:Key="Tray.SilentUnavailableHelp">The preference is not integrated yet; notifications remain limited to the local demonstration.</sys:String>
   <sys:String x:Key="Tray.Status">Local demonstration · no external data</sys:String>
+  <sys:String x:Key="Tray.StatusChangeMessage">{0}: {1} → {2}. Local demonstration · no external data.</sys:String>
+  <sys:String x:Key="Tray.StatusChangeTitle">Local demonstration status changed</sys:String>
   <sys:String x:Key="Tray.Tooltip">DB Notifier · local demonstration</sys:String>
   <sys:String x:Key="Tray.TooltipSummary">DB Notifier · demo · {0}</sys:String>
   <sys:String x:Key="TV.Active">TV mode · demonstration</sys:String>

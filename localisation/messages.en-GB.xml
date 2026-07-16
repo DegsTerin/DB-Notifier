@@ -134,7 +134,7 @@
   <message key="Overview.Critical">Critical</message>
   <message key="Overview.Restarted">Restarted</message>
   <message key="Settings.NotificationTitle">Windows notifications</message>
-  <message key="Settings.NotificationUnavailable">External delivery and change-only Windows notifications are scheduled for STATE-06 integration.</message>
+  <message key="Settings.NotificationUnavailable">The local demonstration requests Windows notifications for status changes. Preferences and external delivery remain in STATE-06.</message>
   <message key="Settings.PreferenceTitle">Interface preferences</message>
   <message key="AlertState.Active">Active</message>
   <message key="AlertState.Acknowledged">Acknowledged</message>
@@ -252,7 +252,7 @@
   <message key="Tray.RestartUnavailable">Restart service · unavailable</message>
   <message key="Tray.RestartUnavailableHelp">Requires a homologated capability, authorisation, confirmation and audit.</message>
   <message key="Tray.SilentUnavailable">Silent mode · unavailable</message>
-  <message key="Tray.SilentUnavailableHelp">Notification delivery is not integrated during STATE-05.</message>
+  <message key="Tray.SilentUnavailableHelp">The preference is not integrated yet; notifications remain limited to the local demonstration.</message>
   <message key="Tray.Exit">Exit</message>
   <message key="Tray.Tooltip">DB Notifier · local demonstration</message>
   <message key="Tray.TooltipSummary">DB Notifier · demo · {0}</message>
@@ -263,4 +263,6 @@
   <message key="Tray.Aggregate.Unknown">Unknown</message>
   <message key="Tray.BalloonTitle">DB Notifier remains available</message>
   <message key="Tray.BalloonMessage">The window was hidden. No database or service was controlled.</message>
+  <message key="Tray.StatusChangeTitle">Local demonstration status changed</message>
+  <message key="Tray.StatusChangeMessage">{0}: {1} → {2}. Local demonstration · no external data.</message>
 </localisation>

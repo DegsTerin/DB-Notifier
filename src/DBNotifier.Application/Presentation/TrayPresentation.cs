@@ -131,6 +131,31 @@ public enum TrayNotificationMeaning
 /// <summary>Maps notification meaning to the shared semantic icon family without delivering a notification.</summary>
 public static class TrayNotificationPresentationPolicy
 {
+    /// <summary>Classifies one freshness-aware instance state for event-specific notification presentation.</summary>
+    /// <param name="state">Current provider-neutral instance state after canonical freshness evaluation.</param>
+    /// <returns>
+    /// Availability or recovery for current Healthy evidence, Warning for current Degraded or Maintenance evidence,
+    /// Critical for current failure evidence, and Informational or Unknown for stale, invalid or unknown evidence.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="state"/> is null.</exception>
+    public static TrayNotificationMeaning ResolveMeaning(TrayInstanceEffectiveState state)
+    {
+        ArgumentNullException.ThrowIfNull(state);
+        if (state.Freshness != EvidenceFreshness.Current)
+        {
+            return TrayNotificationMeaning.InformationalOrUnknown;
+        }
+
+        return state.Status switch
+        {
+            HealthStatus.Healthy => TrayNotificationMeaning.AvailabilityOrRecovery,
+            HealthStatus.Degraded or HealthStatus.Maintenance => TrayNotificationMeaning.Warning,
+            HealthStatus.Unavailable or HealthStatus.AuthFailed or HealthStatus.Timeout => TrayNotificationMeaning.Critical,
+            HealthStatus.Unknown => TrayNotificationMeaning.InformationalOrUnknown,
+            _ => TrayNotificationMeaning.InformationalOrUnknown,
+        };
+    }
+
     /// <summary>Returns the safe icon state for the meaning conveyed by one notification.</summary>
     /// <param name="meaning">Provider-neutral notification meaning selected by the owning presentation adapter.</param>
     /// <returns>Green for availability or recovery, yellow for warning, red for critical, and neutral grey otherwise.</returns>
@@ -193,6 +218,90 @@ public static class TrayNotificationIconLeasePolicy
         return currentStateIsValid && signal == TrayNotificationIconLeaseSignal.Begin
             ? TrayNotificationIconLeaseState.NotificationMeaning
             : TrayNotificationIconLeaseState.Aggregate;
+    }
+}
+
+/// <summary>Represents one provider-neutral instance state after canonical freshness evaluation.</summary>
+/// <param name="InstanceId">Stable identifier of the database instance represented by the state.</param>
+/// <param name="Status">Provider-neutral health status reported by the captured evidence.</param>
+/// <param name="Freshness">Canonical freshness classification evaluated for the capture instant.</param>
+public sealed record TrayInstanceEffectiveState(
+    Guid InstanceId,
+    HealthStatus Status,
+    EvidenceFreshness Freshness);
+
+/// <summary>Describes one comparable instance whose effective status or freshness changed between captures.</summary>
+/// <param name="InstanceId">Stable identifier shared by the previous and current effective states.</param>
+/// <param name="Previous">Effective state captured before the change.</param>
+/// <param name="Current">Effective state captured after the change.</param>
+public sealed record TrayInstanceStateChange(
+    Guid InstanceId,
+    TrayInstanceEffectiveState Previous,
+    TrayInstanceEffectiveState Current);
+
+/// <summary>Captures and compares provider-neutral instance states without delivering notifications or inferring aggregate changes.</summary>
+public static class TrayInstanceStateChangePolicy
+{
+    /// <summary>Captures one deterministic effective state per inventory item from immutable evidence.</summary>
+    /// <param name="snapshot">Inventory snapshot containing stable instance identifiers and provider-neutral evidence.</param>
+    /// <param name="now">Current UTC instant used only for canonical freshness evaluation.</param>
+    /// <param name="staleAfter">Strictly positive maximum age for current evidence.</param>
+    /// <returns>Effective states ordered by instance identifier for deterministic comparison and presentation.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="snapshot"/> is null.</exception>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="staleAfter"/> is not positive.</exception>
+    public static IReadOnlyList<TrayInstanceEffectiveState> Capture(
+        InventorySnapshot snapshot,
+        DateTimeOffset now,
+        TimeSpan staleAfter)
+    {
+        ArgumentNullException.ThrowIfNull(snapshot);
+        ArgumentOutOfRangeException.ThrowIfLessThanOrEqual(staleAfter, TimeSpan.Zero);
+
+        return (snapshot.Items ?? [])
+            .Select(item => new TrayInstanceEffectiveState(
+                item.InstanceId,
+                item.Status,
+                item.GetFreshness(now, staleAfter)))
+            .OrderBy(state => state.InstanceId)
+            .ToArray();
+    }
+
+    /// <summary>Returns every individual effective-state change shared by two captures.</summary>
+    /// <param name="previous">Prior effective-state baseline, or null when no comparable capture exists.</param>
+    /// <param name="current">Current effective-state capture.</param>
+    /// <returns>
+    /// Changes ordered by instance identifier. An absent baseline and instances without a state in both captures produce no change.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="current"/> is null.</exception>
+    /// <exception cref="ArgumentException">Thrown when either non-null capture repeats an instance identifier.</exception>
+    /// <remarks>
+    /// The policy compares health status and freshness directly, so it preserves simultaneous changes and changes that leave the fleet aggregate unchanged.
+    /// It does not deliver notifications or treat inventory membership alone as a status transition.
+    /// </remarks>
+    public static IReadOnlyList<TrayInstanceStateChange> DetectChanges(
+        IEnumerable<TrayInstanceEffectiveState>? previous,
+        IEnumerable<TrayInstanceEffectiveState> current)
+    {
+        ArgumentNullException.ThrowIfNull(current);
+        Dictionary<Guid, TrayInstanceEffectiveState> currentByInstance = current.ToDictionary(state => state.InstanceId);
+
+        if (previous is null)
+        {
+            return [];
+        }
+
+        Dictionary<Guid, TrayInstanceEffectiveState> previousByInstance = previous.ToDictionary(state => state.InstanceId);
+
+        return currentByInstance.Values
+            .Where(currentState =>
+                previousByInstance.TryGetValue(currentState.InstanceId, out TrayInstanceEffectiveState? previousState) &&
+                previousState != currentState)
+            .OrderBy(currentState => currentState.InstanceId)
+            .Select(currentState => new TrayInstanceStateChange(
+                currentState.InstanceId,
+                previousByInstance[currentState.InstanceId],
+                currentState))
+            .ToArray();
     }
 }
 

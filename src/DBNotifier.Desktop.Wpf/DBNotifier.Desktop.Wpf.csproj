@@ -17,6 +17,10 @@
   <ItemGroup>
     <Resource Include="Assets\DBNotifier*.ico" />
     <Content Include="NotificationAssets\DBNotifier.Availability.png" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="NotificationAssets\DBNotifier.Healthy.png" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="NotificationAssets\DBNotifier.Warning.png" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="NotificationAssets\DBNotifier.Critical.png" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="NotificationAssets\DBNotifier.Unknown.png" CopyToOutputDirectory="PreserveNewest" />
     <PackageReference Include="Microsoft.WindowsAppSDK" />
     <ProjectReference Include="..\DBNotifier.Application\DBNotifier.Application.csproj" />
     <ProjectReference Include="..\DBNotifier.Infrastructure\DBNotifier.Infrastructure.csproj" />

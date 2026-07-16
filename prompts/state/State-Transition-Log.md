@@ -999,6 +999,17 @@
 - Riscos/ressalvas: `MN-004` já exige notificações opt-in, supressão do snapshot inicial, transições factuais por instância, deduplicação, quiet policy e integração autorizada em `STATE-06`. Uma exceção de demonstração que publique banners durante `STATE-05` exige decisão e especificação explícitas; o comentário atual não as substitui.
 - Aprovador: Bruno atuou como validador e identificou o finding; nenhuma decisão formal sobre a amostra completa, o Human Gate ou a progressão foi inferida.
 
+## 2026-07-16 — Remediação demonstrativa local das notificações por mudança
+
+- Estado anterior: `STATE-05 FRONTEND_IMPLEMENTATION`, progressão em espera, Human Gate pendente e finding bloqueante na nova amostra de freshness/Tray.
+- Estado resultante: sem transição; Design System `3.0.1` implementado e verificado automaticamente, com repetição humana focada ainda pendente. `STATE-06` continua não autorizado.
+- Decisão: Bruno declarou exatamente `AUTORIZO a remediação demonstrativa local no STATE-05, notificando cada mudança individual, sem notificação inicial, sem Agent/API/banco externo e sem transição.` A autorização constitui opt-in somente para a fixture determinística e não amplia delivery operacional.
+- Escopo: política Application de captura/diff por `InstanceId`, `HealthStatus` e freshness; baseline silencioso; três transições esperadas da fixture; mensagens pt-BR/en-GB com instância/anterior/atual e verdade sem dados externos; quatro PNGs semânticos derivados da geometria canônica; publisher moderno com logo por evento, tag única, grupo separado, identificadores limitados a 16 caracteres, mute, expiração e ativação show-only; fila fallback limitada/serializada com um único `ShowBalloonTip` e timer monotónico como única fonte de avanço; atualização da baseline antes da entrega; documentação, estado e rastreabilidade. Nenhuma chamada Agent/API/provider/database, ação administrativa ou canal externo foi introduzida.
+- Gates: build .NET 10 Release com zero avisos/erros; `185/185` testes unitários, `13/13` arquitetura e `42/42` Dashboard; cobertura `78,95%` linhas/`57,01%` branches; typecheck/build Vite, .NET format, geração/drift de brand/tokens/localização, 23 testes legados/um skip, bundle, runtime fail-closed, secret scan, documentação, Git e 96 amostras Chrome headless aprovados. Auditorias online não foram repetidas. Evidência de apresentação Windows visível permanece exclusivamente humana.
+- Evidências: Design System `3.0.1`, `TrayInstanceStateChangePolicy`, `TrayApplicationController`, `WindowsAppNotificationPublisher`, catálogos/adapters gerados, cinco PNGs de notificação e regressões .NET/TypeScript; relatórios `STATE-05` atualizados sem reescrever o finding anterior.
+- Riscos/ressalvas: Windows/Focus Assist pode suprimir banners mesmo após aceitar a publicação; o fallback é best-effort e limitado. Persistência de preferência/deduplicação, acknowledgement, quiet policy operacional, auditoria, estado reconciliado e canais reais permanecem `STATE-06`. A nova amostra deve confirmar ausência de banner inicial e observar Analytics, Orders e Finance separadamente antes de qualquer decisão humana.
+- Aprovador: implementação autorizada por Bruno dentro do limite demonstrativo citado; nenhuma aprovação de amostra, Human Gate ou progressão foi inferida.
+
 ## Template de nova entrada
 
 - Data:

@@ -73,10 +73,13 @@ const outputs = {
     Critical: join(root, "src/DBNotifier.Desktop.Wpf/Assets/DBNotifier.Critical.ico"),
     Unknown: join(root, "src/DBNotifier.Desktop.Wpf/Assets/DBNotifier.Unknown.ico"),
   },
-  notificationAvailabilityPng: join(
-    root,
-    "src/DBNotifier.Desktop.Wpf/NotificationAssets/DBNotifier.Availability.png",
-  ),
+  notificationPngs: {
+    Availability: join(root, "src/DBNotifier.Desktop.Wpf/NotificationAssets/DBNotifier.Availability.png"),
+    Healthy: join(root, "src/DBNotifier.Desktop.Wpf/NotificationAssets/DBNotifier.Healthy.png"),
+    Warning: join(root, "src/DBNotifier.Desktop.Wpf/NotificationAssets/DBNotifier.Warning.png"),
+    Critical: join(root, "src/DBNotifier.Desktop.Wpf/NotificationAssets/DBNotifier.Critical.png"),
+    Unknown: join(root, "src/DBNotifier.Desktop.Wpf/NotificationAssets/DBNotifier.Unknown.png"),
+  },
 };
 
 /** Formats one canonical coordinate without exposing floating-point noise in generated SVG markup. */
@@ -248,12 +251,12 @@ function buildPngChunk(type, payload) {
 }
 
 /**
- * Builds the explicit Windows app-notification identity asset from the native canonical 64 px raster.
- * @param {number[]} accent Application-availability bell colour as RGBA channels.
+ * Builds one explicit Windows app-notification asset from the native canonical 64 px raster.
+ * @param {number[]} accent Notification-meaning bell colour as RGBA channels.
  * @param {Buffer} coverage Canonical 64 px layer coverage shared with the matching ICO frame.
  * @returns {Buffer} Complete transparent 64 px RGBA PNG bytes.
  */
-function buildNotificationAvailabilityPng(accent, coverage) {
+function buildNotificationPng(accent, coverage) {
   const size = 64;
   const source = renderBitmap(size, accent, coverage);
   const scanlines = Buffer.alloc(size * (1 + size * 4));
@@ -404,13 +407,14 @@ processOutput(outputs.dashboardSvgs.Default, defaultSvg, verify);
 processOutput(outputs.dashboardFavicons.Default, buildIco(statusAccents.Unknown, coverageBySize, faviconSizes), verify);
 processOutput(outputs.windowsIcons.Default, buildIco(statusAccents.Unknown, coverageBySize), verify);
 processOutput(
-  outputs.notificationAvailabilityPng,
-  buildNotificationAvailabilityPng(statusAccents.Healthy, coverageBySize.get(64)),
+  outputs.notificationPngs.Availability,
+  buildNotificationPng(statusAccents.Healthy, coverageBySize.get(64)),
   verify,
 );
 for (const [state, accent] of Object.entries(statusAccents)) {
   processOutput(outputs.dashboardSvgs[state], Buffer.from(buildSvg(statusAccentHex[state]), "utf8"), verify);
   processOutput(outputs.dashboardFavicons[state], buildIco(accent, coverageBySize, faviconSizes), verify);
   processOutput(outputs.windowsIcons[state], buildIco(accent, coverageBySize), verify);
+  processOutput(outputs.notificationPngs[state], buildNotificationPng(accent, coverageBySize.get(64)), verify);
 }
 console.log(verify ? "DB-Notifier brand assets verified." : "DB-Notifier brand assets generated.");

@@ -1,5 +1,6 @@
 // Module purpose: Coordinates the localised Windows tray lifecycle without controlling database or operating-system services.
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Drawing;
 using System.Windows;
 using System.Windows.Threading;
@@ -15,19 +16,28 @@ namespace DBNotifier.Desktop.Wpf;
 /// </summary>
 internal sealed class TrayApplicationController : IDisposable
 {
+    private const int MaximumLegacyNotificationQueueLength = 16;
+    private static readonly TimeSpan LegacyNotificationDisplayInterval = TimeSpan.FromSeconds(4);
     private readonly MainWindow window;
     private readonly System.Windows.Application application;
     private readonly DesktopLocalisationService localisation;
     private readonly DesktopDemonstrationEvidence evidence;
     private Icon applicationIcon;
-    private readonly Icon availabilityNotificationIcon;
+    private Icon? notificationMeaningIcon;
     private readonly Forms.NotifyIcon notifyIcon;
     private readonly DispatcherTimer notificationIconRestoreTimer;
+    private readonly DispatcherTimer legacyNotificationAdvanceTimer;
     private readonly DispatcherTimer fleetRefreshTimer;
     private readonly WindowsAppNotificationPublisher? appNotificationPublisher;
     private readonly TrayFlyoutWindow flyout;
+    private readonly Queue<LegacyNotificationRequest> legacyNotificationQueue = new();
     private TrayFleetSummary fleetSummary;
+    private IReadOnlyList<TrayInstanceEffectiveState> instanceStates;
+    private bool disposing;
     private bool exiting;
+    private bool legacyNotificationInFlight;
+    private long legacyNotificationStartedTimestamp;
+    private long notificationIconLeaseStartedTimestamp;
     private TrayNotificationIconLeaseState notificationIconLeaseState = TrayNotificationIconLeaseState.Aggregate;
 
     /// <summary>Initialises tray controls from the shared fleet summary and subscribes to window and language state changes.</summary>
@@ -48,20 +58,26 @@ internal sealed class TrayApplicationController : IDisposable
         this.localisation = localisation;
         this.evidence = evidence;
         fleetSummary = initialSummary;
+        instanceStates = evidence.CaptureInstanceStates(evidence.GeneratedAt);
         flyout = new TrayFlyoutWindow(localisation, evidence, initialSummary, ShowView, () => Apply(TrayWindowIntent.Exit));
-        (applicationIcon, availabilityNotificationIcon, notifyIcon) = CreateNotificationAreaResources(initialSummary.State);
+        (applicationIcon, notifyIcon) = CreateNotificationAreaResources(initialSummary.State);
         notificationIconRestoreTimer = new DispatcherTimer
         {
             Interval = TrayNotificationIconLeasePolicy.FallbackDelay,
         };
         notificationIconRestoreTimer.Tick += NotificationIconRestoreTimerTick;
+        legacyNotificationAdvanceTimer = new DispatcherTimer
+        {
+            Interval = LegacyNotificationDisplayInterval,
+        };
+        legacyNotificationAdvanceTimer.Tick += LegacyNotificationAdvanceTimerTick;
         fleetRefreshTimer = new DispatcherTimer
         {
             Interval = TimeSpan.FromSeconds(30),
         };
         fleetRefreshTimer.Tick += FleetRefreshTimerTick;
         notifyIcon.MouseClick += NotifyIconMouseClick;
-        notifyIcon.BalloonTipShown += NotifyIconBalloonTipShown;
+        notifyIcon.BalloonTipClicked += NotifyIconBalloonTipClicked;
         appNotificationPublisher = WindowsAppNotificationPublisher.TryCreate(
             application.Dispatcher,
             () => Apply(TrayWindowIntent.Show));
@@ -75,34 +91,39 @@ internal sealed class TrayApplicationController : IDisposable
     /// <summary>Releases notification and event resources without changing external process state.</summary>
     public void Dispose()
     {
+        disposing = true;
+        legacyNotificationQueue.Clear();
         window.StateChanged -= WindowStateChanged;
         window.Closing -= WindowClosing;
         localisation.LanguageChanged -= LanguageChanged;
         notifyIcon.MouseClick -= NotifyIconMouseClick;
-        notifyIcon.BalloonTipShown -= NotifyIconBalloonTipShown;
+        notifyIcon.BalloonTipClicked -= NotifyIconBalloonTipClicked;
         fleetRefreshTimer.Tick -= FleetRefreshTimerTick;
         fleetRefreshTimer.Stop();
         RestoreAggregateIconAfterNotificationCapture(TrayNotificationIconLeaseSignal.Disposed);
         notificationIconRestoreTimer.Tick -= NotificationIconRestoreTimerTick;
         notificationIconRestoreTimer.Stop();
+        legacyNotificationAdvanceTimer.Tick -= LegacyNotificationAdvanceTimerTick;
+        legacyNotificationAdvanceTimer.Stop();
+        legacyNotificationInFlight = false;
         appNotificationPublisher?.Dispose();
         notifyIcon.Visible = false;
         flyout.CloseForApplicationExit();
         notifyIcon.Dispose();
-        availabilityNotificationIcon.Dispose();
+        notificationMeaningIcon?.Dispose();
+        notificationMeaningIcon = null;
         applicationIcon.Dispose();
     }
 
-    /// <summary>Creates the semantic Tray icon and policy-selected availability source at the native Windows small-icon metric as one exception-safe resource set.</summary>
+    /// <summary>Creates the factual aggregate Tray icon and notification-area component as one exception-safe resource set.</summary>
     /// <param name="state">Provider-neutral aggregate used only to select the state-bearing Tray icon.</param>
-    /// <returns>The two owned icon frames and configured notification-area component.</returns>
+    /// <returns>The owned aggregate icon frame and configured notification-area component.</returns>
     /// <exception cref="ArgumentOutOfRangeException">Thrown when Windows reports an invalid native icon metric.</exception>
     /// <exception cref="InvalidOperationException">Thrown when a packaged semantic icon resource is unavailable.</exception>
-    private static (Icon ApplicationIcon, Icon AvailabilityNotificationIcon, Forms.NotifyIcon NotifyIcon) CreateNotificationAreaResources(
+    private static (Icon ApplicationIcon, Forms.NotifyIcon NotifyIcon) CreateNotificationAreaResources(
         TrayAggregateState state)
     {
         Icon? applicationIcon = null;
-        Icon? availabilityNotificationIcon = null;
         Forms.NotifyIcon? notifyIcon = null;
 
         try
@@ -110,13 +131,10 @@ internal sealed class TrayApplicationController : IDisposable
             applicationIcon = BrandStatusIconPolicy.LoadWindowsIcon(
                 state,
                 Forms.SystemInformation.SmallIconSize.Width);
-            availabilityNotificationIcon = BrandStatusIconPolicy.LoadWindowsIcon(
-                TrayNotificationPresentationPolicy.ResolveIconState(TrayNotificationMeaning.AvailabilityOrRecovery),
-                Forms.SystemInformation.SmallIconSize.Width);
             notifyIcon = new Forms.NotifyIcon();
             notifyIcon.Icon = applicationIcon;
             notifyIcon.Visible = true;
-            return (applicationIcon, availabilityNotificationIcon, notifyIcon);
+            return (applicationIcon, notifyIcon);
         }
         catch
         {
@@ -126,7 +144,6 @@ internal sealed class TrayApplicationController : IDisposable
                 notifyIcon.Dispose();
             }
 
-            availabilityNotificationIcon?.Dispose();
             applicationIcon?.Dispose();
             throw;
         }
@@ -158,11 +175,18 @@ internal sealed class TrayApplicationController : IDisposable
     private void FleetRefreshTimerTick(object? sender, EventArgs e) =>
         RefreshFleetPresentation(TimeProvider.System.GetUtcNow());
 
-    /// <summary>Updates shell, flyout, tooltip and Tray icon from one freshness evaluation.</summary>
+    /// <summary>Updates shell, flyout, tooltip and Tray icon, then publishes each post-baseline local fixture change once.</summary>
     /// <param name="evaluatedAt">UTC instant used only to age the immutable evidence.</param>
     private void RefreshFleetPresentation(DateTimeOffset evaluatedAt)
     {
         TrayFleetSummary next = evidence.Summarise(evaluatedAt);
+        IReadOnlyList<TrayInstanceEffectiveState> nextInstanceStates = evidence.CaptureInstanceStates(evaluatedAt);
+        IReadOnlyList<TrayInstanceStateChange> changes = TrayInstanceStateChangePolicy.DetectChanges(
+            instanceStates,
+            nextInstanceStates);
+
+        // Advance the in-memory baseline before delivery so platform failure or re-entrant UI work cannot replay a transition.
+        instanceStates = nextInstanceStates;
         if (next.State != fleetSummary.State)
         {
             ReplaceAggregateIcon(next.State);
@@ -171,6 +195,7 @@ internal sealed class TrayApplicationController : IDisposable
         RefreshText();
         flyout.RefreshPresentation(evaluatedAt, next);
         window.RefreshOperationalEvidence(evaluatedAt, next.State);
+        PublishDemonstrationStatusChanges(changes);
     }
 
     /// <summary>Replaces the owned factual Tray icon without disturbing an active notification-meaning lease.</summary>
@@ -204,35 +229,72 @@ internal sealed class TrayApplicationController : IDisposable
         }
     }
 
-    /// <summary>Restores the factual aggregate icon after Windows reports that the availability notification was displayed.</summary>
-    /// <param name="sender">NotifyIcon that reported the visible notification.</param>
+    /// <summary>Reveals only the safe local secondary shell when the user activates a legacy fallback notification.</summary>
+    /// <param name="sender">NotifyIcon that reported the notification activation.</param>
     /// <param name="e">Event metadata supplied by Windows Forms.</param>
-    private void NotifyIconBalloonTipShown(object? sender, EventArgs e)
+    private void NotifyIconBalloonTipClicked(object? sender, EventArgs e)
     {
-        RestoreAggregateIconAfterNotificationCapture(TrayNotificationIconLeaseSignal.BalloonShown);
+        Apply(TrayWindowIntent.Show);
     }
 
-    /// <summary>Restores the factual aggregate icon when Windows suppresses the visible-notification callback.</summary>
-    /// <param name="sender">Dispatcher timer that bounds the temporary availability state.</param>
+    /// <summary>Restores the factual aggregate icon after the monotonic bounded notification-meaning lease.</summary>
+    /// <param name="sender">Dispatcher timer that bounds the temporary notification-meaning state.</param>
     /// <param name="e">Timer event metadata.</param>
     private void NotificationIconRestoreTimerTick(object? sender, EventArgs e)
     {
+        TimeSpan remaining = TrayNotificationIconLeasePolicy.FallbackDelay -
+            Stopwatch.GetElapsedTime(notificationIconLeaseStartedTimestamp);
+        if (remaining > TimeSpan.Zero)
+        {
+            notificationIconRestoreTimer.Interval = remaining;
+            return;
+        }
+
         RestoreAggregateIconAfterNotificationCapture(TrayNotificationIconLeaseSignal.FallbackElapsed);
     }
 
-    /// <summary>Ends the bounded best-effort availability-icon lease without changing the aggregate fleet summary.</summary>
+    /// <summary>Advances the serialised fallback from its sole lifecycle source after one bounded display interval.</summary>
+    /// <param name="sender">Monotonic dispatcher timer bounding one legacy fallback request.</param>
+    /// <param name="e">Timer event metadata.</param>
+    private void LegacyNotificationAdvanceTimerTick(object? sender, EventArgs e)
+    {
+        TimeSpan remaining = LegacyNotificationDisplayInterval - Stopwatch.GetElapsedTime(legacyNotificationStartedTimestamp);
+        if (remaining > TimeSpan.Zero)
+        {
+            legacyNotificationAdvanceTimer.Interval = remaining;
+            return;
+        }
+
+        CompleteLegacyNotification(TrayNotificationIconLeaseSignal.FallbackElapsed);
+    }
+
+    /// <summary>Ends the bounded best-effort notification-icon lease and continues any queued local fallback notifications.</summary>
     /// <param name="signal">Lifecycle signal that requires the factual aggregate icon to resume.</param>
     private void RestoreAggregateIconAfterNotificationCapture(TrayNotificationIconLeaseSignal signal)
     {
         if (notificationIconLeaseState != TrayNotificationIconLeaseState.NotificationMeaning)
         {
             notificationIconRestoreTimer.Stop();
+            notificationMeaningIcon?.Dispose();
+            notificationMeaningIcon = null;
             return;
         }
 
         notifyIcon.Icon = applicationIcon;
         notificationIconLeaseState = TrayNotificationIconLeasePolicy.Resolve(notificationIconLeaseState, signal);
         notificationIconRestoreTimer.Stop();
+        notificationMeaningIcon?.Dispose();
+        notificationMeaningIcon = null;
+    }
+
+    /// <summary>Completes one bounded fallback request, restores factual Tray state and starts the next queued item.</summary>
+    /// <param name="signal">Lease completion signal used to restore the factual aggregate icon.</param>
+    private void CompleteLegacyNotification(TrayNotificationIconLeaseSignal signal)
+    {
+        legacyNotificationAdvanceTimer.Stop();
+        RestoreAggregateIconAfterNotificationCapture(signal);
+        legacyNotificationInFlight = false;
+        TryShowNextLegacyNotification();
     }
 
     /// <summary>Shows or dismisses the single transient notification-area surface.</summary>
@@ -290,32 +352,118 @@ internal sealed class TrayApplicationController : IDisposable
         // Platform acceptance is not proof that Windows displayed the card because Focus Assist and notification policy remain authoritative.
         if (appNotificationPublisher?.TryPublishAvailability(title, message) == true) return;
 
-        ShowLegacyCloseToTrayNotification(title, message);
+        QueueLegacyNotification(title, message, TrayNotificationMeaning.AvailabilityOrRecovery);
     }
 
-    /// <summary>Uses the bounded notification-area fallback when the modern Windows publisher is unavailable or rejects delivery.</summary>
-    /// <param name="title">Localised title displayed by the Windows notification surface.</param>
-    /// <param name="message">Localised factual message confirming that the application remains available.</param>
-    private void ShowLegacyCloseToTrayNotification(string title, string message)
+    /// <summary>Publishes every individual change from the explicitly authorised local demonstration fixture.</summary>
+    /// <param name="changes">Stable ordered changes detected after the silent in-memory baseline.</param>
+    private void PublishDemonstrationStatusChanges(IReadOnlyList<TrayInstanceStateChange> changes)
     {
-        // The displayed callback is a best-effort capture point; the bounded fallback limits the temporary Tray exception.
+        foreach (TrayInstanceStateChange change in changes)
+        {
+            DesktopDemonstrationItem? item = evidence.FindItem(change.InstanceId);
+            if (item is null)
+            {
+                Trace.TraceWarning("DB Notifier skipped a local demonstration notification whose fixture item was unavailable.");
+                continue;
+            }
+
+            string title = localisation.Text("Tray.StatusChangeTitle");
+            string message = localisation.Text(
+                "Tray.StatusChangeMessage",
+                localisation.Text(item.DisplayNameKey),
+                LocaliseEffectiveState(change.Previous),
+                LocaliseEffectiveState(change.Current));
+            TrayNotificationMeaning meaning = TrayNotificationPresentationPolicy.ResolveMeaning(change.Current);
+
+            if (appNotificationPublisher?.TryPublishDemonstrationStatusChange(
+                    change.InstanceId,
+                    title,
+                    message,
+                    meaning) == true)
+            {
+                continue;
+            }
+
+            QueueLegacyNotification(title, message, meaning);
+        }
+    }
+
+    /// <summary>Returns a factual localised state label while failing invalid freshness or status safely to Unknown.</summary>
+    /// <param name="state">Provider-neutral effective state attached to one detected change.</param>
+    /// <returns>Current health label, Stale label or Unknown label as supported by the generated catalogue.</returns>
+    private string LocaliseEffectiveState(TrayInstanceEffectiveState state) => state.Freshness switch
+    {
+        EvidenceFreshness.Current when Enum.IsDefined(state.Status) => localisation.Text($"Status.{state.Status}"),
+        EvidenceFreshness.Stale => localisation.Text("Status.Stale"),
+        _ => localisation.Text("Status.Unknown"),
+    };
+
+    /// <summary>Queues one bounded, event-specific legacy fallback without allowing concurrent balloon replacement.</summary>
+    /// <param name="title">Localised title displayed by the Windows notification surface.</param>
+    /// <param name="message">Localised factual message containing no secret or external state.</param>
+    /// <param name="meaning">Typed meaning used to select the temporary canonical semantic bell.</param>
+    private void QueueLegacyNotification(string title, string message, TrayNotificationMeaning meaning)
+    {
+        if (disposing || exiting) return;
+        int pendingNotifications = legacyNotificationQueue.Count + (legacyNotificationInFlight ? 1 : 0);
+        if (pendingNotifications >= MaximumLegacyNotificationQueueLength)
+        {
+            Trace.TraceWarning("DB Notifier local fallback notification queue reached its bounded capacity.");
+            return;
+        }
+
+        legacyNotificationQueue.Enqueue(new(title, message, meaning));
+        TryShowNextLegacyNotification();
+    }
+
+    /// <summary>Displays the next queued fallback only after the prior semantic-icon lease has completed.</summary>
+    private void TryShowNextLegacyNotification()
+    {
+        if (disposing || exiting ||
+            legacyNotificationInFlight ||
+            legacyNotificationQueue.Count == 0)
+        {
+            return;
+        }
+
+        LegacyNotificationRequest request = legacyNotificationQueue.Dequeue();
+        legacyNotificationInFlight = true;
         try
         {
             notificationIconRestoreTimer.Stop();
-            notifyIcon.Icon = availabilityNotificationIcon;
+            legacyNotificationAdvanceTimer.Stop();
+            notificationMeaningIcon = BrandStatusIconPolicy.LoadWindowsIcon(
+                TrayNotificationPresentationPolicy.ResolveIconState(request.Meaning),
+                Forms.SystemInformation.SmallIconSize.Width);
+            notifyIcon.Icon = notificationMeaningIcon;
             notificationIconLeaseState = TrayNotificationIconLeasePolicy.Resolve(
                 notificationIconLeaseState,
                 TrayNotificationIconLeaseSignal.Begin);
+            notificationIconLeaseStartedTimestamp = Stopwatch.GetTimestamp();
+            legacyNotificationStartedTimestamp = notificationIconLeaseStartedTimestamp;
+            notificationIconRestoreTimer.Interval = TrayNotificationIconLeasePolicy.FallbackDelay;
+            legacyNotificationAdvanceTimer.Interval = LegacyNotificationDisplayInterval;
             notificationIconRestoreTimer.Start();
+            legacyNotificationAdvanceTimer.Start();
             notifyIcon.ShowBalloonTip(
                 3000,
-                title,
-                message,
+                request.Title,
+                request.Message,
                 Forms.ToolTipIcon.None);
         }
         catch
         {
-            RestoreAggregateIconAfterNotificationCapture(TrayNotificationIconLeaseSignal.DeliveryFailed);
+            CompleteLegacyNotification(TrayNotificationIconLeaseSignal.DeliveryFailed);
         }
     }
+
+    /// <summary>Contains one serialised local fallback request and its own semantic notification meaning.</summary>
+    /// <param name="Title">Localised notification title.</param>
+    /// <param name="Message">Localised factual notification message.</param>
+    /// <param name="Meaning">Typed meaning used only for the temporary notification source icon.</param>
+    private sealed record LegacyNotificationRequest(
+        string Title,
+        string Message,
+        TrayNotificationMeaning Meaning);
 }

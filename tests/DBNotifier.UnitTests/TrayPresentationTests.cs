@@ -4,8 +4,11 @@ using DBNotifier.Domain;
 
 namespace DBNotifier.UnitTests;
 
+/// <summary>Verifies provider-neutral notification-area presentation policies without invoking Windows delivery.</summary>
 public sealed class TrayPresentationTests
 {
+    private static readonly DateTimeOffset Now = new(2026, 7, 16, 15, 0, 0, TimeSpan.Zero);
+
     /// <summary>Verifies that normal startup remains hidden and only the exact review switch reveals the desktop shell.</summary>
     /// <param name="expected">The startup mode expected for the supplied arguments.</param>
     /// <param name="arguments">The command-line arguments under test.</param>
@@ -127,6 +130,44 @@ public sealed class TrayPresentationTests
         Assert.Equal(expected, TrayNotificationPresentationPolicy.ResolveIconState(meaning));
     }
 
+    /// <summary>Verifies that current status and freshness select the meaning of the notification itself.</summary>
+    [Fact]
+    public void EffectiveStateSelectsNotificationMeaningAndStaleFailsToUnknown()
+    {
+        Guid instanceId = Guid.Parse("05000000-0000-0000-0000-000000000001");
+
+        Assert.Equal(
+            TrayNotificationMeaning.AvailabilityOrRecovery,
+            TrayNotificationPresentationPolicy.ResolveMeaning(new(instanceId, HealthStatus.Healthy, EvidenceFreshness.Current)));
+        Assert.Equal(
+            TrayNotificationMeaning.Warning,
+            TrayNotificationPresentationPolicy.ResolveMeaning(new(instanceId, HealthStatus.Degraded, EvidenceFreshness.Current)));
+        Assert.Equal(
+            TrayNotificationMeaning.Warning,
+            TrayNotificationPresentationPolicy.ResolveMeaning(new(instanceId, HealthStatus.Maintenance, EvidenceFreshness.Current)));
+        Assert.Equal(
+            TrayNotificationMeaning.Critical,
+            TrayNotificationPresentationPolicy.ResolveMeaning(new(instanceId, HealthStatus.Unavailable, EvidenceFreshness.Current)));
+        Assert.Equal(
+            TrayNotificationMeaning.Critical,
+            TrayNotificationPresentationPolicy.ResolveMeaning(new(instanceId, HealthStatus.AuthFailed, EvidenceFreshness.Current)));
+        Assert.Equal(
+            TrayNotificationMeaning.Critical,
+            TrayNotificationPresentationPolicy.ResolveMeaning(new(instanceId, HealthStatus.Timeout, EvidenceFreshness.Current)));
+        Assert.Equal(
+            TrayNotificationMeaning.InformationalOrUnknown,
+            TrayNotificationPresentationPolicy.ResolveMeaning(new(instanceId, HealthStatus.Unknown, EvidenceFreshness.Current)));
+        Assert.Equal(
+            TrayNotificationMeaning.InformationalOrUnknown,
+            TrayNotificationPresentationPolicy.ResolveMeaning(new(instanceId, HealthStatus.Healthy, EvidenceFreshness.Stale)));
+        Assert.Equal(
+            TrayNotificationMeaning.InformationalOrUnknown,
+            TrayNotificationPresentationPolicy.ResolveMeaning(new(instanceId, HealthStatus.Healthy, (EvidenceFreshness)int.MaxValue)));
+        Assert.Equal(
+            TrayNotificationMeaning.InformationalOrUnknown,
+            TrayNotificationPresentationPolicy.ResolveMeaning(new(instanceId, (HealthStatus)int.MaxValue, EvidenceFreshness.Current)));
+    }
+
     /// <summary>Verifies that every completion path ends the bounded semantic-icon lease and invalid input fails to the aggregate.</summary>
     [Fact]
     public void NotificationIconLeaseIsBoundedAcrossShownFallbackFailureAndDisposal()
@@ -170,6 +211,135 @@ public sealed class TrayPresentationTests
                 (TrayNotificationIconLeaseSignal)int.MaxValue));
     }
 
+    /// <summary>Verifies that the first captured instance state establishes a silent baseline.</summary>
+    [Fact]
+    public void InitialEffectiveStateCaptureCreatesNoChanges()
+    {
+        InventorySnapshot snapshot = CreateSnapshot(
+            CreateItem(Guid.Parse("10000000-0000-0000-0000-000000000001"), HealthStatus.Healthy, Now));
+        IReadOnlyList<TrayInstanceEffectiveState> current = TrayInstanceStateChangePolicy.Capture(
+            snapshot,
+            Now,
+            TimeSpan.FromMinutes(5));
+
+        Assert.Empty(TrayInstanceStateChangePolicy.DetectChanges(null, current));
+    }
+
+    /// <summary>Verifies that repeated evaluation at the same instant does not invent an instance change.</summary>
+    [Fact]
+    public void SameEffectiveStateEvaluationInstantCreatesNoChanges()
+    {
+        InventorySnapshot snapshot = CreateSnapshot(
+            CreateItem(Guid.Parse("20000000-0000-0000-0000-000000000001"), HealthStatus.Degraded, Now.AddMinutes(-2)));
+        IReadOnlyList<TrayInstanceEffectiveState> previous = TrayInstanceStateChangePolicy.Capture(
+            snapshot,
+            Now,
+            TimeSpan.FromMinutes(5));
+        IReadOnlyList<TrayInstanceEffectiveState> current = TrayInstanceStateChangePolicy.Capture(
+            snapshot,
+            Now,
+            TimeSpan.FromMinutes(5));
+
+        Assert.Empty(TrayInstanceStateChangePolicy.DetectChanges(previous, current));
+        TrayInstanceEffectiveState added = new(
+            Guid.Parse("20000000-0000-0000-0000-000000000002"),
+            HealthStatus.Healthy,
+            EvidenceFreshness.Current);
+        Assert.Empty(TrayInstanceStateChangePolicy.DetectChanges(previous, current.Append(added)));
+        Assert.Empty(TrayInstanceStateChangePolicy.DetectChanges(current.Append(added), current));
+        Assert.Throws<ArgumentException>(() => TrayInstanceStateChangePolicy.DetectChanges(
+            previous.Append(previous[0]),
+            current));
+    }
+
+    /// <summary>Verifies that simultaneous freshness changes remain individual, stable and independent of the fleet aggregate.</summary>
+    [Fact]
+    public void FreshnessChangesRemainIndividualWhenAggregateDoesNotChange()
+    {
+        Guid first = Guid.Parse("30000000-0000-0000-0000-000000000001");
+        Guid second = Guid.Parse("30000000-0000-0000-0000-000000000002");
+        Guid unchangedCritical = Guid.Parse("30000000-0000-0000-0000-000000000003");
+        TimeSpan staleAfter = TimeSpan.FromMinutes(5);
+        InventorySnapshot snapshot = CreateSnapshot(
+            CreateItem(second, HealthStatus.Degraded, Now.Subtract(staleAfter)),
+            CreateItem(unchangedCritical, HealthStatus.Timeout, Now),
+            CreateItem(first, HealthStatus.Healthy, Now.Subtract(staleAfter)));
+
+        IReadOnlyList<TrayInstanceEffectiveState> previous = TrayInstanceStateChangePolicy.Capture(snapshot, Now, staleAfter);
+        IReadOnlyList<TrayInstanceEffectiveState> current = TrayInstanceStateChangePolicy.Capture(snapshot, Now.AddTicks(1), staleAfter);
+        IReadOnlyList<TrayInstanceStateChange> changes = TrayInstanceStateChangePolicy.DetectChanges(previous, current);
+
+        Assert.Equal(TrayAggregateState.Critical, TrayFleetPresentationPolicy.Summarise(snapshot, Now, staleAfter).State);
+        Assert.Equal(TrayAggregateState.Critical, TrayFleetPresentationPolicy.Summarise(snapshot, Now.AddTicks(1), staleAfter).State);
+        Assert.Equal([first, second], changes.Select(change => change.InstanceId));
+        Assert.All(changes, change => Assert.Equal(EvidenceFreshness.Current, change.Previous.Freshness));
+        Assert.All(changes, change => Assert.Equal(EvidenceFreshness.Stale, change.Current.Freshness));
+    }
+
+    /// <summary>Verifies that health status participates in effective state even when freshness remains unchanged.</summary>
+    [Fact]
+    public void HealthStatusChangeIsDetectedWithUnchangedFreshness()
+    {
+        Guid instanceId = Guid.Parse("40000000-0000-0000-0000-000000000001");
+        IReadOnlyList<TrayInstanceEffectiveState> previous = TrayInstanceStateChangePolicy.Capture(
+            CreateSnapshot(CreateItem(instanceId, HealthStatus.Healthy, Now)),
+            Now,
+            TimeSpan.FromMinutes(5));
+        IReadOnlyList<TrayInstanceEffectiveState> current = TrayInstanceStateChangePolicy.Capture(
+            CreateSnapshot(CreateItem(instanceId, HealthStatus.Maintenance, Now)),
+            Now,
+            TimeSpan.FromMinutes(5));
+
+        TrayInstanceStateChange change = Assert.Single(TrayInstanceStateChangePolicy.DetectChanges(previous, current));
+
+        Assert.Equal(instanceId, change.InstanceId);
+        Assert.Equal(HealthStatus.Healthy, change.Previous.Status);
+        Assert.Equal(HealthStatus.Maintenance, change.Current.Status);
+        Assert.Equal(EvidenceFreshness.Current, change.Previous.Freshness);
+        Assert.Equal(EvidenceFreshness.Current, change.Current.Freshness);
+    }
+
+    /// <summary>Verifies that the STATE-05 age profile emits exactly three post-baseline changes without replaying the already stale item.</summary>
+    [Fact]
+    public void DemonstrationAgeProfileProducesThreeIndividualPostBaselineChanges()
+    {
+        Guid finance = Guid.Parse("00000000-0000-0000-0000-000000000001");
+        Guid orders = Guid.Parse("00000000-0000-0000-0000-000000000002");
+        Guid analytics = Guid.Parse("00000000-0000-0000-0000-000000000003");
+        Guid catalogue = Guid.Parse("00000000-0000-0000-0000-000000000004");
+        TimeSpan staleAfter = TimeSpan.FromMinutes(5);
+        InventorySnapshot snapshot = CreateSnapshot(
+            CreateItem(finance, HealthStatus.Healthy, Now.AddSeconds(-38)),
+            CreateItem(orders, HealthStatus.Degraded, Now.AddMinutes(-2)),
+            CreateItem(analytics, HealthStatus.Timeout, Now.AddMinutes(-3)),
+            CreateItem(catalogue, HealthStatus.Unknown, Now.AddMinutes(-9)));
+        IReadOnlyList<TrayInstanceEffectiveState> baseline = TrayInstanceStateChangePolicy.Capture(snapshot, Now, staleAfter);
+
+        IReadOnlyList<TrayInstanceEffectiveState> afterAnalytics = TrayInstanceStateChangePolicy.Capture(
+            snapshot,
+            Now.AddMinutes(2).AddTicks(1),
+            staleAfter);
+        IReadOnlyList<TrayInstanceEffectiveState> afterOrders = TrayInstanceStateChangePolicy.Capture(
+            snapshot,
+            Now.AddMinutes(3).AddTicks(1),
+            staleAfter);
+        IReadOnlyList<TrayInstanceEffectiveState> afterFinance = TrayInstanceStateChangePolicy.Capture(
+            snapshot,
+            Now.AddMinutes(4).AddSeconds(22).AddTicks(1),
+            staleAfter);
+
+        Assert.Equal(
+            [analytics],
+            TrayInstanceStateChangePolicy.DetectChanges(baseline, afterAnalytics).Select(change => change.InstanceId));
+        Assert.Equal(
+            [orders],
+            TrayInstanceStateChangePolicy.DetectChanges(afterAnalytics, afterOrders).Select(change => change.InstanceId));
+        Assert.Equal(
+            [finance],
+            TrayInstanceStateChangePolicy.DetectChanges(afterOrders, afterFinance).Select(change => change.InstanceId));
+        Assert.Empty(TrayInstanceStateChangePolicy.DetectChanges(afterFinance, afterFinance));
+    }
+
     /// <summary>Verifies that future delivery is change-only, opt-in and suppressed for the initial snapshot.</summary>
     [Fact]
     public void NotificationPolicyRequiresOptInPriorStateAndMaterialChange()
@@ -182,4 +352,29 @@ public sealed class TrayPresentationTests
         Assert.False(TrayFleetPresentationPolicy.ShouldNotify(healthy, healthy, notificationsEnabled: true));
         Assert.True(TrayFleetPresentationPolicy.ShouldNotify(healthy, warning, notificationsEnabled: true));
     }
+
+    /// <summary>Creates an immutable inventory snapshot for pure presentation-policy tests.</summary>
+    /// <param name="items">Provider-neutral inventory items included in the snapshot.</param>
+    /// <returns>A versioned inventory snapshot generated at the shared test instant.</returns>
+    private static InventorySnapshot CreateSnapshot(params InstanceInventoryItem[] items) =>
+        new(InventorySnapshot.CurrentSchemaVersion, Now, items);
+
+    /// <summary>Creates one current or ageable inventory item without provider-specific evidence.</summary>
+    /// <param name="instanceId">Stable identifier assigned to the test instance.</param>
+    /// <param name="status">Provider-neutral health status assigned to the test evidence.</param>
+    /// <param name="receivedAt">UTC instant used for both observation and authoritative receipt.</param>
+    /// <returns>An enabled demonstration inventory item suitable for freshness evaluation.</returns>
+    private static InstanceInventoryItem CreateItem(Guid instanceId, HealthStatus status, DateTimeOffset receivedAt) =>
+        new(
+            instanceId,
+            $"Instance {instanceId:N}",
+            "demonstration",
+            "Not homologated",
+            "Test",
+            "Local",
+            status,
+            receivedAt,
+            receivedAt,
+            TimeSpan.FromMilliseconds(5),
+            Enabled: true);
 }

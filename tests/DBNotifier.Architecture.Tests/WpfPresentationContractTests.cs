@@ -167,15 +167,19 @@ public sealed class WpfPresentationContractTests
                 Regex.Escape("Forms.SystemInformation.SmallIconSize.Width"),
                 RegexOptions.CultureInvariant));
         Assert.DoesNotContain("Forms.SystemInformation.IconSize.Width", trayController, StringComparison.Ordinal);
-        Assert.Contains("TrayNotificationMeaning.AvailabilityOrRecovery", trayController, StringComparison.Ordinal);
         Assert.Contains("TrayNotificationPresentationPolicy.ResolveIconState", trayController, StringComparison.Ordinal);
-        Assert.Contains("notifyIcon.Icon = availabilityNotificationIcon", trayController, StringComparison.Ordinal);
+        Assert.Contains("notifyIcon.Icon = notificationMeaningIcon", trayController, StringComparison.Ordinal);
         Assert.Contains("notifyIcon.Icon = applicationIcon", trayController, StringComparison.Ordinal);
-        Assert.Contains("notifyIcon.BalloonTipShown += NotifyIconBalloonTipShown", trayController, StringComparison.Ordinal);
+        Assert.DoesNotContain("notifyIcon.BalloonTipShown +=", trayController, StringComparison.Ordinal);
+        Assert.DoesNotContain("notifyIcon.BalloonTipClosed +=", trayController, StringComparison.Ordinal);
+        Assert.Contains("notifyIcon.BalloonTipClicked += NotifyIconBalloonTipClicked", trayController, StringComparison.Ordinal);
         Assert.Contains("Interval = TrayNotificationIconLeasePolicy.FallbackDelay", trayController, StringComparison.Ordinal);
+        Assert.Contains("LegacyNotificationDisplayInterval = TimeSpan.FromSeconds(4)", trayController, StringComparison.Ordinal);
         Assert.Contains("notificationIconRestoreTimer.Start()", trayController, StringComparison.Ordinal);
+        Assert.Contains("legacyNotificationAdvanceTimer.Start()", trayController, StringComparison.Ordinal);
+        Assert.Contains("Stopwatch.GetElapsedTime(notificationIconLeaseStartedTimestamp)", trayController, StringComparison.Ordinal);
+        Assert.Contains("Stopwatch.GetElapsedTime(legacyNotificationStartedTimestamp)", trayController, StringComparison.Ordinal);
         Assert.Contains("TrayNotificationIconLeasePolicy.Resolve", trayController, StringComparison.Ordinal);
-        Assert.Contains("TrayNotificationIconLeaseSignal.BalloonShown", trayController, StringComparison.Ordinal);
         Assert.Contains("TrayNotificationIconLeaseSignal.FallbackElapsed", trayController, StringComparison.Ordinal);
         Assert.Contains("TrayNotificationIconLeaseSignal.DeliveryFailed", trayController, StringComparison.Ordinal);
         Assert.Contains("TrayNotificationIconLeaseSignal.Disposed", trayController, StringComparison.Ordinal);
@@ -183,7 +187,17 @@ public sealed class WpfPresentationContractTests
         Assert.Contains("ShowCloseToTrayNotification()", trayController, StringComparison.Ordinal);
         Assert.Contains("WindowsAppNotificationPublisher.TryCreate", trayController, StringComparison.Ordinal);
         Assert.Contains("appNotificationPublisher?.TryPublishAvailability(title, message)", trayController, StringComparison.Ordinal);
-        Assert.Contains("ShowLegacyCloseToTrayNotification(title, message)", trayController, StringComparison.Ordinal);
+        Assert.Contains("instanceStates = evidence.CaptureInstanceStates(evidence.GeneratedAt)", trayController, StringComparison.Ordinal);
+        Assert.Contains("TrayInstanceStateChangePolicy.DetectChanges", trayController, StringComparison.Ordinal);
+        Assert.True(
+            trayController.IndexOf("instanceStates = nextInstanceStates", StringComparison.Ordinal) <
+            trayController.IndexOf("PublishDemonstrationStatusChanges(changes)", StringComparison.Ordinal),
+            "The local baseline must advance before status-change delivery is attempted.");
+        Assert.Contains("TryPublishDemonstrationStatusChange", trayController, StringComparison.Ordinal);
+        Assert.Contains("QueueLegacyNotification(title, message, meaning)", trayController, StringComparison.Ordinal);
+        Assert.Contains("MaximumLegacyNotificationQueueLength = 16", trayController, StringComparison.Ordinal);
+        Assert.Contains("legacyNotificationQueue.Enqueue", trayController, StringComparison.Ordinal);
+        Assert.Contains("legacyNotificationInFlight", trayController, StringComparison.Ordinal);
         Assert.Contains("notificationIconRestoreTimer.Stop();", trayController, StringComparison.Ordinal);
         Assert.DoesNotContain("firstHide", trayController, StringComparison.Ordinal);
         Assert.DoesNotContain("ShowFirstHideNotification", trayController, StringComparison.Ordinal);
@@ -198,6 +212,24 @@ public sealed class WpfPresentationContractTests
         Assert.Contains("runtime-initialisation-failed", notificationPublisher, StringComparison.Ordinal);
         Assert.Contains("manager.Register(DisplayName, new Uri(iconPath))", notificationPublisher, StringComparison.Ordinal);
         Assert.Contains("DBNotifier.Availability.png", notificationPublisher, StringComparison.Ordinal);
+        Assert.Contains("TryPublishDemonstrationStatusChange", notificationPublisher, StringComparison.Ordinal);
+        Assert.Contains("SetAppLogoOverride(new Uri(iconPath), AppNotificationImageCrop.Default, title)", notificationPublisher, StringComparison.Ordinal);
+        Assert.Contains("DBNotifier.Healthy.png", notificationPublisher, StringComparison.Ordinal);
+        Assert.Contains("DBNotifier.Warning.png", notificationPublisher, StringComparison.Ordinal);
+        Assert.Contains("DBNotifier.Critical.png", notificationPublisher, StringComparison.Ordinal);
+        Assert.Contains("DBNotifier.Unknown.png", notificationPublisher, StringComparison.Ordinal);
+        Assert.Contains("private const string AvailabilityGroup = \"local-avail\"", notificationPublisher, StringComparison.Ordinal);
+        Assert.Contains("private const string DemonstrationStatusGroup = \"local-demo\"", notificationPublisher, StringComparison.Ordinal);
+        Assert.Contains("WindowsNotificationIdentifierMaximumLength = 16", notificationPublisher, StringComparison.Ordinal);
+        Assert.Contains("Guid.NewGuid().ToString(\"N\")[..4]", notificationPublisher, StringComparison.Ordinal);
+        Assert.Contains("instanceId.ToString(\"N\")[^3..]", notificationPublisher, StringComparison.Ordinal);
+        Assert.Contains("$\"d{demonstrationStatusSession}{instanceSuffix}{sequence:x8}\"", notificationPublisher, StringComparison.Ordinal);
+        Assert.Contains("CreateDemonstrationStatusTag(instanceId)", notificationPublisher, StringComparison.Ordinal);
+        Assert.Contains("Interlocked.Increment(ref demonstrationStatusSequence)", notificationPublisher, StringComparison.Ordinal);
+        Assert.Contains("tag.Length <= WindowsNotificationIdentifierMaximumLength", notificationPublisher, StringComparison.Ordinal);
+        Assert.Equal(16, 1 + 4 + 3 + 8);
+        Assert.Contains("DemonstrationStatusGroup", notificationPublisher, StringComparison.Ordinal);
+        Assert.Contains(".MuteAudio()", notificationPublisher, StringComparison.Ordinal);
         Assert.Contains("notification.Tag = AvailabilityTag", notificationPublisher, StringComparison.Ordinal);
         Assert.Contains("notification.Group = AvailabilityGroup", notificationPublisher, StringComparison.Ordinal);
         Assert.Contains("notification.Expiration = DateTimeOffset.UtcNow.Add(AvailabilityLifetime)", notificationPublisher, StringComparison.Ordinal);
@@ -213,7 +245,10 @@ public sealed class WpfPresentationContractTests
         Assert.Contains("<WindowsPackageType>None</WindowsPackageType>", project, StringComparison.Ordinal);
         Assert.Contains("<WindowsAppSdkBootstrapInitialize>false</WindowsAppSdkBootstrapInitialize>", project, StringComparison.Ordinal);
         Assert.Contains("<PackageReference Include=\"Microsoft.WindowsAppSDK\" />", project, StringComparison.Ordinal);
-        Assert.Contains("NotificationAssets\\DBNotifier.Availability.png", project, StringComparison.Ordinal);
+        foreach (string asset in new[] { "Availability", "Healthy", "Warning", "Critical", "Unknown" })
+        {
+            Assert.Contains($"NotificationAssets\\DBNotifier.{asset}.png", project, StringComparison.Ordinal);
+        }
         Assert.Contains("WmSetIcon", policy, StringComparison.Ordinal);
         Assert.Contains("IconSmall2", policy, StringComparison.Ordinal);
         Assert.Contains("IconBig", policy, StringComparison.Ordinal);
@@ -275,7 +310,10 @@ public sealed class WpfPresentationContractTests
         Assert.Contains("FormatUtc(evidence.GeneratedAt)", mainWindow, StringComparison.Ordinal);
         Assert.DoesNotContain("fixtureGeneratedAt", mainWindow, StringComparison.Ordinal);
         Assert.Contains("TrayFleetPresentationPolicy.Summarise(CreateInventorySnapshot", evidence, StringComparison.Ordinal);
+        Assert.Contains("TrayInstanceStateChangePolicy.Capture(CreateInventorySnapshot", evidence, StringComparison.Ordinal);
         Assert.Contains("Interval = TimeSpan.FromSeconds(30)", trayController, StringComparison.Ordinal);
+        Assert.Contains("TrayInstanceStateChangePolicy.DetectChanges", trayController, StringComparison.Ordinal);
+        Assert.Contains("PublishDemonstrationStatusChanges(changes)", trayController, StringComparison.Ordinal);
         Assert.Contains("window.RefreshOperationalEvidence(evaluatedAt, next.State)", trayController, StringComparison.Ordinal);
         Assert.DoesNotContain("notifyIcon.DoubleClick", trayController, StringComparison.Ordinal);
         Assert.Contains("FormatUtc(evidence.GeneratedAt)", flyout, StringComparison.Ordinal);

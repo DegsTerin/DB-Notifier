@@ -2,7 +2,7 @@
 
 ## Versão atual
 
-- Versão: `3.52.1`
+- Versão: `3.53.0`
 - Data: 2026-07-16
 - Status: corpus DB-Notifier consolidado
 - Escopo: 13 arquivos ativos
@@ -16,6 +16,13 @@ A versão do corpus é independente da versão do software.
 - PATCH: clareza, correção ou referência sem mudança de autoridade.
 
 Toda alteração atualiza este arquivo e, quando necessário, `../Start-Here.md`.
+
+## 3.53.0 — 2026-07-16
+
+- Bruno autorizou explicitamente uma remediação demonstrativa local no `STATE-05`: uma notificação por mudança individual da fixture, sem notificação inicial, Agent, API, banco externo ou transição.
+- Design System `3.0.1` e `AGENTS.md` passam a reconhecer essa exceção estritamente delimitada: baseline silencioso, diff por `InstanceId`/health/freshness, texto local sem dados externos, marca semântica por evento, baseline avançado antes da entrega e fallback legado limitado/serializado por timer monotónico.
+- O publicador moderno mantém disponibilidade e mudanças em grupos separados, limita tag/grupo a 16 caracteres, usa tag única, `SetAppLogoOverride` derivado dos novos PNGs canônicos e áudio silenciado; ativação continua restrita a revelar o shell local. Aceitação pelo Windows não prova apresentação visível.
+- `MN-004` continua proprietário do requisito amplo. Estado reconciliado, preferência persistida, deduplicação durável, acknowledgement, quiet policy operacional, auditoria e canais pertencem ao `STATE-06`; o Human Gate permanece pendente e nenhuma progressão foi inferida.
 
 ## 3.52.1 — 2026-07-16
 

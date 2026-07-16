@@ -36,10 +36,10 @@ internal sealed class DesktopDemonstrationEvidence
     internal static DesktopDemonstrationEvidence Create(DateTimeOffset generatedAt) => new(
         generatedAt,
         [
-            new("00000000-0000-0000-0000-000000000001", "Sample.Instance.Finance", "postgresql", "Sample.Support.Implemented", "Sample.Environment.Production", "Sample.Location.Datacentre", null, HealthStatus.Healthy, generatedAt.AddSeconds(-38), 24),
-            new("00000000-0000-0000-0000-000000000002", "Sample.Instance.Orders", "mysql", "Sample.Support.Planned", "Sample.Environment.Production", "Sample.Location.PrivateCloud", null, HealthStatus.Degraded, generatedAt.AddMinutes(-2), 86),
-            new("00000000-0000-0000-0000-000000000003", "Sample.Instance.Analytics", "sql-server", "Sample.Support.Planned", "Sample.Environment.Validation", null, "Azure", HealthStatus.Timeout, generatedAt.AddMinutes(-3), null),
-            new("00000000-0000-0000-0000-000000000004", "Sample.Instance.Catalogue", "mongodb", "Sample.Support.Planned", "Sample.Environment.Development", "Sample.Location.LocalLinux", null, HealthStatus.Unknown, generatedAt.AddMinutes(-9), null),
+            new(Guid.Parse("00000000-0000-0000-0000-000000000001"), "Sample.Instance.Finance", "postgresql", "Sample.Support.Implemented", "Sample.Environment.Production", "Sample.Location.Datacentre", null, HealthStatus.Healthy, generatedAt.AddSeconds(-38), 24),
+            new(Guid.Parse("00000000-0000-0000-0000-000000000002"), "Sample.Instance.Orders", "mysql", "Sample.Support.Planned", "Sample.Environment.Production", "Sample.Location.PrivateCloud", null, HealthStatus.Degraded, generatedAt.AddMinutes(-2), 86),
+            new(Guid.Parse("00000000-0000-0000-0000-000000000003"), "Sample.Instance.Analytics", "sql-server", "Sample.Support.Planned", "Sample.Environment.Validation", null, "Azure", HealthStatus.Timeout, generatedAt.AddMinutes(-3), null),
+            new(Guid.Parse("00000000-0000-0000-0000-000000000004"), "Sample.Instance.Catalogue", "mongodb", "Sample.Support.Planned", "Sample.Environment.Development", "Sample.Location.LocalLinux", null, HealthStatus.Unknown, generatedAt.AddMinutes(-9), null),
         ]);
 
     /// <summary>Builds a localised inventory projection while preserving the immutable operational evidence.</summary>
@@ -56,6 +56,18 @@ internal sealed class DesktopDemonstrationEvidence
     /// <returns>The same provider-neutral aggregate consumed by all product-mark surfaces.</returns>
     internal TrayFleetSummary Summarise(DateTimeOffset now) =>
         TrayFleetPresentationPolicy.Summarise(CreateInventorySnapshot(static key => key), now, StaleAfter);
+
+    /// <summary>Captures the provider-neutral per-instance baseline used only by local demonstration change notifications.</summary>
+    /// <param name="now">Current UTC instant used only to evaluate canonical freshness.</param>
+    /// <returns>Effective instance states ordered by their stable identifiers.</returns>
+    internal IReadOnlyList<TrayInstanceEffectiveState> CaptureInstanceStates(DateTimeOffset now) =>
+        TrayInstanceStateChangePolicy.Capture(CreateInventorySnapshot(static key => key), now, StaleAfter);
+
+    /// <summary>Finds the immutable demonstration item associated with one captured instance state.</summary>
+    /// <param name="instanceId">Stable identifier emitted by the per-instance change policy.</param>
+    /// <returns>The matching local fixture item, or null when the identifier is not part of this snapshot.</returns>
+    internal DesktopDemonstrationItem? FindItem(Guid instanceId) =>
+        Items.SingleOrDefault(item => item.InstanceId == instanceId);
 
     /// <summary>Creates one inventory projection through a supplied label resolver.</summary>
     /// <param name="translate">Resolver for canonical message keys; operational summarisation may retain the keys verbatim.</param>
@@ -78,7 +90,7 @@ internal sealed class DesktopDemonstrationEvidence
 /// <param name="ReceivedAt">Immutable receipt instant.</param>
 /// <param name="LatencyMilliseconds">Optional bounded demonstration latency.</param>
 internal sealed record DesktopDemonstrationItem(
-    string InstanceId,
+    Guid InstanceId,
     string DisplayNameKey,
     string ProviderType,
     string SupportLabelKey,
@@ -97,7 +109,7 @@ internal sealed record DesktopDemonstrationItem(
         ArgumentNullException.ThrowIfNull(translate);
         string location = LocationKey is null ? LocationLiteral ?? string.Empty : translate(LocationKey);
         return new(
-            Guid.Parse(InstanceId),
+            InstanceId,
             translate(DisplayNameKey),
             ProviderType,
             translate(SupportLabelKey),
