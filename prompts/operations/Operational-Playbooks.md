@@ -18,11 +18,16 @@ Quando usar: correção ou melhoria delimitada.
 
 Quando usar: pedido explícito de revisão ponta a ponta.
 
-- Inspecionar arquitetura, código, providers, segurança, dados, UI, testes, empacotamento e documentação.
-- Validar local/remoto, stale, reconexão, alerta e notificações.
-- Validar Start/Stop/Restart por capability e privilégio.
-- Priorizar achados por criticidade com reprodução.
-- Diagnóstico não autoriza correção, salvo quando o pedido incluir implementação.
+1. Mapear a estrutura, as tecnologias, os módulos, as dependências e os processos reais de build, teste e automação antes de concluir sobre o projeto.
+2. Inspecionar arquitetura, configuração, código-fonte, scripts, providers, integrações, dados, segurança, logs, tratamento de erros, desempenho, UI, testes, empacotamento, documentação e experiência de desenvolvimento.
+3. Avaliar cada linguagem e framework segundo suas convenções oficiais e, quando aplicável, separação de responsabilidades, SOLID, DRY, KISS, OWASP, concorrência, gestão de recursos, compatibilidade e manutenção futura.
+4. Validar comportamento local/remoto, stale/unknown, falhas parciais, reconexão, alertas e notificações sem apresentar alcance de transporte como saúde autenticada.
+5. Validar Start/Stop/Restart somente contra capability, identidade, privilégio, confirmação, idempotência, auditoria e homologação comprovados; ausência de prova permanece `Unsupported`, `Unavailable`, `Denied` ou não testada conforme o fato.
+6. Executar os testes e verificações estáticas reais que sejam seguros e aplicáveis ao estado autorizado, registrando comandos, versões, ambiente, exit codes, limitações e evidência sanitizada.
+7. Classificar cada achado como Crítico, Alto, Médio ou Baixo e informar arquivo/localização, categoria, descrição técnica, evidência ou reprodução, impacto atual e futuro, causa e correção recomendada.
+8. Produzir resumo executivo, estado geral, lista de achados, riscos, melhorias, prioridade de correção e plano de ação sugerido, distinguindo observado, inferido, não testado e bloqueado.
+
+Auditoria não autoriza correção. Não alterar arquivos durante o diagnóstico nem avançar o ciclo de vida; apresentar primeiro os achados e aguardar aprovação específica antes de implementar qualquer remediação.
 
 ## Dashboard
 

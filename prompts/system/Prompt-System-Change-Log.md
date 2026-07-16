@@ -2,7 +2,7 @@
 
 ## Versão atual
 
-- Versão: `3.51.1`
+- Versão: `3.51.2`
 - Data: 2026-07-16
 - Status: corpus DB-Notifier consolidado
 - Escopo: 13 arquivos ativos
@@ -16,6 +16,12 @@ A versão do corpus é independente da versão do software.
 - PATCH: clareza, correção ou referência sem mudança de autoridade.
 
 Toda alteração atualiza este arquivo e, quando necessário, `../Start-Here.md`.
+
+## 3.51.2 — 2026-07-16
+
+- A instrução avulsa `Prompt-Audit.md` foi consolidada no playbook canónico `Auditoria completa`, preservando o corpus em 13 arquivos ativos e sem criar uma autoridade operacional paralela.
+- O playbook passa a explicitar inventário técnico, cobertura de código/configuração/dependências/segurança/desempenho, checks reais, classificação reproduzível dos achados e estrutura do relatório final.
+- A auditoria continua somente diagnóstica: não autoriza correção, transição de estado nem ação externa e exige aprovação específica antes de qualquer remediação.
 
 ## 3.51.1 — 2026-07-16
 
