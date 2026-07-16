@@ -22,6 +22,7 @@ internal sealed class TrayApplicationController : IDisposable
     private readonly System.Windows.Application application;
     private readonly DesktopLocalisationService localisation;
     private readonly DesktopDemonstrationEvidence evidence;
+    private readonly IReadOnlyList<TrayNotificationTransitionValidationCase> transitionValidationCases;
     private Icon applicationIcon;
     private Icon? notificationMeaningIcon;
     private readonly Forms.NotifyIcon notifyIcon;
@@ -38,6 +39,7 @@ internal sealed class TrayApplicationController : IDisposable
     private bool legacyNotificationInFlight;
     private long legacyNotificationStartedTimestamp;
     private long notificationIconLeaseStartedTimestamp;
+    private int nextTransitionValidationCaseIndex;
     private TrayNotificationIconLeaseState notificationIconLeaseState = TrayNotificationIconLeaseState.Aggregate;
 
     /// <summary>Initialises tray controls from the shared fleet summary and subscribes to window and language state changes.</summary>
@@ -46,17 +48,22 @@ internal sealed class TrayApplicationController : IDisposable
     /// <param name="localisation">Localisation owner used by Tray text and the flyout.</param>
     /// <param name="evidence">Immutable locale-independent evidence shared with the full desktop shell.</param>
     /// <param name="initialSummary">Aggregate evaluated at the evidence creation instant.</param>
+    /// <param name="notificationValidationMode">Explicit validation-only mode; invalid values fail safely to normal fixture behaviour.</param>
     public TrayApplicationController(
         MainWindow window,
         System.Windows.Application application,
         DesktopLocalisationService localisation,
         DesktopDemonstrationEvidence evidence,
-        TrayFleetSummary initialSummary)
+        TrayFleetSummary initialSummary,
+        TrayNotificationValidationMode notificationValidationMode)
     {
         this.window = window;
         this.application = application;
         this.localisation = localisation;
         this.evidence = evidence;
+        transitionValidationCases = notificationValidationMode == TrayNotificationValidationMode.TransitionMatrix
+            ? TrayNotificationTransitionValidationMatrix.Cases
+            : [];
         fleetSummary = initialSummary;
         instanceStates = evidence.CaptureInstanceStates(evidence.GeneratedAt);
         flyout = new TrayFlyoutWindow(localisation, evidence, initialSummary, ShowView, () => Apply(TrayWindowIntent.Exit));
@@ -166,18 +173,19 @@ internal sealed class TrayApplicationController : IDisposable
     /// <summary>Refreshes tray labels after an interface-language change.</summary>
     private void LanguageChanged(object? sender, EventArgs e)
     {
-        RefreshFleetPresentation(TimeProvider.System.GetUtcNow());
+        RefreshFleetPresentation(TimeProvider.System.GetUtcNow(), advanceTransitionValidation: false);
     }
 
     /// <summary>Reconciles the shared immutable evidence at the bounded desktop refresh interval.</summary>
     /// <param name="sender">Dispatcher timer that owns no external work.</param>
     /// <param name="e">Timer event metadata.</param>
     private void FleetRefreshTimerTick(object? sender, EventArgs e) =>
-        RefreshFleetPresentation(TimeProvider.System.GetUtcNow());
+        RefreshFleetPresentation(TimeProvider.System.GetUtcNow(), advanceTransitionValidation: true);
 
-    /// <summary>Updates shell, flyout, tooltip and Tray icon, then publishes each post-baseline local fixture change once.</summary>
+    /// <summary>Updates every factual surface, then advances either normal fixture changes or one explicit validation case.</summary>
     /// <param name="evaluatedAt">UTC instant used only to age the immutable evidence.</param>
-    private void RefreshFleetPresentation(DateTimeOffset evaluatedAt)
+    /// <param name="advanceTransitionValidation">Whether this timer-owned refresh may advance the validation-only matrix.</param>
+    private void RefreshFleetPresentation(DateTimeOffset evaluatedAt, bool advanceTransitionValidation)
     {
         TrayFleetSummary next = evidence.Summarise(evaluatedAt);
         IReadOnlyList<TrayInstanceEffectiveState> nextInstanceStates = evidence.CaptureInstanceStates(evaluatedAt);
@@ -195,7 +203,14 @@ internal sealed class TrayApplicationController : IDisposable
         RefreshText();
         flyout.RefreshPresentation(evaluatedAt, next);
         window.RefreshOperationalEvidence(evaluatedAt, next.State);
-        PublishDemonstrationStatusChanges(changes);
+        if (transitionValidationCases.Count == 0)
+        {
+            PublishDemonstrationStatusChanges(changes);
+        }
+        else if (advanceTransitionValidation)
+        {
+            PublishNextTransitionValidationCase();
+        }
     }
 
     /// <summary>Replaces the owned factual Tray icon without disturbing an active notification-meaning lease.</summary>
@@ -224,7 +239,7 @@ internal sealed class TrayApplicationController : IDisposable
     {
         if (e.Button is Forms.MouseButtons.Left or Forms.MouseButtons.Right)
         {
-            RefreshFleetPresentation(TimeProvider.System.GetUtcNow());
+            RefreshFleetPresentation(TimeProvider.System.GetUtcNow(), advanceTransitionValidation: false);
             ToggleFlyout();
         }
     }
@@ -368,25 +383,57 @@ internal sealed class TrayApplicationController : IDisposable
                 continue;
             }
 
-            string title = localisation.Text("Tray.StatusChangeTitle");
-            string message = localisation.Text(
-                "Tray.StatusChangeMessage",
-                localisation.Text(item.DisplayNameKey),
-                LocaliseEffectiveState(change.Previous),
-                LocaliseEffectiveState(change.Current));
-            TrayNotificationMeaning meaning = TrayNotificationPresentationPolicy.ResolveMeaning(change.Current);
-
-            if (appNotificationPublisher?.TryPublishDemonstrationStatusChange(
-                    change.InstanceId,
-                    title,
-                    message,
-                    meaning) == true)
-            {
-                continue;
-            }
-
-            QueueLegacyNotification(title, message, meaning);
+            PublishDemonstrationStatusChange(
+                change,
+                localisation.Text("Tray.StatusChangeTitle"),
+                localisation.Text(item.DisplayNameKey));
         }
+    }
+
+    /// <summary>Advances one explicitly selected validation case without replaying normal fixture changes.</summary>
+    private void PublishNextTransitionValidationCase()
+    {
+        if (nextTransitionValidationCaseIndex >= transitionValidationCases.Count) return;
+
+        // Advance before platform delivery so fallback failure, language changes or re-entrant UI work cannot replay the case.
+        TrayNotificationTransitionValidationCase validationCase =
+            transitionValidationCases[nextTransitionValidationCaseIndex++];
+        string displayName = localisation.Text(
+            "Tray.TransitionValidationCase",
+            validationCase.Sequence,
+            transitionValidationCases.Count);
+        PublishDemonstrationStatusChange(
+            validationCase.Change,
+            localisation.Text("Tray.TransitionValidationTitle"),
+            displayName);
+    }
+
+    /// <summary>Formats and publishes one local demonstration or validation-only transition through the shared bounded adapters.</summary>
+    /// <param name="change">Provider-neutral effective-state transition to present.</param>
+    /// <param name="title">Localised title that distinguishes the owning demonstration or validation scenario.</param>
+    /// <param name="displayName">Localised non-external instance or validation-case label.</param>
+    private void PublishDemonstrationStatusChange(
+        TrayInstanceStateChange change,
+        string title,
+        string displayName)
+    {
+        string message = localisation.Text(
+            "Tray.StatusChangeMessage",
+            displayName,
+            LocaliseEffectiveState(change.Previous),
+            LocaliseEffectiveState(change.Current));
+        TrayNotificationMeaning meaning = TrayNotificationPresentationPolicy.ResolveMeaning(change.Current);
+
+        if (appNotificationPublisher?.TryPublishDemonstrationStatusChange(
+                change.InstanceId,
+                title,
+                message,
+                meaning) == true)
+        {
+            return;
+        }
+
+        QueueLegacyNotification(title, message, meaning);
     }
 
     /// <summary>Returns a factual localised state label while failing invalid freshness or status safely to Unknown.</summary>

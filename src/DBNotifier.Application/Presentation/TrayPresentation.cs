@@ -29,6 +29,37 @@ public static class TrayStartupPolicy
     }
 }
 
+/// <summary>Identifies whether the Windows client may run an explicitly requested local notification-validation scenario.</summary>
+public enum TrayNotificationValidationMode
+{
+    /// <summary>Uses only the normal immutable demonstration fixture and its factual freshness transitions.</summary>
+    Disabled,
+
+    /// <summary>Publishes the bounded deterministic transition matrix instead of normal fixture-change notifications.</summary>
+    TransitionMatrix,
+}
+
+/// <summary>Resolves the explicit command-line opt-in for the local notification-transition validation matrix.</summary>
+public static class TrayNotificationValidationPolicy
+{
+    private const string TransitionMatrixArgument = "--review-notification-transitions";
+
+    /// <summary>Returns the transition matrix only when the exact validation-only switch is present.</summary>
+    /// <param name="arguments">Command-line arguments supplied to the Windows client.</param>
+    /// <returns>The explicitly selected validation mode; unknown or absent arguments fail safely to Disabled.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="arguments"/> is null.</exception>
+    public static TrayNotificationValidationMode Resolve(IEnumerable<string> arguments)
+    {
+        ArgumentNullException.ThrowIfNull(arguments);
+        return arguments.Any(argument => string.Equals(
+            argument,
+            TransitionMatrixArgument,
+            StringComparison.OrdinalIgnoreCase))
+            ? TrayNotificationValidationMode.TransitionMatrix
+            : TrayNotificationValidationMode.Disabled;
+    }
+}
+
 /// <summary>Identifies a user or operating-system request affecting a tray-owned desktop window.</summary>
 public enum TrayWindowIntent
 {
@@ -238,6 +269,60 @@ public sealed record TrayInstanceStateChange(
     Guid InstanceId,
     TrayInstanceEffectiveState Previous,
     TrayInstanceEffectiveState Current);
+
+/// <summary>Describes one ordered, validation-only notification transition that never represents external evidence.</summary>
+/// <param name="Sequence">One-based position used to identify the case during a bounded human review.</param>
+/// <param name="Change">Provider-neutral transition supplied to the existing notification presentation path.</param>
+public sealed record TrayNotificationTransitionValidationCase(
+    int Sequence,
+    TrayInstanceStateChange Change);
+
+/// <summary>
+/// Owns the deterministic validation-only matrix requested for recovery and every departure from current Healthy evidence.
+/// The matrix does not schedule, deliver or persist notifications and is not part of the normal operational fixture.
+/// </summary>
+public static class TrayNotificationTransitionValidationMatrix
+{
+    private static readonly IReadOnlyList<TrayNotificationTransitionValidationCase> Matrix = Array.AsReadOnly(
+    [
+        CreateCase(1, "00000000-0000-0000-0000-000000000101", HealthStatus.Healthy, EvidenceFreshness.Stale, HealthStatus.Healthy, EvidenceFreshness.Current),
+        CreateCase(2, "00000000-0000-0000-0000-000000000102", HealthStatus.Healthy, EvidenceFreshness.Current, HealthStatus.Degraded, EvidenceFreshness.Current),
+        CreateCase(3, "00000000-0000-0000-0000-000000000103", HealthStatus.Healthy, EvidenceFreshness.Current, HealthStatus.Unavailable, EvidenceFreshness.Current),
+        CreateCase(4, "00000000-0000-0000-0000-000000000104", HealthStatus.Healthy, EvidenceFreshness.Current, HealthStatus.AuthFailed, EvidenceFreshness.Current),
+        CreateCase(5, "00000000-0000-0000-0000-000000000105", HealthStatus.Healthy, EvidenceFreshness.Current, HealthStatus.Timeout, EvidenceFreshness.Current),
+        CreateCase(6, "00000000-0000-0000-0000-000000000106", HealthStatus.Healthy, EvidenceFreshness.Current, HealthStatus.Maintenance, EvidenceFreshness.Current),
+        CreateCase(7, "00000000-0000-0000-0000-000000000107", HealthStatus.Healthy, EvidenceFreshness.Current, HealthStatus.Unknown, EvidenceFreshness.Current),
+        CreateCase(8, "00000000-0000-0000-0000-000000000108", HealthStatus.Healthy, EvidenceFreshness.Current, HealthStatus.Healthy, EvidenceFreshness.Stale),
+    ]);
+
+    /// <summary>Gets the immutable ordered matrix without starting timers, platform registration or delivery.</summary>
+    public static IReadOnlyList<TrayNotificationTransitionValidationCase> Cases => Matrix;
+
+    /// <summary>Creates one stable case whose prior and current states share the same validation-only identifier.</summary>
+    /// <param name="sequence">One-based matrix position.</param>
+    /// <param name="instanceId">Stable non-operational identifier reserved for this validation case.</param>
+    /// <param name="previousStatus">Provider-neutral status before the validation transition.</param>
+    /// <param name="previousFreshness">Canonical freshness before the validation transition.</param>
+    /// <param name="currentStatus">Provider-neutral status after the validation transition.</param>
+    /// <param name="currentFreshness">Canonical freshness after the validation transition.</param>
+    /// <returns>A deterministic transition case suitable for pure tests or an explicitly authorised local review.</returns>
+    private static TrayNotificationTransitionValidationCase CreateCase(
+        int sequence,
+        string instanceId,
+        HealthStatus previousStatus,
+        EvidenceFreshness previousFreshness,
+        HealthStatus currentStatus,
+        EvidenceFreshness currentFreshness)
+    {
+        Guid id = Guid.Parse(instanceId);
+        return new(
+            sequence,
+            new(
+                id,
+                new(id, previousStatus, previousFreshness),
+                new(id, currentStatus, currentFreshness)));
+    }
+}
 
 /// <summary>Captures and compares provider-neutral instance states without delivering notifications or inferring aggregate changes.</summary>
 public static class TrayInstanceStateChangePolicy

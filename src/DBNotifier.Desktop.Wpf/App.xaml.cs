@@ -14,8 +14,8 @@ public partial class App : System.Windows.Application, IDisposable
     private DesktopLocalisationService? localisation;
     private DesktopThemeService? theme;
 
-    /// <summary>Loads safe preferences and starts in the notification area unless an explicit audit switch requests the desktop.</summary>
-    /// <param name="e">Startup arguments; only <c>--show-desktop</c> changes the tray-first default.</param>
+    /// <summary>Loads safe preferences and starts in the notification area with only explicitly requested local review modes enabled.</summary>
+    /// <param name="e">Startup arguments; exact desktop and notification-transition review switches remain independent and opt-in.</param>
     protected override void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
@@ -29,7 +29,14 @@ public partial class App : System.Windows.Application, IDisposable
         TrayFleetSummary fleetSummary = evidence.Summarise(generatedAt);
         MainWindow window = new(localisation, theme, evidence, fleetSummary.State);
         MainWindow = window;
-        trayController = new TrayApplicationController(window, this, localisation, evidence, fleetSummary);
+        TrayNotificationValidationMode notificationValidationMode = TrayNotificationValidationPolicy.Resolve(e.Args);
+        trayController = new TrayApplicationController(
+            window,
+            this,
+            localisation,
+            evidence,
+            fleetSummary,
+            notificationValidationMode);
         if (TrayStartupPolicy.Resolve(e.Args) == TrayStartupMode.ShowDesktop)
         {
             window.Show();

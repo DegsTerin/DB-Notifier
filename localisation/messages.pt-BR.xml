@@ -265,4 +265,6 @@
   <message key="Tray.BalloonMessage">A janela foi recolhida. Nenhum banco ou serviço foi controlado.</message>
   <message key="Tray.StatusChangeTitle">Mudança de status na demonstração local</message>
   <message key="Tray.StatusChangeMessage">{0}: {1} → {2}. Demonstração local · sem dados externos.</message>
+  <message key="Tray.TransitionValidationCase">Validação de transição {0}/{1}</message>
+  <message key="Tray.TransitionValidationTitle">Validação local de transições de notificação</message>
 </localisation>

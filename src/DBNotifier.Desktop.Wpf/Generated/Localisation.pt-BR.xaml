@@ -1,4 +1,4 @@
-<!-- Generated from dbnotifier.localisation.v1; culture:pt-BR; source sha256:98cf5a40e66fd6d259c48b13d9ea8054d379fa612860a210c3d94912d71ca7ed. Do not edit directly. -->
+<!-- Generated from dbnotifier.localisation.v1; culture:pt-BR; source sha256:5dd30535a88ffe45c6ae5dfa41f8047abfb6365950d9f1f069bb4c1106799c59. Do not edit directly. -->
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:sys="clr-namespace:System;assembly=System.Runtime">
@@ -227,6 +227,8 @@
   <sys:String x:Key="Tray.StatusChangeTitle">Mudança de status na demonstração local</sys:String>
   <sys:String x:Key="Tray.Tooltip">DB Notifier · demonstração local</sys:String>
   <sys:String x:Key="Tray.TooltipSummary">DB Notifier · demo · {0}</sys:String>
+  <sys:String x:Key="Tray.TransitionValidationCase">Validação de transição {0}/{1}</sys:String>
+  <sys:String x:Key="Tray.TransitionValidationTitle">Validação local de transições de notificação</sys:String>
   <sys:String x:Key="TV.Active">Modo TV · demonstração</sys:String>
   <sys:String x:Key="TV.Enter">Ativar modo TV</sys:String>
   <sys:String x:Key="TV.Exit">Sair do modo TV</sys:String>

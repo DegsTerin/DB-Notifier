@@ -1076,6 +1076,17 @@
 - Riscos/ressalvas: a fixture operacional é imutável e só envelhece de Current para Stale; ela não pode provar recuperação ou mudanças de health. O finding é de cobertura, não uma falha observada da detecção ou entrega. Uma matriz local adicional e sua publicação Windows exigem autorização própria; nenhuma aprovação do Human Gate, restauração automática de `S05-HG-011` ou progressão foi inferida.
 - Aprovador: Bruno, como validador visual de Primary finance e autor do finding de cobertura; nenhuma remediação foi ainda autorizada.
 
+## 2026-07-16 — Matriz isolada de validação de transições 3.0.2
+
+- Estado anterior: `STATE-05 FRONTEND_IMPLEMENTATION`, progressão em espera, Human Gate pendente e finding de cobertura para `Stale → Healthy` e saídas de `Healthy` ainda aberto.
+- Estado resultante: sem transição; Design System `3.0.2` implementado e verificado automaticamente. A amostra Windows visível permanece não executada e `STATE-06` continua não autorizado.
+- Decisão: Bruno declarou exatamente `AUTORIZO a remediação local no STATE-05 para criar uma matriz determinística e isolada de validação das notificações Stale → Healthy e Healthy → Degraded/Unavailable/AuthFailed/Timeout/Maintenance/Unknown/Stale, com testes automáticos completos, sem alterar a fixture operacional normal, sem Agent/API/banco externo, ações externas ou transição.` A autorização cobre código/testes locais, não iniciar WPF nem emitir banners.
+- Escopo: argumento exato e disabled-by-default `--review-notification-transitions`; oito casos Application imutáveis, ordenados e individualmente identificados; startup notification-area-first silencioso; um caso por tick de 30 segundos; idioma/Tray sem avanço; supressão das transições da fixture normal durante a validação; avanço antes da entrega; texto `caso/total` localizado e verdade local/sem dados externos. A fixture normal, o publisher moderno/fallback, os ativos de marca e as fronteiras de Agent/API/provider/database permaneceram inalterados.
+- Gates: build Release da solução completa com zero avisos/erros; `225/225` testes unitários, `14/14` arquitetura e `42/42` Dashboard; cobertura `79,66%` linhas/`58,44%` branches; typecheck/build Vite, .NET format, drift de marca/tokens/localização e runtime fail-closed aprovados. A suíte legada em Windows PowerShell passou 23 testes com um skip condicional e `32,08%` de cobertura; bundle, documentação de 203 arquivos, 191 links Markdown e secret scan passaram. Os gates Git são concluídos com o commit.
+- Evidências: `TrayNotificationValidationPolicy`, `TrayNotificationTransitionValidationMatrix`, `TrayApplicationController`, catálogos/adapters gerados, `TrayPresentationTests`, `WpfPresentationContractTests`, Design System `3.0.2`, `REQ-067`, relatório e protocolo de Human Gate atualizados.
+- Riscos/ressalvas: nenhum processo WPF foi iniciado e nenhuma das oito notificações foi solicitada nesta remediação; código/testes não provam entrega visível. Windows Shell/Focus Assist continuam soberanos. Preferência persistida, deduplicação durável, acknowledgement, quiet policy, auditoria e estado reconciliado permanecem `STATE-06`.
+- Aprovador: implementação automática autorizada por Bruno no limite citado; nenhuma aprovação da amostra, do Human Gate ou da progressão foi inferida.
+
 ## Template de nova entrada
 
 - Data:

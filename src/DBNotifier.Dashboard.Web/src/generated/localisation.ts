@@ -1,4 +1,4 @@
-/** Generated from dbnotifier.localisation.v1; source sha256:98cf5a40e66fd6d259c48b13d9ea8054d379fa612860a210c3d94912d71ca7ed. Do not edit directly. */
+/** Generated from dbnotifier.localisation.v1; source sha256:5dd30535a88ffe45c6ae5dfa41f8047abfb6365950d9f1f069bb4c1106799c59. Do not edit directly. */
 const ptBRMessages = {
   "Action.Restart": "Reiniciar",
   "Action.Start": "Iniciar",
@@ -225,6 +225,8 @@ const ptBRMessages = {
   "Tray.StatusChangeTitle": "Mudança de status na demonstração local",
   "Tray.Tooltip": "DB Notifier · demonstração local",
   "Tray.TooltipSummary": "DB Notifier · demo · {0}",
+  "Tray.TransitionValidationCase": "Validação de transição {0}/{1}",
+  "Tray.TransitionValidationTitle": "Validação local de transições de notificação",
   "TV.Active": "Modo TV · demonstração",
   "TV.Enter": "Ativar modo TV",
   "TV.Exit": "Sair do modo TV",
@@ -492,6 +494,8 @@ const enGBMessages = {
   "Tray.StatusChangeTitle": "Local demonstration status changed",
   "Tray.Tooltip": "DB Notifier · local demonstration",
   "Tray.TooltipSummary": "DB Notifier · demo · {0}",
+  "Tray.TransitionValidationCase": "Transition validation {0}/{1}",
+  "Tray.TransitionValidationTitle": "Local notification transition validation",
   "TV.Active": "TV mode · demonstration",
   "TV.Enter": "Enter TV mode",
   "TV.Exit": "Exit TV mode",

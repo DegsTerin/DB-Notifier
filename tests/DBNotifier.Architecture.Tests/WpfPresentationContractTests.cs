@@ -189,6 +189,10 @@ public sealed class WpfPresentationContractTests
         Assert.Contains("appNotificationPublisher?.TryPublishAvailability(title, message)", trayController, StringComparison.Ordinal);
         Assert.Contains("instanceStates = evidence.CaptureInstanceStates(evidence.GeneratedAt)", trayController, StringComparison.Ordinal);
         Assert.Contains("TrayInstanceStateChangePolicy.DetectChanges", trayController, StringComparison.Ordinal);
+        Assert.Contains("TrayNotificationTransitionValidationMatrix.Cases", trayController, StringComparison.Ordinal);
+        Assert.Contains("PublishNextTransitionValidationCase()", trayController, StringComparison.Ordinal);
+        Assert.Contains("Tray.TransitionValidationTitle", trayController, StringComparison.Ordinal);
+        Assert.Contains("Tray.TransitionValidationCase", trayController, StringComparison.Ordinal);
         Assert.True(
             trayController.IndexOf("instanceStates = nextInstanceStates", StringComparison.Ordinal) <
             trayController.IndexOf("PublishDemonstrationStatusChanges(changes)", StringComparison.Ordinal),
@@ -305,15 +309,20 @@ public sealed class WpfPresentationContractTests
         string trayController = File.ReadAllText(Path.Combine(desktopDirectory, "TrayApplicationController.cs"));
 
         Assert.Equal(1, Regex.Count(application, "DesktopDemonstrationEvidence\\.Create", RegexOptions.CultureInvariant));
+        Assert.Contains("TrayNotificationValidationPolicy.Resolve(e.Args)", application, StringComparison.Ordinal);
+        Assert.Contains("notificationValidationMode", application, StringComparison.Ordinal);
         Assert.Contains("evidence.CreateInventorySnapshot(localisation)", mainWindow, StringComparison.Ordinal);
         Assert.Contains("CreateTimelineSnapshot(evidence.GeneratedAt)", mainWindow, StringComparison.Ordinal);
         Assert.Contains("FormatUtc(evidence.GeneratedAt)", mainWindow, StringComparison.Ordinal);
         Assert.DoesNotContain("fixtureGeneratedAt", mainWindow, StringComparison.Ordinal);
         Assert.Contains("TrayFleetPresentationPolicy.Summarise(CreateInventorySnapshot", evidence, StringComparison.Ordinal);
         Assert.Contains("TrayInstanceStateChangePolicy.Capture(CreateInventorySnapshot", evidence, StringComparison.Ordinal);
+        Assert.DoesNotContain("TrayNotificationTransitionValidationMatrix", evidence, StringComparison.Ordinal);
         Assert.Contains("Interval = TimeSpan.FromSeconds(30)", trayController, StringComparison.Ordinal);
         Assert.Contains("TrayInstanceStateChangePolicy.DetectChanges", trayController, StringComparison.Ordinal);
         Assert.Contains("PublishDemonstrationStatusChanges(changes)", trayController, StringComparison.Ordinal);
+        Assert.Contains("advanceTransitionValidation: false", trayController, StringComparison.Ordinal);
+        Assert.Contains("advanceTransitionValidation: true", trayController, StringComparison.Ordinal);
         Assert.Contains("window.RefreshOperationalEvidence(evaluatedAt, next.State)", trayController, StringComparison.Ordinal);
         Assert.DoesNotContain("notifyIcon.DoubleClick", trayController, StringComparison.Ordinal);
         Assert.Contains("FormatUtc(evidence.GeneratedAt)", flyout, StringComparison.Ordinal);

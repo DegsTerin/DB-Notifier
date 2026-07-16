@@ -149,8 +149,8 @@ internal sealed class WindowsAppNotificationPublisher : IDisposable
         }
     }
 
-    /// <summary>Attempts to publish one event-specific change from the authorised local STATE-05 demonstration fixture.</summary>
-    /// <param name="instanceId">Stable local fixture identifier used to keep Notification Centre entries distinct per instance.</param>
+    /// <summary>Attempts to publish one event-specific change from an authorised local STATE-05 demonstration or validation case.</summary>
+    /// <param name="instanceId">Stable local-only identifier used to keep Notification Centre entries distinct per case.</param>
     /// <param name="title">Localised title that explicitly identifies a demonstration status change.</param>
     /// <param name="message">Localised message naming the instance, previous state, current state and absence of external data.</param>
     /// <param name="meaning">Provider-neutral meaning used only to select the notification's canonical semantic mark.</param>
@@ -255,8 +255,8 @@ internal sealed class WindowsAppNotificationPublisher : IDisposable
             _ => "DBNotifier.Unknown.png",
         };
 
-    /// <summary>Creates a process-scoped tag that keeps each local fixture change distinct within the Windows identifier limit.</summary>
-    /// <param name="instanceId">Stable local fixture identifier contributing a short collision-reducing suffix.</param>
+    /// <summary>Creates a process-scoped tag that keeps each local demonstration or validation change distinct within the Windows identifier limit.</summary>
+    /// <param name="instanceId">Stable local-only identifier contributing a short collision-reducing suffix.</param>
     /// <returns>A sixteen-character tag containing a session fragment, instance fragment and monotonic sequence.</returns>
     /// <exception cref="InvalidOperationException">Thrown if the fixed-format tag ever exceeds the Windows contract.</exception>
     private string CreateDemonstrationStatusTag(Guid instanceId)

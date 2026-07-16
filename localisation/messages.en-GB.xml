@@ -265,4 +265,6 @@
   <message key="Tray.BalloonMessage">The window was hidden. No database or service was controlled.</message>
   <message key="Tray.StatusChangeTitle">Local demonstration status changed</message>
   <message key="Tray.StatusChangeMessage">{0}: {1} → {2}. Local demonstration · no external data.</message>
+  <message key="Tray.TransitionValidationCase">Transition validation {0}/{1}</message>
+  <message key="Tray.TransitionValidationTitle">Local notification transition validation</message>
 </localisation>

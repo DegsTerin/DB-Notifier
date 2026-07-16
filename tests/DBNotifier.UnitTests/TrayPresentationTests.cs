@@ -24,6 +24,27 @@ public sealed class TrayPresentationTests
         Assert.Equal(expected, TrayStartupPolicy.Resolve(arguments));
     }
 
+    /// <summary>Verifies that the transition matrix requires its exact independent opt-in and never reveals the desktop by itself.</summary>
+    /// <param name="expected">The validation mode expected for the supplied arguments.</param>
+    /// <param name="arguments">The command-line arguments under test.</param>
+    [Theory]
+    [InlineData(TrayNotificationValidationMode.Disabled)]
+    [InlineData(TrayNotificationValidationMode.TransitionMatrix, "--review-notification-transitions")]
+    [InlineData(TrayNotificationValidationMode.TransitionMatrix, "--REVIEW-NOTIFICATION-TRANSITIONS")]
+    [InlineData(TrayNotificationValidationMode.Disabled, "--show-desktop")]
+    [InlineData(TrayNotificationValidationMode.Disabled, "--review-notification-transition")]
+    public void NotificationTransitionValidationRequiresExactIndependentOptIn(
+        TrayNotificationValidationMode expected,
+        params string[] arguments)
+    {
+        Assert.Equal(expected, TrayNotificationValidationPolicy.Resolve(arguments));
+        Assert.Equal(
+            arguments.Contains("--show-desktop", StringComparer.OrdinalIgnoreCase)
+                ? TrayStartupMode.ShowDesktop
+                : TrayStartupMode.NotificationArea,
+            TrayStartupPolicy.Resolve(arguments));
+    }
+
     /// <summary>Verifies safe Tray action mapping and limits repeated availability confirmation to explicit close requests.</summary>
     /// <param name="intent">The window intention under test.</param>
     /// <param name="expected">The presentation action expected for the intention.</param>
@@ -297,6 +318,74 @@ public sealed class TrayPresentationTests
         Assert.Equal(HealthStatus.Maintenance, change.Current.Status);
         Assert.Equal(EvidenceFreshness.Current, change.Previous.Freshness);
         Assert.Equal(EvidenceFreshness.Current, change.Current.Freshness);
+    }
+
+    /// <summary>Verifies the complete isolated recovery, Healthy-departure and freshness matrix requested by the human reviewer.</summary>
+    [Fact]
+    public void NotificationTransitionValidationMatrixCoversEveryRequestedCaseExactlyOnce()
+    {
+        IReadOnlyList<TrayNotificationTransitionValidationCase> cases =
+            TrayNotificationTransitionValidationMatrix.Cases;
+        HealthStatus[] expectedHealthyDestinations = Enum.GetValues<HealthStatus>()
+            .Where(status => status != HealthStatus.Healthy)
+            .ToArray();
+
+        Assert.Equal(8, cases.Count);
+        Assert.Equal(Enumerable.Range(1, cases.Count), cases.Select(validationCase => validationCase.Sequence));
+        Assert.Equal(cases.Count, cases.Select(validationCase => validationCase.Change.InstanceId).Distinct().Count());
+        Assert.All(cases, validationCase =>
+        {
+            Assert.Equal(validationCase.Change.InstanceId, validationCase.Change.Previous.InstanceId);
+            Assert.Equal(validationCase.Change.InstanceId, validationCase.Change.Current.InstanceId);
+            Assert.Single(TrayInstanceStateChangePolicy.DetectChanges(
+                [validationCase.Change.Previous],
+                [validationCase.Change.Current]));
+        });
+
+        TrayNotificationTransitionValidationCase recovery = cases[0];
+        Assert.Equal(HealthStatus.Healthy, recovery.Change.Previous.Status);
+        Assert.Equal(EvidenceFreshness.Stale, recovery.Change.Previous.Freshness);
+        Assert.Equal(HealthStatus.Healthy, recovery.Change.Current.Status);
+        Assert.Equal(EvidenceFreshness.Current, recovery.Change.Current.Freshness);
+        Assert.Equal(
+            TrayNotificationMeaning.AvailabilityOrRecovery,
+            TrayNotificationPresentationPolicy.ResolveMeaning(recovery.Change.Current));
+
+        IReadOnlyList<TrayNotificationTransitionValidationCase> currentStatusDepartures = cases
+            .Where(validationCase => validationCase.Change.Current.Freshness == EvidenceFreshness.Current)
+            .Skip(1)
+            .ToArray();
+        Assert.Equal(
+            expectedHealthyDestinations,
+            currentStatusDepartures.Select(validationCase => validationCase.Change.Current.Status));
+        Assert.All(currentStatusDepartures, validationCase =>
+        {
+            Assert.Equal(HealthStatus.Healthy, validationCase.Change.Previous.Status);
+            Assert.Equal(EvidenceFreshness.Current, validationCase.Change.Previous.Freshness);
+        });
+
+        TrayNotificationTransitionValidationCase staleDeparture = cases[^1];
+        Assert.Equal(HealthStatus.Healthy, staleDeparture.Change.Previous.Status);
+        Assert.Equal(EvidenceFreshness.Current, staleDeparture.Change.Previous.Freshness);
+        Assert.Equal(HealthStatus.Healthy, staleDeparture.Change.Current.Status);
+        Assert.Equal(EvidenceFreshness.Stale, staleDeparture.Change.Current.Freshness);
+        Assert.Equal(
+            TrayNotificationMeaning.InformationalOrUnknown,
+            TrayNotificationPresentationPolicy.ResolveMeaning(staleDeparture.Change.Current));
+
+        Assert.Equal(
+            [
+                TrayNotificationMeaning.AvailabilityOrRecovery,
+                TrayNotificationMeaning.Warning,
+                TrayNotificationMeaning.Critical,
+                TrayNotificationMeaning.Critical,
+                TrayNotificationMeaning.Critical,
+                TrayNotificationMeaning.Warning,
+                TrayNotificationMeaning.InformationalOrUnknown,
+                TrayNotificationMeaning.InformationalOrUnknown,
+            ],
+            cases.Select(validationCase =>
+                TrayNotificationPresentationPolicy.ResolveMeaning(validationCase.Change.Current)));
     }
 
     /// <summary>Verifies that the STATE-05 age profile emits exactly three post-baseline changes without replaying the already stale item.</summary>
