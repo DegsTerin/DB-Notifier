@@ -2,8 +2,8 @@
 
 ## Versão atual
 
-- Versão: `3.50.0`
-- Data: 2026-07-15
+- Versão: `3.50.1`
+- Data: 2026-07-16
 - Status: corpus DB-Notifier consolidado
 - Escopo: 13 arquivos ativos
 
@@ -16,6 +16,12 @@ A versão do corpus é independente da versão do software.
 - PATCH: clareza, correção ou referência sem mudança de autoridade.
 
 Toda alteração atualiza este arquivo e, quando necessário, `../Start-Here.md`.
+
+## 3.50.1 — 2026-07-16
+
+- Bruno respondeu exatamente `Ícone único APROVADO` após a revisão visível autorizada do Design System `2.6.13`, encerrando somente a comparação perceptual da geometria única registrada em `REQ-065`.
+- O protocolo de Human Gate, a matriz de rastreabilidade, o relatório de implementação, o estado factual e o log append-only registram essa aprovação limitada. Nenhum código, ativo, contrato normativo, versão do Design System ou total de testes mudou.
+- `S05-HG-010`, o Human Gate de `STATE-05` e a transição para `STATE-06` permanecem pendentes; as amostras `REQ-064/065` não precisam ser repetidas enquanto suas implementações não mudarem materialmente.
 
 ## 3.50.0 — 2026-07-15
 

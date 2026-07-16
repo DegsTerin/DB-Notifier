@@ -935,6 +935,17 @@
 - Riscos/ressalvas: o quadro de 16 px é inevitavelmente mais denso e antialiased, embora derive do mesmo modelo; beleza/nitidez em browser, título, Tray, taskbar, flyout e overflow dependem de nova inspeção humana autorizada. `S05-HG-010`, o Human Gate e `STATE-06` permanecem pendentes; `S05-HG-011` não foi reaberto.
 - Aprovador: transparência/repetição confirmadas por Bruno e unificação geométrica solicitada por ele; nenhuma aprovação do ícone corrigido, de `S05-HG-010`, do Human Gate ou de transição foi inferida.
 
+## 2026-07-16 — Aprovação humana limitada da geometria única da marca
+
+- Estado anterior: `STATE-05 FRONTEND_IMPLEMENTATION`, Human Gate e `S05-HG-010` pendentes; `S05-HG-011` aprovado; `REQ-065` implementado e automaticamente verificado no Design System `2.6.13`.
+- Estado resultante: sem transição; a amostra perceptual de `REQ-065` está aprovada, enquanto `S05-HG-010`, o Human Gate de `STATE-05` e `STATE-06` permanecem pendentes.
+- Decisão: aceitar somente a geometria única do banco com sino após comparação humana nas superfícies reais, sem extrapolar a resposta para os demais detalhes visuais ou de acessibilidade.
+- Escopo: Dashboard em nova janela independente do Chrome e WPF com `--show-desktop`; comparação de browser tab/header, WPF title/header/flyout, taskbar e notification overflow. Narrator, High Contrast e scaling não foram usados. Publisher, política de fechamento, estado, integração e código não mudaram.
+- Gates: os gates automáticos de `2.6.13` já registrados permaneceram válidos; o Dashboard local preexistente respondeu em `4173`, o WPF abriu responsivo com o título `DB Notifier — Visão geral` e a árvore Git estava limpa. A janela dedicada e o processo WPF foram encerrados após a decisão, preservando o listener local preexistente.
+- Evidências: resposta exata `Ícone único APROVADO`, de Bruno, em 2026-07-16; `REQ-065`; Design System `2.6.13`; protocolo `docs/STATE-05-Human-Gate-Validation.md` e relatório de implementação.
+- Riscos/ressalvas: a aprovação não prova estado Agent/API real, notificações factuais, provider homologado, acessibilidade restante, todos os detalhes de `S05-HG-010`, o Human Gate completo ou produção. A amostra precisa ser repetida somente se o contrato/gerador da marca mudar materialmente.
+- Aprovador: Bruno, exclusivamente para a geometria única de `REQ-065`; nenhuma aprovação de `S05-HG-010`, do Human Gate ou de transição foi inferida.
+
 ## Template de nova entrada
 
 - Data:
