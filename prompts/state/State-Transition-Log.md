@@ -1054,6 +1054,17 @@
 - Riscos/ressalvas: a classificação limitada de Analytics não restaura automaticamente `S05-HG-011`, não aprova `STATE-05` e não autoriza `STATE-06`; as outras duas classificações e demais amostras continuam necessárias.
 - Aprovador: Bruno, somente como validador visual da notificação Analytics.
 
+## 2026-07-16 — Classificação humana da notificação Regional orders
+
+- Estado anterior: `STATE-05 FRONTEND_IMPLEMENTATION`, progressão em espera e Human Gate pendente; Analytics estava classificada como `VISÍVEL`, enquanto Regional orders e Primary finance permaneciam sem classificação visual direta.
+- Estado resultante: sem transição; Regional orders passa a ter classificação humana `VISÍVEL`, enquanto Primary finance permanece pendente.
+- Decisão: Bruno respondeu `1. VISÍVEL` dentro da lista explicitamente ordenada `Próximos passos, em ordem`, interpretado conforme o próximo item factual do hand-off anterior, em que o item 1 correspondia a Regional orders. Os pedidos subsequentes para seguir não foram tratados como decisão do Human Gate nem como autorização específica para abrir uma nova aplicação visível ou alterar preferências do sistema.
+- Escopo: registro da observação humana da segunda das três notificações já executadas; nenhuma nova execução, mudança de preferência, ação externa, integração, aprovação de amostra completa ou decisão de Human Gate.
+- Gates: não aplicável a build/testes, pois não houve mudança de produto; a evidência humana não sobrescreve a ausência observada por UI Automation nem a evidência técnica de materialização local.
+- Evidências: resposta direta de Bruno, `docs/STATE-05-Human-Gate-Validation.md`, `docs/STATE-05-Design-System-Implementation-Report.md` e `prompts/state/Current-State.md`.
+- Riscos/ressalvas: a classificação limitada de Regional orders não restaura automaticamente `S05-HG-011`, não aprova `STATE-05` e não autoriza `STATE-06`; Primary finance e as demais amostras continuam necessárias.
+- Aprovador: Bruno, somente como validador visual da notificação Regional orders.
+
 ## Template de nova entrada
 
 - Data:
