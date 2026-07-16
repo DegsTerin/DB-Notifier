@@ -967,6 +967,17 @@
 - Riscos/ressalvas: a observação não substitui decisão humana, não comprova High Contrast e não aprova `S05-HG-010`, o Human Gate ou `STATE-06`.
 - Aprovador: execução autorizada por Bruno; nenhuma aprovação foi inferida.
 
+## 2026-07-16 — Reauditoria da cobertura funcional pública do MySQL Notifier
+
+- Estado anterior: `STATE-05 FRONTEND_IMPLEMENTATION`, progressão em espera e Human Gate pendente.
+- Estado resultante: sem transição; `REQ-050` permanece `PARCIAL` e o Human Gate continua pendente.
+- Decisão: decompor a cobertura clean-room anteriormente agregada em 25 resultados funcionais `MN-*` e quatro invariantes de qualidade `MN-Q*`, preservando separadamente disposição, maturidade, fase proprietária e condição de saída.
+- Escopo: comparação comportamental do manual Oracle MySQL Notifier 1.1 e das release notes oficiais até 1.1.8 com a arquitetura, documentação, implementação e evidência atuais do DB-Notifier; atualização documental de matriz, rastreabilidade, estado e índice. Nenhum código, provider, integração, comando, infraestrutura ou artefacto Oracle foi introduzido.
+- Gates: 29 IDs únicos confirmados (`25 + 4`); `npm run markdown:verify` aprovou 182 links locais em 61 arquivos; `npm run comments:verify` aprovou 178 arquivos comment-capable; `git diff --check` saiu sem achados no passe final.
+- Evidências: `docs/Legacy-Migration-Plan.md`, `docs/STATE-05-Request-Traceability-Audit.md`, `docs/STATE-05-Human-Gate-Validation.md`, `prompts/state/Current-State.md` e as duas publicações oficiais ligadas na matriz.
+- Riscos/ressalvas: a auditoria deriva somente resultados públicos e não é inspeção de código, binário, arte ou trade dress Oracle. Itens futuros não constituem implementação, suporte ou homologação; WMI/DCOM, firewall automático, segredo em configuração e acoplamento direto ao Workbench continuam rejeitados ou substituídos. `STATE-06`, `STATE-07` e `STATE-08` permanecem sujeitos aos próprios gates.
+- Aprovador: solicitado por Bruno; nenhuma aprovação de amostra, Human Gate ou progressão foi inferida.
+
 ## Template de nova entrada
 
 - Data:

@@ -2,7 +2,7 @@
 
 ## Versão atual
 
-- Versão: `3.51.0`
+- Versão: `3.51.1`
 - Data: 2026-07-16
 - Status: corpus DB-Notifier consolidado
 - Escopo: 13 arquivos ativos
@@ -16,6 +16,12 @@ A versão do corpus é independente da versão do software.
 - PATCH: clareza, correção ou referência sem mudança de autoridade.
 
 Toda alteração atualiza este arquivo e, quando necessário, `../Start-Here.md`.
+
+## 3.51.1 — 2026-07-16
+
+- `REQ-050` foi re-auditado contra o manual Oracle MySQL Notifier 1.1 e as release notes oficiais até 1.1.8, sem reutilização de código, binário, arte, identidade, texto de produto ou arquitetura proprietária.
+- A matriz clean-room passa a enumerar 25 resultados funcionais `MN-*` e quatro invariantes de qualidade `MN-Q*`, com fonte, disposição `ADOPT`/`ADAPT`/`REJECT/REPLACE`, evidência atual, fase proprietária e condição de saída.
+- O requisito permanece `PARCIAL`: a reauditoria não implementa provider MySQL, integração, controle administrativo, startup, update ou packaging, não altera o Human Gate de `STATE-05` e não autoriza progressão.
 
 ## 3.51.0 — 2026-07-16
 

@@ -17,7 +17,7 @@ All frontend work follows the official [`DB-Notifier Design System`](docs/design
 The discovery outputs for the transformation are:
 
 - [`docs/Legacy-Inventory.md`](docs/Legacy-Inventory.md): verified behavior, assets, limitations, and risks in PgNotifier.
-- [`docs/Legacy-Migration-Plan.md`](docs/Legacy-Migration-Plan.md): incremental migration, compatibility contract, milestones, rollback, and gate criteria.
+- [`docs/Legacy-Migration-Plan.md`](docs/Legacy-Migration-Plan.md): incremental migration, the audited clean-room MySQL Notifier functional-coverage matrix, compatibility contract, milestones, rollback, and gate criteria.
 - [`docs/Legacy-Compatibility.md`](docs/Legacy-Compatibility.md): canonical names and explicit deprecated shims.
 - [`docs/STATE-00-Discovery-Report.md`](docs/STATE-00-Discovery-Report.md): historical discovery evidence and the original Human Gate record, now retrospectively ratified with explicit scope limits.
 - [`docs/Human-Gate-Retrospective-Ratification.md`](docs/Human-Gate-Retrospective-Ratification.md): completed independent retrospective ratification records for `STATE-00` through `STATE-04`.
