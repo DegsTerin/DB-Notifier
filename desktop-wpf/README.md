@@ -2,6 +2,8 @@
 
 This folder contains a Windows desktop UI prototype retained from PgNotifier and renamed for DB-Notifier.
 
+It is superseded and non-distributable. `desktop-wpf/build-desktop.ps1` fails closed; production WPF packaging remains owned by the signed `STATE-08` toolchain.
+
 It uses WPF through PowerShell/XAML, so it does not require Node.js, npm, Electron, Vite, or the .NET SDK.
 
 ## Run

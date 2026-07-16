@@ -2,11 +2,15 @@
 [CmdletBinding()]
 param(
     [string]$Configuration = 'Release',
-    [string]$DotNetPath = (Join-Path $PSScriptRoot '..\.dotnet\dotnet.exe')
+    [string]$DotNetPath
 )
 
 $ErrorActionPreference = 'Stop'
 $root = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
+if ([string]::IsNullOrWhiteSpace($DotNetPath)) {
+    $DotNetPath = Join-Path $root '.dotnet\dotnet.exe'
+}
+Add-Type -AssemblyName System.Net.Http
 $dotnetCommand = if (Test-Path -LiteralPath $DotNetPath -PathType Leaf) {
     (Resolve-Path -LiteralPath $DotNetPath).Path
 } else {
@@ -45,7 +49,7 @@ function Wait-ForStatus([System.Net.Http.HttpClient]$Client, [System.Net.Http.Ht
     for ($attempt = 1; $attempt -le $Attempts; $attempt++) {
         try {
             $request = [System.Net.Http.HttpRequestMessage]::new($Method, $Uri)
-            try { $response = $Client.Send($request) }
+            try { $response = $Client.SendAsync($request).GetAwaiter().GetResult() }
             finally { $request.Dispose() }
             try {
                 if ([int]$response.StatusCode -eq $ExpectedStatus) { return }
@@ -75,10 +79,10 @@ try {
     $client = [System.Net.Http.HttpClient]::new()
     try {
         Wait-ForStatus $client ([System.Net.Http.HttpMethod]::Get) "$baseAddress/health/live" 200
-        Wait-ForStatus $client ([System.Net.Http.HttpMethod]::Get) "$baseAddress/api/v1/catalog/instances" 401 1
-        Wait-ForStatus $client ([System.Net.Http.HttpMethod]::Get) "$baseAddress/api/v1/audit" 401 1
+        Wait-ForStatus $client ([System.Net.Http.HttpMethod]::Get) "$baseAddress/api/v1/catalog/instances" 426 1
+        Wait-ForStatus $client ([System.Net.Http.HttpMethod]::Get) "$baseAddress/api/v1/audit" 426 1
         $agentId = [Guid]::NewGuid().ToString('D')
-        Wait-ForStatus $client ([System.Net.Http.HttpMethod]::Post) "$baseAddress/api/v1/agents/$agentId/commands:poll" 403 1
+        Wait-ForStatus $client ([System.Net.Http.HttpMethod]::Post) "$baseAddress/api/v1/agents/$agentId/commands:poll" 426 1
     }
     finally { $client.Dispose() }
 
@@ -89,10 +93,26 @@ try {
         $agentProcess = Start-Process -FilePath $dotnetCommand -ArgumentList @($agentDll) -WorkingDirectory $root -WindowStyle Hidden -PassThru -RedirectStandardOutput (Join-Path $temporaryRoot 'agent.stdout.log') -RedirectStandardError (Join-Path $temporaryRoot 'agent.stderr.log')
         Start-Sleep -Seconds 2
         if ($agentProcess.HasExited) { throw "The fail-closed Agent exited unexpectedly with code $($agentProcess.ExitCode)." }
+        $agentLogPath = Join-Path $temporaryRoot 'agent.stdout.log'
+        $expectedDisabledMessages = @(
+            'Agent monitoring is disabled by configuration',
+            'Agent synchronization is disabled by configuration',
+            'Administrative command polling is disabled',
+            'Agent retention is disabled by configuration'
+        )
+        $agentLog = if (Test-Path -LiteralPath $agentLogPath) { Get-Content -LiteralPath $agentLogPath -Raw -ErrorAction SilentlyContinue } else { '' }
+        foreach ($expectedMessage in $expectedDisabledMessages) {
+            if ($agentLog -notlike "*$expectedMessage*") {
+                throw "The fail-closed Agent did not log its expected disabled worker state: $expectedMessage"
+            }
+        }
+        if (Test-Path -LiteralPath $databasePath) {
+            throw "The disabled Agent initialised local persistence unexpectedly."
+        }
     }
     finally { $env:DBNotifier__Agent__DatabasePath = $previousDatabasePath }
 
-    Write-Output 'Fail-closed runtime audit passed: live=200, human APIs=401, Agent API without certificate=403, Agent defaults remained running with external work disabled.'
+    Write-Output 'Fail-closed runtime audit passed: live=200, all protected HTTP endpoints=426, all Agent workers logged disabled and local persistence was not initialised.'
 }
 finally {
     Stop-ProcessTree $agentProcess

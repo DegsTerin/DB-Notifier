@@ -3,7 +3,13 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "packageManager": "npm@11.16.0",
+  "engines": {
+    "node": "24.18.0",
+    "npm": "11.16.0"
+  },
   "scripts": {
+    "toolchain:verify": "node ../../scripts/verify-node-toolchain.mjs",
     "brand:generate": "node ../../scripts/generate-brand-assets.mjs",
     "brand:verify": "node ../../scripts/generate-brand-assets.mjs --verify",
     "build": "tsc -b && vite build",

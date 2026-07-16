@@ -2,42 +2,23 @@
 
 This is a legacy system tray prototype retained as a DB-Notifier visual reference.
 
-Technology:
+Historical technology:
 
 - Python
 - Tkinter borderless popup
 - `pystray` real system tray icon
-- Pillow for the official PostgreSQL PNG asset
+- Pillow and a retained PostgreSQL PNG reference asset
 
-## Official PostgreSQL Icon
+This prototype is non-distributable. Its Python dependencies and packaging toolchain are not owned or locked by DB-Notifier, and its vendor-specific artwork is not the canonical DB Notifier product mark.
 
-The icon is downloaded from the PostgreSQL Wiki logo page:
+## Historical asset boundary
 
-`https://wiki.postgresql.org/images/9/9a/PostgreSQL_logo.3colors.540x557.png`
-
-Download/update it with:
-
-```powershell
-.\tray-app\download-postgres-icon.ps1
-```
-
-The file is saved to:
-
-```text
-tray-app/assets/postgres.png
-```
-
-The app uses this official asset for:
-
-- System tray icon
-- Popup header icon
-
-The displayed icon is tinted green at runtime to match the provided design while preserving the official elephant shape.
+`tray-app/assets/postgres.png` is retained only as historical prototype evidence. Automatic download/update is blocked, and neither the asset nor a derived executable may be distributed as DB Notifier.
 
 ## Run
 
 ```powershell
-& "C:\Users\brunn\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe" .\tray-app\app.py
+python .\tray-app\app.py
 ```
 
 The app starts hidden in the system tray. Click the tray icon to show the popup.
@@ -45,22 +26,14 @@ The app starts hidden in the system tray. Click the tray icon to show the popup.
 ## Live Reload
 
 ```powershell
-.\tray-app\watch.ps1 -Python "C:\Users\brunn\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe"
+.\tray-app\watch.ps1 -Python "python"
 ```
 
 The watcher restarts the tray app when `app.py` or assets change.
 
-## Build EXE
+## Packaging boundary
 
-```powershell
-.\tray-app\build-exe.ps1
-```
-
-Output:
-
-```text
-dist/tray-app/DBNotifierTray.exe
-```
+`tray-app/build-exe.ps1` fails closed. `DBNotifierTray.exe` is not an authorised or reproducible artefact.
 
 ## UI Contents
 

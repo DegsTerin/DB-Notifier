@@ -9,17 +9,28 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+# Mutable action tags remain a recorded offline-verification residual; every checkout drops persisted credentials.
 jobs:
   dotnet:
-    runs-on: windows-latest
+    runs-on: windows-2025
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
       - uses: actions/setup-dotnet@v4
         with:
           global-json-file: global.json
       - run: dotnet restore DBNotifier.sln --locked-mode
       - run: dotnet build DBNotifier.sln --configuration Release --no-restore
       - run: dotnet test DBNotifier.sln --configuration Release --no-build
+      - name: Enforce proportional .NET coverage
+        shell: powershell
+        run: .\scripts\verify-dotnet-coverage.ps1 -DotNetPath dotnet
       - run: dotnet format DBNotifier.sln --verify-no-changes --no-restore
       - name: Audit NuGet vulnerabilities
         shell: powershell
@@ -31,28 +42,35 @@ jobs:
       - run: git fsck --full
 
   legacy-compatibility:
-    runs-on: windows-latest
+    runs-on: windows-2025
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
       - name: Run DB-Notifier legacy compatibility tests
-        shell: powershell
-        run: Invoke-Pester .\tests\DBNotifier.Legacy.Tests.ps1
+        shell: cmd
+        run: powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File .\scripts\run-legacy-tests.ps1
       - name: Validate the canonical build entry point
         shell: powershell
         run: .\build\build.ps1 -ValidateOnly
 
   dashboard:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
     defaults:
       run:
         working-directory: src/DBNotifier.Dashboard.Web
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
       - uses: actions/setup-node@v4
         with:
-          node-version: 24
+          node-version: 24.18.0
           cache: npm
           cache-dependency-path: src/DBNotifier.Dashboard.Web/package-lock.json
+      - run: npm run toolchain:verify
       - run: npm ci
       - run: npm run brand:verify
       - run: npm run tokens:verify
@@ -65,20 +83,36 @@ jobs:
       - run: npm audit --audit-level=high
 
   dashboard-runtime-audit:
-    runs-on: windows-latest
+    runs-on: windows-2025
+    timeout-minutes: 20
     defaults:
       run:
         working-directory: src/DBNotifier.Dashboard.Web
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
       - uses: actions/setup-node@v4
         with:
-          node-version: 24
+          node-version: 24.18.0
           cache: npm
           cache-dependency-path: src/DBNotifier.Dashboard.Web/package-lock.json
+      - run: npm run toolchain:verify
       - run: npm ci
       - run: npm run build
       - name: Run the bilingual Light and Dark headless browser matrix
         shell: powershell
         working-directory: .
         run: .\scripts\run-state05-dashboard-audit.ps1
+
+  secret-scan:
+    runs-on: windows-2025
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Scan the current tree and complete available history without printing values
+        shell: powershell
+        run: .\scripts\verify-secrets.ps1

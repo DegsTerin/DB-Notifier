@@ -1,0 +1,10 @@
+{
+  "schemaVersion": "dbnotifier.compatibility-toolchain.v1",
+  "status": "blocked",
+  "ps2exeVersion": null,
+  "ps2exeManifestSha256": null,
+  "ps2exeRootModuleSha256": null,
+  "innoSetupVersion": null,
+  "innoCompilerSha256": null,
+  "reason": "Packaging remains blocked until exact local tools and hashes are independently approved. Validation never downloads or installs them."
+}

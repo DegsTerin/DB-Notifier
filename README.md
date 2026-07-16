@@ -12,7 +12,7 @@ Repository agents start with [`AGENTS.md`](AGENTS.md), the primary source for pe
 
 Code and configuration documentation follows [`docs/Code-Documentation-Standards.md`](docs/Code-Documentation-Standards.md): comments use British English, document intent and remain synchronised with implementation. Run `npm run comments:verify` from `src/DBNotifier.Dashboard.Web` to check the project-wide module inventory.
 
-All frontend work follows the official [`DB-Notifier Design System`](docs/design/DB-Notifier-Design-System.md): a restrained modern enterprise identity, shared React/WPF semantic tokens, WCAG 2.2 AA and explicit Light/Dark theme contracts. Retired System values migrate safely to Light, while High Contrast remains an independent accessibility override. The current Design System is `2.6.14`; the Windows client is notification-area-first and uses its full WPF shell only as a secondary drill-down, while the Web Dashboard remains the complete responsive surface. Implementation increments and automatic audits are approved only in their tested scope, while the Human Gate remains pending. The complete request-to-evidence cross-reference is maintained in the [`STATE-05 request traceability audit`](docs/STATE-05-Request-Traceability-Audit.md).
+All frontend work follows the official [`DB-Notifier Design System`](docs/design/DB-Notifier-Design-System.md): a restrained modern enterprise identity, shared React/WPF semantic tokens, WCAG 2.2 AA and explicit Light/Dark theme contracts. Retired System values migrate safely to Light, while High Contrast remains an independent accessibility override. The current Design System is `3.0.0`; the independent product-mark asset revision remains `2.6.13`. The Windows client is notification-area-first and uses its full WPF shell only as a secondary drill-down, while the Web Dashboard remains the complete responsive surface. Implementation increments and automatic audits are approved only in their tested scope, while the Human Gate remains pending. The complete request-to-evidence cross-reference is maintained in the [`STATE-05 request traceability audit`](docs/STATE-05-Request-Traceability-Audit.md).
 
 The discovery outputs for the transformation are:
 
@@ -36,7 +36,7 @@ tests/DBNotifier.Legacy.Tests.ps1
 packaging/inno/DBNotifier.iss
 ```
 
-It monitors local or remote PostgreSQL endpoints with `pg_isready.exe` and falls back to a TCP reachability check. Local Windows services can optionally expose Start, Stop, and Restart actions. These administrative actions must not be exercised on a real service without explicit authorization.
+It monitors local or remote PostgreSQL endpoints with `pg_isready.exe` and falls back to a TCP reachability check that is presented only as unproved transport evidence. The legacy client contains no Start, Stop, or Restart executor; these administrative capabilities remain `Unsupported` until their governed contract and homologation are complete.
 
 Deprecated `PgNotifier` entry points remain only as compatibility shims. They forward to the DB-Notifier implementation, emit a deprecation warning, and preserve explicit legacy configuration paths without overwriting them.
 
@@ -44,19 +44,13 @@ The folders `desktop-wpf/`, `pixel-ui/`, and `tray-app/` are visual prototypes b
 
 ## Safe legacy checks
 
-On Windows PowerShell with Pester installed:
+On Windows PowerShell, use the repository runner. It limits the execution-policy bypass to the child process, requires Pester `3.4.0`, rejects unexpected skips and enforces the legacy coverage floor:
 
 ```powershell
-Invoke-Pester .\tests\DBNotifier.Legacy.Tests.ps1
+powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File .\scripts\run-legacy-tests.ps1
 ```
 
-To create the PowerShell compatibility executable after explicitly installing `ps2exe`:
-
-```powershell
-.\build\build.ps1 -SkipInstaller
-```
-
-Without `-SkipInstaller`, Inno Setup 6 must also be available. Build scripts never install those tools automatically.
+Compatibility executable/installer creation is blocked until `build/compatibility-toolchain.json` contains an explicitly approved exact tool version/hash inventory. Build scripts never install or download those tools.
 
 The bundle composition can be checked without packaging dependencies:
 

@@ -2,7 +2,9 @@
 
 ## Outcome
 
-The first three DB-Notifier Design System increments, two `S05-HG-001` visual remediation iterations, the canonical product-mark refinements, the ultrawide shell correction, compact preference controls, Dashboard TV presentation, operational Overview, reference-aligned Dashboard/Tray refinement, WPF parity/runtime hardening, notification-area-first increment, clean-room aggregate-policy increment, transparent semantic-icon increment, cross-surface aggregate-colour increment, Light/Dark mark refinement, twelve small-surface legibility/notification refinements and the native WPF chrome correction are complete. They establish the canonical token/schema sources, deterministic React/WPF asset generation, explicit Light/Dark preference contracts and the distinct Web/Windows product roles required by Design System `2.6.14`.
+The first three DB-Notifier Design System increments, two `S05-HG-001` visual remediation iterations, the canonical product-mark refinements, the ultrawide shell correction, compact preference controls, Dashboard TV presentation, operational Overview, reference-aligned Dashboard/Tray refinement, WPF parity/runtime hardening, notification-area-first increment, clean-room aggregate-policy increment, transparent semantic-icon increment, cross-surface aggregate-colour increment, Light/Dark mark refinement, twelve small-surface legibility/notification refinements, native WPF chrome correction and complete-audit factual-UX remediation are implemented. They establish the canonical token/schema sources, deterministic React/WPF asset generation, explicit Light/Dark preference contracts and the distinct Web/Windows product roles required by the current Design System `3.0.0`.
+
+Design System `3.0.0` removes the former provider-named primitive/component tokens and replaces them with five neutral categorical data colours derived only from the canonical brand/neutral palettes. Categories do not encode provider identity, health, implementation, support or homologation. The canonical database-and-bell geometry remains brand revision `2.6.13`; the native-caption/scrollbar work remains historical implementation evidence from `2.6.14` rather than a new brand revision.
 
 The Dashboard and WPF Desktop now apply generated semantic tokens, expose one discreet translation/languages icon button and one cycling Light/Dark icon button in the upper-right TopBar and preserve the validated preferences. Localised accessible names and tooltips identify the current and next states without flags or permanently expanded groups. The translation symbol replaces the ambiguous globe, while sun/moon states replace the retired System/monitor option. WPF still gives Windows High Contrast precedence over the generated palette.
 
@@ -229,6 +231,8 @@ The React adapter accesses only versioned local UI preference storage and the do
 
 ## Verification
 
+The table below preserves the historical results for the increments it names. The integrated Design System `3.0.0` remediation passed `42/42` Dashboard tests, typecheck, Vite production build, generated brand/token/localisation drift checks, `179/179` .NET unit tests, `13/13` architecture tests, a zero-warning/error Release build and the 96-sample Edge headless matrix. These automatic results do not replace human acceptance.
+
 | Gate | Result |
 |---|---|
 | Token generation | Approved; four adapters generated |
@@ -259,8 +263,8 @@ The React adapter accesses only versioned local UI preference storage and the do
 | Preference cycles | Approved; Web and WPF restored both locales and both themes after two activations in all four combinations, with 0 unnamed interactive/focusable controls |
 | Dashboard TV mode | Approved; four `1920×1080` locale/theme samples entered native Fullscreen, retained demonstration truth and the exit control, hid navigation/filters, displayed the complete Overview and restored the standard shell; the unavailable-Fullscreen fallback remains covered |
 | WPF UI Automation/visual matrix | Historical matrix approved for eight locale/theme/size combinations at `1180×760` and `820×620`, each with 16 visible focusable controls, none unnamed and 12 contained Tab steps. It predates `2.6.14`; visible native-caption/scrollbar confirmation and the earlier separate High Contrast boundary remain pending |
-| Tray flyout runtime | Approved automatically in its local fixture scope; normal startup exposed no main window, the real notification icon opened the localised flyout, its safe action opened the secondary shell, the process remained responsive and no `.NET` dialogue appeared. Bruno approved the bounded `S05-HG-011` human sample on 2026-07-15; the overall Human Gate remains pending |
-| Lighthouse regression | Approved; 16 current eight-route mobile/desktop reports, Accessibility and Best Practices `100` in `16/16`, Performance `99`–`100`; SEO `66` remains the intentional internal-console crawler policy |
+| Tray flyout runtime | Historical evidence only after the `3.0.0` remediation: normal startup exposed no main window, the real notification icon opened the localised flyout, its safe action opened the secondary shell, the process remained responsive and no `.NET` dialogue appeared. Bruno approved the bounded `S05-HG-011` sample on 2026-07-15, but shared freshness, flyout content and activation later changed and therefore require a new human sample; the overall Human Gate remains pending |
+| Lighthouse regression | Historical Design System `2.3.0` result: 16 eight-route mobile/desktop reports, Accessibility and Best Practices `100` in `16/16`, Performance `99`–`100`; SEO `66` remains the intentional internal-console crawler policy. It is not a `3.0.0` result |
 
 ## Security and phase boundaries
 
@@ -273,9 +277,9 @@ The React adapter accesses only versioned local UI preference storage and the do
 
 ## Remaining increments
 
-1. Obtain explicit consent and repeat the focused `REQ-066` WPF Light → Dark → Light caption/scrollbar sample at default and minimum size. Then complete the remaining operational Overview/TopBar/wordmark visual details and the keyboard/Narrator portion of `HG05-01`, native browser zoom, Windows scaling and High Contrast samples. Do not repeat the accepted `REQ-064/065` icon samples unless their owning implementation changes.
+1. Review the completed integrated automatic validation for Design System `3.0.0` and the complete-audit remediation. Then, under fresh explicit consent, repeat the surfaces materially changed by the remediation, including shared freshness, Tray/flyout content and activation previously covered by the now-historical `S05-HG-011` sample, plus the remaining operational Overview/TopBar/wordmark visual details and keyboard/Narrator, native browser zoom, Windows scaling and High Contrast samples. The accepted `REQ-065` brand geometry need not be repeated unless its owning contract changes.
 2. Present the explicit Human Gate decision; no lifecycle transition occurs automatically.
 
 ## Recommendation
 
-First repeat the Design System `2.6.14` WPF native-caption/scrollbar correction under fresh consent, without opening Chrome or changing Windows accessibility settings. Then continue with the remediated operational Overview and two-column Tray flyout, eight-item navigation, TopBar actions, KPI/status/chart treatment, ultrawide/TV layouts, accessible `DB Notifier` name, visual `DBNotifier` wordmark, translation icon and Light/Dark-only control. The `2.6.13` database-and-bell geometry is humanly accepted in the bounded `REQ-065` scope and need not be repeated unless its contract changes. Obtain separate explicit consent before starting Narrator, High Contrast, scaling or the other remaining samples in [`STATE-05-Human-Gate-Validation.md`](STATE-05-Human-Gate-Validation.md).
+Review the observed integrated Design System `3.0.0` evidence, then repeat under fresh consent the changed shared-freshness and notification-area surfaces together with the still-pending Overview, navigation, TopBar, KPI/status/chart, ultrawide/TV, caption/scrollbar and Light/Dark details. The `2.6.13` database-and-bell geometry remains humanly accepted only in the bounded `REQ-065` scope and need not be repeated unless its contract changes. Obtain separate explicit consent before starting Narrator, High Contrast, scaling or the other remaining samples in [`STATE-05-Human-Gate-Validation.md`](STATE-05-Human-Gate-Validation.md).

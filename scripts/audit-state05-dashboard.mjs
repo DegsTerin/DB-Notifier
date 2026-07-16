@@ -12,6 +12,9 @@ const requestedLocale = process.env.DBNOTIFIER_AUDIT_LOCALE;
 const locale = requestedLocale === "en-GB" ? "en-GB" : "pt-BR";
 const requestedTheme = process.env.DBNOTIFIER_AUDIT_THEME;
 const theme = requestedTheme === "dark" ? "dark" : "light";
+const browserProduct = process.env.DBNOTIFIER_AUDIT_BROWSER_PRODUCT;
+const browserVersion = process.env.DBNOTIFIER_AUDIT_BROWSER_VERSION;
+if (!browserProduct || !browserVersion) throw new Error("Browser product and version provenance are required.");
 const evidenceDirectory = join(tmpdir(), "DBNotifier-State05-Audit", locale, theme);
 mkdirSync(evidenceDirectory, { recursive: true });
 
@@ -157,7 +160,7 @@ async function clickElement(call, selector) {
   await call("Input.dispatchMouseEvent", { type: "mouseReleased", x: point.x, y: point.y, button: "left", clickCount: 1 });
 }
 
-/** Exercises the dedicated TV layout, native Fullscreen request and persistent visible exit control. */
+/** Exercises the dedicated TV layout, native Fullscreen request, compact reflow and persistent visible exit control. */
 async function auditTvMode(call) {
   await call("Emulation.setDeviceMetricsOverride", { width: 1920, height: 1080, deviceScaleFactor: 1, mobile: false });
   await call("Page.navigate", { url: `${dashboardUrl}#overview` });
@@ -194,23 +197,66 @@ async function auditTvMode(call) {
     buttonState: document.querySelector(".tv-mode-button")?.dataset.tvModeControl,
     sidebarDisplay: getComputedStyle(document.querySelector(".sidebar")).display,
   }))()`);
-  await evaluate(call, `(() => {
-    Object.defineProperty(document.documentElement, "requestFullscreen", { value: undefined, configurable: true });
-    return true;
-  })()`);
-  await clickElement(call, ".tv-mode-button");
-  await settle(150);
-  const unavailableFullscreen = await evaluate(call, `(() => ({
-    tvMode: document.documentElement.dataset.tvMode,
-    nativeFullscreen: Boolean(document.fullscreenElement),
-    buttonState: document.querySelector(".tv-mode-button")?.dataset.tvModeControl,
-    announcement: document.querySelector(".tv-mode-button + [role=status]")?.textContent,
-  }))()`);
-  await clickElement(call, ".tv-mode-button");
-  await settle(100);
+  const layouts = [];
+  let unavailableFullscreen = null;
+  for (const dimensions of [
+    { width: 320, height: 900 },
+    { width: 390, height: 900 },
+    { width: 768, height: 1024 },
+    { width: 1920, height: 1080 },
+  ]) {
+    await call("Emulation.setDeviceMetricsOverride", { ...dimensions, deviceScaleFactor: 1, mobile: false });
+    await call("Page.navigate", { url: `${dashboardUrl}#overview` });
+    await settle(80);
+    await call("Page.reload", { ignoreCache: true });
+    await settle();
+    await evaluate(call, `(() => {
+      Object.defineProperty(document.documentElement, "requestFullscreen", { value: undefined, configurable: true });
+      return true;
+    })()`);
+    await clickElement(call, ".tv-mode-button");
+    await settle(150);
+    layouts.push(await evaluate(call, `(() => {
+      const root = document.documentElement;
+      const app = document.querySelector(".app-shell");
+      const topbar = document.querySelector(".topbar")?.getBoundingClientRect();
+      const controls = document.querySelector(".topbar-controls")?.getBoundingClientRect();
+      const overview = document.querySelector(".overview-grid");
+      return {
+        width: innerWidth,
+        height: innerHeight,
+        documentClientWidth: root.clientWidth,
+        documentScrollWidth: root.scrollWidth,
+        appClientWidth: app?.clientWidth ?? null,
+        appScrollWidth: app?.scrollWidth ?? null,
+        horizontalOverflow: root.scrollWidth > root.clientWidth,
+        appOverflow: app ? app.scrollWidth > app.clientWidth : null,
+        topbarControlsContained: topbar && controls
+          ? controls.left >= topbar.left && controls.right <= topbar.right
+          : null,
+        topbarControlsWithinViewport: controls
+          ? controls.left >= 0 && controls.right <= root.clientWidth
+          : null,
+        overviewColumns: overview
+          ? getComputedStyle(overview).gridTemplateColumns.split(" ").filter(Boolean).length
+          : null,
+        overviewOverflow: overview ? overview.scrollWidth > overview.clientWidth : null,
+      };
+    })()`));
+    if (!unavailableFullscreen) {
+      unavailableFullscreen = await evaluate(call, `(() => ({
+        tvMode: document.documentElement.dataset.tvMode,
+        nativeFullscreen: Boolean(document.fullscreenElement),
+        buttonState: document.querySelector(".tv-mode-button")?.dataset.tvModeControl,
+        announcement: document.querySelector(".tv-mode-button + [role=status]")?.textContent,
+      }))()`);
+    }
+    await clickElement(call, ".tv-mode-button");
+    await settle(100);
+  }
   await call("Page.reload", { ignoreCache: true });
   await settle();
-  return { active, restored, unavailableFullscreen, screenshotPath };
+  return { active, restored, unavailableFullscreen, layouts, screenshotPath };
 }
 
 /** Records the focus sequence produced by native Tab navigation. */
@@ -421,6 +467,7 @@ async function main() {
   const duplicateHistorySearchRegions = await evaluate(call, "document.querySelectorAll('[role=search]').length");
   const report = {
     generatedAt: new Date().toISOString(),
+    browser: { product: browserProduct, version: browserVersion },
     locale,
     theme,
     viewports,

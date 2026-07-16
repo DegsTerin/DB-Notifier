@@ -5,6 +5,13 @@ param(
     [ValidateRange(1, 10)]
     [int]$Runs = 3,
     [string]$LighthouseVersion = '13.4.0',
+    [string]$LighthouseCommand = 'lighthouse.cmd',
+    [ValidateRange(0, 100)]
+    [int]$MinimumPerformanceScore = 90,
+    [ValidateRange(0, 100)]
+    [int]$MinimumAccessibilityScore = 100,
+    [ValidateRange(0, 100)]
+    [int]$MinimumBestPracticesScore = 100,
     [string]$OutputDirectory = (Join-Path ([System.IO.Path]::GetTempPath()) ("DBNotifier-Lighthouse-{0:yyyyMMdd-HHmmss}" -f [DateTimeOffset]::UtcNow))
 )
 
@@ -68,6 +75,16 @@ if (-not $DashboardUri.IsLoopback -or $DashboardUri.Scheme -ne 'http') {
     throw 'The STATE-05 Lighthouse runner accepts only a local HTTP loopback Dashboard URI.'
 }
 
+$resolvedLighthouse = Get-Command -Name $LighthouseCommand -CommandType Application -ErrorAction SilentlyContinue
+if ($null -eq $resolvedLighthouse) {
+    throw "Lighthouse $LighthouseVersion must be provisioned explicitly as '$LighthouseCommand'. This audit never downloads tooling through npx."
+}
+$observedLighthouseVersion = (& $resolvedLighthouse.Source --version | Select-Object -First 1).Trim()
+if ($LASTEXITCODE -ne 0 -or $observedLighthouseVersion -ne $LighthouseVersion) {
+    throw "Expected Lighthouse $LighthouseVersion but '$($resolvedLighthouse.Source)' reported '$observedLighthouseVersion'."
+}
+$lighthouseCommandHash = (Get-FileHash -LiteralPath $resolvedLighthouse.Source -Algorithm SHA256).Hash
+
 Wait-ForEndpoint $DashboardUri.AbsoluteUri 1
 New-Item -ItemType Directory -Path $OutputDirectory -Force | Out-Null
 $resolvedOutput = (Resolve-Path -LiteralPath $OutputDirectory).Path
@@ -115,8 +132,6 @@ try {
                 Write-Output ("Lighthouse {0}/{1}, run {2}/{3}" -f $profile.Name, $route.Name, $run, $Runs)
                 $profileArguments = if ($profile.Name -eq 'desktop') { @('--preset=desktop') } else { @('--form-factor=mobile') }
                 $arguments = @(
-                    '--yes',
-                    "lighthouse@$LighthouseVersion",
                     $url,
                     "--port=$port",
                     '--quiet',
@@ -128,7 +143,7 @@ try {
                     "--screenEmulation.height=$($profile.Height)",
                     '--screenEmulation.deviceScaleFactor=1'
                 ) + $profileArguments
-                & npx.cmd @arguments
+                & $resolvedLighthouse.Source @arguments
                 if ($LASTEXITCODE -ne 0) { throw "Lighthouse failed for $($profile.Name)/$($route.Name), run $run." }
 
                 $report = Get-Content -LiteralPath $reportPath -Raw | ConvertFrom-Json
@@ -140,13 +155,20 @@ try {
                 if ($extensionRequests.Count -gt 0) { throw "A Chrome extension request contaminated $($profile.Name)/$($route.Name), run $run." }
                 if ($report.audits.'robots-txt'.score -ne 1) { throw "The crawler policy was invalid for $($profile.Name)/$($route.Name), run $run." }
 
+                $performanceScore = [Math]::Round($report.categories.performance.score * 100)
+                $accessibilityScore = [Math]::Round($report.categories.accessibility.score * 100)
+                $bestPracticesScore = [Math]::Round($report.categories.'best-practices'.score * 100)
+                if ($performanceScore -lt $MinimumPerformanceScore) { throw "Performance score $performanceScore is below $MinimumPerformanceScore for $($profile.Name)/$($route.Name), run $run." }
+                if ($accessibilityScore -lt $MinimumAccessibilityScore) { throw "Accessibility score $accessibilityScore is below $MinimumAccessibilityScore for $($profile.Name)/$($route.Name), run $run." }
+                if ($bestPracticesScore -lt $MinimumBestPracticesScore) { throw "Best-practices score $bestPracticesScore is below $MinimumBestPracticesScore for $($profile.Name)/$($route.Name), run $run." }
+
                 $samples.Add([pscustomobject]@{
                     Profile = $profile.Name
                     Route = $route.Name
                     Run = $run
-                    Performance = [Math]::Round($report.categories.performance.score * 100)
-                    Accessibility = [Math]::Round($report.categories.accessibility.score * 100)
-                    BestPractices = [Math]::Round($report.categories.'best-practices'.score * 100)
+                    Performance = $performanceScore
+                    Accessibility = $accessibilityScore
+                    BestPractices = $bestPracticesScore
                     Seo = [Math]::Round($report.categories.seo.score * 100)
                     FirstContentfulPaintMs = [Math]::Round($report.audits.'first-contentful-paint'.numericValue)
                     LargestContentfulPaintMs = [Math]::Round($report.audits.'largest-contentful-paint'.numericValue)
@@ -191,11 +213,14 @@ try {
         GeneratedAtUtc = [DateTimeOffset]::UtcNow.ToString('O')
         DashboardUri = $DashboardUri.AbsoluteUri
         LighthouseVersion = $LighthouseVersion
+        LighthouseCommand = $resolvedLighthouse.Source
+        LighthouseCommandSha256 = $lighthouseCommandHash
         ChromeVersion = (Get-Item -LiteralPath $chrome).VersionInfo.ProductVersion
         RunsPerRouteProfile = $Runs
         SampleCount = $samples.Count
         Profiles = $profiles
         Categories = @('performance', 'accessibility', 'best-practices', 'seo')
+        Thresholds = [ordered]@{ Performance = $MinimumPerformanceScore; Accessibility = $MinimumAccessibilityScore; BestPractices = $MinimumBestPracticesScore }
         CrawlerPolicy = 'Internal console intentionally disallows all crawlers; the valid robots.txt audit passes while the SEO crawlability score remains intentionally reduced.'
         Samples = $samples
         Aggregates = $aggregates

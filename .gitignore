@@ -47,6 +47,21 @@ node_modules/
 .vscode/
 .idea/
 
+# Local secret material and private signing artefacts
+.env
+.env.*
+!.env.example
+*.pfx
+*.p12
+*.pem
+*.key
+*.snk
+*.jks
+*.keystore
+appsettings.*.local.json
+appsettings.Development.json
+secrets.json
+
 # Windows noise
 Thumbs.db
 Desktop.ini

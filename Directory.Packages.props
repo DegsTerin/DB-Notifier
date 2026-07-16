@@ -1,3 +1,4 @@
+<!-- Module purpose: Pins centrally managed NuGet dependencies for deterministic restore across all .NET projects. -->
 <Project>
   <PropertyGroup>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>

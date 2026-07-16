@@ -1,3 +1,4 @@
+# Module purpose: Defines repository-wide text, C# formatting and analyser conventions for hand-written sources.
 root = true
 
 [*]

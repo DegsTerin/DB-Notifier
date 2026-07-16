@@ -978,6 +978,17 @@
 - Riscos/ressalvas: a auditoria deriva somente resultados públicos e não é inspeção de código, binário, arte ou trade dress Oracle. Itens futuros não constituem implementação, suporte ou homologação; WMI/DCOM, firewall automático, segredo em configuração e acoplamento direto ao Workbench continuam rejeitados ou substituídos. `STATE-06`, `STATE-07` e `STATE-08` permanecem sujeitos aos próprios gates.
 - Aprovador: solicitado por Bruno; nenhuma aprovação de amostra, Human Gate ou progressão foi inferida.
 
+## 2026-07-16 — Remediação dos lotes 1–5 da auditoria completa
+
+- Estado anterior: `STATE-05 FRONTEND_IMPLEMENTATION`, progressão em espera e Human Gate pendente.
+- Estado resultante: sem transição; `STATE-05 FRONTEND_IMPLEMENTATION` permanece ativo, com o Human Gate pendente e `STATE-06` não autorizado.
+- Decisão: Bruno declarou exatamente `APROVO a remediação dos lotes 1–5, sem avançar o STATE-05 e sem executar ações externas.` A decisão autoriza somente a remediação local dos achados previamente apresentados; não é aprovação de Human Gate, homologação, release ou runtime externo.
+- Escopo: lote 1, legado/configuração/transport-only; lote 2, provider/utility/transporte/autenticação/payload; lote 3, reconciliação/migration/concorrência/durabilidade fail-closed; lote 4, freshness factual, Dashboard/WPF/Tray e Design System `3.0.0`, preservando a marca `2.6.13`; lote 5, toolchain/CI/gates/documentação/packaging fail-closed. A decisão histórica `S05-HG-011` não é reutilizada porque freshness, conteúdo e ativação de Tray/flyout mudaram.
+- Gates: build .NET Release sem avisos/erros; `179/179` unitários e `13/13` arquitetura; cobertura `78,89%` linhas/`56,69%` branches; `42/42` Dashboard, typecheck e Vite; `23` Pester aprovados, um skip condicional, cobertura `32,08%`; 96 amostras Edge headless; runtime fail-closed e gates de assets, documentação, dependências offline, segredos e Git aprovados. Evidência automática não substitui a repetição humana das superfícies alteradas.
+- Evidências: `docs/STATE-05-Complete-Audit-Remediation-Report.md`, implementação e regressões locais dos lotes, Design System `3.0.0`, `docs/STATE-05-Design-System-Implementation-Report.md`, `docs/STATE-05-Human-Gate-Validation.md` e estado corrente.
+- Riscos/ressalvas: `M-02`, `M-03` e `M-05` são contenções, não funcionalidades — delivery e command polling recusam startup e raw observations são preservadas. Nenhuma migration foi aplicada a PostgreSQL; somente stores SQLite efêmeros de teste foram usados. Nenhum banco externo/monitorado, serviço real, credential, certificado, IdP, vault, canal, CI remota, deploy, publicação, instalação externa ou infraestrutura real foi exercido.
+- Aprovador: Bruno, exclusivamente para a remediação local dos lotes 1–5 sob os limites citados; nenhuma decisão de Human Gate ou progressão foi inferida.
+
 ## Template de nova entrada
 
 - Data:

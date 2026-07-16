@@ -224,6 +224,31 @@ try {
     }
     $reportPath = Join-Path $evidenceDirectory "wpf-audit-$($Width)x$($Height)-$($windowDpi)dpi.json"
     $report | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath $reportPath -Encoding utf8
+    $failures = [System.Collections.Generic.List[string]]::new()
+    if ([Math]::Abs($bounds.Width - $Width) -gt 2 -or [Math]::Abs($bounds.Height - $Height) -gt 2) {
+        $failures.Add("The audited window did not preserve the requested dimensions.")
+    }
+    if ($focusable.Count -lt 12 -or @($focusable | Where-Object { [string]::IsNullOrWhiteSpace($_.name) }).Count -gt 0) {
+        $failures.Add("The WPF shell exposed too few focusable controls or an unnamed focus target.")
+    }
+    if ($tabSequence.Count -ne 12 -or @($tabSequence | Where-Object offscreen).Count -gt 0) {
+        $failures.Add("Keyboard traversal did not preserve twelve visible in-process focus targets.")
+    }
+    if ($languageCycle.Count -ne 3 -or $languageCycle[0] -ne $languageCycle[2] -or $languageCycle[0] -eq $languageCycle[1] -or @($languageCycle | Where-Object { [string]::IsNullOrWhiteSpace($_) }).Count -gt 0) {
+        $failures.Add("The language preference did not change and return to its accessible initial state.")
+    }
+    if ($themeCycle.Count -ne 3 -or $themeCycle[0] -ne $themeCycle[2] -or $themeCycle[0] -eq $themeCycle[1] -or @($themeCycle | Where-Object { [string]::IsNullOrWhiteSpace($_) }).Count -gt 0) {
+        $failures.Add("The theme preference did not change and return to its accessible initial state.")
+    }
+    if ($windowDpi -lt 96 -or $windowDpiAwareness -ne 2) {
+        $failures.Add("The WPF window did not expose a Per-Monitor DPI-aware context at a supported DPI.")
+    }
+    if (-not (Test-Path -LiteralPath $screenshotPath -PathType Leaf) -or (Get-Item -LiteralPath $screenshotPath).Length -eq 0) {
+        $failures.Add("The WPF audit screenshot is missing or empty.")
+    }
+    if ($failures.Count -gt 0) {
+        throw "WPF audit failed: $($failures -join ' ') Evidence: $reportPath"
+    }
     [ordered]@{ reportPath = $reportPath; report = $report } | ConvertTo-Json -Depth 8
 }
 finally {

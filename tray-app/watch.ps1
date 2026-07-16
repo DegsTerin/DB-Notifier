@@ -1,7 +1,7 @@
 # Module purpose: Provides watch for the legacy-compatible DB-Notifier tooling without changing database services implicitly.
 [CmdletBinding()]
 param(
-    [string]$Python = "C:\Users\brunn\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe"
+    [string]$Python = "python"
 )
 
 Set-StrictMode -Version Latest
@@ -22,7 +22,7 @@ function Stop-Preview {
 }
 
 if (-not (Test-Path -LiteralPath (Join-Path $root "assets\postgres.png"))) {
-    & (Join-Path $root "download-postgres-icon.ps1")
+    throw "The historical prototype asset is missing. Automatic vendor-asset download is retired."
 }
 
 $script:lastRestart = Get-Date

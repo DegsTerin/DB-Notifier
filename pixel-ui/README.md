@@ -2,6 +2,8 @@
 
 This is a legacy desktop UI prototype retained as a DB-Notifier visual reference.
 
+It is non-distributable. `pixel-ui/build-exe.ps1` fails closed because no owned, pinned and hashed PyInstaller toolchain exists.
+
 Technology: Python + Tkinter Canvas. No external Python packages are required.
 
 ## Structure
