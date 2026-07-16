@@ -1065,6 +1065,17 @@
 - Riscos/ressalvas: a classificação limitada de Regional orders não restaura automaticamente `S05-HG-011`, não aprova `STATE-05` e não autoriza `STATE-06`; Primary finance e as demais amostras continuam necessárias.
 - Aprovador: Bruno, somente como validador visual da notificação Regional orders.
 
+## 2026-07-16 — Classificação humana de Primary finance e finding de cobertura de transições
+
+- Estado anterior: `STATE-05 FRONTEND_IMPLEMENTATION`, progressão em espera e Human Gate pendente; Analytics e Regional orders estavam classificadas como `VISÍVEL`, e Primary finance aguardava observação direta.
+- Estado resultante: sem transição; Primary finance passa a ter classificação humana `VISÍVEL`, completando as três apresentações da fixture Current-to-Stale. Um novo finding mantém a amostra pendente: não há validação visível de `Stale → Healthy` nem de `Healthy →` todos os demais estados.
+- Decisão: Bruno autorizou uma nova execução WPF normal e visível limitada a Primary finance, autorizou separadamente o encerramento do processo preexistente PID `100`, respondeu exatamente `Primary finance: VISÍVEL` e acrescentou `Só não vi teste de Stale para Healthy ou Healthy para todos os outros status`.
+- Escopo: o PID preexistente `100` foi encerrado somente após autorização. O build WPF Release sem restore passou com zero avisos/erros. Um único processo novo, PID `31348`, foi executado de 19:59:41 a 20:05:13, permaneceu responsivo e sem janela principal, e foi encerrado após a janela de observação. Nenhum store, banner alheio, Narrator, High Contrast, scaling, Agent, API, banco ou ação externa foi inspecionado ou alterado.
+- Gates: a worktree rastreada permaneceu limpa e nenhum processo DB Notifier ficou residual. A inspeção de código confirmou detecção genérica por diferença de status/freshness, mapeamento automático de todos os significados de destino, um caso `Healthy → Maintenance` e eventos canônicos para `Timeout → Healthy` e várias saídas de Healthy; não existe matriz completa correspondente ao finding nem cenário Windows equivalente.
+- Evidências: observação direta de Bruno, `TrayInstanceStateChangePolicy`, `DesktopDemonstrationEvidence`, `TrayApplicationController`, `TrayPresentationTests`, `SynchronizationTests`, `docs/STATE-05-Human-Gate-Validation.md`, `docs/STATE-05-Design-System-Implementation-Report.md` e `prompts/state/Current-State.md`.
+- Riscos/ressalvas: a fixture operacional é imutável e só envelhece de Current para Stale; ela não pode provar recuperação ou mudanças de health. O finding é de cobertura, não uma falha observada da detecção ou entrega. Uma matriz local adicional e sua publicação Windows exigem autorização própria; nenhuma aprovação do Human Gate, restauração automática de `S05-HG-011` ou progressão foi inferida.
+- Aprovador: Bruno, como validador visual de Primary finance e autor do finding de cobertura; nenhuma remediação foi ainda autorizada.
+
 ## Template de nova entrada
 
 - Data:
