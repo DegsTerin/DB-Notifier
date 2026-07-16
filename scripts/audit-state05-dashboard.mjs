@@ -1,6 +1,6 @@
 /**
  * Audits the built STATE-05 Dashboard through Chrome DevTools Protocol.
- * The script records viewport, accessibility-tree, keyboard and modal-focus evidence without mutating product state.
+ * The script records viewport, semantic-brand, accessibility-tree, keyboard and modal-focus evidence without mutating product state.
  */
 import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
@@ -58,6 +58,19 @@ async function evaluate(call, expression) {
   const result = await call("Runtime.evaluate", { expression, returnByValue: true, awaitPromise: true });
   if (result.exceptionDetails) throw new Error(result.exceptionDetails.text);
   return result.result.value;
+}
+
+/** Captures the single runtime favicon candidate so browser evidence cannot drift from the visible aggregate. */
+async function auditSemanticBrand(call) {
+  return evaluate(call, `(() => {
+    const candidates = [...document.querySelectorAll('link[rel~="icon"]')];
+    const active = candidates.find((candidate) => candidate.id === "dbnotifier-favicon");
+    return {
+      candidateCount: candidates.length,
+      href: active?.getAttribute("href") ?? null,
+      aggregateState: active?.dataset.aggregateState ?? null,
+    };
+  })()`);
 }
 
 /** Captures layout and screenshot evidence for one route and viewport. */
@@ -414,6 +427,7 @@ async function main() {
     tvMode: await auditTvMode(call),
     keyboard: await auditKeyboard(call),
     preferenceCycles: await auditPreferenceCycles(call),
+    semanticBrand: await auditSemanticBrand(call),
     accessibilityTree: await auditAccessibilityTree(call),
     operationalStates: await auditOperationalStates(call),
     modal: await auditModal(call),

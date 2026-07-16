@@ -34,7 +34,7 @@ const markGeometry = Object.freeze({
     radiusY: 6.5,
     seamCentreY: 25,
     bottomCentreY: 41,
-    strokeWidth: 4.5,
+    strokeWidth: 3.5,
   }),
   bell: Object.freeze({
     centreX: 47,

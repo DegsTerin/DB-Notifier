@@ -92,6 +92,49 @@ public sealed class TrayPresentationTests
         Assert.Equal(expected, TrayNotificationPresentationPolicy.ResolveIconState(meaning));
     }
 
+    /// <summary>Verifies that every completion path ends the bounded semantic-icon lease and invalid input fails to the aggregate.</summary>
+    [Fact]
+    public void NotificationIconLeaseIsBoundedAcrossShownFallbackFailureAndDisposal()
+    {
+        Assert.Equal(TimeSpan.FromSeconds(2), TrayNotificationIconLeasePolicy.FallbackDelay);
+
+        TrayNotificationIconLeaseState active = TrayNotificationIconLeasePolicy.Resolve(
+            TrayNotificationIconLeaseState.Aggregate,
+            TrayNotificationIconLeaseSignal.Begin);
+
+        Assert.Equal(TrayNotificationIconLeaseState.NotificationMeaning, active);
+        Assert.Equal(
+            TrayNotificationIconLeaseState.NotificationMeaning,
+            TrayNotificationIconLeasePolicy.Resolve(active, TrayNotificationIconLeaseSignal.Begin));
+
+        foreach (TrayNotificationIconLeaseSignal completion in new[]
+        {
+            TrayNotificationIconLeaseSignal.BalloonShown,
+            TrayNotificationIconLeaseSignal.FallbackElapsed,
+            TrayNotificationIconLeaseSignal.DeliveryFailed,
+            TrayNotificationIconLeaseSignal.Disposed,
+        })
+        {
+            Assert.Equal(
+                TrayNotificationIconLeaseState.Aggregate,
+                TrayNotificationIconLeasePolicy.Resolve(active, completion));
+            Assert.Equal(
+                TrayNotificationIconLeaseState.Aggregate,
+                TrayNotificationIconLeasePolicy.Resolve(TrayNotificationIconLeaseState.Aggregate, completion));
+        }
+
+        Assert.Equal(
+            TrayNotificationIconLeaseState.Aggregate,
+            TrayNotificationIconLeasePolicy.Resolve(
+                (TrayNotificationIconLeaseState)int.MaxValue,
+                TrayNotificationIconLeaseSignal.Begin));
+        Assert.Equal(
+            TrayNotificationIconLeaseState.Aggregate,
+            TrayNotificationIconLeasePolicy.Resolve(
+                active,
+                (TrayNotificationIconLeaseSignal)int.MaxValue));
+    }
+
     /// <summary>Verifies that future delivery is change-only, opt-in and suppressed for the initial snapshot.</summary>
     [Fact]
     public void NotificationPolicyRequiresOptInPriorStateAndMaterialChange()

@@ -902,6 +902,17 @@
 - Riscos/ressalvas: notificações antigas são snapshots e não mudam retroativamente; o Windows Shell continua responsável pelo fundo do cartão, atribuição, escala e cache. Uma notificação recém-entregue ainda precisa de inspeção humana em `S05-HG-010`; `S05-HG-011` não foi reaberto.
 - Aprovador: correção solicitada por Bruno; nenhuma aprovação visual, do Human Gate ou de transição foi inferida.
 
+## 2026-07-15 — Silhueta aberta e fonte nativa da notificação
+
+- Estado anterior: `STATE-05 FRONTEND_IMPLEMENTATION`, Human Gate e `S05-HG-010` pendentes; `S05-HG-011` aprovado.
+- Estado resultante: sem transição; Design System `2.6.11` implementado no ativo canônico, com nova notificação humana ainda necessária.
+- Decisão: tratar como finding válido a aparência de bloco azul na amostra `2.6.10`, distinguindo o canvas tecnicamente transparente de uma silhueta azul excessivamente densa no tamanho de 16 px e sem afirmar controle do cartão ou glyph final pertencentes ao Windows Shell.
+- Escopo: contorno canônico reduzido de `4.5` para `3.5` unidades, quadro de 16 px com `155/256` pixels totalmente transparentes, `90` pixels com alfa `>=128` e cobertura azul ponderada de `42.84` pixels equivalentes; fonte WPF na métrica pequena nativa; política de lease begin/shown/fallback/failure/dispose; callback `BalloonTipShown` como ponto de restauração best-effort; fallback de dois segundos; revisão Web `2.6.11`; auditoria headless do favicon e matriz `REQ-063`. Resumo, flyout, estado persistido, capacidades e integração externa permanecem inalterados.
+- Gates: restore locked, formato .NET, build Release com zero avisos/erros, 141/141 testes unitários, 9/9 de arquitetura, 34/34 Dashboard, typecheck/build Vite, 11/11 Pester, bundle legado, marca/tokens/localização, 175 fontes no gate documental, links Markdown, 96 amostras headless, auditorias NuGet/npm e runtime fail-closed aprovados. As quatro execuções headless encontraram exatamente um favicon `critical` na revisão `2.6.11-critical`.
+- Evidências: Design System `2.6.11`, `docs/STATE-05-Design-System-Implementation-Report.md`, `docs/STATE-05-Human-Gate-Validation.md`, `docs/STATE-05-Request-Traceability-Audit.md`, `docs/Legacy-Migration-Plan.md`, gerador, políticas Application/WPF, ativos regenerados e regressões de densidade/transparência/lease/favicon.
+- Riscos/ressalvas: WinForms oferece um único slot, portanto a variante verde ocupa temporariamente o NotifyIcon até o callback ou fallback, sem alterar o agregado lógico. `BalloonTipShown` prova somente que o balloon foi exibido; não garante a captura ou apresentação do glyph em toda versão do Windows. O cartão, atribuição, escala, cache e snapshots continuam sob autoridade do Shell. Uma notificação recém-entregue ainda precisa de inspeção humana em `S05-HG-010`; `S05-HG-011` não foi reaberto.
+- Aprovador: correção solicitada por Bruno; nenhuma aprovação visual, do Human Gate ou de transição foi inferida.
+
 ## Template de nova entrada
 
 - Data:

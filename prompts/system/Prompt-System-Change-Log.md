@@ -2,7 +2,7 @@
 
 ## Versão atual
 
-- Versão: `3.47.0`
+- Versão: `3.48.0`
 - Data: 2026-07-15
 - Status: corpus DB-Notifier consolidado
 - Escopo: 13 arquivos ativos
@@ -16,6 +16,12 @@ A versão do corpus é independente da versão do software.
 - PATCH: clareza, correção ou referência sem mudança de autoridade.
 
 Toda alteração atualiza este arquivo e, quando necessário, `../Start-Here.md`.
+
+## 3.48.0 — 2026-07-15
+
+- O Design System `2.6.11` reduz o contorno canônico do banco de `4.5` para `3.5` unidades e torna a densidade do quadro nativo de 16 px verificável: pelo menos `150/256` pixels totalmente transparentes e `90/256` com alfa `>=128`; a saída corrente possui `155` e `90`, com cobertura azul ponderada reduzida de `63.09` para `42.84` pixels equivalentes.
+- Tray e fonte da notificação usam a métrica pequena nativa. Como WinForms oferece um único slot, a confirmação first-hide ocupa-o temporariamente com a variante verde até `BalloonTipShown` ou fallback de dois segundos; begin, shown, fallback, falha e descarte são governados por política fail-safe testada, sem alterar resumo, flyout ou estado persistido. O callback é melhor esforço e não prova a captura do glyph pelo Windows Shell.
+- `REQ-063` e a décima quinta remediação de `S05-HG-010` registram o finding e a correção. Uma notificação nova ainda precisa de revisão humana; o Human Gate continua pendente e `S05-HG-011` permanece aprovado.
 
 ## 3.47.0 — 2026-07-15
 

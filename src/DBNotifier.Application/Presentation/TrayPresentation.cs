@@ -134,6 +134,57 @@ public static class TrayNotificationPresentationPolicy
     };
 }
 
+/// <summary>Identifies which semantic source currently occupies the single Windows notification-area icon slot.</summary>
+public enum TrayNotificationIconLeaseState
+{
+    /// <summary>The icon represents the factual provider-neutral fleet aggregate.</summary>
+    Aggregate,
+
+    /// <summary>The icon temporarily represents the meaning of a notification being displayed.</summary>
+    NotificationMeaning,
+}
+
+/// <summary>Identifies bounded lifecycle signals for a temporary notification-meaning icon lease.</summary>
+public enum TrayNotificationIconLeaseSignal
+{
+    /// <summary>Begins the best-effort notification source lease immediately before delivery.</summary>
+    Begin,
+
+    /// <summary>Ends the lease after Windows reports that the balloon was displayed.</summary>
+    BalloonShown,
+
+    /// <summary>Ends the lease when the bounded adapter fallback elapses.</summary>
+    FallbackElapsed,
+
+    /// <summary>Ends the lease after synchronous notification delivery fails.</summary>
+    DeliveryFailed,
+
+    /// <summary>Ends the lease while the notification-area adapter is being disposed.</summary>
+    Disposed,
+}
+
+/// <summary>Constrains the temporary notification-meaning icon exception without coupling Application to Windows APIs.</summary>
+public static class TrayNotificationIconLeasePolicy
+{
+    /// <summary>Gets the maximum best-effort interval before the platform adapter restores the factual aggregate icon.</summary>
+    /// <remarks>The interval bounds a temporary visual exception; it is not a notification-delivery timeout.</remarks>
+    public static TimeSpan FallbackDelay { get; } = TimeSpan.FromSeconds(2);
+
+    /// <summary>Resolves the next lease state while failing invalid state or signal values safely to the aggregate icon.</summary>
+    /// <param name="state">Current icon lease state owned by the platform adapter.</param>
+    /// <param name="signal">Lifecycle signal observed by the adapter.</param>
+    /// <returns>The temporary notification state only for a valid begin signal; otherwise the factual aggregate state.</returns>
+    public static TrayNotificationIconLeaseState Resolve(
+        TrayNotificationIconLeaseState state,
+        TrayNotificationIconLeaseSignal signal)
+    {
+        bool currentStateIsValid = Enum.IsDefined(state);
+        return currentStateIsValid && signal == TrayNotificationIconLeaseSignal.Begin
+            ? TrayNotificationIconLeaseState.NotificationMeaning
+            : TrayNotificationIconLeaseState.Aggregate;
+    }
+}
+
 /// <summary>Supplies the minimum factual evidence needed to classify one instance for the Tray.</summary>
 /// <param name="Status">The provider-neutral health status.</param>
 /// <param name="IsStale">Whether freshness policy prevents the status from being treated as current.</param>

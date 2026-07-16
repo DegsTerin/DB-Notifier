@@ -2,13 +2,17 @@
 using System.ComponentModel;
 using System.Drawing;
 using System.Windows;
+using System.Windows.Threading;
 using DBNotifier.Application.Presentation;
 using DBNotifier.Domain;
 using Forms = System.Windows.Forms;
 
 namespace DBNotifier.Desktop.Wpf;
 
-/// <summary>Maps window intents to tray presentation actions and updates its labels with the active interface language.</summary>
+/// <summary>
+/// Maps window intents to notification-area presentation, localises visible labels and owns the bounded semantic-icon lease
+/// used while Windows displays a notification. It never controls a database or operating-system service.
+/// </summary>
 internal sealed class TrayApplicationController : IDisposable
 {
     private readonly MainWindow window;
@@ -17,10 +21,12 @@ internal sealed class TrayApplicationController : IDisposable
     private readonly Icon applicationIcon;
     private readonly Icon availabilityNotificationIcon;
     private readonly Forms.NotifyIcon notifyIcon;
+    private readonly DispatcherTimer notificationIconRestoreTimer;
     private readonly TrayFlyoutWindow flyout;
     private readonly TrayFleetSummary fleetSummary;
     private bool exiting;
     private bool firstHide = true;
+    private TrayNotificationIconLeaseState notificationIconLeaseState = TrayNotificationIconLeaseState.Aggregate;
 
     /// <summary>Initialises tray controls from the shared fleet summary and subscribes to window and language state changes.</summary>
     /// <param name="window">Secondary WPF shell controlled by notification-area intents.</param>
@@ -39,8 +45,14 @@ internal sealed class TrayApplicationController : IDisposable
         this.fleetSummary = fleetSummary;
         flyout = new TrayFlyoutWindow(localisation, fleetSummary, ShowView, () => Apply(TrayWindowIntent.Exit));
         (applicationIcon, availabilityNotificationIcon, notifyIcon) = CreateNotificationAreaResources(fleetSummary.State);
+        notificationIconRestoreTimer = new DispatcherTimer
+        {
+            Interval = TrayNotificationIconLeasePolicy.FallbackDelay,
+        };
+        notificationIconRestoreTimer.Tick += NotificationIconRestoreTimerTick;
         notifyIcon.MouseClick += NotifyIconMouseClick;
         notifyIcon.DoubleClick += (_, _) => Apply(TrayWindowIntent.Show);
+        notifyIcon.BalloonTipShown += NotifyIconBalloonTipShown;
         window.StateChanged += WindowStateChanged;
         window.Closing += WindowClosing;
         localisation.LanguageChanged += LanguageChanged;
@@ -54,6 +66,10 @@ internal sealed class TrayApplicationController : IDisposable
         window.Closing -= WindowClosing;
         localisation.LanguageChanged -= LanguageChanged;
         notifyIcon.MouseClick -= NotifyIconMouseClick;
+        notifyIcon.BalloonTipShown -= NotifyIconBalloonTipShown;
+        RestoreAggregateIconAfterNotificationCapture(TrayNotificationIconLeaseSignal.Disposed);
+        notificationIconRestoreTimer.Tick -= NotificationIconRestoreTimerTick;
+        notificationIconRestoreTimer.Stop();
         notifyIcon.Visible = false;
         flyout.CloseForApplicationExit();
         notifyIcon.Dispose();
@@ -71,7 +87,7 @@ internal sealed class TrayApplicationController : IDisposable
         new(HealthStatus.Unknown, IsStale: true),
     ]);
 
-    /// <summary>Creates the semantic Tray icon, policy-selected availability-notification source and native NotifyIcon as one exception-safe resource set.</summary>
+    /// <summary>Creates the semantic Tray icon and policy-selected availability source at the native Windows small-icon metric as one exception-safe resource set.</summary>
     /// <param name="state">Provider-neutral aggregate used only to select the state-bearing Tray icon.</param>
     /// <returns>The two owned icon frames and configured notification-area component.</returns>
     /// <exception cref="ArgumentOutOfRangeException">Thrown when Windows reports an invalid native icon metric.</exception>
@@ -90,7 +106,7 @@ internal sealed class TrayApplicationController : IDisposable
                 Forms.SystemInformation.SmallIconSize.Width);
             availabilityNotificationIcon = BrandStatusIconPolicy.LoadWindowsIcon(
                 TrayNotificationPresentationPolicy.ResolveIconState(TrayNotificationMeaning.AvailabilityOrRecovery),
-                Forms.SystemInformation.IconSize.Width);
+                Forms.SystemInformation.SmallIconSize.Width);
             notifyIcon = new Forms.NotifyIcon();
             notifyIcon.Icon = applicationIcon;
             notifyIcon.Visible = true;
@@ -147,6 +163,37 @@ internal sealed class TrayApplicationController : IDisposable
         }
     }
 
+    /// <summary>Restores the factual aggregate icon after Windows reports that the availability notification was displayed.</summary>
+    /// <param name="sender">NotifyIcon that reported the visible notification.</param>
+    /// <param name="e">Event metadata supplied by Windows Forms.</param>
+    private void NotifyIconBalloonTipShown(object? sender, EventArgs e)
+    {
+        RestoreAggregateIconAfterNotificationCapture(TrayNotificationIconLeaseSignal.BalloonShown);
+    }
+
+    /// <summary>Restores the factual aggregate icon when Windows suppresses the visible-notification callback.</summary>
+    /// <param name="sender">Dispatcher timer that bounds the temporary availability state.</param>
+    /// <param name="e">Timer event metadata.</param>
+    private void NotificationIconRestoreTimerTick(object? sender, EventArgs e)
+    {
+        RestoreAggregateIconAfterNotificationCapture(TrayNotificationIconLeaseSignal.FallbackElapsed);
+    }
+
+    /// <summary>Ends the bounded best-effort availability-icon lease without changing the aggregate fleet summary.</summary>
+    /// <param name="signal">Lifecycle signal that requires the factual aggregate icon to resume.</param>
+    private void RestoreAggregateIconAfterNotificationCapture(TrayNotificationIconLeaseSignal signal)
+    {
+        if (notificationIconLeaseState != TrayNotificationIconLeaseState.NotificationMeaning)
+        {
+            notificationIconRestoreTimer.Stop();
+            return;
+        }
+
+        notifyIcon.Icon = applicationIcon;
+        notificationIconLeaseState = TrayNotificationIconLeasePolicy.Resolve(notificationIconLeaseState, signal);
+        notificationIconRestoreTimer.Stop();
+    }
+
     /// <summary>Shows or dismisses the single transient notification-area surface.</summary>
     private void ToggleFlyout()
     {
@@ -193,23 +240,28 @@ internal sealed class TrayApplicationController : IDisposable
         }
     }
 
-    /// <summary>Dispatches the local hide confirmation with the transparent green availability mark, then restores the state-bearing Tray icon.</summary>
+    /// <summary>Dispatches the local hide confirmation through a bounded best-effort green source, then restores the state-bearing Tray icon.</summary>
     private void ShowFirstHideNotification()
     {
         // This notification confirms that DB Notifier remains available after its window is hidden; it does not report fleet health.
-        // Supplying the fixed green variant gives Windows the best transparent availability source without claiming Shell rendering control.
-        notifyIcon.Icon = availabilityNotificationIcon;
+        // The displayed callback is a best-effort capture point; the bounded fallback limits the temporary Tray exception.
         try
         {
+            notifyIcon.Icon = availabilityNotificationIcon;
+            notificationIconLeaseState = TrayNotificationIconLeasePolicy.Resolve(
+                notificationIconLeaseState,
+                TrayNotificationIconLeaseSignal.Begin);
+            notificationIconRestoreTimer.Start();
             notifyIcon.ShowBalloonTip(
                 3000,
                 localisation.Text("Tray.BalloonTitle"),
                 localisation.Text("Tray.BalloonMessage"),
                 Forms.ToolTipIcon.None);
         }
-        finally
+        catch
         {
-            notifyIcon.Icon = applicationIcon;
+            RestoreAggregateIconAfterNotificationCapture(TrayNotificationIconLeaseSignal.DeliveryFailed);
+            throw;
         }
     }
 }

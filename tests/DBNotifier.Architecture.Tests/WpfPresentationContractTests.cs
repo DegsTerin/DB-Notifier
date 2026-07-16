@@ -57,7 +57,7 @@ public sealed class WpfPresentationContractTests
         Assert.DoesNotContain("<AssemblyName>DB Notifier</AssemblyName>", project, StringComparison.Ordinal);
     }
 
-    /// <summary>Ensures WPF selects DPI-aware native ICO frames instead of upscaling a fixed bitmap across shell roles.</summary>
+    /// <summary>Ensures WPF selects DPI-aware native ICO frames and keeps notification sources at the Windows small-icon metric.</summary>
     [Fact]
     public void WpfBrandIconsUseNativeResolutionFrames()
     {
@@ -81,12 +81,26 @@ public sealed class WpfPresentationContractTests
         Assert.Contains("LoadImageSource(fleetSummary.State, 32, dpi)", flyout, StringComparison.Ordinal);
         Assert.Contains("Stretch=\"None\" SnapsToDevicePixels=\"True\"", mainWindowMarkup, StringComparison.Ordinal);
         Assert.Contains("Stretch=\"None\" SnapsToDevicePixels=\"True\"", flyoutMarkup, StringComparison.Ordinal);
-        Assert.Contains("Forms.SystemInformation.SmallIconSize.Width", trayController, StringComparison.Ordinal);
-        Assert.Contains("Forms.SystemInformation.IconSize.Width", trayController, StringComparison.Ordinal);
+        Assert.Equal(
+            2,
+            Regex.Count(
+                trayController,
+                Regex.Escape("Forms.SystemInformation.SmallIconSize.Width"),
+                RegexOptions.CultureInvariant));
+        Assert.DoesNotContain("Forms.SystemInformation.IconSize.Width", trayController, StringComparison.Ordinal);
         Assert.Contains("TrayNotificationMeaning.AvailabilityOrRecovery", trayController, StringComparison.Ordinal);
         Assert.Contains("TrayNotificationPresentationPolicy.ResolveIconState", trayController, StringComparison.Ordinal);
         Assert.Contains("notifyIcon.Icon = availabilityNotificationIcon", trayController, StringComparison.Ordinal);
         Assert.Contains("notifyIcon.Icon = applicationIcon", trayController, StringComparison.Ordinal);
+        Assert.Contains("notifyIcon.BalloonTipShown += NotifyIconBalloonTipShown", trayController, StringComparison.Ordinal);
+        Assert.Contains("Interval = TrayNotificationIconLeasePolicy.FallbackDelay", trayController, StringComparison.Ordinal);
+        Assert.Contains("notificationIconRestoreTimer.Start()", trayController, StringComparison.Ordinal);
+        Assert.Contains("TrayNotificationIconLeasePolicy.Resolve", trayController, StringComparison.Ordinal);
+        Assert.Contains("TrayNotificationIconLeaseSignal.BalloonShown", trayController, StringComparison.Ordinal);
+        Assert.Contains("TrayNotificationIconLeaseSignal.FallbackElapsed", trayController, StringComparison.Ordinal);
+        Assert.Contains("TrayNotificationIconLeaseSignal.DeliveryFailed", trayController, StringComparison.Ordinal);
+        Assert.Contains("TrayNotificationIconLeaseSignal.Disposed", trayController, StringComparison.Ordinal);
+        Assert.DoesNotContain("notificationIconRestorePending", trayController, StringComparison.Ordinal);
         Assert.Contains("Forms.ToolTipIcon.None", trayController, StringComparison.Ordinal);
         Assert.True(
             Regex.Count(trayController, "\\bShowBalloonTip\\s*\\(", RegexOptions.CultureInvariant) == 1,
