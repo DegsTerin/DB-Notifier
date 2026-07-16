@@ -58,6 +58,57 @@ function alphaMask(frame: IcoFrame): Buffer {
   return alpha;
 }
 
+type NormalisedRasterGeometry = {
+  left: number;
+  right: number;
+  top: number;
+  bottom: number;
+  centroidX: number;
+  centroidY: number;
+};
+
+/** Measures one visible colour layer in top-down normalised coordinates for cross-size silhouette regression. */
+function normalisedRasterGeometry(
+  frame: IcoFrame,
+  includesPixel: (red: number, green: number, blue: number, alpha: number) => boolean,
+): NormalisedRasterGeometry {
+  let minimumX = frame.size;
+  let maximumX = -1;
+  let minimumY = frame.size;
+  let maximumY = -1;
+  let weightedX = 0;
+  let weightedY = 0;
+  let totalWeight = 0;
+  for (let storedY = 0; storedY < frame.size; storedY += 1) {
+    const visualY = frame.size - 1 - storedY;
+    for (let x = 0; x < frame.size; x += 1) {
+      const offset = (storedY * frame.size + x) * 4;
+      const blue = frame.pixels[offset];
+      const green = frame.pixels[offset + 1];
+      const red = frame.pixels[offset + 2];
+      const alpha = frame.pixels[offset + 3];
+      if (!includesPixel(red, green, blue, alpha)) continue;
+      const weight = alpha / 255;
+      minimumX = Math.min(minimumX, x);
+      maximumX = Math.max(maximumX, x);
+      minimumY = Math.min(minimumY, visualY);
+      maximumY = Math.max(maximumY, visualY);
+      weightedX += (x + 0.5) * weight;
+      weightedY += (visualY + 0.5) * weight;
+      totalWeight += weight;
+    }
+  }
+  assert.ok(totalWeight > 0, `${frame.size} px frame lost a required canonical colour layer.`);
+  return {
+    left: minimumX / frame.size,
+    right: (maximumX + 1) / frame.size,
+    top: minimumY / frame.size,
+    bottom: (maximumY + 1) / frame.size,
+    centroidX: weightedX / totalWeight / frame.size,
+    centroidY: weightedY / totalWeight / frame.size,
+  };
+}
+
 /** Parses the deterministic non-interlaced RGBA PNG emitted for Windows notification attribution. */
 function readRgbaPng(image: Buffer): { width: number; height: number; pixels: Buffer } {
   assert.deepEqual([...image.subarray(0, 8)], [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
@@ -117,8 +168,8 @@ test("fleet aggregate drives every semantic product-mark state with Tray precede
 test("semantic brand replacement keeps header and favicon on the same aggregate without reusing the old node", () => {
   for (const state of ["healthy", "warning", "critical", "unknown"] as const) {
     const stateAssets = semanticBrandAssets(state);
-    assert.equal(stateAssets.iconPath, `/dbnotifier-icon.${state}.svg?v=2.6.12-${state}`);
-    assert.equal(stateAssets.faviconPath, `/dbnotifier-favicon.${state}.ico?v=2.6.12-${state}`);
+    assert.equal(stateAssets.iconPath, `/dbnotifier-icon.${state}.svg?v=2.6.13-${state}`);
+    assert.equal(stateAssets.faviconPath, `/dbnotifier-favicon.${state}.ico?v=2.6.13-${state}`);
   }
 
   const assets = semanticBrandAssets("critical");
@@ -158,9 +209,9 @@ test("semantic brand replacement keeps header and favicon on the same aggregate 
 
   replaceSemanticFavicon(ownerDocument, assets.faviconPath, "critical");
 
-  assert.equal(designSystemVersion, "2.6.12");
-  assert.equal(assets.iconPath, "/dbnotifier-icon.critical.svg?v=2.6.12-critical");
-  assert.equal(assets.faviconPath, "/dbnotifier-favicon.critical.ico?v=2.6.12-critical");
+  assert.equal(designSystemVersion, "2.6.13");
+  assert.equal(assets.iconPath, "/dbnotifier-icon.critical.svg?v=2.6.13-critical");
+  assert.equal(assets.faviconPath, "/dbnotifier-favicon.critical.ico?v=2.6.13-critical");
   assert.equal(replacement?.id, semanticFaviconId);
   assert.equal(replacement?.href, assets.faviconPath);
   assert.equal(replacement?.dataset.aggregateState, "critical");
@@ -398,8 +449,8 @@ test("provider-neutral database mark is shared by active Web and Windows surface
     let strongSmallPixels = 0;
     let transparentSmallPixels = 0;
     let partialSmallPixels = 0;
-    let solidBluePixels = 0;
-    let solidAccentPixels = 0;
+    let visibleBluePixels = 0;
+    let visibleAccentPixels = 0;
     for (let pixel = 0; pixel < 16 * 16; pixel += 1) {
       const offset = pixel * 4;
       const alpha = smallestFrame.pixels[pixel * 4 + 3];
@@ -409,19 +460,19 @@ test("provider-neutral database mark is shared by active Web and Windows surface
       if (alpha >= 128) strongSmallPixels += 1;
       if (alpha === 0) transparentSmallPixels += 1;
       if (alpha > 0 && alpha < 255) partialSmallPixels += 1;
-      if (red === 0 && green === 120 && blue === 212 && alpha === 255) solidBluePixels += 1;
+      if (red === 0 && green === 120 && blue === 212 && alpha > 0) visibleBluePixels += 1;
       const expectedAccent = expectedSmallAccents[stateIndex];
-      if (red === expectedAccent.red && green === expectedAccent.green && blue === expectedAccent.blue && alpha === 255) {
-        solidAccentPixels += 1;
+      if (red === expectedAccent.red && green === expectedAccent.green && blue === expectedAccent.blue && alpha > 0) {
+        visibleAccentPixels += 1;
       }
     }
-    assert.equal(strongSmallPixels, 60);
-    assert.equal(transparentSmallPixels, 196);
-    assert.equal(partialSmallPixels, 0);
-    assert.equal(solidBluePixels, 38);
-    assert.equal(solidAccentPixels, 22);
-    const storedTopInteriorRow = 15 - 3;
-    const storedBodyInteriorRow = 15 - 7;
+    assert.ok(strongSmallPixels >= 40);
+    assert.ok(transparentSmallPixels > 16 * 16 * 0.5);
+    assert.ok(partialSmallPixels > 0);
+    assert.ok(visibleBluePixels > 0);
+    assert.ok(visibleAccentPixels > 0);
+    const storedTopInteriorRow = 15 - 2;
+    const storedBodyInteriorRow = 15 - 9;
     assert.equal(smallestFrame.pixels[(storedTopInteriorRow * 16 + 5) * 4 + 3], 0);
     assert.equal(smallestFrame.pixels[(storedBodyInteriorRow * 16 + 5) * 4 + 3], 0);
 
@@ -436,8 +487,7 @@ test("provider-neutral database mark is shared by active Web and Windows surface
         assert.equal(maskBit !== 0, alpha === 0, `${frame.size} px legacy mask disagrees with BGRA transparency.`);
         if (alpha > 0 && alpha < 255) partialAlphaPixels += 1;
       }
-      if (frame.size <= 24) assert.equal(partialAlphaPixels, 0);
-      else assert.ok(partialAlphaPixels > 0);
+      assert.ok(partialAlphaPixels > 0);
     }
   }
   assert.notDeepEqual(healthyIcon, warningIcon);
@@ -506,7 +556,28 @@ test("provider-neutral database mark is shared by active Web and Windows surface
   assert.notDeepEqual(warningFavicon, criticalFavicon);
   assert.notDeepEqual(criticalFavicon, unknownFavicon);
 
-  for (const frame of readIcoFrames(criticalIcon)) {
+  const criticalFrames = readIcoFrames(criticalIcon);
+  const proportionalLayers = [
+    { name: "complete mark", includesPixel: (_red: number, _green: number, _blue: number, alpha: number) => alpha > 0 },
+    { name: "database", includesPixel: (red: number, green: number, blue: number, alpha: number) => red === 0 && green === 120 && blue === 212 && alpha > 0 },
+    { name: "bell", includesPixel: (red: number, green: number, blue: number, alpha: number) => red === 198 && green === 40 && blue === 40 && alpha > 0 },
+  ];
+  const proportionalReference = criticalFrames[criticalFrames.length - 1];
+  for (const layer of proportionalLayers) {
+    const reference = normalisedRasterGeometry(proportionalReference, layer.includesPixel);
+    for (const frame of criticalFrames) {
+      const actual = normalisedRasterGeometry(frame, layer.includesPixel);
+      const rasterTolerance = 1.5 / frame.size + 1 / proportionalReference.size;
+      for (const property of Object.keys(reference) as Array<keyof NormalisedRasterGeometry>) {
+        assert.ok(
+          Math.abs(actual[property] - reference[property]) <= rasterTolerance,
+          `${frame.size} px ${layer.name} ${property} diverged from the canonical proportional silhouette.`,
+        );
+      }
+    }
+  }
+
+  for (const frame of criticalFrames) {
     let straightBlueEdge = false;
     let straightRedEdge = false;
     for (let pixel = 0; pixel < frame.size * frame.size; pixel += 1) {
@@ -519,26 +590,24 @@ test("provider-neutral database mark is shared by active Web and Windows surface
       if (red === 0 && green === 120 && blue === 212) straightBlueEdge = true;
       if (red === 198 && green === 40 && blue === 40) straightRedEdge = true;
     }
-    if (frame.size > 24) {
-      assert.ok(straightBlueEdge, `${frame.size} px frame lost the canonical blue on a partially covered edge.`);
-      assert.ok(straightRedEdge, `${frame.size} px frame lost the canonical Critical red on a partially covered edge.`);
-    }
+    assert.ok(straightBlueEdge, `${frame.size} px frame lost the canonical blue on a partially covered edge.`);
+    assert.ok(straightRedEdge, `${frame.size} px frame lost the canonical Critical red on a partially covered edge.`);
   }
 
   assert.doesNotMatch(dashboardSvg.toString("utf8"), /<rect/);
   assert.match(dashboardSvg.toString("utf8"), /fill="none" stroke="#0078D4"/);
   assert.doesNotMatch(dashboardSvg.toString("utf8"), /#0F2940|#F8FAFC|#55B4FF/);
   assert.match(brandGenerator, /const markGeometry = Object\.freeze/);
-  assert.match(brandGenerator, /const microGlyph16 = Object\.freeze/);
+  assert.doesNotMatch(brandGenerator, /microGlyph16|renderMicroBitmap|renderOpticalCanonicalBitmap/);
   assert.match(brandGenerator, /const \{ database, bell \} = markGeometry;/);
   assert.match(brandGenerator, /for \(const centreY of \[database\.seamCentreY, database\.bottomCentreY\]\)/);
   assert.match(brandGenerator, /const supersampling = 4;/);
   assert.match(brandGenerator, /const visibleSamples = coverage\[coverageOffset\] \+ coverage\[coverageOffset \+ 1\]/);
   assert.match(brandGenerator, /pixels\[offset \+ 3\] = Math\.round\(\(visibleSamples \/ samples\) \* 255\)/);
-  assert.match(brandGenerator, /if \(size <= 24\) return renderMicroBitmap\(size, accent\)/);
+  assert.match(brandGenerator, /const coverageBySize = new Map\(iconSizes\.map\(\(size\) => \[size, renderCoverage\(size\)\]\)\)/);
   assert.doesNotMatch(brandGenerator, /includeMiddleSeam|databaseStrokeRadius = Math\.max/);
   assert.match(brandGenerator, /strokeWidth:\s*3\.5/);
-  assert.match(html, /id="dbnotifier-favicon"[^>]+dbnotifier-favicon\.unknown\.ico\?v=2\.6\.12-unknown/);
+  assert.match(html, /id="dbnotifier-favicon"[^>]+dbnotifier-favicon\.unknown\.ico\?v=2\.6\.13-unknown/);
   assert.match(app, /summarizeFleetAggregate\(snapshot, now\)/);
   assert.match(app, /useLayoutEffect\(\(\) =>/);
   assert.match(app, /replaceSemanticFavicon\(document, brandAssets\.faviconPath, aggregateState\)/);

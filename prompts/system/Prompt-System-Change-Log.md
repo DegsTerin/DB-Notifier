@@ -2,7 +2,7 @@
 
 ## Versão atual
 
-- Versão: `3.49.0`
+- Versão: `3.50.0`
 - Data: 2026-07-15
 - Status: corpus DB-Notifier consolidado
 - Escopo: 13 arquivos ativos
@@ -16,6 +16,13 @@ A versão do corpus é independente da versão do software.
 - PATCH: clareza, correção ou referência sem mudança de autoridade.
 
 Toda alteração atualiza este arquivo e, quando necessário, `../Start-Here.md`.
+
+## 3.50.0 — 2026-07-15
+
+- O Design System `2.6.13` elimina o microglifo separado de 16/20/24 px e exige que SVG, favicon, ICO Windows e superfícies Web/WPF/Tray usem uma única geometria, proporções e silhueta transparente do banco com sino. Tamanho, amostragem e cor semântica podem variar; costuras, fundo ou modelo alternativo não podem.
+- A regra foi consolidada em `AGENTS.md` como orientação permanente e em `REQ-065` como requisito rastreável. O gerador usa a mesma `markGeometry`, cobertura 4× e alfa direto em todos os quadros de 16–256 px, com regressão que rejeita um segundo renderer ou grid.
+- A décima sétima revisão de `S05-HG-010` confirmou humanamente, apenas em seu escopo, que a transparência e a repetição das notificações ficaram como solicitadas. A geometria divergente encontrada na mesma revisão não foi aprovada; `S05-HG-010`, o Human Gate de `STATE-05` e a transição para `STATE-06` permanecem pendentes.
+- Os gates repetidos após `2.6.13` aprovaram 34 testes Dashboard, 143 unitários, 9 de arquitetura, build Release sem avisos/erros e 96 amostras headless. O publisher moderno, PNG transparente, fallback e política de `CloseRequest` não mudaram.
 
 ## 3.49.0 — 2026-07-15
 

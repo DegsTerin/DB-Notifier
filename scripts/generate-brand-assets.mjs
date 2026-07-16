@@ -48,25 +48,6 @@ const markGeometry = Object.freeze({
     clapperRadius: 2.5,
   }),
 });
-/** Defines the 16 px optical master: D is the blue database, S the semantic bell and dots remain transparent. */
-const microGlyph16 = Object.freeze([
-  "................",
-  "...DDDDD........",
-  ".DD.....DD......",
-  ".D.......D......",
-  ".DD.....DD......",
-  ".D.DDDDD.D......",
-  ".D.......D......",
-  ".D.......D......",
-  ".D.......D......",
-  ".D.......D.SS...",
-  ".D.......SSSS...",
-  ".D.......SSSS...",
-  ".DD.....SSSSS...",
-  "...DDDD.SSSSS...",
-  "..........SS....",
-  "................",
-]);
 const iconSizes = [16, 20, 24, 32, 40, 48, 64, 128, 256];
 const faviconSizes = [16, 20, 24, 32];
 const outputs = {
@@ -243,34 +224,6 @@ function renderCoverage(size) {
   return coverage;
 }
 
-/**
- * Renders the optically corrected 16 px grid at one native small-icon size with binary alpha.
- * @param {number} size Native 16, 20 or 24 px output size selected by the Windows scaling metric.
- * @param {number[]} accent Semantic bell colour as RGBA channels.
- * @returns {Buffer} Top-down straight-alpha BGRA bitmap bytes for a small ICO frame.
- */
-function renderMicroBitmap(size, accent) {
-  if (![16, 20, 24].includes(size)) throw new Error(`Unsupported micro-glyph size ${size}.`);
-  const pixels = Buffer.alloc(size * size * 4);
-  for (let y = 0; y < size; y += 1) {
-    const sourceY = Math.min(15, Math.floor(((y + 0.5) * 16) / size));
-    const row = microGlyph16[sourceY];
-    if (row.length !== 16) throw new Error(`Invalid 16 px micro-glyph row width at row ${y}.`);
-    for (let x = 0; x < size; x += 1) {
-      const sourceX = Math.min(15, Math.floor(((x + 0.5) * 16) / size));
-      const layer = row[sourceX];
-      if (layer === ".") continue;
-      const colour = layer === "S" ? accent : databaseStroke;
-      const offset = (y * size + x) * 4;
-      pixels[offset] = colour[2];
-      pixels[offset + 1] = colour[1];
-      pixels[offset + 2] = colour[0];
-      pixels[offset + 3] = 255;
-    }
-  }
-  return pixels;
-}
-
 /** Calculates the PNG CRC-32 value without introducing a generator dependency. */
 function crc32(bytes) {
   let value = 0xffffffff;
@@ -334,11 +287,10 @@ function buildNotificationAvailabilityPng(accent, coverage) {
  * Renders one square straight-alpha BGRA bitmap from shared layer coverage.
  * @param {number} size Output bitmap edge length in pixels.
  * @param {number[]} accent Semantic bell colour as RGBA channels.
- * @param {Buffer | undefined} coverage Precomputed three-layer supersampling coverage for canonical frames.
+ * @param {Buffer} coverage Precomputed three-layer supersampling coverage from the canonical geometry at this size.
  * @returns {Buffer} Straight-alpha BGRA bitmap bytes for the ICO payload.
  */
 function renderBitmap(size, accent, coverage) {
-  if (size <= 24) return renderMicroBitmap(size, accent);
   if (!coverage) throw new Error(`Missing canonical coverage for ${size} px frame.`);
 
   const samples = 16;
@@ -445,7 +397,7 @@ function processOutput(path, bytes, verify) {
 }
 
 const verify = process.argv.includes("--verify");
-const coverageBySize = new Map(iconSizes.filter((size) => size >= 32).map((size) => [size, renderCoverage(size)]));
+const coverageBySize = new Map(iconSizes.map((size) => [size, renderCoverage(size)]));
 const defaultSvg = Buffer.from(buildSvg(statusAccentHex.Unknown), "utf8");
 processOutput(outputs.designSystemSvg, defaultSvg, verify);
 processOutput(outputs.dashboardSvgs.Default, defaultSvg, verify);

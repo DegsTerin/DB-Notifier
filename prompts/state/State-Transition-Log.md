@@ -924,6 +924,17 @@
 - Riscos/ressalvas: Windows/Focus Assist pode suprimir a apresentação visível mesmo após aceitar a publicação. Instalação do Windows App Runtime, identidade/caminho estáveis, packaging, rollback e limpeza de desinstalação pertencem a `STATE-08`; notificações por mudança factual Agent/API continuam em `STATE-06`. `S05-HG-010` permanece pendente e a aprovação limitada de `S05-HG-011` não foi reaberta.
 - Aprovador: correções solicitadas por Bruno; nenhuma aprovação visual, do Human Gate ou de transição foi inferida.
 
+## 2026-07-15 — Restauração de uma única geometria da marca em todos os tamanhos
+
+- Estado anterior: `STATE-05 FRONTEND_IMPLEMENTATION`, Human Gate e `S05-HG-010` pendentes; `S05-HG-011` aprovado; Design System `2.6.12` implementado.
+- Estado resultante: sem transição; Design System `2.6.13` implementado e verificado automaticamente, com confirmação humana limitada dos detalhes anteriores de transparência/repetição e nova comparação perceptual ainda necessária.
+- Decisão: registrar que Bruno confirmou os dois ciclos válidos de fechamento e declarou a transparência/repetição como desejadas, sem extrapolar essa confirmação para o ícone completo, `S05-HG-010` ou o Human Gate. Tratar como finding válido a diferença visual entre o microglifo pequeno e o banco canônico maior, restaurando uma única geometria em todas as superfícies.
+- Escopo: remoção de `microGlyph16` e `renderMicroBitmap`; geração de todos os quadros 16/20/24/32/40/48/64/128/256 px a partir de `markGeometry`, cobertura 4× e alfa direto; revisão/cache-busting Web `2.6.13`; regra permanente de modelo único e `REQ-065`. Publisher Windows, PNG de disponibilidade, fallback, agregado, flyout, persistência e política de `CloseRequest` permaneceram inalterados.
+- Gates: restore locked, build Release .NET 10 com zero avisos/erros, formato, `143/143` testes unit/model/provider/presentation, `9/9` arquitetura, `34/34` Dashboard, typecheck/build Vite, `11/11` Pester, bundle legado, marca/tokens/localização, documentação/links, auditorias NuGet/npm, runtime fail-closed e 96 amostras Dashboard headless aprovados. Uma primeira tentativa headless terminou com código 1 somente ao encontrar um arquivo de cache ainda aberto durante a limpeza final; seu resultado foi descartado. Somente o processo/pasta temporários isolados foram encerrados, e a repetição completa em portas alternativas aprovou as 96 amostras com código 0.
+- Evidências: Design System `2.6.13`, gerador e ativos regenerados, regressão de geometria única, `docs/STATE-05-Design-System-Implementation-Report.md`, `docs/STATE-05-Human-Gate-Validation.md`, `docs/STATE-05-Request-Traceability-Audit.md` e capturas fornecidas pelo validador sem incorporação de dados externos.
+- Riscos/ressalvas: o quadro de 16 px é inevitavelmente mais denso e antialiased, embora derive do mesmo modelo; beleza/nitidez em browser, título, Tray, taskbar, flyout e overflow dependem de nova inspeção humana autorizada. `S05-HG-010`, o Human Gate e `STATE-06` permanecem pendentes; `S05-HG-011` não foi reaberto.
+- Aprovador: transparência/repetição confirmadas por Bruno e unificação geométrica solicitada por ele; nenhuma aprovação do ícone corrigido, de `S05-HG-010`, do Human Gate ou de transição foi inferida.
+
 ## Template de nova entrada
 
 - Data:
