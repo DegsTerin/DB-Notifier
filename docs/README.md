@@ -11,6 +11,7 @@ Current discovery and migration artifacts:
 - [`STATE-00-Discovery-Report.md`](STATE-00-Discovery-Report.md): checks, findings, limitations and the original Human Gate record, now retrospectively ratified by the current addendum.
 - [`Development.md`](Development.md): `STATE-01` scaffold, tool baseline, checks, and onboarding.
 - [`Code-Documentation-Standards.md`](Code-Documentation-Standards.md): project-wide British English documentation policy, review requirements, automated gate, and narrow format exceptions.
+- [`MOD-12-Observer-Foundation-Report.md`](MOD-12-Observer-Foundation-Report.md): inactive, local and non-mutating AIOps Observer foundation, requirement coverage, verification and independent promotion boundaries.
 - [`design/DB-Notifier-Design-System.md`](design/DB-Notifier-Design-System.md): official modern enterprise visual language, shared tokens, explicit Light/Dark architecture, component contracts and STATE-05 re-audit criteria.
 - [`STATE-05-Design-System-Implementation-Report.md`](STATE-05-Design-System-Implementation-Report.md): canonical token/schema foundation, deterministic CSS/XAML generation, theme contracts, verification and remaining implementation increments.
 - [`STATE-05-Localisation-Implementation-Report.md`](STATE-05-Localisation-Implementation-Report.md): shared `pt-BR`/`en-GB` catalogue, React/WPF language lifecycle, responsive scope and verification evidence.

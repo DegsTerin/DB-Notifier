@@ -1021,6 +1021,28 @@
 - Riscos/ressalvas: presença de texto no store privado do Windows é evidência auxiliar de aceitação/materialização, não prova de apresentação visível. Nenhum screenshot amplo ou conteúdo de outra notificação foi coletado. Narrator, High Contrast, scaling, acessibilidade restante, integração, provider real, ação externa e transição permaneceram fora do escopo.
 - Aprovador: Bruno autorizou a execução; nenhuma decisão de aprovação/reprovação da amostra, do Human Gate ou da progressão foi inferida. A classificação visual de cada uma das três entradas ainda deve ser fornecida por Bruno.
 
+## 2026-07-16 — Elevação estratégica e consolidação canónica de MOD-12
+
+- Estado anterior: `STATE-05 FRONTEND_IMPLEMENTATION`, progressão em espera e Human Gate pendente; `MOD-12 AIOPS_AI` documentado como roadmap `OBSERVER`-first.
+- Estado resultante: sem transição; `MOD-12` passa a ser o principal diferencial estratégico do produto sem autorizar integração, coleta automática de dataset, LLM externo, executor, homologação ou promoção de modo.
+- Decisão: Bruno solicitou `Leia e execute: Prompt-IA.md, mas antes coloque este arquivo no lugar certo e com o nome correto` e declarou `Quero que este seja o grande diferencial do projeto`. A instrução foi consolidada no proprietário canónico `foundation/AIOps-And-AI-Module.md` em vez de criar autoridade duplicada.
+- Escopo: prioridade estratégica permanente, duração estimada em planos, proibição explícita de exclusão autónoma de dados, preservação de logs sanitizados e remoção do rascunho avulso da raiz. A execução funcional fica limitada ao primeiro incremento local, determinístico, não mutável e sem integração do modo `OBSERVER`, sujeito a evidência própria.
+- Gates: decisão e consolidação documental não aprovam implementação, Human Gate ou progressão; qualquer resultado técnico do incremento `OBSERVER` deve ser registrado separadamente depois dos checks reais.
+- Evidências: `AGENTS.md`, visão do produto, especificação e guardrails AIOps/IA, changelog do corpus e ausência do arquivo avulso `Prompt-IA.md`.
+- Riscos/ressalvas: prioridade de produto não reduz segurança, governança de dados, separação de responsabilidades, provider neutrality, gates independentes por modo ou autoridade humana sobre ações destrutivas.
+- Aprovador: Bruno definiu a prioridade e solicitou a execução; nenhuma promoção de estado ou modo foi inferida.
+
+## 2026-07-16 — Fundação local inativa MOD-12 Observer
+
+- Estado anterior: `STATE-05 FRONTEND_IMPLEMENTATION`, progressão em espera e Human Gate pendente; MOD-12 priorizado estrategicamente, sem modo operacional ativo.
+- Estado resultante: sem transição e sem promoção `none → OBSERVER`; fundação local/in-memory não mutável implementada e Quality Gate automático aprovado somente nesse escopo.
+- Decisão: executar o menor incremento técnico real compatível com os guardrails: contrato de evidência sanitizada/scope-bound, thresholds determinísticos e previsão explicável de capacidade, sem UI demonstrativa, dependência nova, coleta, dataset, integração, persistência, rede, LLM, recomendação, plano ou executor.
+- Escopo: `DBNotifier.Application.AIOps`; seleção fail-closed de evidência, proveniência/versionamento/classificação/sanitização/retenção/finalidade, freshness e validade, debounce, OLS com RMSE/R²/IC95 da taxa, sensibilidade temporal explicitamente não apresentada como IC de exaustão, horizon uncertainty, bounds/cancelamento; 34 regressões focadas, allowlist arquitetural, relatório e estado factual.
+- Gates: restore locked aprovado; build Release da solução completa em output isolado com zero avisos/erros; `219/219` unitários e `14/14` arquitetura; cobertura `79,62%` linhas/`58,4%` branches; format, documentação, links Markdown, secret scan, diff e runtime fail-closed aprovados. Auditorias online NuGet/npm não foram repetidas porque nenhuma dependência mudou.
+- Evidências: `docs/MOD-12-Observer-Foundation-Report.md`, namespace Application AIOps, `AIOpsObserverTests` e allowlist `AIOpsObserverPublicSurfaceExposesOnlyApprovedContracts`.
+- Riscos/ressalvas: flags de segurança/autoridade são assertions do caller até existir adapter confiável; não há caching de janelas, orçamento/backpressure de pipeline, eval dataset, poison/red-team fixture, integração ou homologação. O processo visível preexistente `DB Notifier` PID 6976 bloqueou apenas a cópia no output WPF normal, permaneceu intocado e o build isolado do mesmo projeto passou.
+- Aprovador: incremento solicitado por Bruno; Quality Gate automático não constitui Human Gate, ativação de modo ou progressão de lifecycle.
+
 ## Template de nova entrada
 
 - Data:

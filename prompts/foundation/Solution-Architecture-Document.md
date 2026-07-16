@@ -121,7 +121,7 @@ Papéis, permissões, escopos e trilha imutável. Os detalhes normativos estão 
 
 ### MOD-12 AIOPS_AI
 
-Regras determinísticas, análise estatística, correlação, base de conhecimento, LLM, planejamento e automação controlada. A especificação completa está em `AIOps-And-AI-Module.md`. O módulo é roadmap e não integra a baseline implementada.
+Regras determinísticas, análise estatística, correlação, base de conhecimento, LLM, planejamento e automação controlada. A especificação completa está em `AIOps-And-AI-Module.md`. Uma fundação local, in-memory e não mutável de contratos/evidência, thresholds e previsão de capacidade existe em Application; nenhum modo está ativo, e pipeline, integração, persistência, UI, LLM, executor e promoção independente permanecem roadmap.
 
 ## Comunicação Agent/API
 

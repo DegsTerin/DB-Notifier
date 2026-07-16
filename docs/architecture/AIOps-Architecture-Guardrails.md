@@ -2,7 +2,7 @@
 
 ## Status
 
-MOD-12 remains roadmap-only and outside the implemented baseline. This document defines `STATE-02` data, risk, contract, and evaluation boundaries so later work cannot bypass deterministic controls.
+MOD-12 remains inactive and outside the runtime baseline. A local, in-memory and non-mutating Observer foundation now implements bounded evidence, threshold and capacity-analysis contracts inside Application; it has no trusted telemetry adapter, pipeline, persistence, UI, LLM or executor and does not satisfy the `none → OBSERVER` promotion gate. This document defines the data, risk, contract and evaluation boundaries so later work cannot mistake foundation code for an activated mode or bypass deterministic controls.
 
 ## Allowed initial mode
 
@@ -58,6 +58,7 @@ Datasets record owner, source, consent/authority, classification, time range, ex
 - Risk class is determined by deterministic policy, never by model output.
 - Recommendation, plan, approval, command creation, execution, and verification are distinct audited records.
 - Free-form model text cannot become SQL/shell/native arguments.
+- AI-derived output or policy can never delete data autonomously; destructive operations retain an authorised human owner, double confirmation, a rehearsed runbook, verified recovery and the most restrictive applicable policy.
 - Kill switch disables AI-derived recommendations/automation without disabling deterministic monitoring.
 - Low confidence, missing evidence, policy conflict, or model unavailability falls back to deterministic behavior.
 

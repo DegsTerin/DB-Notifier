@@ -2,7 +2,9 @@
 
 ## Status e objetivo
 
-Capacidade de longo prazo, ainda não implementada. Seu objetivo é permitir que o DB-Notifier monitore, analise, preveja, recomende e, quando autorizado, automatize operações de forma segura, explicável, auditável e escalável.
+Capacidade estratégica de longo prazo e principal diferencial planejado do DB-Notifier, entregue incrementalmente sob gates independentes. O estado factual de implementação permanece exclusivamente em [`../state/Current-State.md`](../state/Current-State.md).
+
+Seu objetivo é permitir que o DB-Notifier monitore, analise, preveja, recomende e, quando autorizado, automatize operações de forma segura, explicável, auditável e escalável.
 
 A IA atua como apoio a DBAs e equipes de infraestrutura. Ela não substitui autorização, responsabilidade humana, providers determinísticos nem controles operacionais.
 
@@ -123,7 +125,7 @@ Converter recomendações aceitas em plano estruturado:
 - Evidências utilizadas.
 - Impacto esperado.
 - Riscos, blast radius e contraindicações.
-- Ordem, timeout e janela de execução.
+- Ordem, duração estimada, timeout e janela de execução.
 - Validação posterior.
 - Rollback ou procedimento de recuperação.
 
@@ -149,6 +151,8 @@ O executor aceita apenas planos validados, aprovados e convertidos em comandos t
 - Backup e restore.
 - VACUUM, ANALYZE e REINDEX.
 - Atualização, patch e configuração.
+
+Exclusão de dados nunca é automática. Qualquer operação destrutiva exige owner humano autorizado, dupla confirmação, runbook ensaiado, recuperação verificável e a política mais restritiva aplicável.
 
 Toda operação depende de capability do provider, RBAC, idempotency key, expiração, confirmação, auditoria e probe posterior. Texto livre do LLM nunca é executado como SQL, shell ou comando administrativo.
 

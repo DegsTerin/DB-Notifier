@@ -17,6 +17,7 @@ O DB-Notifier será uma plataforma profissional para monitorar e administrar mú
 - Manter aplicação Tray/Desktop simples e preparar Dashboard Web centralizado.
 - Evoluir incrementalmente o PgNotifier sem uma reescrita big bang.
 - Priorizar os motores mais utilizados e conhecidos mundialmente, preservando uma extensão documentada para motores novos, especializados e proprietários.
+- Fazer do `MOD-12 AIOPS_AI` o principal diferencial estratégico do produto: transformar telemetria factual, provider-neutral e sanitizada em sinais, previsões e recomendações explicáveis, mantendo cada promoção e qualquer automação sob os gates próprios definidos em [`AIOps-And-AI-Module.md`](AIOps-And-AI-Module.md).
 
 ## Cobertura universal por providers
 

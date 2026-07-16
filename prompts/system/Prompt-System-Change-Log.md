@@ -2,7 +2,7 @@
 
 ## Versão atual
 
-- Versão: `3.53.1`
+- Versão: `3.54.0`
 - Data: 2026-07-16
 - Status: corpus DB-Notifier consolidado
 - Escopo: 13 arquivos ativos
@@ -16,6 +16,14 @@ A versão do corpus é independente da versão do software.
 - PATCH: clareza, correção ou referência sem mudança de autoridade.
 
 Toda alteração atualiza este arquivo e, quando necessário, `../Start-Here.md`.
+
+## 3.54.0 — 2026-07-16
+
+- Bruno definiu `MOD-12 AIOPS_AI` como o principal diferencial estratégico do DB-Notifier, sem dispensar governança de dados, sequência do ciclo, Quality/Human Gates, homologação, menor privilégio ou separação entre recomendação, aprovação e execução.
+- O rascunho avulso `Prompt-IA.md` foi reconciliado com seu proprietário canónico `foundation/AIOps-And-AI-Module.md`, sem criar um 14.º arquivo ativo nem substituir os guardrails mais seguros já consolidados.
+- Planos estruturados passam a incluir duração estimada; exclusão de dados fica explicitamente proibida de automação e operações destrutivas preservam owner humano, dupla confirmação, runbook ensaiado e recuperação verificável.
+- A exigência original de logs completos permanece adaptada ao contrato de auditoria completa com logs sanitizados, nunca à retenção ou exposição de secrets e dados sensíveis.
+- A linguagem arquitetural passa a distinguir a fundação local/in-memory inativa de MOD-12 de um modo operacional promovido: código de evidência, thresholds e capacidade não implica pipeline, integração, dataset, UI, LLM, executor ou aprovação `none → OBSERVER`.
 
 ## 3.53.1 — 2026-07-16
 
