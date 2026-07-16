@@ -1,29 +1,64 @@
-// Module purpose: Implements Server Maintenance Worker for the authorised server API without direct monitored-database access.
+// Module purpose: Coordinates bounded central maintenance while delivery paths remain explicitly fail-closed and external-action free.
 using DBNotifier.Application.Operations;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
 namespace DBNotifier.Server.Api;
 
+/// <summary>
+/// Defines opt-in central maintenance settings and rejects delivery paths until their durable claim-and-lease
+/// protocols are implemented; it grants no authority over monitored databases or external channels.
+/// </summary>
 public sealed class ServerOperationsOptions
 {
+    /// <summary>Gets the configuration-section path owned by central maintenance operations.</summary>
     public const string SectionName = "DBNotifier:Operations";
 
+    /// <summary>Gets or sets whether bounded central retention inspection is enabled.</summary>
     public bool RetentionEnabled { get; set; }
 
+    /// <summary>Gets or sets whether eligible central retention rows may be deleted.</summary>
     public bool RetentionApplyChanges { get; set; }
 
+    /// <summary>Gets or sets whether the unavailable durable server-outbox delivery path was requested.</summary>
     public bool ServerOutboxEnabled { get; set; }
 
+    /// <summary>Gets or sets whether the unavailable durable notification-delivery path was requested.</summary>
     public bool NotificationDeliveryEnabled { get; set; }
 
+    /// <summary>Gets or sets the maintenance-cycle cadence in seconds.</summary>
     public int IntervalSeconds { get; set; } = 30;
 
+    /// <summary>Gets or sets the maximum number of rows considered per maintenance class or delivery batch.</summary>
     public int MaximumBatchSize { get; set; } = 50;
+
+    /// <summary>
+    /// Validates enabled server operations before a background worker performs any persistence work.
+    /// </summary>
+    /// <exception cref="InvalidOperationException">
+    /// Thrown when delivery is enabled without the required durable claim-and-lease contract or when
+    /// cadence and batch settings are outside policy.
+    /// </exception>
+    public void ValidateForStartup()
+    {
+        if (ServerOutboxEnabled || NotificationDeliveryEnabled)
+        {
+            throw new InvalidOperationException("server.delivery_durable_lease_unavailable");
+        }
+
+        if (IntervalSeconds is < 1 or > 3600 || MaximumBatchSize is < 1 or > 100)
+        {
+            throw new InvalidOperationException("server.operations_policy_invalid");
+        }
+    }
 }
 
+/// <summary>
+/// Provides a fail-closed publisher placeholder that performs no external action and returns a retryable outcome.
+/// </summary>
 public sealed class UnavailableServerMessagePublisher : IServerMessagePublisher
 {
+    /// <inheritdoc />
     public ValueTask<DeliveryResult> PublishAsync(
         ServerOutboxEnvelope message,
         CancellationToken cancellationToken) =>
@@ -33,6 +68,18 @@ public sealed class UnavailableServerMessagePublisher : IServerMessagePublisher
             "server_outbox.publisher_not_configured"));
 }
 
+/// <summary>
+/// Hosts bounded central retention cycles and refuses unavailable delivery protocols before entering its loop.
+/// It accesses only DB-Notifier central persistence and never connects to a monitored database.
+/// </summary>
+/// <param name="options">Validated fail-closed maintenance and delivery settings.</param>
+/// <param name="retentionStore">Central persistence boundary for bounded retention.</param>
+/// <param name="outboxStore">Durable server-outbox boundary reserved for a future delivery protocol.</param>
+/// <param name="notificationStore">Durable notification boundary reserved for future channel delivery.</param>
+/// <param name="publisher">Fail-closed server-message publisher.</param>
+/// <param name="adapters">Registered notification adapters; none are invoked while delivery remains blocked.</param>
+/// <param name="timeProvider">Clock used for retention cut-offs and bounded cadence.</param>
+/// <param name="logger">Structured logger that receives counts and stable error types only.</param>
 public sealed partial class ServerMaintenanceWorker(
     ServerOperationsOptions options,
     IServerRetentionStore retentionStore,
@@ -43,6 +90,7 @@ public sealed partial class ServerMaintenanceWorker(
     TimeProvider timeProvider,
     ILogger<ServerMaintenanceWorker> logger) : BackgroundService
 {
+    /// <inheritdoc />
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         if (!options.RetentionEnabled && !options.ServerOutboxEnabled && !options.NotificationDeliveryEnabled)
@@ -51,7 +99,7 @@ public sealed partial class ServerMaintenanceWorker(
             return;
         }
 
-        Validate();
+        options.ValidateForStartup();
         ServerOutboxDeliveryRunner outboxRunner = new(outboxStore, publisher, timeProvider);
         NotificationDeliveryRunner notificationRunner = new(notificationStore, adapters, timeProvider);
         TimeSpan interval = TimeSpan.FromSeconds(options.IntervalSeconds);
@@ -107,14 +155,6 @@ public sealed partial class ServerMaintenanceWorker(
             }
 
             await Task.Delay(interval, timeProvider, stoppingToken).ConfigureAwait(false);
-        }
-    }
-
-    private void Validate()
-    {
-        if (options.IntervalSeconds is < 1 or > 3600 || options.MaximumBatchSize is < 1 or > 100)
-        {
-            throw new InvalidOperationException("Server operations cadence or batch size is outside policy.");
         }
     }
 

@@ -1,7 +1,9 @@
 // Module purpose: Verifies Synchronization Tests behaviour and protects the documented project contract.
+using System.Diagnostics;
 using System.Net;
 using System.Security.Claims;
 using System.Text;
+using System.Text.Encodings.Web;
 using System.Text.Json;
 using DBNotifier.Agent.Worker;
 using DBNotifier.Application.Synchronization;
@@ -10,10 +12,18 @@ using DBNotifier.Infrastructure.Synchronization;
 using DBNotifier.Persistence.Agent.Sqlite;
 using DBNotifier.Persistence.Server.PostgreSql;
 using DBNotifier.Server.Api.Security;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Certificate;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Options;
 
 namespace DBNotifier.UnitTests;
 
@@ -214,6 +224,41 @@ public sealed class SynchronizationTests
     }
 
     [Fact]
+    public async Task ServerIngestionRejectsAlteredReplayWithSameIdentifiers()
+    {
+        await using SqliteConnection connection = new("Data Source=:memory:");
+        await connection.OpenAsync();
+        DbContextOptions<ServerDbContext> options = new DbContextOptionsBuilder<ServerDbContext>()
+            .UseSqlite(connection)
+            .Options;
+        Guid agentId = Guid.NewGuid();
+        Guid instanceId = Guid.NewGuid();
+        await using (ServerDbContext setup = new(options))
+        {
+            await setup.Database.EnsureCreatedAsync();
+            setup.Agents.Add(Agent(agentId));
+            setup.Instances.Add(Instance(instanceId, agentId));
+            await setup.SaveChangesAsync();
+        }
+
+        ServerObservationIngestionStore store = new(new TestServerContextFactory(options));
+        ObservationSyncMessage original = Message(agentId, instanceId, 1, "Healthy");
+        Assert.Equal(
+            ObservationIngestionDisposition.Accepted,
+            (await store.IngestAsync(original, Now, CancellationToken.None)).Disposition);
+
+        ObservationItemResult altered = await store.IngestAsync(
+            original with { Status = "Timeout", ErrorCode = "probe.timeout", SafeErrorMessage = "Probe timed out." },
+            Now.AddSeconds(1),
+            CancellationToken.None);
+
+        Assert.Equal(ObservationIngestionDisposition.Rejected, altered.Disposition);
+        Assert.Equal("observation.idempotency_conflict", altered.ErrorCode);
+        await using ServerDbContext verification = new(options);
+        Assert.Equal("Healthy", (await verification.HealthSamples.SingleAsync()).Status);
+    }
+
+    [Fact]
     public async Task ServerIngestionRejectsInactiveAgentBeforeInstanceEvaluation()
     {
         await using SqliteConnection connection = new("Data Source=:memory:");
@@ -277,6 +322,530 @@ public sealed class SynchronizationTests
         Assert.Equal(ObservationIngestionDisposition.Rejected, item.Disposition);
         Assert.Equal("observation.envelope_invalid", item.ErrorCode);
         Assert.Equal(0, store.IngestCalls);
+    }
+
+    [Theory]
+    [InlineData("999", "ProviderAuthenticated")]
+    [InlineData("Healthy", "999")]
+    [InlineData("Healthy", "TransportOnly")]
+    public async Task BatchIngestorRejectsUndefinedOrContradictoryHealthEvidence(
+        string status,
+        string evidenceLevel)
+    {
+        Guid agentId = Guid.NewGuid();
+        RecordingIngestionStore store = new();
+        ObservationBatchIngestor ingestor = new(store, new FixedTimeProvider(Now));
+        ObservationSyncMessage message = Message(agentId, Guid.NewGuid(), 1, status) with
+        {
+            EvidenceLevel = evidenceLevel,
+        };
+
+        ObservationBatchResult result = await ingestor.HandleAsync(new ObservationBatchRequest(agentId, [message]));
+
+        ObservationItemResult rejected = Assert.Single(result.Items);
+        Assert.Equal(ObservationIngestionDisposition.Rejected, rejected.Disposition);
+        Assert.Equal("observation.payload_invalid", rejected.ErrorCode);
+        Assert.Equal(0, store.IngestCalls);
+    }
+
+    [Fact]
+    public async Task BatchIngestorAcceptsObservationAtFutureSkewBoundary()
+    {
+        Guid agentId = Guid.NewGuid();
+        RecordingIngestionStore store = new();
+        ObservationBatchIngestor ingestor = new(store, new FixedTimeProvider(Now));
+        ObservationSyncMessage message = Message(agentId, Guid.NewGuid(), 1, "Healthy") with
+        {
+            ObservedAt = Now.AddMinutes(5),
+        };
+
+        ObservationBatchResult result = await ingestor.HandleAsync(new ObservationBatchRequest(agentId, [message]));
+
+        Assert.Equal(ObservationIngestionDisposition.Accepted, Assert.Single(result.Items).Disposition);
+        Assert.Equal(1, store.IngestCalls);
+    }
+
+    [Fact]
+    public async Task BatchIngestorAcceptsOldBacklogWithoutAgeCutoff()
+    {
+        Guid agentId = Guid.NewGuid();
+        RecordingIngestionStore store = new();
+        ObservationBatchIngestor ingestor = new(store, new FixedTimeProvider(Now));
+        ObservationSyncMessage message = Message(agentId, Guid.NewGuid(), 1, "Healthy") with
+        {
+            ObservedAt = Now.AddYears(-10),
+        };
+
+        ObservationBatchResult result = await ingestor.HandleAsync(new ObservationBatchRequest(agentId, [message]));
+
+        Assert.Equal(ObservationIngestionDisposition.Accepted, Assert.Single(result.Items).Disposition);
+        Assert.Equal(1, store.IngestCalls);
+    }
+
+    [Fact]
+    public async Task BatchIngestorTerminallyRejectsObservationFarInFuture()
+    {
+        Guid agentId = Guid.NewGuid();
+        RecordingIngestionStore store = new();
+        ObservationBatchIngestor ingestor = new(store, new FixedTimeProvider(Now));
+        ObservationSyncMessage message = Message(agentId, Guid.NewGuid(), 1, "Healthy") with
+        {
+            ObservedAt = Now.AddYears(10),
+        };
+
+        ObservationBatchResult result = await ingestor.HandleAsync(new ObservationBatchRequest(agentId, [message]));
+
+        ObservationItemResult rejected = Assert.Single(result.Items);
+        Assert.Equal(ObservationIngestionDisposition.Rejected, rejected.Disposition);
+        Assert.Equal("observation.observed_at_future", rejected.ErrorCode);
+        Assert.Equal(0, store.IngestCalls);
+    }
+
+    [Fact]
+    public async Task ServerReconcilesGappedObservationsInSequenceOrder()
+    {
+        await using SqliteConnection connection = new("Data Source=:memory:");
+        await connection.OpenAsync();
+        DbContextOptions<ServerDbContext> options = new DbContextOptionsBuilder<ServerDbContext>()
+            .UseSqlite(connection)
+            .Options;
+        Guid agentId = Guid.NewGuid();
+        Guid instanceId = Guid.NewGuid();
+        await using (ServerDbContext setup = new(options))
+        {
+            await setup.Database.EnsureCreatedAsync();
+            setup.Agents.Add(Agent(agentId));
+            setup.Instances.Add(Instance(instanceId, agentId));
+            await setup.SaveChangesAsync();
+        }
+
+        ServerObservationIngestionStore store = new(new TestServerContextFactory(options));
+
+        ObservationItemResult second = await store.IngestAsync(
+            Message(agentId, instanceId, 2, "Healthy"), Now, CancellationToken.None);
+        await using (ServerDbContext gapVerification = new(options))
+        {
+            Assert.Empty(await gapVerification.Events.ToArrayAsync());
+            Assert.Equal(0, await store.GetHighestContiguousSequenceAsync(agentId, CancellationToken.None));
+        }
+
+        ObservationItemResult first = await store.IngestAsync(
+            Message(agentId, instanceId, 1, "Timeout"), Now.AddSeconds(1), CancellationToken.None);
+
+        Assert.Equal(ObservationIngestionDisposition.Accepted, second.Disposition);
+        Assert.Equal(ObservationIngestionDisposition.Accepted, first.Disposition);
+        Assert.Equal(2, await store.GetHighestContiguousSequenceAsync(agentId, CancellationToken.None));
+        await using ServerDbContext verification = new(options);
+        EventRecordRow[] events = await verification.Events.ToArrayAsync();
+        Assert.Equal(
+            ["Timeout", "Recovered"],
+            events.OrderBy(row => row.ObservedAt).Select(row => row.EventType).ToArray());
+        InstanceObservationStateRow state = await verification.InstanceObservationStates.SingleAsync();
+        Assert.Equal("Healthy", state.Status);
+        Assert.Equal(2, state.LastProcessedSequence);
+    }
+
+    [Fact]
+    public async Task ServerReconciliationSkipsPendingSampleAfterInstanceReassignment()
+    {
+        await using SqliteConnection connection = new("Data Source=:memory:");
+        await connection.OpenAsync();
+        DbContextOptions<ServerDbContext> options = new DbContextOptionsBuilder<ServerDbContext>()
+            .UseSqlite(connection)
+            .Options;
+        Guid agentAId = Guid.NewGuid();
+        Guid agentBId = Guid.NewGuid();
+        Guid reassignedInstanceId = Guid.NewGuid();
+        Guid agentAInstanceId = Guid.NewGuid();
+        RegisteredAgentRow agentB = Agent(agentBId);
+        agentB.InstallationId = "fixture-agent-b";
+        agentB.CertificateThumbprint = "FIXTURE-B";
+        await using (ServerDbContext setup = new(options))
+        {
+            await setup.Database.EnsureCreatedAsync();
+            setup.Agents.AddRange(Agent(agentAId), agentB);
+            setup.Instances.AddRange(
+                Instance(reassignedInstanceId, agentAId),
+                Instance(agentAInstanceId, agentAId));
+            await setup.SaveChangesAsync();
+        }
+
+        ServerObservationIngestionStore store = new(new TestServerContextFactory(options));
+        ObservationSyncMessage pendingFromAgentA = Message(agentAId, reassignedInstanceId, 2, "Timeout");
+        ObservationItemResult pending = await store.IngestAsync(
+            pendingFromAgentA,
+            Now,
+            CancellationToken.None);
+        Assert.Equal(ObservationIngestionDisposition.Accepted, pending.Disposition);
+        Assert.Equal(0, await store.GetHighestContiguousSequenceAsync(agentAId, CancellationToken.None));
+
+        await using (ServerDbContext reassign = new(options))
+        {
+            DatabaseInstanceRow instance = await reassign.Instances.SingleAsync(
+                row => row.InstanceId == reassignedInstanceId);
+            instance.AssignedAgentId = agentBId;
+            instance.ConcurrencyToken = Guid.NewGuid();
+            await reassign.SaveChangesAsync();
+        }
+
+        ObservationSyncMessage currentFromAgentB = Message(agentBId, reassignedInstanceId, 1, "Healthy");
+        Assert.Equal(
+            ObservationIngestionDisposition.Accepted,
+            (await store.IngestAsync(currentFromAgentB, Now.AddSeconds(1), CancellationToken.None)).Disposition);
+
+        ObservationSyncMessage closesAgentAGap = Message(agentAId, agentAInstanceId, 1, "Unknown");
+        Assert.Equal(
+            ObservationIngestionDisposition.Accepted,
+            (await store.IngestAsync(closesAgentAGap, Now.AddSeconds(2), CancellationToken.None)).Disposition);
+
+        Assert.Equal(2, await store.GetHighestContiguousSequenceAsync(agentAId, CancellationToken.None));
+        await using ServerDbContext verification = new(options);
+        InstanceObservationStateRow state = await verification.InstanceObservationStates.SingleAsync(
+            row => row.InstanceId == reassignedInstanceId);
+        Assert.Equal(agentBId, state.AgentId);
+        Assert.Equal(currentFromAgentB.ObservationId, state.ObservationId);
+        Assert.Equal("Healthy", state.Status);
+        EventRecordRow[] events = await verification.Events.ToArrayAsync();
+        EventRecordRow canonicalEvent = Assert.Single(events);
+        Assert.Equal(agentBId, canonicalEvent.AgentId);
+        Assert.Equal(currentFromAgentB.ObservationId, canonicalEvent.SourceObservationId);
+        Assert.DoesNotContain(
+            events,
+            row => row.SourceObservationId == pendingFromAgentA.ObservationId);
+        Assert.Single(await verification.OutboxMessages.ToArrayAsync());
+    }
+
+    [Fact]
+    public async Task ServerReconciliationContinuesAcrossBoundedQueryBatches()
+    {
+        await using SqliteConnection connection = new("Data Source=:memory:");
+        await connection.OpenAsync();
+        DbContextOptions<ServerDbContext> options = new DbContextOptionsBuilder<ServerDbContext>()
+            .UseSqlite(connection)
+            .Options;
+        Guid agentId = Guid.NewGuid();
+        Guid instanceId = Guid.NewGuid();
+        await using (ServerDbContext setup = new(options))
+        {
+            await setup.Database.EnsureCreatedAsync();
+            setup.Agents.Add(Agent(agentId));
+            setup.Instances.Add(Instance(instanceId, agentId));
+            setup.HealthSamples.AddRange(Enumerable.Range(1, 1001).Select(sequence =>
+                StoredSample(Message(agentId, instanceId, sequence, "Healthy"), Now)));
+            await setup.SaveChangesAsync();
+        }
+
+        ServerObservationIngestionStore store = new(new TestServerContextFactory(options));
+        ObservationItemResult result = await store.IngestAsync(
+            Message(agentId, instanceId, 1002, "Healthy"),
+            Now.AddMinutes(1),
+            CancellationToken.None);
+
+        Assert.Equal(ObservationIngestionDisposition.Accepted, result.Disposition);
+        Assert.Equal(1002, await store.GetHighestContiguousSequenceAsync(agentId, CancellationToken.None));
+        await using ServerDbContext verification = new(options);
+        Assert.Equal("Connected", (await verification.Events.SingleAsync()).EventType);
+        Assert.Equal(1002, (await verification.InstanceObservationStates.SingleAsync()).LastProcessedSequence);
+    }
+
+    [Fact]
+    public async Task ConcurrentAgentIngestionSerialisesCursorAndEmitsEachTransitionOnce()
+    {
+        await using SqliteConnection connection = new("Data Source=:memory:");
+        await connection.OpenAsync();
+        DbContextOptions<ServerDbContext> options = new DbContextOptionsBuilder<ServerDbContext>()
+            .UseSqlite(connection)
+            .Options;
+        Guid agentId = Guid.NewGuid();
+        Guid instanceId = Guid.NewGuid();
+        await using (ServerDbContext setup = new(options))
+        {
+            await setup.Database.EnsureCreatedAsync();
+            setup.Agents.Add(Agent(agentId));
+            setup.Instances.Add(Instance(instanceId, agentId));
+            await setup.SaveChangesAsync();
+        }
+
+        ServerObservationIngestionStore store = new(new TestServerContextFactory(options));
+        Task<ObservationItemResult> first = store
+            .IngestAsync(Message(agentId, instanceId, 1, "Healthy"), Now, CancellationToken.None)
+            .AsTask();
+        Task<ObservationItemResult> second = store
+            .IngestAsync(Message(agentId, instanceId, 2, "Timeout"), Now.AddSeconds(1), CancellationToken.None)
+            .AsTask();
+
+        ObservationItemResult[] results = await Task.WhenAll(first, second);
+
+        Assert.All(results, result => Assert.Equal(ObservationIngestionDisposition.Accepted, result.Disposition));
+        Assert.Equal(2, await store.GetHighestContiguousSequenceAsync(agentId, CancellationToken.None));
+        await using ServerDbContext verification = new(options);
+        Assert.Equal(2, await verification.HealthSamples.CountAsync());
+        EventRecordRow[] events = await verification.Events.ToArrayAsync();
+        Assert.Equal(
+            ["Connected", "Timeout"],
+            events.OrderBy(row => row.ObservedAt).Select(row => row.EventType).ToArray());
+    }
+
+    [Fact]
+    public async Task ProtectedTransportRejectsAuthorisedPlaintextRequest()
+    {
+        bool nextCalled = false;
+        DBNotifier.Server.Api.Security.ProtectedTransportMiddleware middleware = new(_ =>
+        {
+            nextCalled = true;
+            return Task.CompletedTask;
+        });
+        DefaultHttpContext context = new();
+        context.Request.Scheme = "http";
+        context.Response.Body = new MemoryStream();
+        context.SetEndpoint(new Endpoint(
+            _ => Task.CompletedTask,
+            new EndpointMetadataCollection(new AuthorizeAttribute()),
+            "protected-fixture"));
+
+        await middleware.InvokeAsync(context);
+
+        Assert.Equal(StatusCodes.Status426UpgradeRequired, context.Response.StatusCode);
+        Assert.False(nextCalled);
+        context.Response.Body.Position = 0;
+        using StreamReader reader = new(context.Response.Body);
+        Assert.Contains("transport.https_required", await reader.ReadToEndAsync(), StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task ProtectedTransportSeesAuthorisationMetadataAfterEndpointRouting()
+    {
+        await using ServiceProvider services = new ServiceCollection()
+            .AddLogging()
+            .AddRouting()
+            .AddSingleton(new DiagnosticListener("DBNotifier.UnitTests.Routing"))
+            .BuildServiceProvider();
+        ApplicationBuilder application = new(services);
+        application.UseRouting();
+        application.UseMiddleware<ProtectedTransportMiddleware>();
+        application.UseEndpoints(endpoints =>
+            endpoints.MapGet("/protected", static () => "unexpected").RequireAuthorization());
+        RequestDelegate pipeline = application.Build();
+        DefaultHttpContext context = new()
+        {
+            RequestServices = services,
+        };
+        context.Request.Method = HttpMethods.Get;
+        context.Request.Path = "/protected";
+        context.Request.Scheme = "http";
+        context.Response.Body = new MemoryStream();
+
+        await pipeline(context);
+
+        Assert.NotNull(context.GetEndpoint());
+        Assert.NotNull(context.GetEndpoint()!.Metadata.GetMetadata<IAuthorizeData>());
+        Assert.Equal(StatusCodes.Status426UpgradeRequired, context.Response.StatusCode);
+    }
+
+    [Fact]
+    public async Task HttpsPipelineChallengesMissingHumanAndAgentCredentialsWithCanonicalStatuses()
+    {
+        await using ServiceProvider services = new ServiceCollection()
+            .AddLogging()
+            .AddRouting()
+            .AddSingleton(new DiagnosticListener("DBNotifier.UnitTests.Authentication"))
+            .AddAuthentication(ApiSecurityDefaults.RoutedAuthenticationScheme)
+            .AddPolicyScheme(
+                ApiSecurityDefaults.RoutedAuthenticationScheme,
+                ApiSecurityDefaults.RoutedAuthenticationScheme,
+                options => options.ForwardDefaultSelector = ApiSecurityDefaults.SelectAuthenticationScheme)
+            .AddCertificate()
+            .AddJwtBearer(HumanAuthenticationDefaults.Scheme)
+            .Services
+            .AddSingleton<IAuthorizationHandler, AgentRouteAuthorizationHandler>()
+            .AddAuthorizationBuilder()
+            .AddPolicy(ApiSecurityDefaults.AgentApiPolicy, policy =>
+            {
+                policy.AddAuthenticationSchemes(CertificateAuthenticationDefaults.AuthenticationScheme);
+                policy.RequireAuthenticatedUser();
+                policy.AddRequirements(new AgentRouteRequirement());
+            })
+            .AddPolicy(ApiSecurityDefaults.HumanApiPolicy, policy =>
+            {
+                policy.AddAuthenticationSchemes(HumanAuthenticationDefaults.Scheme);
+                policy.RequireAuthenticatedUser();
+                policy.RequireClaim("sub");
+            })
+            .Services
+            .BuildServiceProvider();
+        ApplicationBuilder application = new(services);
+        application.UseRouting();
+        application.UseMiddleware<ProtectedTransportMiddleware>();
+        application.UseAuthentication();
+        application.UseAuthorization();
+        application.UseEndpoints(endpoints =>
+        {
+            endpoints.MapGet("/human", static () => "unexpected").RequireAuthorization(ApiSecurityDefaults.HumanApiPolicy);
+            endpoints.MapGet("/agent/{agentId:guid}", static () => "unexpected").RequireAuthorization(ApiSecurityDefaults.AgentApiPolicy);
+        });
+        RequestDelegate pipeline = application.Build();
+
+        DefaultHttpContext humanContext = HttpsContext(services, "/human");
+        await pipeline(humanContext);
+        DefaultHttpContext agentContext = HttpsContext(
+            services,
+            $"/agent/{Guid.NewGuid():D}");
+        await pipeline(agentContext);
+
+        Assert.Equal(StatusCodes.Status401Unauthorized, humanContext.Response.StatusCode);
+        Assert.Equal(StatusCodes.Status403Forbidden, agentContext.Response.StatusCode);
+    }
+
+    [Fact]
+    public async Task RoutedAgentAuthenticationPopulatesIdentityBeforeRateLimitingPosition()
+    {
+        await using ServiceProvider services = new ServiceCollection()
+            .AddLogging()
+            .AddRouting()
+            .AddSingleton(new DiagnosticListener("DBNotifier.UnitTests.AgentAuthentication"))
+            .AddAuthentication(ApiSecurityDefaults.RoutedAuthenticationScheme)
+            .AddPolicyScheme(
+                ApiSecurityDefaults.RoutedAuthenticationScheme,
+                ApiSecurityDefaults.RoutedAuthenticationScheme,
+                options => options.ForwardDefaultSelector = ApiSecurityDefaults.SelectAuthenticationScheme)
+            .AddScheme<AuthenticationSchemeOptions, AgentFixtureAuthenticationHandler>(
+                CertificateAuthenticationDefaults.AuthenticationScheme,
+                _ => { })
+            .Services
+            .AddSingleton<IAuthorizationHandler, AgentRouteAuthorizationHandler>()
+            .AddAuthorizationBuilder()
+            .AddPolicy(ApiSecurityDefaults.AgentApiPolicy, policy =>
+            {
+                policy.AddAuthenticationSchemes(CertificateAuthenticationDefaults.AuthenticationScheme);
+                policy.RequireAuthenticatedUser();
+                policy.AddRequirements(new AgentRouteRequirement());
+            })
+            .Services
+            .BuildServiceProvider();
+        bool agentIdentityVisibleAtQuotaPosition = false;
+        ApplicationBuilder application = new(services);
+        application.UseRouting();
+        application.UseAuthentication();
+        application.Use(async (context, next) =>
+        {
+            agentIdentityVisibleAtQuotaPosition = context.User.FindFirst(AgentIdentityClaimTypes.AgentId) is not null;
+            await next(context);
+        });
+        application.UseAuthorization();
+        application.UseEndpoints(endpoints => endpoints
+            .MapGet("/agent/{agentId:guid}", static () => "ok")
+            .RequireAuthorization(ApiSecurityDefaults.AgentApiPolicy));
+        RequestDelegate pipeline = application.Build();
+        DefaultHttpContext context = HttpsContext(services, $"/agent/{Guid.NewGuid():D}");
+
+        await pipeline(context);
+
+        Assert.True(agentIdentityVisibleAtQuotaPosition);
+        Assert.Equal(StatusCodes.Status200OK, context.Response.StatusCode);
+    }
+
+    [Fact]
+    public async Task PublicLivenessDoesNotInvokeBearerAuthenticationForInvalidHeader()
+    {
+        await using ServiceProvider services = new ServiceCollection()
+            .AddLogging()
+            .AddRouting()
+            .AddSingleton(new DiagnosticListener("DBNotifier.UnitTests.PublicAuthentication"))
+            .AddAuthentication(ApiSecurityDefaults.RoutedAuthenticationScheme)
+            .AddPolicyScheme(
+                ApiSecurityDefaults.RoutedAuthenticationScheme,
+                ApiSecurityDefaults.RoutedAuthenticationScheme,
+                options => options.ForwardDefaultSelector = ApiSecurityDefaults.SelectAuthenticationScheme)
+            .AddScheme<AuthenticationSchemeOptions, AgentFixtureAuthenticationHandler>(
+                ApiSecurityDefaults.PublicEndpointAuthenticationScheme,
+                _ => { })
+            .AddScheme<AuthenticationSchemeOptions, UnexpectedAuthenticationHandler>(
+                HumanAuthenticationDefaults.Scheme,
+                _ => { })
+            .Services
+            .BuildServiceProvider();
+        ApplicationBuilder application = new(services);
+        application.UseRouting();
+        application.UseAuthentication();
+        application.UseEndpoints(endpoints => endpoints.MapGet("/health/live", static () => "alive"));
+        RequestDelegate pipeline = application.Build();
+        DefaultHttpContext context = HttpsContext(services, "/health/live");
+        context.Request.Headers.Authorization = "Bearer invalid-fixture";
+
+        await pipeline(context);
+
+        Assert.Equal(StatusCodes.Status200OK, context.Response.StatusCode);
+    }
+
+    [Fact]
+    public async Task AuthenticationAuditPersistsOnlyBoundedSanitisedEvidence()
+    {
+        await using SqliteConnection connection = new("Data Source=:memory:");
+        await connection.OpenAsync();
+        DbContextOptions<ServerDbContext> options = new DbContextOptionsBuilder<ServerDbContext>()
+            .UseSqlite(connection)
+            .Options;
+        await using (ServerDbContext setup = new(options))
+        {
+            await setup.Database.EnsureCreatedAsync();
+        }
+
+        using AuthenticationAuditGate gate = new(10);
+        AuthenticationAuditWriter writer = new(
+            new TestServerContextFactory(options),
+            new FixedTimeProvider(Now),
+            gate,
+            NullLogger<AuthenticationAuditWriter>.Instance);
+        await writer.TryWriteAsync(
+            new AuthenticationAuditEvent(
+                "Agent",
+                "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+                "Certificate",
+                "Succeeded",
+                "authentication.agent_certificate_valid"),
+            CancellationToken.None);
+
+        await using ServerDbContext verification = new(options);
+        AuditEntryRow row = await verification.AuditEntries.SingleAsync();
+        Assert.Equal("authentication.validate", row.Action);
+        Assert.Equal("AuthenticationScheme", row.TargetType);
+        Assert.Equal("Certificate", row.TargetId);
+        Assert.Equal("{\"code\":\"authentication.agent_certificate_valid\"}", row.DetailsJson);
+    }
+
+    [Fact]
+    public async Task AuthenticationAuditRateLimitSuppressesDatabaseWorkAfterQuota()
+    {
+        await using SqliteConnection connection = new("Data Source=:memory:");
+        await connection.OpenAsync();
+        DbContextOptions<ServerDbContext> options = new DbContextOptionsBuilder<ServerDbContext>()
+            .UseSqlite(connection)
+            .Options;
+        await using (ServerDbContext setup = new(options))
+        {
+            await setup.Database.EnsureCreatedAsync();
+        }
+
+        using AuthenticationAuditGate gate = new(1, new FixedTimeProvider(Now));
+        Assert.Equal(AuthenticationAuditAdmission.Accepted, gate.Acquire());
+        Assert.Equal(AuthenticationAuditAdmission.SuppressedAndReport, gate.Acquire());
+        Assert.Equal(AuthenticationAuditAdmission.Suppressed, gate.Acquire());
+        AuthenticationAuditWriter writer = new(
+            new TestServerContextFactory(options),
+            new FixedTimeProvider(Now),
+            gate,
+            NullLogger<AuthenticationAuditWriter>.Instance);
+        await writer.TryWriteAsync(
+            new AuthenticationAuditEvent(
+                "Human",
+                "unresolved",
+                "Bearer",
+                "Failed",
+                "authentication.human_token_invalid"),
+            CancellationToken.None);
+
+        await using ServerDbContext verification = new(options);
+        Assert.Empty(await verification.AuditEntries.ToArrayAsync());
     }
 
     [Fact]
@@ -398,6 +967,25 @@ public sealed class SynchronizationTests
     }
 
     [Fact]
+    public void CommandPollingDefaultsDisabledAndEnablingWithoutDurableProtocolIsRejected()
+    {
+        AgentSynchronizationOptions defaults = new();
+
+        Assert.False(defaults.Enabled);
+        Assert.False(defaults.CommandPollingEnabled);
+        defaults.ValidateCommandPollingForStartup();
+
+        AgentSynchronizationOptions enabled = new()
+        {
+            Enabled = true,
+            CommandPollingEnabled = true,
+        };
+        InvalidOperationException exception = Assert.Throws<InvalidOperationException>(
+            enabled.ValidateCommandPollingForStartup);
+        Assert.Equal("command.polling_durable_protocol_unavailable", exception.Message);
+    }
+
+    [Fact]
     public void HttpTransportRejectsNonHttpsBaseAddressEvenWhenConstructedDirectly()
     {
         using HttpClient httpClient = new(new RecordingHttpHandler(Guid.NewGuid()));
@@ -483,6 +1071,24 @@ public sealed class SynchronizationTests
             null,
             []);
 
+    private static HealthSampleRow StoredSample(ObservationSyncMessage message, DateTimeOffset receivedAt) => new()
+    {
+        ObservationId = message.ObservationId,
+        InstanceId = message.InstanceId,
+        AgentId = message.AgentId,
+        MessageId = message.MessageId,
+        Sequence = message.Sequence,
+        ProviderType = message.ProviderType,
+        ProviderVersion = message.ProviderVersion,
+        Status = message.Status,
+        Method = message.Method,
+        EvidenceLevel = message.EvidenceLevel,
+        ObservedAt = message.ObservedAt,
+        ReceivedAt = receivedAt,
+        DurationMilliseconds = message.DurationMilliseconds,
+        AttemptCount = message.AttemptCount,
+    };
+
     private static AgentOutboxEnvelope Envelope(AgentOutboxMessageRow row) =>
         new(
             row.MessageId,
@@ -492,6 +1098,23 @@ public sealed class SynchronizationTests
             row.PayloadJson,
             row.OccurredAt,
             row.AttemptCount);
+
+    /// <summary>Creates an in-memory HTTPS request without a token or client certificate.</summary>
+    /// <param name="services">Pipeline service provider used by authentication and authorisation middleware.</param>
+    /// <param name="path">Protected route to exercise.</param>
+    /// <returns>A fresh HTTPS context with an isolated response body.</returns>
+    private static DefaultHttpContext HttpsContext(IServiceProvider services, string path)
+    {
+        DefaultHttpContext context = new()
+        {
+            RequestServices = services,
+        };
+        context.Request.Method = HttpMethods.Get;
+        context.Request.Path = path;
+        context.Request.Scheme = "https";
+        context.Response.Body = new MemoryStream();
+        return context;
+    }
 
     private static RegisteredAgentRow Agent(Guid agentId) => new()
     {
@@ -538,6 +1161,52 @@ public sealed class SynchronizationTests
     private sealed class FixedTimeProvider(DateTimeOffset now) : TimeProvider
     {
         public override DateTimeOffset GetUtcNow() => now;
+    }
+
+    /// <summary>Authenticates the routed Agent fixture without creating or loading a client certificate.</summary>
+    private sealed class AgentFixtureAuthenticationHandler : AuthenticationHandler<AuthenticationSchemeOptions>
+    {
+        /// <summary>Initialises the in-memory Agent authentication handler from standard framework services.</summary>
+        public AgentFixtureAuthenticationHandler(
+            IOptionsMonitor<AuthenticationSchemeOptions> options,
+            ILoggerFactory logger,
+            UrlEncoder encoder)
+            : base(options, logger, encoder)
+        {
+        }
+
+        /// <inheritdoc />
+        protected override Task<AuthenticateResult> HandleAuthenticateAsync()
+        {
+            string? routeValue = Context.Request.RouteValues["agentId"]?.ToString();
+            if (!Guid.TryParse(routeValue, out Guid agentId))
+            {
+                return Task.FromResult(AuthenticateResult.NoResult());
+            }
+
+            ClaimsIdentity identity = new(
+                [new Claim(AgentIdentityClaimTypes.AgentId, agentId.ToString("D"))],
+                Scheme.Name);
+            AuthenticationTicket ticket = new(new ClaimsPrincipal(identity), Scheme.Name);
+            return Task.FromResult(AuthenticateResult.Success(ticket));
+        }
+    }
+
+    /// <summary>Fails the test if a protected identity handler runs for an explicitly public endpoint.</summary>
+    private sealed class UnexpectedAuthenticationHandler : AuthenticationHandler<AuthenticationSchemeOptions>
+    {
+        /// <summary>Initialises the guard handler from standard framework services.</summary>
+        public UnexpectedAuthenticationHandler(
+            IOptionsMonitor<AuthenticationSchemeOptions> options,
+            ILoggerFactory logger,
+            UrlEncoder encoder)
+            : base(options, logger, encoder)
+        {
+        }
+
+        /// <inheritdoc />
+        protected override Task<AuthenticateResult> HandleAuthenticateAsync() =>
+            throw new InvalidOperationException("A public endpoint invoked the human bearer handler.");
     }
 
     private sealed class RecordingTransport : IObservationBatchTransport

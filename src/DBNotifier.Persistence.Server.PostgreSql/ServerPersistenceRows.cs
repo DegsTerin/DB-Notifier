@@ -66,6 +66,7 @@ public sealed class AgentHeartbeatRow
     public DateTimeOffset ReceivedAt { get; set; }
 }
 
+/// <summary>Stores one immutable raw health observation received from an authenticated assigned Agent.</summary>
 public sealed class HealthSampleRow
 {
     public Guid ObservationId { get; set; }
@@ -81,8 +82,70 @@ public sealed class HealthSampleRow
     public DateTimeOffset ObservedAt { get; set; }
     public DateTimeOffset ReceivedAt { get; set; }
     public long DurationMilliseconds { get; set; }
+
+    /// <summary>Gets or sets the bounded one-based provider attempt count recorded with the sample.</summary>
+    public int AttemptCount { get; set; } = 1;
     public string? ErrorCode { get; set; }
     public string? RedactedDetailsJson { get; set; }
+
+    /// <summary>Gets or sets the SHA-256 payload hash used to prove exact idempotent replay.</summary>
+    public string? PayloadHash { get; set; }
+}
+
+/// <summary>
+/// Stores the durable contiguous observation checkpoint for one enrolled Agent.
+/// </summary>
+/// <remarks>
+/// The checkpoint is independent of raw observation retention so reconciliation never infers progress
+/// from a potentially pruned history.
+/// </remarks>
+public sealed class AgentObservationCursorRow
+{
+    /// <summary>Gets or sets the enrolled Agent that owns the sequence stream.</summary>
+    public Guid AgentId { get; set; }
+
+    /// <summary>Gets or sets the highest sequence reconciled without a preceding gap.</summary>
+    public long HighestContiguousSequence { get; set; }
+
+    /// <summary>Gets or sets the UTC instant of the latest reconciliation.</summary>
+    public DateTimeOffset UpdatedAt { get; set; }
+
+    /// <summary>Gets or sets the optimistic concurrency token for cursor updates.</summary>
+    public Guid ConcurrencyToken { get; set; }
+}
+
+/// <summary>
+/// Stores the last reconciled observation state for one database instance.
+/// </summary>
+/// <remarks>
+/// The source observation identifier is retained as factual provenance but is deliberately not a
+/// foreign key, allowing authorised raw-sample retention without losing the durable state baseline.
+/// </remarks>
+public sealed class InstanceObservationStateRow
+{
+    /// <summary>Gets or sets the database instance represented by this durable state baseline.</summary>
+    public Guid InstanceId { get; set; }
+
+    /// <summary>Gets or sets the Agent that owned the reconciled source observation.</summary>
+    public Guid AgentId { get; set; }
+
+    /// <summary>Gets or sets the source Agent sequence that last changed this state.</summary>
+    public long LastProcessedSequence { get; set; }
+
+    /// <summary>Gets or sets the source observation identifier retained as non-foreign-key provenance.</summary>
+    public Guid ObservationId { get; set; }
+
+    /// <summary>Gets or sets the canonical health-status name.</summary>
+    public required string Status { get; set; }
+
+    /// <summary>Gets or sets the UTC instant reported by the source observation.</summary>
+    public DateTimeOffset ObservedAt { get; set; }
+
+    /// <summary>Gets or sets the authoritative UTC receipt instant assigned by the server.</summary>
+    public DateTimeOffset ReceivedAt { get; set; }
+
+    /// <summary>Gets or sets the optimistic concurrency token for state replacement.</summary>
+    public Guid ConcurrencyToken { get; set; }
 }
 
 public sealed class EventRecordRow

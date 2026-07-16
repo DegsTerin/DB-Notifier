@@ -1,4 +1,4 @@
-// Module purpose: Implements Postgre Sql Readiness Executor inside the isolated PostgreSQL provider; the core remains engine-neutral.
+// Module purpose: Executes readiness probes inside the isolated PostgreSQL provider; the core remains engine-neutral.
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Globalization;
@@ -6,10 +6,21 @@ using System.Net.Sockets;
 
 namespace DBNotifier.Providers.PostgreSql;
 
+/// <summary>
+/// Runs an approved-path <c>pg_isready</c> utility without a shell and falls back to explicitly transport-only evidence when
+/// the utility is absent, while preserving bounded process and network deadlines.
+/// </summary>
+/// <param name="discovery">Approved-root executable discovery boundary.</param>
+/// <param name="transportProbe">TCP fallback that never asserts authenticated database health.</param>
 public sealed class PostgreSqlReadinessExecutor(
     IPostgreSqlExecutableDiscovery discovery,
     IPostgreSqlTransportProbe transportProbe) : IPostgreSqlReadinessExecutor
 {
+    /// <summary>Executes one provider readiness probe or a clearly labelled TCP-only fallback.</summary>
+    /// <param name="endpoint">Validated endpoint containing no connection string or secret.</param>
+    /// <param name="timeout">Positive deadline applied to utility execution or the transport fallback.</param>
+    /// <param name="cancellationToken">Caller cancellation propagated to process and socket work.</param>
+    /// <returns>A canonical readiness state and evidence method.</returns>
     public async ValueTask<PostgreSqlReadinessResult> ExecuteAsync(
         PostgreSqlEndpoint endpoint,
         TimeSpan timeout,
@@ -80,6 +91,10 @@ public sealed class PostgreSqlReadinessExecutor(
         }
     }
 
+    /// <summary>Creates the fixed argument-list process contract without database or arbitrary extra arguments.</summary>
+    /// <param name="endpoint">Validated endpoint containing the discovered utility path, host and port.</param>
+    /// <param name="timeout">Positive readiness deadline converted to whole seconds.</param>
+    /// <returns>A shell-free process start contract with redirected output.</returns>
     internal static ProcessStartInfo CreateStartInfo(PostgreSqlEndpoint endpoint, TimeSpan timeout)
     {
         ProcessStartInfo startInfo = new()
@@ -97,12 +112,6 @@ public sealed class PostgreSqlReadinessExecutor(
         startInfo.ArgumentList.Add(endpoint.Port.ToString(CultureInfo.InvariantCulture));
         startInfo.ArgumentList.Add("-t");
         startInfo.ArgumentList.Add(Math.Max(1, (int)Math.Ceiling(timeout.TotalSeconds)).ToString(CultureInfo.InvariantCulture));
-        if (!string.IsNullOrWhiteSpace(endpoint.Database))
-        {
-            startInfo.ArgumentList.Add("-d");
-            startInfo.ArgumentList.Add(endpoint.Database);
-        }
-
         return startInfo;
     }
 
@@ -136,8 +145,14 @@ public sealed class PostgreSqlReadinessExecutor(
     }
 }
 
+/// <summary>Checks bounded socket reachability only and never promotes it to provider readiness or health.</summary>
 public sealed class TcpPostgreSqlTransportProbe : IPostgreSqlTransportProbe
 {
+    /// <summary>Attempts one direct TCP connection to a non-socket endpoint within the supplied deadline.</summary>
+    /// <param name="endpoint">Validated host and port.</param>
+    /// <param name="timeout">Positive transport deadline.</param>
+    /// <param name="cancellationToken">Caller cancellation distinct from timeout.</param>
+    /// <returns>Reachable, no-response, timed-out or invalid transport evidence.</returns>
     public async ValueTask<PostgreSqlTransportState> ProbeAsync(
         PostgreSqlEndpoint endpoint,
         TimeSpan timeout,

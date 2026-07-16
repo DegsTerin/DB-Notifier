@@ -119,11 +119,23 @@ public sealed class PersistenceModelTests
         Assert.Contains("prevent_audit_entry_mutation", migrationScript, StringComparison.Ordinal);
         Assert.Contains("administrative_commands", migrationScript, StringComparison.Ordinal);
         Assert.Contains("health_samples", migrationScript, StringComparison.Ordinal);
+        Assert.Contains("agent_observation_cursors", migrationScript, StringComparison.Ordinal);
+        Assert.Contains("DEFAULT 1", migrationScript, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("MIN(sequence) <> 1", migrationScript, StringComparison.Ordinal);
+        Assert.Contains("COUNT(*) <> MAX(sequence)", migrationScript, StringComparison.Ordinal);
+        Assert.Contains("INSERT INTO agent_observation_cursors", migrationScript, StringComparison.Ordinal);
+        Assert.Contains("INSERT INTO instance_observation_states", migrationScript, StringComparison.Ordinal);
+        Assert.Contains("instance_row.assigned_agent_id = sample.agent_id", migrationScript, StringComparison.Ordinal);
+        Assert.Matches(
+            @"ORDER BY\s+sample\.instance_id,\s+sample\.sequence DESC,\s+sample\.received_at DESC",
+            migrationScript);
 
         string[] migrations = context.Database.GetMigrations().ToArray();
-        Assert.Equal(3, migrations.Length);
-        string rollbackScript = migrator.GenerateScript(migrations[2], migrations[1]);
-        Assert.Contains("DROP INDEX", rollbackScript, StringComparison.OrdinalIgnoreCase);
+        Assert.Equal(4, migrations.Length);
+        string rollbackScript = migrator.GenerateScript(migrations[3], migrations[2]);
+        Assert.Contains("DROP TABLE", rollbackScript, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("agent_observation_cursors", rollbackScript, StringComparison.Ordinal);
+        Assert.Contains("DROP COLUMN", rollbackScript, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]

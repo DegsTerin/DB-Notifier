@@ -1,4 +1,4 @@
-<!-- Module purpose: Defines .NET 10 build settings and dependencies for DBNotifier Persistence Server Postgre Sql. -->
+<!-- Module purpose: Defines .NET 10 build settings and dependencies for DB-Notifier central PostgreSQL persistence. -->
 <Project Sdk="Microsoft.NET.Sdk">
   <ItemGroup>
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design">

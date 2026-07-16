@@ -1,4 +1,4 @@
-<!-- Module purpose: Defines .NET 10 build settings and dependencies for DBNotifier Providers Postgre Sql. -->
+<!-- Module purpose: Defines .NET 10 build settings and dependencies for the isolated DB-Notifier PostgreSQL provider. -->
 <Project Sdk="Microsoft.NET.Sdk">
   <ItemGroup>
     <PackageReference Include="Npgsql" />

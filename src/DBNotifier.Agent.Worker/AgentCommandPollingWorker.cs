@@ -6,6 +6,17 @@ using Microsoft.Extensions.Logging;
 
 namespace DBNotifier.Agent.Worker;
 
+/// <summary>
+/// Hosts opt-in command polling but refuses startup whenever the required durable polling and acknowledgement
+/// protocol is unavailable; it never executes an administrative command itself.
+/// </summary>
+/// <param name="agentOptions">Validated identity and runtime options for the local Agent.</param>
+/// <param name="synchronizationOptions">Fail-closed synchronisation and command-polling options.</param>
+/// <param name="storeInitializer">Initialiser for the authorised Agent-local SQLite store.</param>
+/// <param name="inboxStore">Durable local inbox boundary used only after protocol validation.</param>
+/// <param name="transport">Authenticated command-delivery transport boundary.</param>
+/// <param name="timeProvider">Clock used for bounded polling cadence.</param>
+/// <param name="logger">Structured logger that receives no command payload or credential material.</param>
 public sealed partial class AgentCommandPollingWorker(
     AgentWorkerOptions agentOptions,
     AgentSynchronizationOptions synchronizationOptions,
@@ -15,6 +26,7 @@ public sealed partial class AgentCommandPollingWorker(
     TimeProvider timeProvider,
     ILogger<AgentCommandPollingWorker> logger) : BackgroundService
 {
+    /// <inheritdoc />
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         if (!synchronizationOptions.Enabled || !synchronizationOptions.CommandPollingEnabled)
@@ -23,6 +35,7 @@ public sealed partial class AgentCommandPollingWorker(
             return;
         }
 
+        synchronizationOptions.ValidateCommandPollingForStartup();
         _ = synchronizationOptions.ValidateAndGetServerBaseAddress();
         await storeInitializer.InitializeAsync(stoppingToken).ConfigureAwait(false);
         CommandDeliveryRunner runner = new(agentOptions.AgentId, synchronizationOptions.AgentVersion,

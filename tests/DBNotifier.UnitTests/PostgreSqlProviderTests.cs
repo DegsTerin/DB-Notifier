@@ -1,4 +1,4 @@
-// Module purpose: Verifies Postgre Sql Provider Tests behaviour and protects the documented project contract.
+// Module purpose: Verifies PostgreSQL provider boundaries and protects the documented project contract.
 using DBNotifier.Application.Security;
 using DBNotifier.Domain;
 using DBNotifier.Provider.Abstractions;
@@ -22,6 +22,37 @@ public sealed class PostgreSqlProviderTests
         Assert.False(result.IsValid);
         Assert.Contains(result.Errors, error => error.Code == "endpoint.unknown_property");
         Assert.Equal("verify-full", PostgreSqlEndpoint.FromProviderEndpoint(Endpoint()).SslMode);
+    }
+
+    [Theory]
+    [InlineData("host=other.example port=5433")]
+    [InlineData("postgresql://other.example/inventory")]
+    [InlineData("postgres://other.example/inventory")]
+    public void EndpointValidationRejectsConnectionStringsInDatabaseName(string database)
+    {
+        PostgreSqlDatabaseProvider provider = CreateProvider(PostgreSqlReadinessState.Accepting);
+
+        ProviderValidationResult result = provider.ValidateEndpoint(Endpoint(
+            new("host", "localhost"),
+            new("port", "5432"),
+            new("database", database)));
+
+        Assert.False(result.IsValid);
+        Assert.Contains(result.Errors, error => error.Code == "postgresql.database_invalid");
+    }
+
+    [Fact]
+    public void EndpointValidationRejectsTlsWithoutServerIdentityValidation()
+    {
+        PostgreSqlDatabaseProvider provider = CreateProvider(PostgreSqlReadinessState.Accepting);
+
+        ProviderValidationResult result = provider.ValidateEndpoint(Endpoint(
+            new("host", "localhost"),
+            new("port", "5432"),
+            new("sslMode", "require")));
+
+        Assert.False(result.IsValid);
+        Assert.Contains(result.Errors, error => error.Code == "postgresql.ssl_mode_invalid");
     }
 
     [Theory]
@@ -74,14 +105,14 @@ public sealed class PostgreSqlProviderTests
             "inventory database",
             "C:\\Program Files\\PostgreSQL\\bin\\pg_isready.exe",
             null,
-            "require");
+            "verify-full");
 
         System.Diagnostics.ProcessStartInfo startInfo =
             PostgreSqlReadinessExecutor.CreateStartInfo(endpoint, TimeSpan.FromMilliseconds(1500));
 
         Assert.False(startInfo.UseShellExecute);
         Assert.Equal(endpoint.PgIsReadyPath, startInfo.FileName);
-        Assert.Equal(["-h", "db.example.org", "-p", "5433", "-t", "2", "-d", "inventory database"],
+        Assert.Equal(["-h", "db.example.org", "-p", "5433", "-t", "2"],
             startInfo.ArgumentList);
     }
 
@@ -136,6 +167,79 @@ public sealed class PostgreSqlProviderTests
     }
 
     [Fact]
+    public void DiscoveryRejectsConfiguredExecutableOutsideApprovedRoots()
+    {
+        const string configured = "C:\\Untrusted\\pg_isready.exe";
+        PostgreSqlExecutableDiscovery discovery = new(new DiscoveryFileSystem(
+            new Dictionary<string, IReadOnlyList<string>>(), [configured]));
+
+        PostgreSqlExecutableDiscoveryResult result = discovery.Resolve(new(
+            configured,
+            null,
+            ["C:\\Program Files\\PostgreSQL\\bin"],
+            ["C:\\Program Files\\PostgreSQL"]));
+
+        Assert.Equal(PostgreSqlExecutableDiscoveryState.NotFound, result.State);
+    }
+
+    [Fact]
+    public void DiscoveryRejectsWrongExecutableNameInsideApprovedRoot()
+    {
+        const string configured = "C:\\Program Files\\PostgreSQL\\bin\\not-pg-isready.exe";
+        PostgreSqlExecutableDiscovery discovery = new(new DiscoveryFileSystem(
+            new Dictionary<string, IReadOnlyList<string>>(), [configured]));
+
+        PostgreSqlExecutableDiscoveryResult result = discovery.Resolve(new(
+            configured,
+            null,
+            ["C:\\Program Files\\PostgreSQL\\bin"],
+            []));
+
+        Assert.Equal(PostgreSqlExecutableDiscoveryState.NotFound, result.State);
+    }
+
+    [Fact]
+    public void DiscoveryIgnoresPathDirectoryOutsideTrustedInstallationRoots()
+    {
+        const string candidate = "C:\\User Tools\\pg_isready.exe";
+        PostgreSqlExecutableDiscovery discovery = new(new DiscoveryFileSystem(
+            new Dictionary<string, IReadOnlyList<string>>(), [candidate]));
+
+        PostgreSqlExecutableDiscoveryResult result = discovery.Resolve(new(
+            "pg_isready.exe",
+            null,
+            ["C:\\User Tools"],
+            ["C:\\Program Files\\PostgreSQL"]));
+
+        Assert.Equal(PostgreSqlExecutableDiscoveryState.NotFound, result.State);
+    }
+
+    [Fact]
+    public void RuntimeDiscoveryRootsIgnoreMutableProgramFilesEnvironmentVariables()
+    {
+        const string untrustedRoot = "C:\\DBNotifier-Untrusted-ProgramFiles";
+        string? originalProgramFiles = Environment.GetEnvironmentVariable("ProgramFiles");
+        string? originalProgramFilesX86 = Environment.GetEnvironmentVariable("ProgramFiles(x86)");
+        try
+        {
+            Environment.SetEnvironmentVariable("ProgramFiles", untrustedRoot);
+            Environment.SetEnvironmentVariable("ProgramFiles(x86)", untrustedRoot);
+
+            PostgreSqlExecutableDiscoveryRequest request = PostgreSqlExecutableDiscovery.CreateRuntimeRequest(
+                PostgreSqlEndpoint.FromProviderEndpoint(Endpoint()));
+
+            Assert.DoesNotContain(
+                request.InstallationRoots,
+                root => root.StartsWith(untrustedRoot, StringComparison.OrdinalIgnoreCase));
+        }
+        finally
+        {
+            Environment.SetEnvironmentVariable("ProgramFiles", originalProgramFiles);
+            Environment.SetEnvironmentVariable("ProgramFiles(x86)", originalProgramFilesX86);
+        }
+    }
+
+    [Fact]
     public void DiscoveryUsesConfiguredPostgresExecutableSiblingBeforeInstallationRoots()
     {
         const string postgres = "C:\\Custom PostgreSQL\\bin\\postgres.exe";
@@ -144,7 +248,7 @@ public sealed class PostgreSqlProviderTests
             new Dictionary<string, IReadOnlyList<string>>(), [expected]));
 
         PostgreSqlExecutableDiscoveryResult result = discovery.Resolve(new(
-            "pg_isready.exe", postgres, [], []));
+            "pg_isready.exe", postgres, ["C:\\Custom PostgreSQL\\bin"], ["C:\\Custom PostgreSQL"]));
 
         Assert.Equal(PostgreSqlExecutableDiscoveryState.Found, result.State);
         Assert.Equal(expected, result.ExecutablePath, ignoreCase: true);

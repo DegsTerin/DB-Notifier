@@ -2,6 +2,7 @@
 using DBNotifier.Application.Operations;
 using DBNotifier.Persistence.Agent.Sqlite;
 using DBNotifier.Persistence.Server.PostgreSql;
+using DBNotifier.Server.Api;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 
@@ -10,6 +11,24 @@ namespace DBNotifier.UnitTests;
 public sealed class MaintenanceDeliveryTests
 {
     private static readonly DateTimeOffset Now = new(2026, 7, 12, 18, 0, 0, TimeSpan.Zero);
+
+    [Fact]
+    public void ServerDeliveryDefaultsAreDisabledAndEnablingWithoutLeaseIsRejected()
+    {
+        ServerOperationsOptions defaults = new();
+
+        Assert.False(defaults.ServerOutboxEnabled);
+        Assert.False(defaults.NotificationDeliveryEnabled);
+        defaults.ValidateForStartup();
+
+        ServerOperationsOptions enabled = new() { ServerOutboxEnabled = true };
+        InvalidOperationException exception = Assert.Throws<InvalidOperationException>(enabled.ValidateForStartup);
+        Assert.Equal("server.delivery_durable_lease_unavailable", exception.Message);
+
+        ServerOperationsOptions notifications = new() { NotificationDeliveryEnabled = true };
+        exception = Assert.Throws<InvalidOperationException>(notifications.ValidateForStartup);
+        Assert.Equal("server.delivery_durable_lease_unavailable", exception.Message);
+    }
 
     [Fact]
     public async Task AgentRetentionSupportsDryRunAndDeletesOnlyEligibleBoundedRows()
@@ -61,7 +80,7 @@ public sealed class MaintenanceDeliveryTests
     }
 
     [Fact]
-    public async Task ServerRetentionPreservesReferencedAndUnpublishedEvidence()
+    public async Task ServerRetentionPreservesObservationsAndDurableCursorUntilAggregatesExist()
     {
         await using SqliteConnection connection = new("Data Source=:memory:");
         await connection.OpenAsync();
@@ -80,6 +99,13 @@ public sealed class MaintenanceDeliveryTests
             setup.Agents.Add(Agent(agentId));
             setup.Instances.Add(Instance(instanceId, agentId));
             setup.HealthSamples.AddRange(referenced, disposable);
+            setup.AgentObservationCursors.Add(new AgentObservationCursorRow
+            {
+                AgentId = agentId,
+                HighestContiguousSequence = 2,
+                UpdatedAt = Now,
+                ConcurrencyToken = Guid.NewGuid(),
+            });
             setup.Events.Add(eventRow);
             setup.AgentHeartbeats.Add(Heartbeat(agentId, Now.AddDays(-91)));
             setup.NotificationChannels.Add(channel);
@@ -96,12 +122,13 @@ public sealed class MaintenanceDeliveryTests
             new RetentionExecutionRequest(Now, 100, ApplyChanges: true),
             CancellationToken.None);
 
-        Assert.Equal(1, result.Observations);
+        Assert.Equal(0, result.Observations);
         Assert.Equal(1, result.Heartbeats);
         Assert.Equal(1, result.NotificationDeliveries);
         Assert.Equal(1, result.ServerOutboxTombstones);
         await using ServerDbContext verification = new(options);
-        Assert.Equal(referenced.ObservationId, (await verification.HealthSamples.SingleAsync()).ObservationId);
+        Assert.Equal(2, await verification.HealthSamples.CountAsync());
+        Assert.Equal(2, (await verification.AgentObservationCursors.SingleAsync()).HighestContiguousSequence);
         Assert.Empty(await verification.AgentHeartbeats.ToArrayAsync());
         Assert.Empty(await verification.NotificationDeliveries.ToArrayAsync());
         Assert.Null((await verification.OutboxMessages.SingleAsync()).PublishedAt);

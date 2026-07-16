@@ -4,6 +4,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace DBNotifier.Persistence.Server.PostgreSql;
 
+/// <summary>Maps the central PostgreSQL persistence model without connecting directly to monitored databases.</summary>
+/// <param name="options">Provider-specific Entity Framework options supplied by the server host or tests.</param>
 public sealed class ServerDbContext(DbContextOptions<ServerDbContext> options) : DbContext(options)
 {
     public DbSet<DatabaseInstanceRow> Instances => Set<DatabaseInstanceRow>();
@@ -11,6 +13,12 @@ public sealed class ServerDbContext(DbContextOptions<ServerDbContext> options) :
     public DbSet<AgentCapabilityRow> AgentCapabilities => Set<AgentCapabilityRow>();
     public DbSet<AgentHeartbeatRow> AgentHeartbeats => Set<AgentHeartbeatRow>();
     public DbSet<HealthSampleRow> HealthSamples => Set<HealthSampleRow>();
+
+    /// <summary>Gets the durable per-Agent contiguous observation cursors.</summary>
+    public DbSet<AgentObservationCursorRow> AgentObservationCursors => Set<AgentObservationCursorRow>();
+
+    /// <summary>Gets the durable current reconciled state for each database instance.</summary>
+    public DbSet<InstanceObservationStateRow> InstanceObservationStates => Set<InstanceObservationStateRow>();
     public DbSet<EventRecordRow> Events => Set<EventRecordRow>();
     public DbSet<IncidentRow> Incidents => Set<IncidentRow>();
     public DbSet<MaintenanceWindowRow> MaintenanceWindows => Set<MaintenanceWindowRow>();
@@ -27,6 +35,7 @@ public sealed class ServerDbContext(DbContextOptions<ServerDbContext> options) :
     public DbSet<AuditEntryRow> AuditEntries => Set<AuditEntryRow>();
     public DbSet<ServerOutboxMessageRow> OutboxMessages => Set<ServerOutboxMessageRow>();
 
+    /// <inheritdoc />
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         ConfigureInventory(modelBuilder);
@@ -117,7 +126,9 @@ public sealed class ServerDbContext(DbContextOptions<ServerDbContext> options) :
             entity.ToTable("health_samples", table =>
             {
                 table.HasCheckConstraint("ck_health_duration", "duration_milliseconds >= 0");
+                table.HasCheckConstraint("ck_health_attempts", "attempt_count >= 1");
                 table.HasCheckConstraint("ck_health_status", "status IN ('Healthy','Degraded','Unavailable','AuthFailed','Timeout','Maintenance','Unknown')");
+                table.HasCheckConstraint("ck_health_evidence", "evidence_level IN ('ProviderAuthenticated','ProviderReadiness','TransportOnly','Synthetic','Unknown')");
             });
             entity.HasKey(row => row.ObservationId);
             entity.Property(row => row.ProviderType).HasMaxLength(64).IsRequired();
@@ -125,12 +136,38 @@ public sealed class ServerDbContext(DbContextOptions<ServerDbContext> options) :
             entity.Property(row => row.Status).HasMaxLength(32).IsRequired();
             entity.Property(row => row.Method).HasMaxLength(64).IsRequired();
             entity.Property(row => row.EvidenceLevel).HasMaxLength(64).IsRequired();
+            entity.Property(row => row.AttemptCount).HasDefaultValue(1);
             entity.Property(row => row.ErrorCode).HasMaxLength(100);
             entity.Property(row => row.RedactedDetailsJson).HasColumnType("jsonb");
+            entity.Property(row => row.PayloadHash).HasMaxLength(64);
             entity.HasIndex(row => row.MessageId).IsUnique();
             entity.HasIndex(row => new { row.AgentId, row.Sequence }).IsUnique();
             entity.HasIndex(row => new { row.InstanceId, row.ObservedAt });
             entity.HasIndex(row => new { row.Status, row.ObservedAt });
+            entity.HasOne<DatabaseInstanceRow>().WithMany().HasForeignKey(row => row.InstanceId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne<RegisteredAgentRow>().WithMany().HasForeignKey(row => row.AgentId).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<AgentObservationCursorRow>(entity =>
+        {
+            entity.ToTable("agent_observation_cursors", table =>
+                table.HasCheckConstraint("ck_agent_observation_cursor_sequence", "highest_contiguous_sequence >= 0"));
+            entity.HasKey(row => row.AgentId);
+            entity.Property(row => row.ConcurrencyToken).IsConcurrencyToken();
+            entity.HasOne<RegisteredAgentRow>().WithMany().HasForeignKey(row => row.AgentId).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<InstanceObservationStateRow>(entity =>
+        {
+            entity.ToTable("instance_observation_states", table =>
+            {
+                table.HasCheckConstraint("ck_instance_observation_state_sequence", "last_processed_sequence >= 1");
+                table.HasCheckConstraint("ck_instance_observation_state_status", "status IN ('Healthy','Degraded','Unavailable','AuthFailed','Timeout','Maintenance','Unknown')");
+            });
+            entity.HasKey(row => row.InstanceId);
+            entity.Property(row => row.Status).HasMaxLength(32).IsRequired();
+            entity.Property(row => row.ConcurrencyToken).IsConcurrencyToken();
+            entity.HasIndex(row => new { row.AgentId, row.LastProcessedSequence });
             entity.HasOne<DatabaseInstanceRow>().WithMany().HasForeignKey(row => row.InstanceId).OnDelete(DeleteBehavior.Restrict);
             entity.HasOne<RegisteredAgentRow>().WithMany().HasForeignKey(row => row.AgentId).OnDelete(DeleteBehavior.Restrict);
         });

@@ -139,6 +139,67 @@ public sealed class ProviderCoreTests
     }
 
     [Fact]
+    public async Task MonitoringCycleLetsFastTargetCompleteWhileAnotherTargetWaits()
+    {
+        CoordinatedProvider provider = new();
+        ProbeInstanceHandler handler = new(new ProviderRegistry([provider]), new UnusedVault(), TimeProvider.System);
+        ProviderEndpoint slow = new(provider.ProviderType, [new KeyValuePair<string, string>("mode", "slow")]);
+        ProviderEndpoint fast = new(provider.ProviderType, [new KeyValuePair<string, string>("mode", "fast")]);
+        StaticAssignmentSource source = new([
+            new MonitoringAssignment(Guid.NewGuid(), slow, null, Policy()),
+            new MonitoringAssignment(Guid.NewGuid(), fast, null, Policy()),
+        ]);
+        SelectiveSink sink = new(Guid.Empty);
+        MonitoringCycleRunner runner = new(
+            Guid.NewGuid(),
+            source,
+            handler,
+            sink,
+            TimeProvider.System,
+            maximumConcurrency: 2,
+            cycleDeadline: TimeSpan.FromSeconds(2));
+
+        MonitoringCycleResult result = await runner.RunOnceAsync();
+
+        Assert.Equal(2, result.PersistedCount);
+        Assert.Empty(result.Failures);
+        Assert.True(provider.FastCompletedBeforeSlowReleased);
+    }
+
+    [Fact]
+    public async Task MonitoringCycleDeadlinePersistsFastTargetAndMarksSlowTarget()
+    {
+        DeadlineProvider provider = new();
+        ProbeInstanceHandler handler = new(new ProviderRegistry([provider]), new UnusedVault(), TimeProvider.System);
+        Guid slowId = Guid.NewGuid();
+        Guid fastId = Guid.NewGuid();
+        ProviderEndpoint slow = new(provider.ProviderType, [new KeyValuePair<string, string>("mode", "slow")]);
+        ProviderEndpoint fast = new(provider.ProviderType, [new KeyValuePair<string, string>("mode", "fast")]);
+        StaticAssignmentSource source = new([
+            new MonitoringAssignment(slowId, slow, null, Policy()),
+            new MonitoringAssignment(fastId, fast, null, Policy()),
+        ]);
+        SelectiveSink sink = new(Guid.Empty);
+        MonitoringCycleRunner runner = new(
+            Guid.NewGuid(),
+            source,
+            handler,
+            sink,
+            TimeProvider.System,
+            maximumConcurrency: 2,
+            cycleDeadline: TimeSpan.FromMilliseconds(300));
+
+        MonitoringCycleResult result = await runner.RunOnceAsync();
+
+        Assert.Equal(2, result.DueCount);
+        Assert.Equal(1, result.PersistedCount);
+        Assert.Contains(fastId, sink.PersistedInstances);
+        MonitoringCycleFailure failure = Assert.Single(result.Failures);
+        Assert.Equal(slowId, failure.InstanceId);
+        Assert.Equal("monitoring.cycle_deadline_exceeded", failure.Code);
+    }
+
+    [Fact]
     public async Task VaultFailureBecomesUnknownWithoutCallingProvider()
     {
         CountingProvider provider = new();
@@ -346,6 +407,73 @@ public sealed class ProviderCoreTests
             CallCount++;
             return ValueTask.FromResult(new ProviderProbeResult(
                 HealthStatus.Healthy, EvidenceLevel.ProviderAuthenticated, "fixture", TimeSpan.Zero, null, []));
+        }
+    }
+
+    private sealed class CoordinatedProvider : IDatabaseProvider
+    {
+        private readonly TaskCompletionSource fastCompleted = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        public ProviderType ProviderType { get; } = ProviderType.Parse("coordinated-provider");
+
+        public string Version => "test";
+
+        public IReadOnlyList<ProviderCapability> Capabilities => [];
+
+        public bool FastCompletedBeforeSlowReleased { get; private set; }
+
+        public ProviderValidationResult ValidateEndpoint(ProviderEndpoint endpoint) => ProviderValidationResult.Valid;
+
+        public async ValueTask<ProviderProbeResult> ProbeAsync(
+            ProviderProbeRequest request,
+            CancellationToken cancellationToken)
+        {
+            if (request.Endpoint.TryGetValue("mode", out string mode) && mode == "slow")
+            {
+                await fastCompleted.Task.WaitAsync(cancellationToken);
+                FastCompletedBeforeSlowReleased = true;
+            }
+            else
+            {
+                fastCompleted.TrySetResult();
+            }
+
+            return new ProviderProbeResult(
+                HealthStatus.Healthy,
+                EvidenceLevel.ProviderAuthenticated,
+                "fixture",
+                TimeSpan.Zero,
+                null,
+                []);
+        }
+    }
+
+    private sealed class DeadlineProvider : IDatabaseProvider
+    {
+        public ProviderType ProviderType { get; } = ProviderType.Parse("deadline-provider");
+
+        public string Version => "test";
+
+        public IReadOnlyList<ProviderCapability> Capabilities => [];
+
+        public ProviderValidationResult ValidateEndpoint(ProviderEndpoint endpoint) => ProviderValidationResult.Valid;
+
+        public async ValueTask<ProviderProbeResult> ProbeAsync(
+            ProviderProbeRequest request,
+            CancellationToken cancellationToken)
+        {
+            if (request.Endpoint.TryGetValue("mode", out string mode) && mode == "slow")
+            {
+                await Task.Delay(Timeout.InfiniteTimeSpan, cancellationToken);
+            }
+
+            return new ProviderProbeResult(
+                HealthStatus.Healthy,
+                EvidenceLevel.ProviderAuthenticated,
+                "fixture",
+                TimeSpan.Zero,
+                null,
+                []);
         }
     }
 }

@@ -50,10 +50,26 @@ Design-time factories select providers without storing connection strings. Migra
 
 ## Current migration chain
 
-- Agent SQLite: `InitialAgentSchema` → `AddAgentStateConstraints`.
-- Server PostgreSQL: `InitialServerSchema` → `AddServerStateConstraints`.
+- Agent SQLite: `InitialAgentSchema` → `AddAgentStateConstraints` → `AddCommandCompatibilityEnvelope`.
+- Server PostgreSQL: `InitialServerSchema` → `AddServerStateConstraints` →
+  `EnforceAgentObservationSequence` → `HardenObservationReconciliation`.
 
 The server initial migration adds an append-only trigger for `audit_entries`; Down removes the trigger/function before dropping tables.
+`EnforceAgentObservationSequence` makes each Agent observation sequence unique. `HardenObservationReconciliation`
+adds a safely backfilled attempt count with a default of one, a nullable payload hash for new exact-replay
+verification, and durable Agent cursor and per-instance state tables that do not depend on raw observation
+retention. Before backfilling those checkpoints, the migration aborts unless each Agent history starts at
+sequence one and its row count equals its maximum sequence; this fail-closed precondition prevents a gap
+from being presented as contiguous. The cursor is then set to the proved maximum sequence and per-instance
+state uses the greatest canonical sequence belonging to the instance's currently assigned Agent, with
+receipt time and observation identifier only as deterministic tie-breakers. A legacy row without
+a payload hash cannot prove an exact replay and therefore remains fail-closed as an idempotency conflict.
+
+The `HardenObservationReconciliation` Down operation removes the durable cursor and instance-state tables,
+their constraints and indexes, and the new health-sample columns. That rollback loses reconciliation
+checkpoints and payload-hash evidence, so it requires an application/protocol compatibility review and an
+internal-store backup. Migration source and offline scripts are not evidence that any real PostgreSQL store
+has been migrated.
 
 ## Rollback rules
 

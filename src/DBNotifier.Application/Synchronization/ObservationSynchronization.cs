@@ -1,4 +1,4 @@
-// Module purpose: Defines Observation Synchronization application behaviour without depending on concrete providers or user interfaces.
+// Module purpose: Defines observation synchronisation contracts without depending on concrete providers, transports or user interfaces.
 using DBNotifier.Domain;
 
 namespace DBNotifier.Application.Synchronization;
@@ -145,10 +145,24 @@ public sealed class AgentOutboxDispatchRunner(
     }
 }
 
+/// <summary>
+/// Validates bounded Agent observation batches before delegating each canonical message to the durable ingestion store.
+/// Future evidence beyond the clock-skew policy is rejected terminally, while old offline backlog remains admissible.
+/// </summary>
+/// <param name="store">Durable server-side observation ingestion boundary.</param>
+/// <param name="timeProvider">Authoritative server clock used to timestamp receipt and enforce future skew.</param>
 public sealed class ObservationBatchIngestor(
     IObservationIngestionStore store,
     TimeProvider timeProvider)
 {
+    private static readonly TimeSpan MaximumFutureObservationSkew = TimeSpan.FromMinutes(5);
+
+    /// <summary>
+    /// Validates and ingests one ordered, bounded observation batch without normalising untrusted evidence timestamps.
+    /// </summary>
+    /// <param name="request">Authenticated Agent envelope containing between one and 100 observations.</param>
+    /// <param name="cancellationToken">Cancellation propagated from the API request.</param>
+    /// <returns>One terminal or retryable disposition for each supplied observation.</returns>
     public async ValueTask<ObservationBatchResult> HandleAsync(
         ObservationBatchRequest request,
         CancellationToken cancellationToken = default)
@@ -174,7 +188,7 @@ public sealed class ObservationBatchIngestor(
                 continue;
             }
 
-            string? validationError = Validate(request.AgentId, message, batchMessageIds);
+            string? validationError = Validate(request.AgentId, message, receivedAt, batchMessageIds);
             if (validationError is not null)
             {
                 results.Add(new ObservationItemResult(
@@ -193,9 +207,11 @@ public sealed class ObservationBatchIngestor(
         return new ObservationBatchResult(results, highest);
     }
 
+    /// <summary>Applies canonical envelope, timestamp, status, evidence and diagnostic bounds before persistence.</summary>
     private static string? Validate(
         Guid routeAgentId,
         ObservationSyncMessage message,
+        DateTimeOffset receivedAt,
         HashSet<Guid> batchMessageIds)
     {
         if (message.MessageId == Guid.Empty || !batchMessageIds.Add(message.MessageId))
@@ -209,21 +225,40 @@ public sealed class ObservationBatchIngestor(
             return "observation.envelope_invalid";
         }
 
-        if (!ProviderType.TryParse(message.ProviderType, out _) ||
-            !Enum.TryParse(message.Status, ignoreCase: false, out HealthStatus _) ||
-            !Enum.TryParse(message.EvidenceLevel, ignoreCase: false, out EvidenceLevel _) ||
-            message.AttemptCount is < 1 or > 10 || message.DurationMilliseconds < 0 ||
+        if (message.ObservedAt.Offset == TimeSpan.Zero &&
+            message.ObservedAt - receivedAt > MaximumFutureObservationSkew)
+        {
+            return "observation.observed_at_future";
+        }
+
+        if (!ProviderType.TryParse(message.ProviderType, out ProviderType providerType) ||
+            providerType.Value != message.ProviderType ||
+            !Enum.TryParse(message.Status, ignoreCase: false, out HealthStatus status) ||
+            !Enum.IsDefined(status) ||
+            !Enum.TryParse(message.EvidenceLevel, ignoreCase: false, out EvidenceLevel evidenceLevel) ||
+            !Enum.IsDefined(evidenceLevel) ||
+            !IsValidEvidence(status, evidenceLevel) ||
+            message.ObservedAt.Offset != TimeSpan.Zero || message.ObservedAt == default ||
+            message.AttemptCount is < 1 or > 10 ||
+            message.DurationMilliseconds is < 0 or > 300_000 ||
             string.IsNullOrWhiteSpace(message.ProviderVersion) || message.ProviderVersion.Length > 64 ||
             string.IsNullOrWhiteSpace(message.Method) || message.Method.Length > 64 ||
             message.Limitations is null || message.Limitations.Count > 20 ||
-            message.Limitations.Any(item => item is null || item.Length > 200) ||
-            message.ErrorCode?.Length > 100 || message.SafeErrorMessage?.Length > 1000)
+            message.Limitations.Any(item => string.IsNullOrWhiteSpace(item) || item.Length > 200) ||
+            message.ErrorCode?.Length > 100 || message.SafeErrorMessage?.Length > 1000 ||
+            (message.ErrorCode is null && message.SafeErrorMessage is not null) ||
+            (status == HealthStatus.Healthy && message.ErrorCode is not null))
         {
             return "observation.payload_invalid";
         }
 
         return null;
     }
+
+    /// <summary>Prevents a healthy state from being asserted using transport-only or otherwise unproved evidence.</summary>
+    private static bool IsValidEvidence(HealthStatus status, EvidenceLevel evidenceLevel) =>
+        status != HealthStatus.Healthy ||
+        evidenceLevel is EvidenceLevel.ProviderAuthenticated or EvidenceLevel.ProviderReadiness;
 }
 
 public sealed record CanonicalEventCandidate(string EventType, string Severity);

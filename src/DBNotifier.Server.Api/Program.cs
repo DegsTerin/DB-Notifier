@@ -1,4 +1,4 @@
-// Module purpose: Implements Program for the authorised server API without direct monitored-database access.
+// Module purpose: Composes the authorised server API, protected identity boundaries and central persistence services.
 using System.Security.Claims;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading.RateLimiting;
@@ -8,6 +8,7 @@ using DBNotifier.Application.Synchronization;
 using DBNotifier.Persistence.Server.PostgreSql;
 using DBNotifier.Server.Api;
 using DBNotifier.Server.Api.Security;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Certificate;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
@@ -39,6 +40,18 @@ builder.Services.AddRateLimiter(options =>
                 QueueLimit = 0,
                 AutoReplenishment = true,
             }));
+    options.AddPolicy("AgentApiRateLimit", httpContext =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            httpContext.User.FindFirstValue(AgentIdentityClaimTypes.AgentId) ??
+                httpContext.Connection.RemoteIpAddress?.ToString() ??
+                "unknown-agent",
+            _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 120,
+                Window = TimeSpan.FromMinutes(1),
+                QueueLimit = 0,
+                AutoReplenishment = true,
+            }));
 });
 builder.Services.AddDbContextFactory<ServerDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("ServerDatabase")));
@@ -55,9 +68,18 @@ builder.Services.AddSingleton<INotificationDeliveryStore>(services => services.G
 builder.Services.AddSingleton<IServerMessagePublisher, UnavailableServerMessagePublisher>();
 builder.Services.AddHostedService<ServerMaintenanceWorker>();
 builder.Services.AddScoped<AgentCertificateIdentityValidator>();
+builder.Services.AddSingleton<IAuthenticationAuditGate, AuthenticationAuditGate>();
+builder.Services.AddScoped<AuthenticationAuditWriter>();
 builder.Services.AddSingleton<HumanActorResolver>();
 builder.Services
-    .AddAuthentication(CertificateAuthenticationDefaults.AuthenticationScheme)
+    .AddAuthentication(ApiSecurityDefaults.RoutedAuthenticationScheme)
+    .AddPolicyScheme(
+        ApiSecurityDefaults.RoutedAuthenticationScheme,
+        ApiSecurityDefaults.RoutedAuthenticationScheme,
+        options => options.ForwardDefaultSelector = ApiSecurityDefaults.SelectAuthenticationScheme)
+    .AddScheme<AuthenticationSchemeOptions, PublicEndpointAuthenticationHandler>(
+        ApiSecurityDefaults.PublicEndpointAuthenticationScheme,
+        _ => { })
     .AddCertificate(options =>
     {
         options.AllowedCertificateTypes = CertificateTypes.Chained;
@@ -77,6 +99,16 @@ builder.Services
                         .ConfigureAwait(false);
                     if (agentId is null)
                     {
+                        AuthenticationAuditWriter audit = context.HttpContext.RequestServices
+                            .GetRequiredService<AuthenticationAuditWriter>();
+                        await audit.TryWriteAsync(
+                            new AuthenticationAuditEvent(
+                                "Agent",
+                                "unresolved",
+                                context.Scheme.Name,
+                                "Denied",
+                                "authentication.agent_not_enrolled"),
+                            context.HttpContext.RequestAborted).ConfigureAwait(false);
                         context.Fail("The Agent certificate is not enrolled or active.");
                         return;
                     }
@@ -85,6 +117,16 @@ builder.Services
                         [new Claim(AgentIdentityClaimTypes.AgentId, agentId.Value.ToString("D"))],
                         context.Scheme.Name);
                     context.Principal = new ClaimsPrincipal(identity);
+                    AuthenticationAuditWriter successAudit = context.HttpContext.RequestServices
+                        .GetRequiredService<AuthenticationAuditWriter>();
+                    await successAudit.TryWriteAsync(
+                        new AuthenticationAuditEvent(
+                            "Agent",
+                            agentId.Value.ToString("D"),
+                            context.Scheme.Name,
+                            "Succeeded",
+                            "authentication.agent_certificate_valid"),
+                        context.HttpContext.RequestAborted).ConfigureAwait(false);
                     context.Success();
                 }
                 catch (OperationCanceledException) when (context.HttpContext.RequestAborted.IsCancellationRequested)
@@ -93,8 +135,31 @@ builder.Services
                 }
                 catch (Exception exception) when (exception is not OutOfMemoryException)
                 {
+                    AuthenticationAuditWriter unavailableAudit = context.HttpContext.RequestServices
+                        .GetRequiredService<AuthenticationAuditWriter>();
+                    await unavailableAudit.TryWriteAsync(
+                        new AuthenticationAuditEvent(
+                            "Agent",
+                            "unresolved",
+                            context.Scheme.Name,
+                            "Unknown",
+                            "authentication.agent_validation_unavailable"),
+                        context.HttpContext.RequestAborted).ConfigureAwait(false);
                     context.Fail("Agent certificate validation is unavailable.");
                 }
+            },
+            OnAuthenticationFailed = async context =>
+            {
+                AuthenticationAuditWriter audit = context.HttpContext.RequestServices
+                    .GetRequiredService<AuthenticationAuditWriter>();
+                await audit.TryWriteAsync(
+                    new AuthenticationAuditEvent(
+                        "Agent",
+                        "unresolved",
+                        context.Scheme.Name,
+                        "Failed",
+                        "authentication.agent_certificate_invalid"),
+                    context.HttpContext.RequestAborted).ConfigureAwait(false);
             },
         };
     })
@@ -131,22 +196,52 @@ builder.Services
             NameClaimType = "name",
             RoleClaimType = "role",
         };
+        options.Events = new JwtBearerEvents
+        {
+            OnTokenValidated = async context =>
+            {
+                string actorId = context.Principal?.FindFirstValue("sub") ?? "unresolved";
+                AuthenticationAuditWriter audit = context.HttpContext.RequestServices
+                    .GetRequiredService<AuthenticationAuditWriter>();
+                await audit.TryWriteAsync(
+                    new AuthenticationAuditEvent(
+                        "Human",
+                        actorId.Length <= 300 ? actorId : "unresolved",
+                        context.Scheme.Name,
+                        "Succeeded",
+                        "authentication.human_token_valid"),
+                    context.HttpContext.RequestAborted).ConfigureAwait(false);
+            },
+            OnAuthenticationFailed = async context =>
+            {
+                AuthenticationAuditWriter audit = context.HttpContext.RequestServices
+                    .GetRequiredService<AuthenticationAuditWriter>();
+                await audit.TryWriteAsync(
+                    new AuthenticationAuditEvent(
+                        "Human",
+                        "unresolved",
+                        context.Scheme.Name,
+                        "Failed",
+                        "authentication.human_token_invalid"),
+                    context.HttpContext.RequestAborted).ConfigureAwait(false);
+            },
+        };
     });
 builder.Services.AddSingleton<IAuthorizationHandler, AgentRouteAuthorizationHandler>();
 builder.Services.AddAuthorizationBuilder()
-    .AddPolicy("AgentObservationIngestion", policy =>
+    .AddPolicy(ApiSecurityDefaults.AgentObservationIngestionPolicy, policy =>
     {
         policy.AddAuthenticationSchemes(CertificateAuthenticationDefaults.AuthenticationScheme);
         policy.RequireAuthenticatedUser();
         policy.AddRequirements(new AgentRouteRequirement());
     })
-    .AddPolicy("AgentApi", policy =>
+    .AddPolicy(ApiSecurityDefaults.AgentApiPolicy, policy =>
     {
         policy.AddAuthenticationSchemes(CertificateAuthenticationDefaults.AuthenticationScheme);
         policy.RequireAuthenticatedUser();
         policy.AddRequirements(new AgentRouteRequirement());
     })
-    .AddPolicy("HumanApi", policy =>
+    .AddPolicy(ApiSecurityDefaults.HumanApiPolicy, policy =>
     {
         policy.AddAuthenticationSchemes(HumanAuthenticationDefaults.Scheme);
         policy.RequireAuthenticatedUser();
@@ -154,6 +249,8 @@ builder.Services.AddAuthorizationBuilder()
     });
 
 WebApplication app = builder.Build();
+app.UseRouting();
+app.UseMiddleware<ProtectedTransportMiddleware>();
 app.UseAuthentication();
 app.UseRateLimiter();
 app.UseAuthorization();
@@ -178,7 +275,7 @@ app.MapGet(
                 .ConfigureAwait(false);
             return Results.Ok(instances);
         })
-    .RequireAuthorization("HumanApi")
+    .RequireAuthorization(ApiSecurityDefaults.HumanApiPolicy)
     .RequireRateLimiting("HumanApiRateLimit");
 app.MapPost(
         "/api/v1/instances/{instanceId:guid}/commands",
@@ -223,7 +320,7 @@ app.MapPost(
                     extensions: new Dictionary<string, object?> { ["code"] = result.ErrorCode }),
             };
         })
-    .RequireAuthorization("HumanApi")
+    .RequireAuthorization(ApiSecurityDefaults.HumanApiPolicy)
     .RequireRateLimiting("HumanApiRateLimit");
 app.MapGet(
         "/api/v1/audit",
@@ -266,7 +363,7 @@ app.MapGet(
                     extensions: new Dictionary<string, object?> { ["code"] = "audit.query_invalid" });
             }
         })
-    .RequireAuthorization("HumanApi")
+    .RequireAuthorization(ApiSecurityDefaults.HumanApiPolicy)
     .RequireRateLimiting("HumanApiRateLimit");
 app.MapPost(
         "/api/v1/agents/{agentId:guid}/commands:poll",
@@ -300,7 +397,8 @@ app.MapPost(
                     { ["code"] = "command.poll_invalid" });
             }
         })
-    .RequireAuthorization("AgentApi");
+    .RequireAuthorization(ApiSecurityDefaults.AgentApiPolicy)
+    .RequireRateLimiting("AgentApiRateLimit");
 app.MapPost(
         "/api/v1/agents/{agentId:guid}/commands:ack",
         async Task<IResult> (
@@ -330,7 +428,8 @@ app.MapPost(
                     { ["code"] = "command.ack_invalid" });
             }
         })
-    .RequireAuthorization("AgentApi");
+    .RequireAuthorization(ApiSecurityDefaults.AgentApiPolicy)
+    .RequireRateLimiting("AgentApiRateLimit");
 app.MapPost(
         "/api/v1/agents/{agentId:guid}/observations:batch",
         async Task<IResult> (
@@ -377,7 +476,8 @@ app.MapPost(
                     });
             }
         })
-    .RequireAuthorization("AgentObservationIngestion");
+    .RequireAuthorization(ApiSecurityDefaults.AgentObservationIngestionPolicy)
+    .RequireRateLimiting("AgentApiRateLimit");
 
 app.Run();
 
@@ -398,4 +498,5 @@ static IResult ProtocolOrPayloadProblem(bool agentMatches) => agentMatches
         title: "Command Agent does not match the authorized route",
         extensions: new Dictionary<string, object?> { ["code"] = "command.agent_mismatch" });
 
+/// <summary>Exposes the server API entry-point marker for local integration testing.</summary>
 public partial class Program;

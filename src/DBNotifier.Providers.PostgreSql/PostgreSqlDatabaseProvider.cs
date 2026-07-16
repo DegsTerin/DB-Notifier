@@ -1,10 +1,16 @@
-// Module purpose: Implements Postgre Sql Database Provider inside the isolated PostgreSQL provider; the core remains engine-neutral.
+// Module purpose: Implements the database-provider adapter inside the isolated PostgreSQL provider; the core remains engine-neutral.
 using System.Globalization;
 using DBNotifier.Domain;
 using DBNotifier.Provider.Abstractions;
 
 namespace DBNotifier.Providers.PostgreSql;
 
+/// <summary>
+/// Adapts PostgreSQL endpoint validation, readiness and authenticated monitoring to the provider-neutral SDK;
+/// administrative control capabilities remain explicitly unsupported.
+/// </summary>
+/// <param name="readinessExecutor">Approved-path readiness boundary with an explicit transport-only fallback.</param>
+/// <param name="authenticatedExecutor">TLS-authenticated fixed-query health boundary.</param>
 public sealed class PostgreSqlDatabaseProvider(
     IPostgreSqlReadinessExecutor readinessExecutor,
     IPostgreSqlAuthenticatedExecutor authenticatedExecutor) : IDatabaseProvider
@@ -30,12 +36,16 @@ public sealed class PostgreSqlDatabaseProvider(
         new("control.restart.v1", CapabilityState.Unsupported, "any", "not-implemented"),
     ];
 
+    /// <inheritdoc />
     public ProviderType ProviderType => Type;
 
+    /// <inheritdoc />
     public string Version => "0.1.0";
 
+    /// <inheritdoc />
     public IReadOnlyList<ProviderCapability> Capabilities => DeclaredCapabilities;
 
+    /// <inheritdoc />
     public ProviderValidationResult ValidateEndpoint(ProviderEndpoint endpoint)
     {
         ArgumentNullException.ThrowIfNull(endpoint);
@@ -66,9 +76,12 @@ public sealed class PostgreSqlDatabaseProvider(
             errors.Add(new("postgresql.port_invalid", "port", "PostgreSQL port must be between 1 and 65535."));
         }
 
-        if (endpoint.TryGetValue("database", out string database) && database.Length > 128)
+        if (endpoint.TryGetValue("database", out string database) && !IsValidDatabaseName(database))
         {
-            errors.Add(new("postgresql.database_invalid", "database", "Database name exceeds the supported length."));
+            errors.Add(new(
+                "postgresql.database_invalid",
+                "database",
+                "Database must be a bounded literal name rather than a connection string."));
         }
 
         if (endpoint.TryGetValue("pgIsReadyPath", out string executable) &&
@@ -86,15 +99,18 @@ public sealed class PostgreSqlDatabaseProvider(
         }
 
         if (endpoint.TryGetValue("sslMode", out string sslMode) &&
-            !string.Equals(sslMode, "require", StringComparison.OrdinalIgnoreCase) &&
             !string.Equals(sslMode, "verify-full", StringComparison.OrdinalIgnoreCase))
         {
-            errors.Add(new("postgresql.ssl_mode_invalid", "sslMode", "SSL mode must be require or verify-full."));
+            errors.Add(new(
+                "postgresql.ssl_mode_invalid",
+                "sslMode",
+                "SSL mode must be verify-full so that the server certificate and host name are validated."));
         }
 
         return errors.Count == 0 ? ProviderValidationResult.Valid : ProviderValidationResult.Invalid([.. errors]);
     }
 
+    /// <inheritdoc />
     public async ValueTask<ProviderProbeResult> ProbeAsync(
         ProviderProbeRequest request,
         CancellationToken cancellationToken)
@@ -231,6 +247,14 @@ public sealed class PostgreSqlDatabaseProvider(
 
         return Uri.CheckHostName(host) is not UriHostNameType.Unknown;
     }
+
+    private static bool IsValidDatabaseName(string database) =>
+        !string.IsNullOrWhiteSpace(database) &&
+        database.Length <= 128 &&
+        !database.Any(char.IsControl) &&
+        !database.Contains('=') &&
+        !database.StartsWith("postgres://", StringComparison.OrdinalIgnoreCase) &&
+        !database.StartsWith("postgresql://", StringComparison.OrdinalIgnoreCase);
 
     private static ProviderProbeResult CreateResult(
         HealthStatus status,

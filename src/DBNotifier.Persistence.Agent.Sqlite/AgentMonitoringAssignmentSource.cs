@@ -1,4 +1,6 @@
 // Module purpose: Implements Agent Monitoring Assignment Source for the Agent-local SQLite boundary without exposing monitored database secrets.
+using System.Data;
+using System.Globalization;
 using System.Text.Json;
 using DBNotifier.Application.Monitoring;
 using DBNotifier.Domain;
@@ -8,14 +10,31 @@ using Microsoft.Extensions.Logging;
 
 namespace DBNotifier.Persistence.Agent.Sqlite;
 
+/// <summary>
+/// Reads enabled Agent-local assignments, filters them by the latest observation cadence and rotates due work
+/// fairly without exposing endpoint secrets or exceeding the configured fleet bound.
+/// </summary>
+/// <param name="contextFactory">Factory for read-only Agent-local persistence contexts.</param>
+/// <param name="logger">Structured logger used only for stable invalid-assignment codes.</param>
+/// <param name="maximumAssignments">Hard assignment ceiling between one and 5,000.</param>
 public sealed partial class AgentMonitoringAssignmentSource(
     IDbContextFactory<AgentDbContext> contextFactory,
-    ILogger<AgentMonitoringAssignmentSource> logger) : IMonitoringAssignmentSource
+    ILogger<AgentMonitoringAssignmentSource> logger,
+    int maximumAssignments = 5000) : IMonitoringAssignmentSource
 {
+    private int rotationIndex;
+
+    /// <summary>Returns due, validated assignments in a rotating order that avoids repeatedly starving the same tail.</summary>
+    /// <param name="now">UTC instant used to compare each monitoring interval with its latest observation.</param>
+    /// <param name="cancellationToken">Cancellation propagated from the monitoring worker.</param>
+    /// <returns>At most the configured maximum number of due provider-neutral assignments.</returns>
+    /// <exception cref="InvalidOperationException">Thrown when persisted enabled assignments exceed the hard ceiling.</exception>
     public async ValueTask<IReadOnlyList<MonitoringAssignment>> GetDueAsync(
         DateTimeOffset now,
         CancellationToken cancellationToken)
     {
+        ArgumentOutOfRangeException.ThrowIfLessThan(maximumAssignments, 1);
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(maximumAssignments, 5000);
         await using AgentDbContext context = await contextFactory
             .CreateDbContextAsync(cancellationToken)
             .ConfigureAwait(false);
@@ -24,24 +43,23 @@ public sealed partial class AgentMonitoringAssignmentSource(
             .AsNoTracking()
             .Where(row => row.Enabled)
             .OrderBy(row => row.InstanceId)
+            .Take(maximumAssignments + 1)
             .ToArrayAsync(cancellationToken)
             .ConfigureAwait(false);
+
+        if (configured.Length > maximumAssignments)
+        {
+            throw new InvalidOperationException("assignment.maximum_exceeded");
+        }
 
         if (configured.Length == 0)
         {
             return [];
         }
 
-        HashSet<Guid> configuredIds = configured.Select(row => row.InstanceId).ToHashSet();
-        var observationTimes = await context.HealthObservations
-            .AsNoTracking()
-            .Where(row => configuredIds.Contains(row.InstanceId))
-            .Select(row => new { row.InstanceId, row.ObservedAt })
-            .ToArrayAsync(cancellationToken)
-            .ConfigureAwait(false);
-        Dictionary<Guid, DateTimeOffset> latestByInstance = observationTimes
-            .GroupBy(row => row.InstanceId)
-            .ToDictionary(group => group.Key, group => group.Max(row => row.ObservedAt));
+        Dictionary<Guid, DateTimeOffset> latestByInstance = await GetLatestObservationTimesAsync(
+            context,
+            cancellationToken).ConfigureAwait(false);
 
         List<MonitoringAssignment> due = [];
         foreach (AgentInstanceAssignmentRow row in configured)
@@ -62,7 +80,66 @@ public sealed partial class AgentMonitoringAssignmentSource(
             }
         }
 
-        return due;
+        if (due.Count < 2)
+        {
+            return due;
+        }
+
+        // Rotate equal-priority work between cycles so a repeatedly exhausted deadline cannot always
+        // penalise the same tail assignments. The source is a singleton in the Agent host.
+        int startIndex = (int)((uint)(Interlocked.Increment(ref rotationIndex) - 1) % (uint)due.Count);
+        return due.Skip(startIndex).Concat(due.Take(startIndex)).ToArray();
+    }
+
+    /// <summary>Reads only the latest observation time for each enabled assignment to avoid loading unbounded history.</summary>
+    private static async ValueTask<Dictionary<Guid, DateTimeOffset>> GetLatestObservationTimesAsync(
+        AgentDbContext context,
+        CancellationToken cancellationToken)
+    {
+        System.Data.Common.DbConnection connection = context.Database.GetDbConnection();
+        bool closeConnection = connection.State != ConnectionState.Open;
+        if (closeConnection)
+        {
+            await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
+        }
+
+        try
+        {
+            await using System.Data.Common.DbCommand command = connection.CreateCommand();
+            command.CommandText = """
+                SELECT observation.instance_id, MAX(observation.observed_at)
+                FROM health_observations AS observation
+                INNER JOIN instance_assignments AS assignment
+                    ON assignment.instance_id = observation.instance_id
+                WHERE assignment.enabled = 1
+                GROUP BY observation.instance_id
+                """;
+            await using System.Data.Common.DbDataReader reader = await command
+                .ExecuteReaderAsync(cancellationToken)
+                .ConfigureAwait(false);
+            Dictionary<Guid, DateTimeOffset> latest = [];
+            while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                if (Guid.TryParse(reader.GetString(0), out Guid instanceId) &&
+                    DateTimeOffset.TryParse(
+                        reader.GetString(1),
+                        CultureInfo.InvariantCulture,
+                        DateTimeStyles.RoundtripKind,
+                        out DateTimeOffset observedAt))
+                {
+                    latest[instanceId] = observedAt;
+                }
+            }
+
+            return latest;
+        }
+        finally
+        {
+            if (closeConnection)
+            {
+                await connection.CloseAsync().ConfigureAwait(false);
+            }
+        }
     }
 
     private static bool TryCreateAssignment(

@@ -45,6 +45,64 @@ public sealed class AgentRuntimeTests
     }
 
     [Fact]
+    public async Task AssignmentSourceRotatesDueWorkToPreventDeadlineStarvation()
+    {
+        await using SqliteConnection connection = new("Data Source=:memory:");
+        await connection.OpenAsync();
+        DbContextOptions<AgentDbContext> options = new DbContextOptionsBuilder<AgentDbContext>()
+            .UseSqlite(connection)
+            .Options;
+        TestContextFactory factory = new(options);
+        await using (AgentDbContext context = new(options))
+        {
+            await context.Database.MigrateAsync();
+            context.InstanceAssignments.AddRange(
+                Assignment(Guid.Parse("11111111-1111-1111-1111-111111111111"), "{\"host\":\"localhost\",\"port\":5432}", null),
+                Assignment(Guid.Parse("22222222-2222-2222-2222-222222222222"), "{\"host\":\"localhost\",\"port\":5432}", null));
+            await context.SaveChangesAsync();
+        }
+
+        AgentMonitoringAssignmentSource source = new(factory, NullLogger<AgentMonitoringAssignmentSource>.Instance);
+        IReadOnlyList<DBNotifier.Application.Monitoring.MonitoringAssignment> first =
+            await source.GetDueAsync(DateTimeOffset.UtcNow, CancellationToken.None);
+        IReadOnlyList<DBNotifier.Application.Monitoring.MonitoringAssignment> second =
+            await source.GetDueAsync(DateTimeOffset.UtcNow, CancellationToken.None);
+
+        Assert.Equal(2, first.Count);
+        Assert.Equal(2, second.Count);
+        Assert.Equal(first[0].InstanceId, second[1].InstanceId);
+        Assert.Equal(first[1].InstanceId, second[0].InstanceId);
+    }
+
+    [Fact]
+    public async Task AssignmentSourceRejectsConfiguredWorkAboveBound()
+    {
+        await using SqliteConnection connection = new("Data Source=:memory:");
+        await connection.OpenAsync();
+        DbContextOptions<AgentDbContext> options = new DbContextOptionsBuilder<AgentDbContext>()
+            .UseSqlite(connection)
+            .Options;
+        TestContextFactory factory = new(options);
+        await using (AgentDbContext context = new(options))
+        {
+            await context.Database.MigrateAsync();
+            context.InstanceAssignments.AddRange(
+                Assignment(Guid.NewGuid(), "{\"host\":\"localhost\",\"port\":5432}", null),
+                Assignment(Guid.NewGuid(), "{\"host\":\"localhost\",\"port\":5432}", null));
+            await context.SaveChangesAsync();
+        }
+
+        AgentMonitoringAssignmentSource source = new(
+            factory,
+            NullLogger<AgentMonitoringAssignmentSource>.Instance,
+            maximumAssignments: 1);
+
+        InvalidOperationException exception = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+            await source.GetDueAsync(DateTimeOffset.UtcNow, CancellationToken.None));
+        Assert.Equal("assignment.maximum_exceeded", exception.Message);
+    }
+
+    [Fact]
     public async Task StoreInitializerCreatesSchemaOnlyWhenInvoked()
     {
         string directory = Path.Combine(Path.GetTempPath(), $"db-notifier-{Guid.NewGuid():N}");

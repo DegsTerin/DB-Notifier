@@ -1,9 +1,14 @@
-// Module purpose: Implements Server Maintenance Store for central PostgreSQL persistence with transactional and authorisation boundaries.
+// Module purpose: Applies bounded maintenance policies to central PostgreSQL persistence without accessing monitored databases.
 using DBNotifier.Application.Operations;
 using Microsoft.EntityFrameworkCore;
 
 namespace DBNotifier.Persistence.Server.PostgreSql;
 
+/// <summary>
+/// Owns bounded central retention queries and future delivery-store state transitions. Raw observations remain
+/// authoritative and are retained until an aggregate-before-delete contract is durably implemented.
+/// </summary>
+/// <param name="contextFactory">Factory for isolated central PostgreSQL persistence contexts.</param>
 public sealed class ServerMaintenanceStore(
     IDbContextFactory<ServerDbContext> contextFactory) :
     IServerRetentionStore,
@@ -12,6 +17,11 @@ public sealed class ServerMaintenanceStore(
 {
     private static readonly TimeSpan MaximumRetryDelay = TimeSpan.FromMinutes(5);
 
+    /// <summary>Evaluates or applies one bounded central retention cycle while preserving all raw observations.</summary>
+    /// <param name="request">UTC cut-off instant, per-class row bound and explicit apply flag.</param>
+    /// <param name="cancellationToken">Cancellation propagated from the maintenance worker.</param>
+    /// <returns>Counts of eligible or deleted rows for each central retention class.</returns>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown when the per-class row bound is outside policy.</exception>
     public async ValueTask<RetentionExecutionResult> ExecuteAsync(
         RetentionExecutionRequest request,
         CancellationToken cancellationToken)
@@ -21,25 +31,13 @@ public sealed class ServerMaintenanceStore(
             .CreateDbContextAsync(cancellationToken)
             .ConfigureAwait(false);
 
-        DateTimeOffset observationCutoff = request.Now.AddDays(-30);
         DateTimeOffset heartbeatCutoff = request.Now.AddDays(-90);
         DateTimeOffset deliveryCutoff = request.Now.AddMonths(-12);
         DateTimeOffset outboxCutoff = request.Now.AddDays(-7);
-        HealthSampleRow[] observations = await context.HealthSamples
-            .FromSqlInterpolated($$"""
-                SELECT health.* FROM health_samples AS health
-                WHERE health.received_at < {{observationCutoff}}
-                  AND NOT EXISTS (
-                    SELECT 1 FROM events AS event_row
-                    WHERE event_row.source_observation_id = health.observation_id)
-                  AND NOT EXISTS (
-                    SELECT 1 FROM command_attempts AS attempt
-                    WHERE attempt.post_probe_observation_id = health.observation_id)
-                ORDER BY health.received_at
-                LIMIT {{request.MaximumRowsPerClass}}
-                """)
-            .ToArrayAsync(cancellationToken)
-            .ConfigureAwait(false);
+        // Raw observations remain authoritative until the aggregate-before-delete contract has a
+        // durable implementation. Keeping them is the fail-closed retention outcome and the Agent
+        // cursor remains independently durable when that later deletion path is introduced.
+        HealthSampleRow[] observations = [];
         AgentHeartbeatRow[] heartbeats = await context.AgentHeartbeats
             .FromSqlInterpolated($$"""
                 SELECT * FROM agent_heartbeats
@@ -86,6 +84,12 @@ public sealed class ServerMaintenanceStore(
             outboxTombstones.Length);
     }
 
+    /// <summary>Reads a bounded ordered set of unpublished central outbox messages.</summary>
+    /// <param name="now">UTC instant used to exclude messages not yet available.</param>
+    /// <param name="maximumCount">Maximum number of messages between one and 100.</param>
+    /// <param name="cancellationToken">Cancellation propagated from a future delivery cycle.</param>
+    /// <returns>Unpublished messages in deterministic creation order.</returns>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="maximumCount"/> is outside policy.</exception>
     public async ValueTask<IReadOnlyList<ServerOutboxEnvelope>> GetPendingAsync(
         DateTimeOffset now,
         int maximumCount,
@@ -116,6 +120,7 @@ public sealed class ServerMaintenanceStore(
             .ToArray();
     }
 
+    /// <inheritdoc />
     async ValueTask IServerOutboxStore.ApplyResultsAsync(
         IReadOnlyList<DeliveryResult> results,
         DateTimeOffset now,
@@ -155,6 +160,7 @@ public sealed class ServerMaintenanceStore(
         await context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
     }
 
+    /// <inheritdoc />
     async ValueTask<IReadOnlyList<NotificationEnvelope>> INotificationDeliveryStore.GetPendingAsync(
         DateTimeOffset now,
         int maximumCount,
@@ -206,6 +212,7 @@ public sealed class ServerMaintenanceStore(
             .ToArray();
     }
 
+    /// <inheritdoc />
     async ValueTask INotificationDeliveryStore.ApplyResultsAsync(
         IReadOnlyList<DeliveryResult> results,
         DateTimeOffset now,
@@ -248,22 +255,26 @@ public sealed class ServerMaintenanceStore(
         await context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
     }
 
+    /// <summary>Calculates a bounded exponential retry delay from a one-based delivery attempt count.</summary>
     private static TimeSpan RetryDelay(int attemptCount) =>
         TimeSpan.FromSeconds(Math.Min(
             Math.Pow(2, Math.Min(Math.Max(attemptCount, 1), 8)),
             MaximumRetryDelay.TotalSeconds));
 
+    /// <summary>Normalises a retryable delivery code to the central persistence length boundary.</summary>
     private static string BoundErrorCode(string? errorCode) =>
         string.IsNullOrWhiteSpace(errorCode)
             ? "delivery.retryable"
             : errorCode[..Math.Min(errorCode.Length, 100)];
 
+    /// <summary>Enforces the shared central delivery batch bound.</summary>
     private static void ValidateBatchSize(int maximumCount)
     {
         ArgumentOutOfRangeException.ThrowIfLessThan(maximumCount, 1);
         ArgumentOutOfRangeException.ThrowIfGreaterThan(maximumCount, 100);
     }
 
+    /// <summary>Enforces the central retention request and per-class row bounds.</summary>
     private static void ValidateRetention(RetentionExecutionRequest request)
     {
         ArgumentNullException.ThrowIfNull(request);

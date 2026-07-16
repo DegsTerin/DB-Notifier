@@ -1,13 +1,23 @@
-// Module purpose: Implements Npgsql Authenticated Executor inside the isolated PostgreSQL provider; the core remains engine-neutral.
+// Module purpose: Executes bounded authenticated PostgreSQL probes inside the isolated provider; the core remains engine-neutral.
 using System.Diagnostics;
 using Npgsql;
 
 namespace DBNotifier.Providers.PostgreSql;
 
+/// <summary>
+/// Executes the fixed authenticated PostgreSQL health query with hostname-verifying TLS, certificate revocation
+/// checking, bounded timeouts and no pooling or connection-string persistence.
+/// </summary>
 public sealed class NpgsqlAuthenticatedExecutor : IPostgreSqlAuthenticatedExecutor
 {
     private const string HealthQuery = "SELECT 1";
 
+    /// <summary>Executes one authenticated <c>SELECT 1</c> probe using the leased monitoring credential.</summary>
+    /// <param name="endpoint">Validated PostgreSQL endpoint requiring <c>verify-full</c> TLS.</param>
+    /// <param name="credential">Ephemeral monitoring credential lease; the secret is never logged or persisted.</param>
+    /// <param name="timeout">Positive probe deadline, bounded again by the provider request policy.</param>
+    /// <param name="cancellationToken">Caller cancellation propagated to connection and query operations.</param>
+    /// <returns>A canonical authenticated health result without provider exception details.</returns>
     public async ValueTask<PostgreSqlAuthenticatedResult> ExecuteAsync(
         PostgreSqlEndpoint endpoint,
         DBNotifier.Provider.Abstractions.IProviderCredential credential,
@@ -34,9 +44,8 @@ public sealed class NpgsqlAuthenticatedExecutor : IPostgreSqlAuthenticatedExecut
             Pooling = false,
             Timeout = TimeoutSeconds(timeout),
             CommandTimeout = TimeoutSeconds(timeout),
-            SslMode = string.Equals(endpoint.SslMode, "verify-full", StringComparison.OrdinalIgnoreCase)
-                ? SslMode.VerifyFull
-                : SslMode.Require,
+            SslMode = SslMode.VerifyFull,
+            CheckCertificateRevocation = true,
         };
 
         using CancellationTokenSource deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
