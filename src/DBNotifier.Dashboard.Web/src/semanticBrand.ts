@@ -2,7 +2,7 @@
 import type { FleetAggregateState } from "./presentation";
 
 /** Current visual-contract revision used to invalidate browser associations deterministically. */
-export const designSystemVersion = "2.6.11";
+export const designSystemVersion = "2.6.12";
 
 /** Stable DOM identity shared by the fail-safe HTML node and runtime semantic replacement. */
 export const semanticFaviconId = "dbnotifier-favicon";

@@ -2,7 +2,7 @@
 
 ## Versão atual
 
-- Versão: `3.48.0`
+- Versão: `3.49.0`
 - Data: 2026-07-15
 - Status: corpus DB-Notifier consolidado
 - Escopo: 13 arquivos ativos
@@ -16,6 +16,13 @@ A versão do corpus é independente da versão do software.
 - PATCH: clareza, correção ou referência sem mudança de autoridade.
 
 Toda alteração atualiza este arquivo e, quando necessário, `../Start-Here.md`.
+
+## 3.49.0 — 2026-07-15
+
+- O Design System `2.6.12` introduz microglifo óptico pixel-aligned para os quadros pequenos e um PNG transparente dedicado à identidade da confirmação de disponibilidade no Windows, preservando a família semântica provider-neutral e o sino verde dessa mensagem não-state-bearing.
+- O WPF tenta inicializar o Windows App Runtime e usar `AppNotificationManager` com o display name `DB Notifier`; runtime, plataforma, ativo, registro ou publicação indisponíveis falham de forma segura para o único caminho legado `ShowBalloonTip`, sem impedir a inicialização notification-area-first.
+- Cada `CloseRequest` explícito solicita uma nova confirmação local. Minimizar, startup oculto, Show e Exit não solicitam notificação; aceitação pelo publicador não prova exibição, pois política do Windows e Focus Assist permanecem soberanos.
+- Provisionamento do Windows App Runtime, identidade/caminho estáveis, packaging, rollback e limpeza de desinstalação continuam em `STATE-08`; notificações factuais por mudança Agent/API permanecem em `STATE-06`. `S05-HG-010` continua pendente e `S05-HG-011` permanece aprovado.
 
 ## 3.48.0 — 2026-07-15
 

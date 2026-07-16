@@ -4,7 +4,7 @@
 
 - Git with the default branch `main`.
 - .NET 10 LTS SDK `10.0.301` selected through `global.json` and installed locally in the ignored `.dotnet/` directory for this workspace.
-- Windows is required to run the WPF Desktop and the renamed DB-Notifier compatibility application.
+- Windows is required to run the WPF Desktop and the renamed DB-Notifier compatibility application. The Desktop uses the versioned `net10.0-windows10.0.22621.0` TFM while retaining Windows 10 version 1809 (`10.0.17763.0`) as its declared minimum platform.
 - Node.js 24 is used for the Dashboard scaffold; dependencies are locked in `package-lock.json`.
 - Windows PowerShell 5.1 with Pester is used for legacy characterization.
 
@@ -42,6 +42,14 @@ Human API endpoints use the separate `HumanBearer` JWT scheme. Configure an abso
 
 Agent retention and Server retention/outbox/notification workers are separately opt-in. Defaults are disabled, and retention defaults to dry-run even when enabled. No external publisher or notification adapter is configured by the repository; enabling delivery without one records bounded retry state rather than contacting a channel.
 
+## Windows Desktop runtime and local notifications
+
+`DBNotifier.Desktop.Wpf` references the centrally pinned `Microsoft.WindowsAppSDK` package at version `2.2.0`. Its modern local app-notification path therefore requires a compatible Windows App Runtime 2.2 installation for the current process architecture. The repository does not install that machine dependency during restore, build or ordinary startup; installation and target-machine detection belong to the signed `STATE-08` package.
+
+The Desktop sets `WindowsAppSdkBootstrapInitialize` to `false` and owns dynamic-dependency initialisation explicitly. Its notification publisher calls the Windows App SDK bootstrap API before registering with `AppNotificationManager`, and it releases that bootstrap lease during disposal. A missing or damaged runtime, unsupported platform, missing identity asset, or registration/publication failure is handled fail-safe: normal notification-area startup remains available and an explicit Close request can use the bounded legacy `NotifyIcon` balloon fallback. Diagnostics record only a stable stage and exception type, never notification content, local paths or external state.
+
+During `STATE-05`, `AppNotificationManager` is used only for the local confirmation requested each time the user explicitly closes the secondary WPF shell to the notification area. Platform acceptance of that request is not proof that Windows displayed it, because Focus Assist, user policy and the Windows Shell remain authoritative. App-notification delivery from an elevated process is not treated as supported; the Desktop runs in the ordinary user session. Any observed presentation is also not evidence of provider integration, external delivery, administrative capability, homologation, public support or production readiness.
+
 ## Legacy configuration migration
 
 The .NET 10 configuration migrator is dry-run by default and requires absolute source/target paths:
@@ -74,7 +82,7 @@ $dotnet = ".\.dotnet\dotnet.exe"
 & $dotnet format .\DBNotifier.sln --verify-no-changes --no-restore
 ```
 
-All active projects target `net10.0` or `net10.0-windows`. Warnings are treated as errors, nullable analysis and .NET analyzers are enabled, and the Domain dependency direction has a baseline architecture test.
+All active projects target `net10.0` or an appropriate versioned .NET 10 Windows TFM; the WPF Desktop currently targets `net10.0-windows10.0.22621.0`. Warnings are treated as errors, nullable analysis and .NET analyzers are enabled, and the Domain dependency direction has a baseline architecture test.
 
 ## Legacy checks
 

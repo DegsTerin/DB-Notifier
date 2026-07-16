@@ -913,6 +913,17 @@
 - Riscos/ressalvas: WinForms oferece um único slot, portanto a variante verde ocupa temporariamente o NotifyIcon até o callback ou fallback, sem alterar o agregado lógico. `BalloonTipShown` prova somente que o balloon foi exibido; não garante a captura ou apresentação do glyph em toda versão do Windows. O cartão, atribuição, escala, cache e snapshots continuam sob autoridade do Shell. Uma notificação recém-entregue ainda precisa de inspeção humana em `S05-HG-010`; `S05-HG-011` não foi reaberto.
 - Aprovador: correção solicitada por Bruno; nenhuma aprovação visual, do Human Gate ou de transição foi inferida.
 
+## 2026-07-15 — Microglifo transparente e confirmação em todo fechamento explícito
+
+- Estado anterior: `STATE-05 FRONTEND_IMPLEMENTATION`, Human Gate e `S05-HG-010` pendentes; `S05-HG-011` aprovado; Design System `2.6.11` implementado.
+- Estado resultante: sem transição; Design System `2.6.12` implementado e verificado automaticamente no incremento de apresentação local, ainda dependente de confirmação humana específica.
+- Decisão: tratar como findings válidos a persistência perceptual do bloco azul na atribuição da notificação e a ausência de nova confirmação após fechamentos subsequentes, sem prometer que o aplicativo controle o fundo do cartão ou que o Windows sempre apresente uma solicitação aceita.
+- Escopo: microglifo óptico pixel-aligned nos quadros pequenos, PNG transparente dedicado de disponibilidade, Windows App SDK `2.2.0`, bootstrap fail-safe do Windows App Runtime, `AppNotificationManager` registrado como `DB Notifier`, ativação limitada a revelar o shell local, fallback legado único e política que solicita nova confirmação em cada `CloseRequest`, mas não em Minimize, startup oculto, Show ou Exit. Agregado, flyout, estado persistido e capacidades externas permanecem inalterados.
+- Gates: `143/143` testes unit/model/provider/presentation, `9/9` testes de arquitetura, `34/34` testes Dashboard, typecheck/build Vite, build Release .NET 10 sem avisos/erros, format, 11/11 Pester, bundle legado, marca/tokens/localização, auditorias NuGet/npm, runtime fail-closed e matriz headless de 96 amostras aprovados. A porta `4173`, já ocupada, não foi perturbada; a matriz usou portas alternativas isoladas.
+- Evidências: Design System `2.6.12`, gerador/ativos de marca, `WindowsAppNotificationPublisher`, política Application de `CloseRequest`, controller WPF, lockfile do Desktop e regressões .NET; os relatórios proprietários e a matriz de rastreabilidade permanecem responsáveis pelo fechamento documental completo.
+- Riscos/ressalvas: Windows/Focus Assist pode suprimir a apresentação visível mesmo após aceitar a publicação. Instalação do Windows App Runtime, identidade/caminho estáveis, packaging, rollback e limpeza de desinstalação pertencem a `STATE-08`; notificações por mudança factual Agent/API continuam em `STATE-06`. `S05-HG-010` permanece pendente e a aprovação limitada de `S05-HG-011` não foi reaberta.
+- Aprovador: correções solicitadas por Bruno; nenhuma aprovação visual, do Human Gate ou de transição foi inferida.
+
 ## Template de nova entrada
 
 - Data:

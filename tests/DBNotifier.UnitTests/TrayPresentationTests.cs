@@ -21,16 +21,51 @@ public sealed class TrayPresentationTests
         Assert.Equal(expected, TrayStartupPolicy.Resolve(arguments));
     }
 
+    /// <summary>Verifies safe Tray action mapping and limits repeated availability confirmation to explicit close requests.</summary>
+    /// <param name="intent">The window intention under test.</param>
+    /// <param name="expected">The presentation action expected for the intention.</param>
+    /// <param name="shouldRequestAvailabilityConfirmation">Whether the intention must request a fresh local confirmation.</param>
     [Theory]
-    [InlineData(TrayWindowIntent.Minimize, TrayWindowAction.HideToTray)]
-    [InlineData(TrayWindowIntent.CloseRequest, TrayWindowAction.HideToTray)]
-    [InlineData(TrayWindowIntent.Show, TrayWindowAction.ShowAndActivate)]
-    [InlineData(TrayWindowIntent.Exit, TrayWindowAction.ExitApplication)]
+    [InlineData(TrayWindowIntent.Minimize, TrayWindowAction.HideToTray, false)]
+    [InlineData(TrayWindowIntent.CloseRequest, TrayWindowAction.HideToTray, true)]
+    [InlineData(TrayWindowIntent.Show, TrayWindowAction.ShowAndActivate, false)]
+    [InlineData(TrayWindowIntent.Exit, TrayWindowAction.ExitApplication, false)]
     public void WindowIntentMapsToExplicitTrayAction(
         TrayWindowIntent intent,
-        TrayWindowAction expected)
+        TrayWindowAction expected,
+        bool shouldRequestAvailabilityConfirmation)
     {
         Assert.Equal(expected, TrayPresentationPolicy.Resolve(intent));
+        Assert.Equal(
+            shouldRequestAvailabilityConfirmation,
+            TrayPresentationPolicy.ShouldRequestAvailabilityConfirmation(intent));
+    }
+
+    /// <summary>Verifies that invalid window intentions cannot silently request a presentation action or notification.</summary>
+    [Fact]
+    public void InvalidWindowIntentIsRejectedByPresentationAndConfirmationPolicies()
+    {
+        TrayWindowIntent invalid = (TrayWindowIntent)int.MaxValue;
+
+        Assert.Throws<ArgumentOutOfRangeException>(() => TrayPresentationPolicy.Resolve(invalid));
+        Assert.Throws<ArgumentOutOfRangeException>(() => TrayPresentationPolicy.ShouldRequestAvailabilityConfirmation(invalid));
+    }
+
+    /// <summary>Verifies that confirmation is stateless and remains requested after the shell is shown and closed repeatedly.</summary>
+    [Fact]
+    public void EveryExplicitCloseRequestsANewAvailabilityConfirmation()
+    {
+        TrayWindowIntent[] repeatedSequence =
+        [
+            TrayWindowIntent.Show,
+            TrayWindowIntent.CloseRequest,
+            TrayWindowIntent.Show,
+            TrayWindowIntent.CloseRequest,
+        ];
+
+        Assert.Equal(
+            [false, true, false, true],
+            repeatedSequence.Select(TrayPresentationPolicy.ShouldRequestAvailabilityConfirmation));
     }
 
     [Fact]

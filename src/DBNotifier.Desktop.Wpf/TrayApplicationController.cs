@@ -22,10 +22,10 @@ internal sealed class TrayApplicationController : IDisposable
     private readonly Icon availabilityNotificationIcon;
     private readonly Forms.NotifyIcon notifyIcon;
     private readonly DispatcherTimer notificationIconRestoreTimer;
+    private readonly WindowsAppNotificationPublisher? appNotificationPublisher;
     private readonly TrayFlyoutWindow flyout;
     private readonly TrayFleetSummary fleetSummary;
     private bool exiting;
-    private bool firstHide = true;
     private TrayNotificationIconLeaseState notificationIconLeaseState = TrayNotificationIconLeaseState.Aggregate;
 
     /// <summary>Initialises tray controls from the shared fleet summary and subscribes to window and language state changes.</summary>
@@ -53,6 +53,9 @@ internal sealed class TrayApplicationController : IDisposable
         notifyIcon.MouseClick += NotifyIconMouseClick;
         notifyIcon.DoubleClick += (_, _) => Apply(TrayWindowIntent.Show);
         notifyIcon.BalloonTipShown += NotifyIconBalloonTipShown;
+        appNotificationPublisher = WindowsAppNotificationPublisher.TryCreate(
+            application.Dispatcher,
+            () => Apply(TrayWindowIntent.Show));
         window.StateChanged += WindowStateChanged;
         window.Closing += WindowClosing;
         localisation.LanguageChanged += LanguageChanged;
@@ -70,6 +73,7 @@ internal sealed class TrayApplicationController : IDisposable
         RestoreAggregateIconAfterNotificationCapture(TrayNotificationIconLeaseSignal.Disposed);
         notificationIconRestoreTimer.Tick -= NotificationIconRestoreTimerTick;
         notificationIconRestoreTimer.Stop();
+        appNotificationPublisher?.Dispose();
         notifyIcon.Visible = false;
         flyout.CloseForApplicationExit();
         notifyIcon.Dispose();
@@ -220,10 +224,9 @@ internal sealed class TrayApplicationController : IDisposable
         {
             case TrayWindowAction.HideToTray:
                 window.Hide();
-                if (firstHide)
+                if (TrayPresentationPolicy.ShouldRequestAvailabilityConfirmation(intent))
                 {
-                    ShowFirstHideNotification();
-                    firstHide = false;
+                    ShowCloseToTrayNotification();
                 }
                 break;
             case TrayWindowAction.ShowAndActivate:
@@ -240,13 +243,28 @@ internal sealed class TrayApplicationController : IDisposable
         }
     }
 
-    /// <summary>Dispatches the local hide confirmation through a bounded best-effort green source, then restores the state-bearing Tray icon.</summary>
-    private void ShowFirstHideNotification()
+    /// <summary>Requests one fresh close-to-Tray confirmation through a bounded best-effort green source.</summary>
+    private void ShowCloseToTrayNotification()
     {
-        // This notification confirms that DB Notifier remains available after its window is hidden; it does not report fleet health.
+        string title = localisation.Text("Tray.BalloonTitle");
+        string message = localisation.Text("Tray.BalloonMessage");
+
+        // Each explicit close requests a fresh confirmation with an explicit transparent DB Notifier identity asset.
+        // Platform acceptance is not proof that Windows displayed the card because Focus Assist and notification policy remain authoritative.
+        if (appNotificationPublisher?.TryPublishAvailability(title, message) == true) return;
+
+        ShowLegacyCloseToTrayNotification(title, message);
+    }
+
+    /// <summary>Uses the bounded notification-area fallback when the modern Windows publisher is unavailable or rejects delivery.</summary>
+    /// <param name="title">Localised title displayed by the Windows notification surface.</param>
+    /// <param name="message">Localised factual message confirming that the application remains available.</param>
+    private void ShowLegacyCloseToTrayNotification(string title, string message)
+    {
         // The displayed callback is a best-effort capture point; the bounded fallback limits the temporary Tray exception.
         try
         {
+            notificationIconRestoreTimer.Stop();
             notifyIcon.Icon = availabilityNotificationIcon;
             notificationIconLeaseState = TrayNotificationIconLeasePolicy.Resolve(
                 notificationIconLeaseState,
@@ -254,14 +272,13 @@ internal sealed class TrayApplicationController : IDisposable
             notificationIconRestoreTimer.Start();
             notifyIcon.ShowBalloonTip(
                 3000,
-                localisation.Text("Tray.BalloonTitle"),
-                localisation.Text("Tray.BalloonMessage"),
+                title,
+                message,
                 Forms.ToolTipIcon.None);
         }
         catch
         {
             RestoreAggregateIconAfterNotificationCapture(TrayNotificationIconLeaseSignal.DeliveryFailed);
-            throw;
         }
     }
 }

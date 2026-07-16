@@ -72,6 +72,17 @@ public static class TrayPresentationPolicy
         TrayWindowIntent.Exit => TrayWindowAction.ExitApplication,
         _ => throw new ArgumentOutOfRangeException(nameof(intent)),
     };
+
+    /// <summary>Determines whether hiding the secondary shell should request a fresh local availability confirmation.</summary>
+    /// <param name="intent">The user or operating-system window intention that initiated the presentation action.</param>
+    /// <returns>True only for an explicit close request; hidden startup, minimise, show and exit do not request a confirmation.</returns>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="intent"/> is not recognised.</exception>
+    public static bool ShouldRequestAvailabilityConfirmation(TrayWindowIntent intent) => intent switch
+    {
+        TrayWindowIntent.CloseRequest => true,
+        TrayWindowIntent.Minimize or TrayWindowIntent.Show or TrayWindowIntent.Exit => false,
+        _ => throw new ArgumentOutOfRangeException(nameof(intent)),
+    };
 }
 
 /// <summary>Provides provider-neutral status, freshness and support text for the compact tray surface.</summary>

@@ -5,6 +5,7 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { deflateSync } from "node:zlib";
 
 const root = resolve(fileURLToPath(new URL("..", import.meta.url)));
 const transparent = [0, 0, 0, 0];
@@ -47,6 +48,25 @@ const markGeometry = Object.freeze({
     clapperRadius: 2.5,
   }),
 });
+/** Defines the 16 px optical master: D is the blue database, S the semantic bell and dots remain transparent. */
+const microGlyph16 = Object.freeze([
+  "................",
+  "...DDDDD........",
+  ".DD.....DD......",
+  ".D.......D......",
+  ".DD.....DD......",
+  ".D.DDDDD.D......",
+  ".D.......D......",
+  ".D.......D......",
+  ".D.......D......",
+  ".D.......D.SS...",
+  ".D.......SSSS...",
+  ".D.......SSSS...",
+  ".DD.....SSSSS...",
+  "...DDDD.SSSSS...",
+  "..........SS....",
+  "................",
+]);
 const iconSizes = [16, 20, 24, 32, 40, 48, 64, 128, 256];
 const faviconSizes = [16, 20, 24, 32];
 const outputs = {
@@ -72,6 +92,10 @@ const outputs = {
     Critical: join(root, "src/DBNotifier.Desktop.Wpf/Assets/DBNotifier.Critical.ico"),
     Unknown: join(root, "src/DBNotifier.Desktop.Wpf/Assets/DBNotifier.Unknown.ico"),
   },
+  notificationAvailabilityPng: join(
+    root,
+    "src/DBNotifier.Desktop.Wpf/NotificationAssets/DBNotifier.Availability.png",
+  ),
 };
 
 /** Formats one canonical coordinate without exposing floating-point noise in generated SVG markup. */
@@ -200,7 +224,7 @@ function sampleLayer(x, y) {
  * @returns {Buffer} Three-layer coverage counts for every output pixel.
  */
 function renderCoverage(size) {
-  const supersampling = size <= 24 ? 2 : 4;
+  const supersampling = 4;
   const sampleWeight = 16 / (supersampling ** 2);
   const coverage = Buffer.alloc(size * size * 3);
   for (let y = 0; y < size; y += 1) {
@@ -220,13 +244,103 @@ function renderCoverage(size) {
 }
 
 /**
+ * Renders the optically corrected 16 px grid at one native small-icon size with binary alpha.
+ * @param {number} size Native 16, 20 or 24 px output size selected by the Windows scaling metric.
+ * @param {number[]} accent Semantic bell colour as RGBA channels.
+ * @returns {Buffer} Top-down straight-alpha BGRA bitmap bytes for a small ICO frame.
+ */
+function renderMicroBitmap(size, accent) {
+  if (![16, 20, 24].includes(size)) throw new Error(`Unsupported micro-glyph size ${size}.`);
+  const pixels = Buffer.alloc(size * size * 4);
+  for (let y = 0; y < size; y += 1) {
+    const sourceY = Math.min(15, Math.floor(((y + 0.5) * 16) / size));
+    const row = microGlyph16[sourceY];
+    if (row.length !== 16) throw new Error(`Invalid 16 px micro-glyph row width at row ${y}.`);
+    for (let x = 0; x < size; x += 1) {
+      const sourceX = Math.min(15, Math.floor(((x + 0.5) * 16) / size));
+      const layer = row[sourceX];
+      if (layer === ".") continue;
+      const colour = layer === "S" ? accent : databaseStroke;
+      const offset = (y * size + x) * 4;
+      pixels[offset] = colour[2];
+      pixels[offset + 1] = colour[1];
+      pixels[offset + 2] = colour[0];
+      pixels[offset + 3] = 255;
+    }
+  }
+  return pixels;
+}
+
+/** Calculates the PNG CRC-32 value without introducing a generator dependency. */
+function crc32(bytes) {
+  let value = 0xffffffff;
+  for (const byte of bytes) {
+    value ^= byte;
+    for (let bit = 0; bit < 8; bit += 1) {
+      value = (value >>> 1) ^ (value & 1 ? 0xedb88320 : 0);
+    }
+  }
+  return (value ^ 0xffffffff) >>> 0;
+}
+
+/** Builds one length-prefixed PNG chunk with its required type-and-payload checksum. */
+function buildPngChunk(type, payload) {
+  const typeBytes = Buffer.from(type, "ascii");
+  const chunk = Buffer.alloc(12 + payload.length);
+  chunk.writeUInt32BE(payload.length, 0);
+  typeBytes.copy(chunk, 4);
+  payload.copy(chunk, 8);
+  chunk.writeUInt32BE(crc32(Buffer.concat([typeBytes, payload])), 8 + payload.length);
+  return chunk;
+}
+
+/**
+ * Builds the explicit Windows app-notification identity asset from the native canonical 64 px raster.
+ * @param {number[]} accent Application-availability bell colour as RGBA channels.
+ * @param {Buffer} coverage Canonical 64 px layer coverage shared with the matching ICO frame.
+ * @returns {Buffer} Complete transparent 64 px RGBA PNG bytes.
+ */
+function buildNotificationAvailabilityPng(accent, coverage) {
+  const size = 64;
+  const source = renderBitmap(size, accent, coverage);
+  const scanlines = Buffer.alloc(size * (1 + size * 4));
+  for (let y = 0; y < size; y += 1) {
+    const rowOffset = y * (1 + size * 4);
+    scanlines[rowOffset] = 0;
+    for (let x = 0; x < size; x += 1) {
+      const sourceOffset = (y * size + x) * 4;
+      const targetOffset = rowOffset + 1 + x * 4;
+      scanlines[targetOffset] = source[sourceOffset + 2];
+      scanlines[targetOffset + 1] = source[sourceOffset + 1];
+      scanlines[targetOffset + 2] = source[sourceOffset];
+      scanlines[targetOffset + 3] = source[sourceOffset + 3];
+    }
+  }
+
+  const header = Buffer.alloc(13);
+  header.writeUInt32BE(size, 0);
+  header.writeUInt32BE(size, 4);
+  header[8] = 8;
+  header[9] = 6;
+  return Buffer.concat([
+    Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]),
+    buildPngChunk("IHDR", header),
+    buildPngChunk("IDAT", deflateSync(scanlines)),
+    buildPngChunk("IEND", Buffer.alloc(0)),
+  ]);
+}
+
+/**
  * Renders one square straight-alpha BGRA bitmap from shared layer coverage.
  * @param {number} size Output bitmap edge length in pixels.
  * @param {number[]} accent Semantic bell colour as RGBA channels.
- * @param {Buffer} coverage Precomputed three-layer supersampling coverage.
+ * @param {Buffer | undefined} coverage Precomputed three-layer supersampling coverage for canonical frames.
  * @returns {Buffer} Straight-alpha BGRA bitmap bytes for the ICO payload.
  */
 function renderBitmap(size, accent, coverage) {
+  if (size <= 24) return renderMicroBitmap(size, accent);
+  if (!coverage) throw new Error(`Missing canonical coverage for ${size} px frame.`);
+
   const samples = 16;
   const pixels = Buffer.alloc(size * size * 4);
   const colours = [accent, databaseStroke];
@@ -331,12 +445,17 @@ function processOutput(path, bytes, verify) {
 }
 
 const verify = process.argv.includes("--verify");
-const coverageBySize = new Map(iconSizes.map((size) => [size, renderCoverage(size)]));
+const coverageBySize = new Map(iconSizes.filter((size) => size >= 32).map((size) => [size, renderCoverage(size)]));
 const defaultSvg = Buffer.from(buildSvg(statusAccentHex.Unknown), "utf8");
 processOutput(outputs.designSystemSvg, defaultSvg, verify);
 processOutput(outputs.dashboardSvgs.Default, defaultSvg, verify);
 processOutput(outputs.dashboardFavicons.Default, buildIco(statusAccents.Unknown, coverageBySize, faviconSizes), verify);
 processOutput(outputs.windowsIcons.Default, buildIco(statusAccents.Unknown, coverageBySize), verify);
+processOutput(
+  outputs.notificationAvailabilityPng,
+  buildNotificationAvailabilityPng(statusAccents.Healthy, coverageBySize.get(64)),
+  verify,
+);
 for (const [state, accent] of Object.entries(statusAccents)) {
   processOutput(outputs.dashboardSvgs[state], Buffer.from(buildSvg(statusAccentHex[state]), "utf8"), verify);
   processOutput(outputs.dashboardFavicons[state], buildIco(accent, coverageBySize, faviconSizes), verify);

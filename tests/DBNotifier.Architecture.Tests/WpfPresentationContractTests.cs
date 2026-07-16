@@ -68,6 +68,8 @@ public sealed class WpfPresentationContractTests
         string flyout = File.ReadAllText(Path.Combine(desktopDirectory, "TrayFlyoutWindow.xaml.cs"));
         string flyoutMarkup = File.ReadAllText(Path.Combine(desktopDirectory, "TrayFlyoutWindow.xaml"));
         string trayController = File.ReadAllText(Path.Combine(desktopDirectory, "TrayApplicationController.cs"));
+        string notificationPublisher = File.ReadAllText(Path.Combine(desktopDirectory, "WindowsAppNotificationPublisher.cs"));
+        string project = File.ReadAllText(Path.Combine(desktopDirectory, "DBNotifier.Desktop.Wpf.csproj"));
 
         Assert.Contains("IconBitmapDecoder", policy, StringComparison.Ordinal);
         Assert.Contains("Math.Ceiling(targetDipSize * Math.Max(dpi.DpiScaleX, dpi.DpiScaleY))", policy, StringComparison.Ordinal);
@@ -100,11 +102,41 @@ public sealed class WpfPresentationContractTests
         Assert.Contains("TrayNotificationIconLeaseSignal.FallbackElapsed", trayController, StringComparison.Ordinal);
         Assert.Contains("TrayNotificationIconLeaseSignal.DeliveryFailed", trayController, StringComparison.Ordinal);
         Assert.Contains("TrayNotificationIconLeaseSignal.Disposed", trayController, StringComparison.Ordinal);
+        Assert.Contains("TrayPresentationPolicy.ShouldRequestAvailabilityConfirmation(intent)", trayController, StringComparison.Ordinal);
+        Assert.Contains("ShowCloseToTrayNotification()", trayController, StringComparison.Ordinal);
+        Assert.Contains("WindowsAppNotificationPublisher.TryCreate", trayController, StringComparison.Ordinal);
+        Assert.Contains("appNotificationPublisher?.TryPublishAvailability(title, message)", trayController, StringComparison.Ordinal);
+        Assert.Contains("ShowLegacyCloseToTrayNotification(title, message)", trayController, StringComparison.Ordinal);
+        Assert.Contains("notificationIconRestoreTimer.Stop();", trayController, StringComparison.Ordinal);
+        Assert.DoesNotContain("firstHide", trayController, StringComparison.Ordinal);
+        Assert.DoesNotContain("ShowFirstHideNotification", trayController, StringComparison.Ordinal);
         Assert.DoesNotContain("notificationIconRestorePending", trayController, StringComparison.Ordinal);
         Assert.Contains("Forms.ToolTipIcon.None", trayController, StringComparison.Ordinal);
         Assert.True(
             Regex.Count(trayController, "\\bShowBalloonTip\\s*\\(", RegexOptions.CultureInvariant) == 1,
-            "STATE-05 must keep exactly one local availability notification and no change-delivery publisher.");
+            "STATE-05 must keep exactly one local legacy fallback callsite.");
+        Assert.Contains("AppNotificationManager.IsSupported()", notificationPublisher, StringComparison.Ordinal);
+        Assert.Contains("Bootstrap.TryInitialize", notificationPublisher, StringComparison.Ordinal);
+        Assert.Contains("Bootstrap.InitializeOptions.None", notificationPublisher, StringComparison.Ordinal);
+        Assert.Contains("runtime-initialisation-failed", notificationPublisher, StringComparison.Ordinal);
+        Assert.Contains("manager.Register(DisplayName, new Uri(iconPath))", notificationPublisher, StringComparison.Ordinal);
+        Assert.Contains("DBNotifier.Availability.png", notificationPublisher, StringComparison.Ordinal);
+        Assert.Contains("notification.Tag = AvailabilityTag", notificationPublisher, StringComparison.Ordinal);
+        Assert.Contains("notification.Group = AvailabilityGroup", notificationPublisher, StringComparison.Ordinal);
+        Assert.Contains("notification.Expiration = DateTimeOffset.UtcNow.Add(AvailabilityLifetime)", notificationPublisher, StringComparison.Ordinal);
+        Assert.Contains("notification.ExpiresOnReboot = true", notificationPublisher, StringComparison.Ordinal);
+        Assert.Contains("notification.SuppressDisplay = false", notificationPublisher, StringComparison.Ordinal);
+        Assert.Contains("manager.Show(notification)", notificationPublisher, StringComparison.Ordinal);
+        Assert.Contains("manager.NotificationInvoked -= NotificationInvoked", notificationPublisher, StringComparison.Ordinal);
+        Assert.Contains("args.Arguments.TryGetValue(\"action\"", notificationPublisher, StringComparison.Ordinal);
+        Assert.Contains("Bootstrap.Shutdown()", notificationPublisher, StringComparison.Ordinal);
+        Assert.DoesNotContain("HealthStatus", notificationPublisher, StringComparison.Ordinal);
+        Assert.DoesNotContain("service.start", notificationPublisher, StringComparison.Ordinal);
+        Assert.Contains("<TargetFramework>net10.0-windows10.0.22621.0</TargetFramework>", project, StringComparison.Ordinal);
+        Assert.Contains("<WindowsPackageType>None</WindowsPackageType>", project, StringComparison.Ordinal);
+        Assert.Contains("<WindowsAppSdkBootstrapInitialize>false</WindowsAppSdkBootstrapInitialize>", project, StringComparison.Ordinal);
+        Assert.Contains("<PackageReference Include=\"Microsoft.WindowsAppSDK\" />", project, StringComparison.Ordinal);
+        Assert.Contains("NotificationAssets\\DBNotifier.Availability.png", project, StringComparison.Ordinal);
         Assert.Contains("WmSetIcon", policy, StringComparison.Ordinal);
         Assert.Contains("IconSmall2", policy, StringComparison.Ordinal);
         Assert.Contains("IconBig", policy, StringComparison.Ordinal);

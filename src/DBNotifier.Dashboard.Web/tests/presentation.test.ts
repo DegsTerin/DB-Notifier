@@ -2,6 +2,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { readFileSync } from "node:fs";
+import { inflateSync } from "node:zlib";
 import {
   buildDemonstrationSnapshot,
   buildTimelineAlertSnapshot,
@@ -57,6 +58,40 @@ function alphaMask(frame: IcoFrame): Buffer {
   return alpha;
 }
 
+/** Parses the deterministic non-interlaced RGBA PNG emitted for Windows notification attribution. */
+function readRgbaPng(image: Buffer): { width: number; height: number; pixels: Buffer } {
+  assert.deepEqual([...image.subarray(0, 8)], [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+  let offset = 8;
+  let width = 0;
+  let height = 0;
+  const compressed: Buffer[] = [];
+  while (offset < image.length) {
+    const length = image.readUInt32BE(offset);
+    const type = image.toString("ascii", offset + 4, offset + 8);
+    const payload = image.subarray(offset + 8, offset + 8 + length);
+    if (type === "IHDR") {
+      width = payload.readUInt32BE(0);
+      height = payload.readUInt32BE(4);
+      assert.deepEqual([...payload.subarray(8, 13)], [8, 6, 0, 0, 0]);
+    } else if (type === "IDAT") {
+      compressed.push(payload);
+    } else if (type === "IEND") {
+      break;
+    }
+    offset += 12 + length;
+  }
+
+  assert.ok(width > 0 && height > 0);
+  const scanlines = inflateSync(Buffer.concat(compressed));
+  const pixels = Buffer.alloc(width * height * 4);
+  for (let row = 0; row < height; row += 1) {
+    const rowOffset = row * (1 + width * 4);
+    assert.equal(scanlines[rowOffset], 0, "The generated notification PNG must use deterministic unfiltered rows.");
+    scanlines.copy(pixels, row * width * 4, rowOffset + 1, rowOffset + 1 + width * 4);
+  }
+  return { width, height, pixels };
+}
+
 test("summary does not report stale data as freshly healthy", () => {
   const snapshot = buildDemonstrationSnapshot(now);
   const summary = summarizeInventory(snapshot, now);
@@ -82,8 +117,8 @@ test("fleet aggregate drives every semantic product-mark state with Tray precede
 test("semantic brand replacement keeps header and favicon on the same aggregate without reusing the old node", () => {
   for (const state of ["healthy", "warning", "critical", "unknown"] as const) {
     const stateAssets = semanticBrandAssets(state);
-    assert.equal(stateAssets.iconPath, `/dbnotifier-icon.${state}.svg?v=2.6.11-${state}`);
-    assert.equal(stateAssets.faviconPath, `/dbnotifier-favicon.${state}.ico?v=2.6.11-${state}`);
+    assert.equal(stateAssets.iconPath, `/dbnotifier-icon.${state}.svg?v=2.6.12-${state}`);
+    assert.equal(stateAssets.faviconPath, `/dbnotifier-favicon.${state}.ico?v=2.6.12-${state}`);
   }
 
   const assets = semanticBrandAssets("critical");
@@ -123,9 +158,9 @@ test("semantic brand replacement keeps header and favicon on the same aggregate 
 
   replaceSemanticFavicon(ownerDocument, assets.faviconPath, "critical");
 
-  assert.equal(designSystemVersion, "2.6.11");
-  assert.equal(assets.iconPath, "/dbnotifier-icon.critical.svg?v=2.6.11-critical");
-  assert.equal(assets.faviconPath, "/dbnotifier-favicon.critical.ico?v=2.6.11-critical");
+  assert.equal(designSystemVersion, "2.6.12");
+  assert.equal(assets.iconPath, "/dbnotifier-icon.critical.svg?v=2.6.12-critical");
+  assert.equal(assets.faviconPath, "/dbnotifier-favicon.critical.ico?v=2.6.12-critical");
   assert.equal(replacement?.id, semanticFaviconId);
   assert.equal(replacement?.href, assets.faviconPath);
   assert.equal(replacement?.dataset.aggregateState, "critical");
@@ -320,6 +355,8 @@ test("provider-neutral database mark is shared by active Web and Windows surface
   const installer = readFileSync(new URL("../../../packaging/inno/DBNotifier.iss", import.meta.url), "utf8");
   const compatibilityBuild = readFileSync(new URL("../../../build/build.ps1", import.meta.url), "utf8");
   const brandGenerator = readFileSync(new URL("../../../scripts/generate-brand-assets.mjs", import.meta.url), "utf8");
+  const notificationAsset = readFileSync(new URL("../../DBNotifier.Desktop.Wpf/NotificationAssets/DBNotifier.Availability.png", import.meta.url));
+  const notificationPublisher = readFileSync(new URL("../../DBNotifier.Desktop.Wpf/WindowsAppNotificationPublisher.cs", import.meta.url), "utf8");
 
   assert.deepEqual(dashboardSvg, designSystemSvg);
   assert.deepEqual(dashboardSvg, unknownSvg);
@@ -333,8 +370,14 @@ test("provider-neutral database mark is shared by active Web and Windows surface
   assert.deepEqual([...windowsIcon.subarray(0, 6)], [0, 0, 1, 0, 9, 0]);
   assert.deepEqual(windowsIcon, unknownIcon);
   const semanticWindowsIcons = [healthyIcon, warningIcon, criticalIcon, unknownIcon];
+  const expectedSmallAccents = [
+    { red: 72, green: 199, blue: 95 },
+    { red: 250, green: 184, blue: 42 },
+    { red: 198, green: 40, blue: 40 },
+    { red: 148, green: 163, blue: 184 },
+  ];
   const referenceFrames = readIcoFrames(unknownIcon);
-  for (const icon of semanticWindowsIcons) {
+  for (const [stateIndex, icon] of semanticWindowsIcons.entries()) {
     assert.deepEqual([...icon.subarray(0, 6)], [0, 0, 1, 0, 9, 0]);
     const frames = readIcoFrames(icon);
     assert.deepEqual(frames.map((frame) => frame.size), [16, 20, 24, 32, 40, 48, 64, 128, 256]);
@@ -354,7 +397,9 @@ test("provider-neutral database mark is shared by active Web and Windows surface
     const smallestFrame = frames[0];
     let strongSmallPixels = 0;
     let transparentSmallPixels = 0;
-    let weightedBlueCoverage = 0;
+    let partialSmallPixels = 0;
+    let solidBluePixels = 0;
+    let solidAccentPixels = 0;
     for (let pixel = 0; pixel < 16 * 16; pixel += 1) {
       const offset = pixel * 4;
       const alpha = smallestFrame.pixels[pixel * 4 + 3];
@@ -363,14 +408,21 @@ test("provider-neutral database mark is shared by active Web and Windows surface
       const red = smallestFrame.pixels[offset + 2];
       if (alpha >= 128) strongSmallPixels += 1;
       if (alpha === 0) transparentSmallPixels += 1;
-      if (red === 0 && green === 120 && blue === 212) weightedBlueCoverage += alpha / 255;
+      if (alpha > 0 && alpha < 255) partialSmallPixels += 1;
+      if (red === 0 && green === 120 && blue === 212 && alpha === 255) solidBluePixels += 1;
+      const expectedAccent = expectedSmallAccents[stateIndex];
+      if (red === expectedAccent.red && green === expectedAccent.green && blue === expectedAccent.blue && alpha === 255) {
+        solidAccentPixels += 1;
+      }
     }
-    assert.ok(strongSmallPixels >= 90);
-    assert.ok(transparentSmallPixels >= 150);
-    assert.ok(weightedBlueCoverage >= 40 && weightedBlueCoverage <= 46);
-    const storedTopInteriorRow = 15 - 2;
-    const storedBodyInteriorRow = 15 - 5;
-    assert.equal(smallestFrame.pixels[(storedTopInteriorRow * 16 + 3) * 4 + 3], 0);
+    assert.equal(strongSmallPixels, 60);
+    assert.equal(transparentSmallPixels, 196);
+    assert.equal(partialSmallPixels, 0);
+    assert.equal(solidBluePixels, 38);
+    assert.equal(solidAccentPixels, 22);
+    const storedTopInteriorRow = 15 - 3;
+    const storedBodyInteriorRow = 15 - 7;
+    assert.equal(smallestFrame.pixels[(storedTopInteriorRow * 16 + 5) * 4 + 3], 0);
     assert.equal(smallestFrame.pixels[(storedBodyInteriorRow * 16 + 5) * 4 + 3], 0);
 
     for (const frame of frames) {
@@ -384,7 +436,8 @@ test("provider-neutral database mark is shared by active Web and Windows surface
         assert.equal(maskBit !== 0, alpha === 0, `${frame.size} px legacy mask disagrees with BGRA transparency.`);
         if (alpha > 0 && alpha < 255) partialAlphaPixels += 1;
       }
-      assert.ok(partialAlphaPixels > 0);
+      if (frame.size <= 24) assert.equal(partialAlphaPixels, 0);
+      else assert.ok(partialAlphaPixels > 0);
     }
   }
   assert.notDeepEqual(healthyIcon, warningIcon);
@@ -402,6 +455,42 @@ test("provider-neutral database mark is shared by active Web and Windows surface
     if (red === 72 && green === 199 && blue === 95 && alpha > 0) hasCanonicalGreenBellPixel = true;
   }
   assert.ok(hasCanonicalGreenBellPixel, "The native small availability source lost the canonical Healthy green bell.");
+  const notificationPng = readRgbaPng(notificationAsset);
+  assert.deepEqual({ width: notificationPng.width, height: notificationPng.height }, { width: 64, height: 64 });
+  const healthyNotificationAssetFrame = readIcoFrames(healthyIcon).find((frame) => frame.size === 64);
+  assert.ok(healthyNotificationAssetFrame);
+  let notificationTransparent = 0;
+  let notificationBlue = 0;
+  let notificationGreen = 0;
+  let notificationPartial = 0;
+  for (let pixel = 0; pixel < 64 * 64; pixel += 1) {
+    const offset = pixel * 4;
+    const red = notificationPng.pixels[offset];
+    const green = notificationPng.pixels[offset + 1];
+    const blue = notificationPng.pixels[offset + 2];
+    const alpha = notificationPng.pixels[offset + 3];
+    if (alpha === 0) notificationTransparent += 1;
+    if (alpha > 0 && alpha < 255) notificationPartial += 1;
+    if (red === 0 && green === 120 && blue === 212 && alpha === 255) notificationBlue += 1;
+    if (red === 72 && green === 199 && blue === 95 && alpha === 255) notificationGreen += 1;
+    const x = pixel % 64;
+    const y = Math.floor(pixel / 64);
+    const icoOffset = ((63 - y) * 64 + x) * 4;
+    assert.deepEqual(
+      [red, green, blue, alpha],
+      [
+        healthyNotificationAssetFrame.pixels[icoOffset + 2],
+        healthyNotificationAssetFrame.pixels[icoOffset + 1],
+        healthyNotificationAssetFrame.pixels[icoOffset],
+        healthyNotificationAssetFrame.pixels[icoOffset + 3],
+      ],
+      `The notification PNG diverged from the canonical Healthy 64 px frame at ${x},${y}.`,
+    );
+  }
+  assert.ok(notificationTransparent > 64 * 64 * 0.5);
+  assert.ok(notificationPartial > 0);
+  assert.ok(notificationBlue > 0);
+  assert.ok(notificationGreen > 0);
   assert.deepEqual(favicon, unknownFavicon);
   const semanticFavicons = [healthyFavicon, warningFavicon, criticalFavicon, unknownFavicon];
   for (const favicon of semanticFavicons) {
@@ -430,22 +519,26 @@ test("provider-neutral database mark is shared by active Web and Windows surface
       if (red === 0 && green === 120 && blue === 212) straightBlueEdge = true;
       if (red === 198 && green === 40 && blue === 40) straightRedEdge = true;
     }
-    assert.ok(straightBlueEdge, `${frame.size} px frame lost the canonical blue on a partially covered edge.`);
-    assert.ok(straightRedEdge, `${frame.size} px frame lost the canonical Critical red on a partially covered edge.`);
+    if (frame.size > 24) {
+      assert.ok(straightBlueEdge, `${frame.size} px frame lost the canonical blue on a partially covered edge.`);
+      assert.ok(straightRedEdge, `${frame.size} px frame lost the canonical Critical red on a partially covered edge.`);
+    }
   }
 
   assert.doesNotMatch(dashboardSvg.toString("utf8"), /<rect/);
   assert.match(dashboardSvg.toString("utf8"), /fill="none" stroke="#0078D4"/);
   assert.doesNotMatch(dashboardSvg.toString("utf8"), /#0F2940|#F8FAFC|#55B4FF/);
   assert.match(brandGenerator, /const markGeometry = Object\.freeze/);
+  assert.match(brandGenerator, /const microGlyph16 = Object\.freeze/);
   assert.match(brandGenerator, /const \{ database, bell \} = markGeometry;/);
   assert.match(brandGenerator, /for \(const centreY of \[database\.seamCentreY, database\.bottomCentreY\]\)/);
-  assert.match(brandGenerator, /const supersampling = size <= 24 \? 2 : 4;/);
+  assert.match(brandGenerator, /const supersampling = 4;/);
   assert.match(brandGenerator, /const visibleSamples = coverage\[coverageOffset\] \+ coverage\[coverageOffset \+ 1\]/);
   assert.match(brandGenerator, /pixels\[offset \+ 3\] = Math\.round\(\(visibleSamples \/ samples\) \* 255\)/);
+  assert.match(brandGenerator, /if \(size <= 24\) return renderMicroBitmap\(size, accent\)/);
   assert.doesNotMatch(brandGenerator, /includeMiddleSeam|databaseStrokeRadius = Math\.max/);
   assert.match(brandGenerator, /strokeWidth:\s*3\.5/);
-  assert.match(html, /id="dbnotifier-favicon"[^>]+dbnotifier-favicon\.unknown\.ico\?v=2\.6\.11-unknown/);
+  assert.match(html, /id="dbnotifier-favicon"[^>]+dbnotifier-favicon\.unknown\.ico\?v=2\.6\.12-unknown/);
   assert.match(app, /summarizeFleetAggregate\(snapshot, now\)/);
   assert.match(app, /useLayoutEffect\(\(\) =>/);
   assert.match(app, /replaceSemanticFavicon\(document, brandAssets\.faviconPath, aggregateState\)/);
@@ -478,7 +571,13 @@ test("provider-neutral database mark is shared by active Web and Windows surface
   assert.match(trayController, /BrandStatusIconPolicy\.LoadWindowsIcon\([\s\S]*state,[\s\S]*Forms\.SystemInformation\.SmallIconSize\.Width\)/);
   assert.match(trayController, /BrandStatusIconPolicy\.LoadWindowsIcon\([\s\S]*TrayNotificationPresentationPolicy\.ResolveIconState\(TrayNotificationMeaning\.AvailabilityOrRecovery\),[\s\S]*Forms\.SystemInformation\.SmallIconSize\.Width\)/);
   assert.match(trayController, /notifyIcon\.BalloonTipShown \+= NotifyIconBalloonTipShown/);
-  assert.match(trayController, /try[\s\S]*notifyIcon\.Icon = availabilityNotificationIcon;[\s\S]*TrayNotificationIconLeaseSignal\.Begin[\s\S]*notificationIconRestoreTimer\.Start\(\);[\s\S]*ShowBalloonTip\([\s\S]*Forms\.ToolTipIcon\.None/);
+  assert.match(trayController, /TrayPresentationPolicy\.ShouldRequestAvailabilityConfirmation\(intent\)/);
+  assert.match(trayController, /ShowCloseToTrayNotification\(\)/);
+  assert.match(trayController, /WindowsAppNotificationPublisher\.TryCreate/);
+  assert.match(trayController, /appNotificationPublisher\?\.TryPublishAvailability\(title, message\)/);
+  assert.match(trayController, /ShowLegacyCloseToTrayNotification\(title, message\)/);
+  assert.doesNotMatch(trayController, /firstHide|ShowFirstHideNotification/);
+  assert.match(trayController, /try[\s\S]*notificationIconRestoreTimer\.Stop\(\);[\s\S]*notifyIcon\.Icon = availabilityNotificationIcon;[\s\S]*TrayNotificationIconLeaseSignal\.Begin[\s\S]*notificationIconRestoreTimer\.Start\(\);[\s\S]*ShowBalloonTip\([\s\S]*Forms\.ToolTipIcon\.None/);
   assert.match(trayController, /TrayNotificationIconLeaseSignal\.BalloonShown/);
   assert.match(trayController, /TrayNotificationIconLeaseSignal\.FallbackElapsed/);
   assert.match(trayController, /TrayNotificationIconLeaseSignal\.DeliveryFailed/);
@@ -497,6 +596,14 @@ test("provider-neutral database mark is shared by active Web and Windows surface
   assert.match(brandStatusPolicy, /TrayAggregateState\.Critical => "DBNotifier\.Critical\.ico"/);
   assert.match(brandStatusPolicy, /TrayAggregateState\.Unknown => "DBNotifier\.Unknown\.ico"/);
   assert.doesNotMatch(trayController, /SystemIcons\.Application/);
+  assert.match(notificationPublisher, /AppNotificationManager\.IsSupported\(\)/);
+  assert.match(notificationPublisher, /runtime-initialisation-failed/);
+  assert.match(notificationPublisher, /manager\.Register\(DisplayName, new Uri\(iconPath\)\)/);
+  assert.match(notificationPublisher, /DBNotifier\.Availability\.png/);
+  assert.match(notificationPublisher, /manager\.Show\(notification\)/);
+  assert.match(notificationPublisher, /notification\.SuppressDisplay = false/);
+  assert.match(desktopProject, /<PackageReference Include="Microsoft\.WindowsAppSDK" \/>/);
+  assert.match(desktopProject, /NotificationAssets\\DBNotifier\.Availability\.png/);
   assert.match(installer, /SetupIconFile=.*DBNotifier\.ico/);
   assert.match(installer, /#define AppDisplayName "DB Notifier"/);
   assert.match(installer, /AppName=\{#AppDisplayName\}/);

@@ -44,7 +44,7 @@ Starting automatically at Windows sign-in is not implemented by this `STATE-05` 
 |---|---|---|---|
 | Notification-area residency and one-click fleet menu | `ADOPT` | Normal WPF startup is hidden; one icon activation opens the compact fleet flyout and the full shell is secondary. | `S05-HG-011` was approved on 2026-07-15; the complete `STATE-05` Human Gate remains pending. |
 | Tray icon reflects aggregate status | `ADAPT` | Transparent database mark has an open `3.5`-unit outline plus Healthy/Warning/Critical/Unknown bell variants selected from the provider-neutral summary. ICO alpha and the legacy AND mask agree so transparent pixels remain transparent on compatible and fallback Windows paths; the Tray uses the native Windows small-icon metric. Current selection is explicitly demonstration-only. | `STATE-06`: bind icon replacement to reconciled authorised Agent/API state. |
-| Status-change and newly discovered-item notifications | `ADAPT` | Pure opt-in/change-only policy suppresses the initial snapshot. A provider-neutral selector maps each notification's own meaning to the canonical family: availability/recovery green, warning yellow, critical red, and informational/unknown grey. The current local confirmation uses the native small frame and retains its semantic source until `BalloonTipShown`, with bounded fallback, before restoring the aggregate. The icon canvas is transparent, while the Windows-owned notification card is not application-themed. No state-change delivery channel is active. | `STATE-06`: classify factual transitions and implement serialised Windows delivery, deduplication, acknowledgement, quiet policy and audit evidence. |
+| Status-change and newly discovered-item notifications | `ADAPT` | A provider-neutral selector maps each notification's own meaning to the canonical family: availability/recovery green, warning yellow, critical red, and informational/unknown grey. In M5, `AppNotificationManager` requests a fresh local availability confirmation for every explicit WPF `CloseRequest`; explicit Windows App Runtime initialisation fails safely to the bounded legacy `NotifyIcon` fallback. This local window confirmation is not a factual state-change channel, and Windows acceptance is not proof of visible delivery or support. | `STATE-06`: bind notifications to authorised reconciled state, require opt-in, suppress the initial snapshot, classify factual transitions and implement serialised delivery, deduplication, acknowledgement, quiet policy and audit evidence. |
 | Separate local and remote monitoring | `ADAPT` | Canonical topology and outbound Agent architecture represent both without direct Dashboard/database access. | `STATE-06`: integrate authorised state; `STATE-07`: homologate each provider/version/topology independently. |
 | Automatic local-service discovery and removal | `ADAPT` | Typed PostgreSQL discovery exists; blind name-filter auto-add is prohibited. | `STATE-06`: reconcile typed candidates and require explicit policy/approval before catalogue mutation. |
 | Add, edit and remove monitored services/instances | `ADAPT` | Provider-neutral catalogue and configuration contracts exist; STATE-05 surfaces are read-only fixtures. | `STATE-06`: authorised catalogue workflows, validation, audit and conflict handling. |
@@ -163,6 +163,7 @@ Deliverables:
 - Production WPF Tray/Desktop bound to Application contracts rather than mocks.
 - Provider-neutral notification-area flyout with factual fleet summary, non-colour-only states, local navigation and explicit unavailability for administrative operations not yet integrated or homologated.
 - Notification-area-first startup; the compact flyout is the primary Windows surface and the full WPF shell is a secondary drill-down destination.
+- Local Windows `AppNotificationManager` confirmation for every explicit `CloseRequest`, with an application-owned transparent identity asset and a fail-safe legacy notification-area fallback when the Windows App Runtime or modern notification path is unavailable. This confirmation proves neither visible delivery nor provider support.
 - Empty, loading, offline, error, stale, maintenance, unsupported, and denied states.
 - Keyboard/accessibility support and status not communicated by color alone.
 - PgNotifier and DB-Notifier side-by-side configuration choice during the compatibility window.
@@ -175,7 +176,7 @@ Deliverables:
 
 - Authenticated versioned Agent/API communication, outbox reconciliation, deduplication, ordering rules, heartbeat, and revocation.
 - Web Dashboard reading authorized API data and displaying observed/received/stale timestamps.
-- WPF Tray reading authorised API/Agent presentation state, emitting notifications only for canonical changes and opening integrated history/log destinations without exposing provider-native secrets.
+- WPF Tray reading authorised API/Agent presentation state, emitting opt-in notifications only for factual canonical changes, suppressing initial snapshots, deduplicating repeated evidence and opening integrated history/log destinations without exposing provider-native secrets.
 - TV mode performing an immediate authorised API read on entry and a non-overlapping authoritative refresh every 30 seconds while active; authenticated SignalR hints may request an earlier read but never replace periodic reconciliation.
 - Sandbox E2E for disconnect/reconnect, duplicates, expired commands, and incompatible versions.
 
@@ -197,6 +198,7 @@ Exit: only proven provider/platform combinations are marked supported.
 Deliverables:
 
 - Signed packages, release notes, SBOM where applicable, externalized secrets, update channel, backup/restore, rollout and rollback runbooks.
+- Installer detection and, where required, installation of the architecture-matched Windows App Runtime 2.2 dependency; a stable signed Desktop path for unpackaged notification identity; rollback that restores the compatible runtime/application pair; and uninstall cleanup for DB Notifier-owned notification registration without touching unrelated applications.
 - Explicitly authorized target and real health checks.
 - Config migration report and a documented legacy uninstall/decommission choice after the rollback window.
 

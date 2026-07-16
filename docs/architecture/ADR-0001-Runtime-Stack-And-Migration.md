@@ -21,6 +21,12 @@ The PowerShell compatibility monitor must remain runnable while boundaries and r
 - Keep PowerShell/Python UI artifacts as compatibility/reference assets only. No new product behavior is added to them.
 - Migrate by vertical slices: characterize legacy behavior, define contracts, implement PostgreSQL provider/Agent slice, transition Desktop, integrate API/Dashboard, then homologate providers individually.
 
+## STATE-05 Desktop runtime refinement
+
+The accepted .NET 10 decision is retained. The WPF Desktop now uses the versioned `net10.0-windows10.0.22621.0` TFM so its Windows-specific notification contracts are compiled against an explicit SDK surface, while `SupportedOSPlatformVersion` remains `10.0.17763.0`. Other active projects remain on their appropriate .NET 10 TFM.
+
+Only the Desktop presentation boundary references `Microsoft.WindowsAppSDK`/Windows App Runtime 2.2. Build-generated Windows App SDK bootstrap initialisation is disabled; the Desktop explicitly attempts dynamic-dependency initialisation and fails safely to the existing local `NotifyIcon` path if the runtime, platform or notification registration is unavailable. This refinement adds no provider integration, external delivery, administrative authority, homologation or public-support claim. Runtime installation and release-machine detection remain deferred to `STATE-08` under ADR-0005.
+
 ## Alternatives
 
 - Remain on .NET 8: rejected for product implementation because the remaining support window is too short.
@@ -33,6 +39,7 @@ The PowerShell compatibility monitor must remain runnable while boundaries and r
 - Git history retains the earlier setup evidence, but the working baseline and all future implementation use only .NET 10 LTS.
 - Runtime upgrades after .NET 10 require an explicit ADR, compatibility plan, and full validation; silent framework drift is prohibited.
 - Windows remains required for WPF and Windows service adapters; Domain/Application/provider tests should remain cross-platform where possible.
+- Windows App Runtime 2.2 is a Desktop deployment dependency rather than a Domain, Application, Agent, API or provider dependency. Development and release evidence must distinguish successful bootstrap/API acceptance from visible Windows delivery and supported production operation.
 - The PostgreSQL compatibility app stays available until replacement criteria and rollback tests pass.
 
 ## Security and operations
@@ -43,6 +50,7 @@ The PowerShell compatibility monitor must remain runnable while boundaries and r
 
 ## Compliance checks
 
-- `global.json` selects a .NET 10 LTS SDK and every active target framework is `net10.0`/`net10.0-windows`.
+- `global.json` selects a .NET 10 LTS SDK and every active target framework is `net10.0` or its appropriate versioned Windows equivalent; the WPF Desktop is specifically `net10.0-windows10.0.22621.0`.
 - Lockfiles, analyzer/build/test/format evidence, and dependency audits are regenerated under .NET 10.
+- The Desktop lockfile pins Microsoft Windows App SDK 2.2, automatic bootstrap initialisation remains disabled, and architecture/source guards require an explicit fail-safe initialisation path that preserves notification-area startup.
 - No legacy entry point is removed as a side effect.

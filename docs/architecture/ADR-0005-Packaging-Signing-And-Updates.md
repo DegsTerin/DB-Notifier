@@ -18,6 +18,19 @@ Agents and Desktop clients run with different privileges and must be updated wit
 - Download and verify updates without executing them. Installation requires policy, maintenance window where applicable, signature/hash verification, and preserved prior version/config.
 - Never bundle secrets or private signing material. CI receives short-lived signing authorization only in an approved release environment.
 
+## STATE-08 Windows App Runtime obligations
+
+The `STATE-05` Desktop notification increment introduces a deployment dependency on Microsoft Windows App SDK/Windows App Runtime 2.2 without converting the WPF client into a packaged application. This does not change the accepted packaging direction or constitute release evidence. The production installer in `STATE-08` must:
+
+- detect the target architecture and a compatible Windows App Runtime 2.2 before enabling the modern notification path, and install the approved redistributable only with explicit package ownership and signature/hash verification;
+- keep the signed Desktop executable and notification identity asset at a stable installer-owned path, because unpackaged Windows notification registration is path-sensitive;
+- preserve a functional legacy notification-area fallback when the runtime is absent, damaged, unsupported or cannot be initialised;
+- include the runtime/application compatibility pair in clean-install, upgrade, repair and rollback tests, without removing a shared runtime still required by another application;
+- restore the prior signed executable, compatible runtime expectation and owned notification registration during rollback; and
+- remove DB Notifier-owned startup and notification registration during uninstall while preserving user data, audit evidence, unrelated registrations and shared runtime installations.
+
+An accepted modern-notification API call, an elevated process or a visible Windows card is not proof of production support, provider homologation or successful external notification delivery.
+
 ## Alternatives
 
 - Silent self-update from an unsigned URL: rejected for supply-chain and rollback risk.
@@ -30,9 +43,11 @@ Agents and Desktop clients run with different privileges and must be updated wit
 - Update compatibility must be exercised across Agent/API version pairs.
 - Rollback preserves identity, configuration, SQLite backup, logs, and audit while reverting binaries only unless a separate schema procedure is approved.
 - Downgrade is blocked when local schema/protocol is incompatible with the target binary.
+- Unpackaged notification identity requires a stable installed path; ad hoc build/output paths are development evidence only and must not become release registration targets.
 
 ## Acceptance checks
 
 - Threat model covers compromised feed, stolen signing authorization, downgrade, partial install, reboot, and revoked certificate.
 - Release gate proves signature, hash, clean install, upgrade, interrupted upgrade, rollback, and uninstallation without deleting user data by default.
+- Release gate proves Windows App Runtime detection/installation or safe fallback, stable notification identity across upgrade/rollback, and cleanup of only DB Notifier-owned registration during uninstall.
 - Legacy and production package names/product IDs cannot overwrite each other accidentally.

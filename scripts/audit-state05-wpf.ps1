@@ -50,7 +50,7 @@ public static class AuditNativeMethods
 }
 
 $root = Split-Path -Parent $PSScriptRoot
-$executable = Join-Path $root "src/DBNotifier.Desktop.Wpf/bin/Release/net10.0-windows/DBNotifier.Desktop.Wpf.exe"
+$executable = Join-Path $root "src/DBNotifier.Desktop.Wpf/bin/Release/net10.0-windows10.0.22621.0/DBNotifier.Desktop.Wpf.exe"
 if (-not (Test-Path -LiteralPath $executable -PathType Leaf)) {
     throw "Build the Release WPF application before running this audit."
 }

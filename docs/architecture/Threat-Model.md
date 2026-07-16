@@ -11,6 +11,7 @@ Critical assets:
 - Inventory, topology, health history, audit, and user identity.
 - Administrative command authorization and results.
 - Package signing identity and update manifests.
+- Windows app-notification identity, activation registration and stable installed path.
 - AIOps knowledge sources, datasets, prompts, evaluations, and approvals.
 
 ## Trust boundaries
@@ -24,6 +25,7 @@ Critical assets:
 7. API ↔ PostgreSQL/notification/secret manager.
 8. Release pipeline ↔ signing service/update channel.
 9. Sanitized telemetry/knowledge ↔ future AIOps/LLM boundary.
+10. Windows Shell app-notification activation ↔ local WPF Desktop dispatcher.
 
 ## Threats and required controls
 
@@ -37,6 +39,7 @@ Critical assets:
 | Privilege escalation | Monitoring credential executes admin action | separate references/sessions, server RBAC, provider capability and local policy | negative credential/RBAC tests |
 | Secret exfiltration | Exception/log/API returns connection string | opaque references, centralized redaction, structured logs, bounded native details | secret canary/log scan |
 | UI authorization bypass | Hidden button called directly | server-side policy and target scope on every mutation | direct API negative tests |
+| Windows notification activation abuse | Forged, stale or unexpected Shell activation arguments attempt to invoke a provider or administrative action | allow only the exact local `action=show` intent; ignore every unknown argument; marshal to the WPF dispatcher; reveal only the local secondary shell; never translate activation data into a command, provider target or permission | unknown/missing argument tests, dispatcher-shutdown race test, direct review that activation reaches no command/application executor |
 | Stale/false healthy | Offline Agent's last sample remains green | observed/received/stale semantics, AgentOffline independent state | clock/offline tests |
 | Queue exhaustion | API outage fills disk | bounded encrypted/local queue, backpressure, overflow event, reserved disk floor | outage/load tests |
 | DoS/cardinality | Agent sends huge batches/tags | auth before cost, body/batch/tag limits, rate limit, quotas | fuzz/load tests |
@@ -55,6 +58,7 @@ Critical assets:
 - A command expires after acknowledgement: Agent reports expired without invoking adapter.
 - Adapter times out after possible side effect: result is `UnknownOutcome`; post-probe and operator review determine recovery.
 - LLM recommends restart: recommendation has no command authority; deterministic risk/RBAC/approval workflow is still required.
+- A user activates a Windows notification: the only permitted outcome is showing the local secondary WPF shell. Activation is navigation, not authentication, authorization, provider evidence or an administrative command, and it cannot start, stop or restart a database or service.
 
 ## Privacy and data classification
 
@@ -73,6 +77,7 @@ Free-form query text and database data are excluded from the baseline. Any futur
 - Real driver/native utility behavior on supported engine/platform versions.
 - Certificate lifecycle under offline/expired conditions.
 - WPF/Desktop local privilege boundary and service IPC design.
+- Windows App Runtime availability, stable unpackaged registration and Shell policy across install, repair, rollback and uninstall; local API acceptance does not prove visible notification delivery or production support.
 - Central multi-tenancy model if the product becomes shared SaaS.
 - Package/update rollback across schema changes.
 
