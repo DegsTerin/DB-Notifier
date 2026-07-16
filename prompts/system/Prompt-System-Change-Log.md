@@ -2,7 +2,7 @@
 
 ## Versão atual
 
-- Versão: `3.50.1`
+- Versão: `3.51.0`
 - Data: 2026-07-16
 - Status: corpus DB-Notifier consolidado
 - Escopo: 13 arquivos ativos
@@ -16,6 +16,12 @@ A versão do corpus é independente da versão do software.
 - PATCH: clareza, correção ou referência sem mudança de autoridade.
 
 Toda alteração atualiza este arquivo e, quando necessário, `../Start-Here.md`.
+
+## 3.51.0 — 2026-07-16
+
+- Bruno identificou que a caption nativa permanecia branca e que o scrollbar WPF conservava o template claro durante a revisão Dark de `S05-HG-010`; o finding foi registrado como `REQ-066`, sem inferir aprovação do sample ou do Human Gate.
+- O Design System `2.6.14` e `AGENTS.md` passam a exigir que caption e scrollbars WPF acompanhem Light/Dark. Em Windows 11 suportado, a caption padrão recebe background e texto semânticos por DWM depois da criação do handle e em mudanças de tema; a borda ativa/inativa permanece sob controle do Windows, Windows 10 mantém a caption nativa e scrollbars globais consomem tokens e preservam `PART_Track`, orientação e comandos de linha/página.
+- Windows High Contrast continua independente: a caption devolve suas cores ao Windows e os scrollbars usam os recursos semânticos já mapeados para system brushes. Build WPF e o décimo teste de arquitetura constituem evidência automática; a comparação humana Light → Dark → Light permanece pendente e exige nova autorização.
 
 ## 3.50.1 — 2026-07-16
 

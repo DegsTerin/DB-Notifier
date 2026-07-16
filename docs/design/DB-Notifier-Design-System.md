@@ -5,7 +5,7 @@
 | Field | Value |
 |---|---|
 | Status | Official frontend specification |
-| Design System version | `2.6.13` |
+| Design System version | `2.6.14` |
 | Product phase | `STATE-05 FRONTEND_IMPLEMENTATION` |
 | Platforms | React Web Dashboard and .NET 10 WPF Desktop/Tray |
 | Themes | Light and Dark; Windows High Contrast is an accessibility override |
@@ -142,8 +142,10 @@ Theme preference is presentation-only data. It MUST NOT contain identity, provid
 - Load theme-specific `ResourceDictionary` instances atomically and reference theme resources using `DynamicResource`.
 - Persist only versioned UI preferences in `%LocalAppData%\DB-Notifier\ui-preferences.v1.json` using atomic replacement and current-user access.
 - Invalid, retired System or unreadable preference data MUST fail safely to Light; it MUST NOT prevent application startup.
-- Generated numeric spacing and radius primitives MUST NOT be assigned through `DynamicResource` to `Thickness` or `CornerRadius` properties. WPF adapters MUST use a correctly typed resource or a parser-created typed literal; build success alone does not prove deferred control templates can be materialised.
+- Generated numeric spacing and radius primitives MUST NOT be assigned through `DynamicResource` to parser-owned `Thickness`, `CornerRadius` or `GridLength` properties. WPF adapters MUST use a correctly typed resource or a parser-created typed literal; build success alone does not prove deferred control templates can be materialised.
 - Theme switching MUST preserve window, selected view, scenario, focus and Tray ownership.
+- After the native handle exists, the WPF shell MUST synchronise its Windows-managed caption background and text with the effective semantic Light/Dark resources where the documented DWM attributes are supported. The active/inactive border remains owned by Windows. Unsupported attributes MUST fail safely to the native Windows caption rather than replace standard drag, Snap, minimise, maximise or close behaviour.
+- WPF scrollbars MUST use one implicit token-driven style across `ScrollViewer`, `DataGrid`, `ComboBox` and other application controls. Its templates MUST preserve `PART_Track`, line/page commands, orientation, keyboard behaviour and UI Automation semantics while using dynamic semantic resources for track, thumb, border and interaction states.
 - Windows High Contrast MUST take precedence over DB-Notifier theme colours and preserve native system resources where required.
 
 Future authenticated preference synchronisation MAY be added in `STATE-06` or later, but local selection remains the offline fallback and never carries secrets.
@@ -492,6 +494,8 @@ At standard desktop width, fleet status and recent alerts form the primary two-c
 
 Compact card alternatives MUST preserve a readable label/value relationship and at least one uncompressed content column. Long machine identifiers MAY wrap at arbitrary safe points for reflow, while their underlying text value remains unchanged.
 
+The WPF `ScrollBar` is application chrome rather than an Aero-light exception. Its track, thumb, border, hover, pressed and disabled states MUST resolve from the same semantic Light/Dark resources as the owning surface, retain a non-colour pointer affordance and preserve the native scrolling contract. During Windows High Contrast, those semantic resources resolve to system brushes and the product MUST NOT force its ordinary palette.
+
 ### 10.8 Feedback and overlays
 
 `InlineMessage`, `Banner`, `Toast`, `Tooltip`, `Popover` and `ModalDialog` have distinct roles:
@@ -622,6 +626,7 @@ Parity means semantic equivalence, not identical pixels. Native platform behavio
 - No wrong-theme flash is visible on Dashboard startup.
 - Switching theme preserves route, view, filters, focus and safe unsaved state.
 - Native controls, scrollbars, overlays and Tray-related windows match the effective theme where platform-supported.
+- On supported Windows 11 builds, the WPF native caption background/text and application scrollbars change with Light → Dark → Light without recreating the window; High Contrast restores Windows/system-resource ownership. Windows 10 retains its native caption because the documented colour attributes are unavailable there.
 
 ### 15.3 Contrast and accessibility automation
 
@@ -655,6 +660,7 @@ Acceptance requires no unintended page overflow, clipping, illegible truncation,
 - Dashboard theme selector, main navigation, operational states, tables/cards and modal dialogue.
 - Native 200% zoom and keyboard-only task completion.
 - WPF with Narrator/NVDA across selectors, summaries, grids, dialogue and Tray.
+- WPF Light/Dark comparison of the native caption and visible vertical/horizontal scrollbars at default and minimum sizes, including a `DataGrid` and a popup control such as `ComboBox`; standard caption and scroll commands remain usable.
 - Two consecutive WPF Show → explicit CloseRequest cycles, each requesting a fresh close-to-Tray availability confirmation; minimise, hidden startup, Show and Exit remain negative-control paths. Record Shell/Focus Assist suppression as not visibly observed rather than inferring delivery.
 - Side-by-side product-mark comparison at native 16/20/24 px shell roles and 32/40 px application roles, confirming that the same cylinder ellipse, two seams, bell, clapper, proportions and transparent silhouette remain recognisable without a size-specific alternate glyph.
 - Visual review for hierarchy, density, consistency and absence of neon/glow/exaggerated effects.

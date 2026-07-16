@@ -13,13 +13,21 @@ public sealed class WpfPresentationContractTests
         "(?:Padding|Margin|BorderThickness)=\\\"\\{(?:Dynamic|Static)Resource Space[0-9]+\\}\\\"|CornerRadius=\\\"\\{(?:Dynamic|Static)Resource Radius[A-Za-z]+\\}\\\"",
         RegexOptions.CultureInvariant | RegexOptions.Compiled);
 
-    /// <summary>Ensures numeric spacing tokens are not assigned to Thickness properties through runtime resource lookup.</summary>
+    private static readonly Regex NumericSpacingResourceOnGridLengthProperty = new(
+        "<(?:RowDefinition|ColumnDefinition)\\b[^>]*(?:Height|Width)=\\\"\\{(?:Dynamic|Static)Resource Space[0-9]+\\}\\\"",
+        RegexOptions.CultureInvariant | RegexOptions.Compiled);
+
+    /// <summary>Ensures numeric spacing tokens are not assigned to parser-owned WPF value types through runtime resource lookup.</summary>
     [Fact]
-    public void WpfThicknessPropertiesDoNotUseNumericSpacingResources()
+    public void WpfParserOwnedPropertiesDoNotUseNumericSpacingResources()
     {
         string desktopDirectory = Path.Combine(RepositoryRoot(), "src", "DBNotifier.Desktop.Wpf");
         string[] violations = Directory.GetFiles(desktopDirectory, "*.xaml", SearchOption.AllDirectories)
-            .Where(path => NumericSpacingResourceOnThicknessProperty.IsMatch(File.ReadAllText(path)))
+            .Where(path =>
+            {
+                string markup = File.ReadAllText(path);
+                return NumericSpacingResourceOnThicknessProperty.IsMatch(markup) || NumericSpacingResourceOnGridLengthProperty.IsMatch(markup);
+            })
             .Select(path => Path.GetRelativePath(RepositoryRoot(), path))
             .ToArray();
 
@@ -55,6 +63,60 @@ public sealed class WpfPresentationContractTests
         Assert.Contains("<AssemblyTitle>DB Notifier</AssemblyTitle>", project, StringComparison.Ordinal);
         Assert.Contains("<Product>DB Notifier</Product>", project, StringComparison.Ordinal);
         Assert.DoesNotContain("<AssemblyName>DB Notifier</AssemblyName>", project, StringComparison.Ordinal);
+    }
+
+    /// <summary>Ensures native caption and scrolling chrome follow generated theme resources without replacing Windows accessibility ownership.</summary>
+    [Fact]
+    public void WpfNativeChromeUsesThemeAwarePlatformAdapters()
+    {
+        string desktopDirectory = Path.Combine(RepositoryRoot(), "src", "DBNotifier.Desktop.Wpf");
+        string applicationMarkup = File.ReadAllText(Path.Combine(desktopDirectory, "App.xaml"));
+        string controlStyles = File.ReadAllText(Path.Combine(desktopDirectory, "Resources", "ControlStyles.xaml"));
+        string coreTokens = File.ReadAllText(Path.Combine(desktopDirectory, "Generated", "DesignTokens.Core.xaml"));
+        string lightTheme = File.ReadAllText(Path.Combine(desktopDirectory, "Generated", "DesignTokens.Light.xaml"));
+        string darkTheme = File.ReadAllText(Path.Combine(desktopDirectory, "Generated", "DesignTokens.Dark.xaml"));
+        string mainWindow = File.ReadAllText(Path.Combine(desktopDirectory, "MainWindow.xaml.cs"));
+        string nativeThemePolicy = File.ReadAllText(Path.Combine(desktopDirectory, "NativeWindowThemePolicy.cs"));
+        string themeService = File.ReadAllText(Path.Combine(desktopDirectory, "DesktopThemeService.cs"));
+
+        Assert.Contains("Resources/ControlStyles.xaml", applicationMarkup, StringComparison.Ordinal);
+        Assert.Contains("<Style TargetType=\"{x:Type ScrollBar}\">", controlStyles, StringComparison.Ordinal);
+        Assert.Equal(2, Regex.Count(controlStyles, "x:Name=\"PART_Track\"", RegexOptions.CultureInvariant));
+        foreach (string command in new[] { "LineUp", "LineDown", "LineLeft", "LineRight", "PageUp", "PageDown", "PageLeft", "PageRight" })
+        {
+            Assert.Contains($"ScrollBar.{command}Command", controlStyles, StringComparison.Ordinal);
+        }
+        string[] themeResources = Regex.Matches(controlStyles, "\\{DynamicResource (?<key>[A-Za-z0-9]+Brush)\\}", RegexOptions.CultureInvariant)
+            .Cast<Match>()
+            .Select(match => match.Groups["key"].Value)
+            .Distinct(StringComparer.Ordinal)
+            .ToArray();
+        Assert.NotEmpty(themeResources);
+        foreach (string resource in themeResources)
+        {
+            Assert.Contains($"x:Key=\"{resource}\"", lightTheme, StringComparison.Ordinal);
+            Assert.Contains($"x:Key=\"{resource}\"", darkTheme, StringComparison.Ordinal);
+            Assert.Contains($"\"{resource}\"", themeService, StringComparison.Ordinal);
+        }
+        Assert.Contains("ColourSelectionForegroundBrush", controlStyles, StringComparison.Ordinal);
+        Assert.Contains("ColourActionPrimaryForegroundBrush", controlStyles, StringComparison.Ordinal);
+        Assert.DoesNotContain("Property=\"Opacity\"", controlStyles, StringComparison.Ordinal);
+        Assert.DoesNotMatch("#[0-9A-Fa-f]{6,8}", controlStyles);
+        Assert.Contains("<sys:Double x:Key=\"Space4\">", coreTokens, StringComparison.Ordinal);
+        Assert.Contains("<sys:Double x:Key=\"Space6\">", coreTokens, StringComparison.Ordinal);
+
+        Assert.Equal(2, Regex.Count(mainWindow, Regex.Escape("NativeWindowThemePolicy.Apply(this, theme)"), RegexOptions.CultureInvariant));
+        Assert.Contains("OperatingSystem.IsWindowsVersionAtLeast(10, 0, 22000)", nativeThemePolicy, StringComparison.Ordinal);
+        Assert.Contains("UseImmersiveDarkMode = 20", nativeThemePolicy, StringComparison.Ordinal);
+        Assert.Contains("CaptionColour = 35", nativeThemePolicy, StringComparison.Ordinal);
+        Assert.Contains("TextColour = 36", nativeThemePolicy, StringComparison.Ordinal);
+        Assert.Contains("DwmColourDefault = 0xFFFFFFFF", nativeThemePolicy, StringComparison.Ordinal);
+        Assert.Contains("ComponentAppBackgroundBrush", nativeThemePolicy, StringComparison.Ordinal);
+        Assert.Contains("ColourTextPrimaryBrush", nativeThemePolicy, StringComparison.Ordinal);
+        Assert.Equal(2, Regex.Count(nativeThemePolicy, Regex.Escape("[DefaultDllImportSearchPaths(DllImportSearchPath.System32)]"), RegexOptions.CultureInvariant));
+        Assert.DoesNotContain("BorderColour", nativeThemePolicy, StringComparison.Ordinal);
+        Assert.Contains("IsHighContrastActive", nativeThemePolicy, StringComparison.Ordinal);
+        Assert.Contains("public bool IsHighContrastActive => lastHighContrast;", themeService, StringComparison.Ordinal);
     }
 
     /// <summary>Ensures WPF selects DPI-aware native ICO frames and keeps notification sources at the Windows small-icon metric.</summary>

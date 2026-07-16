@@ -83,6 +83,17 @@ Observed automatic facts are limited to:
 
 No claim is made about spoken order, pronunciation, verbosity, state announcements or usability. `HG05-01`, `HG05-02`, `HG05-04` and `HG05-05` remain pending wherever they require a human screen-reader sample.
 
+## Design System 2.6.14 native-chrome addendum
+
+The later `REQ-066` review found that the Windows-managed caption and default WPF scrollbar did not follow the selected Dark theme. Design System `2.6.14` adds focused structural remediation without changing the earlier scaling, automation or Narrator samples:
+
+- `NativeWindowThemePolicy` synchronises documented Windows 11 DWM immersive-dark, caption and text attributes after the native window handle exists and after every explicit Light/Dark change; Windows continues to own the active/inactive border, and Windows 10 retains its native caption;
+- entering Windows High Contrast resets caption and text to the DWM default instead of forcing the product palette;
+- one implicit application `ScrollBar` style uses the existing semantic resources for track, thumb, border and interaction states while retaining vertical/horizontal `PART_Track` templates and line/page commands;
+- the WPF Release build completed with zero warnings/errors, and the tenth architecture test verifies the platform adapter, High Contrast reset, semantic-resource use and scrolling contract.
+
+The High Contrast and scaling observations above predate this native-chrome implementation. They remain valid only for the code and environment sampled at that time; they do not prove the new DWM reset or themed scrollbar in a real High Contrast session. Light → Dark → Light at default/minimum size and a new High Contrast sample both remain pending human evidence. The latter requires separate explicit permission before changing Windows settings.
+
 ## Evidence and limitations
 
 - Raw JSON reports and target-window PNGs are stored under `%TEMP%\DBNotifier-State05-Audit` and are not committed because they are environment-specific.
@@ -93,8 +104,8 @@ No claim is made about spoken order, pronunciation, verbosity, state announcemen
 
 ## Lifecycle impact
 
-The automatic WPF/High Contrast/available-scaling evidence is approved with the limitations above. The `STATE-05` Human Gate remains `PENDENTE`; no transition to `STATE-06` is authorised.
+The automatic WPF/High Contrast/available-scaling evidence is approved with the limitations above. The Design System `2.6.14` native-chrome correction is structurally approved but visibly unconfirmed. The `STATE-05` Human Gate remains `PENDENTE`; no transition to `STATE-06` is authorised.
 
 ## Recommended next step
 
-Do not retry Narrator until the human validator has a workable listening method or another named validator is available. Continue with non-screen-reader human samples independently, then record Narrator as `NÃO EXECUTADO — VALIDADOR SEM CONDIÇÃO DE TESTE` in any interim gate decision. A final `STATE-05` approval must either include a completed screen-reader sample or carry an explicit, accepted reservation that accurately describes the missing evidence.
+First obtain fresh consent and repeat the focused WPF Light → Dark → Light sample for the native caption and visible scrollbars at default and minimum size. Do not enable High Contrast during that repetition. Retry High Contrast only under separate explicit permission, and do not retry Narrator until the human validator has a workable listening method or another named validator is available. Record Narrator as `NÃO EXECUTADO — VALIDADOR SEM CONDIÇÃO DE TESTE` in any interim gate decision. A final `STATE-05` approval must either include a completed screen-reader sample or carry an explicit, accepted reservation that accurately describes the missing evidence.

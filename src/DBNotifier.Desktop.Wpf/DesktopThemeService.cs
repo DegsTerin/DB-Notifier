@@ -33,6 +33,9 @@ internal sealed class DesktopThemeService : IDisposable
     /// <summary>Gets the effective generated token set currently applied beneath any High Contrast override.</summary>
     public EffectiveTheme EffectiveTheme { get; private set; } = EffectiveTheme.Light;
 
+    /// <summary>Gets whether Windows High Contrast currently overrides the explicit DB-Notifier theme.</summary>
+    public bool IsHighContrastActive => lastHighContrast;
+
     /// <summary>Applies the stored preference and observes Windows High Contrast changes.</summary>
     public void Initialise()
     {

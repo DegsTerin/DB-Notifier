@@ -85,6 +85,7 @@ public partial class MainWindow : Window
         Icon = BrandStatusIconPolicy.LoadImageSource(aggregateState, 32, dpi);
         BrandStatusImage.Source = BrandStatusIconPolicy.LoadImageSource(aggregateState, 40, dpi);
         windowIconLease = BrandStatusIconPolicy.ApplyNativeWindowIcons(this, aggregateState);
+        NativeWindowThemePolicy.Apply(this, theme);
     }
 
     /// <summary>Shows a validated read-only destination requested by the notification-area flyout.</summary>
@@ -186,6 +187,7 @@ public partial class MainWindow : Window
     /// <param name="e">Theme-change event data.</param>
     private void ThemeChanged(object? sender, EventArgs e)
     {
+        NativeWindowThemePolicy.Apply(this, theme);
         UpdatePreferenceButtons();
         UpdateNavigationState();
         if (currentView == DesktopView.Settings)

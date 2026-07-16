@@ -946,6 +946,17 @@
 - Riscos/ressalvas: a aprovação não prova estado Agent/API real, notificações factuais, provider homologado, acessibilidade restante, todos os detalhes de `S05-HG-010`, o Human Gate completo ou produção. A amostra precisa ser repetida somente se o contrato/gerador da marca mudar materialmente.
 - Aprovador: Bruno, exclusivamente para a geometria única de `REQ-065`; nenhuma aprovação de `S05-HG-010`, do Human Gate ou de transição foi inferida.
 
+## 2026-07-16 — Sincronização temática da caption e da rolagem WPF
+
+- Estado anterior: `STATE-05 FRONTEND_IMPLEMENTATION`, Human Gate e os detalhes restantes de `S05-HG-010` pendentes; `REQ-064/065` e `S05-HG-011` encerrados somente em seus escopos limitados.
+- Estado resultante: sem transição; Design System `2.6.14` implementado e verificado automaticamente para `REQ-066`, com comparação visual Light/Dark ainda pendente.
+- Decisão: tratar como finding válido a caption branca e o scrollbar claro observados pelo validador no WPF Dark, sem substituir a barra de título padrão do Windows nem forçar cores de produto durante High Contrast.
+- Escopo: adaptador isolado para atributos DWM de modo escuro/caption/texto em Windows 11 suportado, com busca nativa limitada ao `System32`, borda ativa/inativa mantida pelo Windows e fallback de caption nativa no Windows 10; aplicação após `SourceInitialized` e em mudanças de tema; reset de cores para o padrão do Windows em High Contrast; dicionário global de estilos de scrollbar com recursos semânticos, templates vertical/horizontal, `PART_Track` e comandos de linha/página; regra permanente, Design System, Human Gate, relatório e matriz `REQ-066`. Nenhum estado de provider, integração, notificação, Tray, ativo de marca ou capacidade administrativa mudou.
+- Gates: build WPF Release com zero avisos/erros e `10/10` testes de arquitetura aprovados no passe focado. A validação completa da solução e dos gates documentais é registrada no relatório proprietário deste incremento; nenhuma execução visível adicional ou configuração de acessibilidade do Windows foi usada.
+- Evidências: Design System `2.6.14`, `NativeWindowThemePolicy`, `Resources/ControlStyles.xaml`, regressão WPF em `WpfPresentationContractTests`, `docs/STATE-05-Design-System-Implementation-Report.md`, `docs/STATE-05-Human-Gate-Validation.md` e `docs/STATE-05-Request-Traceability-Audit.md`.
+- Riscos/ressalvas: atributos explícitos de cor da caption exigem suporte da versão do Windows e falham com segurança para a caption nativa quando indisponíveis. Build/teste estrutural não comprovam a aparência real, todos os hosts de scrollbar ou High Contrast; Light → Dark → Light em tamanho padrão/mínimo e High Contrast sob autorização separada continuam pendentes. `S05-HG-010`, o Human Gate e `STATE-06` não foram aprovados.
+- Aprovador: correções solicitadas por Bruno; nenhuma aprovação visual, do Human Gate ou de transição foi inferida.
+
 ## Template de nova entrada
 
 - Data:
