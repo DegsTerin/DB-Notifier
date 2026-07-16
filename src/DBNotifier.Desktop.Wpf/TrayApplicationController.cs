@@ -18,13 +18,15 @@ internal sealed class TrayApplicationController : IDisposable
     private readonly MainWindow window;
     private readonly System.Windows.Application application;
     private readonly DesktopLocalisationService localisation;
-    private readonly Icon applicationIcon;
+    private readonly DesktopDemonstrationEvidence evidence;
+    private Icon applicationIcon;
     private readonly Icon availabilityNotificationIcon;
     private readonly Forms.NotifyIcon notifyIcon;
     private readonly DispatcherTimer notificationIconRestoreTimer;
+    private readonly DispatcherTimer fleetRefreshTimer;
     private readonly WindowsAppNotificationPublisher? appNotificationPublisher;
     private readonly TrayFlyoutWindow flyout;
-    private readonly TrayFleetSummary fleetSummary;
+    private TrayFleetSummary fleetSummary;
     private bool exiting;
     private TrayNotificationIconLeaseState notificationIconLeaseState = TrayNotificationIconLeaseState.Aggregate;
 
@@ -32,26 +34,33 @@ internal sealed class TrayApplicationController : IDisposable
     /// <param name="window">Secondary WPF shell controlled by notification-area intents.</param>
     /// <param name="application">Owning WPF application lifecycle.</param>
     /// <param name="localisation">Localisation owner used by Tray text and the flyout.</param>
-    /// <param name="fleetSummary">Provider-neutral state shared by every operational product-mark surface.</param>
+    /// <param name="evidence">Immutable locale-independent evidence shared with the full desktop shell.</param>
+    /// <param name="initialSummary">Aggregate evaluated at the evidence creation instant.</param>
     public TrayApplicationController(
         MainWindow window,
         System.Windows.Application application,
         DesktopLocalisationService localisation,
-        TrayFleetSummary fleetSummary)
+        DesktopDemonstrationEvidence evidence,
+        TrayFleetSummary initialSummary)
     {
         this.window = window;
         this.application = application;
         this.localisation = localisation;
-        this.fleetSummary = fleetSummary;
-        flyout = new TrayFlyoutWindow(localisation, fleetSummary, ShowView, () => Apply(TrayWindowIntent.Exit));
-        (applicationIcon, availabilityNotificationIcon, notifyIcon) = CreateNotificationAreaResources(fleetSummary.State);
+        this.evidence = evidence;
+        fleetSummary = initialSummary;
+        flyout = new TrayFlyoutWindow(localisation, evidence, initialSummary, ShowView, () => Apply(TrayWindowIntent.Exit));
+        (applicationIcon, availabilityNotificationIcon, notifyIcon) = CreateNotificationAreaResources(initialSummary.State);
         notificationIconRestoreTimer = new DispatcherTimer
         {
             Interval = TrayNotificationIconLeasePolicy.FallbackDelay,
         };
         notificationIconRestoreTimer.Tick += NotificationIconRestoreTimerTick;
+        fleetRefreshTimer = new DispatcherTimer
+        {
+            Interval = TimeSpan.FromSeconds(30),
+        };
+        fleetRefreshTimer.Tick += FleetRefreshTimerTick;
         notifyIcon.MouseClick += NotifyIconMouseClick;
-        notifyIcon.DoubleClick += (_, _) => Apply(TrayWindowIntent.Show);
         notifyIcon.BalloonTipShown += NotifyIconBalloonTipShown;
         appNotificationPublisher = WindowsAppNotificationPublisher.TryCreate(
             application.Dispatcher,
@@ -60,6 +69,7 @@ internal sealed class TrayApplicationController : IDisposable
         window.Closing += WindowClosing;
         localisation.LanguageChanged += LanguageChanged;
         RefreshText();
+        fleetRefreshTimer.Start();
     }
 
     /// <summary>Releases notification and event resources without changing external process state.</summary>
@@ -70,6 +80,8 @@ internal sealed class TrayApplicationController : IDisposable
         localisation.LanguageChanged -= LanguageChanged;
         notifyIcon.MouseClick -= NotifyIconMouseClick;
         notifyIcon.BalloonTipShown -= NotifyIconBalloonTipShown;
+        fleetRefreshTimer.Tick -= FleetRefreshTimerTick;
+        fleetRefreshTimer.Stop();
         RestoreAggregateIconAfterNotificationCapture(TrayNotificationIconLeaseSignal.Disposed);
         notificationIconRestoreTimer.Tick -= NotificationIconRestoreTimerTick;
         notificationIconRestoreTimer.Stop();
@@ -80,16 +92,6 @@ internal sealed class TrayApplicationController : IDisposable
         availabilityNotificationIcon.Dispose();
         applicationIcon.Dispose();
     }
-
-    /// <summary>Creates the deterministic STATE-05 fleet summary without reading an Agent, API or monitored database.</summary>
-    /// <returns>The provider-neutral summary used by the local Tray demonstration.</returns>
-    internal static TrayFleetSummary CreateDemonstrationSummary() => TrayFleetPresentationPolicy.Summarise(
-    [
-        new(HealthStatus.Healthy, IsStale: false),
-        new(HealthStatus.Degraded, IsStale: false),
-        new(HealthStatus.Timeout, IsStale: false),
-        new(HealthStatus.Unknown, IsStale: true),
-    ]);
 
     /// <summary>Creates the semantic Tray icon and policy-selected availability source at the native Windows small-icon metric as one exception-safe resource set.</summary>
     /// <param name="state">Provider-neutral aggregate used only to select the state-bearing Tray icon.</param>
@@ -147,8 +149,42 @@ internal sealed class TrayApplicationController : IDisposable
     /// <summary>Refreshes tray labels after an interface-language change.</summary>
     private void LanguageChanged(object? sender, EventArgs e)
     {
+        RefreshFleetPresentation(TimeProvider.System.GetUtcNow());
+    }
+
+    /// <summary>Reconciles the shared immutable evidence at the bounded desktop refresh interval.</summary>
+    /// <param name="sender">Dispatcher timer that owns no external work.</param>
+    /// <param name="e">Timer event metadata.</param>
+    private void FleetRefreshTimerTick(object? sender, EventArgs e) =>
+        RefreshFleetPresentation(TimeProvider.System.GetUtcNow());
+
+    /// <summary>Updates shell, flyout, tooltip and Tray icon from one freshness evaluation.</summary>
+    /// <param name="evaluatedAt">UTC instant used only to age the immutable evidence.</param>
+    private void RefreshFleetPresentation(DateTimeOffset evaluatedAt)
+    {
+        TrayFleetSummary next = evidence.Summarise(evaluatedAt);
+        if (next.State != fleetSummary.State)
+        {
+            ReplaceAggregateIcon(next.State);
+        }
+        fleetSummary = next;
         RefreshText();
-        flyout.RefreshPresentation();
+        flyout.RefreshPresentation(evaluatedAt, next);
+        window.RefreshOperationalEvidence(evaluatedAt, next.State);
+    }
+
+    /// <summary>Replaces the owned factual Tray icon without disturbing an active notification-meaning lease.</summary>
+    /// <param name="state">New provider-neutral fleet state derived from the shared evidence.</param>
+    private void ReplaceAggregateIcon(TrayAggregateState state)
+    {
+        Icon replacement = BrandStatusIconPolicy.LoadWindowsIcon(state, Forms.SystemInformation.SmallIconSize.Width);
+        if (notificationIconLeaseState == TrayNotificationIconLeaseState.Aggregate)
+        {
+            notifyIcon.Icon = replacement;
+        }
+        Icon previous = applicationIcon;
+        applicationIcon = replacement;
+        previous.Dispose();
     }
 
     /// <summary>Updates all tray-visible strings from the generated localisation dictionary.</summary>
@@ -163,6 +199,7 @@ internal sealed class TrayApplicationController : IDisposable
     {
         if (e.Button is Forms.MouseButtons.Left or Forms.MouseButtons.Right)
         {
+            RefreshFleetPresentation(TimeProvider.System.GetUtcNow());
             ToggleFlyout();
         }
     }

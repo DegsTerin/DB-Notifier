@@ -2,7 +2,7 @@
 
 ## Versão atual
 
-- Versão: `3.51.2`
+- Versão: `3.52.0`
 - Data: 2026-07-16
 - Status: corpus DB-Notifier consolidado
 - Escopo: 13 arquivos ativos
@@ -16,6 +16,12 @@ A versão do corpus é independente da versão do software.
 - PATCH: clareza, correção ou referência sem mudança de autoridade.
 
 Toda alteração atualiza este arquivo e, quando necessário, `../Start-Here.md`.
+
+## 3.52.0 — 2026-07-16
+
+- O Design System `3.0.0` remove os tokens breaking `palette.provider.*` e `component.provider.*`, introduz cinco categorias ordinais derivadas somente das paletas brand/neutral e proíbe que cor categórica represente identidade de vendor, saúde, freshness, suporte ou homologação.
+- O Dashboard passa a usar um único contorno genérico de banco, definido localmente e acompanhado pelo nome textual autoritativo; gráficos de distribuição Web/WPF consomem `colour.data.category.*`, com contraste automatizado e fallback para system text brushes no Windows High Contrast.
+- A versão e os ativos independentes de marca permanecem em `2.6.13`: geometria, máscara alfa e cores state-bearing do sino não mudaram. O bump maior reflete exclusivamente a remoção incompatível dos antigos tokens provider-named.
 
 ## 3.51.2 — 2026-07-16
 

@@ -1,9 +1,13 @@
-// Module purpose: Implements App xaml for the Windows desktop shell without controlling database services implicitly.
+// Module purpose: Initialises the WPF desktop application without controlling database services implicitly.
 using System.Windows;
 using DBNotifier.Application.Presentation;
 
 namespace DBNotifier.Desktop.Wpf;
 
+/// <summary>
+/// Owns the notification-area-first WPF lifecycle and shared local demonstration evidence without controlling
+/// database services, external infrastructure or administrative capabilities.
+/// </summary>
 public partial class App : System.Windows.Application, IDisposable
 {
     private TrayApplicationController? trayController;
@@ -20,10 +24,12 @@ public partial class App : System.Windows.Application, IDisposable
         theme = new DesktopThemeService(this, preferences);
         localisation.Initialise();
         theme.Initialise();
-        TrayFleetSummary fleetSummary = TrayApplicationController.CreateDemonstrationSummary();
-        MainWindow window = new(localisation, theme, fleetSummary.State);
+        DateTimeOffset generatedAt = TimeProvider.System.GetUtcNow();
+        DesktopDemonstrationEvidence evidence = DesktopDemonstrationEvidence.Create(generatedAt);
+        TrayFleetSummary fleetSummary = evidence.Summarise(generatedAt);
+        MainWindow window = new(localisation, theme, evidence, fleetSummary.State);
         MainWindow = window;
-        trayController = new TrayApplicationController(window, this, localisation, fleetSummary);
+        trayController = new TrayApplicationController(window, this, localisation, evidence, fleetSummary);
         if (TrayStartupPolicy.Resolve(e.Args) == TrayStartupMode.ShowDesktop)
         {
             window.Show();
@@ -31,6 +37,7 @@ public partial class App : System.Windows.Application, IDisposable
     }
 
     /// <summary>Releases tray and theme-observation resources when the WPF application exits.</summary>
+    /// <param name="e">Framework exit event metadata.</param>
     protected override void OnExit(ExitEventArgs e)
     {
         Dispose();

@@ -11,6 +11,7 @@ export type AlertState = "active" | "acknowledged" | "silenced" | "resolved";
 export type CapabilityState = "supported" | "unsupported" | "unavailable" | "unknown";
 export type ActionPreview = "confirmationRequired" | "denied" | "unsupported" | "unavailable" | "unknown";
 export type FleetAggregateState = "healthy" | "warning" | "critical" | "unknown";
+export type EvidenceFreshness = "current" | "stale" | "unknown";
 export type HealthStatus =
   | "healthy"
   | "degraded"
@@ -44,6 +45,7 @@ export interface InventorySummary {
   total: number;
   healthy: number;
   degraded: number;
+  warning: number;
   attentionRequired: number;
   stale: number;
 }
@@ -69,22 +71,68 @@ export interface ConfigurationCapabilitySnapshot {
   capabilities: readonly { capabilityId: string; displayName: string; state: CapabilityState; reasonCode: string; requiresConfirmation: boolean }[];
 }
 
-export function isStale(item: InventoryItem, now: Date): boolean {
-  return now.getTime() - Date.parse(item.receivedAt) > staleAfterMilliseconds;
+/**
+ * Classifies temporal evidence without allowing invalid or future timestamps to imply current health.
+ * @param item - Inventory item whose observation and receipt timestamps came from a presentation boundary.
+ * @param now - Clock instant used for deterministic freshness evaluation.
+ * @returns Current, stale or Unknown; invalid ordering and future evidence always fail to Unknown.
+ */
+export function classifyEvidenceFreshness(item: InventoryItem, now: Date): EvidenceFreshness {
+  const nowMilliseconds = now.getTime();
+  const observedMilliseconds = Date.parse(item.observedAt);
+  const receivedMilliseconds = Date.parse(item.receivedAt);
+  if (![nowMilliseconds, observedMilliseconds, receivedMilliseconds].every(Number.isFinite) ||
+      observedMilliseconds > receivedMilliseconds ||
+      observedMilliseconds > nowMilliseconds ||
+      receivedMilliseconds > nowMilliseconds) {
+    return "unknown";
+  }
+  return nowMilliseconds - receivedMilliseconds > staleAfterMilliseconds ? "stale" : "current";
 }
 
+/**
+ * Returns whether valid evidence has exceeded the configured freshness threshold.
+ * @param item - Inventory evidence whose timestamp ordering is validated before age is considered.
+ * @param now - Clock instant used for deterministic freshness evaluation.
+ * @returns True only for valid stale evidence; invalid or future evidence remains Unknown.
+ */
+export function isStale(item: InventoryItem, now: Date): boolean {
+  return classifyEvidenceFreshness(item, now) === "stale";
+}
+
+/**
+ * Returns a recognised primitive health status, failing untrusted runtime values safely to Unknown.
+ * @param status - Untrusted status value received at the presentation boundary.
+ * @returns One canonical health-status string.
+ */
+export function normalizeHealthStatus(status: unknown): HealthStatus {
+  const candidate = String(status);
+  return ["healthy", "degraded", "unavailable", "authFailed", "timeout", "maintenance", "unknown"].includes(candidate)
+    ? candidate as HealthStatus
+    : "unknown";
+}
+
+/**
+ * Summarises only current evidence into health KPIs while retaining stale counts independently.
+ * @param snapshot - Immutable inventory evidence to classify.
+ * @param now - Clock instant used for deterministic freshness evaluation.
+ * @returns Coherent KPI counts that never report stale or invalid evidence as current health.
+ */
 export function summarizeInventory(snapshot: InventorySnapshot, now: Date): InventorySummary {
   return snapshot.items.reduce<InventorySummary>(
     (summary, item) => {
-      const stale = isStale(item, now);
+      const freshness = classifyEvidenceFreshness(item, now);
+      const current = freshness === "current";
+      const status = normalizeHealthStatus(item.status);
       summary.total += 1;
-      summary.stale += stale ? 1 : 0;
-      summary.healthy += item.status === "healthy" && !stale ? 1 : 0;
-      summary.degraded += item.status === "degraded" && !stale ? 1 : 0;
-      summary.attentionRequired += ["unavailable", "authFailed", "timeout"].includes(item.status) ? 1 : 0;
+      summary.stale += freshness === "stale" ? 1 : 0;
+      summary.healthy += status === "healthy" && current ? 1 : 0;
+      summary.degraded += status === "degraded" && current ? 1 : 0;
+      summary.warning += ["degraded", "maintenance"].includes(status) && current ? 1 : 0;
+      summary.attentionRequired += ["unavailable", "authFailed", "timeout"].includes(status) && current ? 1 : 0;
       return summary;
     },
-    { total: 0, healthy: 0, degraded: 0, attentionRequired: 0, stale: 0 },
+    { total: 0, healthy: 0, degraded: 0, warning: 0, attentionRequired: 0, stale: 0 },
   );
 }
 
@@ -100,13 +148,14 @@ export function summarizeFleetAggregate(snapshot: InventorySnapshot, now: Date):
   let unknown = snapshot.items.length === 0;
 
   for (const item of snapshot.items) {
-    if (isStale(item, now)) {
+    if (classifyEvidenceFreshness(item, now) !== "current") {
       unknown = true;
       continue;
     }
-    if (["unavailable", "authFailed", "timeout"].includes(item.status)) critical = true;
-    else if (["degraded", "maintenance"].includes(item.status)) warning = true;
-    else if (item.status === "unknown") unknown = true;
+    const status = normalizeHealthStatus(item.status);
+    if (["unavailable", "authFailed", "timeout"].includes(status)) critical = true;
+    else if (["degraded", "maintenance"].includes(status)) warning = true;
+    else if (status === "unknown") unknown = true;
   }
 
   if (critical) return "critical";
@@ -130,7 +179,14 @@ export function filterInventory(
         .join(" ")
         .toLocaleLowerCase(locale)
         .includes(normalizedQuery);
-    const matchesStatus = status === "all" || (status === "stale" ? isStale(item, now) : item.status === status);
+    const freshness = classifyEvidenceFreshness(item, now);
+    const effectiveStatus = freshness === "unknown"
+      ? "unknown"
+      : freshness === "current"
+        ? normalizeHealthStatus(item.status)
+        : null;
+    const matchesStatus = status === "all" ||
+      (status === "stale" ? freshness === "stale" : effectiveStatus === status);
     return matchesQuery && matchesStatus;
   });
 }

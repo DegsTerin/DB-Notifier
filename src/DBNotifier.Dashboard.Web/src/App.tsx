@@ -13,7 +13,8 @@ import {
   type InventoryItem,
   type InventoryState,
   type TimelineEventItem,
-  isStale,
+  classifyEvidenceFreshness,
+  normalizeHealthStatus,
   previewAction,
   staleAfterMilliseconds,
   summarizeFleetAggregate,
@@ -27,6 +28,7 @@ import type { MessageKey } from "./generated/localisation";
 import { formatSystemDateTime, formatSystemTime } from "./systemDateTime";
 import { ProviderIcon } from "./ProviderIcon";
 import { replaceSemanticFavicon, semanticBrandAssets } from "./semanticBrand";
+import { dashboardViewHash, focusDashboardMain, parseDashboardView, subscribeDashboardRoute, type DashboardView } from "./routing";
 
 const stateOptions: ReadonlyArray<{ value: InventoryState; labelKey: MessageKey }> = [
   { value: "ready", labelKey: "Scenario.Ready" },
@@ -47,7 +49,6 @@ const stateMessages: Record<Exclude<InventoryState, "ready">, { symbol: string; 
   maintenance: { symbol: "◆", titleKey: "Operational.Maintenance.Title", messageKey: "Operational.Maintenance.Message", retry: false },
 };
 
-type DashboardView = "overview" | "inventory" | "alerts" | "performance" | "history" | "configuration" | "providers" | "settings";
 const viewCopy: Record<DashboardView, { eyebrowKey: MessageKey; titleKey: MessageKey; descriptionKey: MessageKey }> = {
   overview: { eyebrowKey: "View.Overview.Eyebrow", titleKey: "View.Overview.Title", descriptionKey: "View.Overview.Description" },
   inventory: { eyebrowKey: "View.Inventory.Eyebrow", titleKey: "View.Inventory.Title", descriptionKey: "View.Inventory.Description" },
@@ -127,11 +128,49 @@ const statusPresentation: Record<HealthStatus, { symbol: string; labelKey: Messa
 
 function StatusBadge({ item, now }: { item: InventoryItem; now: Date }) {
   const { t } = useLocalisation();
-  if (isStale(item, now)) {
+  const freshness = classifyEvidenceFreshness(item, now);
+  if (freshness === "stale") {
     return <span className="status-badge stale"><span aria-hidden="true">◷</span> {t("Status.Stale")}</span>;
   }
-  const presentation = statusPresentation[item.status];
+  const presentation = freshness === "unknown"
+    ? statusPresentation.unknown
+    : statusPresentation[normalizeHealthStatus(item.status)];
   return <span className={`status-badge ${presentation.className}`}><span aria-hidden="true">{presentation.symbol}</span> {t(presentation.labelKey)}</span>;
+}
+
+/**
+ * Presents one exact evidence instant without allowing invalid ordering or future adapter data to imply factual time.
+ * @param props - Exact value, freshness clock, pair-order validity and optional compact presentation mode.
+ * @returns A semantic time element for valid evidence, or the localised Unknown label.
+ */
+function EvidenceTimestamp({ value, now, invalid = false, compact = false }: { value: string; now: Date; invalid?: boolean; compact?: boolean }) {
+  const { locale, t } = useLocalisation();
+  const parsed = new Date(value);
+  if (invalid || !Number.isFinite(parsed.getTime()) || parsed > now) return <span>{t("Status.Unknown")}</span>;
+  return <time dateTime={parsed.toISOString()}>{compact ? formatSystemTime(parsed, locale) : formatSystemDateTime(parsed, locale)}</time>;
+}
+
+/** Returns true when a timestamp pair is malformed or violates its required chronological order. */
+function hasInvalidTimestampOrder(earlier: string, later: string): boolean {
+  const earlierMilliseconds = Date.parse(earlier);
+  const laterMilliseconds = Date.parse(later);
+  return !Number.isFinite(earlierMilliseconds) ||
+    !Number.isFinite(laterMilliseconds) ||
+    earlierMilliseconds > laterMilliseconds;
+}
+
+/**
+ * Owns the one-second TV clock so fleet summaries are not recalculated for presentation-only ticks.
+ * @returns The factual session-only TV state and system-local clock presentation.
+ */
+function TvModeStatus() {
+  const { locale, t } = useLocalisation();
+  const [clock, setClock] = useState(() => new Date());
+  useEffect(() => {
+    const interval = window.setInterval(() => setClock(new Date()), 1_000);
+    return () => window.clearInterval(interval);
+  }, []);
+  return <div className="tv-mode-status"><span aria-hidden="true" /><strong>{t("TV.Active")}</strong><time dateTime={clock.toISOString()}>{formatSystemDateTime(clock, locale)}</time></div>;
 }
 
 /**
@@ -140,16 +179,14 @@ function StatusBadge({ item, now }: { item: InventoryItem; now: Date }) {
  */
 export function App() {
   const { locale, t } = useLocalisation();
-  const [view, setView] = useState<DashboardView>(() => {
-    const requested = window.location.hash.slice(1) as DashboardView;
-    return requested in viewCopy ? requested : "overview";
-  });
+  const [view, setView] = useState<DashboardView>(() => parseDashboardView(window.location.hash));
   const [state, setState] = useState<InventoryState>("ready");
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | HealthStatus | "stale">("all");
   const [tvMode, setTvMode] = useState(false);
   const [snapshotTime] = useState(() => new Date());
   const [now, setNow] = useState(snapshotTime);
+  const mainContentRef = useRef<HTMLElement>(null);
   const snapshot = useMemo(() => buildDemonstrationSnapshot(snapshotTime, locale), [snapshotTime, locale]);
   const timelineSnapshot = useMemo(() => buildTimelineAlertSnapshot(snapshotTime, locale), [snapshotTime, locale]);
   const configurationSnapshot = useMemo(() => buildConfigurationSnapshot(locale), [locale]);
@@ -162,15 +199,20 @@ export function App() {
   );
   const copy = viewCopy[view];
   const navigate = useCallback((nextView: DashboardView) => {
-    window.history.replaceState(null, "", `#${nextView}`);
+    const nextHash = dashboardViewHash(nextView);
+    if (window.location.hash !== nextHash) window.history.pushState(null, "", nextHash);
     setView(nextView);
   }, []);
 
   useEffect(() => {
-    // TV mode updates the visible system-local clock each second; standard views only need bounded freshness recalculation.
-    const interval = window.setInterval(() => setNow(new Date()), tvMode ? 1_000 : 30_000);
+    // Freshness changes independently of the isolated TV clock and does not advance snapshot evidence timestamps.
+    const interval = window.setInterval(() => setNow(new Date()), 30_000);
     return () => window.clearInterval(interval);
-  }, [tvMode]);
+  }, []);
+
+  useEffect(() => {
+    return subscribeDashboardRoute(window, setView);
+  }, []);
 
   useLayoutEffect(() => {
     // Replacing legacy candidates makes Chromium re-evaluate the favicon and reduces reuse of an older aggregate or build.
@@ -189,15 +231,20 @@ export function App() {
     }
   }, [navigate]);
 
+  /** Moves keyboard focus to main content without replacing the hash route used by browser history. */
+  const skipToMainContent = useCallback((event: { preventDefault(): void }) => {
+    focusDashboardMain(event, mainContentRef.current);
+  }, []);
+
   return (
     <div className={`app-shell ${tvMode ? "tv-mode" : ""}`}>
-      <a className="skip-link" href="#main-content">{t("Navigation.Skip")}</a>
+      <a className="skip-link" href="#main-content" onClick={skipToMainContent}>{t("Navigation.Skip")}</a>
       <header className="topbar">
         <div className="brand-lockup" role="img" aria-label="DB Notifier">
           <span className="brand-mark"><img src={brandAssets.iconPath} alt="" /></span>
           <span><strong className="brand-wordmark"><span>DB</span><span>Notifier</span></strong><small>{t("Brand.Subtitle")}</small></span>
         </div>
-        {tvMode && <div className="tv-mode-status"><span aria-hidden="true" /><strong>{t("TV.Active")}</strong><time dateTime={now.toISOString()}>{formatSystemDateTime(now, locale)}</time></div>}
+        {tvMode && <TvModeStatus />}
         <div className="topbar-controls">
           <LanguageSelector />
           <ThemeSelector />
@@ -226,7 +273,7 @@ export function App() {
           <div className="sidebar-note"><strong>{t("Sidebar.State")}</strong><span>{t("Sidebar.ReadOnly")}</span></div>
         </aside>
 
-        <main id="main-content" tabIndex={-1}>
+        <main id="main-content" ref={mainContentRef} tabIndex={-1}>
           <section className="page-heading" aria-labelledby="page-title">
             <div>
               <p className="eyebrow">{t(copy.eyebrowKey)}</p>
@@ -262,9 +309,9 @@ export function App() {
               onStatusChange={setStatusFilter}
             />
           ) : state === "ready" && view === "history" ? (
-            <HistoryView snapshot={timelineSnapshot} />
+            <HistoryView snapshot={timelineSnapshot} now={now} />
           ) : state === "ready" && view === "alerts" ? (
-            <AlertsView alerts={timelineSnapshot.alerts} generatedAt={timelineSnapshot.generatedAt} />
+            <AlertsView alerts={timelineSnapshot.alerts} generatedAt={timelineSnapshot.generatedAt} now={now} />
           ) : state === "ready" && view === "performance" ? (
             <PerformanceView />
           ) : state === "ready" && view === "configuration" ? (
@@ -310,7 +357,7 @@ function OverviewView({
   const metrics = [
     { label: t("Overview.TotalInstances"), value: summary.total, icon: "database" as const, className: "" },
     { label: t("Inventory.Healthy"), value: summary.healthy, icon: "healthy" as const, className: "healthy" },
-    { label: t("Overview.Warning"), value: summary.degraded, icon: "degraded" as const, className: "degraded" },
+    { label: t("Overview.Warning"), value: summary.warning, icon: "degraded" as const, className: "degraded" },
     { label: t("Overview.Critical"), value: summary.attentionRequired, icon: "critical" as const, className: "critical" },
   ];
 
@@ -343,7 +390,7 @@ function OverviewView({
           {alerts.map((alert) => <article key={alert.alertId}>
             <span className={`alert-symbol ${alert.alertId === "alert-003" ? "restart" : severityPresentation[alert.severity].className}`}><AppIcon name={alert.alertId === "alert-003" ? "restart" : alert.severity === "critical" ? "critical" : alert.severity === "warning" ? "degraded" : "notifications"} /></span>
             <div><strong>{alert.instanceName}</strong><span>{alert.ruleName}</span></div>
-            <time dateTime={alert.updatedAt}>{formatSystemTime(alert.updatedAt, locale)}</time>
+            <EvidenceTimestamp value={alert.updatedAt} now={now} compact invalid={hasInvalidTimestampOrder(alert.openedAt, alert.updatedAt)} />
           </article>)}
         </div>
         <button className="overview-panel-action" type="button" onClick={() => onNavigate("alerts")}>{t("Overview.ViewAlerts")}</button>
@@ -423,7 +470,7 @@ function SeverityBadge({ severity }: { severity: EventSeverity }) {
   return <span className={`status-badge ${item.className}`}><span aria-hidden="true">{item.symbol}</span> {t(item.labelKey)}</span>;
 }
 
-function HistoryView({ snapshot }: { snapshot: ReturnType<typeof buildTimelineAlertSnapshot> }) {
+function HistoryView({ snapshot, now }: { snapshot: ReturnType<typeof buildTimelineAlertSnapshot>; now: Date }) {
   const { locale, t } = useLocalisation();
   const [query, setQuery] = useState("");
   const [severity, setSeverity] = useState<"all" | EventSeverity>("all");
@@ -431,20 +478,19 @@ function HistoryView({ snapshot }: { snapshot: ReturnType<typeof buildTimelineAl
   return <section className="inventory-panel timeline-panel" aria-labelledby="history-title">
     <div className="panel-header"><div><h2 id="history-title">{t("History.Title")}</h2><p aria-live="polite">{t("History.Count", events.length, snapshot.events.length)}</p></div><span className="read-only-label">history-alerts.v1</span></div>
     <div className="filters" role="search"><label><span>{t("History.Search")}</span><input type="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder={t("History.SearchPlaceholder")} /></label><label><span>{t("History.Severity")}</span><select value={severity} onChange={(event) => setSeverity(event.target.value as "all" | EventSeverity)}><option value="all">{t("History.AllSeverities")}</option><option value="information">{t("Severity.Information")}</option><option value="warning">{t("Severity.Warning")}</option><option value="critical">{t("Severity.Critical")}</option></select></label></div>
-    {events.length === 0 ? <FilteredEmpty message={t("History.FilteredEmpty")} /> : <ol className="timeline-list">{events.map((event) => <TimelineRow key={event.eventId} event={event} />)}</ol>}
+    {events.length === 0 ? <FilteredEmpty message={t("History.FilteredEmpty")} /> : <ol className="timeline-list">{events.map((event) => <TimelineRow key={event.eventId} event={event} now={now} />)}</ol>}
   </section>;
 }
 
-function TimelineRow({ event }: { event: TimelineEventItem }) {
-  const { locale } = useLocalisation();
-  return <li className={`timeline-item ${event.severity}`}><div className="timeline-marker" aria-hidden="true" /><article><div className="timeline-heading"><div><h3>{event.eventType}</h3><p>{event.instanceName} · <code>{event.providerType}</code></p></div><SeverityBadge severity={event.severity} /></div><p className="timeline-summary">{event.summary}</p><time dateTime={event.occurredAt}>{formatSystemDateTime(event.occurredAt, locale)}</time></article></li>;
+function TimelineRow({ event, now }: { event: TimelineEventItem; now: Date }) {
+  return <li className={`timeline-item ${event.severity}`}><div className="timeline-marker" aria-hidden="true" /><article><div className="timeline-heading"><div><h3>{event.eventType}</h3><p>{event.instanceName} · <code>{event.providerType}</code></p></div><SeverityBadge severity={event.severity} /></div><p className="timeline-summary">{event.summary}</p><EvidenceTimestamp value={event.occurredAt} now={now} invalid={hasInvalidTimestampOrder(event.occurredAt, event.receivedAt)} /></article></li>;
 }
 
-function AlertsView({ alerts, generatedAt }: { alerts: readonly AlertItem[]; generatedAt: string }) {
+function AlertsView({ alerts, generatedAt, now }: { alerts: readonly AlertItem[]; generatedAt: string; now: Date }) {
   const { locale, t } = useLocalisation();
   const active = alerts.filter((alert) => alert.state === "active").length;
   const critical = alerts.filter((alert) => alert.severity === "critical" && alert.state !== "resolved").length;
-  return <section aria-labelledby="alerts-title"><p className="updated-at">{t("Alerts.UpdatedAt", formatSystemDateTime(generatedAt, locale))}</p><div className="summary-grid alert-summary"><article className="summary-card critical"><span><i aria-hidden="true">■</i> {t("Alerts.CriticalOpen")}</span><strong>{critical}</strong></article><article className="summary-card degraded"><span><i aria-hidden="true">▲</i> {t("Alerts.Active")}</span><strong>{active}</strong></article><article className="summary-card"><span><i aria-hidden="true">✓</i> {t("Alerts.TotalVisible")}</span><strong>{alerts.length}</strong></article></div><div className="inventory-panel"><div className="panel-header"><div><h2 id="alerts-title">{t("Alerts.Title")}</h2><p>{t("Alerts.Description")}</p></div><span className="read-only-label">{t("Common.ReadOnly")}</span></div><div className="alert-list">{alerts.map((alert) => <article className="alert-card" key={alert.alertId}><div className="alert-card-heading"><SeverityBadge severity={alert.severity} /><span className="alert-state">{t(alert.state === "active" ? "AlertState.Active" : alert.state === "acknowledged" ? "AlertState.Acknowledged" : alert.state === "silenced" ? "AlertState.Silenced" : "AlertState.Resolved")}</span></div><h3>{alert.ruleName}</h3><p>{alert.summary}</p><dl><div><dt>{t("Common.Instance")}</dt><dd>{alert.instanceName}</dd></div><div><dt>{t("Common.Provider")}</dt><dd><code>{alert.providerType}</code></dd></div><div><dt>{t("Common.Updated")}</dt><dd><time dateTime={alert.updatedAt}>{formatSystemDateTime(alert.updatedAt, locale)}</time></dd></div></dl></article>)}</div></div></section>;
+  return <section aria-labelledby="alerts-title"><p className="updated-at">{t("Alerts.UpdatedAt", formatSystemDateTime(generatedAt, locale))}</p><div className="summary-grid alert-summary"><article className="summary-card critical"><span><i aria-hidden="true">■</i> {t("Alerts.CriticalOpen")}</span><strong>{critical}</strong></article><article className="summary-card degraded"><span><i aria-hidden="true">▲</i> {t("Alerts.Active")}</span><strong>{active}</strong></article><article className="summary-card"><span><i aria-hidden="true">✓</i> {t("Alerts.TotalVisible")}</span><strong>{alerts.length}</strong></article></div><div className="inventory-panel"><div className="panel-header"><div><h2 id="alerts-title">{t("Alerts.Title")}</h2><p>{t("Alerts.Description")}</p></div><span className="read-only-label">{t("Common.ReadOnly")}</span></div><div className="alert-list">{alerts.map((alert) => <article className="alert-card" key={alert.alertId}><div className="alert-card-heading"><SeverityBadge severity={alert.severity} /><span className="alert-state">{t(alert.state === "active" ? "AlertState.Active" : alert.state === "acknowledged" ? "AlertState.Acknowledged" : alert.state === "silenced" ? "AlertState.Silenced" : "AlertState.Resolved")}</span></div><h3>{alert.ruleName}</h3><p>{alert.summary}</p><dl><div><dt>{t("Common.Instance")}</dt><dd>{alert.instanceName}</dd></div><div><dt>{t("Common.Provider")}</dt><dd><code>{alert.providerType}</code></dd></div><div><dt>{t("Common.Updated")}</dt><dd><EvidenceTimestamp value={alert.updatedAt} now={now} invalid={hasInvalidTimestampOrder(alert.openedAt, alert.updatedAt)} /></dd></div></dl></article>)}</div></div></section>;
 }
 
 const previewCopy: Record<ActionPreview, { symbol: string; titleKey: MessageKey; messageKey: MessageKey }> = {
@@ -590,7 +636,8 @@ function ReadyInventory({
           <FilteredEmpty message={t("Inventory.FilteredEmpty")} />
         ) : (
           <>
-            <div className="table-wrap">
+              <div className="table-wrap" role="region" tabIndex={0} aria-label={t("Inventory.TableRegion")} aria-describedby="inventory-table-scroll-help">
+                <span id="inventory-table-scroll-help" className="sr-only">{t("Inventory.TableScrollHelp")}</span>
               <table>
                 <caption className="sr-only">{t("Inventory.Caption")}</caption>
                 <thead><tr><th scope="col">{t("Common.Instance")}</th><th scope="col">{t("Common.Provider")}</th><th scope="col">{t("Common.Support")}</th><th scope="col">{t("Common.Environment")}</th><th scope="col">{t("Common.Status")}</th><th scope="col">{t("Common.ObservedAt")}</th><th scope="col">{t("Common.Latency")}</th></tr></thead>
@@ -606,13 +653,12 @@ function ReadyInventory({
 }
 
 function InventoryTableRow({ item, now }: { item: InventoryItem; now: Date }) {
-  const { locale } = useLocalisation();
-  return <tr><th scope="row"><strong>{item.displayName}</strong><small>{item.locationLabel}</small></th><td><code>{item.providerType}</code></td><td>{item.supportLabel}</td><td>{item.environment}</td><td><StatusBadge item={item} now={now} /></td><td><time dateTime={item.observedAt}>{formatSystemDateTime(item.observedAt, locale)}</time></td><td>{item.latencyMilliseconds === null ? "—" : `${item.latencyMilliseconds} ms`}</td></tr>;
+  return <tr><th scope="row"><strong>{item.displayName}</strong><small>{item.locationLabel}</small></th><td><code>{item.providerType}</code></td><td>{item.supportLabel}</td><td>{item.environment}</td><td><StatusBadge item={item} now={now} /></td><td><EvidenceTimestamp value={item.observedAt} now={now} invalid={classifyEvidenceFreshness(item, now) === "unknown"} /></td><td>{item.latencyMilliseconds === null ? "—" : `${item.latencyMilliseconds} ms`}</td></tr>;
 }
 
 function InventoryMobileCard({ item, now }: { item: InventoryItem; now: Date }) {
-  const { locale, t } = useLocalisation();
-  return <article className="instance-card"><div className="instance-card-heading"><div><h3>{item.displayName}</h3><p>{item.locationLabel}</p></div><StatusBadge item={item} now={now} /></div><dl><div><dt>{t("Common.Provider")}</dt><dd><code>{item.providerType}</code></dd></div><div><dt>{t("Common.Support")}</dt><dd>{item.supportLabel}</dd></div><div><dt>{t("Common.Environment")}</dt><dd>{item.environment}</dd></div><div><dt>{t("Common.ObservedAt")}</dt><dd><time dateTime={item.observedAt}>{formatSystemDateTime(item.observedAt, locale)}</time></dd></div><div><dt>{t("Common.Latency")}</dt><dd>{item.latencyMilliseconds === null ? "—" : `${item.latencyMilliseconds} ms`}</dd></div></dl></article>;
+  const { t } = useLocalisation();
+  return <article className="instance-card"><div className="instance-card-heading"><div><h3>{item.displayName}</h3><p>{item.locationLabel}</p></div><StatusBadge item={item} now={now} /></div><dl><div><dt>{t("Common.Provider")}</dt><dd><code>{item.providerType}</code></dd></div><div><dt>{t("Common.Support")}</dt><dd>{item.supportLabel}</dd></div><div><dt>{t("Common.Environment")}</dt><dd>{item.environment}</dd></div><div><dt>{t("Common.ObservedAt")}</dt><dd><EvidenceTimestamp value={item.observedAt} now={now} invalid={classifyEvidenceFreshness(item, now) === "unknown"} /></dd></div><div><dt>{t("Common.Latency")}</dt><dd>{item.latencyMilliseconds === null ? "—" : `${item.latencyMilliseconds} ms`}</dd></div></dl></article>;
 }
 
 function OperationalState({ state, onRetry }: { state: Exclude<InventoryState, "ready">; onRetry: () => void }) {

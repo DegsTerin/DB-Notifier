@@ -32,6 +32,7 @@
   <message key="TopBar.NotificationsSimple">Open alerts</message>
   <message key="TopBar.Settings">Open settings</message>
   <message key="Navigation.Skip">Skip to content</message>
+  <message key="Navigation.Current">Current destination</message>
   <message key="Sidebar.State">STATE-05</message>
   <message key="Sidebar.ReadOnly">Read-only interface</message>
   <message key="Scenario.Label">Accessible scenario</message>
@@ -169,6 +170,8 @@
   <message key="Inventory.Degraded">Degraded</message>
   <message key="Inventory.Attention">Attention</message>
   <message key="Inventory.Stale">Stale</message>
+  <message key="Inventory.TableRegion">Scrollable instance inventory</message>
+  <message key="Inventory.TableScrollHelp">Use the arrow keys to reach columns that are outside the visible table area.</message>
   <message key="Inventory.Title">Monitored instances</message>
   <message key="Inventory.Count">{0} of {1} items visible</message>
   <message key="Inventory.Search">Search</message>

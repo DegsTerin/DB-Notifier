@@ -5,7 +5,7 @@
 | Field | Value |
 |---|---|
 | Status | Official frontend specification |
-| Design System version | `2.6.14` |
+| Design System version | `3.0.0` |
 | Product phase | `STATE-05 FRONTEND_IMPLEMENTATION` |
 | Platforms | React Web Dashboard and .NET 10 WPF Desktop/Tray |
 | Themes | Light and Dark; Windows High Contrast is an accessibility override |
@@ -323,7 +323,21 @@ Provider support labels use neutral/information semantics:
 - `Unavailable`: warning only when a normally supported capability is temporarily unavailable.
 - `Denied`: critical access state without implying system failure.
 
-### 6.4 Required contrast evidence
+### 6.4 Provider-neutral categorical data
+
+Categorical graphics use the stable ordinal tokens below. Their values come only from the canonical DB-Notifier brand and neutral palettes; they are product-owned presentation slots, not copied vendor colours, provider identity, operational status, support, implementation or homologation evidence. Consumers assign categories by the stable order of the visible dataset and keep the provider name or other category label visible as the authoritative identity. A category colour MUST NOT change because health, freshness or support changes.
+
+| Semantic token | Light | Dark |
+|---|---:|---:|
+| `colour.data.category.1` | `#0B5CAD` | `#86C4F4` |
+| `colour.data.category.2` | `#334650` | `#B8C5CF` |
+| `colour.data.category.3` | `#063A6C` | `#63B3ED` |
+| `colour.data.category.4` | `#526273` | `#94A6B2` |
+| `colour.data.category.5` | `#084B8A` | `#B9DDFF` |
+
+The former provider-named primitive and component tokens are removed in Design System `3.0.0`. Provider glyphs in the neutral catalogue use the locally defined generic database outline or plain text abbreviations, never an unlicensed vendor logo or an approximation of vendor artwork. In Windows High Contrast, every categorical brush resolves to the current Windows text brush so the operating system owns contrast.
+
+### 6.5 Required contrast evidence
 
 The initial palette has the following calculated text contrast ratios:
 
@@ -339,6 +353,8 @@ The initial palette has the following calculated text contrast ratios:
 | Dark primary action foreground/background | `8.22:1` |
 | Dark focus ring / surface | `11.23:1` |
 | Dark status pairs | `8.13:1` to `9.61:1` |
+| Light categorical colours / raised surface | `6.26:1` to `11.48:1` |
+| Dark categorical colours / raised surface | `5.77:1` to `10.25:1` |
 
 Generated theme tests MUST recompute ratios. The table is evidence for the specification, not a substitute for automated validation.
 
@@ -480,7 +496,7 @@ Summary bands MUST use the available width of their owning operational region an
 
 ### 10.5.1 Operational overview
 
-`OperationalOverview` is the default Dashboard and Desktop landing view. It composes the existing inventory, alert and freshness presentation adapters into four summary metrics, a fleet-status list with recognisable provider glyphs and textual coloured states, a recent-alert list with semantic icons including a rotating-arrow Restarted symbol, a deterministic Performance chart and a Providers distribution. Every panel MUST expose its demonstration or source truth and link only to existing safe detailed views. Graphics supplement visible text and MUST NOT imply external telemetry, support or homologation.
+`OperationalOverview` is the default Dashboard and Desktop landing view. It composes the existing inventory, alert and freshness presentation adapters into four summary metrics, a fleet-status list with one generic database glyph beside authoritative provider text and textual status, a recent-alert list with semantic icons including a rotating-arrow Restarted symbol, a deterministic Performance chart and a Providers distribution. Every panel MUST expose its demonstration or source truth and link only to existing safe detailed views. Graphics supplement visible text and MUST NOT imply external telemetry, support or homologation.
 
 At standard desktop width, fleet status and recent alerts form the primary two-column row, with trend and provider distribution beneath it. At compact widths all panels reflow to one content column, instance status/latency remain textual and decorative sparklines MAY be reduced without removing evidence. TV mode uses this same Overview rather than creating an independent data contract.
 

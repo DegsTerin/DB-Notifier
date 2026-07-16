@@ -130,7 +130,8 @@ internal sealed class DesktopThemeService : IDisposable
             "ComponentShellChromeBackgroundBrush", "ComponentShellChromeSurfaceBrush");
         Add(resources, WpfSystemColors.WindowTextBrush,
             "ColourTextPrimaryBrush", "ColourTextSecondaryBrush", "ColourTextMutedBrush", "ColourChromeForegroundBrush", "ColourChromeMutedBrush",
-            "ComponentButtonSecondaryForegroundBrush", "ComponentInputForegroundBrush", "ComponentShellChromeForegroundBrush", "ComponentShellChromeMutedBrush");
+            "ColourDataCategory1Brush", "ColourDataCategory2Brush", "ColourDataCategory3Brush", "ColourDataCategory4Brush", "ColourDataCategory5Brush",
+            "ComponentBrandWordmarkAccentBrush", "ComponentButtonSecondaryForegroundBrush", "ComponentInputForegroundBrush", "ComponentShellChromeForegroundBrush", "ComponentShellChromeMutedBrush");
         Add(resources, WpfSystemColors.ControlBrush, "ColourSurfaceInverseBrush");
         Add(resources, WpfSystemColors.ControlTextBrush, "ColourTextInverseBrush");
         Add(resources, WpfSystemColors.ActiveBorderBrush, "ColourBorderDefaultBrush", "ColourBorderStrongBrush", "ColourChromeBorderBrush", "ComponentCardBorderBrush", "ComponentButtonSecondaryBorderBrush", "ComponentInputBorderBrush", "ComponentShellChromeBorderBrush");

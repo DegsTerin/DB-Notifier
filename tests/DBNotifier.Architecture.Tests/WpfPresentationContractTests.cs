@@ -65,6 +65,21 @@ public sealed class WpfPresentationContractTests
         Assert.DoesNotContain("<AssemblyName>DB Notifier</AssemblyName>", project, StringComparison.Ordinal);
     }
 
+    /// <summary>Ensures invalid future or reversed inventory evidence is not rendered as a factual desktop timestamp.</summary>
+    [Fact]
+    public void WpfInventorySuppressesTimestampWhenFreshnessIsUnknown()
+    {
+        string mainWindow = File.ReadAllText(Path.Combine(
+            RepositoryRoot(),
+            "src",
+            "DBNotifier.Desktop.Wpf",
+            "MainWindow.xaml.cs"));
+
+        Assert.Contains("string observedAt = freshness == EvidenceFreshness.Unknown", mainWindow, StringComparison.Ordinal);
+        Assert.Contains("? localisation.Text(\"Status.Unknown\")", mainWindow, StringComparison.Ordinal);
+        Assert.Contains("observedAt, latency", mainWindow, StringComparison.Ordinal);
+    }
+
     /// <summary>Ensures native caption and scrolling chrome follow generated theme resources without replacing Windows accessibility ownership.</summary>
     [Fact]
     public void WpfNativeChromeUsesThemeAwarePlatformAdapters()
@@ -146,7 +161,7 @@ public sealed class WpfPresentationContractTests
         Assert.Contains("Stretch=\"None\" SnapsToDevicePixels=\"True\"", mainWindowMarkup, StringComparison.Ordinal);
         Assert.Contains("Stretch=\"None\" SnapsToDevicePixels=\"True\"", flyoutMarkup, StringComparison.Ordinal);
         Assert.Equal(
-            2,
+            3,
             Regex.Count(
                 trayController,
                 Regex.Escape("Forms.SystemInformation.SmallIconSize.Width"),
@@ -202,6 +217,69 @@ public sealed class WpfPresentationContractTests
         Assert.Contains("WmSetIcon", policy, StringComparison.Ordinal);
         Assert.Contains("IconSmall2", policy, StringComparison.Ordinal);
         Assert.Contains("IconBig", policy, StringComparison.Ordinal);
+    }
+
+    /// <summary>Ensures WPF accessibility, dialogue and High Contrast contracts remain explicit in source and token-driven markup.</summary>
+    [Fact]
+    public void WpfAccessibilityContractsCoverStateChangesGraphsDialogsAndTargets()
+    {
+        string desktopDirectory = Path.Combine(RepositoryRoot(), "src", "DBNotifier.Desktop.Wpf");
+        string mainWindowMarkup = File.ReadAllText(Path.Combine(desktopDirectory, "MainWindow.xaml"));
+        string mainWindow = File.ReadAllText(Path.Combine(desktopDirectory, "MainWindow.xaml.cs"));
+        string themeService = File.ReadAllText(Path.Combine(desktopDirectory, "DesktopThemeService.cs"));
+        string controlStyles = File.ReadAllText(Path.Combine(desktopDirectory, "Resources", "ControlStyles.xaml"));
+        string dialogMarkup = File.ReadAllText(Path.Combine(desktopDirectory, "CapabilityPreviewDialog.xaml"));
+        string dialog = File.ReadAllText(Path.Combine(desktopDirectory, "CapabilityPreviewDialog.xaml.cs"));
+
+        Assert.Contains("<Setter Property=\"Width\" Value=\"{DynamicResource ControlHeightCompact}\" />", mainWindowMarkup, StringComparison.Ordinal);
+        Assert.Contains("<Setter Property=\"Height\" Value=\"{DynamicResource ControlHeightCompact}\" />", mainWindowMarkup, StringComparison.Ordinal);
+        Assert.Equal(2, Regex.Count(mainWindowMarkup, "AutomationProperties.Name=\"\\{DynamicResource Overview\\.TrendAccessibleLabel\\}\"", RegexOptions.CultureInvariant));
+        Assert.Contains("AutomationProperties.SetItemStatus(button, active ? Text(\"Navigation.Current\") : string.Empty)", mainWindow, StringComparison.Ordinal);
+        Assert.Contains("AutomationEvents.LiveRegionChanged", mainWindow, StringComparison.Ordinal);
+        Assert.Contains("x:Name=\"StateMessageText\"", mainWindowMarkup, StringComparison.Ordinal);
+        Assert.Contains("AutomationProperties.LiveSetting=\"Polite\"", mainWindowMarkup, StringComparison.Ordinal);
+        Assert.Contains("AutomationProperties.SetName(StateMessageText", mainWindow, StringComparison.Ordinal);
+        Assert.Contains("UIElementAutomationPeer.CreatePeerForElement(StateMessageText)", mainWindow, StringComparison.Ordinal);
+        Assert.Contains("KeyboardNavigation.TabNavigation=\"Cycle\"", dialogMarkup, StringComparison.Ordinal);
+        Assert.Contains("x:Name=\"ExecuteButton\"", dialogMarkup, StringComparison.Ordinal);
+        Assert.Contains("IsEnabled=\"False\"", dialogMarkup, StringComparison.Ordinal);
+        Assert.Contains("IsCancel=\"True\"", dialogMarkup, StringComparison.Ordinal);
+        Assert.Contains("VerticalScrollBarVisibility=\"Auto\"", dialogMarkup, StringComparison.Ordinal);
+        Assert.Contains("NativeWindowThemePolicy.Apply(this, theme)", dialog, StringComparison.Ordinal);
+        Assert.Contains("e.Key == System.Windows.Input.Key.Escape", dialog, StringComparison.Ordinal);
+        Assert.Contains("dialog.ShowDialog()", mainWindow, StringComparison.Ordinal);
+        Assert.Contains("opener?.Focus()", mainWindow, StringComparison.Ordinal);
+        Assert.DoesNotContain("MessageBox.Show", mainWindow, StringComparison.Ordinal);
+        Assert.Contains("<Trigger Property=\"IsEnabled\" Value=\"False\">", controlStyles, StringComparison.Ordinal);
+        Assert.Contains("ComponentBrandWordmarkAccentBrush", themeService, StringComparison.Ordinal);
+        for (int category = 1; category <= 5; category++)
+        {
+            Assert.Contains($"ColourDataCategory{category}Brush", themeService, StringComparison.Ordinal);
+        }
+    }
+
+    /// <summary>Ensures language, navigation and bounded refreshes age one immutable desktop evidence snapshot across shell and Tray.</summary>
+    [Fact]
+    public void WpfDesktopSurfacesShareImmutableFreshnessEvidence()
+    {
+        string desktopDirectory = Path.Combine(RepositoryRoot(), "src", "DBNotifier.Desktop.Wpf");
+        string application = File.ReadAllText(Path.Combine(desktopDirectory, "App.xaml.cs"));
+        string evidence = File.ReadAllText(Path.Combine(desktopDirectory, "DesktopDemonstrationEvidence.cs"));
+        string mainWindow = File.ReadAllText(Path.Combine(desktopDirectory, "MainWindow.xaml.cs"));
+        string flyout = File.ReadAllText(Path.Combine(desktopDirectory, "TrayFlyoutWindow.xaml.cs"));
+        string trayController = File.ReadAllText(Path.Combine(desktopDirectory, "TrayApplicationController.cs"));
+
+        Assert.Equal(1, Regex.Count(application, "DesktopDemonstrationEvidence\\.Create", RegexOptions.CultureInvariant));
+        Assert.Contains("evidence.CreateInventorySnapshot(localisation)", mainWindow, StringComparison.Ordinal);
+        Assert.Contains("CreateTimelineSnapshot(evidence.GeneratedAt)", mainWindow, StringComparison.Ordinal);
+        Assert.Contains("FormatUtc(evidence.GeneratedAt)", mainWindow, StringComparison.Ordinal);
+        Assert.DoesNotContain("fixtureGeneratedAt", mainWindow, StringComparison.Ordinal);
+        Assert.Contains("TrayFleetPresentationPolicy.Summarise(CreateInventorySnapshot", evidence, StringComparison.Ordinal);
+        Assert.Contains("Interval = TimeSpan.FromSeconds(30)", trayController, StringComparison.Ordinal);
+        Assert.Contains("window.RefreshOperationalEvidence(evaluatedAt, next.State)", trayController, StringComparison.Ordinal);
+        Assert.DoesNotContain("notifyIcon.DoubleClick", trayController, StringComparison.Ordinal);
+        Assert.Contains("FormatUtc(evidence.GeneratedAt)", flyout, StringComparison.Ordinal);
+        Assert.DoesNotContain("TimeProvider.System.GetUtcNow", flyout, StringComparison.Ordinal);
     }
 
     /// <summary>Finds the repository root from the compiled test output without depending on the caller's working directory.</summary>

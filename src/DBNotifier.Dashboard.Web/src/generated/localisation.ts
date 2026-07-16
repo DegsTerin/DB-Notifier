@@ -1,4 +1,4 @@
-/** Generated from dbnotifier.localisation.v1; source sha256:ac2e7805722966c09a98aa46ede301f954c178147a73aa6e9b3421a5f9989855. Do not edit directly. */
+/** Generated from dbnotifier.localisation.v1; source sha256:8c5690895b95ebb84e73f28795e53d6202ad7347cf28c08ab5db5df0c3f0052e. Do not edit directly. */
 const ptBRMessages = {
   "Action.Restart": "Reiniciar",
   "Action.Start": "Iniciar",
@@ -71,6 +71,8 @@ const ptBRMessages = {
   "Inventory.Search": "Buscar",
   "Inventory.SearchPlaceholder": "Nome, provider, ambiente...",
   "Inventory.Stale": "Desatualizadas",
+  "Inventory.TableRegion": "Inventário rolável de instâncias",
+  "Inventory.TableScrollHelp": "Use as teclas de seta para alcançar colunas fora da área visível da tabela.",
   "Inventory.Title": "Instâncias monitoradas",
   "Inventory.Total": "Total",
   "Inventory.UpdatedAt": "Atualizado em {0} · stale após {1} min",
@@ -81,6 +83,7 @@ const ptBRMessages = {
   "Language.Toggle": "Idioma: {0}. Alternar para {1}",
   "Navigation.Alerts": "Alertas",
   "Navigation.Configuration": "Configuração",
+  "Navigation.Current": "Destino atual",
   "Navigation.History": "Histórico",
   "Navigation.Inventory": "Instâncias",
   "Navigation.Label": "Navegação principal",
@@ -333,6 +336,8 @@ const enGBMessages = {
   "Inventory.Search": "Search",
   "Inventory.SearchPlaceholder": "Name, provider, environment...",
   "Inventory.Stale": "Stale",
+  "Inventory.TableRegion": "Scrollable instance inventory",
+  "Inventory.TableScrollHelp": "Use the arrow keys to reach columns that are outside the visible table area.",
   "Inventory.Title": "Monitored instances",
   "Inventory.Total": "Total",
   "Inventory.UpdatedAt": "Updated at {0} · stale after {1} min",
@@ -343,6 +348,7 @@ const enGBMessages = {
   "Language.Toggle": "Language: {0}. Switch to {1}",
   "Navigation.Alerts": "Alerts",
   "Navigation.Configuration": "Configuration",
+  "Navigation.Current": "Current destination",
   "Navigation.History": "History",
   "Navigation.Inventory": "Instances",
   "Navigation.Label": "Main navigation",

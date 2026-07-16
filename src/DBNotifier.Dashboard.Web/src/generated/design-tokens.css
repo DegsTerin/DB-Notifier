@@ -1,4 +1,4 @@
-/* Generated from dbnotifier.design-tokens.v1; source sha256:aa7d74432e2ccc72592c2dc517cc1c0c7d88fce12da08b8b6ed3f2c415fd1daa. Do not edit directly. */
+/* Generated from dbnotifier.design-tokens.v1; source sha256:5bcbebc7583bddc5e027cda86be52a902f93bb595167c4959826ae0b0378e5f8. Do not edit directly. */
 :root {
   --db-control-height-comfortable: 44px;
   --db-control-height-compact: 40px;
@@ -57,11 +57,6 @@
   --db-palette-neutralstatus-dark-foreground: #C2CDD4;
   --db-palette-neutralstatus-light-background: #F0F3F5;
   --db-palette-neutralstatus-light-foreground: #4E5C69;
-  --db-palette-provider-mongodb: #63C44D;
-  --db-palette-provider-mysql: #D7A44B;
-  --db-palette-provider-oracle: #EF4B3F;
-  --db-palette-provider-postgresql: #5EA4D6;
-  --db-palette-provider-sqlserver: #EF6455;
   --db-palette-success-dark-background: #0F2A1E;
   --db-palette-success-dark-foreground: #75D69C;
   --db-palette-success-light-background: #EDF8F1;
@@ -111,6 +106,11 @@
   --db-colour-chrome-selected-background: #DCEEFF;
   --db-colour-chrome-selected-foreground: #052C50;
   --db-colour-chrome-surface: #18384F;
+  --db-colour-data-category-1: #0B5CAD;
+  --db-colour-data-category-2: #334650;
+  --db-colour-data-category-3: #063A6C;
+  --db-colour-data-category-4: #526273;
+  --db-colour-data-category-5: #084B8A;
   --db-colour-focus-ring: #9A4A00;
   --db-colour-overlay-scrim: #081926AD;
   --db-colour-selection-background: #DCEEFF;
@@ -151,11 +151,6 @@
   --db-component-input-background: #FFFFFF;
   --db-component-input-border: #9AACBC;
   --db-component-input-foreground: #17202A;
-  --db-component-provider-mongodb: #63C44D;
-  --db-component-provider-mysql: #D7A44B;
-  --db-component-provider-oracle: #EF4B3F;
-  --db-component-provider-postgresql: #5EA4D6;
-  --db-component-provider-sqlserver: #EF6455;
   --db-component-shell-chrome-background: #10283B;
   --db-component-shell-chrome-border: #3B586C;
   --db-component-shell-chrome-foreground: #F4F7FA;
@@ -196,6 +191,11 @@
   --db-colour-chrome-selected-background: #24465D;
   --db-colour-chrome-selected-foreground: #F4F7FA;
   --db-colour-chrome-surface: #172C3A;
+  --db-colour-data-category-1: #86C4F4;
+  --db-colour-data-category-2: #B8C5CF;
+  --db-colour-data-category-3: #63B3ED;
+  --db-colour-data-category-4: #94A6B2;
+  --db-colour-data-category-5: #B9DDFF;
   --db-colour-focus-ring: #FFC857;
   --db-colour-overlay-scrim: #000000BD;
   --db-colour-selection-background: #063A6C;
@@ -236,11 +236,6 @@
   --db-component-input-background: #111C24;
   --db-component-input-border: #58707D;
   --db-component-input-foreground: #F2F6F8;
-  --db-component-provider-mongodb: #63C44D;
-  --db-component-provider-mysql: #D7A44B;
-  --db-component-provider-oracle: #EF4B3F;
-  --db-component-provider-postgresql: #5EA4D6;
-  --db-component-provider-sqlserver: #EF6455;
   --db-component-shell-chrome-background: #0E1B25;
   --db-component-shell-chrome-border: #3B586C;
   --db-component-shell-chrome-foreground: #F4F7FA;

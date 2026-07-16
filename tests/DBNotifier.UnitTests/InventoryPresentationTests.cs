@@ -26,8 +26,31 @@ public sealed class InventoryPresentationTests
         Assert.Equal(4, summary.Total);
         Assert.Equal(1, summary.Healthy);
         Assert.Equal(1, summary.Degraded);
+        Assert.Equal(1, summary.Warning);
         Assert.Equal(1, summary.AttentionRequired);
         Assert.Equal(1, summary.Stale);
+    }
+
+    [Fact]
+    public void SummaryExcludesEveryStaleHealthClassAndIncludesCurrentMaintenanceAsWarning()
+    {
+        InventorySnapshot snapshot = new(
+            InventorySnapshot.CurrentSchemaVersion,
+            Now,
+            [
+                CreateItem(HealthStatus.Healthy, Now.AddMinutes(-8)),
+                CreateItem(HealthStatus.Degraded, Now.AddMinutes(-8)),
+                CreateItem(HealthStatus.Timeout, Now.AddMinutes(-8)),
+                CreateItem(HealthStatus.Maintenance, Now.AddMinutes(-2)),
+            ]);
+
+        InventoryStatusSummary summary = snapshot.Summarize(Now, TimeSpan.FromMinutes(5));
+
+        Assert.Equal(0, summary.Healthy);
+        Assert.Equal(0, summary.Degraded);
+        Assert.Equal(1, summary.Warning);
+        Assert.Equal(0, summary.AttentionRequired);
+        Assert.Equal(3, summary.Stale);
     }
 
     [Fact]
@@ -45,6 +68,45 @@ public sealed class InventoryPresentationTests
         InstanceInventoryItem item = CreateItem(HealthStatus.Unknown, Now);
 
         Assert.Throws<ArgumentOutOfRangeException>(() => item.IsStale(Now, TimeSpan.Zero));
+    }
+
+    [Fact]
+    public void FutureOrReversedEvidenceFailsToUnknownFreshness()
+    {
+        InstanceInventoryItem future = CreateItem(HealthStatus.Healthy, Now.AddSeconds(1));
+        InstanceInventoryItem reversed = CreateItem(HealthStatus.Healthy, Now) with
+        {
+            ObservedAt = Now.AddSeconds(1),
+        };
+
+        Assert.Equal(EvidenceFreshness.Unknown, future.GetFreshness(Now, TimeSpan.FromMinutes(5)));
+        Assert.Equal(EvidenceFreshness.Unknown, reversed.GetFreshness(Now, TimeSpan.FromMinutes(5)));
+        Assert.False(future.IsStale(Now, TimeSpan.FromMinutes(5)));
+    }
+
+    /// <summary>Verifies that Tray and detailed inventory age the same immutable evidence without moving its generated instant.</summary>
+    [Fact]
+    public void FleetSummaryAgesTheImmutableInventorySnapshotToUnknown()
+    {
+        InventorySnapshot snapshot = new(
+            InventorySnapshot.CurrentSchemaVersion,
+            Now,
+            [
+                CreateItem(HealthStatus.Healthy, Now.AddMinutes(-1)),
+                CreateItem(HealthStatus.Degraded, Now.AddMinutes(-2)),
+                CreateItem(HealthStatus.Timeout, Now.AddMinutes(-3)),
+            ]);
+
+        TrayFleetSummary initial = TrayFleetPresentationPolicy.Summarise(snapshot, Now, TimeSpan.FromMinutes(5));
+        TrayFleetSummary aged = TrayFleetPresentationPolicy.Summarise(snapshot, Now.AddMinutes(10), TimeSpan.FromMinutes(5));
+
+        Assert.Equal(TrayAggregateState.Critical, initial.State);
+        Assert.Equal(1, initial.HealthyCount);
+        Assert.Equal(1, initial.WarningCount);
+        Assert.Equal(1, initial.CriticalCount);
+        Assert.Equal(TrayAggregateState.Unknown, aged.State);
+        Assert.Equal(3, aged.UnknownCount);
+        Assert.Equal(Now, snapshot.GeneratedAt);
     }
 
     [Fact]

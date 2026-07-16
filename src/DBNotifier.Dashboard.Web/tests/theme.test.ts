@@ -140,7 +140,8 @@ test("both interfaces expose one accessible icon button per global preference in
   assert.doesNotMatch(themeSelector, /role="group"|aria-pressed=/);
   assert.doesNotMatch(themeSelector, /<fieldset|<input/i);
   assert.match(css, /\.topbar-controls\s*\{[^}]*margin-left:\s*auto;[^}]*justify-content:\s*flex-end;/s);
-  assert.match(css, /\.preference-icon-button\s*\{[^}]*width:\s*var\(--db-control-height-compact\);[^}]*display:\s*grid;/s);
+  assert.match(css, /\.preference-icon-button\s*\{[^}]*width:\s*var\(--db-control-height-comfortable\);[^}]*display:\s*grid;/s);
+  assert.doesNotMatch(css, /button[^{}]*\{[^}]*min-height:\s*(?:34px|var\(--db-control-height-compact\))/s);
 
   for (const automationId of ["LanguagePreferenceButton", "ThemePreferenceButton"]) {
     assert.match(desktopXaml, new RegExp(`<Button x:Name="${automationId}"`));
@@ -197,5 +198,25 @@ test("canonical Light and Dark semantic text pairs meet WCAG AA", () => {
       const background = resolveColour(semantic[backgroundKey], core);
       assert.ok(contrastRatio(foreground, background) >= 4.5, `${theme}: ${foregroundKey} on ${backgroundKey}`);
     }
+    for (let category = 1; category <= 5; category += 1) {
+      const foregroundKey = `colour.data.category.${category}`;
+      const foreground = resolveColour(semantic[foregroundKey], core);
+      const background = resolveColour(semantic["colour.surface.raised"], core);
+      assert.ok(contrastRatio(foreground, background) >= 4.5, `${theme}: ${foregroundKey} on colour.surface.raised`);
+    }
   }
+});
+
+test("provider presentation uses only neutral categorical tokens and locally defined generic geometry", () => {
+  const core = readFileSync(new URL("../../../design-system/tokens/core.tokens.json", import.meta.url), "utf8");
+  const components = readFileSync(new URL("../../../design-system/tokens/components.tokens.json", import.meta.url), "utf8");
+  const providerIcon = readFileSync(new URL("../src/ProviderIcon.tsx", import.meta.url), "utf8");
+  const css = readFileSync(new URL("../src/styles.css", import.meta.url), "utf8");
+
+  assert.doesNotMatch(core, /palette\.provider\./);
+  assert.doesNotMatch(components, /component\.provider\./);
+  assert.doesNotMatch(providerIcon, /providerType ===|provider-\$\{providerType\}/);
+  assert.match(providerIcon, /<ellipse cx="16" cy="8" rx="10" ry="4"\/>/);
+  assert.match(css, /provider-ring-segment\.segment-5[^{]*\{[^}]*--db-colour-data-category-5/s);
+  assert.doesNotMatch(css, /provider-ring-segment[^}]*--db-(?:component|colour)-status/s);
 });

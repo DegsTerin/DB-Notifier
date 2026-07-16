@@ -219,6 +219,22 @@ public sealed record TrayFleetSummary(
 /// <summary>Classifies fleet evidence for compact notification-area presentation without provider-specific branches.</summary>
 public static class TrayFleetPresentationPolicy
 {
+    /// <summary>Creates a fleet summary directly from immutable inventory evidence and the canonical freshness policy.</summary>
+    /// <param name="snapshot">Inventory snapshot whose timestamps and provider-neutral statuses are evaluated.</param>
+    /// <param name="now">Current UTC instant used only to evaluate evidence freshness.</param>
+    /// <param name="staleAfter">Strictly positive maximum age for current evidence.</param>
+    /// <returns>Counts and aggregate state derived from the same evidence used by detailed inventory presentation.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="snapshot"/> is null.</exception>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="staleAfter"/> is not positive.</exception>
+    public static TrayFleetSummary Summarise(InventorySnapshot snapshot, DateTimeOffset now, TimeSpan staleAfter)
+    {
+        ArgumentNullException.ThrowIfNull(snapshot);
+        ArgumentOutOfRangeException.ThrowIfLessThanOrEqual(staleAfter, TimeSpan.Zero);
+        return Summarise((snapshot.Items ?? []).Select(item => new TrayFleetSignal(
+            item.Status,
+            item.GetFreshness(now, staleAfter) != EvidenceFreshness.Current)));
+    }
+
     /// <summary>Creates a deterministic fleet summary while preventing stale evidence from being reported as healthy.</summary>
     /// <param name="signals">The bounded set of provider-neutral instance signals to classify.</param>
     /// <returns>Counts and aggregate state using critical, warning, unknown and healthy precedence.</returns>

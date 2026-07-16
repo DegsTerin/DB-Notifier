@@ -2,8 +2,11 @@
 using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Windows;
+using System.Windows.Automation;
+using System.Windows.Automation.Peers;
 using System.Windows.Controls;
 using System.Windows.Media;
+using System.Windows.Threading;
 using DBNotifier.Application.Presentation;
 using DBNotifier.Domain;
 
@@ -29,10 +32,9 @@ internal enum DesktopView
 /// </summary>
 public partial class MainWindow : Window
 {
-    private static readonly TimeSpan StaleAfter = TimeSpan.FromMinutes(5);
     private readonly DesktopLocalisationService localisation;
     private readonly DesktopThemeService theme;
-    private readonly TrayAggregateState aggregateState;
+    private readonly DesktopDemonstrationEvidence evidence;
     private readonly ObservableCollection<InventoryRow> rows = [];
     private readonly ObservableCollection<TimelineRow> timelineRows = [];
     private readonly ObservableCollection<AlertRow> alertRows = [];
@@ -41,16 +43,24 @@ public partial class MainWindow : Window
     private TimelineAlertSnapshot timelineSnapshot = null!;
     private ConfigurationCapabilitySnapshot configurationSnapshot = null!;
     private DesktopView currentView = DesktopView.Overview;
+    private TrayAggregateState aggregateState;
     private IDisposable? windowIconLease;
+    private bool nativeIconsInitialised;
 
     /// <summary>Initialises the local demonstration surface with loaded preferences and one factual aggregate icon state.</summary>
     /// <param name="localisation">Desktop localisation owner shared with the application and tray controller.</param>
     /// <param name="theme">Desktop theme owner shared with the application.</param>
-    /// <param name="aggregateState">Provider-neutral fleet state shared by the window, flyout and notification icon.</param>
-    internal MainWindow(DesktopLocalisationService localisation, DesktopThemeService theme, TrayAggregateState aggregateState)
+    /// <param name="evidence">Immutable locale-independent evidence shared with Tray presentation.</param>
+    /// <param name="aggregateState">Initial provider-neutral fleet state shared by every product-mark surface.</param>
+    internal MainWindow(
+        DesktopLocalisationService localisation,
+        DesktopThemeService theme,
+        DesktopDemonstrationEvidence evidence,
+        TrayAggregateState aggregateState)
     {
         this.localisation = localisation;
         this.theme = theme;
+        this.evidence = evidence;
         this.aggregateState = aggregateState;
         InitializeComponent();
         SourceInitialized += MainWindowSourceInitialized;
@@ -85,6 +95,7 @@ public partial class MainWindow : Window
         Icon = BrandStatusIconPolicy.LoadImageSource(aggregateState, 32, dpi);
         BrandStatusImage.Source = BrandStatusIconPolicy.LoadImageSource(aggregateState, 40, dpi);
         windowIconLease = BrandStatusIconPolicy.ApplyNativeWindowIcons(this, aggregateState);
+        nativeIconsInitialised = true;
         NativeWindowThemePolicy.Apply(this, theme);
     }
 
@@ -96,6 +107,43 @@ public partial class MainWindow : Window
         ScenarioSelector.SelectedIndex = 0;
         UpdateNavigationState();
         PresentReadyState();
+    }
+
+    /// <summary>Re-evaluates visible freshness and product-mark state without replacing the immutable evidence snapshot.</summary>
+    /// <param name="evaluatedAt">UTC instant supplied by the shared desktop reconciliation timer.</param>
+    /// <param name="state">Aggregate state derived from the same immutable evidence.</param>
+    internal void RefreshOperationalEvidence(DateTimeOffset evaluatedAt, TrayAggregateState state)
+    {
+        UpdateAggregateState(state);
+        if (ScenarioSelector.SelectedItem is ComboBoxItem selected &&
+            Enum.TryParse(selected.Tag?.ToString(), false, out InventorySurfaceState surfaceState) &&
+            surfaceState == InventorySurfaceState.Ready)
+        {
+            PresentReadyState(evaluatedAt);
+        }
+    }
+
+    /// <summary>Updates WPF image and native window icon roles only when reconciled fleet state changes.</summary>
+    /// <param name="state">Current provider-neutral aggregate derived from shared evidence.</param>
+    private void UpdateAggregateState(TrayAggregateState state)
+    {
+        if (state == aggregateState)
+        {
+            return;
+        }
+
+        aggregateState = state;
+        if (!nativeIconsInitialised)
+        {
+            return;
+        }
+
+        DpiScale dpi = VisualTreeHelper.GetDpi(this);
+        Icon = BrandStatusIconPolicy.LoadImageSource(state, 32, dpi);
+        BrandStatusImage.Source = BrandStatusIconPolicy.LoadImageSource(state, 40, dpi);
+        IDisposable replacement = BrandStatusIconPolicy.ApplyNativeWindowIcons(this, state);
+        windowIconLease?.Dispose();
+        windowIconLease = replacement;
     }
 
     /// <summary>Selects one of the eight read-only desktop destinations exposed by the shared product navigation.</summary>
@@ -245,21 +293,23 @@ public partial class MainWindow : Window
     {
         if (CapabilityGrid.SelectedItem is not CapabilityRow selected)
         {
-            System.Windows.MessageBox.Show(this, Text("Configuration.SelectCapability"), "DB Notifier", MessageBoxButton.OK, MessageBoxImage.Information);
+            ShowOwnedDialog("Configuration.AdminTitle", "Configuration.SelectCapability", sender as UIElement);
             return;
         }
 
         bool authorised = PermissionSelector.SelectedItem is ComboBoxItem permission &&
             string.Equals(permission.Tag?.ToString(), "Authorized", StringComparison.Ordinal);
-        ShowPreview(configurationSnapshot.Preview(selected.CapabilityId, authorised));
+        ShowPreview(configurationSnapshot.Preview(selected.CapabilityId, authorised), sender as UIElement);
     }
 
     /// <summary>Shows the safe confirmation UX example without enabling execution.</summary>
     private void PreviewConfirmationClick(object sender, RoutedEventArgs e) =>
-        ShowPreview(ActionPreviewDisposition.ConfirmationRequired);
+        ShowPreview(ActionPreviewDisposition.ConfirmationRequired, sender as UIElement);
 
     /// <summary>Maps a canonical preview disposition to generated localised dialog content.</summary>
-    private void ShowPreview(ActionPreviewDisposition disposition)
+    /// <param name="disposition">Fail-closed application outcome to present.</param>
+    /// <param name="opener">Control that regains focus after modal dismissal.</param>
+    private void ShowPreview(ActionPreviewDisposition disposition, UIElement? opener)
     {
         (string titleKey, string messageKey) = disposition switch
         {
@@ -269,13 +319,28 @@ public partial class MainWindow : Window
             ActionPreviewDisposition.Unavailable => ("Preview.Unavailable.Title", "Preview.Unavailable.Message"),
             _ => ("Preview.Unknown.Title", "Preview.Unknown.Message"),
         };
-        System.Windows.MessageBox.Show(this, Text(messageKey), Text(titleKey), MessageBoxButton.OK, MessageBoxImage.Information);
+        ShowOwnedDialog(titleKey, messageKey, opener);
+    }
+
+    /// <summary>Shows an owned theme-aware dialogue and restores focus to its invoking control after dismissal.</summary>
+    /// <param name="titleKey">Canonical generated title resource key.</param>
+    /// <param name="messageKey">Canonical generated description resource key.</param>
+    /// <param name="opener">Control that regains focus after modal dismissal.</param>
+    private void ShowOwnedDialog(string titleKey, string messageKey, UIElement? opener)
+    {
+        CapabilityPreviewDialog dialog = new(theme, Text(titleKey), Text(messageKey))
+        {
+            Owner = this,
+        };
+        dialog.ShowDialog();
+        opener?.Focus();
     }
 
     /// <summary>Presents the selected shared navigation destination from deterministic local demonstration data.</summary>
-    private void PresentReadyState()
+    /// <param name="evaluatedAt">Optional shared reconciliation instant; omission reads the current clock without changing evidence timestamps.</param>
+    private void PresentReadyState(DateTimeOffset? evaluatedAt = null)
     {
-        DateTimeOffset now = TimeProvider.System.GetUtcNow();
+        DateTimeOffset now = evaluatedAt ?? TimeProvider.System.GetUtcNow();
         UpdateViewHeading();
         switch (currentView)
         {
@@ -284,27 +349,27 @@ public partial class MainWindow : Window
                 return;
             case DesktopView.Alerts:
             case DesktopView.History:
-                PresentHistoryAndAlerts(now, currentView);
+                PresentHistoryAndAlerts(currentView);
                 return;
             case DesktopView.Performance:
-                UpdatedAtText.Text = Text("Wpf.UpdatedFromAdapters", FormatUtc(now));
+                UpdatedAtText.Text = Text("Wpf.UpdatedFromAdapters", FormatUtc(evidence.GeneratedAt));
                 ShowOnly(PerformanceSurface);
                 return;
             case DesktopView.Configuration:
-                PresentConfiguration(now);
+                PresentConfiguration();
                 return;
             case DesktopView.Providers:
-                UpdatedAtText.Text = Text("Wpf.UpdatedFromAdapters", FormatUtc(now));
+                UpdatedAtText.Text = Text("Wpf.UpdatedFromAdapters", FormatUtc(evidence.GeneratedAt));
                 ShowOnly(ProvidersSurface);
                 return;
             case DesktopView.Settings:
-                PresentSettings(now);
+                PresentSettings();
                 return;
         }
 
-        InventoryStatusSummary summary = snapshot.Summarize(now, StaleAfter);
-        Replace(rows, snapshot.Items.Select(item => InventoryRow.From(item, now, StaleAfter, localisation)));
-        UpdatedAtText.Text = Text("Wpf.UpdatedAt", FormatUtc(now));
+        InventoryStatusSummary summary = snapshot.Summarize(now, DesktopDemonstrationEvidence.StaleAfter);
+        Replace(rows, snapshot.Items.Select(item => InventoryRow.From(item, now, DesktopDemonstrationEvidence.StaleAfter, localisation)));
+        UpdatedAtText.Text = Text("Wpf.UpdatedAt", FormatUtc(snapshot.GeneratedAt));
         TotalCountText.Text = summary.Total.ToString(localisation.Culture);
         HealthyCountText.Text = summary.Healthy.ToString(localisation.Culture);
         DegradedCountText.Text = summary.Degraded.ToString(localisation.Culture);
@@ -317,19 +382,19 @@ public partial class MainWindow : Window
     /// <param name="now">Current UTC clock used only for freshness evaluation and the local snapshot label.</param>
     private void PresentOverview(DateTimeOffset now)
     {
-        InventoryStatusSummary summary = snapshot.Summarize(now, StaleAfter);
-        Replace(rows, snapshot.Items.Select(item => InventoryRow.From(item, now, StaleAfter, localisation)));
+        InventoryStatusSummary summary = snapshot.Summarize(now, DesktopDemonstrationEvidence.StaleAfter);
+        Replace(rows, snapshot.Items.Select(item => InventoryRow.From(item, now, DesktopDemonstrationEvidence.StaleAfter, localisation)));
         Replace(alertRows, timelineSnapshot.Alerts.Select(item => AlertRow.From(item, localisation)));
-        UpdatedAtText.Text = Text("Wpf.UpdatedFromAdapters", FormatUtc(now));
+        UpdatedAtText.Text = Text("Wpf.UpdatedFromAdapters", FormatUtc(snapshot.GeneratedAt));
         OverviewTotalCountText.Text = summary.Total.ToString(localisation.Culture);
         OverviewHealthyCountText.Text = summary.Healthy.ToString(localisation.Culture);
-        OverviewDegradedCountText.Text = summary.Degraded.ToString(localisation.Culture);
+        OverviewDegradedCountText.Text = summary.Warning.ToString(localisation.Culture);
         OverviewAttentionCountText.Text = summary.AttentionRequired.ToString(localisation.Culture);
         ShowOnly(OverviewSurface);
     }
 
     /// <summary>Presents local event and alert fixtures using localised severity and state labels.</summary>
-    private void PresentHistoryAndAlerts(DateTimeOffset now, DesktopView view)
+    private void PresentHistoryAndAlerts(DesktopView view)
     {
         Replace(timelineRows, timelineSnapshot.Events.Select(item => TimelineRow.From(item, localisation)));
         Replace(alertRows, timelineSnapshot.Alerts.Select(item => AlertRow.From(item, localisation)));
@@ -338,28 +403,27 @@ public partial class MainWindow : Window
         HistoryPanel.Visibility = view == DesktopView.History ? Visibility.Visible : Visibility.Collapsed;
         AlertsPanel.Visibility = view == DesktopView.Alerts ? Visibility.Visible : Visibility.Collapsed;
         AlertsPanel.Margin = view == DesktopView.Alerts ? new Thickness(0) : new Thickness(0, 18, 0, 0);
-        UpdatedAtText.Text = Text("Wpf.UpdatedFromAdapters", FormatUtc(now));
+        UpdatedAtText.Text = Text("Wpf.UpdatedFromAdapters", FormatUtc(timelineSnapshot.GeneratedAt));
         ShowOnly(HistoryAlertSurface);
     }
 
     /// <summary>Presents safe configuration fields and unsupported capability decisions.</summary>
-    private void PresentConfiguration(DateTimeOffset now)
+    private void PresentConfiguration()
     {
         Replace(capabilityRows, configurationSnapshot.Capabilities.Select(item => CapabilityRow.From(item, localisation)));
         ConfigurationGrid.ItemsSource = configurationSnapshot.Fields;
         ConfigurationInstanceText.Text = $"{configurationSnapshot.InstanceName} · {configurationSnapshot.ProviderType}";
         CapabilityGrid.SelectedIndex = capabilityRows.Count > 0 ? 0 : -1;
-        UpdatedAtText.Text = Text("Wpf.LocalPreview", FormatUtc(now));
+        UpdatedAtText.Text = Text("Wpf.LocalPreview", FormatUtc(evidence.GeneratedAt));
         ShowOnly(ConfigurationSurface);
     }
 
     /// <summary>Presents local interface preferences and the factual future-integration status of Windows notifications.</summary>
-    /// <param name="now">Current UTC clock used only for the local preview timestamp.</param>
-    private void PresentSettings(DateTimeOffset now)
+    private void PresentSettings()
     {
         SettingsLanguageText.Text = LanguageLabel(localisation.CurrentLanguage);
         SettingsThemeText.Text = ThemeLabel(theme.CurrentPreference);
-        UpdatedAtText.Text = Text("Wpf.LocalPreview", FormatUtc(now));
+        UpdatedAtText.Text = Text("Wpf.LocalPreview", FormatUtc(evidence.GeneratedAt));
         ShowOnly(SettingsSurface);
     }
 
@@ -382,14 +446,26 @@ public partial class MainWindow : Window
         StateMessageText.Text = Text(messageKey);
         RetryButton.Visibility = retry ? Visibility.Visible : Visibility.Collapsed;
         UpdatedAtText.Text = Text("Wpf.DemonstrationState");
+        AutomationProperties.SetName(StateMessageText, $"{StateTitleText.Text}. {StateMessageText.Text}");
+        RaiseStateSurfaceLiveRegionChanged();
+    }
+
+    /// <summary>Raises the explicit UI Automation event required for the polite operational-state live region.</summary>
+    private void RaiseStateSurfaceLiveRegionChanged()
+    {
+        StateSurface.Dispatcher.BeginInvoke(DispatcherPriority.ContextIdle, new Action(() =>
+        {
+            AutomationPeer? peer = UIElementAutomationPeer.FromElement(StateMessageText) ??
+                UIElementAutomationPeer.CreatePeerForElement(StateMessageText);
+            peer?.RaiseAutomationEvent(AutomationEvents.LiveRegionChanged);
+        }));
     }
 
     /// <summary>Recreates all local fixtures whose visible values depend on the active language.</summary>
     private void RebuildLocalisedData()
     {
-        DateTimeOffset now = TimeProvider.System.GetUtcNow();
-        snapshot = CreateDemonstrationSnapshot(now);
-        timelineSnapshot = CreateTimelineSnapshot(now);
+        snapshot = evidence.CreateInventorySnapshot(localisation);
+        timelineSnapshot = CreateTimelineSnapshot(evidence.GeneratedAt);
         configurationSnapshot = CreateConfigurationSnapshot();
         ConfigurationGrid.ItemsSource = configurationSnapshot.Fields;
         RefreshGridHeaders();
@@ -455,6 +531,7 @@ public partial class MainWindow : Window
             bool active = Enum.TryParse(button.Tag?.ToString(), false, out DesktopView view) && view == currentView;
             button.SetResourceReference(BackgroundProperty, active ? "ColourSelectionBackgroundBrush" : "ComponentShellChromeBackgroundBrush");
             button.SetResourceReference(ForegroundProperty, active ? "ColourSelectionForegroundBrush" : "ComponentShellChromeMutedBrush");
+            AutomationProperties.SetItemStatus(button, active ? Text("Navigation.Current") : string.Empty);
         }
     }
 
@@ -503,17 +580,6 @@ public partial class MainWindow : Window
     /// <summary>Resolves one canonical generated resource through the desktop localisation owner.</summary>
     private string Text(string key, params object[] values) => localisation.Text(key, values);
 
-    /// <summary>Creates the provider-neutral inventory demonstration fixture with localised visible fields.</summary>
-    private InventorySnapshot CreateDemonstrationSnapshot(DateTimeOffset now) => new(
-        InventorySnapshot.CurrentSchemaVersion,
-        now,
-        [
-            CreateItem("00000000-0000-0000-0000-000000000001", Text("Sample.Instance.Finance"), "postgresql", Text("Sample.Support.Implemented"), Text("Sample.Environment.Production"), Text("Sample.Location.Datacentre"), HealthStatus.Healthy, now.AddSeconds(-38), 24),
-            CreateItem("00000000-0000-0000-0000-000000000002", Text("Sample.Instance.Orders"), "mysql", Text("Sample.Support.Planned"), Text("Sample.Environment.Production"), Text("Sample.Location.PrivateCloud"), HealthStatus.Degraded, now.AddMinutes(-2), 86),
-            CreateItem("00000000-0000-0000-0000-000000000003", Text("Sample.Instance.Analytics"), "sql-server", Text("Sample.Support.Planned"), Text("Sample.Environment.Validation"), "Azure", HealthStatus.Timeout, now.AddMinutes(-3), null),
-            CreateItem("00000000-0000-0000-0000-000000000004", Text("Sample.Instance.Catalogue"), "mongodb", Text("Sample.Support.Planned"), Text("Sample.Environment.Development"), Text("Sample.Location.LocalLinux"), HealthStatus.Unknown, now.AddMinutes(-9), null),
-        ]);
-
     /// <summary>Creates local event and alert fixtures without delivery, acknowledgement or mutation.</summary>
     private TimelineAlertSnapshot CreateTimelineSnapshot(DateTimeOffset now) => new(
         TimelineAlertSnapshot.CurrentSchemaVersion,
@@ -556,30 +622,33 @@ public partial class MainWindow : Window
     private static AlertPresentationItem CreateAlert(string id, string name, string provider, EventSeverity severity, AlertPresentationState state, string rule, string summary, DateTimeOffset updatedAt) =>
         new(Guid.Parse(id), Guid.Parse(id.Replace("0002-", "0000-")), name, provider, severity, state, rule, summary, updatedAt.AddMinutes(-10), updatedAt);
 
-    /// <summary>Creates one inventory fixture without embedding credentials or native provider details.</summary>
-    private static InstanceInventoryItem CreateItem(string id, string name, string provider, string support, string environment, string location, HealthStatus status, DateTimeOffset receivedAt, double? latencyMilliseconds) =>
-        new(Guid.Parse(id), name, provider, support, environment, location, status, receivedAt.AddSeconds(-1), receivedAt,
-            latencyMilliseconds is null ? null : TimeSpan.FromMilliseconds(latencyMilliseconds.Value), true);
-
     /// <summary>Represents one localised inventory grid row.</summary>
     private sealed record InventoryRow(string DisplayName, string ProviderType, string SupportLabel, string Environment, string StatusLabel, string ObservedAtLabel, string LatencyLabel)
     {
         /// <summary>Maps a canonical inventory item to non-colour-only localised presentation.</summary>
         public static InventoryRow From(InstanceInventoryItem item, DateTimeOffset now, TimeSpan staleAfter, DesktopLocalisationService localisation)
         {
-            string status = item.IsStale(now, staleAfter) ? $"◷ {localisation.Text("Status.Stale")}" : item.Status switch
-            {
-                HealthStatus.Healthy => $"● {localisation.Text("Status.Healthy")}",
-                HealthStatus.Degraded => $"▲ {localisation.Text("Status.Degraded")}",
-                HealthStatus.Unavailable => $"■ {localisation.Text("Status.Unavailable")}",
-                HealthStatus.AuthFailed => $"■ {localisation.Text("Status.AuthFailed")}",
-                HealthStatus.Timeout => $"■ {localisation.Text("Status.Timeout")}",
-                HealthStatus.Maintenance => $"◆ {localisation.Text("Status.Maintenance")}",
-                _ => $"○ {localisation.Text("Status.Unknown")}",
-            };
+            EvidenceFreshness freshness = item.GetFreshness(now, staleAfter);
+            string status = freshness == EvidenceFreshness.Stale
+                ? $"◷ {localisation.Text("Status.Stale")}"
+                : freshness == EvidenceFreshness.Unknown
+                    ? $"○ {localisation.Text("Status.Unknown")}"
+                    : item.Status switch
+                    {
+                        HealthStatus.Healthy => $"● {localisation.Text("Status.Healthy")}",
+                        HealthStatus.Degraded => $"▲ {localisation.Text("Status.Degraded")}",
+                        HealthStatus.Unavailable => $"■ {localisation.Text("Status.Unavailable")}",
+                        HealthStatus.AuthFailed => $"■ {localisation.Text("Status.AuthFailed")}",
+                        HealthStatus.Timeout => $"■ {localisation.Text("Status.Timeout")}",
+                        HealthStatus.Maintenance => $"◆ {localisation.Text("Status.Maintenance")}",
+                        _ => $"○ {localisation.Text("Status.Unknown")}",
+                    };
             string latency = item.Latency is null ? "—" : string.Create(CultureInfo.InvariantCulture, $"{item.Latency.Value.TotalMilliseconds:0} ms");
+            string observedAt = freshness == EvidenceFreshness.Unknown
+                ? localisation.Text("Status.Unknown")
+                : item.ObservedAt.UtcDateTime.ToString("yyyy-MM-dd HH:mm:ss", localisation.Culture);
             return new(item.DisplayName, item.ProviderType, item.SupportLabel, item.Environment, status,
-                item.ObservedAt.UtcDateTime.ToString("yyyy-MM-dd HH:mm:ss", localisation.Culture), latency);
+                observedAt, latency);
         }
     }
 

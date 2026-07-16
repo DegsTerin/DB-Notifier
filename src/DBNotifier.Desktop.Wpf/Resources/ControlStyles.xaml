@@ -22,6 +22,9 @@
             <Trigger Property="IsDragging" Value="True">
               <Setter TargetName="ThumbSurface" Property="Background" Value="{DynamicResource ColourActionPrimaryActiveBrush}" />
             </Trigger>
+            <Trigger Property="IsEnabled" Value="False">
+              <Setter TargetName="ThumbSurface" Property="Background" Value="{DynamicResource ColourBorderDefaultBrush}" />
+            </Trigger>
           </ControlTemplate.Triggers>
         </ControlTemplate>
       </Setter.Value>
@@ -66,6 +69,10 @@
             <Trigger Property="IsPressed" Value="True">
               <Setter TargetName="LineButtonSurface" Property="Background" Value="{DynamicResource ColourActionPrimaryActiveBrush}" />
               <Setter Property="Foreground" Value="{DynamicResource ColourActionPrimaryForegroundBrush}" />
+            </Trigger>
+            <Trigger Property="IsEnabled" Value="False">
+              <Setter TargetName="LineButtonSurface" Property="Background" Value="{DynamicResource ColourSurfaceSunkenBrush}" />
+              <Setter Property="Foreground" Value="{DynamicResource ColourTextMutedBrush}" />
             </Trigger>
           </ControlTemplate.Triggers>
         </ControlTemplate>

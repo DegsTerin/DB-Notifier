@@ -1,0 +1,48 @@
+<!-- Module purpose: Defines the owned, accessible and non-executing WPF capability-preview dialogue. -->
+<Window x:Class="DBNotifier.Desktop.Wpf.CapabilityPreviewDialog"
+        x:ClassModifier="internal"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Width="520"
+        MinWidth="360"
+        MaxWidth="640"
+        MaxHeight="560"
+        SizeToContent="Height"
+        ResizeMode="NoResize"
+        ShowInTaskbar="False"
+        WindowStartupLocation="CenterOwner"
+        Background="{DynamicResource ComponentAppBackgroundBrush}"
+        Foreground="{DynamicResource ColourTextPrimaryBrush}"
+        FontFamily="{DynamicResource TypographyFontfamilySans}"
+        KeyboardNavigation.TabNavigation="Cycle"
+        Loaded="DialogLoaded"
+        PreviewKeyDown="DialogPreviewKeyDown">
+  <Window.Resources>
+    <Style TargetType="Button">
+      <Setter Property="MinHeight" Value="{DynamicResource ControlHeightCompact}" />
+      <Setter Property="MinWidth" Value="96" />
+      <Setter Property="Padding" Value="16,8" />
+      <Setter Property="Background" Value="{DynamicResource ComponentButtonSecondaryBackgroundBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource ComponentButtonSecondaryForegroundBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource ComponentButtonSecondaryBorderBrush}" />
+      <Setter Property="BorderThickness" Value="1" />
+    </Style>
+  </Window.Resources>
+
+  <!-- Scroll containment preserves the action row when localised dialogue copy grows at minimum supported sizes. -->
+  <Grid Margin="24">
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="Auto" />
+    </Grid.RowDefinitions>
+    <TextBlock x:Name="DialogTitleText" FontSize="20" FontWeight="SemiBold" TextWrapping="Wrap" />
+    <ScrollViewer Grid.Row="1" MaxHeight="320" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Margin="0,14,0,0">
+      <TextBlock x:Name="DialogMessageText" TextWrapping="Wrap" LineHeight="22" AutomationProperties.LiveSetting="Off" />
+    </ScrollViewer>
+    <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,24,0,0">
+      <Button x:Name="ExecuteButton" Content="{DynamicResource Dialog.ExecuteDisabled}" IsEnabled="False" AutomationProperties.HelpText="{DynamicResource Dialog.ExecuteDisabled}" />
+      <Button x:Name="CloseButton" Content="{DynamicResource Dialog.Close}" Margin="10,0,0,0" IsCancel="True" IsDefault="True" Click="CloseButtonClick" />
+    </StackPanel>
+  </Grid>
+</Window>

@@ -1,4 +1,4 @@
-<!-- Generated from dbnotifier.design-tokens.v1; source sha256:aa7d74432e2ccc72592c2dc517cc1c0c7d88fce12da08b8b6ed3f2c415fd1daa. Do not edit directly. -->
+<!-- Generated from dbnotifier.design-tokens.v1; source sha256:5bcbebc7583bddc5e027cda86be52a902f93bb595167c4959826ae0b0378e5f8. Do not edit directly. -->
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:sys="clr-namespace:System;assembly=System.Runtime">
@@ -16,6 +16,11 @@
   <SolidColorBrush x:Key="ColourChromeSelectedBackgroundBrush" Color="#24465D" />
   <SolidColorBrush x:Key="ColourChromeSelectedForegroundBrush" Color="#F4F7FA" />
   <SolidColorBrush x:Key="ColourChromeSurfaceBrush" Color="#172C3A" />
+  <SolidColorBrush x:Key="ColourDataCategory1Brush" Color="#86C4F4" />
+  <SolidColorBrush x:Key="ColourDataCategory2Brush" Color="#B8C5CF" />
+  <SolidColorBrush x:Key="ColourDataCategory3Brush" Color="#63B3ED" />
+  <SolidColorBrush x:Key="ColourDataCategory4Brush" Color="#94A6B2" />
+  <SolidColorBrush x:Key="ColourDataCategory5Brush" Color="#B9DDFF" />
   <SolidColorBrush x:Key="ColourFocusRingBrush" Color="#FFC857" />
   <SolidColorBrush x:Key="ColourOverlayScrimBrush" Color="#BD000000" />
   <SolidColorBrush x:Key="ColourSelectionBackgroundBrush" Color="#063A6C" />
@@ -56,11 +61,6 @@
   <SolidColorBrush x:Key="ComponentInputBackgroundBrush" Color="#111C24" />
   <SolidColorBrush x:Key="ComponentInputBorderBrush" Color="#58707D" />
   <SolidColorBrush x:Key="ComponentInputForegroundBrush" Color="#F2F6F8" />
-  <SolidColorBrush x:Key="ComponentProviderMongodbBrush" Color="#63C44D" />
-  <SolidColorBrush x:Key="ComponentProviderMysqlBrush" Color="#D7A44B" />
-  <SolidColorBrush x:Key="ComponentProviderOracleBrush" Color="#EF4B3F" />
-  <SolidColorBrush x:Key="ComponentProviderPostgresqlBrush" Color="#5EA4D6" />
-  <SolidColorBrush x:Key="ComponentProviderSqlserverBrush" Color="#EF6455" />
   <SolidColorBrush x:Key="ComponentShellChromeBackgroundBrush" Color="#0E1B25" />
   <SolidColorBrush x:Key="ComponentShellChromeBorderBrush" Color="#3B586C" />
   <SolidColorBrush x:Key="ComponentShellChromeForegroundBrush" Color="#F4F7FA" />

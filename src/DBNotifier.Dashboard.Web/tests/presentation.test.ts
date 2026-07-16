@@ -7,6 +7,7 @@ import {
   buildDemonstrationSnapshot,
   buildTimelineAlertSnapshot,
   buildConfigurationSnapshot,
+  classifyEvidenceFreshness,
   filterInventory,
   filterTimeline,
   isStale,
@@ -147,7 +148,26 @@ test("summary does not report stale data as freshly healthy", () => {
   const snapshot = buildDemonstrationSnapshot(now);
   const summary = summarizeInventory(snapshot, now);
 
-  assert.deepEqual(summary, { total: 4, healthy: 1, degraded: 1, attentionRequired: 1, stale: 1 });
+  assert.deepEqual(summary, { total: 4, healthy: 1, degraded: 1, warning: 1, attentionRequired: 1, stale: 1 });
+});
+
+test("summary excludes stale status classes and counts current maintenance as warning", () => {
+  const template = buildDemonstrationSnapshot(now).items[0];
+  const staleAt = new Date(now.getTime() - staleAfterMilliseconds - 1).toISOString();
+  const snapshot = {
+    schemaVersion: "inventory.v1" as const,
+    generatedAt: now.toISOString(),
+    items: [
+      { ...template, instanceId: "healthy", status: "healthy" as const, observedAt: staleAt, receivedAt: staleAt },
+      { ...template, instanceId: "degraded", status: "degraded" as const, observedAt: staleAt, receivedAt: staleAt },
+      { ...template, instanceId: "critical", status: "timeout" as const, observedAt: staleAt, receivedAt: staleAt },
+      { ...template, instanceId: "maintenance", status: "maintenance" as const, observedAt: now.toISOString(), receivedAt: now.toISOString() },
+    ],
+  };
+
+  assert.deepEqual(summarizeInventory(snapshot, now), {
+    total: 4, healthy: 0, degraded: 0, warning: 1, attentionRequired: 0, stale: 3,
+  });
 });
 
 test("fleet aggregate drives every semantic product-mark state with Tray precedence", () => {
@@ -163,6 +183,21 @@ test("fleet aggregate drives every semantic product-mark state with Tray precede
   assert.equal(summarizeFleetAggregate(snapshot("timeout"), now), "critical");
   assert.equal(summarizeFleetAggregate(snapshot("healthy", new Date(now.getTime() - staleAfterMilliseconds - 1).toISOString()), now), "unknown");
   assert.equal(summarizeFleetAggregate({ ...snapshot("healthy"), items: [] }, now), "unknown");
+});
+
+test("invalid, future and unrecognised evidence fails safely to unknown", () => {
+  const template = buildDemonstrationSnapshot(now).items[0];
+  const aggregate = (item: typeof template) => summarizeFleetAggregate({
+    schemaVersion: "inventory.v1",
+    generatedAt: now.toISOString(),
+    items: [item],
+  }, now);
+  const future = new Date(now.getTime() + 1).toISOString();
+
+  assert.equal(classifyEvidenceFreshness({ ...template, observedAt: "invalid", receivedAt: "invalid" }, now), "unknown");
+  assert.equal(classifyEvidenceFreshness({ ...template, observedAt: future, receivedAt: future }, now), "unknown");
+  assert.equal(aggregate({ ...template, observedAt: "invalid", receivedAt: "invalid" }), "unknown");
+  assert.equal(aggregate({ ...template, status: "unrecognised" as typeof template.status }), "unknown");
 });
 
 test("semantic brand replacement keeps header and favicon on the same aggregate without reusing the old node", () => {
@@ -320,9 +355,13 @@ test("TV mode keeps a visible Fullscreen toggle and factual demonstration contex
   const app = readFileSync(new URL("../src/App.tsx", import.meta.url), "utf8");
   const control = readFileSync(new URL("../src/TvModeButton.tsx", import.meta.url), "utf8");
   const css = readFileSync(new URL("../src/styles.css", import.meta.url), "utf8");
+  const audit = readFileSync(new URL("../../../scripts/audit-state05-dashboard.mjs", import.meta.url), "utf8");
+  const auditGate = readFileSync(new URL("../../../scripts/run-state05-dashboard-audit.ps1", import.meta.url), "utf8");
 
   assert.match(app, /<TvModeButton active=\{tvMode\} onActiveChange=\{handleTvModeChange\}/);
-  assert.match(app, /tvMode && <div className="tv-mode-status"/);
+  assert.match(app, /tvMode && <TvModeStatus \/>/);
+  assert.match(app, /function TvModeStatus\(\)[\s\S]*setInterval\(\(\) => setClock\(new Date\(\)\), 1_000\)/);
+  assert.match(app, /setInterval\(\(\) => setNow\(new Date\(\)\), 30_000\)/);
   assert.match(app, /navigate\("overview"\)/);
   assert.match(control, /requestFullscreen\(\)/);
   assert.match(control, /typeof document\.documentElement\.requestFullscreen !== "function"/);
@@ -335,6 +374,11 @@ test("TV mode keeps a visible Fullscreen toggle and factual demonstration contex
   assert.match(css, /\.app-shell\.tv-mode \.filters \{ display: none; \}/);
   assert.match(css, /\.app-shell\.tv-mode \.language-selector, \.app-shell\.tv-mode \.theme-selector \{ display: grid; \}/);
   assert.match(css, /\.app-shell\.tv-mode \.demo-badge \{ display: flex; \}/);
+  for (const width of [320, 390, 768, 1920]) assert.match(audit, new RegExp(`width: ${width}`));
+  assert.match(audit, /documentScrollWidth: root\.scrollWidth/);
+  assert.match(audit, /appScrollWidth: app\?\.scrollWidth/);
+  assert.match(auditGate, /documentScrollWidth -gt \$_\.documentClientWidth/);
+  assert.match(auditGate, /'320,390,768,1920'/);
 });
 
 test("mobile topbar keeps brand and controls in one accessible row", () => {
@@ -399,6 +443,7 @@ test("provider-neutral database mark is shared by active Web and Windows surface
   const desktopXaml = readFileSync(new URL("../../DBNotifier.Desktop.Wpf/MainWindow.xaml", import.meta.url), "utf8");
   const desktopCode = readFileSync(new URL("../../DBNotifier.Desktop.Wpf/MainWindow.xaml.cs", import.meta.url), "utf8");
   const desktopApp = readFileSync(new URL("../../DBNotifier.Desktop.Wpf/App.xaml.cs", import.meta.url), "utf8");
+  const desktopEvidence = readFileSync(new URL("../../DBNotifier.Desktop.Wpf/DesktopDemonstrationEvidence.cs", import.meta.url), "utf8");
   const flyoutXaml = readFileSync(new URL("../../DBNotifier.Desktop.Wpf/TrayFlyoutWindow.xaml", import.meta.url), "utf8");
   const flyoutCode = readFileSync(new URL("../../DBNotifier.Desktop.Wpf/TrayFlyoutWindow.xaml.cs", import.meta.url), "utf8");
   const brandStatusPolicy = readFileSync(new URL("../../DBNotifier.Desktop.Wpf/BrandStatusIconPolicy.cs", import.meta.url), "utf8");
@@ -630,13 +675,16 @@ test("provider-neutral database mark is shared by active Web and Windows surface
   assert.match(desktopCode, /Icon = BrandStatusIconPolicy\.LoadImageSource\(aggregateState, 32, dpi\)/);
   assert.match(desktopCode, /BrandStatusImage\.Source = BrandStatusIconPolicy\.LoadImageSource\(aggregateState, 40, dpi\)/);
   assert.match(desktopCode, /BrandStatusIconPolicy\.ApplyNativeWindowIcons\(this, aggregateState\)/);
-  assert.match(desktopApp, /CreateDemonstrationSummary\(\)/);
-  assert.match(desktopApp, /new\(localisation, theme, fleetSummary\.State\)/);
+  assert.match(desktopApp, /DesktopDemonstrationEvidence\.Create\(generatedAt\)/);
+  assert.match(desktopApp, /evidence\.Summarise\(generatedAt\)/);
+  assert.match(desktopApp, /new\(localisation, theme, evidence, fleetSummary\.State\)/);
+  assert.match(desktopEvidence, /TrayFleetPresentationPolicy\.Summarise\(CreateInventorySnapshot/);
+  assert.match(desktopEvidence, /GeneratedAt = generatedAt/);
   assert.match(flyoutXaml, /x:Name="BrandStatusImage"/);
   assert.match(flyoutCode, /DpiScale dpi = VisualTreeHelper\.GetDpi\(this\)/);
   assert.match(flyoutCode, /BrandStatusIconPolicy\.LoadImageSource\(fleetSummary\.State, 32, dpi\)/);
   assert.match(trayController, /Icon = applicationIcon/);
-  assert.match(trayController, /CreateNotificationAreaResources\(fleetSummary\.State\)/);
+  assert.match(trayController, /CreateNotificationAreaResources\(initialSummary\.State\)/);
   assert.match(trayController, /BrandStatusIconPolicy\.LoadWindowsIcon\([\s\S]*state,[\s\S]*Forms\.SystemInformation\.SmallIconSize\.Width\)/);
   assert.match(trayController, /BrandStatusIconPolicy\.LoadWindowsIcon\([\s\S]*TrayNotificationPresentationPolicy\.ResolveIconState\(TrayNotificationMeaning\.AvailabilityOrRecovery\),[\s\S]*Forms\.SystemInformation\.SmallIconSize\.Width\)/);
   assert.match(trayController, /notifyIcon\.BalloonTipShown \+= NotifyIconBalloonTipShown/);
@@ -697,11 +745,16 @@ test("Tray flyout preserves operational scanning while administrative execution 
   assert.match(flyout, /DynamicResource Tray\.RestartUnavailable/);
   assert.match(flyout, /Grid\.Column="2"/);
   assert.doesNotMatch(flyout, /Click="Restart/);
-  assert.match(controller, /new TrayFlyoutWindow\(localisation, fleetSummary, ShowView/);
-  assert.match(controller, /TrayFleetPresentationPolicy\.Summarise/);
+  assert.match(controller, /new TrayFlyoutWindow\(localisation, evidence, initialSummary, ShowView/);
+  assert.match(controller, /evidence\.Summarise\(evaluatedAt\)/);
+  assert.match(controller, /Interval = TimeSpan\.FromSeconds\(30\)/);
+  assert.match(controller, /window\.RefreshOperationalEvidence\(evaluatedAt, next\.State\)/);
   assert.match(controller, /Tray\.TooltipSummary/);
   assert.match(controller, /notifyIcon\.MouseClick \+= NotifyIconMouseClick/);
   assert.match(controller, /Forms\.MouseButtons\.Left or Forms\.MouseButtons\.Right/);
+  assert.doesNotMatch(controller, /notifyIcon\.DoubleClick/);
+  assert.match(flyoutCode, /FormatUtc\(evidence\.GeneratedAt\)/);
+  assert.doesNotMatch(flyoutCode, /TimeProvider\.System\.GetUtcNow/);
   assert.match(controller, /Forms\.ToolTipIcon\.None/);
   assert.doesNotMatch(controller, /Forms\.ToolTipIcon\.Info/);
   assert.doesNotMatch(controller, /ContextMenuStrip|ContextMenuOpening/);
@@ -715,9 +768,11 @@ test("timeline filters severity without provider-specific branches", () => {
 });
 
 test("stale policy changes only after the five-minute boundary", () => {
+  const boundary = new Date(now.getTime() - staleAfterMilliseconds).toISOString();
   const item = {
     ...buildDemonstrationSnapshot(now).items[0],
-    receivedAt: new Date(now.getTime() - staleAfterMilliseconds).toISOString(),
+    observedAt: boundary,
+    receivedAt: boundary,
   };
 
   assert.equal(isStale(item, now), false);
@@ -730,4 +785,24 @@ test("filter searches provider-neutral fields and stale state", () => {
   assert.equal(filterInventory(snapshot.items, "azure", "all", now).length, 1);
   assert.equal(filterInventory(snapshot.items, "", "stale", now).length, 1);
   assert.equal(filterInventory(snapshot.items, "mysql", "healthy", now).length, 0);
+});
+
+test("filter maps future and reversed evidence to Unknown instead of its raw health status", () => {
+  const healthy = buildDemonstrationSnapshot(now).items[0];
+  const future = {
+    ...healthy,
+    instanceId: "future-evidence",
+    observedAt: new Date(now.getTime() + 1_000).toISOString(),
+    receivedAt: new Date(now.getTime() + 2_000).toISOString(),
+  };
+  const reversed = {
+    ...healthy,
+    instanceId: "reversed-evidence",
+    observedAt: now.toISOString(),
+    receivedAt: new Date(now.getTime() - 1_000).toISOString(),
+  };
+
+  assert.equal(filterInventory([future, reversed], "", "healthy", now).length, 0);
+  assert.equal(filterInventory([future, reversed], "", "unknown", now).length, 2);
+  assert.equal(filterInventory([future, reversed], "", "stale", now).length, 0);
 });
