@@ -92,7 +92,7 @@ The later `REQ-066` review found that the Windows-managed caption and default WP
 - one implicit application `ScrollBar` style uses the existing semantic resources for track, thumb, border and interaction states while retaining vertical/horizontal `PART_Track` templates and line/page commands;
 - the WPF Release build completed with zero warnings/errors, and the tenth architecture test verifies the platform adapter, High Contrast reset, semantic-resource use and scrolling contract.
 
-The High Contrast and scaling observations above predate this native-chrome implementation. They remain valid only for the code and environment sampled at that time; they do not prove the new DWM reset or themed scrollbar in a real High Contrast session. Light → Dark → Light at default/minimum size and a new High Contrast sample both remain pending human evidence. The latter requires separate explicit permission before changing Windows settings.
+The High Contrast and scaling observations above predate this native-chrome implementation. They remain valid only for the code and environment sampled at that time; they do not prove the new DWM reset or themed scrollbar in a real High Contrast session. An authorised 2026-07-16 run exercised Light → Dark → Light at `1180×760` and `820×620`: the caption and visible main scrollbar followed both themes, and UI Automation moved the scrollbar from `0.00%` to `9.38%` and restored it in Light and Dark. DataGrid and ComboBox popup scrollbars were not independently forced visible, and no human acceptance was inferred. A new High Contrast sample remains pending and requires separate explicit permission before changing Windows settings.
 
 ## Evidence and limitations
 
@@ -104,8 +104,8 @@ The High Contrast and scaling observations above predate this native-chrome impl
 
 ## Lifecycle impact
 
-The automatic WPF/High Contrast/available-scaling evidence is approved with the limitations above. The Design System `2.6.14` native-chrome correction is structurally approved but visibly unconfirmed. The `STATE-05` Human Gate remains `PENDENTE`; no transition to `STATE-06` is authorised.
+The automatic WPF/High Contrast/available-scaling evidence is approved with the limitations above. The Design System `2.6.14` native-chrome correction is structurally approved and visibly observed in the bounded caption/main-scrollbar run, but its human decision remains pending. The `STATE-05` Human Gate remains `PENDENTE`; no transition to `STATE-06` is authorised.
 
 ## Recommended next step
 
-First obtain fresh consent and repeat the focused WPF Light → Dark → Light sample for the native caption and visible scrollbars at default and minimum size. Do not enable High Contrast during that repetition. Retry High Contrast only under separate explicit permission, and do not retry Narrator until the human validator has a workable listening method or another named validator is available. Record Narrator as `NÃO EXECUTADO — VALIDADOR SEM CONDIÇÃO DE TESTE` in any interim gate decision. A final `STATE-05` approval must either include a completed screen-reader sample or carry an explicit, accepted reservation that accurately describes the missing evidence.
+Obtain Bruno's explicit scoped decision for the completed Light → Dark → Light caption/main-scrollbar sample. Retry High Contrast only under separate explicit permission, and do not retry Narrator until the human validator has a workable listening method or another named validator is available. Record Narrator as `NÃO EXECUTADO — VALIDADOR SEM CONDIÇÃO DE TESTE` in any interim gate decision. A final `STATE-05` approval must either include a completed screen-reader sample or carry an explicit, accepted reservation that accurately describes the missing evidence.

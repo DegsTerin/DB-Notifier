@@ -957,6 +957,16 @@
 - Riscos/ressalvas: atributos explícitos de cor da caption exigem suporte da versão do Windows e falham com segurança para a caption nativa quando indisponíveis. Build/teste estrutural não comprovam a aparência real, todos os hosts de scrollbar ou High Contrast; Light → Dark → Light em tamanho padrão/mínimo e High Contrast sob autorização separada continuam pendentes. `S05-HG-010`, o Human Gate e `STATE-06` não foram aprovados.
 - Aprovador: correções solicitadas por Bruno; nenhuma aprovação visual, do Human Gate ou de transição foi inferida.
 
+## 2026-07-16 — Execução visível limitada de caption e rolagem WPF
+
+- Estado anterior: `STATE-05 FRONTEND_IMPLEMENTATION`, Human Gate e `S05-HG-010` pendentes; `REQ-066` implementado e estruturalmente verificado no Design System `2.6.14`.
+- Estado resultante: sem transição; a correção foi observada em execução real, com decisão humana limitada ainda pendente.
+- Escopo: somente WPF com `--show-desktop`, Light → Dark → Light em `1180×760` e `820×620`, inspeção da caption e scrollbar principal e exercício de rolagem por UI Automation. Chrome, Narrator, High Contrast e scaling não foram usados.
+- Evidências: seis capturas temporárias mostraram caption e scrollbar principal coerentes com Light/Dark; o padrão `Scroll` moveu a posição vertical de `0.00%` para `9.38%` e a restaurou em ambos os temas; os seis ciclos terminaram sem exceção. DataGrid e ComboBox popup não tiveram scrollbars individualmente forçados visíveis nesta amostra.
+- Encerramento: somente o processo iniciado para a amostra foi encerrado; nenhum processo WPF permaneceu, e a preferência original `pt-BR`/Dark foi restaurada.
+- Riscos/ressalvas: a observação não substitui decisão humana, não comprova High Contrast e não aprova `S05-HG-010`, o Human Gate ou `STATE-06`.
+- Aprovador: execução autorizada por Bruno; nenhuma aprovação foi inferida.
+
 ## Template de nova entrada
 
 - Data:
