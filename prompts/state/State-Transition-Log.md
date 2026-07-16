@@ -1043,6 +1043,17 @@
 - Riscos/ressalvas: flags de segurança/autoridade são assertions do caller até existir adapter confiável; não há caching de janelas, orçamento/backpressure de pipeline, eval dataset, poison/red-team fixture, integração ou homologação. O processo visível preexistente `DB Notifier` PID 6976 bloqueou apenas a cópia no output WPF normal, permaneceu intocado e o build isolado do mesmo projeto passou.
 - Aprovador: incremento solicitado por Bruno; Quality Gate automático não constitui Human Gate, ativação de modo ou progressão de lifecycle.
 
+## 2026-07-16 — Classificação humana da notificação Analytics
+
+- Estado anterior: `STATE-05 FRONTEND_IMPLEMENTATION`, progressão em espera e Human Gate pendente; as três transições demonstrativas `3.0.1` estavam materializadas localmente, sem classificação visual direta.
+- Estado resultante: sem transição; Analytics passa a ter classificação humana `VISÍVEL`, enquanto Regional orders e Primary finance permanecem pendentes.
+- Decisão: Bruno respondeu exatamente `1. VISÍVEL`, interpretado conforme a lista ordenada apresentada no hand-off anterior, em que o item 1 corresponde a Analytics.
+- Escopo: registro da observação humana da primeira das três notificações já executadas; nenhuma nova execução, mudança de preferência, ação externa, integração, aprovação de amostra completa ou decisão de Human Gate.
+- Gates: não aplicável a build/testes, pois não houve mudança de produto; a evidência humana não sobrescreve a ausência observada por UI Automation nem a evidência técnica de materialização local.
+- Evidências: resposta direta de Bruno, `docs/STATE-05-Human-Gate-Validation.md`, `docs/STATE-05-Design-System-Implementation-Report.md` e `prompts/state/Current-State.md`.
+- Riscos/ressalvas: a classificação limitada de Analytics não restaura automaticamente `S05-HG-011`, não aprova `STATE-05` e não autoriza `STATE-06`; as outras duas classificações e demais amostras continuam necessárias.
+- Aprovador: Bruno, somente como validador visual da notificação Analytics.
+
 ## Template de nova entrada
 
 - Data:
