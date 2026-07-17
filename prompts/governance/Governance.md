@@ -38,7 +38,7 @@ IDs não podem ser reutilizados com outro significado.
 ## Protocolo de execução
 
 1. Ler visão, estado corrente e regras aplicáveis.
-2. Executar o shutdown preflight obrigatório e provar que nenhum componente ou runtime DB-Notifier da interação anterior permanece aberto, ativo ou escutando.
+2. Antes de cada nova ação técnica autorizada, executar o shutdown preflight obrigatório e provar que nenhum componente ou runtime DB-Notifier permanece aberto, ativo ou escutando; turnos exclusivamente conversacionais não acionam este passo.
 3. Inspecionar workspace, ferramentas e mudanças preexistentes.
 4. Confirmar escopo, estado e entregáveis permitidos.
 5. Planejar mudança e validação proporcional ao risco.

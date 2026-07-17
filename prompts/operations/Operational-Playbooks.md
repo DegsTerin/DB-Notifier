@@ -4,9 +4,9 @@
 
 Selecionar somente o playbook correspondente ao pedido. Todos dependem do estado atual, da governança, dos gates e das regras de segurança.
 
-## Shutdown preflight obrigatório
+## Shutdown preflight obrigatório por ação técnica
 
-Executar antes de qualquer ação em toda nova mensagem do usuário, inclusive aprovação, esclarecimento, ajuste, modificação, implementação, auditoria ou pedido documental. Uma resposta humana sobre uma amostra visível também é uma nova mensagem e começa pelo encerramento da amostra anterior.
+Executar antes de cada nova ação técnica autorizada no código, workspace ou produto. São gatilhos: aprovação que libera execução, alteração de fonte/configuração/documentação, ajuste, remediação, modificação, implementação, auditoria executável, build, teste ou amostra humana. Conversa, pergunta, explicação, planejamento sem execução e status sem mutação ou runtime não são gatilhos.
 
 1. Inventariar WPF/Tray, Dashboard preview/dev server, Agent, API, helpers em background, runners de validação e navegador dedicado pertencentes ao DB-Notifier.
 2. Identificar processos hospedados por `dotnet`, Node, PowerShell ou navegador através de PID, caminho do executável, command line, parentage, porta e perfil temporário comprovadamente pertencentes ao projeto. Nome genérico de processo não basta.
@@ -15,7 +15,7 @@ Executar antes de qualquer ação em toda nova mensagem do usuário, inclusive a
 5. Nunca encerrar PostgreSQL ou outro banco monitorado, serviço externo, browser/perfil comum do usuário, IDE, terminal alheio ou processo não atribuído com segurança ao DB-Notifier.
 6. Se qualquer componente não puder ser identificado ou encerrado com segurança, interromper o trabalho e informar o resíduo exato. Não continuar sobre um runtime anterior incerto.
 
-Uma amostra humana pode permanecer aberta somente quando a finalidade da interação atual é entregá-la visivelmente ao validador. Antes de processar a resposta seguinte, aplicar este protocolo integralmente. Processos de build/teste iniciados na própria tarefa continuam sujeitos ao encerramento normal antes do hand-off, salvo essa entrega visível limitada.
+Uma amostra humana pode permanecer aberta somente quando a finalidade da ação técnica atual é entregá-la visivelmente ao validador. Antes de qualquer ação técnica posterior — inclusive registrar a aprovação em arquivos — aplicar este protocolo integralmente. Processos de build/teste iniciados na própria tarefa continuam sujeitos ao encerramento normal antes do hand-off, salvo essa entrega visível limitada.
 
 ## Ajuste focado
 

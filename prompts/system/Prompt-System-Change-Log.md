@@ -2,7 +2,7 @@
 
 ## Versão atual
 
-- Versão: `3.55.0`
+- Versão: `3.55.1`
 - Data: 2026-07-17
 - Status: corpus DB-Notifier consolidado
 - Escopo: 13 arquivos ativos
@@ -16,6 +16,13 @@ A versão do corpus é independente da versão do software.
 - PATCH: clareza, correção ou referência sem mudança de autoridade.
 
 Toda alteração atualiza este arquivo e, quando necessário, `../Start-Here.md`.
+
+## 3.55.1 — 2026-07-17
+
+- Bruno corrigiu o escopo do shutdown preflight: o gatilho é cada nova ação técnica autorizada no código, workspace ou produto, não cada conversa ou mensagem.
+- Aprovação que libera execução, alteração de fonte/configuração/documentação, ajuste, remediação, modificação, implementação, auditoria executável, build, teste e amostra humana exigem encerramento e verificação antes de começar.
+- Pergunta, explicação, planejamento sem execução, status e conversa sem mutação ou runtime não disparam shutdown. Uma amostra visível pode permanecer durante sua ação e deve ser encerrada antes da ação técnica seguinte, inclusive o registro documental da aprovação.
+- A correção substitui a regra operacional corrente de `3.55.0` sem apagar seu registro histórico; fronteiras de processos externos, bancos, navegador comum e IDE permanecem inalteradas.
 
 ## 3.55.0 — 2026-07-17
 
