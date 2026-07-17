@@ -1131,6 +1131,17 @@
 - Riscos/ressalvas: a regressão técnica não substitui a observação nem a classificação humana. A amostra visual `3.0.2` e a parte Dashboard do teclado permanecem válidas; somente o WPF `3.0.3` de teclado/diálogo deve ser repetido. Narrator, High Contrast, scaling, integração e `STATE-06` não foram autorizados nem inferidos.
 - Aprovador: implementação automática autorizada por Bruno no limite citado; nenhuma aprovação humana da repetição, do Human Gate ou da progressão foi inferida.
 
+## 2026-07-17 — Aprovação humana da amostra de teclado WPF 3.0.3
+
+- Estado anterior: `STATE-05 FRONTEND_IMPLEMENTATION`, progressão em espera e Human Gate pendente; a remediação de `REQ-068` estava automaticamente verificada, mas a repetição humana WPF de teclado/diálogo ainda aguardava decisão.
+- Estado resultante: sem transição; a amostra WPF `3.0.3` de teclado/diálogo está aprovada em seu escopo limitado. O Human Gate completo e `STATE-06` permanecem não autorizados.
+- Decisão: Bruno autorizou exatamente uma amostra WPF `--show-desktop`, somente por teclado, em `pt-BR`/Light e `en-GB`/Dark para observar Tab/Shift+Tab, as duas grades como pontos únicos, foco visível, diálogo, Escape e restauração do foco, com fechamento/restauração e sem Narrator, High Contrast, scaling, Agent/API/banco externo, ações externas ou transição. Depois respondeu exatamente `Amostra humana de teclado WPF 3.0.3: APROVADA`.
+- Escopo: a primeira tentativa foi abortada antes de qualquer tecla porque o Windows recusou a atribuição de foreground. Uma segunda execução dedicada, PID `30228`, percorreu os oito destinos em cada combinação, a sequência de Configuração com exatamente oito pontos incluindo as duas grades e nenhuma célula, contenção modal, Escape com restauração do trigger e ordem reversa.
+- Gates: build Release com zero avisos/erros e a baseline já aprovada de `225/225` testes unitários, `15/15` de arquitetura e `42/42` Dashboard; 80 observações de foco visíveis, limitadas e sem bounds ausentes; preferências restauradas byte a byte com hash `ABC049CBB37CC998FF86E018E6853D811E58ED166B2B6B4A5CF0FBA4B171868F`; processo e script dedicados removidos; nenhum WPF residual. O preview preexistente em `4173`, PID `29292`, permaneceu intocado. A sincronização documental passou o gate de 195 links Markdown locais e `git diff --check`.
+- Evidências: decisão direta de Bruno; `REQ-068`; [auditoria WPF](../../docs/STATE-05-WPF-Accessibility-Audit.md); [protocolo de Human Gate](../../docs/STATE-05-Human-Gate-Validation.md); [relatório do Design System](../../docs/STATE-05-Design-System-Implementation-Report.md); estado factual sincronizado.
+- Riscos/ressalvas: a aprovação não cobre Narrator, zoom nativo, estabilidade perante o modo de aplicação do Windows, High Contrast, scaling, Tray/flyout, hora local, Alertas em narrow desktop, Agent/API/banco, ações externas ou produção. Não aprova o Human Gate completo, não restaura automaticamente `S05-HG-011` e não autoriza `STATE-06`.
+- Aprovador: Bruno, somente para a amostra humana WPF `3.0.3` de teclado/diálogo; nenhuma aprovação adicional ou progressão foi inferida.
+
 ## Template de nova entrada
 
 - Data:
