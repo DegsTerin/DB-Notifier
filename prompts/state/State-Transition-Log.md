@@ -1248,6 +1248,20 @@
 - Shutdown preflight: o inventário inicial encontrou zero runtime, navegador dedicado, janela de produto ou listener DB-Notifier. Durante a validação, helpers de compilação exclusivamente sob `.dotnet` do workspace deixados por timeout foram identificados pelo caminho e encerrados; o IDE e seu build host foram preservados. O build limpo posterior passou.
 - Aprovador: Bruno, exclusivamente para este incremento restrito; nenhuma promoção de modo, transição ou autoridade adicional foi inferida.
 
+## 2026-07-17 — Aceitação do segundo incremento restrito MOD-12
+
+- Estado anterior: `STATE-06 INTEGRATION`, segundo incremento restrito MOD-12 concluído e automaticamente validado; nenhum modo MOD-12 ativo.
+- Estado resultante: `STATE-06 INTEGRATION` mantido; incremento aceito em revisão documental e `none → OBSERVER` permanece pendente.
+- Avaliação: Bruno considerou o resumo do commit `50c6897` consistente com o relatório detalhado, reconheceu a preservação dos limites arquiteturais e julgou internamente coerentes os resultados de build, testes, cobertura e gates apresentados.
+- Ressalva da revisão: a avaliação foi baseada na documentação apresentada, sem inspeção direta do diff do commit ou código-fonte, e não substitui code review quando necessário.
+- Decisão: Bruno registrou exatamente `Incremento restrito MOD-12 aceito, sem promoção para OBSERVER.`
+- Escopo da aceitação: somente o incremento de proveniência autenticada/revogação, separação de confiança, schema/version, budget/backpressure e corpus offline multi-segmento documentado no commit `50c6897`.
+- Limites: nenhuma transição, ativação operacional, integração runtime ou autoridade de implementação adicional foi concedida. Novo incremento, runtime ou proposta `none → OBSERVER` exige autorização separada, revisão arquitetural e de segurança, Quality Gate específico e Human Gate dedicado.
+- Gates: documentação de `208` arquivos comment-capable, `231` links Markdown locais e `git diff --check` aprovados. Builds, testes e smoke de produto não foram repetidos porque esta ação apenas registra a decisão humana sobre o commit `50c6897` já validado e não altera código ou runtime.
+- Evidências: [relatório do incremento](../../docs/STATE-06-MOD-12-Authenticated-Provenance-And-Budget-Report.md), [estado atual](Current-State.md), commit local `50c6897` e decisão de Bruno nesta sessão.
+- Shutdown preflight: zero helper, processo, janela de produto ou listener conhecido pertencente ao DB-Notifier; nenhuma interrupção foi necessária.
+- Aprovador: Bruno, exclusivamente para a aceitação documental do incremento restrito.
+
 ## Template de nova entrada
 
 - Data:

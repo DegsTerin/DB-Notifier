@@ -97,6 +97,14 @@ Online NuGet/npm vulnerability audits were not repeated because this authority e
 - Later MOD-12 modes: `NOT AUTHORISED`.
 - Lifecycle position: remains `STATE-06 INTEGRATION`.
 
+## Human review of the increment
+
+On 2026-07-17, Bruno accepted this restricted MOD-12 increment after reviewing the presented commit summary and detailed report. The review found the report technically consistent, the declared scope preserved and no indication of lifecycle progression or operational activation in the material presented.
+
+The reviewer explicitly reserved that this assessment was based on the presented documentation rather than direct inspection of the commit diff or source code, and therefore does not replace a code review where one is required.
+
+The recorded decision was: `Incremento restrito MOD-12 aceito, sem promoção para OBSERVER.` The acceptance grants no further implementation authority. Any new increment, runtime integration or `none → OBSERVER` proposal continues to require separate authorisation, architecture and security review, a specific Quality Gate and a dedicated Human Gate.
+
 ## Remaining conditions
 
 - Define and review the future server-side issuance, protected trust-anchor configuration, key rotation and authenticated revocation distribution boundary before any runtime use.
