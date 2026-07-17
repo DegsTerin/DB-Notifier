@@ -2,9 +2,9 @@
 
 ## Result
 
-`AUTOMATIC EVIDENCE APPROVED WITH LIMITATIONS — HUMAN NARRATOR SAMPLE NOT COMPLETED`
+`AUTOMATIC AND BOUNDED HUMAN EVIDENCE APPROVED WITH LIMITATIONS`
 
-The WPF build, UI Automation matrix, Windows High Contrast response and available Windows scaling samples passed in the scope described below. The human validator reported that they could not perform the Narrator sample. Narrator therefore remains `PENDENTE`; this is neither a product failure nor an approval.
+The WPF build, UI Automation matrix, current Windows High Contrast response, available Windows scaling samples, keyboard/dialogue paths and the `pt-BR` notification-area flyout Narrator path passed in the scopes described below. Dashboard Narrator, the full WPF shell and `en-GB` screen-reader behaviour were not exercised, so broader screen-reader coverage remains pending rather than failed.
 
 No database, Agent, API, service controller, identity provider, vault, notification channel or administrative executor was contacted.
 
@@ -22,6 +22,8 @@ Bruno explicitly requested validation of WPF, Narrator, High Contrast and Window
 | Initial/final DB Notifier WPF processes | None |
 
 Windows Display Settings offered `100%`, `125%`, `150%` and `175%`. It did not offer `200%` on the active display. The gate requires 200% only where the environment permits it, so 200% is recorded as unavailable rather than passed or failed.
+
+The 2026-07-17 combined human campaign repeated the applicable display and accessibility observations against the current `net10.0-windows10.0.22621.0` executable with SHA-256 `6F817330E2743FA2A7FA2E29D98206703B691BECE984C4026B02FD1598D921AB`. The original WPF preference bytes, Windows application mode, High Contrast flag, scaling and Narrator state were restored at the end.
 
 ## WPF matrix
 
@@ -53,7 +55,9 @@ High Contrast was enabled through the documented Windows `SPI_SETHIGHCONTRAST` m
 
 The effective Windows colours exposed dark window surfaces, white window text, cyan selection and a visible focus colour. Text, boundaries, selection and non-colour status symbols remained visible in the repeated target-only captures. One initial `en-GB` capture was incomplete immediately after a preference cycle; an isolated repetition rendered fully and classified the first image as a transient `PrintWindow` timing artefact rather than persistent product behaviour.
 
-High Contrast was restored to Off after the samples. This automatic/technical visual evidence does not replace the named human review required by `HG05-07`.
+High Contrast was restored to Off after the samples. This historical automatic/technical evidence was later supplemented by the named human review below.
+
+In the authorised 2026-07-17 combined campaign, the current WPF executable was observed with the real High Contrast flags changing `126 → 127 → 126` and the `Preto em Alto Contraste` scheme. At `820×620`, the Inventory DataGrid exposed a real horizontal scrollbar with approximately `50.19%` horizontal view size and Configuration allowed its ComboBox to expand. The seven-item ComboBox fixture did not create a separate popup scrollbar, so that particular rendering remains unproved rather than failed. Bruno approved the combined visible campaign, and the original High Contrast state was restored. Dashboard High Contrast was not foreground-reviewed and is outside this WPF result.
 
 ## Windows scaling
 
@@ -66,6 +70,8 @@ The audit changed the Windows Display Settings selection, launched a fresh WPF p
 | 200% | Not available | Not run | Not applicable | Environment does not offer this value |
 
 At 125% and 150%, the TopBar, five metrics, footer and primary content remained legible. The minimum-width Inventory table correctly exposed an accessible horizontal `ScrollPattern`; approximately 68% of its columns were visible at once and the remaining columns stayed reachable through the DataGrid scroll region. The outer content exposed vertical scrolling where required.
+
+The authorised 2026-07-17 human repetition used the real Windows Display Settings UI. At 125%, `GetDpiForWindow` reported 120 DPI, the physical bounds were `1025×775`, horizontal scrolling was exposed and the view size was approximately `69.66%`. At 150%, it reported 144 DPI, the fitted physical bounds were `1230×737`, horizontal scrolling was exposed and the view size was approximately `88.99%`. The difference from the earlier `1230×930` automatic capture reflects the current screen-fit position and does not alter the reported DPI. An initial registry-only attempt was discarded because the running WPF process remained at 96 DPI. The real display selection and system DPI were restored to 100%/96 DPI. Bruno approved the combined visible campaign; 200% remained unavailable on the active monitor.
 
 The WPF window reported DPI-awareness classification `1` (`PROCESS_SYSTEM_DPI_AWARE`). Fresh processes launched at 125% and 150% received the correct system DPI, as proved above. Moving a running window between monitors with different DPI values and live rescaling of an already-running process were not tested. Microsoft recommends additional per-monitor DPI handling for those scenarios, so mixed-DPI/multi-monitor behaviour remains technical debt rather than an inferred pass.
 
@@ -81,7 +87,11 @@ Observed automatic facts are limited to:
 - the WPF automation tree exposed named controls and a contained focus order;
 - Narrator and WPF were stopped after the human report.
 
-No claim is made about spoken order, pronunciation, verbosity, state announcements or usability. `HG05-01`, `HG05-02`, `HG05-04` and `HG05-05` remain pending wherever they require a human screen-reader sample.
+That historical attempt makes no claim about spoken order, pronunciation, verbosity, state announcements or usability.
+
+The authorised 2026-07-17 combined campaign later started Narrator and used the real normal-startup WPF notification-area path. An initial focus-loss attempt closed the flyout and was discarded. After Narrator was already active, the real `DB Notifier` icon was invoked again; the current `pt-BR` fleet flyout remained visible while ten focus observations traversed Open Dashboard, Open Configuration, Open logs and Exit. Bruno then stated exactly `Amostra combinada visível STATE-05: APROVADA. Narrator: AUDÍVEL E COMPREENSÍVEL.` Narrator and WPF were stopped afterwards.
+
+This is human approval of audibility and comprehensibility for that bounded `pt-BR` flyout action path. It does not establish Dashboard Narrator, the full WPF shell, `en-GB`, every state announcement or pronunciation beyond that path. `HG05-01`, `HG05-02` and `HG05-05` therefore retain screen-reader gaps; `HG05-04` is only partially covered by the flyout sample.
 
 ## Design System 2.6.14 native-chrome addendum
 
@@ -92,7 +102,7 @@ The later `REQ-066` review found that the Windows-managed caption and default WP
 - one implicit application `ScrollBar` style uses the existing semantic resources for track, thumb, border and interaction states while retaining vertical/horizontal `PART_Track` templates and line/page commands;
 - the WPF Release build completed with zero warnings/errors, and the tenth architecture test verifies the platform adapter, High Contrast reset, semantic-resource use and scrolling contract.
 
-The High Contrast and scaling observations above predate this native-chrome implementation. They remain valid only for the code and environment sampled at that time; they do not prove the new DWM reset or themed scrollbar in a real High Contrast session. An authorised 2026-07-16 run exercised Light → Dark → Light at `1180×760` and `820×620`: the caption and visible main scrollbar followed both themes, and UI Automation moved the scrollbar from `0.00%` to `9.38%` and restored it in Light and Dark. DataGrid and ComboBox popup scrollbars were not independently forced visible, and no human acceptance was inferred. A new High Contrast sample remains pending and requires separate explicit permission before changing Windows settings.
+The original High Contrast and scaling observations above predated this native-chrome implementation. An authorised 2026-07-16 run then exercised Light → Dark → Light at `1180×760` and `820×620`: the caption and visible main scrollbar followed both themes, and UI Automation moved the scrollbar from `0.00%` to `9.38%` and restored it in Light and Dark. The 2026-07-17 combined campaign subsequently exercised the current implementation in real High Contrast and real 125%/150% scaling as recorded above. The DataGrid scrollbar was generated and observed; the seven-item ComboBox popup did not require an independent scrollbar.
 
 ## Design System 3.0.3 read-only-grid keyboard addendum
 
@@ -114,8 +124,8 @@ In the authorised human repetition on 2026-07-17, an initial foreground refusal 
 
 ## Lifecycle impact
 
-The automatic WPF/High Contrast/available-scaling evidence is approved with the limitations above. The Design System `2.6.14` native-chrome correction is structurally approved and visibly observed in the bounded caption/main-scrollbar run. The Design System `3.0.3` read-only-grid Tab contract is structurally, technically and humanly approved in its keyboard/dialogue scope. The `STATE-05` Human Gate remains `PENDENTE`; no transition to `STATE-06` is authorised.
+The automatic and bounded human WPF/High Contrast/available-scaling evidence is approved with the limitations above. The Design System `2.6.14` native-chrome correction is structurally and visibly approved in its WPF scope. The Design System `3.0.3` read-only-grid Tab contract is structurally, technically and humanly approved in its keyboard/dialogue scope. The bounded `pt-BR` flyout Narrator path is audible and comprehensible according to the validator; broader screen-reader coverage is not inferred. The `STATE-05` Human Gate remains `PENDENTE`; no transition to `STATE-06` is authorised.
 
 ## Recommended next step
 
-Continue with the remaining separately authorised Human Gate samples; the WPF `3.0.3` keyboard/dialogue path need not be repeated unless its owning contract changes. Retry High Contrast only under separate explicit permission, and do not retry Narrator until the human validator has a workable listening method or another named validator is available. Record Narrator as `NÃO EXECUTADO — VALIDADOR SEM CONDIÇÃO DE TESTE` in any interim gate decision. A final `STATE-05` approval must either include a completed screen-reader sample or carry an explicit, accepted reservation that accurately describes the missing evidence.
+Do not repeat the approved WPF keyboard/dialogue, current WPF High Contrast, available-scaling or bounded `pt-BR` flyout Narrator paths unless their owning contracts change. Before the formal `STATE-05` decision, either complete Dashboard/full-shell/`en-GB` screen-reader coverage or explicitly accept those gaps as reservations. Preserve the additional limitations that the ComboBox fixture did not generate a popup scrollbar, 200% Windows scaling was unavailable and mixed-DPI/per-monitor behaviour remains unproved.
