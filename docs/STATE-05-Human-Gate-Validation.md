@@ -404,18 +404,18 @@ Do not mark a row until the named human validator has performed it.
 ## Human Gate decision
 
 - Phase: `STATE-05 FRONTEND_IMPLEMENTATION`
-- Validator: PENDENTE
-- Validation date: PENDENTE
-- Automatic report reviewed: PENDENTE
-- Critical samples repeated: completed within the recorded bounded scopes; formal validator acknowledgement remains pending
-- Experience and error messages: reviewed in the visual, keyboard, notification and combined campaigns; formal validator acknowledgement remains pending
-- Security/authorisation truth: no Agent, API, external database, external action or lifecycle transition was exercised; formal validator acknowledgement remains pending
-- Remaining coverage: Dashboard High Contrast and broader screen-reader coverage (Dashboard, full WPF shell and `en-GB`) were not exercised. The seven-item ComboBox fixture did not generate an independent popup scrollbar, and 200% Windows scaling was unavailable on the active monitor; mixed-DPI/per-monitor behaviour remains unproved. Native Chrome 200% zoom, Windows application-mode stability, available WPF scaling, WPF High Contrast, current Tray/flyout, system-local time and narrow Alert summary are closed in their bounded scopes. Authoritative reconciled state-change notification delivery remains assigned to `STATE-06`.
-- Decision: `PENDENTE`
-- Justification/evidence: PENDENTE
+- Validator: Bruno
+- Validation date: 2026-07-17
+- Automatic report reviewed: `SIM` — the validator explicitly confirmed review of the automatic report and repeated human samples after the formal summary of `225/225` unit/model/provider/presentation tests, `15/15` architecture tests, `42/42` Dashboard tests and the recorded documentation gates.
+- Critical samples repeated: `SIM`, within the recorded visual, keyboard/dialogue, notification and combined scopes.
+- Experience and error messages: `APROVADOS COM RESSALVAS`; the validator accepted the bounded human results and every limitation named below.
+- Security/authorisation truth: `CONFIRMADA`; no Agent, API, external database, external action, administrative execution or lifecycle transition was exercised.
+- Accepted reservations: Dashboard High Contrast and broader screen-reader coverage (Dashboard, full WPF shell and `en-GB`) were not exercised. The seven-item ComboBox fixture did not generate an independent popup scrollbar, 200% Windows scaling was unavailable on the active monitor and mixed-DPI/per-monitor behaviour remains unproved. Authoritative reconciled state-change notification delivery remains assigned to `STATE-06`.
+- Decision: `APROVADO COM RESSALVAS`
+- Justification/evidence: Bruno responded exactly `Human Gate STATE-05: APROVADO COM RESSALVAS. Revisei o relatório automático e as amostras humanas repetidas. Aceito explicitamente as ressalvas registradas. Não autorizo transição automática para STATE-06.` This is the explicit decision for `STATE-05` only. It closes the Human Gate with the reservations above and expressly withholds lifecycle-transition authority.
 
-Permitted decisions after the sample are `APROVADO`, `APROVADO COM RESSALVAS` or `REPROVADO`. Only an explicit human decision may change this section or authorise the lifecycle-transition workflow.
+Permitted decisions after the sample are `APROVADO`, `APROVADO COM RESSALVAS` or `REPROVADO`. The explicit decision above closes this Human Gate; it does not authorise the separate lifecycle-transition workflow.
 
 ## Recommended next step
 
-Retain the visual, keyboard, notification and combined campaigns as approved within their bounded scopes. Before the formal `STATE-05` decision, either repeat Dashboard High Contrast plus the broader screen-reader matrix, or have the named validator explicitly accept those missing observations as reservations. The formal decision must also acknowledge that the ComboBox popup scrollbar was not generated, 200% Windows scaling was unavailable and mixed-DPI/per-monitor behaviour remains unproved. No completed bounded sample needs repetition unless its owning contract changes.
+Retain the visual, keyboard, notification and combined campaigns as approved within their bounded scopes and retain the missing Dashboard High Contrast, broader screen-reader, ComboBox popup, 200% Windows scaling and mixed-DPI evidence as explicitly accepted reservations. Keep the workspace in `STATE-05 FRONTEND_IMPLEMENTATION` with progression on hold. Do not start the `STATE-06` transition workflow unless Bruno provides a later, separate and explicit authorisation.

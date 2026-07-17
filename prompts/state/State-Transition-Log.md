@@ -1155,6 +1155,19 @@
 - Riscos/ressalvas: o Narrator foi aprovado somente como audível e compreensível no flyout WPF `pt-BR`; Dashboard, shell WPF completo, `en-GB`, toda pronúncia e todos os anúncios de estado não foram exercitados. Dashboard High Contrast não foi revisto em foreground. A scrollbar do popup ComboBox não foi gerada, scaling Windows 200% estava indisponível e mixed-DPI/per-monitor não foi provado. Nenhum Agent, API, banco externo, ação externa, execução administrativa ou integração foi exercitado; `STATE-06` permanece não autorizado.
 - Aprovador: Bruno, exclusivamente para a campanha combinada visível e o caminho Narrator ouvido; nenhuma decisão formal do Human Gate ou progressão foi inferida.
 
+## 2026-07-17 — Aprovação formal do Human Gate de STATE-05 com ressalvas
+
+- Estado anterior: `STATE-05 FRONTEND_IMPLEMENTATION`, progressão em espera e Human Gate pendente após conclusão do relatório automático e das campanhas humanas visual, teclado/diálogo, notificações e combinada.
+- Estado resultante: `STATE-05 FRONTEND_IMPLEMENTATION` mantido, progressão em espera e Human Gate `APROVADO COM RESSALVAS`. Nenhuma transição ou workflow de transição foi iniciado.
+- Decisão: Bruno declarou exatamente `Human Gate STATE-05: APROVADO COM RESSALVAS. Revisei o relatório automático e as amostras humanas repetidas. Aceito explicitamente as ressalvas registradas. Não autorizo transição automática para STATE-06.` A formulação responde ao resumo exclusivo do gate, nomeia o estado, confirma revisão da evidência e aceita as ressalvas sem ambiguidade.
+- Relatório e amostras: baseline final revisada de build Release sem avisos/erros, `225/225` testes unit/model/provider/presentation, `15/15` arquitetura e `42/42` Dashboard, além dos gates documentais; campanhas humanas visuais Dashboard/WPF, teclado/diálogo, onze notificações locais, zoom nativo, modo de aplicações, WPF High Contrast/scaling disponível, hora local, Alertas narrow-desktop, Tray/flyout e Narrator limitado ao flyout WPF `pt-BR`.
+- Ressalvas aceitas: Dashboard High Contrast não exercitado; Narrator não exercitado no Dashboard, shell WPF completo ou `en-GB`; popup ComboBox sem scrollbar própria gerada; scaling Windows 200% indisponível; mixed-DPI/per-monitor não provado. Esses itens permanecem fatos ausentes, não passes inferidos.
+- Segurança e fase: nenhum Agent, API, banco externo, ação externa, execução administrativa, infraestrutura, homologação ou produção foi exercitado. Integração e delivery operacional continuam pertencentes a `STATE-06`; homologação e controle permanecem nas fases proprietárias.
+- Shutdown preflight: a nova mensagem começou com inventário e verificação obrigatórios; nenhum processo DB Notifier estava ativo e nenhum PID precisou ser encerrado.
+- Evidências: [Human Gate](../../docs/STATE-05-Human-Gate-Validation.md), [estado atual](Current-State.md), [relatório do Design System](../../docs/STATE-05-Design-System-Implementation-Report.md), [auditoria WPF](../../docs/STATE-05-WPF-Accessibility-Audit.md) e [rastreabilidade](../../docs/STATE-05-Request-Traceability-Audit.md) sincronizados.
+- Riscos/ressalvas: a aprovação encerra somente o Human Gate de `STATE-05`; não elimina dívida, não implementa escopos futuros e não autoriza progressão. Uma transição exige autorização posterior, separada e explícita de Bruno.
+- Aprovador: Bruno, para o Human Gate de `STATE-05` exclusivamente, com ressalvas e sem autorização de transição.
+
 ## Template de nova entrada
 
 - Data:

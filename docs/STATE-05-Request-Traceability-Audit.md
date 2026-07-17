@@ -6,7 +6,7 @@ Esta auditoria consolida as solicitações feitas na sessão de evolução visua
 
 Foram identificadas 69 unidades de requisito rastreáveis. A reauditoria de `REQ-050` não cria uma unidade duplicada: ela decompõe a cobertura pública do MySQL Notifier em 25 resultados funcionais `MN-*` e quatro invariantes de qualidade `MN-Q*`, todos com fonte, disposição clean-room, evidência atual, fase proprietária e condição de saída. `REQ-067` cobre a matriz local de transições, `REQ-068` a ordem de Tab das grades WPF e `REQ-069` o shutdown preflight permanente. Após esta atualização, toda solicitação consolidada possui documento proprietário ou evidência histórica identificada. Isso não significa que todas estejam implementadas ou humanamente aprovadas: a matriz preserva separadamente requisitos atendidos, decisões substituídas, integrações futuras, limitações intencionais e amostras humanas pendentes.
 
-O estado permanece `STATE-05 FRONTEND_IMPLEMENTATION`, com Human Gate `PENDENTE`. Esta auditoria não aprova uma amostra humana, não altera um estado do ciclo de vida e não autoriza `STATE-06`, `STATE-07`, integração externa, controle de serviço ou homologação de provider.
+O estado permanece `STATE-05 FRONTEND_IMPLEMENTATION`, com Human Gate `APROVADO COM RESSALVAS` por decisão explícita posterior de Bruno em 2026-07-17. Esta auditoria não altera um estado do ciclo de vida e a decisão humana não autoriza `STATE-06`, `STATE-07`, integração externa, controle de serviço ou homologação de provider.
 
 ### Reconhecimento humano do inventário
 
@@ -40,6 +40,7 @@ O estado permanece `STATE-05 FRONTEND_IMPLEMENTATION`, com Human Gate `PENDENTE`
 - Finding, remediação e fechamento posteriores: na amostra somente por teclado, o Dashboard passou, mas a sequência WPF pausada entrou nas células virtualizadas da grade de capabilities e retornou à TopBar antes dos botões de revisão/confirmação. Bruno autorizou a correção local e os testes completos. Essa solicitação cria `REQ-068`; Design System `3.0.3` torna cada DataGrid estritamente somente leitura um único ponto de Tab e preserva suas células fora da ordem de tarefas. A regressão técnica bilíngue Light/Dark passou e, na repetição humana autorizada de 2026-07-17, Bruno aprovou a amostra WPF de teclado/diálogo.
 - Decisão combinada posterior: em 2026-07-17, Bruno aprovou a campanha conjunta de zoom nativo, modo de aplicações, WPF High Contrast/scaling, hora local, Alertas narrow-desktop e Tray/flyout e declarou o caminho Narrator ouvido como audível e compreensível. A decisão cobre somente o flyout WPF `pt-BR` com Narrator; Dashboard, shell WPF completo, `en-GB` e Dashboard High Contrast não foram exercitados. O popup ComboBox não gerou scrollbar própria, scaling Windows 200% estava indisponível e mixed-DPI permanece não provado.
 - Instrução permanente posterior: Bruno determinou que toda nova solicitação, aprovação, alteração, ajuste, modificação ou implementação deve começar pelo encerramento integral do sistema DB Notifier. `REQ-069` formaliza a regra sem incluir bancos, serviços externos ou processos do usuário não atribuídos ao projeto.
+- Decisão formal posterior: Bruno declarou exatamente `Human Gate STATE-05: APROVADO COM RESSALVAS. Revisei o relatório automático e as amostras humanas repetidas. Aceito explicitamente as ressalvas registradas. Não autorizo transição automática para STATE-06.` O gate está encerrado; o estado permanece `STATE-05` e nenhuma progressão foi iniciada.
 
 ## Escopo e método
 
@@ -177,13 +178,13 @@ Lighthouse, matriz visual headless, WPF visível, Narrator, High Contrast e scal
 
 ### Pendências reais, não divergências documentais
 
-- Human Gate `STATE-05`: as amostras visuais e de teclado Dashboard/WPF, quatro larguras Dashboard, zoom nativo 200%, TopBar/wordmark, oito destinos, Overview, TV Fullscreen, modo de aplicação do Windows, WPF High Contrast/scaling, hora local, Alertas narrow-desktop, Tray/flyout corrente, `REQ-065`, `REQ-067` e `REQ-068` estão concluídos em seus escopos. Permanecem Dashboard High Contrast e cobertura ampla de leitor de tela; o popup ComboBox não gerou scrollbar própria na fixture corrente.
+- Human Gate `STATE-05`: `APROVADO COM RESSALVAS`. As amostras concluídas permanecem aprovadas em seus escopos; Dashboard High Contrast, cobertura ampla de leitor de tela, popup ComboBox sem scrollbar própria, scaling Windows 200% indisponível e mixed-DPI não provado permanecem como ressalvas explicitamente aceitas, não como resultados inferidos.
 - `STATE-06`: API/Agent/UI, dados reais autorizados, heartbeat/reconciliação, refresh TV de 30 s, SignalR como hint e notificações por mudança.
 - `STATE-07`: homologação por provider/topologia e qualquer Start/Stop/Restart com capability, permissão, confirmação, auditoria e post-probe.
 - Plataforma: não existe aplicativo móvel nativo, modo TV WPF ou prova mixed-DPI/per-monitor. Narrator foi aprovado somente no flyout WPF `pt-BR`; Dashboard, shell WPF completo e `en-GB` permanecem sem amostra auditiva.
 
 ## Conclusão de auditoria
 
-A rastreabilidade documental das solicitações está completa no escopo revisado. A implementação corrente corresponde ao contrato vigente de `STATE-05`; as diferenças restantes estão explicitamente classificadas como Human Gate pendente ou trabalho de fases futuras. Não foi encontrada solicitação ativa que devesse ser apresentada como implementada e estivesse ausente tanto da documentação quanto da matriz.
+A rastreabilidade documental das solicitações está completa no escopo revisado. A implementação corrente corresponde ao contrato vigente de `STATE-05`; as diferenças restantes estão explicitamente classificadas como ressalvas aceitas ou trabalho de fases futuras. Não foi encontrada solicitação ativa que devesse ser apresentada como implementada e estivesse ausente tanto da documentação quanto da matriz.
 
-A conclusão documental não muda o gate: `STATE-05` continua `PENDENTE`, e a próxima ação válida é executar e registrar as amostras humanas restantes sem agrupar aprovações nem inferir resultados.
+A decisão humana posterior encerra o gate como `APROVADO COM RESSALVAS`, mas não muda o estado técnico: `STATE-05` continua ativo, com progressão em espera e sem autorização para iniciar `STATE-06`.
