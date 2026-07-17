@@ -13,6 +13,8 @@ Critical assets:
 - Package signing identity and update manifests.
 - Windows app-notification identity, activation registration and stable installed path.
 - AIOps knowledge sources, datasets, prompts, evaluations, and approvals.
+- Future MOD-12 root anchors, signed policy-authorisation assertions, root-signed role delegations, role-specific public keys, signed trust bundles, trust-domain epoch heads, revocation heads, durable checkpoints and independent audit heads.
+- Future MOD-12 resource ceilings/reservations and governed corpus manifests; producer declarations are never trusted ceilings.
 
 ## Trust boundaries
 
@@ -26,6 +28,10 @@ Critical assets:
 8. Release pipeline ↔ signing service/update channel.
 9. Sanitized telemetry/knowledge ↔ future AIOps/LLM boundary.
 10. Windows Shell app-notification activation ↔ local WPF Desktop dispatcher.
+11. Root/policy governance ↔ future role-specific signing and key-custody boundaries.
+12. Future signers ↔ untrusted trust-bundle publisher/transport ↔ host trust coordinator.
+13. Future host trust coordinator ↔ durable checkpoint owner ↔ independent auditor/reconciler.
+14. Bounded telemetry/corpus source ↔ future resource admission coordinator ↔ pure MOD-12 verifier/evaluator.
 
 ## Threats and required controls
 
@@ -49,6 +55,28 @@ Critical assets:
 | Downgrade | Attacker installs vulnerable Agent | minimum version policy, signed manifest, schema/protocol compatibility | downgrade test |
 | Prompt injection | Retrieved document asks LLM to execute/exfiltrate | treat content as data, sanitization, provenance, structured output, no direct executor | adversarial eval/red team |
 | Data poisoning | Fake history biases recommendations | source identity/quality, immutable provenance, approval, offline governed training | poisoned-fixture eval |
+
+## MOD-12 pre-runtime trust and resource threats
+
+The threats below apply to any future implementation of trust distribution or bounded ingestion. The current MOD-12 verifier has no runtime, issuer, publisher, durable checkpoint or resource coordinator, so this section is architectural risk analysis rather than an operational-test result. The complete field/state contract and one-to-one threat → control → owner → vector mapping are in [AIOps Trust Governance and Resource Envelope](AIOps-Trust-Governance-And-Resource-Envelope.md#threat-control-and-future-test-traceability).
+
+| IDs | Threat group | Required control | Future verification | Accountable/enforcement roles |
+|---|---|---|---|---|
+| `M12-T01`, `M12-T06` | Valid signer issues unauthorised scope, or a valid package is replayed across tenant/environment/purpose | independently signed policy assertion, root-delegated role, canonical-set subset predicate and stable cross-scope domain key | fabricated/expired assertion, alias/wildcard/superset and cross-scope replay vectors | policy authority / host trust coordinator |
+| `M12-T02`–`M12-T05` | Rollback, freeze, fast-forward or split view | bounded freshness, direct/complete contiguous chain, stable recovery-epoch high-water, series checkpoint, same-generation digest check, independent reconciliation and no automatic branch choice | older/equal/divergent/gapped/catch-up/superseded-epoch generations and two-consumer fork | host trust coordinator / independent auditor |
+| `M12-T07`–`M12-T09` | Operational signer, revocation/root compromise, key-role confusion or downgrade | distinct root-delegated role keys, independent root, algorithm allowlist, revocation, quarantine and extraordinary recovery epoch | wrong-role/key/delegation/algorithm, normal rotation and compromise recovery | security architecture / root governance |
+| `M12-T10` | Clock manipulation hides freeze or causes unsafe validity | trusted clock policy, bounded skew and fail-closed freshness | virtual future/past/regressed clock | host platform owner |
+| `M12-T11` | TOCTOU, crash or partial local update exposes mixed trust state | immutable digest, revalidation and one local compare-and-swap/transaction over domain head, series checkpoint, bundle, revocation and audit intent | mutation and crash before/during/after commit | host trust coordinator |
+| `M12-T12` | Missing, corrupt, cloned, silently restored or superseded-epoch checkpoint loses monotonicity | stable domain high-water, quarantine plus independently authenticated continuity/reconciliation; local state alone is insufficient | full-store restore/clone, old epoch and missing/corrupt state | checkpoint owner / independent auditor |
+| `M12-T13` | Audit head is deleted, reordered or restored with the checkpoint | protected append-only intent/head and comparison outside the audited operator | audit tamper/restore vectors | independent auditor |
+| `M12-T14`, `M12-T15` | Lying/silent/infinite source or bundle/parser/decompression bomb | pre-reservation deadline, leased bootstrap ceiling, cooperative bounded reader, liveness deadlines, observed counters and independent encoded/expanded/structure limits | false counts, no first byte, infinite source, expansion and nesting limits | host resource coordinator |
+| `M12-T16`, `M12-T17` | Memory exhaustion, work undercharge or arithmetic overflow | versioned accounted-memory reservation, separate empirical peak, accounting classes, versioned work model and checked arithmetic | accounted/observed memory, maximum sorting/crypto and overflow vectors | host resource coordinator / MOD-12 owner |
+| `M12-T18`, `M12-T19` | Cancellation/deadline ignored or concurrent/fragmented scopes oversubscribe/starve | cooperative chunks, absolute deadline, lease, deterministic terminal precedence, atomic hierarchical buckets, parent windows and eligible-scope rotation | phase/liveness cancellation, second-stage acquisition, scope fragmentation, contention and virtual fairness tests | MOD-12 owner / host resource coordinator |
+| `M12-T20` | A favourable partial or truncated result is mistaken for a passing evaluation | complete-only pass; subset aggregates absent; truthful output admitted as a whole | timeout/cancel after favourable subset and oversized output | evaluation owner |
+| `M12-T21` | Corpus poisoning, replay, duplication, leakage or segment bias | immutable governed manifest, digest, owner/review, exact scope, expiry and distribution checks | tamper, label flip, duplicate, cross-scope, expiry and omitted segment | dataset owner/steward |
+| `M12-T22` | Refusal/audit diagnostics disclose sensitive telemetry or topology | stable sanitised codes, bounded diagnostics and canary scan | sensitive-content refusal fixture | security and privacy owner |
+
+Digest chaining detects divergence only when views are compared; it does not prevent split view. Likewise, a local checkpoint and local audit restored together cannot prove a silent rollback. Any future claim stronger than local continuity requires an independent witness, monotonic platform anchor or authenticated reconciliation mechanism that has itself been implemented and tested.
 
 ## Administrative command abuse cases
 
@@ -80,6 +108,9 @@ Free-form query text and database data are excluded from the baseline. Any futur
 - Windows App Runtime availability, stable unpackaged registration and Shell policy across install, repair, rollback and uninstall; local API acceptance does not prove visible notification delivery or production support.
 - Central multi-tenancy model if the product becomes shared SaaS.
 - Package/update rollback across schema changes.
+- Root provisioning, key custody, policy-authorisation workflow, trust-bundle publication and compromise-recovery ceremony for MOD-12.
+- Silent full-store restore and fleet-wide split-view detection until an independent continuity/witness mechanism is selected, implemented and tested.
+- Safe numerical ceilings for MOD-12 encoded/expanded bytes, accounted/observed memory, deterministic work, deadlines, cancellation latency, concurrency and fairness until reproducible measurement exists.
 
 ## Security acceptance scenarios
 
@@ -91,3 +122,6 @@ Free-form query text and database data are excluded from the baseline. Any futur
 - Scan logs/events/audit for secret canaries.
 - Tamper with update artifact/manifest and verify rejection.
 - Run AIOps prompt-injection/data-poisoning fixtures before any mode beyond `OBSERVER`.
+- Walk through a separately signed policy assertion, root role delegations, canonical scope subset, role-specific signing, normal rotation, compromise recovery and an untrusted publisher without treating transport authentication as policy authority.
+- Exercise older, equal, divergent, direct-successor, complete catch-up, gapped and superseded-epoch trust generations plus expired revocation, invalid candidate, restored checkpoint and two-consumer split view; no unsafe branch may become active.
+- Exercise encoded/expanded/parser/accounted-and-observed-memory/work/pre-reservation-deadline/liveness/cancellation/hierarchical-concurrency/fairness/output boundaries and prove that subset aggregates are absent from every incomplete result before any MOD-12 runtime proposal.

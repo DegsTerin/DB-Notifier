@@ -1300,6 +1300,23 @@
 - Próxima decisão: Bruno poderá ajustar, adiar, rejeitar ou autorizar separadamente apenas o incremento documental proposto. Nenhuma resposta é interpretada como promoção para `OBSERVER`.
 - Aprovador: não aplicável; esta entrada registra solicitação e proposta, não aprovação do próximo incremento.
 
+## 2026-07-17 — Incremento documental MOD-12 de governança de confiança e envelope de recursos
+
+- Estado anterior: `STATE-06 INTEGRATION`, proposta documental registrada, nenhum modo MOD-12 ativo e nenhuma implementação adicional autorizada.
+- Estado resultante: sem transição; `STATE-06 INTEGRATION` mantido, pacote documental concluído como candidato de revisão, `ADR-0007` em status `proposed` e `none → OBSERVER` pendente.
+- Decisão: depois de concluir que a proposta era coerente, exclusivamente documental e não continha autorização implícita de desenvolvimento, Bruno autorizou exatamente o incremento `MOD-12 — Trust Governance and Resource Envelope Design`, limitado ao mapa de responsabilidades, ADR, contrato conceitual, checkpoint durável, envelope de recursos, threat model, rastreabilidade e plano de testes futuros. A autorização proibiu implementação, código, migrations, runtime, chaves reais, persistência, serviços, ações externas e promoção para `OBSERVER`.
+- Entrega: `ADR-0007` compara quatro alternativas e propõe bundle confiável independente do transporte, assertion/delegações autenticadas por funções separadas, papéis/chaves segregados, high-water de época/checkpoint host-owned e envelope explícito. O contrato conceitual define bundle, máquina de estados/quarentena, rotação/recuperação, limites por mínimo confiável, corpus governado, `22` ameaças com owner/controle/vetor, `53` vetores contratuais futuros e três campanhas empíricas posteriores, todos não executados.
+- Revisão arquitetural: preserva o verificador MOD-12 puro, aceita somente sucessor direto, diferencia atomicidade local de convergência global e mantém transporte conectado/offline fora da raiz de confiança.
+- Revisão de segurança: assinatura não substitui autorização/scope ceiling; restore integral e split view permanecem riscos residuais sem witness/reconciliação independente; root/signers/publicador/checkpoint/auditor possuem responsabilidades incompatíveis.
+- Revisão de dados/recursos: o budget atual continua provando apenas casos/amostras/trabalho/tempo locais. Bytes, memória, concorrência, fairness, fila e latência de cancelamento são contratos futuros sem números ou evidência runtime; resultado incompleto é sempre não autorizante.
+- Limites: nenhum código, configuração, teste executável, migration, segredo, chave, store, API, Agent, provider, serviço, worker, fila, rede, coleta, persistência, LLM, executor ou runtime foi criado ou executado. O pacote não aceita antecipadamente o ADR e não promove modo ou ciclo de vida.
+- Evidências: [relatório do incremento](../../docs/STATE-06-MOD-12-Trust-Governance-And-Resource-Envelope-Report.md), [ADR-0007](../../docs/architecture/ADR-0007-AIOps-Trust-Distribution-And-Resource-Admission.md), [contrato conceitual](../../docs/architecture/AIOps-Trust-Governance-And-Resource-Envelope.md), [threat model](../../docs/architecture/Threat-Model.md), [guardrails AIOps](../../docs/architecture/AIOps-Architecture-Guardrails.md), [proposta/autorização](../../docs/STATE-06-MOD-12-Trust-Governance-And-Resource-Envelope-Proposal.md) e decisão de Bruno nesta sessão.
+- Shutdown preflight: zero processo DB-Notifier encerrado ou remanescente, zero janela bloqueante e zero listener proprietário; a janela do Visual Studio Code do usuário foi identificada e preservada.
+- Gates: 266 links Markdown locais em 70 arquivos aprovados, documentação de 208 fontes comment-capable aprovada, secret scan do worktree não ignorado e do histórico Git disponível aprovado, séries completas de 22 ameaças, 53 vetores determinísticos e três campanhas empíricas futuras conferidas, inspeção de escopo aprovada, `git diff --check` e `git diff --cached --check` aprovados; build, testes e runtime de produto são `NÃO APLICÁVEIS` e não foram executados neste escopo documental.
+- Human Gate: pendente para o pacote documental; a autorização de elaboração não é aceitação do `ADR-0007` nem do incremento concluído.
+- Próxima decisão: Bruno poderá aceitar, aceitar com ressalvas, pedir ajustes ou rejeitar apenas este pacote documental. Qualquer implementação ou proposta `none → OBSERVER` exige nova autoridade e gates próprios.
+- Aprovador: Bruno, exclusivamente para executar o incremento documental; nenhuma aceitação humana do resultado foi inferida.
+
 ## Template de nova entrada
 
 - Data:

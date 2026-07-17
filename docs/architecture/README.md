@@ -86,10 +86,12 @@ Infrastructure / Providers / Agent / API / Desktop
 - [ADR-0004 — Persistence, migrations, and retention](ADR-0004-Persistence-And-Retention.md)
 - [ADR-0005 — Packaging, signing, and updates](ADR-0005-Packaging-Signing-And-Updates.md)
 - [ADR-0006 — Provider capability and administrative control](ADR-0006-Provider-Capabilities-And-Control.md)
+- [ADR-0007 — AIOps trust distribution and resource admission](ADR-0007-AIOps-Trust-Distribution-And-Resource-Admission.md) (`proposed`; documentary only)
 - [Canonical contracts](Canonical-Contracts.md)
 - [Agent/API protocol](Agent-API-Protocol.md)
 - [Threat model](Threat-Model.md)
 - [Provider capability matrix](Provider-Capability-Matrix.md)
 - [AIOps/AI guardrails](AIOps-Architecture-Guardrails.md)
+- [AIOps trust governance and resource envelope](AIOps-Trust-Governance-And-Resource-Envelope.md) (review candidate; no implementation authority)
 
 The incremental delivery and rollback sequence remains in [`../Legacy-Migration-Plan.md`](../Legacy-Migration-Plan.md). Legacy naming compatibility remains in [`../Legacy-Compatibility.md`](../Legacy-Compatibility.md).

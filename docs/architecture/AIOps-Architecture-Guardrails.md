@@ -2,7 +2,7 @@
 
 ## Status
 
-MOD-12 remains inactive and outside the runtime baseline. A local, in-memory and non-mutating Observer foundation implements bounded evidence, threshold and capacity-analysis contracts inside Application. Restricted `STATE-06` increments add a trusted canonical-health adapter, authenticated purpose-specific policy grants with independently signed revocation snapshots, explicit offline processing budgets and a deterministic segmented evaluation runner. None is registered with a runtime pipeline, provider, persistence, UI, LLM or executor, and none satisfies the `none → OBSERVER` promotion gate. This document defines the data, risk, contract and evaluation boundaries so later work cannot mistake local integration evidence for an activated mode or bypass deterministic controls.
+MOD-12 remains inactive and outside the runtime baseline. A local, in-memory and non-mutating Observer foundation implements bounded evidence, threshold and capacity-analysis contracts inside Application. Restricted `STATE-06` increments add a trusted canonical-health adapter, authenticated purpose-specific policy grants with independently signed revocation snapshots, explicit offline processing budgets and a deterministic segmented evaluation runner. A later documentation-only increment defines a review candidate for trust governance, durable checkpoint semantics and a fuller resource envelope in proposed [ADR-0007](ADR-0007-AIOps-Trust-Distribution-And-Resource-Admission.md) and its [conceptual contract](AIOps-Trust-Governance-And-Resource-Envelope.md); none of those future boundaries is implemented. Nothing is registered with a runtime pipeline, provider, persistence, UI, LLM or executor, and nothing satisfies the `none → OBSERVER` promotion gate. This document defines the data, risk, contract and evaluation boundaries so later work cannot mistake local integration evidence or documentary design for an activated mode or bypass deterministic controls.
 
 ## Allowed initial mode
 
@@ -21,6 +21,44 @@ Every AI-consumable item derives from canonical contracts and adds:
 - immutable link to the underlying evidence.
 
 Secrets, full connection strings, private keys, enrollment material, unapproved query text, and raw database content are forbidden. AIOps storage is separate from operational command state.
+
+## Pre-runtime trust governance
+
+Any future policy/trust distribution design must preserve these invariants:
+
+- the root trust anchor is provisioned independently and is never accepted from the bundle or evidence it validates;
+- policy authorisation is materialised as a separately signed assertion under a distinct root-delegated role; a bundle-carried ID/digest or operational signature alone is insufficient;
+- the host evaluates a bounded canonical-set subset predicate before trusting the scope digest; aliases, wildcards, partial overlap and supersets fail closed;
+- root custody, policy authority, role-specific signers, publisher, host trust coordinator, checkpoint owner, verifier and independent auditor have distinct identities and incompatible permissions;
+- policy-attestation, trust-bundle, grant and revocation signing use distinct root-delegated key identities and distinct public-key material; an operational signer cannot delegate its successor;
+- the publisher/transport is untrusted for policy, ordering and freshness even if its transport is authenticated;
+- a normal update is a direct monotonic successor or trusted-locally-bounded complete chain of direct successors, each bound to its exact predecessor and revocation head;
+- lower generations are rejected, equal generations with another digest quarantine the scope, and gaps require separately authorised reconciliation rather than a highest-generation-wins rule;
+- a stable trust-domain head keeps the recovery epoch/series high-water outside the epoch-specific checkpoint key, so superseded epochs cannot bootstrap as new domains;
+- bundle, revocation state, stable domain head, subordinate checkpoint and audit intent become visible through one future local transaction only; this never implies fleet-wide simultaneous atomicity;
+- missing, corrupt, cloned, restored or divergent continuity quarantines MOD-12 until authenticated independent reconciliation;
+- malformed or unauthenticated candidate bytes are rejected without deactivating a fresh intact current tuple; authenticated equivocation/gaps, current expiry or continuity damage quarantine; and
+- a local checkpoint restored with its local audit cannot prove silent anti-rollback or absence of split view without an independent witness, monotonic anchor or reconciliation source.
+
+The pure MOD-12 verifier owns no network, private key, persistence, recovery or publication responsibility. Proposed `ADR-0007` remains subject to architecture, security, data and Human Gate review, and its acceptance would not authorise implementation.
+
+## Resource admission and backpressure
+
+The current offline runner proves only local case/sample/work/time admission. A future resource boundary must additionally:
+
+- start an absolute monotonic deadline before any reservation, use a short global pre-authentication ingress lease, and require first-byte/inter-read liveness plus a cooperative cancellation/deadline-aware source;
+- apply a trusted bounded reader before authentication and charge encoded bytes, expanded bytes, expansion ratio, parser structure and cardinality before relevant allocation;
+- calculate every effective limit as the minimum of complete finite trusted-host, separately signed policy-assertion, bundle and per-request ceilings; each later layer can only reduce earlier trusted ceilings, while producer declarations may never raise them;
+- after authentication, acquire global and hierarchical tenant/environment/authority/purpose/exact-scope buckets atomically, keeping authorisation keys separate from quota keys;
+- distinguish reusable leases (slots/accounted memory/output), monotonic per-execution consumption (bytes/work/time), window quota tokens and audit counters; only reusable/unused capacity is released;
+- use checked arithmetic and a versioned work model that includes parsing, cryptography, sorting, copying, analysis and result construction;
+- use a versioned conservative accounted-memory formula, while real heap/working-set and cancellation latency remain later empirical evidence;
+- use bounded phase work and the declared deterministic terminal precedence; equality with an absolute deadline is expired;
+- keep a future queue disabled until separately authorised with depth, byte, age and discard limits;
+- use parent window buckets and deterministic rotation among simultaneously eligible canonical scopes; the first serial/no-queue proof establishes containment, not general starvation freedom; and
+- mark every timeout, cancellation or partial execution as incomplete and non-authorising; subset precision, recall, calibration and aggregates are absent/null rather than serialised.
+
+The first future local proof remains serial (`maximum parallelism = 1`). Safe operational numbers require reproducible measurement; no number is established by this documentary contract.
 
 ## Processing boundaries
 

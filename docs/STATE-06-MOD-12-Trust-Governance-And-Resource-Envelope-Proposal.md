@@ -11,6 +11,12 @@
 
 Este documento não autoriza o incremento proposto. Ele organiza uma possível próxima atividade para que Bruno possa revisar seu objetivo, limites, riscos e critérios antes de decidir separadamente se deseja autorizá-la.
 
+## Autorização posterior
+
+Depois de revisar esta proposta, Bruno concluiu que as seções de resumo, escopo, exclusões, critérios e riscos eram coerentes e não continham autorização implícita para desenvolvimento. Em seguida, autorizou exclusivamente o incremento documental `MOD-12 — Trust Governance and Resource Envelope Design`, limitado ao mapa de responsabilidades, ADR, contrato conceitual, checkpoint durável, envelope de recursos, threat model, rastreabilidade e plano de testes futuros, mantendo expressamente proibidos implementação, código, migrations, runtime, chaves reais, persistência, serviços, ações externas e promoção para `OBSERVER`.
+
+Essa decisão autoriza produzir e validar os documentos. Ela não aceita antecipadamente a alternativa proposta no ADR, não concede autoridade de implementação e não altera o ciclo de vida ou o modo do MOD-12.
+
 ## Resumo para não especialistas
 
 O MOD-12 já consegue, em testes locais, verificar políticas assinadas, recusar uma lista de revogação antiga e limitar avaliações offline. Ainda faltam duas definições antes de sequer considerar uma integração operacional:
@@ -281,12 +287,14 @@ Classificação proposta para esse futuro incremento:
 
 Se este incremento documental vier a ser autorizado, concluído e aceito, ele ainda não liberará implementação. O passo seguinte seria uma nova proposta separada para contratos locais e testes adversariais, também sem runtime. Somente evidências posteriores de implementação, segurança, corpus, carga e integração poderiam alimentar uma proposta independente de `none → OBSERVER`.
 
-## Decisão atualmente solicitada
+## Resultado do incremento autorizado e decisão seguinte
 
-Nenhuma autorização de execução é inferida deste documento. Bruno poderá:
+O incremento documental autorizado materializa sua recomendação em:
 
-- aceitar a proposta como base e autorizar separadamente o incremento documental;
-- pedir ajustes na proposta;
-- rejeitar ou adiar a atividade.
+- [relatório do incremento documental](STATE-06-MOD-12-Trust-Governance-And-Resource-Envelope-Report.md);
+- [ADR-0007 proposto](architecture/ADR-0007-AIOps-Trust-Distribution-And-Resource-Admission.md);
+- [contrato de governança de confiança e envelope de recursos](architecture/AIOps-Trust-Governance-And-Resource-Envelope.md);
+- [threat model atualizado](architecture/Threat-Model.md); e
+- [guardrails AIOps atualizados](architecture/AIOps-Architecture-Guardrails.md).
 
-Até uma decisão explícita, a próxima atividade permanece apenas proposta, o workspace continua em `STATE-06 INTEGRATION` e nenhum modo MOD-12 está ativo.
+A próxima decisão é a revisão humana desse pacote. Bruno poderá aceitá-lo, aceitá-lo com ressalvas, pedir ajustes ou rejeitá-lo. Até essa decisão, `ADR-0007` permanece `proposed`; o workspace continua em `STATE-06 INTEGRATION`, nenhum modo MOD-12 está ativo e nenhuma implementação está autorizada.
