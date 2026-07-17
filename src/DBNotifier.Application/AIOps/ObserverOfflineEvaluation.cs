@@ -54,12 +54,14 @@ public sealed class ObserverOfflineEvaluationSegment
 }
 
 /// <summary>
-/// Defines one reproducible offline case containing typed canonical telemetry, an authenticated data-policy context, one
-/// deterministic threshold and an exact expected outcome.
+/// Defines one reproducible offline case containing a caller-owned bounded telemetry source, an authenticated data-policy
+/// context, one deterministic threshold and an exact expected outcome. Telemetry is copied only after run admission.
 /// </summary>
 public sealed class ObserverOfflineEvaluationCase
 {
-    /// <summary>Initialises one bounded and immutable offline evaluation case.</summary>
+    private readonly IReadOnlyCollection<ObserverCanonicalHealthTelemetry> telemetrySource;
+
+    /// <summary>Initialises one bounded offline case without enumerating or copying its telemetry source.</summary>
     /// <param name="caseId">Stable case identifier.</param>
     /// <param name="analysisId">Non-empty reproducible analysis identifier.</param>
     /// <param name="kind">Reference or adversarial case kind.</param>
@@ -67,12 +69,12 @@ public sealed class ObserverOfflineEvaluationCase
     /// <param name="dataPolicyContext">Signed offline data policy and current authenticated revocation view.</param>
     /// <param name="trustConfiguration">Application-configured grant and revocation public trust.</param>
     /// <param name="analysisAt">Trusted UTC case instant.</param>
-    /// <param name="telemetry">One to the analysis sample bound canonical telemetry envelopes.</param>
+    /// <param name="telemetry">Caller-owned bounded source enumerated only after aggregate admission.</param>
     /// <param name="thresholdRule">Single deterministic threshold evaluated after adaptation.</param>
     /// <param name="expectedDisposition">Exact expected boundary or finding disposition.</param>
     /// <param name="expectedCode">Exact stable expected outcome code.</param>
     /// <exception cref="ArgumentNullException">Thrown when a required object or collection is null.</exception>
-    /// <exception cref="ArgumentException">Thrown for unsafe time, null entries or repeated evidence identifiers.</exception>
+    /// <exception cref="ArgumentException">Thrown for an unsafe evaluation instant.</exception>
     /// <exception cref="ArgumentOutOfRangeException">Thrown for empty identifiers, invalid enums or sample bounds.</exception>
     public ObserverOfflineEvaluationCase(
         string caseId,
@@ -110,42 +112,11 @@ public sealed class ObserverOfflineEvaluationCase
 
         ValidateUtcInstant(analysisAt, nameof(analysisAt));
         ArgumentNullException.ThrowIfNull(telemetry);
-        ObserverCanonicalHealthTelemetry?[] boundedTelemetry = telemetry
-            .Take(ObserverAnalysisRequest.MaximumSampleCount + 1)
-            .ToArray();
-        ArgumentOutOfRangeException.ThrowIfLessThan(boundedTelemetry.Length, 1, nameof(telemetry));
+        ArgumentOutOfRangeException.ThrowIfLessThan(telemetry.Count, 1, nameof(telemetry));
         ArgumentOutOfRangeException.ThrowIfGreaterThan(
-            boundedTelemetry.Length,
+            telemetry.Count,
             ObserverAnalysisRequest.MaximumSampleCount,
             nameof(telemetry));
-        if (boundedTelemetry.Any(item => item is null))
-        {
-            throw new ArgumentException("Offline cases cannot contain null telemetry envelopes.", nameof(telemetry));
-        }
-
-        ObserverCanonicalHealthTelemetry[] copiedTelemetry = boundedTelemetry.Select(item => item!).ToArray();
-        if (copiedTelemetry
-                .Select(item => item.Observation.ObservationId)
-                .Distinct()
-                .Count() != copiedTelemetry.Length)
-        {
-            throw new ArgumentException("Offline cases cannot repeat canonical observation identifiers.", nameof(telemetry));
-        }
-
-        if (copiedTelemetry.Any(item =>
-                !string.Equals(
-                    item.Observation.ProviderType.Value,
-                    segment.ProviderType,
-                    StringComparison.Ordinal) ||
-                !string.Equals(
-                    item.Observation.ProviderVersion,
-                    segment.ProviderVersion,
-                    StringComparison.Ordinal)))
-        {
-            throw new ArgumentException(
-                "Offline telemetry must match its declared provider and version segment.",
-                nameof(telemetry));
-        }
 
         ArgumentNullException.ThrowIfNull(thresholdRule);
         CaseId = ObserverContractGuard.StableIdentifier(caseId, nameof(caseId));
@@ -155,10 +126,8 @@ public sealed class ObserverOfflineEvaluationCase
         DataPolicyContext = dataPolicyContext;
         TrustConfiguration = trustConfiguration;
         AnalysisAt = analysisAt;
-        Telemetry = Array.AsReadOnly(copiedTelemetry
-            .OrderBy(item => item.Observation.ObservedAt)
-            .ThenBy(item => item.Observation.ObservationId)
-            .ToArray());
+        telemetrySource = telemetry;
+        TelemetryCount = telemetry.Count;
         ThresholdRule = thresholdRule;
         ExpectedDisposition = expectedDisposition;
         ExpectedCode = ObserverContractGuard.StableIdentifier(expectedCode, nameof(expectedCode));
@@ -188,8 +157,8 @@ public sealed class ObserverOfflineEvaluationCase
     /// <summary>Gets the trusted UTC case instant.</summary>
     public DateTimeOffset AnalysisAt { get; }
 
-    /// <summary>Gets the immutable canonical telemetry candidates.</summary>
-    public IReadOnlyList<ObserverCanonicalHealthTelemetry> Telemetry { get; }
+    /// <summary>Gets the declared telemetry count used for aggregate admission without source enumeration.</summary>
+    public int TelemetryCount { get; }
 
     /// <summary>Gets the sole deterministic threshold evaluated by the case.</summary>
     public ObserverThresholdRule ThresholdRule { get; }
@@ -199,6 +168,72 @@ public sealed class ObserverOfflineEvaluationCase
 
     /// <summary>Gets the exact stable expected outcome code.</summary>
     public string ExpectedCode { get; }
+
+    /// <summary>
+    /// Copies and validates one case only after aggregate admission, preventing rejected datasets from allocating an
+    /// internal corpus-sized telemetry buffer.
+    /// </summary>
+    /// <param name="telemetry">Immutable, deterministically ordered telemetry when validation succeeds.</param>
+    /// <param name="rejectionCode">Stable fail-closed code when the caller-owned source changed or is invalid.</param>
+    /// <returns><see langword="true"/> only when the admitted source can be materialised safely.</returns>
+    internal bool TryMaterialiseTelemetry(
+        out IReadOnlyList<ObserverCanonicalHealthTelemetry>? telemetry,
+        out string? rejectionCode)
+    {
+        if (telemetrySource.Count != TelemetryCount)
+        {
+            telemetry = null;
+            rejectionCode = "aiops.observer.offline.telemetry_source_changed";
+            return false;
+        }
+
+        ObserverCanonicalHealthTelemetry[] copiedTelemetry = telemetrySource
+            .Take(ObserverAnalysisRequest.MaximumSampleCount + 1)
+            .ToArray();
+        if (copiedTelemetry.Length != TelemetryCount || telemetrySource.Count != TelemetryCount)
+        {
+            telemetry = null;
+            rejectionCode = "aiops.observer.offline.telemetry_source_changed";
+            return false;
+        }
+
+        if (copiedTelemetry.Any(item => item is null))
+        {
+            telemetry = null;
+            rejectionCode = "aiops.observer.offline.telemetry_source_invalid";
+            return false;
+        }
+
+        if (copiedTelemetry
+                .Select(item => item.Observation.ObservationId)
+                .Distinct()
+                .Count() != copiedTelemetry.Length ||
+            copiedTelemetry.Any(item =>
+                !string.Equals(
+                    item.Observation.ProviderType.Value,
+                    Segment.ProviderType,
+                    StringComparison.Ordinal) ||
+                !string.Equals(
+                    item.Observation.ProviderVersion,
+                    Segment.ProviderVersion,
+                    StringComparison.Ordinal)))
+        {
+            telemetry = null;
+            rejectionCode = "aiops.observer.offline.telemetry_source_invalid";
+            return false;
+        }
+
+        Array.Sort(copiedTelemetry, static (left, right) =>
+        {
+            int observedAtComparison = left.Observation.ObservedAt.CompareTo(right.Observation.ObservedAt);
+            return observedAtComparison != 0
+                ? observedAtComparison
+                : left.Observation.ObservationId.CompareTo(right.Observation.ObservationId);
+        });
+        telemetry = Array.AsReadOnly(copiedTelemetry);
+        rejectionCode = null;
+        return true;
+    }
 
     /// <summary>Rejects default or offset-bearing evaluation instants.</summary>
     /// <param name="value">Instant to validate.</param>
@@ -292,7 +327,7 @@ public sealed class ObserverOfflineEvaluationDataset
             .ThenBy(item => item.ProviderVersion, StringComparer.Ordinal)
             .ThenBy(item => item.Platform, StringComparer.Ordinal)
             .ToArray());
-        TotalSampleCount = Cases.Sum(item => item.Telemetry.Count);
+        TotalSampleCount = Cases.Sum(item => item.TelemetryCount);
         MaximumRequiredWorkUnits = checked((Cases.Count * 2L) + TotalSampleCount);
     }
 
@@ -326,7 +361,7 @@ public sealed class ObserverOfflineEvaluationDataset
     /// <summary>Gets the distinct provider/version/platform segments without support claims.</summary>
     public IReadOnlyList<ObserverOfflineEvaluationSegment> Segments { get; }
 
-    /// <summary>Gets the exact aggregate telemetry-envelope count used for admission control.</summary>
+    /// <summary>Gets the aggregate declared telemetry-envelope count used for admission control.</summary>
     public int TotalSampleCount { get; }
 
     /// <summary>Gets the deterministic upper work bound: two units per case plus one per sample.</summary>
@@ -761,8 +796,19 @@ public static class ObserverOfflineEvaluationRunner
         ObserverProcessingBudgetTracker tracker,
         CancellationToken cancellationToken)
     {
-        List<ObserverMetricSample> samples = new(evaluationCase.Telemetry.Count);
-        foreach (ObserverCanonicalHealthTelemetry telemetry in evaluationCase.Telemetry)
+        tracker.EnsureTimeAvailable();
+        if (!evaluationCase.TryMaterialiseTelemetry(out IReadOnlyList<ObserverCanonicalHealthTelemetry>? telemetryBatch, out string? rejectionCode))
+        {
+            return new ObserverOfflineEvaluationCaseResult(
+                evaluationCase,
+                ObserverOfflineExpectedDisposition.AdaptationRejected,
+                rejectionCode!);
+        }
+
+        tracker.EnsureTimeAvailable();
+
+        List<ObserverMetricSample> samples = new(telemetryBatch!.Count);
+        foreach (ObserverCanonicalHealthTelemetry telemetry in telemetryBatch)
         {
             cancellationToken.ThrowIfCancellationRequested();
             tracker.Consume();
@@ -899,12 +945,18 @@ internal sealed class ObserverProcessingBudgetTracker
     /// <exception cref="ObserverProcessingBudgetExceededException">Thrown before work after elapsed-time exhaustion.</exception>
     public void Consume()
     {
+        EnsureTimeAvailable();
+        ConsumedWorkUnits++;
+    }
+
+    /// <summary>Stops the run when uncharged bounded preparation has exhausted the elapsed-time ceiling.</summary>
+    /// <exception cref="ObserverProcessingBudgetExceededException">Thrown before further work after time exhaustion.</exception>
+    public void EnsureTimeAvailable()
+    {
         if (timeProvider.GetElapsedTime(startedAt) >= budget.MaximumElapsedTime)
         {
             throw new ObserverProcessingBudgetExceededException();
         }
-
-        ConsumedWorkUnits++;
     }
 }
 

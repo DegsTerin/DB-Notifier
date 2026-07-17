@@ -1,5 +1,9 @@
 # STATE-06 MOD-12 Authenticated Provenance, Budget and Segmented Evaluation Report
 
+## Subsequent review note
+
+A later direct source review identified bounded gaps in rollback protection, exact curve enforcement, trust-anchor separation and admission-time materialisation. The original observations below remain preserved as historical evidence for commit `50c6897`; the corrective implementation and current limitations are recorded separately in the [`STATE-06 MOD-12 Provenance and Budget Remediation Report`](STATE-06-MOD-12-Provenance-And-Budget-Remediation-Report.md).
+
 ## Status and authority
 
 - Date: 2026-07-17

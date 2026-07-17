@@ -1262,6 +1262,19 @@
 - Shutdown preflight: zero helper, processo, janela de produto ou listener conhecido pertencente ao DB-Notifier; nenhuma interrupção foi necessária.
 - Aprovador: Bruno, exclusivamente para a aceitação documental do incremento restrito.
 
+## 2026-07-17 — Remediação pós-code-review do segundo incremento MOD-12
+
+- Estado anterior: `STATE-06 INTEGRATION`, segundo incremento restrito aceito documentalmente e nenhum modo MOD-12 ativo.
+- Estado resultante: sem transição; `STATE-06 INTEGRATION` mantido, remediação automaticamente validada e `none → OBSERVER` pendente.
+- Revisão e decisão: a inspeção direta somente leitura do commit `50c6897` confirmou o escopo e isolamento, mas classificou como Médias a ausência de anti-rollback, a materialização anterior ao budget e a inferência de P-256 apenas por tamanho, e como Baixa a possibilidade de reutilizar âncoras. Bruno autorizou exatamente a remediação local desses pontos, testes e documentação, proibindo runtime, providers operacionais, persistência externa, LLM, executor, serviços, workers, APIs, ações externas e promoção.
+- Implementação: a revogação possui sequência positiva assinada e deve coincidir com série/revisão exatas do checkpoint confiável; snapshot anterior é recusado como rollback. DER/OID, ponto EC, importação e curva exportada devem comprovar NIST P-256. Grant e revogação não podem partilhar identificador nem material público. O runner calcula admissão por contagens sem enumerar telemetria, recusa antes de cópia e materializa somente o caso corrente depois da admissão.
+- Gates: `71/71` testes AIOps, `267/267` unit/model/provider/presentation, `15/15` arquitetura, build Release com zero avisos/erros, cobertura `80,41%` linhas/`61,17%` branches, .NET format, documentação de `208` fontes, `236` links Markdown em `66` arquivos, secret scan corrente/histórico, diff e staged diff aprovados.
+- Evidências: [relatório da remediação](../../docs/STATE-06-MOD-12-Provenance-And-Budget-Remediation-Report.md), [relatório histórico revisado](../../docs/STATE-06-MOD-12-Authenticated-Provenance-And-Budget-Report.md), [estado atual](Current-State.md), testes `AIOpsIntegrationTests` e autorização de Bruno nesta sessão.
+- Segurança/limites: nenhuma dependência, DI, rede, arquivo, banco, persistência, provider, UI, coleta, LLM, recomendação, plano, comando ou executor foi acrescentado. O checkpoint é configuração local confiável; emissão, distribuição, avanço atómico e persistência durável continuam futuros. A fonte de telemetria permanece memória do chamador; não há alegação de streaming ou homologação runtime.
+- Shutdown preflight: zero processo ou listener proprietário foi encontrado. A única janela com o nome do projeto era o Visual Studio Code do usuário, preservado por ser IDE e não runtime do produto.
+- Gate humano: a autorização permitiu implementar a remediação, mas não pré-aprova sua aceitação. A revisão humana deste incremento corretivo permanece separada e não promove modo ou ciclo de vida.
+- Aprovador: Bruno, exclusivamente para a execução desta remediação restrita.
+
 ## Template de nova entrada
 
 - Data:

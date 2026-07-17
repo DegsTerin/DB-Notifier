@@ -179,6 +179,9 @@ public sealed class AIOpsIntegrationTests
     [InlineData("revoked", "aiops.observer.adapter.provenance_revoked")]
     [InlineData("key-revoked", "aiops.observer.adapter.provenance_revoked")]
     [InlineData("stale", "aiops.observer.adapter.provenance_revocation_stale")]
+    [InlineData("rollback", "aiops.observer.adapter.provenance_revocation_rollback")]
+    [InlineData("checkpoint", "aiops.observer.adapter.provenance_revocation_checkpoint_mismatch")]
+    [InlineData("grant-inactive", "aiops.observer.adapter.provenance_grant_inactive")]
     public void AdapterRejectsUntrustedPolicyProvenance(string scenario, string expectedCode)
     {
         ObserverDataPolicy policy = DataPolicy(
@@ -192,7 +195,10 @@ public sealed class AIOpsIntegrationTests
             tamperRevocationSignature: scenario == "revocation-tampered",
             staleRevocation: scenario == "stale",
             untrustedIdentity: scenario == "identity",
-            untrustedGrantKeyMaterial: scenario == "self-signed");
+            untrustedGrantKeyMaterial: scenario == "self-signed",
+            snapshotSequence: scenario == "checkpoint" ? 2 : 1,
+            requiredSnapshotSequence: scenario == "rollback" ? 2 : 1,
+            inactiveGrant: scenario == "grant-inactive");
 
         ObserverTelemetryAdaptationResult result = CanonicalObserverTelemetryAdapter.Adapt(
             Telemetry(7, 125, Start),
@@ -203,6 +209,54 @@ public sealed class AIOpsIntegrationTests
         Assert.Equal(ObserverTelemetryAdaptationDisposition.Rejected, result.Disposition);
         Assert.Equal(expectedCode, result.Code);
         Assert.Null(result.Sample);
+    }
+
+    /// <summary>Rejects non-P-256 key encodings even when their encoded point retains a 256-bit shape.</summary>
+    [Fact]
+    public void TrustAnchorRequiresExactNistP256CurveIdentifier()
+    {
+        using ECDsa signer = ECDsa.Create(ECCurve.NamedCurves.nistP256);
+        byte[] subjectPublicKeyInfo = signer.ExportSubjectPublicKeyInfo();
+        byte[] p256Oid = [0x06, 0x08, 0x2A, 0x86, 0x48, 0xCE, 0x3D, 0x03, 0x01, 0x07];
+        int oidOffset = subjectPublicKeyInfo.AsSpan().IndexOf(p256Oid);
+        Assert.True(oidOffset >= 0);
+        subjectPublicKeyInfo[oidOffset + p256Oid.Length - 1] = 0x08;
+
+        Assert.Throws<ArgumentException>(() => new ObserverPolicyTrustAnchor(
+            "state-06.policy-authority",
+            "policy-signing-key.v1",
+            subjectPublicKeyInfo));
+    }
+
+    /// <summary>Prevents grant and revocation roles from sharing either a key identifier or public-key material.</summary>
+    [Fact]
+    public void TrustConfigurationRequiresDistinctSigningAnchors()
+    {
+        using ECDsa firstSigner = ECDsa.Create(ECCurve.NamedCurves.nistP256);
+        using ECDsa secondSigner = ECDsa.Create(ECCurve.NamedCurves.nistP256);
+        ObserverPolicyTrustAnchor grantAnchor = new(
+            "state-06.policy-authority",
+            "shared-key.v1",
+            firstSigner.ExportSubjectPublicKeyInfo());
+        ObserverPolicyTrustAnchor sameIdentityAnchor = new(
+            "state-06.policy-authority",
+            "shared-key.v1",
+            secondSigner.ExportSubjectPublicKeyInfo());
+        ObserverPolicyTrustAnchor sameMaterialAnchor = new(
+            "state-06.policy-authority",
+            "revocation-key.v1",
+            firstSigner.ExportSubjectPublicKeyInfo());
+
+        Assert.Throws<ArgumentException>(() => new ObserverPolicyTrustConfiguration(
+            grantAnchor,
+            sameIdentityAnchor,
+            "policy-revocations",
+            1));
+        Assert.Throws<ArgumentException>(() => new ObserverPolicyTrustConfiguration(
+            grantAnchor,
+            sameMaterialAnchor,
+            "policy-revocations",
+            1));
     }
 
     /// <summary>Runs a versioned synthetic corpus with reference and adversarial cases entirely offline.</summary>
@@ -257,7 +311,7 @@ public sealed class AIOpsIntegrationTests
         Assert.Empty(report.CaseResults);
     }
 
-    /// <summary>Prevents a governed case from mislabelling the provider or version represented by its telemetry.</summary>
+    /// <summary>Rejects a deferred telemetry source that mislabels the provider or version represented by its case.</summary>
     [Fact]
     public void OfflineCaseRejectsMismatchedProviderSegment()
     {
@@ -266,7 +320,7 @@ public sealed class AIOpsIntegrationTests
             ObserverDataOptInState.Enabled,
             [new ObserverDataScope(InstanceId, AgentId)]);
 
-        Assert.Throws<ArgumentException>(() => EvaluationCase(
+        ObserverOfflineEvaluationCase evaluationCase = EvaluationCase(
             "adversarial.segment-mismatch",
             90,
             ObserverOfflineCaseKind.Adversarial,
@@ -275,7 +329,25 @@ public sealed class AIOpsIntegrationTests
             [Telemetry(90, 1_000, Start, EvidenceLevel.Synthetic)],
             DurationRule(),
             ObserverOfflineExpectedDisposition.AdaptationRejected,
-            "aiops.observer.offline.segment_invalid"));
+            "aiops.observer.offline.telemetry_source_invalid");
+        ObserverOfflineEvaluationDataset dataset = new(
+            "observer.segment-mismatch",
+            "1.0.0",
+            "deterministic.synthetic.v1",
+            "state-06.local-evaluation",
+            ObserverDataClassification.OperationalTelemetry,
+            Start.AddDays(-1),
+            Start.AddDays(1),
+            [evaluationCase]);
+
+        ObserverOfflineEvaluationReport report = ObserverOfflineEvaluationRunner.Evaluate(
+            dataset,
+            GenerousBudget(),
+            Start);
+
+        Assert.True(report.DatasetAccepted);
+        Assert.Equal("aiops.observer.offline.telemetry_source_invalid", report.CaseResults[0].ActualCode);
+        Assert.True(report.CaseResults[0].Passed);
     }
 
     /// <summary>Ensures a refused binary case fails exact matching without inflating the true-negative metric.</summary>
@@ -363,6 +435,50 @@ public sealed class AIOpsIntegrationTests
         Assert.False(report.Passed);
         Assert.Equal(expectedCode, report.Code);
         Assert.True(report.ConsumedWorkUnits < report.MaximumRequiredWorkUnits);
+    }
+
+    /// <summary>Proves aggregate admission rejects a workload before the caller-owned telemetry source is enumerated.</summary>
+    [Fact]
+    public void OfflineEvaluationAppliesBudgetBeforeTelemetryMaterialisation()
+    {
+        ObserverDataPolicy policy = OfflinePolicy(
+            "policy.offline.pre-materialisation",
+            ObserverDataOptInState.Enabled,
+            [new ObserverDataScope(InstanceId, AgentId)]);
+        CountingTelemetryCollection telemetry = new(
+        [
+            Telemetry(93, 500, Start.AddMinutes(-1), EvidenceLevel.Synthetic),
+            Telemetry(94, 600, Start, EvidenceLevel.Synthetic),
+        ]);
+        ObserverOfflineEvaluationCase evaluationCase = EvaluationCase(
+            "reference.pre-materialisation",
+            93,
+            ObserverOfflineCaseKind.Reference,
+            new ObserverOfflineEvaluationSegment("synthetic-db", "1.0.0", "offline-windows"),
+            CreatePolicyEvidence(policy),
+            telemetry,
+            DurationRule(),
+            ObserverOfflineExpectedDisposition.FindingNotDetected,
+            "aiops.observer.threshold.not_detected");
+        ObserverOfflineEvaluationDataset dataset = new(
+            "observer.pre-materialisation",
+            "1.0.0",
+            "deterministic.synthetic.v1",
+            "state-06.local-evaluation",
+            ObserverDataClassification.OperationalTelemetry,
+            Start.AddDays(-1),
+            Start.AddDays(1),
+            [evaluationCase]);
+
+        Assert.Equal(0, telemetry.EnumerationCount);
+        ObserverOfflineEvaluationReport report = ObserverOfflineEvaluationRunner.Evaluate(
+            dataset,
+            new ObserverProcessingBudget(1, 1, 10, TimeSpan.FromSeconds(30)),
+            Start);
+
+        Assert.Equal("aiops.observer.offline.sample_budget_exhausted", report.Code);
+        Assert.Equal(0, telemetry.EnumerationCount);
+        Assert.Equal(0, report.ConsumedWorkUnits);
     }
 
     /// <summary>Builds the governed nine-case, three-segment synthetic corpus used by the offline quality regression.</summary>
@@ -638,6 +754,9 @@ public sealed class AIOpsIntegrationTests
     /// <param name="staleRevocation">Whether the snapshot expires exactly at evaluation time.</param>
     /// <param name="untrustedIdentity">Whether the configured grant anchor names another issuer.</param>
     /// <param name="untrustedGrantKeyMaterial">Whether configured trust uses another key with the asserted identity.</param>
+    /// <param name="snapshotSequence">Signed monotonic revocation revision.</param>
+    /// <param name="requiredSnapshotSequence">Optional trusted checkpoint revision override.</param>
+    /// <param name="inactiveGrant">Whether the grant expires exactly at evaluation time.</param>
     /// <returns>One caller-owned verification context containing public keys and signatures but no private material.</returns>
     private static PolicyEvidence CreatePolicyEvidence(
         ObserverDataPolicy policy,
@@ -647,7 +766,10 @@ public sealed class AIOpsIntegrationTests
         bool tamperRevocationSignature = false,
         bool staleRevocation = false,
         bool untrustedIdentity = false,
-        bool untrustedGrantKeyMaterial = false)
+        bool untrustedGrantKeyMaterial = false,
+        long snapshotSequence = 1,
+        long? requiredSnapshotSequence = null,
+        bool inactiveGrant = false)
     {
         const string issuerId = "state-06.policy-authority";
         const string grantKeyId = "policy-signing-key.v1";
@@ -658,11 +780,12 @@ public sealed class AIOpsIntegrationTests
             issuerId,
             grantKeyId,
             Start.AddHours(-1),
-            Start.AddHours(1),
+            inactiveGrant ? Start : Start.AddHours(1),
             policy);
         ObserverPolicyRevocationSnapshot revocation = new(
             "policy-revocations",
             "1.0.0",
+            snapshotSequence,
             issuerId,
             revocationKeyId,
             Start.AddHours(-1),
@@ -704,7 +827,11 @@ public sealed class AIOpsIntegrationTests
             grantSignature,
             revocation,
             revocationSignature);
-        ObserverPolicyTrustConfiguration trustConfiguration = new(grantAnchor, revocationAnchor);
+        ObserverPolicyTrustConfiguration trustConfiguration = new(
+            grantAnchor,
+            revocationAnchor,
+            revocation.SnapshotId,
+            requiredSnapshotSequence ?? snapshotSequence);
         return new PolicyEvidence(context, trustConfiguration);
     }
 
@@ -740,6 +867,35 @@ public sealed class AIOpsIntegrationTests
         /// <summary>Returns a monotonically advancing timestamp without wall-clock access.</summary>
         /// <returns>The next deterministic timestamp.</returns>
         public override long GetTimestamp() => Interlocked.Add(ref timestamp, 2);
+    }
+
+    /// <summary>Tracks enumeration so admission-before-materialisation remains directly testable.</summary>
+    private sealed class CountingTelemetryCollection : IReadOnlyCollection<ObserverCanonicalHealthTelemetry>
+    {
+        private readonly IReadOnlyList<ObserverCanonicalHealthTelemetry> items;
+
+        /// <summary>Initialises one caller-owned telemetry source.</summary>
+        /// <param name="items">Typed canonical telemetry exposed only when enumerated.</param>
+        public CountingTelemetryCollection(IReadOnlyList<ObserverCanonicalHealthTelemetry> items) =>
+            this.items = items;
+
+        /// <summary>Gets the declared count without enumerating telemetry.</summary>
+        public int Count => items.Count;
+
+        /// <summary>Gets the number of enumeration attempts observed by the test source.</summary>
+        public int EnumerationCount { get; private set; }
+
+        /// <summary>Enumerates telemetry while recording that materialisation began.</summary>
+        /// <returns>The underlying deterministic telemetry enumerator.</returns>
+        public IEnumerator<ObserverCanonicalHealthTelemetry> GetEnumerator()
+        {
+            EnumerationCount++;
+            return items.GetEnumerator();
+        }
+
+        /// <summary>Delegates non-generic enumeration to the typed implementation.</summary>
+        /// <returns>The underlying deterministic telemetry enumerator.</returns>
+        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => GetEnumerator();
     }
 
     /// <summary>Pairs untrusted signed policy evidence with separately configured public trust in tests.</summary>
