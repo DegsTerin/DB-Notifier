@@ -1207,6 +1207,19 @@
 - Riscos/ressalvas: o gate aprovado encerra a validação humana de `STATE-05` no escopo registrado, mas não implementa trabalho de integração, homologação ou release e não concede autoridade de progressão. Uma transição exige nova autorização explícita de Bruno.
 - Aprovador: Bruno, exclusivamente para o Human Gate de `STATE-05`, sem autorização de transição.
 
+## 2026-07-17 — Transição formal para Integration
+
+- Estado anterior: `STATE-05 FRONTEND_IMPLEMENTATION`, Human Gate formal `APROVADO` e progressão em espera por ausência de autoridade de transição.
+- Estado solicitado: `STATE-06 INTEGRATION`.
+- Decisão: Bruno declarou exatamente `AUTORIZO a transição formal de STATE-05 para STATE-06 INTEGRATION e, após o registro da transição, autorizo o incremento local e isolado do MOD-12 para adapter confiável de telemetria canônica, política opt-in de dados e avaliações offline, sem LLM, executor, banco externo, ações externas ou promoção automática para OBSERVER.` A autorização é posterior, separada e explícita; ela promove o estado sem alterar a decisão histórica do Human Gate.
+- Escopo: registrar a transição e liberar como primeiro incremento somente o trabalho local e isolado de `MOD-12 AIOPS_AI` descrito na decisão. Os demais entregáveis de integração permanecem sujeitos a autorização própria.
+- Gates: auditoria automática de `STATE-05` aprovada sobre a baseline Design System `3.0.4`; Human Gate de `STATE-05` formalmente `APROVADO` por decisão substitutiva; autorização explícita de progressão recebida nesta sessão.
+- Evidências: [estado atual](Current-State.md), [Human Gate](../../docs/STATE-05-Human-Gate-Validation.md), [relatório do Design System](../../docs/STATE-05-Design-System-Implementation-Report.md), [fundação MOD-12](../../docs/MOD-12-Observer-Foundation-Report.md) e resposta de Bruno nesta sessão.
+- Shutdown preflight: inventário por PID, caminho, linha de comando, parentage, porta e janela encontrou zero runtime, navegador dedicado ou listener pertencente ao DB-Notifier; as portas de validação Dashboard `4173`/`4187` estavam livres. A única janela contendo o nome do repositório era o Visual Studio Code do usuário, PID `5056`, preservado por não ser runtime do produto.
+- Riscos/ressalvas: esta transição não prova integração, provider, dataset, telemetria externa, homologação ou produção. LLM, recomendação, planejamento, executor, banco externo, coleta/ação externa e promoção automática para `OBSERVER` permanecem proibidos. `none → OBSERVER` continua dependente de Quality Gate e Human Gate próprios.
+- Aprovador: Bruno, 2026-07-17.
+- Estado resultante: `STATE-06 INTEGRATION`.
+
 ## Template de nova entrada
 
 - Data:
