@@ -1087,6 +1087,17 @@
 - Riscos/ressalvas: nenhum processo WPF foi iniciado e nenhuma das oito notificações foi solicitada nesta remediação; código/testes não provam entrega visível. Windows Shell/Focus Assist continuam soberanos. Preferência persistida, deduplicação durável, acknowledgement, quiet policy, auditoria e estado reconciliado permanecem `STATE-06`.
 - Aprovador: implementação automática autorizada por Bruno no limite citado; nenhuma aprovação da amostra, do Human Gate ou da progressão foi inferida.
 
+## 2026-07-16 — Validação humana visível da matriz de transições 3.0.2
+
+- Estado anterior: `STATE-05 FRONTEND_IMPLEMENTATION`, progressão em espera, Human Gate pendente e `REQ-067` automaticamente completo, com amostra Windows ainda não executada.
+- Estado resultante: sem transição; os oito casos locais de `REQ-067` possuem classificação humana `VISÍVEL`. O Human Gate e `STATE-06` permanecem não autorizados.
+- Decisão: Bruno autorizou exatamente `AUTORIZO nova amostra humana visível do WPF 3.0.2 com --review-notification-transitions, em execução normal e sem abrir o shell, para observar as oito transições, sem Narrator, High Contrast, scaling, Agent/API/banco externo, ações externas ou transição.` Após a execução, classificou primeiro `Stale → Healthy` como `VISÍVEL` e confirmou `Sim todos visivel` para os sete casos restantes explicitamente enumerados.
+- Escopo: build WPF Release sem restore; um único processo com apenas `--review-notification-transitions`; baseline silencioso; oito intervalos de 30 segundos; observação humana das notificações; verificação técnica limitada a PID, responsividade e ausência de janela principal. Nenhum store de notificação, banner alheio, shell, Narrator, High Contrast, scaling, Agent, API, banco ou ação externa foi inspecionado ou alterado.
+- Gates: build com zero avisos/erros; PID `30876` iniciado às 21:13:48, responsivo e com `MainWindowHandle = 0` durante toda a janela; encerrado após o oitavo intervalo; nenhum processo DB Notifier residual.
+- Evidências: classificação direta de Bruno para `Stale → Healthy` e confirmação conjunta inequívoca para `Healthy → Degraded/Unavailable/AuthFailed/Timeout/Maintenance/Unknown/Stale`; relatório, Human Gate, rastreabilidade e estado atual sincronizados.
+- Riscos/ressalvas: a classificação prova apresentação visível apenas para a matriz local determinística nessa máquina/sessão. Não prova estado reconciliado, delivery operacional, preferência durável, outra política Windows, acessibilidade, produção ou integração. A decisão histórica `S05-HG-011` e o Human Gate completo não são restaurados por inferência.
+- Aprovador: Bruno, exclusivamente para a visibilidade dos oito casos de `REQ-067`; nenhuma aprovação adicional ou progressão foi inferida.
+
 ## Template de nova entrada
 
 - Data:
