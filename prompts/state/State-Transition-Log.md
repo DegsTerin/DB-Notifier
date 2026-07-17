@@ -1287,6 +1287,19 @@
 - Shutdown preflight: zero processo, helper ou listener proprietário foi encontrado; a única janela com o nome do projeto era o Visual Studio Code do usuário e foi preservada.
 - Aprovador: Bruno, exclusivamente para a aceitação humana do incremento corretivo, sem autoridade adicional.
 
+## 2026-07-17 — Proposta documental do próximo incremento restrito MOD-12
+
+- Estado anterior: `STATE-06 INTEGRATION`, segundo incremento MOD-12 e remediação aceitos, nenhum modo ativo e nenhuma autoridade de implementação remanescente.
+- Estado resultante: sem transição; `STATE-06 INTEGRATION` mantido, com proposta não autorizante pendente de decisão.
+- Solicitação: Bruno declarou exatamente `Solicito uma proposta exclusivamente documental para o próximo incremento restrito de STATE-06, sem implementação, runtime, ações externas ou promoção para OBSERVER.`
+- Proposta: desenhar futuramente, ainda sem código, a governança de autoridade/âncoras/revogação/checkpoint/rotação e o envelope de contagem/bytes/memória/tempo/cancelamento/concorrência, acompanhados por threat model, rastreabilidade e vetores de teste especificados.
+- Limites: a proposta não autoriza o incremento que descreve; não altera arquitetura normativa, código, runtime, segredo, persistência, Agent/API/UI/provider, corpus operacional, LLM, executor, modo ou ciclo de vida.
+- Evidências: [proposta documental](../../docs/STATE-06-MOD-12-Trust-Governance-And-Resource-Envelope-Proposal.md), [estado atual](Current-State.md), [guardrails AIOps](../../docs/architecture/AIOps-Architecture-Guardrails.md) e solicitação de Bruno nesta sessão.
+- Shutdown preflight: zero processo, helper ou listener proprietário foi encontrado; a única janela com o nome do projeto era o Visual Studio Code do usuário e foi preservada.
+- Gates: links Markdown aprovados (`242` links locais em `67` arquivos), documentação aprovada (`208` fontes comment-capable), secret scan do worktree aprovado e `git diff --check` aprovado. Build, testes e runtime de produto não foram executados porque não são aplicáveis a esta proposta exclusivamente documental.
+- Próxima decisão: Bruno poderá ajustar, adiar, rejeitar ou autorizar separadamente apenas o incremento documental proposto. Nenhuma resposta é interpretada como promoção para `OBSERVER`.
+- Aprovador: não aplicável; esta entrada registra solicitação e proposta, não aprovação do próximo incremento.
+
 ## Template de nova entrada
 
 - Data:
