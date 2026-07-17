@@ -572,7 +572,21 @@ html[data-tv-mode="true"], html[data-tv-mode="true"] body, html[data-tv-mode="tr
 
 /* Forced-colour mode delegates palette decisions to the operating system while retaining status shapes and borders. */
 @media (forced-colors: active) {
-  .status-badge, .summary-card, .preference-icon-button, .brand-mark { forced-color-adjust: auto; }
-  .nav-item.active::before { background: CanvasText; }
-  .timeline-marker { background: CanvasText; outline-color: CanvasText; }
+  .topbar, .sidebar, main, footer, .panel, .summary-card, .alert-card, .timeline-item article,
+  .preference-icon-button, button, input, select, dialog { box-shadow: none; border-color: CanvasText; }
+  .nav-item.active { color: HighlightText; background: Highlight; }
+  .nav-item.active > .app-icon { color: HighlightText; }
+  .nav-item.active::before { background: HighlightText; }
+  .status-badge, .metric-icon, .demo-badge, .read-only-label {
+    color: CanvasText;
+    background: Canvas;
+    border: 1px solid CanvasText;
+    forced-color-adjust: auto;
+  }
+  .sparkline, .trend-primary, .trend-secondary, .provider-ring-segment { color: CanvasText; stroke: CanvasText; }
+  .provider-ring-track { stroke: GrayText; }
+  .provider-key { background: CanvasText; }
+  .timeline-marker { background: CanvasText; border-color: Canvas; outline-color: CanvasText; }
+  .loading-line { background: Canvas; border: 1px solid CanvasText; }
+  .loading-line::after { background: Highlight; }
 }

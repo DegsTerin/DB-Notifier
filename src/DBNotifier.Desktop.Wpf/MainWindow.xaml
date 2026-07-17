@@ -51,6 +51,7 @@
     </Style>
     <Style TargetType="ComboBox">
       <Setter Property="MinHeight" Value="{DynamicResource ControlHeightCompact}" />
+      <Setter Property="MaxDropDownHeight" Value="320" />
       <Setter Property="Padding" Value="10,5" />
       <Setter Property="Background" Value="{DynamicResource ComponentInputBackgroundBrush}" />
       <Setter Property="Foreground" Value="{DynamicResource ComponentInputForegroundBrush}" />
@@ -105,7 +106,10 @@
                         BorderBrush="{DynamicResource ComponentInputBorderBrush}"
                         BorderThickness="1"
                         CornerRadius="6">
-                  <ScrollViewer MaxHeight="320" CanContentScroll="True">
+                  <ScrollViewer MaxHeight="{TemplateBinding MaxDropDownHeight}"
+                                CanContentScroll="True"
+                                VerticalScrollBarVisibility="Auto"
+                                HorizontalScrollBarVisibility="Disabled">
                     <StackPanel IsItemsHost="True" />
                   </ScrollViewer>
                 </Border>

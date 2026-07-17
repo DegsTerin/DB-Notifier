@@ -15,7 +15,7 @@ public partial class App : System.Windows.Application, IDisposable
     private DesktopThemeService? theme;
 
     /// <summary>Loads safe preferences and starts in the notification area with only explicitly requested local review modes enabled.</summary>
-    /// <param name="e">Startup arguments; exact desktop and notification-transition review switches remain independent and opt-in.</param>
+    /// <param name="e">Startup arguments; exact desktop, notification-transition and accessibility review switches remain independent and opt-in.</param>
     protected override void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
@@ -27,7 +27,8 @@ public partial class App : System.Windows.Application, IDisposable
         DateTimeOffset generatedAt = TimeProvider.System.GetUtcNow();
         DesktopDemonstrationEvidence evidence = DesktopDemonstrationEvidence.Create(generatedAt);
         TrayFleetSummary fleetSummary = evidence.Summarise(generatedAt);
-        MainWindow window = new(localisation, theme, evidence, fleetSummary.State);
+        DesktopAccessibilityReviewMode accessibilityReviewMode = DesktopAccessibilityReviewPolicy.Resolve(e.Args);
+        MainWindow window = new(localisation, theme, evidence, fleetSummary.State, accessibilityReviewMode);
         MainWindow = window;
         TrayNotificationValidationMode notificationValidationMode = TrayNotificationValidationPolicy.Resolve(e.Args);
         trayController = new TrayApplicationController(

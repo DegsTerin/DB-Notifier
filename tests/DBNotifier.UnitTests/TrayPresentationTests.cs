@@ -45,6 +45,27 @@ public sealed class TrayPresentationTests
             TrayStartupPolicy.Resolve(arguments));
     }
 
+    /// <summary>Ensures ComboBox overflow review is isolated behind its exact switch and does not reveal the shell by itself.</summary>
+    /// <param name="expected">Expected bounded accessibility review mode.</param>
+    /// <param name="arguments">Command-line arguments under test.</param>
+    [Theory]
+    [InlineData(DesktopAccessibilityReviewMode.Disabled)]
+    [InlineData(DesktopAccessibilityReviewMode.ComboBoxOverflow, "--review-combobox-overflow")]
+    [InlineData(DesktopAccessibilityReviewMode.ComboBoxOverflow, "--REVIEW-COMBOBOX-OVERFLOW")]
+    [InlineData(DesktopAccessibilityReviewMode.Disabled, "--review-combobox-scrollbar")]
+    [InlineData(DesktopAccessibilityReviewMode.Disabled, "--show-desktop")]
+    public void ComboBoxOverflowReviewRequiresExactIndependentOptIn(
+        DesktopAccessibilityReviewMode expected,
+        params string[] arguments)
+    {
+        Assert.Equal(expected, DesktopAccessibilityReviewPolicy.Resolve(arguments));
+        Assert.Equal(
+            arguments.Contains("--show-desktop", StringComparer.OrdinalIgnoreCase)
+                ? TrayStartupMode.ShowDesktop
+                : TrayStartupMode.NotificationArea,
+            TrayStartupPolicy.Resolve(arguments));
+    }
+
     /// <summary>Verifies safe Tray action mapping and limits repeated availability confirmation to explicit close requests.</summary>
     /// <param name="intent">The window intention under test.</param>
     /// <param name="expected">The presentation action expected for the intention.</param>

@@ -328,6 +328,67 @@ async function auditAccessibilityTree(call) {
   };
 }
 
+/** Exercises every Dashboard destination under browser forced colours and records system-colour, focus and accessibility-tree evidence. */
+async function auditForcedColours(call) {
+  const routes = ["overview", "inventory", "alerts", "performance", "history", "configuration", "providers", "settings"];
+  const samples = [];
+  await call("Emulation.setEmulatedMedia", {
+    features: [
+      { name: "forced-colors", value: "active" },
+      { name: "prefers-reduced-motion", value: "reduce" },
+    ],
+  });
+  await call("Emulation.setDeviceMetricsOverride", { width: 1440, height: 1000, deviceScaleFactor: 1, mobile: false });
+  for (const route of routes) {
+    await call("Page.navigate", { url: `${dashboardUrl}#${route}` });
+    await settle(80);
+    await call("Page.reload", { ignoreCache: true });
+    await settle();
+    const surface = await evaluate(call, `(() => {
+      const probe = document.createElement("div");
+      probe.style.cssText = "position:fixed;left:-10000px;color:CanvasText;background:Canvas;border:1px solid Highlight";
+      document.body.append(probe);
+      const probeStyle = getComputedStyle(probe);
+      const system = {
+        canvasText: probeStyle.color,
+        canvas: probeStyle.backgroundColor,
+        highlight: probeStyle.borderTopColor,
+      };
+      probe.remove();
+      const focusTarget = document.querySelector("button:not(:disabled), a[href], input:not(:disabled), select:not(:disabled)");
+      focusTarget?.focus();
+      const focusStyle = focusTarget ? getComputedStyle(focusTarget) : null;
+      const activeNav = document.querySelector(".nav-item.active");
+      const activeNavStyle = activeNav ? getComputedStyle(activeNav) : null;
+      const status = document.querySelector(".status-badge");
+      const statusStyle = status ? getComputedStyle(status) : null;
+      const root = document.documentElement;
+      return {
+        route: location.hash.slice(1),
+        active: matchMedia("(forced-colors: active)").matches,
+        horizontalOverflow: root.scrollWidth > root.clientWidth + 1,
+        system,
+        bodyUsesSystemCanvas: getComputedStyle(document.body).backgroundColor === system.canvas,
+        bodyUsesSystemText: getComputedStyle(document.body).color === system.canvasText,
+        activeNavigationUsesHighlight: activeNavStyle?.backgroundColor === system.highlight,
+        activeNavigationText: activeNavStyle?.color ?? null,
+        focusVisible: Boolean(focusStyle && focusStyle.outlineStyle !== "none" && parseFloat(focusStyle.outlineWidth) >= 2),
+        statusBoundaryVisible: statusStyle ? statusStyle.borderTopStyle !== "none" && parseFloat(statusStyle.borderTopWidth) >= 1 : true,
+        mainName: document.querySelector("main")?.getAttribute("aria-label") ?? document.querySelector("h1")?.textContent?.trim() ?? null,
+        currentNavigationCount: document.querySelectorAll('[aria-current="page"]').length,
+      };
+    })()`);
+    const tree = await auditAccessibilityTree(call);
+    samples.push({ ...surface, accessibilityTree: tree });
+    if (route === "overview") {
+      const screenshot = await call("Page.captureScreenshot", { format: "png", captureBeyondViewport: false });
+      writeFileSync(join(evidenceDirectory, "forced-colours-overview-1440x1000.png"), Buffer.from(screenshot.data, "base64"));
+    }
+  }
+  await call("Emulation.setEmulatedMedia", { features: [] });
+  return samples;
+}
+
 /** Exercises each declared operational state and verifies reduced-motion rendering. */
 async function auditOperationalStates(call) {
   await call("Page.navigate", { url: `${dashboardUrl}#inventory` });
@@ -476,6 +537,7 @@ async function main() {
     preferenceCycles: await auditPreferenceCycles(call),
     semanticBrand: await auditSemanticBrand(call),
     accessibilityTree: await auditAccessibilityTree(call),
+    forcedColours: await auditForcedColours(call),
     operationalStates: await auditOperationalStates(call),
     modal: await auditModal(call),
     duplicateHistorySearchRegions,

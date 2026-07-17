@@ -1168,6 +1168,17 @@
 - Riscos/ressalvas: a aprovação encerra somente o Human Gate de `STATE-05`; não elimina dívida, não implementa escopos futuros e não autoriza progressão. Uma transição exige autorização posterior, separada e explícita de Bruno.
 - Aprovador: Bruno, para o Human Gate de `STATE-05` exclusivamente, com ressalvas e sem autorização de transição.
 
+## 2026-07-17 — Remediação pós-gate das ressalvas correntes de STATE-05
+
+- Estado anterior: `STATE-05 FRONTEND_IMPLEMENTATION`, progressão em espera e Human Gate `APROVADO COM RESSALVAS`; Dashboard High Contrast/Narrator amplo, popup ComboBox, scaling 200% e mixed-DPI constavam como evidência ausente aceita.
+- Estado resultante: sem transição; Design System `3.0.4` implementado no escopo local. A lacuna automática de forced colours e a dívida de configuração system-DPI estão corrigidas; o popup ComboBox possui fixture isolada pronta. As amostras humanas/ambientais restantes não foram inferidas.
+- Decisão: Bruno solicitou `Corrigir todas as ressalvas, pendencias`. Pela posição explícita anterior, a execução foi limitada às ressalvas correntes de `STATE-05`; nenhum trabalho proprietário de `STATE-06`, `STATE-07` ou `STATE-08` foi antecipado e nenhuma progressão foi iniciada.
+- Escopo: CSS e auditoria forced-colour do Dashboard; entry point WPF com Per-Monitor V2 antes de WPF/WinForms; manifesto `asInvoker`; política exata `--review-combobox-overflow`, template WPF e runner UI Automation; testes e documentação. A fixture normal de sete itens, Agent, API, banco, provider, notificação operacional, ação administrativa, infraestrutura e preferência do usuário não foram alterados.
+- Gates: build .NET Release completo com zero avisos/erros; build Vite; `230/230` testes unit/model/provider/presentation, `15/15` arquitetura, cobertura `79,66%` linhas/`58,48%` branches e `42/42` Dashboard; Chrome `150.0.7871.115` aprovou 96 amostras responsivas e 32 rotas forced-colour em `pt-BR`/`en-GB` e Light/Dark. Um processo WPF normal ficou oculto/responsivo, retornou classificação per-monitor aware `2` e foi encerrado sem residual. Toolchain, marca, tokens, localização, .NET format, documentação de 204 arquivos, 210 links, 23 testes Pester com um skip condicional, bundle, secret scan, `git diff --check`, `git fsck --full` e smoke fail-closed passaram. Auditorias online de NuGet/npm não foram repetidas nem inferidas.
+- Evidências: Design System `3.0.4`, [relatório de implementação](../../docs/STATE-05-Design-System-Implementation-Report.md), [Human Gate](../../docs/STATE-05-Human-Gate-Validation.md), [auditoria WPF](../../docs/STATE-05-WPF-Accessibility-Audit.md), `REQ-070` e estado factual sincronizados.
+- Riscos/ressalvas: a execução automática não substitui Dashboard foreground High Contrast nem fala humana em Dashboard/shell WPF completo/`en-GB`; o popup visível aguarda autorização exata. O monitor continua sem scaling 200% e o host de um monitor não permite prova física mixed-DPI. Esses fatos não são falhas automaticamente corrigíveis nem passes inferidos.
+- Aprovador: implementação local autorizada por Bruno no pedido citado; nenhuma nova decisão de Human Gate e nenhuma transição foram inferidas.
+
 ## Template de nova entrada
 
 - Data:

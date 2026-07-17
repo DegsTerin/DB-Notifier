@@ -60,6 +60,37 @@ public static class TrayNotificationValidationPolicy
     }
 }
 
+/// <summary>Identifies an isolated desktop accessibility review that must not change normal demonstration data.</summary>
+public enum DesktopAccessibilityReviewMode
+{
+    /// <summary>Uses the normal desktop control geometry.</summary>
+    Disabled,
+
+    /// <summary>Constrains the scenario selector popup so its existing items exercise the native vertical scrollbar.</summary>
+    ComboBoxOverflow,
+}
+
+/// <summary>Resolves explicit command-line opt-in for bounded desktop accessibility review geometry.</summary>
+public static class DesktopAccessibilityReviewPolicy
+{
+    private const string ComboBoxOverflowArgument = "--review-combobox-overflow";
+
+    /// <summary>Returns the isolated ComboBox overflow mode only when its exact review switch is present.</summary>
+    /// <param name="arguments">Command-line arguments supplied to the Windows client.</param>
+    /// <returns>The explicitly selected review mode; unknown or absent arguments preserve normal geometry.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="arguments"/> is null.</exception>
+    public static DesktopAccessibilityReviewMode Resolve(IEnumerable<string> arguments)
+    {
+        ArgumentNullException.ThrowIfNull(arguments);
+        return arguments.Any(argument => string.Equals(
+            argument,
+            ComboBoxOverflowArgument,
+            StringComparison.OrdinalIgnoreCase))
+            ? DesktopAccessibilityReviewMode.ComboBoxOverflow
+            : DesktopAccessibilityReviewMode.Disabled;
+    }
+}
+
 /// <summary>Identifies a user or operating-system request affecting a tray-owned desktop window.</summary>
 public enum TrayWindowIntent
 {

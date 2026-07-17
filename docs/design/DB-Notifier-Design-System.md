@@ -5,7 +5,7 @@
 | Field | Value |
 |---|---|
 | Status | Official frontend specification |
-| Design System version | `3.0.3` |
+| Design System version | `3.0.4` |
 | Product phase | `STATE-05 FRONTEND_IMPLEMENTATION` |
 | Platforms | React Web Dashboard and .NET 10 WPF Desktop/Tray |
 | Themes | Light and Dark; Windows High Contrast is an accessibility override |
@@ -147,6 +147,7 @@ Theme preference is presentation-only data. It MUST NOT contain identity, provid
 - After the native handle exists, the WPF shell MUST synchronise its Windows-managed caption background and text with the effective semantic Light/Dark resources where the documented DWM attributes are supported. The active/inactive border remains owned by Windows. Unsupported attributes MUST fail safely to the native Windows caption rather than replace standard drag, Snap, minimise, maximise or close behaviour.
 - WPF scrollbars MUST use one implicit token-driven style across `ScrollViewer`, `DataGrid`, `ComboBox` and other application controls. Its templates MUST preserve `PART_Track`, line/page commands, orientation, keyboard behaviour and UI Automation semantics while using dynamic semantic resources for track, thumb, border and interaction states.
 - Windows High Contrast MUST take precedence over DB-Notifier theme colours and preserve native system resources where required.
+- The Windows entry point MUST select `PerMonitorV2` before WPF or WinForms presentation resources are created. The project setting, startup object and process-level call form one guarded contract; a system-DPI-only process is a failed gate.
 
 Future authenticated preference synchronisation MAY be added in `STATE-06` or later, but local selection remains the offline fallback and never carries secrets.
 
@@ -514,6 +515,8 @@ Compact card alternatives MUST preserve a readable label/value relationship and 
 
 The WPF `ScrollBar` is application chrome rather than an Aero-light exception. Its track, thumb, border, hover, pressed and disabled states MUST resolve from the same semantic Light/Dark resources as the owning surface, retain a non-colour pointer affordance and preserve the native scrolling contract. During Windows High Contrast, those semantic resources resolve to system brushes and the product MUST NOT force its ordinary palette.
 
+Design System `3.0.4` adds the exact `--review-combobox-overflow` switch for an isolated scrollbar review. It MUST only constrain the existing scenario popup height, MUST NOT add, remove or reorder fixture values, MUST NOT reveal the shell without the independent `--show-desktop` switch and MUST preserve normal geometry when absent. The automated WPF runner may use this mode to require a visible, range-bearing popup scrollbar without changing operational or demonstration evidence.
+
 ### 10.8 Feedback and overlays
 
 `InlineMessage`, `Banner`, `Toast`, `Tooltip`, `Popover` and `ModalDialog` have distinct roles:
@@ -654,7 +657,8 @@ Parity means semantic equivalence, not identical pixels. Native platform behavio
 - Fail below WCAG thresholds; no manual exception for normal product text.
 - Exercise keyboard order, focus visibility, dialogue entry/containment/Escape/restoration and live states.
 - Verify accessibility trees contain expected landmarks/roles/names and no unnamed interactive controls.
-- Verify reduced motion and forced-colours/high-contrast behaviour.
+- Verify reduced motion and forced-colours/high-contrast behaviour. Dashboard forced-colour automation MUST cover all eight destinations in both locales and both explicit themes, retaining system canvas/text/highlight colours, visible focus, status boundaries, current-navigation semantics and zero unnamed interactive controls.
+- Verify the WPF startup contract selects Per-Monitor V2 before creating the application, and record the running process as per-monitor aware. A physical mixed-DPI move remains a separate environment-dependent sample.
 
 ### 15.4 Visual and responsive matrix
 
@@ -681,6 +685,7 @@ Acceptance requires no unintended page overflow, clipping, illegible truncation,
 - Native 200% zoom and keyboard-only task completion.
 - WPF with Narrator/NVDA across selectors, summaries, grids, dialogue and Tray.
 - WPF Light/Dark comparison of the native caption and visible vertical/horizontal scrollbars at default and minimum sizes, including a `DataGrid` and a popup control such as `ComboBox`; standard caption and scroll commands remain usable.
+- One isolated WPF `--show-desktop --review-combobox-overflow` sample confirming that the unchanged seven-item scenario fixture exposes a usable vertical popup scrollbar, with preferences and process state restored afterwards.
 - Two consecutive WPF Show → explicit CloseRequest cycles, each requesting a fresh close-to-Tray availability confirmation; minimise, hidden startup, Show and Exit remain negative-control paths. Record Shell/Focus Assist suppression as not visibly observed rather than inferring delivery.
 - One fresh normal-startup WPF process for the `3.0.1` local fixture: confirm that registration/startup emits no status banner, then observe exactly one requested notification for Analytics `Timeout → Stale`, Orders `Degraded → Stale` and Finance `Healthy → Stale`. Confirm that each message names the instance, previous/current status and local/no-external-data source, while the Tray aggregate may remain unchanged for an individual transition. Record each request separately from visible Shell delivery; do not infer a product failure merely from Focus Assist suppression.
 - One separately authorised WPF process with only `--review-notification-transitions` for the `3.0.2` isolated matrix: confirm silent startup, no secondary shell and exactly the eight ordered cases `Stale → Healthy`, then `Healthy → Degraded/Unavailable/AuthFailed/Timeout/Maintenance/Unknown/Stale`, one per 30-second tick without ordinary-fixture interleaving. Confirm the sequence and local/no-external-data label and classify every requested case independently from visible Shell delivery; Windows or Focus Assist suppression is recorded as not visibly observed rather than inferred as product failure.

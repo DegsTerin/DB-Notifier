@@ -166,6 +166,8 @@ public sealed class WpfPresentationContractTests
         string trayController = File.ReadAllText(Path.Combine(desktopDirectory, "TrayApplicationController.cs"));
         string notificationPublisher = File.ReadAllText(Path.Combine(desktopDirectory, "WindowsAppNotificationPublisher.cs"));
         string project = File.ReadAllText(Path.Combine(desktopDirectory, "DBNotifier.Desktop.Wpf.csproj"));
+        string manifest = File.ReadAllText(Path.Combine(desktopDirectory, "app.manifest"));
+        string entryPoint = File.ReadAllText(Path.Combine(desktopDirectory, "Program.cs"));
 
         Assert.Contains("IconBitmapDecoder", policy, StringComparison.Ordinal);
         Assert.Contains("Math.Ceiling(targetDipSize * Math.Max(dpi.DpiScaleX, dpi.DpiScaleY))", policy, StringComparison.Ordinal);
@@ -265,6 +267,16 @@ public sealed class WpfPresentationContractTests
         Assert.DoesNotContain("HealthStatus", notificationPublisher, StringComparison.Ordinal);
         Assert.DoesNotContain("service.start", notificationPublisher, StringComparison.Ordinal);
         Assert.Contains("<TargetFramework>net10.0-windows10.0.22621.0</TargetFramework>", project, StringComparison.Ordinal);
+        Assert.Contains("<ApplicationManifest>app.manifest</ApplicationManifest>", project, StringComparison.Ordinal);
+        Assert.Contains("<ApplicationHighDpiMode>PerMonitorV2</ApplicationHighDpiMode>", project, StringComparison.Ordinal);
+        Assert.Contains("<StartupObject>DBNotifier.Desktop.Wpf.Program</StartupObject>", project, StringComparison.Ordinal);
+        Assert.Contains("<requestedExecutionLevel level=\"asInvoker\" uiAccess=\"false\" />", manifest, StringComparison.Ordinal);
+        Assert.DoesNotContain("dpiAware", manifest, StringComparison.Ordinal);
+        Assert.Contains("Forms.Application.SetHighDpiMode(Forms.HighDpiMode.PerMonitorV2)", entryPoint, StringComparison.Ordinal);
+        Assert.True(
+            entryPoint.IndexOf("SetHighDpiMode", StringComparison.Ordinal) <
+            entryPoint.IndexOf("App application = new()", StringComparison.Ordinal),
+            "Per-Monitor V2 awareness must be selected before the WPF application creates any presentation resources.");
         Assert.Contains("<WindowsPackageType>None</WindowsPackageType>", project, StringComparison.Ordinal);
         Assert.Contains("<WindowsAppSdkBootstrapInitialize>false</WindowsAppSdkBootstrapInitialize>", project, StringComparison.Ordinal);
         Assert.Contains("<PackageReference Include=\"Microsoft.WindowsAppSDK\" />", project, StringComparison.Ordinal);
@@ -288,6 +300,8 @@ public sealed class WpfPresentationContractTests
         string controlStyles = File.ReadAllText(Path.Combine(desktopDirectory, "Resources", "ControlStyles.xaml"));
         string dialogMarkup = File.ReadAllText(Path.Combine(desktopDirectory, "CapabilityPreviewDialog.xaml"));
         string dialog = File.ReadAllText(Path.Combine(desktopDirectory, "CapabilityPreviewDialog.xaml.cs"));
+        string application = File.ReadAllText(Path.Combine(desktopDirectory, "App.xaml.cs"));
+        string presentation = File.ReadAllText(Path.Combine(RepositoryRoot(), "src", "DBNotifier.Application", "Presentation", "TrayPresentation.cs"));
 
         Assert.Contains("<Setter Property=\"Width\" Value=\"{DynamicResource ControlHeightCompact}\" />", mainWindowMarkup, StringComparison.Ordinal);
         Assert.Contains("<Setter Property=\"Height\" Value=\"{DynamicResource ControlHeightCompact}\" />", mainWindowMarkup, StringComparison.Ordinal);
@@ -303,6 +317,12 @@ public sealed class WpfPresentationContractTests
         Assert.Contains("IsEnabled=\"False\"", dialogMarkup, StringComparison.Ordinal);
         Assert.Contains("IsCancel=\"True\"", dialogMarkup, StringComparison.Ordinal);
         Assert.Contains("VerticalScrollBarVisibility=\"Auto\"", dialogMarkup, StringComparison.Ordinal);
+        Assert.Contains("<Setter Property=\"MaxDropDownHeight\" Value=\"320\" />", mainWindowMarkup, StringComparison.Ordinal);
+        Assert.Contains("MaxHeight=\"{TemplateBinding MaxDropDownHeight}\"", mainWindowMarkup, StringComparison.Ordinal);
+        Assert.Contains("VerticalScrollBarVisibility=\"Auto\"", mainWindowMarkup, StringComparison.Ordinal);
+        Assert.Contains("--review-combobox-overflow", presentation, StringComparison.Ordinal);
+        Assert.Contains("DesktopAccessibilityReviewPolicy.Resolve(e.Args)", application, StringComparison.Ordinal);
+        Assert.Contains("DesktopAccessibilityReviewMode.ComboBoxOverflow => 128", mainWindow, StringComparison.Ordinal);
         Assert.Contains("NativeWindowThemePolicy.Apply(this, theme)", dialog, StringComparison.Ordinal);
         Assert.Contains("e.Key == System.Windows.Input.Key.Escape", dialog, StringComparison.Ordinal);
         Assert.Contains("dialog.ShowDialog()", mainWindow, StringComparison.Ordinal);

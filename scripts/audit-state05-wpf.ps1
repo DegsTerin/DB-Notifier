@@ -8,7 +8,8 @@ param(
     [ValidateRange(820, 3000)]
     [int]$Width = 1180,
     [ValidateRange(620, 2200)]
-    [int]$Height = 760
+    [int]$Height = 760,
+    [switch]$ReviewComboBoxOverflow
 )
 
 Set-StrictMode -Version Latest
@@ -76,7 +77,10 @@ if ($previousDpiAwarenessContext -eq [IntPtr]::Zero) {
 try {
     [System.IO.File]::WriteAllText($preferencePath, $requestedPreferences)
     # The product is notification-area-first; the explicit review switch exposes the secondary desktop shell for this bounded audit.
-    $process = Start-Process -FilePath $executable -ArgumentList "--show-desktop" -PassThru
+    $startupArguments = [System.Collections.Generic.List[string]]::new()
+    $startupArguments.Add('--show-desktop')
+    if ($ReviewComboBoxOverflow) { $startupArguments.Add('--review-combobox-overflow') }
+    $process = Start-Process -FilePath $executable -ArgumentList $startupArguments -PassThru
     $deadline = [DateTime]::UtcNow.AddSeconds(15)
     do {
         Start-Sleep -Milliseconds 200
@@ -158,6 +162,51 @@ try {
             }
         }
     }
+    $comboBoxOverflow = $null
+    if ($ReviewComboBoxOverflow) {
+        $scenarioCondition = [System.Windows.Automation.PropertyCondition]::new(
+            [System.Windows.Automation.AutomationElement]::AutomationIdProperty,
+            'ScenarioSelector')
+        $scenarioSelector = $window.FindFirst([System.Windows.Automation.TreeScope]::Descendants, $scenarioCondition)
+        if ($null -eq $scenarioSelector) { throw 'The scenario selector is unavailable for the isolated overflow review.' }
+        $expandPattern = [System.Windows.Automation.ExpandCollapsePattern]$scenarioSelector.GetCurrentPattern(
+            [System.Windows.Automation.ExpandCollapsePattern]::Pattern)
+        $expandPattern.Expand()
+        Start-Sleep -Milliseconds 300
+        $processCondition = [System.Windows.Automation.PropertyCondition]::new(
+            [System.Windows.Automation.AutomationElement]::ProcessIdProperty,
+            $process.Id)
+        $scrollBarCondition = [System.Windows.Automation.PropertyCondition]::new(
+            [System.Windows.Automation.AutomationElement]::ControlTypeProperty,
+            [System.Windows.Automation.ControlType]::ScrollBar)
+        $popupScrollBars = [System.Windows.Automation.AutomationElement]::RootElement.FindAll(
+            [System.Windows.Automation.TreeScope]::Descendants,
+            [System.Windows.Automation.AndCondition]::new($processCondition, $scrollBarCondition))
+        $visiblePopupScrollBars = @($popupScrollBars | Where-Object { -not $_.Current.IsOffscreen })
+        $comboBoxOverflow = [ordered]@{
+            enabled = $true
+            fixtureItemCount = $scenarioSelector.FindAll(
+                [System.Windows.Automation.TreeScope]::Descendants,
+                [System.Windows.Automation.Condition]::TrueCondition).Count
+            visibleScrollBarCount = $visiblePopupScrollBars.Count
+            scrollBars = @($visiblePopupScrollBars | ForEach-Object {
+                $rangePatternObject = $null
+                $range = if ($_.TryGetCurrentPattern([System.Windows.Automation.RangeValuePattern]::Pattern, [ref]$rangePatternObject)) {
+                    [System.Windows.Automation.RangeValuePattern]$rangePatternObject
+                }
+                else { $null }
+                [ordered]@{
+                    name = $_.Current.Name
+                    automationId = $_.Current.AutomationId
+                    minimum = if ($null -ne $range) { $range.Current.Minimum } else { $null }
+                    maximum = if ($null -ne $range) { $range.Current.Maximum } else { $null }
+                    value = if ($null -ne $range) { $range.Current.Value } else { $null }
+                }
+            })
+        }
+        $expandPattern.Collapse()
+        Start-Sleep -Milliseconds 150
+    }
 
     # Window focus establishes a repeatable starting point before native Tab traversal.
     $window.SetFocus()
@@ -218,6 +267,7 @@ try {
         unnamedFocusable = @($focusable | Where-Object { [string]::IsNullOrWhiteSpace($_.name) })
         focusableControls = $focusable
         inventoryScroll = $inventoryScroll
+        comboBoxOverflowReview = $comboBoxOverflow
         preferenceCycles = [ordered]@{ language = $languageCycle; theme = $themeCycle }
         tabSequence = $tabSequence
         screenshotPath = $screenshotPath
@@ -242,6 +292,11 @@ try {
     }
     if ($windowDpi -lt 96 -or $windowDpiAwareness -ne 2) {
         $failures.Add("The WPF window did not expose a Per-Monitor DPI-aware context at a supported DPI.")
+    }
+    if ($ReviewComboBoxOverflow -and
+        ($null -eq $comboBoxOverflow -or $comboBoxOverflow.visibleScrollBarCount -lt 1 -or
+         @($comboBoxOverflow.scrollBars | Where-Object { $null -ne $_.maximum -and $_.maximum -gt $_.minimum }).Count -lt 1)) {
+        $failures.Add("The isolated ComboBox overflow review did not expose a usable vertical scrollbar.")
     }
     if (-not (Test-Path -LiteralPath $screenshotPath -PathType Leaf) -or (Get-Item -LiteralPath $screenshotPath).Length -eq 0) {
         $failures.Add("The WPF audit screenshot is missing or empty.")

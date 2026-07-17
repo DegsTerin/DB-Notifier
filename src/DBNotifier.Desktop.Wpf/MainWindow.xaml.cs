@@ -52,17 +52,20 @@ public partial class MainWindow : Window
     /// <param name="theme">Desktop theme owner shared with the application.</param>
     /// <param name="evidence">Immutable locale-independent evidence shared with Tray presentation.</param>
     /// <param name="aggregateState">Initial provider-neutral fleet state shared by every product-mark surface.</param>
+    /// <param name="accessibilityReviewMode">Optional isolated geometry used only for a bounded accessibility review.</param>
     internal MainWindow(
         DesktopLocalisationService localisation,
         DesktopThemeService theme,
         DesktopDemonstrationEvidence evidence,
-        TrayAggregateState aggregateState)
+        TrayAggregateState aggregateState,
+        DesktopAccessibilityReviewMode accessibilityReviewMode)
     {
         this.localisation = localisation;
         this.theme = theme;
         this.evidence = evidence;
         this.aggregateState = aggregateState;
         InitializeComponent();
+        ConfigureAccessibilityReview(accessibilityReviewMode);
         SourceInitialized += MainWindowSourceInitialized;
         UpdatePreferenceButtons();
         UpdateNavigationState();
@@ -84,6 +87,19 @@ public partial class MainWindow : Window
         };
         RebuildLocalisedData();
         PresentReadyState();
+    }
+
+    /// <summary>Applies bounded review-only geometry without replacing or extending the normal demonstration fixture.</summary>
+    /// <param name="mode">Validated review mode resolved from an exact local command-line switch.</param>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown when an unsupported review mode reaches the desktop boundary.</exception>
+    private void ConfigureAccessibilityReview(DesktopAccessibilityReviewMode mode)
+    {
+        ScenarioSelector.MaxDropDownHeight = mode switch
+        {
+            DesktopAccessibilityReviewMode.Disabled => ScenarioSelector.MaxDropDownHeight,
+            DesktopAccessibilityReviewMode.ComboBoxOverflow => 128,
+            _ => throw new ArgumentOutOfRangeException(nameof(mode)),
+        };
     }
 
     /// <summary>Assigns independent native title and taskbar icon sizes once the WPF window handle exists.</summary>

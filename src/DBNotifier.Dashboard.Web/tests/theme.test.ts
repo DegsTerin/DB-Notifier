@@ -102,8 +102,13 @@ test("runtime wiring imports generated tokens and synchronises explicit theme ch
   assert.match(selector, /addEventListener\("storage"/);
   assert.doesNotMatch(selector, /matchMedia|darkColourSchemeMediaQuery|Theme\.System/);
   assert.doesNotMatch(css, /#[0-9a-f]{3,8}\b|rgba?\(|hsla?\(/i);
+  const forcedColoursStart = css.indexOf("@media (forced-colors: active)");
   for (const declaration of css.matchAll(/box-shadow\s*:\s*([^;]+);/gi)) {
-    assert.match(declaration[1], /^var\(--db-elevation-/, declaration[0]);
+    if (declaration[1] === "none") {
+      assert.ok((declaration.index ?? -1) > forcedColoursStart, declaration[0]);
+    } else {
+      assert.match(declaration[1], /^var\(--db-elevation-/, declaration[0]);
+    }
   }
   for (const declaration of css.matchAll(/(?:margin(?:-[a-z]+)?|padding(?:-[a-z]+)?|gap)\s*:\s*([^;]+);/gi)) {
     assert.doesNotMatch(declaration[1], /-?\d*\.?\d+(?:px|rem)\b/i, declaration[0]);

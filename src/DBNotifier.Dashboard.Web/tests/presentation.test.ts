@@ -311,6 +311,11 @@ test("semantic and motion accessibility guards remain in source", () => {
   assert.match(app, /<main id="main-content"/);
   assert.match(app, /aria-modal="true"/);
   assert.match(css, /prefers-reduced-motion: reduce/);
+  assert.match(css, /forced-colors: active/);
+  assert.match(css, /\.nav-item\.active \{ color: HighlightText; background: Highlight; \}/);
+  assert.match(css, /\.status-badge, \.metric-icon, \.demo-badge, \.read-only-label \{/);
+  assert.match(css, /border: 1px solid CanvasText/);
+  assert.match(css, /\.loading-line::after \{ background: Highlight; \}/);
   assert.match(css, /:focus-visible/);
 });
 
@@ -708,7 +713,7 @@ test("provider-neutral database mark is shared by active Web and Windows surface
   assert.match(desktopCode, /BrandStatusIconPolicy\.ApplyNativeWindowIcons\(this, aggregateState\)/);
   assert.match(desktopApp, /DesktopDemonstrationEvidence\.Create\(generatedAt\)/);
   assert.match(desktopApp, /evidence\.Summarise\(generatedAt\)/);
-  assert.match(desktopApp, /new\(localisation, theme, evidence, fleetSummary\.State\)/);
+  assert.match(desktopApp, /new\(localisation, theme, evidence, fleetSummary\.State, accessibilityReviewMode\)/);
   assert.match(desktopEvidence, /TrayFleetPresentationPolicy\.Summarise\(CreateInventorySnapshot/);
   assert.match(desktopEvidence, /GeneratedAt = generatedAt/);
   assert.match(flyoutXaml, /x:Name="BrandStatusImage"/);
