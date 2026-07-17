@@ -1,4 +1,5 @@
 // Module purpose: Verifies the trusted MOD-12 canonical telemetry adapter, fail-closed data opt-in policy and governed offline evaluation boundary.
+using System.Security.Cryptography;
 using DBNotifier.Application.AIOps;
 using DBNotifier.Domain;
 
@@ -63,9 +64,11 @@ public sealed class AIOpsIntegrationTests
                 Retryability.Backoff,
                 "Sanitised diagnostic that must not cross the adapter."));
 
+        PolicyEvidence evidence = CreatePolicyEvidence(policy);
         ObserverTelemetryAdaptationResult result = CanonicalObserverTelemetryAdapter.Adapt(
             telemetry,
-            policy,
+            evidence.Context,
+            evidence.TrustConfiguration,
             Start);
 
         Assert.Equal(ObserverTelemetryAdaptationDisposition.Accepted, result.Disposition);
@@ -153,9 +156,48 @@ public sealed class AIOpsIntegrationTests
             _ => Telemetry(2, 10, Start),
         };
 
+        PolicyEvidence evidence = CreatePolicyEvidence(policy);
         ObserverTelemetryAdaptationResult result = CanonicalObserverTelemetryAdapter.Adapt(
             telemetry,
+            evidence.Context,
+            evidence.TrustConfiguration,
+            Start);
+
+        Assert.Equal(ObserverTelemetryAdaptationDisposition.Rejected, result.Disposition);
+        Assert.Equal(expectedCode, result.Code);
+        Assert.Null(result.Sample);
+    }
+
+    /// <summary>Verifies fail-closed separation of provenance identity, integrity, revocation and freshness.</summary>
+    /// <param name="scenario">Authenticated-provenance failure scenario.</param>
+    /// <param name="expectedCode">Expected sanitised boundary code.</param>
+    [Theory]
+    [InlineData("identity", "aiops.observer.adapter.provenance_identity_untrusted")]
+    [InlineData("self-signed", "aiops.observer.adapter.provenance_integrity_invalid")]
+    [InlineData("grant-tampered", "aiops.observer.adapter.provenance_integrity_invalid")]
+    [InlineData("revocation-tampered", "aiops.observer.adapter.provenance_integrity_invalid")]
+    [InlineData("revoked", "aiops.observer.adapter.provenance_revoked")]
+    [InlineData("key-revoked", "aiops.observer.adapter.provenance_revoked")]
+    [InlineData("stale", "aiops.observer.adapter.provenance_revocation_stale")]
+    public void AdapterRejectsUntrustedPolicyProvenance(string scenario, string expectedCode)
+    {
+        ObserverDataPolicy policy = DataPolicy(
+            ObserverDataOptInState.Enabled,
+            [new ObserverDataScope(InstanceId, AgentId)]);
+        PolicyEvidence evidence = CreatePolicyEvidence(
             policy,
+            revokeGrant: scenario == "revoked",
+            revokeSigningKey: scenario == "key-revoked",
+            tamperGrantSignature: scenario == "grant-tampered",
+            tamperRevocationSignature: scenario == "revocation-tampered",
+            staleRevocation: scenario == "stale",
+            untrustedIdentity: scenario == "identity",
+            untrustedGrantKeyMaterial: scenario == "self-signed");
+
+        ObserverTelemetryAdaptationResult result = CanonicalObserverTelemetryAdapter.Adapt(
+            Telemetry(7, 125, Start),
+            evidence.Context,
+            evidence.TrustConfiguration,
             Start);
 
         Assert.Equal(ObserverTelemetryAdaptationDisposition.Rejected, result.Disposition);
@@ -169,15 +211,15 @@ public sealed class AIOpsIntegrationTests
     {
         ObserverOfflineEvaluationDataset dataset = ReferenceDataset();
 
-        ObserverOfflineEvaluationReport report = ObserverOfflineEvaluationRunner.Evaluate(dataset, Start);
+        ObserverOfflineEvaluationReport report = ObserverOfflineEvaluationRunner.Evaluate(dataset, GenerousBudget(), Start);
 
         Assert.True(report.DatasetAccepted);
         Assert.Equal("aiops.observer.offline.completed", report.Code);
         Assert.True(report.Passed);
-        Assert.Equal(5, report.PassedCaseCount);
+        Assert.Equal(9, report.PassedCaseCount);
         Assert.Equal(0, report.FailedCaseCount);
-        Assert.Equal(1, report.TruePositiveCount);
-        Assert.Equal(1, report.TrueNegativeCount);
+        Assert.Equal(3, report.TruePositiveCount);
+        Assert.Equal(3, report.TrueNegativeCount);
         Assert.Equal(0, report.FalsePositiveCount);
         Assert.Equal(0, report.FalseNegativeCount);
         Assert.Equal(0, report.UnscoredDetectionCaseCount);
@@ -185,8 +227,15 @@ public sealed class AIOpsIntegrationTests
         Assert.Equal(1, report.Recall);
         Assert.Equal(3, report.RejectedAdversarialCaseCount);
         Assert.Equal(0, report.AcceptedAdversarialCaseCount);
-        Assert.Single(dataset.Segments);
-        Assert.Equal("synthetic-db", dataset.Segments[0].ProviderType);
+        Assert.Equal(3, dataset.Segments.Count);
+        Assert.Equal(3, dataset.Segments.Select(item => item.ProviderType).Distinct(StringComparer.Ordinal).Count());
+        Assert.True(report.ProcessingCompleted);
+        Assert.False(report.BackpressureApplied);
+        Assert.Equal(33, report.ConsumedWorkUnits);
+        Assert.True(report.ConsumedWorkUnits <= dataset.MaximumRequiredWorkUnits);
+        Assert.Equal(3, report.SegmentResults.Count);
+        Assert.All(report.SegmentResults, result => Assert.True(result.Passed));
+        Assert.Equal(ObserverOfflineEvaluationDataset.CurrentSchemaVersion, report.DatasetSchemaVersion);
         Assert.Equal("state-06.local-evaluation", report.AuthorityReference);
         Assert.Equal("deterministic.synthetic.v1", report.ProvenanceReference);
     }
@@ -199,6 +248,7 @@ public sealed class AIOpsIntegrationTests
 
         ObserverOfflineEvaluationReport report = ObserverOfflineEvaluationRunner.Evaluate(
             dataset,
+            GenerousBudget(),
             dataset.ExpiresAt);
 
         Assert.False(report.DatasetAccepted);
@@ -221,7 +271,7 @@ public sealed class AIOpsIntegrationTests
             90,
             ObserverOfflineCaseKind.Adversarial,
             new ObserverOfflineEvaluationSegment("other-db", "1.0.0", "offline-windows"),
-            policy,
+            CreatePolicyEvidence(policy),
             [Telemetry(90, 1_000, Start, EvidenceLevel.Synthetic)],
             DurationRule(),
             ObserverOfflineExpectedDisposition.AdaptationRejected,
@@ -241,7 +291,7 @@ public sealed class AIOpsIntegrationTests
             91,
             ObserverOfflineCaseKind.Reference,
             new ObserverOfflineEvaluationSegment("synthetic-db", "1.0.0", "offline-windows"),
-            disabled,
+            CreatePolicyEvidence(disabled),
             [Telemetry(91, 500, Start, EvidenceLevel.Synthetic)],
             DurationRule(),
             ObserverOfflineExpectedDisposition.FindingNotDetected,
@@ -256,7 +306,7 @@ public sealed class AIOpsIntegrationTests
             Start.AddDays(1),
             [evaluationCase]);
 
-        ObserverOfflineEvaluationReport report = ObserverOfflineEvaluationRunner.Evaluate(dataset, Start);
+        ObserverOfflineEvaluationReport report = ObserverOfflineEvaluationRunner.Evaluate(dataset, GenerousBudget(), Start);
 
         Assert.False(report.Passed);
         Assert.Equal(1, report.FailedCaseCount);
@@ -274,10 +324,48 @@ public sealed class AIOpsIntegrationTests
         cancellation.Cancel();
 
         Assert.Throws<OperationCanceledException>(() =>
-            ObserverOfflineEvaluationRunner.Evaluate(ReferenceDataset(), Start, cancellation.Token));
+            ObserverOfflineEvaluationRunner.Evaluate(
+                ReferenceDataset(),
+                GenerousBudget(),
+                Start,
+                cancellationToken: cancellation.Token));
     }
 
-    /// <summary>Builds the governed five-case synthetic corpus used by the offline quality regression.</summary>
+    /// <summary>Confirms case, sample and work admission plus elapsed-time enforcement produce typed backpressure.</summary>
+    /// <param name="scenario">Budget boundary to exhaust.</param>
+    /// <param name="expectedCode">Expected stable backpressure code.</param>
+    [Theory]
+    [InlineData("cases", "aiops.observer.offline.case_budget_exhausted")]
+    [InlineData("samples", "aiops.observer.offline.sample_budget_exhausted")]
+    [InlineData("work", "aiops.observer.offline.work_budget_exhausted")]
+    [InlineData("time", "aiops.observer.offline.processing_time_exhausted")]
+    public void OfflineEvaluationAppliesBoundedBackpressure(string scenario, string expectedCode)
+    {
+        ObserverOfflineEvaluationDataset dataset = ReferenceDataset();
+        ObserverProcessingBudget budget = scenario switch
+        {
+            "cases" => new(8, 1_000, 2_000, TimeSpan.FromSeconds(30)),
+            "samples" => new(100, dataset.TotalSampleCount - 1, 2_000, TimeSpan.FromSeconds(30)),
+            "work" => new(100, 1_000, dataset.MaximumRequiredWorkUnits - 1, TimeSpan.FromSeconds(30)),
+            _ => new(100, 1_000, 2_000, TimeSpan.FromTicks(1)),
+        };
+        TimeProvider? clock = scenario == "time" ? new AdvancingTimeProvider() : null;
+
+        ObserverOfflineEvaluationReport report = ObserverOfflineEvaluationRunner.Evaluate(
+            dataset,
+            budget,
+            Start,
+            clock);
+
+        Assert.True(report.DatasetAccepted);
+        Assert.False(report.ProcessingCompleted);
+        Assert.True(report.BackpressureApplied);
+        Assert.False(report.Passed);
+        Assert.Equal(expectedCode, report.Code);
+        Assert.True(report.ConsumedWorkUnits < report.MaximumRequiredWorkUnits);
+    }
+
+    /// <summary>Builds the governed nine-case, three-segment synthetic corpus used by the offline quality regression.</summary>
     /// <returns>A current, provenance-aware and segmented offline dataset.</returns>
     private static ObserverOfflineEvaluationDataset ReferenceDataset()
     {
@@ -295,7 +383,12 @@ public sealed class AIOpsIntegrationTests
             "policy.offline.multi-source",
             ObserverDataOptInState.Enabled,
             [source, otherSource]);
-        ObserverOfflineEvaluationSegment segment = new("synthetic-db", "1.0.0", "offline-windows");
+        PolicyEvidence enabledEvidence = CreatePolicyEvidence(enabled);
+        PolicyEvidence disabledEvidence = CreatePolicyEvidence(disabled);
+        PolicyEvidence multiSourceEvidence = CreatePolicyEvidence(multiSource);
+        ObserverOfflineEvaluationSegment relational = new("fixture-relational", "1.0.0", "offline-windows");
+        ObserverOfflineEvaluationSegment document = new("fixture-document", "2.0.0", "offline-linux");
+        ObserverOfflineEvaluationSegment keyValue = new("fixture-keyvalue", "3.0.0", "offline-container");
         ObserverThresholdRule rule = DurationRule();
         ObserverOfflineEvaluationCase[] cases =
         [
@@ -303,12 +396,12 @@ public sealed class AIOpsIntegrationTests
                 "reference.detected",
                 1,
                 ObserverOfflineCaseKind.Reference,
-                segment,
-                enabled,
+                relational,
+                enabledEvidence,
                 [
-                    Telemetry(11, 500, Start.AddMinutes(-20), EvidenceLevel.Synthetic),
-                    Telemetry(12, 1_100, Start.AddMinutes(-10), EvidenceLevel.Synthetic),
-                    Telemetry(13, 1_200, Start, EvidenceLevel.Synthetic),
+                    Telemetry(11, 500, Start.AddMinutes(-20), EvidenceLevel.Synthetic, providerType: relational.ProviderType, providerVersion: relational.ProviderVersion),
+                    Telemetry(12, 1_100, Start.AddMinutes(-10), EvidenceLevel.Synthetic, providerType: relational.ProviderType, providerVersion: relational.ProviderVersion),
+                    Telemetry(13, 1_200, Start, EvidenceLevel.Synthetic, providerType: relational.ProviderType, providerVersion: relational.ProviderVersion),
                 ],
                 rule,
                 ObserverOfflineExpectedDisposition.FindingDetected,
@@ -317,12 +410,12 @@ public sealed class AIOpsIntegrationTests
                 "reference.not-detected",
                 2,
                 ObserverOfflineCaseKind.Reference,
-                segment,
-                enabled,
+                relational,
+                enabledEvidence,
                 [
-                    Telemetry(21, 400, Start.AddMinutes(-20), EvidenceLevel.Synthetic),
-                    Telemetry(22, 500, Start.AddMinutes(-10), EvidenceLevel.Synthetic),
-                    Telemetry(23, 600, Start, EvidenceLevel.Synthetic),
+                    Telemetry(21, 400, Start.AddMinutes(-20), EvidenceLevel.Synthetic, providerType: relational.ProviderType, providerVersion: relational.ProviderVersion),
+                    Telemetry(22, 500, Start.AddMinutes(-10), EvidenceLevel.Synthetic, providerType: relational.ProviderType, providerVersion: relational.ProviderVersion),
+                    Telemetry(23, 600, Start, EvidenceLevel.Synthetic, providerType: relational.ProviderType, providerVersion: relational.ProviderVersion),
                 ],
                 rule,
                 ObserverOfflineExpectedDisposition.FindingNotDetected,
@@ -331,37 +424,83 @@ public sealed class AIOpsIntegrationTests
                 "adversarial.future",
                 3,
                 ObserverOfflineCaseKind.Adversarial,
-                segment,
-                enabled,
-                [Telemetry(31, 2_000, Start.AddMinutes(1), EvidenceLevel.Synthetic)],
+                relational,
+                enabledEvidence,
+                [Telemetry(31, 2_000, Start.AddMinutes(1), EvidenceLevel.Synthetic, providerType: relational.ProviderType, providerVersion: relational.ProviderVersion)],
                 rule,
                 ObserverOfflineExpectedDisposition.AdaptationRejected,
                 "aiops.observer.adapter.timestamp_invalid"),
             EvaluationCase(
-                "adversarial.opt-in-disabled",
+                "reference.document-detected",
                 4,
+                ObserverOfflineCaseKind.Reference,
+                document,
+                enabledEvidence,
+                [
+                    Telemetry(41, 1_100, Start.AddMinutes(-1), EvidenceLevel.Synthetic, providerType: document.ProviderType, providerVersion: document.ProviderVersion),
+                    Telemetry(42, 1_200, Start, EvidenceLevel.Synthetic, providerType: document.ProviderType, providerVersion: document.ProviderVersion),
+                ],
+                rule,
+                ObserverOfflineExpectedDisposition.FindingDetected,
+                "aiops.observer.threshold.detected"),
+            EvaluationCase(
+                "reference.document-not-detected",
+                5,
+                ObserverOfflineCaseKind.Reference,
+                document,
+                enabledEvidence,
+                [
+                    Telemetry(51, 300, Start.AddMinutes(-1), EvidenceLevel.Synthetic, providerType: document.ProviderType, providerVersion: document.ProviderVersion),
+                    Telemetry(52, 400, Start, EvidenceLevel.Synthetic, providerType: document.ProviderType, providerVersion: document.ProviderVersion),
+                ],
+                rule,
+                ObserverOfflineExpectedDisposition.FindingNotDetected,
+                "aiops.observer.threshold.not_detected"),
+            EvaluationCase(
+                "adversarial.opt-in-disabled",
+                6,
                 ObserverOfflineCaseKind.Adversarial,
-                segment,
-                disabled,
-                [Telemetry(41, 2_000, Start, EvidenceLevel.Synthetic)],
+                document,
+                disabledEvidence,
+                [Telemetry(61, 2_000, Start, EvidenceLevel.Synthetic, providerType: document.ProviderType, providerVersion: document.ProviderVersion)],
                 rule,
                 ObserverOfflineExpectedDisposition.AdaptationRejected,
                 "aiops.observer.adapter.policy_disabled"),
             EvaluationCase(
-                "adversarial.cross-instance",
-                5,
-                ObserverOfflineCaseKind.Adversarial,
-                segment,
-                multiSource,
+                "reference.keyvalue-detected",
+                7,
+                ObserverOfflineCaseKind.Reference,
+                keyValue,
+                enabledEvidence,
                 [
-                    Telemetry(51, 2_000, Start.AddMinutes(-1), EvidenceLevel.Synthetic),
-                    Telemetry(
-                        52,
-                        2_000,
-                        Start,
-                        EvidenceLevel.Synthetic,
-                        instanceId: OtherInstanceId,
-                        agentId: OtherAgentId),
+                    Telemetry(71, 1_300, Start.AddMinutes(-1), EvidenceLevel.Synthetic, providerType: keyValue.ProviderType, providerVersion: keyValue.ProviderVersion),
+                    Telemetry(72, 1_400, Start, EvidenceLevel.Synthetic, providerType: keyValue.ProviderType, providerVersion: keyValue.ProviderVersion),
+                ],
+                rule,
+                ObserverOfflineExpectedDisposition.FindingDetected,
+                "aiops.observer.threshold.detected"),
+            EvaluationCase(
+                "reference.keyvalue-not-detected",
+                8,
+                ObserverOfflineCaseKind.Reference,
+                keyValue,
+                enabledEvidence,
+                [
+                    Telemetry(81, 700, Start.AddMinutes(-1), EvidenceLevel.Synthetic, providerType: keyValue.ProviderType, providerVersion: keyValue.ProviderVersion),
+                    Telemetry(82, 800, Start, EvidenceLevel.Synthetic, providerType: keyValue.ProviderType, providerVersion: keyValue.ProviderVersion),
+                ],
+                rule,
+                ObserverOfflineExpectedDisposition.FindingNotDetected,
+                "aiops.observer.threshold.not_detected"),
+            EvaluationCase(
+                "adversarial.cross-instance",
+                9,
+                ObserverOfflineCaseKind.Adversarial,
+                keyValue,
+                multiSourceEvidence,
+                [
+                    Telemetry(91, 2_000, Start.AddMinutes(-1), EvidenceLevel.Synthetic, providerType: keyValue.ProviderType, providerVersion: keyValue.ProviderVersion),
+                    Telemetry(92, 2_000, Start, EvidenceLevel.Synthetic, instanceId: OtherInstanceId, agentId: OtherAgentId, providerType: keyValue.ProviderType, providerVersion: keyValue.ProviderVersion),
                 ],
                 rule,
                 ObserverOfflineExpectedDisposition.AdaptationRejected,
@@ -383,7 +522,7 @@ public sealed class AIOpsIntegrationTests
     /// <param name="analysisOrdinal">Small positive analysis identifier ordinal.</param>
     /// <param name="kind">Reference or adversarial kind.</param>
     /// <param name="segment">Provider/version/platform reporting segment.</param>
-    /// <param name="policy">Explicit offline data policy.</param>
+    /// <param name="policyEvidence">Signed evidence and separately configured public trust.</param>
     /// <param name="telemetry">Canonical telemetry candidates.</param>
     /// <param name="rule">Deterministic duration threshold.</param>
     /// <param name="expectedDisposition">Exact expected disposition.</param>
@@ -394,7 +533,7 @@ public sealed class AIOpsIntegrationTests
         int analysisOrdinal,
         ObserverOfflineCaseKind kind,
         ObserverOfflineEvaluationSegment segment,
-        ObserverDataPolicy policy,
+        PolicyEvidence policyEvidence,
         IReadOnlyCollection<ObserverCanonicalHealthTelemetry> telemetry,
         ObserverThresholdRule rule,
         ObserverOfflineExpectedDisposition expectedDisposition,
@@ -404,7 +543,8 @@ public sealed class AIOpsIntegrationTests
             Guid.Parse($"55555555-5555-5555-5555-{analysisOrdinal:D12}"),
             kind,
             segment,
-            policy,
+            policyEvidence.Context,
+            policyEvidence.TrustConfiguration,
             Start,
             telemetry,
             rule,
@@ -458,6 +598,8 @@ public sealed class AIOpsIntegrationTests
     /// <param name="agentId">Optional Agent override.</param>
     /// <param name="error">Optional sanitised normalised error.</param>
     /// <param name="receivedAt">Optional authoritative receipt instant override.</param>
+    /// <param name="providerType">Synthetic provider-segment identifier.</param>
+    /// <param name="providerVersion">Synthetic provider-version segment.</param>
     /// <returns>One typed canonical health telemetry envelope.</returns>
     private static ObserverCanonicalHealthTelemetry Telemetry(
         int ordinal,
@@ -468,14 +610,16 @@ public sealed class AIOpsIntegrationTests
         Guid? instanceId = null,
         Guid? agentId = null,
         NormalizedError? error = null,
-        DateTimeOffset? receivedAt = null)
+        DateTimeOffset? receivedAt = null,
+        string providerType = "synthetic-db",
+        string providerVersion = "1.0.0")
     {
         HealthObservation observation = new(
             Guid.Parse($"66666666-6666-6666-6666-{ordinal:D12}"),
             instanceId ?? InstanceId,
             agentId ?? AgentId,
-            ProviderType.Parse("synthetic-db"),
-            "1.0.0",
+            ProviderType.Parse(providerType),
+            providerVersion,
             status,
             "offline-fixture",
             observedAt,
@@ -484,6 +628,90 @@ public sealed class AIOpsIntegrationTests
             error);
         return new ObserverCanonicalHealthTelemetry(observation, receivedAt ?? observedAt);
     }
+
+    /// <summary>Creates an in-memory signed policy context with independent grant and revocation keys.</summary>
+    /// <param name="policy">Exact immutable policy to authorise.</param>
+    /// <param name="revokeGrant">Whether the current authenticated snapshot revokes this grant.</param>
+    /// <param name="revokeSigningKey">Whether the current authenticated snapshot revokes the grant-signing key.</param>
+    /// <param name="tamperGrantSignature">Whether to corrupt the grant signature after signing.</param>
+    /// <param name="tamperRevocationSignature">Whether to corrupt the revocation signature after signing.</param>
+    /// <param name="staleRevocation">Whether the snapshot expires exactly at evaluation time.</param>
+    /// <param name="untrustedIdentity">Whether the configured grant anchor names another issuer.</param>
+    /// <param name="untrustedGrantKeyMaterial">Whether configured trust uses another key with the asserted identity.</param>
+    /// <returns>One caller-owned verification context containing public keys and signatures but no private material.</returns>
+    private static PolicyEvidence CreatePolicyEvidence(
+        ObserverDataPolicy policy,
+        bool revokeGrant = false,
+        bool revokeSigningKey = false,
+        bool tamperGrantSignature = false,
+        bool tamperRevocationSignature = false,
+        bool staleRevocation = false,
+        bool untrustedIdentity = false,
+        bool untrustedGrantKeyMaterial = false)
+    {
+        const string issuerId = "state-06.policy-authority";
+        const string grantKeyId = "policy-signing-key.v1";
+        const string revocationKeyId = "revocation-signing-key.v1";
+        string grantId = $"grant.{policy.PolicyId}";
+        ObserverDataPolicyGrant grant = new(
+            grantId,
+            issuerId,
+            grantKeyId,
+            Start.AddHours(-1),
+            Start.AddHours(1),
+            policy);
+        ObserverPolicyRevocationSnapshot revocation = new(
+            "policy-revocations",
+            "1.0.0",
+            issuerId,
+            revocationKeyId,
+            Start.AddHours(-1),
+            staleRevocation ? Start : Start.AddHours(1),
+            revokeGrant ? [grantId] : [],
+            revokeSigningKey ? [grantKeyId] : []);
+
+        using ECDsa grantSigner = ECDsa.Create(ECCurve.NamedCurves.nistP256);
+        using ECDsa revocationSigner = ECDsa.Create(ECCurve.NamedCurves.nistP256);
+        using ECDsa alternativeGrantTrust = ECDsa.Create(ECCurve.NamedCurves.nistP256);
+        byte[] grantSignature = grantSigner.SignData(
+            ObserverPolicyProvenancePayload.CreateGrant(grant),
+            HashAlgorithmName.SHA256);
+        byte[] revocationSignature = revocationSigner.SignData(
+            ObserverPolicyProvenancePayload.CreateRevocation(revocation),
+            HashAlgorithmName.SHA256);
+        if (tamperGrantSignature)
+        {
+            grantSignature[0] ^= 0x01;
+        }
+
+        if (tamperRevocationSignature)
+        {
+            revocationSignature[0] ^= 0x01;
+        }
+
+        ObserverPolicyTrustAnchor grantAnchor = new(
+            untrustedIdentity ? "other.policy-authority" : issuerId,
+            grantKeyId,
+            untrustedGrantKeyMaterial
+                ? alternativeGrantTrust.ExportSubjectPublicKeyInfo()
+                : grantSigner.ExportSubjectPublicKeyInfo());
+        ObserverPolicyTrustAnchor revocationAnchor = new(
+            issuerId,
+            revocationKeyId,
+            revocationSigner.ExportSubjectPublicKeyInfo());
+        ObserverDataPolicyVerificationContext context = new(
+            grant,
+            grantSignature,
+            revocation,
+            revocationSignature);
+        ObserverPolicyTrustConfiguration trustConfiguration = new(grantAnchor, revocationAnchor);
+        return new PolicyEvidence(context, trustConfiguration);
+    }
+
+    /// <summary>Creates a budget comfortably above the bounded reference corpus.</summary>
+    /// <returns>A local-only case, sample, work-unit and elapsed-time budget.</returns>
+    private static ObserverProcessingBudget GenerousBudget() =>
+        new(100, 1_000, 2_000, TimeSpan.FromSeconds(30));
 
     /// <summary>Builds the deterministic two-sample duration threshold used by the reference corpus.</summary>
     /// <returns>A bounded threshold over the trusted adapter's sole provider-neutral metric.</returns>
@@ -500,4 +728,24 @@ public sealed class AIOpsIntegrationTests
             TimeSpan.FromHours(1),
             TimeSpan.FromMinutes(30),
             TimeSpan.FromMinutes(15));
+
+    /// <summary>Advances two ticks per timestamp read to deterministically exercise elapsed-time backpressure.</summary>
+    private sealed class AdvancingTimeProvider : TimeProvider
+    {
+        private long timestamp;
+
+        /// <summary>Gets the TimeSpan tick frequency used by this deterministic test clock.</summary>
+        public override long TimestampFrequency => TimeSpan.TicksPerSecond;
+
+        /// <summary>Returns a monotonically advancing timestamp without wall-clock access.</summary>
+        /// <returns>The next deterministic timestamp.</returns>
+        public override long GetTimestamp() => Interlocked.Add(ref timestamp, 2);
+    }
+
+    /// <summary>Pairs untrusted signed policy evidence with separately configured public trust in tests.</summary>
+    /// <param name="Context">Caller-supplied signed policy and revocation evidence.</param>
+    /// <param name="TrustConfiguration">Application-configured public trust.</param>
+    private sealed record PolicyEvidence(
+        ObserverDataPolicyVerificationContext Context,
+        ObserverPolicyTrustConfiguration TrustConfiguration);
 }

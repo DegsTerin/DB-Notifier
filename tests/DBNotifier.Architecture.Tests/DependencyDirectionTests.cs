@@ -79,6 +79,8 @@ public sealed class DependencyDirectionTests
             "ObserverDataClassification",
             "ObserverDataOptInState",
             "ObserverDataPolicy",
+            "ObserverDataPolicyGrant",
+            "ObserverDataPolicyVerificationContext",
             "ObserverDataScope",
             "ObserverDataUse",
             "ObserverEvidenceQuality",
@@ -94,7 +96,13 @@ public sealed class DependencyDirectionTests
             "ObserverOfflineEvaluationReport",
             "ObserverOfflineEvaluationRunner",
             "ObserverOfflineEvaluationSegment",
+            "ObserverOfflineSegmentResult",
             "ObserverOfflineExpectedDisposition",
+            "ObserverPolicyProvenancePayload",
+            "ObserverPolicyRevocationSnapshot",
+            "ObserverPolicyTrustAnchor",
+            "ObserverPolicyTrustConfiguration",
+            "ObserverProcessingBudget",
             "ObserverPermittedPurpose",
             "ObserverRedactionStatus",
             "ObserverRetentionClass",
@@ -129,7 +137,7 @@ public sealed class DependencyDirectionTests
             .Distinct(StringComparer.Ordinal)
             .Order(StringComparer.Ordinal)
             .ToArray();
-        Assert.Equal(["Adapt", "Analyse", "Evaluate"], declaredOperationNames);
+        Assert.Equal(["Adapt", "Analyse", "CreateGrant", "CreateRevocation", "Evaluate"], declaredOperationNames);
     }
 
     /// <summary>Returns public constructor, property and method types for one exported contract type.</summary>

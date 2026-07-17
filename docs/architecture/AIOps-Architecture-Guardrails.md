@@ -2,7 +2,7 @@
 
 ## Status
 
-MOD-12 remains inactive and outside the runtime baseline. A local, in-memory and non-mutating Observer foundation now implements bounded evidence, threshold and capacity-analysis contracts inside Application; it has no trusted telemetry adapter, pipeline, persistence, UI, LLM or executor and does not satisfy the `none → OBSERVER` promotion gate. This document defines the data, risk, contract and evaluation boundaries so later work cannot mistake foundation code for an activated mode or bypass deterministic controls.
+MOD-12 remains inactive and outside the runtime baseline. A local, in-memory and non-mutating Observer foundation implements bounded evidence, threshold and capacity-analysis contracts inside Application. Restricted `STATE-06` increments add a trusted canonical-health adapter, authenticated purpose-specific policy grants with independently signed revocation snapshots, explicit offline processing budgets and a deterministic segmented evaluation runner. None is registered with a runtime pipeline, provider, persistence, UI, LLM or executor, and none satisfies the `none → OBSERVER` promotion gate. This document defines the data, risk, contract and evaluation boundaries so later work cannot mistake local integration evidence for an activated mode or bypass deterministic controls.
 
 ## Allowed initial mode
 

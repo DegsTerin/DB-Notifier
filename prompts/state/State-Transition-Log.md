@@ -1234,6 +1234,20 @@
 - Shutdown preflight: um segundo inventário antes do incremento confirmou zero runtime, navegador dedicado, janela de produto ou listener DB-Notifier. Os processos locais de build/teste/smoke foram encerrados normalmente e a verificação final não encontrou resíduo proprietário.
 - Aprovador: Bruno, exclusivamente para este incremento local e isolado; nenhuma promoção de modo ou nova transição foi inferida.
 
+## 2026-07-17 — Segundo incremento restrito MOD-12 de Integration
+
+- Estado anterior: `STATE-06 INTEGRATION`, primeiro incremento MOD-12 concluído e nenhum modo ativo.
+- Estado resultante: sem transição; `STATE-06 INTEGRATION` mantido e `none → OBSERVER` continua pendente.
+- Revisão e decisão: Bruno declarou não ter identificado inconsistência arquitetural evidente no código, estado, log e relatório do primeiro incremento. Com ressalvas evolutivas sobre proveniência, versionamento, corpus, backpressure e documentação, autorizou um novo incremento restrito exclusivamente para proveniência autenticada/revogação da `ObserverDataPolicy`, budget/limites/backpressure e ampliação determinística multi-segmento. A autorização excluiu expressamente promoção, LLM, recomendação, planejamento, execução, coleta/persistência operacional, telemetria/provider runtime, banco externo e novos serviços/workers/APIs de Observer.
+- Escopo implementado: grants de política e snapshots de revogação canônicos assinados por ECDSA P-256/SHA-256 sob âncoras públicas distintas; verificação fail-closed de identidade, integridade, vigência e revogação de grant/chave; schema/version independentes para policy e dataset; admissão obrigatória por casos/amostras/unidades de trabalho e limite temporal; métricas offline por três segmentos sintéticos.
+- Corpus: nove casos exatos em `fixture-relational/1.0.0/offline-windows`, `fixture-document/2.0.0/offline-linux` e `fixture-keyvalue/3.0.0/offline-container`; três verdadeiros positivos, três verdadeiros negativos, três recusas adversariais, zero falso positivo/negativo e zero adversarial aceito. Os nomes são fixtures e não afirmam suporte/homologação.
+- Gates: `65/65` testes AIOps, `261/261` unit/model/provider/presentation, `15/15` arquitetura, build Release com zero avisos/erros e cobertura `80,39%` linhas/`60,80%` branches aprovados. .NET format/analyzers, documentação en-GB/XML, links Markdown, secret scan, diff e smoke fail-closed também aprovados.
+- Evidências: [relatório do incremento](../../docs/STATE-06-MOD-12-Authenticated-Provenance-And-Budget-Report.md), [estado atual](Current-State.md), [guardrails AIOps](../../docs/architecture/AIOps-Architecture-Guardrails.md), testes `AIOpsIntegrationTests` e decisão de Bruno nesta sessão.
+- Segurança/limites: somente chaves públicas e assinaturas copiadas entram no contexto; chaves privadas de teste são efêmeras e descartadas. Não há issuer/distribuidor runtime, DI, I/O MOD-12, persistência, provider concreto, rede externa, UI, LLM, recomendação, plano ou executor. O smoke usou loopback, manteve workers desabilitados e não inicializou persistência local.
+- Riscos/ressalvas: futura emissão server-side, distribuição protegida e rotação de trust anchors/revogação continuam não implementadas. O corpus ainda é sintético e pequeno; poisoning/replay/carga/calibração e limites de memória/concorrência runtime exigem evidência própria antes de qualquer proposta de promoção.
+- Shutdown preflight: o inventário inicial encontrou zero runtime, navegador dedicado, janela de produto ou listener DB-Notifier. Durante a validação, helpers de compilação exclusivamente sob `.dotnet` do workspace deixados por timeout foram identificados pelo caminho e encerrados; o IDE e seu build host foram preservados. O build limpo posterior passou.
+- Aprovador: Bruno, exclusivamente para este incremento restrito; nenhuma promoção de modo, transição ou autoridade adicional foi inferida.
+
 ## Template de nova entrada
 
 - Data:

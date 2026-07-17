@@ -54,7 +54,7 @@ public sealed class ObserverOfflineEvaluationSegment
 }
 
 /// <summary>
-/// Defines one reproducible offline case containing typed canonical telemetry, an explicit data policy, one
+/// Defines one reproducible offline case containing typed canonical telemetry, an authenticated data-policy context, one
 /// deterministic threshold and an exact expected outcome.
 /// </summary>
 public sealed class ObserverOfflineEvaluationCase
@@ -64,7 +64,8 @@ public sealed class ObserverOfflineEvaluationCase
     /// <param name="analysisId">Non-empty reproducible analysis identifier.</param>
     /// <param name="kind">Reference or adversarial case kind.</param>
     /// <param name="segment">Provider/version/platform result segment.</param>
-    /// <param name="dataPolicy">Explicit offline data policy evaluated by the trusted adapter.</param>
+    /// <param name="dataPolicyContext">Signed offline data policy and current authenticated revocation view.</param>
+    /// <param name="trustConfiguration">Application-configured grant and revocation public trust.</param>
     /// <param name="analysisAt">Trusted UTC case instant.</param>
     /// <param name="telemetry">One to the analysis sample bound canonical telemetry envelopes.</param>
     /// <param name="thresholdRule">Single deterministic threshold evaluated after adaptation.</param>
@@ -78,7 +79,8 @@ public sealed class ObserverOfflineEvaluationCase
         Guid analysisId,
         ObserverOfflineCaseKind kind,
         ObserverOfflineEvaluationSegment segment,
-        ObserverDataPolicy dataPolicy,
+        ObserverDataPolicyVerificationContext dataPolicyContext,
+        ObserverPolicyTrustConfiguration trustConfiguration,
         DateTimeOffset analysisAt,
         IReadOnlyCollection<ObserverCanonicalHealthTelemetry> telemetry,
         ObserverThresholdRule thresholdRule,
@@ -97,10 +99,13 @@ public sealed class ObserverOfflineEvaluationCase
         }
 
         ArgumentNullException.ThrowIfNull(segment);
-        ArgumentNullException.ThrowIfNull(dataPolicy);
-        if (dataPolicy.DataUse != ObserverDataUse.OfflineEvaluation)
+        ArgumentNullException.ThrowIfNull(dataPolicyContext);
+        ArgumentNullException.ThrowIfNull(trustConfiguration);
+        if (dataPolicyContext.Grant.Policy.DataUse != ObserverDataUse.OfflineEvaluation)
         {
-            throw new ArgumentException("Offline cases require an offline-evaluation data policy.", nameof(dataPolicy));
+            throw new ArgumentException(
+                "Offline cases require an offline-evaluation data policy.",
+                nameof(dataPolicyContext));
         }
 
         ValidateUtcInstant(analysisAt, nameof(analysisAt));
@@ -147,7 +152,8 @@ public sealed class ObserverOfflineEvaluationCase
         AnalysisId = analysisId;
         Kind = kind;
         Segment = segment;
-        DataPolicy = dataPolicy;
+        DataPolicyContext = dataPolicyContext;
+        TrustConfiguration = trustConfiguration;
         AnalysisAt = analysisAt;
         Telemetry = Array.AsReadOnly(copiedTelemetry
             .OrderBy(item => item.Observation.ObservedAt)
@@ -170,8 +176,14 @@ public sealed class ObserverOfflineEvaluationCase
     /// <summary>Gets the provider/version/platform reporting segment.</summary>
     public ObserverOfflineEvaluationSegment Segment { get; }
 
-    /// <summary>Gets the explicit purpose-specific data policy.</summary>
-    public ObserverDataPolicy DataPolicy { get; }
+    /// <summary>Gets the signed purpose-specific policy and revocation verification context.</summary>
+    public ObserverDataPolicyVerificationContext DataPolicyContext { get; }
+
+    /// <summary>Gets application-configured public trust separately from the caller-supplied signed evidence.</summary>
+    public ObserverPolicyTrustConfiguration TrustConfiguration { get; }
+
+    /// <summary>Gets the policy bound into the signed grant for result construction after verification.</summary>
+    internal ObserverDataPolicy DataPolicy => DataPolicyContext.Grant.Policy;
 
     /// <summary>Gets the trusted UTC case instant.</summary>
     public DateTimeOffset AnalysisAt { get; }
@@ -207,6 +219,9 @@ public sealed class ObserverOfflineEvaluationCase
 /// </summary>
 public sealed class ObserverOfflineEvaluationDataset
 {
+    /// <summary>Canonical dataset schema version independently of the governed corpus version.</summary>
+    public const string CurrentSchemaVersion = "observer-offline-dataset.v1";
+
     /// <summary>Maximum reference and adversarial cases accepted in one bounded evaluation.</summary>
     public const int MaximumCaseCount = 1_000;
 
@@ -277,6 +292,8 @@ public sealed class ObserverOfflineEvaluationDataset
             .ThenBy(item => item.ProviderVersion, StringComparer.Ordinal)
             .ThenBy(item => item.Platform, StringComparer.Ordinal)
             .ToArray());
+        TotalSampleCount = Cases.Sum(item => item.Telemetry.Count);
+        MaximumRequiredWorkUnits = checked((Cases.Count * 2L) + TotalSampleCount);
     }
 
     /// <summary>Gets the stable dataset identifier.</summary>
@@ -284,6 +301,9 @@ public sealed class ObserverOfflineEvaluationDataset
 
     /// <summary>Gets the stable dataset version.</summary>
     public string DatasetVersion { get; }
+
+    /// <summary>Gets the canonical dataset schema version independently of <see cref="DatasetVersion"/>.</summary>
+    public string DatasetSchemaVersion { get; } = CurrentSchemaVersion;
 
     /// <summary>Gets the stable non-secret provenance reference.</summary>
     public string ProvenanceReference { get; }
@@ -306,6 +326,12 @@ public sealed class ObserverOfflineEvaluationDataset
     /// <summary>Gets the distinct provider/version/platform segments without support claims.</summary>
     public IReadOnlyList<ObserverOfflineEvaluationSegment> Segments { get; }
 
+    /// <summary>Gets the exact aggregate telemetry-envelope count used for admission control.</summary>
+    public int TotalSampleCount { get; }
+
+    /// <summary>Gets the deterministic upper work bound: two units per case plus one per sample.</summary>
+    public long MaximumRequiredWorkUnits { get; }
+
     /// <summary>Rejects default or offset-bearing dataset instants.</summary>
     /// <param name="value">Instant to validate.</param>
     /// <param name="parameterName">Public parameter name used by any exception.</param>
@@ -317,6 +343,64 @@ public sealed class ObserverOfflineEvaluationDataset
             throw new ArgumentException("Offline dataset instants must be explicit UTC values.", parameterName);
         }
     }
+}
+
+/// <summary>
+/// Defines explicit admission and execution limits for one local offline run. It owns no queue, worker, persistence or
+/// runtime activation; a workload that cannot fit is refused before case processing.
+/// </summary>
+public sealed class ObserverProcessingBudget
+{
+    /// <summary>Maximum elapsed processing duration accepted by the contract.</summary>
+    public static readonly TimeSpan MaximumAllowedElapsedTime = TimeSpan.FromMinutes(10);
+
+    /// <summary>Initialises one bounded offline processing budget.</summary>
+    /// <param name="maximumCaseCount">Maximum admitted cases.</param>
+    /// <param name="maximumSampleCount">Maximum admitted telemetry envelopes across all cases.</param>
+    /// <param name="maximumWorkUnits">Maximum deterministic work units.</param>
+    /// <param name="maximumElapsedTime">Maximum elapsed local processing time.</param>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown when any limit is outside its safe bound.</exception>
+    public ObserverProcessingBudget(
+        int maximumCaseCount,
+        int maximumSampleCount,
+        long maximumWorkUnits,
+        TimeSpan maximumElapsedTime)
+    {
+        ArgumentOutOfRangeException.ThrowIfLessThan(maximumCaseCount, 1);
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(
+            maximumCaseCount,
+            ObserverOfflineEvaluationDataset.MaximumCaseCount);
+        ArgumentOutOfRangeException.ThrowIfLessThan(maximumSampleCount, 1);
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(
+            maximumSampleCount,
+            ObserverOfflineEvaluationDataset.MaximumCaseCount * ObserverAnalysisRequest.MaximumSampleCount);
+        ArgumentOutOfRangeException.ThrowIfLessThan(maximumWorkUnits, 1);
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(
+            maximumWorkUnits,
+            (ObserverOfflineEvaluationDataset.MaximumCaseCount * 2L) +
+            (ObserverOfflineEvaluationDataset.MaximumCaseCount * (long)ObserverAnalysisRequest.MaximumSampleCount));
+        if (maximumElapsedTime <= TimeSpan.Zero || maximumElapsedTime > MaximumAllowedElapsedTime)
+        {
+            throw new ArgumentOutOfRangeException(nameof(maximumElapsedTime));
+        }
+
+        MaximumCaseCount = maximumCaseCount;
+        MaximumSampleCount = maximumSampleCount;
+        MaximumWorkUnits = maximumWorkUnits;
+        MaximumElapsedTime = maximumElapsedTime;
+    }
+
+    /// <summary>Gets the maximum admitted case count.</summary>
+    public int MaximumCaseCount { get; }
+
+    /// <summary>Gets the maximum admitted aggregate sample count.</summary>
+    public int MaximumSampleCount { get; }
+
+    /// <summary>Gets the maximum deterministic work units.</summary>
+    public long MaximumWorkUnits { get; }
+
+    /// <summary>Gets the maximum elapsed local processing time.</summary>
+    public TimeSpan MaximumElapsedTime { get; }
 }
 
 /// <summary>Reports one exact expected-versus-actual offline case comparison without source payload content.</summary>
@@ -367,6 +451,49 @@ public sealed class ObserverOfflineEvaluationCaseResult
     public bool Passed { get; }
 }
 
+/// <summary>Summarises exact case quality for one declared provider/version/platform fixture segment.</summary>
+public sealed class ObserverOfflineSegmentResult
+{
+    /// <summary>Initialises one immutable segment summary from completed case results.</summary>
+    /// <param name="segment">Exact declared fixture segment.</param>
+    /// <param name="caseResults">Completed results belonging only to that segment.</param>
+    internal ObserverOfflineSegmentResult(
+        ObserverOfflineEvaluationSegment segment,
+        IReadOnlyCollection<ObserverOfflineEvaluationCaseResult> caseResults)
+    {
+        Segment = segment;
+        CaseCount = caseResults.Count;
+        PassedCaseCount = caseResults.Count(result => result.Passed);
+        FailedCaseCount = CaseCount - PassedCaseCount;
+        AdversarialCaseCount = caseResults.Count(result => result.Kind == ObserverOfflineCaseKind.Adversarial);
+        RejectedAdversarialCaseCount = caseResults.Count(result =>
+            result.Kind == ObserverOfflineCaseKind.Adversarial &&
+            result.ActualDisposition == ObserverOfflineExpectedDisposition.AdaptationRejected);
+    }
+
+    /// <summary>Gets the exact fixture segment without implying runtime provider support.</summary>
+    public ObserverOfflineEvaluationSegment Segment { get; }
+
+    /// <summary>Gets completed cases in this segment.</summary>
+    public int CaseCount { get; }
+
+    /// <summary>Gets exact-match cases in this segment.</summary>
+    public int PassedCaseCount { get; }
+
+    /// <summary>Gets non-matching cases in this segment.</summary>
+    public int FailedCaseCount { get; }
+
+    /// <summary>Gets adversarial cases declared in this segment.</summary>
+    public int AdversarialCaseCount { get; }
+
+    /// <summary>Gets adversarial cases refused at the authenticated data boundary.</summary>
+    public int RejectedAdversarialCaseCount { get; }
+
+    /// <summary>Gets whether all completed cases matched and every adversarial case was rejected.</summary>
+    public bool Passed =>
+        FailedCaseCount == 0 && RejectedAdversarialCaseCount == AdversarialCaseCount;
+}
+
 /// <summary>
 /// Summarises one deterministic offline run with case accuracy, binary detection counts and adversarial acceptance.
 /// The report grants no runtime or mode authority.
@@ -383,17 +510,35 @@ public sealed class ObserverOfflineEvaluationReport
         ObserverOfflineEvaluationDataset dataset,
         DateTimeOffset evaluatedAt,
         bool datasetAccepted,
+        bool processingCompleted,
         string code,
-        IReadOnlyList<ObserverOfflineEvaluationCaseResult> caseResults)
+        IReadOnlyList<ObserverOfflineEvaluationCaseResult> caseResults,
+        ObserverProcessingBudget budget,
+        long consumedWorkUnits)
     {
         DatasetId = dataset.DatasetId;
         DatasetVersion = dataset.DatasetVersion;
+        DatasetSchemaVersion = dataset.DatasetSchemaVersion;
         ProvenanceReference = dataset.ProvenanceReference;
         AuthorityReference = dataset.AuthorityReference;
         EvaluatedAt = evaluatedAt;
         DatasetAccepted = datasetAccepted;
+        ProcessingCompleted = processingCompleted;
         Code = code;
         CaseResults = caseResults;
+        SegmentResults = Array.AsReadOnly(caseResults
+            .GroupBy(result => (
+                result.Segment.ProviderType,
+                result.Segment.ProviderVersion,
+                result.Segment.Platform))
+            .Select(group => new ObserverOfflineSegmentResult(group.First().Segment, group.ToArray()))
+            .OrderBy(result => result.Segment.ProviderType, StringComparer.Ordinal)
+            .ThenBy(result => result.Segment.ProviderVersion, StringComparer.Ordinal)
+            .ThenBy(result => result.Segment.Platform, StringComparer.Ordinal)
+            .ToArray());
+        MaximumWorkUnits = budget.MaximumWorkUnits;
+        MaximumRequiredWorkUnits = dataset.MaximumRequiredWorkUnits;
+        ConsumedWorkUnits = consumedWorkUnits;
         PassedCaseCount = caseResults.Count(result => result.Passed);
         FailedCaseCount = caseResults.Count - PassedCaseCount;
         RejectedAdversarialCaseCount = caseResults.Count(result =>
@@ -453,6 +598,9 @@ public sealed class ObserverOfflineEvaluationReport
     /// <summary>Gets the evaluated dataset version.</summary>
     public string DatasetVersion { get; }
 
+    /// <summary>Gets the dataset contract schema independently of the governed corpus version.</summary>
+    public string DatasetSchemaVersion { get; }
+
     /// <summary>Gets the dataset provenance reference.</summary>
     public string ProvenanceReference { get; }
 
@@ -465,11 +613,29 @@ public sealed class ObserverOfflineEvaluationReport
     /// <summary>Gets whether dataset validity permitted case execution.</summary>
     public bool DatasetAccepted { get; }
 
+    /// <summary>Gets whether every admitted case completed within the explicit processing budget.</summary>
+    public bool ProcessingCompleted { get; }
+
     /// <summary>Gets the stable dataset-level outcome code.</summary>
     public string Code { get; }
 
     /// <summary>Gets immutable case results in deterministic case order.</summary>
     public IReadOnlyList<ObserverOfflineEvaluationCaseResult> CaseResults { get; }
+
+    /// <summary>Gets immutable exact-match summaries for segments with completed cases.</summary>
+    public IReadOnlyList<ObserverOfflineSegmentResult> SegmentResults { get; }
+
+    /// <summary>Gets the configured deterministic work-unit ceiling.</summary>
+    public long MaximumWorkUnits { get; }
+
+    /// <summary>Gets the deterministic upper work bound reserved for complete dataset processing.</summary>
+    public long MaximumRequiredWorkUnits { get; }
+
+    /// <summary>Gets work units consumed before completion or fail-closed backpressure.</summary>
+    public long ConsumedWorkUnits { get; }
+
+    /// <summary>Gets whether admission or elapsed-time enforcement refused complete processing.</summary>
+    public bool BackpressureApplied => DatasetAccepted && !ProcessingCompleted;
 
     /// <summary>Gets the exact-match case count.</summary>
     public int PassedCaseCount { get; }
@@ -505,7 +671,8 @@ public sealed class ObserverOfflineEvaluationReport
     public double? Recall { get; }
 
     /// <summary>Gets a value indicating exact case success and zero accepted adversarial cases.</summary>
-    public bool Passed => DatasetAccepted && FailedCaseCount == 0 && AcceptedAdversarialCaseCount == 0;
+    public bool Passed =>
+        DatasetAccepted && ProcessingCompleted && FailedCaseCount == 0 && AcceptedAdversarialCaseCount == 0;
 }
 
 /// <summary>Executes governed offline cases explicitly and synchronously without I/O, persistence or runtime binding.</summary>
@@ -513,7 +680,9 @@ public static class ObserverOfflineEvaluationRunner
 {
     /// <summary>Evaluates a current governed dataset through the trusted adapter and deterministic threshold analyser.</summary>
     /// <param name="dataset">Versioned dataset with provenance, authority, expiry and segmentation.</param>
+    /// <param name="budget">Explicit case, sample, work-unit and elapsed-time limits.</param>
     /// <param name="evaluatedAt">Trusted UTC evaluation instant.</param>
+    /// <param name="timeProvider">Clock used solely to enforce elapsed processing time.</param>
     /// <param name="cancellationToken">Cancellation checked between cases and telemetry items.</param>
     /// <returns>A deterministic dataset report with exact-match and quality metrics.</returns>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="dataset"/> is null.</exception>
@@ -521,10 +690,13 @@ public static class ObserverOfflineEvaluationRunner
     /// <exception cref="OperationCanceledException">Thrown when cancellation is requested during the bounded run.</exception>
     public static ObserverOfflineEvaluationReport Evaluate(
         ObserverOfflineEvaluationDataset dataset,
+        ObserverProcessingBudget budget,
         DateTimeOffset evaluatedAt,
+        TimeProvider? timeProvider = null,
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(dataset);
+        ArgumentNullException.ThrowIfNull(budget);
         if (evaluatedAt == default || evaluatedAt.Offset != TimeSpan.Zero)
         {
             throw new ArgumentException("Offline evaluation time must be an explicit UTC value.", nameof(evaluatedAt));
@@ -533,27 +705,51 @@ public static class ObserverOfflineEvaluationRunner
         cancellationToken.ThrowIfCancellationRequested();
         if (evaluatedAt < dataset.CreatedAt)
         {
-            return DatasetRejected(dataset, evaluatedAt, "aiops.observer.offline.dataset_not_effective");
+            return DatasetRejected(dataset, budget, evaluatedAt, "aiops.observer.offline.dataset_not_effective");
         }
 
         if (evaluatedAt >= dataset.ExpiresAt)
         {
-            return DatasetRejected(dataset, evaluatedAt, "aiops.observer.offline.dataset_expired");
+            return DatasetRejected(dataset, budget, evaluatedAt, "aiops.observer.offline.dataset_expired");
         }
 
-        List<ObserverOfflineEvaluationCaseResult> results = new(dataset.Cases.Count);
-        foreach (ObserverOfflineEvaluationCase evaluationCase in dataset.Cases)
+        string? admissionRejection = AdmissionRejection(dataset, budget);
+        if (admissionRejection is not null)
         {
-            cancellationToken.ThrowIfCancellationRequested();
-            results.Add(EvaluateCase(evaluationCase, cancellationToken));
+            return Backpressured(dataset, budget, evaluatedAt, admissionRejection, [], consumedWorkUnits: 0);
+        }
+
+        ObserverProcessingBudgetTracker tracker = new(budget, timeProvider ?? TimeProvider.System);
+        List<ObserverOfflineEvaluationCaseResult> results = new(dataset.Cases.Count);
+        try
+        {
+            foreach (ObserverOfflineEvaluationCase evaluationCase in dataset.Cases)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                tracker.Consume();
+                results.Add(EvaluateCase(evaluationCase, tracker, cancellationToken));
+            }
+        }
+        catch (ObserverProcessingBudgetExceededException)
+        {
+            return Backpressured(
+                dataset,
+                budget,
+                evaluatedAt,
+                "aiops.observer.offline.processing_time_exhausted",
+                results.AsReadOnly(),
+                tracker.ConsumedWorkUnits);
         }
 
         return new ObserverOfflineEvaluationReport(
             dataset,
             evaluatedAt,
             datasetAccepted: true,
+            processingCompleted: true,
             "aiops.observer.offline.completed",
-            results.AsReadOnly());
+            results.AsReadOnly(),
+            budget,
+            tracker.ConsumedWorkUnits);
     }
 
     /// <summary>Runs one case while converting cross-evidence boundary conflicts to an explicit sanitised rejection.</summary>
@@ -562,15 +758,18 @@ public static class ObserverOfflineEvaluationRunner
     /// <returns>One exact expected-versus-actual comparison.</returns>
     private static ObserverOfflineEvaluationCaseResult EvaluateCase(
         ObserverOfflineEvaluationCase evaluationCase,
+        ObserverProcessingBudgetTracker tracker,
         CancellationToken cancellationToken)
     {
         List<ObserverMetricSample> samples = new(evaluationCase.Telemetry.Count);
         foreach (ObserverCanonicalHealthTelemetry telemetry in evaluationCase.Telemetry)
         {
             cancellationToken.ThrowIfCancellationRequested();
+            tracker.Consume();
             ObserverTelemetryAdaptationResult adaptation = CanonicalObserverTelemetryAdapter.AdaptForOfflineEvaluation(
                 telemetry,
-                evaluationCase.DataPolicy,
+                evaluationCase.DataPolicyContext,
+                evaluationCase.TrustConfiguration,
                 evaluationCase.AnalysisAt);
             if (adaptation.Disposition == ObserverTelemetryAdaptationDisposition.Rejected)
             {
@@ -601,6 +800,7 @@ public static class ObserverOfflineEvaluationRunner
                 "aiops.observer.offline.evidence_boundary_invalid");
         }
 
+        tracker.Consume();
         ObserverThresholdResult threshold = DeterministicThresholdAnalyser.Analyse(
             request,
             evaluationCase.ThresholdRule);
@@ -621,7 +821,92 @@ public static class ObserverOfflineEvaluationRunner
     /// <returns>An empty, non-authorising offline report.</returns>
     private static ObserverOfflineEvaluationReport DatasetRejected(
         ObserverOfflineEvaluationDataset dataset,
+        ObserverProcessingBudget budget,
         DateTimeOffset evaluatedAt,
         string code) =>
-        new(dataset, evaluatedAt, datasetAccepted: false, code, []);
+        new(dataset, evaluatedAt, datasetAccepted: false, processingCompleted: false, code, [], budget, 0);
+
+    /// <summary>Returns the first deterministic admission failure without reading any case telemetry.</summary>
+    /// <param name="dataset">Governed dataset metadata and aggregate counts.</param>
+    /// <param name="budget">Explicit processing limits.</param>
+    /// <returns>A stable backpressure code, or <see langword="null"/> when the complete workload fits.</returns>
+    private static string? AdmissionRejection(
+        ObserverOfflineEvaluationDataset dataset,
+        ObserverProcessingBudget budget)
+    {
+        if (dataset.Cases.Count > budget.MaximumCaseCount)
+        {
+            return "aiops.observer.offline.case_budget_exhausted";
+        }
+
+        if (dataset.TotalSampleCount > budget.MaximumSampleCount)
+        {
+            return "aiops.observer.offline.sample_budget_exhausted";
+        }
+
+        return dataset.MaximumRequiredWorkUnits > budget.MaximumWorkUnits
+            ? "aiops.observer.offline.work_budget_exhausted"
+            : null;
+    }
+
+    /// <summary>Creates an accepted-but-incomplete report after deterministic admission or elapsed-time backpressure.</summary>
+    /// <param name="dataset">Governed dataset.</param>
+    /// <param name="budget">Applied processing budget.</param>
+    /// <param name="evaluatedAt">Trusted UTC evaluation instant.</param>
+    /// <param name="code">Stable backpressure code.</param>
+    /// <param name="results">Only cases fully completed before elapsed-time exhaustion.</param>
+    /// <param name="consumedWorkUnits">Exact consumed work units.</param>
+    /// <returns>A non-passing report that grants no runtime authority.</returns>
+    private static ObserverOfflineEvaluationReport Backpressured(
+        ObserverOfflineEvaluationDataset dataset,
+        ObserverProcessingBudget budget,
+        DateTimeOffset evaluatedAt,
+        string code,
+        IReadOnlyList<ObserverOfflineEvaluationCaseResult> results,
+        long consumedWorkUnits) =>
+        new(
+            dataset,
+            evaluatedAt,
+            datasetAccepted: true,
+            processingCompleted: false,
+            code,
+            results,
+            budget,
+            consumedWorkUnits);
 }
+
+/// <summary>Enforces deterministic work accounting and an elapsed-time ceiling without queueing or partial retries.</summary>
+internal sealed class ObserverProcessingBudgetTracker
+{
+    private readonly ObserverProcessingBudget budget;
+    private readonly TimeProvider timeProvider;
+    private readonly long startedAt;
+
+    /// <summary>Initialises one run-local tracker at the supplied clock timestamp.</summary>
+    /// <param name="budget">Already admitted processing limits.</param>
+    /// <param name="timeProvider">Clock used only for elapsed-time measurement.</param>
+    public ObserverProcessingBudgetTracker(ObserverProcessingBudget budget, TimeProvider timeProvider)
+    {
+        this.budget = budget;
+        this.timeProvider = timeProvider;
+        startedAt = timeProvider.GetTimestamp();
+    }
+
+    /// <summary>Gets successfully reserved deterministic work units.</summary>
+    public long ConsumedWorkUnits { get; private set; }
+
+    /// <summary>Reserves one work unit or stops the run when its elapsed-time ceiling has been reached.</summary>
+    /// <exception cref="ObserverProcessingBudgetExceededException">Thrown before work after elapsed-time exhaustion.</exception>
+    public void Consume()
+    {
+        if (timeProvider.GetElapsedTime(startedAt) >= budget.MaximumElapsedTime)
+        {
+            throw new ObserverProcessingBudgetExceededException();
+        }
+
+        ConsumedWorkUnits++;
+    }
+}
+
+/// <summary>Signals run-local budget exhaustion internally so the public boundary can return a typed report.</summary>
+internal sealed class ObserverProcessingBudgetExceededException : Exception;

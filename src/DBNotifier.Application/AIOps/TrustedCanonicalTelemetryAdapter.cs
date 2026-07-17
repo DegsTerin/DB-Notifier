@@ -52,6 +52,9 @@ public sealed class ObserverDataScope
 /// </summary>
 public sealed class ObserverDataPolicy
 {
+    /// <summary>Canonical policy schema version independently of the policy instance version.</summary>
+    public const string CurrentSchemaVersion = "observer-data-policy.v1";
+
     /// <summary>Maximum exact instance-and-Agent source pairs accepted by one policy.</summary>
     public const int MaximumSourceCount = 1_000;
 
@@ -150,6 +153,9 @@ public sealed class ObserverDataPolicy
 
     /// <summary>Gets the stable data-policy identifier.</summary>
     public string PolicyId { get; }
+
+    /// <summary>Gets the canonical policy schema version independently of <see cref="PolicyVersion"/>.</summary>
+    public string PolicySchemaVersion { get; } = CurrentSchemaVersion;
 
     /// <summary>Gets the stable data-policy version.</summary>
     public string PolicyVersion { get; }
@@ -304,55 +310,69 @@ public static class CanonicalObserverTelemetryAdapter
 
     /// <summary>Adapts one canonical health observation under an explicit, current and exact-source opt-in policy.</summary>
     /// <param name="telemetry">Typed canonical observation and authoritative receipt instant.</param>
-    /// <param name="policy">Purpose-specific data policy from the authorised application boundary.</param>
+    /// <param name="policyContext">Caller-supplied signed policy grant and revocation view.</param>
+    /// <param name="trustConfiguration">Application-configured grant and revocation public trust.</param>
     /// <param name="asOf">Trusted UTC decision instant used to prevent lookahead and enforce policy validity.</param>
     /// <returns>One accepted numeric sample or a sanitised fail-closed rejection.</returns>
-    /// <exception cref="ArgumentNullException">Thrown when <paramref name="telemetry"/> or <paramref name="policy"/> is null.</exception>
+    /// <exception cref="ArgumentNullException">Thrown when telemetry, policy evidence or trust configuration is null.</exception>
     /// <exception cref="ArgumentException">Thrown when <paramref name="asOf"/> is default or not expressed as UTC.</exception>
     public static ObserverTelemetryAdaptationResult Adapt(
         ObserverCanonicalHealthTelemetry telemetry,
-        ObserverDataPolicy policy,
+        ObserverDataPolicyVerificationContext policyContext,
+        ObserverPolicyTrustConfiguration trustConfiguration,
         DateTimeOffset asOf) =>
-        AdaptCore(telemetry, policy, asOf, ObserverDataUse.RuntimeAnalysis);
+        AdaptCore(telemetry, policyContext, trustConfiguration, asOf, ObserverDataUse.RuntimeAnalysis);
 
     /// <summary>Adapts one canonical item only for the isolated offline runner's declared data use.</summary>
     /// <param name="telemetry">Typed canonical observation and authoritative receipt instant.</param>
-    /// <param name="policy">Explicit offline-evaluation policy.</param>
+    /// <param name="policyContext">Signed offline-evaluation policy context.</param>
+    /// <param name="trustConfiguration">Application-configured grant and revocation public trust.</param>
     /// <param name="asOf">Trusted UTC case instant.</param>
     /// <returns>One accepted numeric sample or a sanitised fail-closed rejection.</returns>
     internal static ObserverTelemetryAdaptationResult AdaptForOfflineEvaluation(
         ObserverCanonicalHealthTelemetry telemetry,
-        ObserverDataPolicy policy,
+        ObserverDataPolicyVerificationContext policyContext,
+        ObserverPolicyTrustConfiguration trustConfiguration,
         DateTimeOffset asOf) =>
-        AdaptCore(telemetry, policy, asOf, ObserverDataUse.OfflineEvaluation);
+        AdaptCore(telemetry, policyContext, trustConfiguration, asOf, ObserverDataUse.OfflineEvaluation);
 
     /// <summary>Applies the shared adapter boundary while enforcing the caller's fixed purpose.</summary>
     /// <param name="telemetry">Typed canonical observation and authoritative receipt instant.</param>
-    /// <param name="policy">Purpose-specific data policy.</param>
+    /// <param name="policyContext">Unverified purpose-specific policy context.</param>
+    /// <param name="trustConfiguration">Separately configured purpose-specific public trust.</param>
     /// <param name="asOf">Trusted UTC decision instant.</param>
     /// <param name="requiredDataUse">Fixed runtime or offline use selected by the owning entry point.</param>
     /// <returns>One accepted numeric sample or a sanitised fail-closed rejection.</returns>
     private static ObserverTelemetryAdaptationResult AdaptCore(
         ObserverCanonicalHealthTelemetry telemetry,
-        ObserverDataPolicy policy,
+        ObserverDataPolicyVerificationContext policyContext,
+        ObserverPolicyTrustConfiguration trustConfiguration,
         DateTimeOffset asOf,
         ObserverDataUse requiredDataUse)
     {
         ArgumentNullException.ThrowIfNull(telemetry);
-        ArgumentNullException.ThrowIfNull(policy);
+        ArgumentNullException.ThrowIfNull(policyContext);
+        ArgumentNullException.ThrowIfNull(trustConfiguration);
         if (asOf == default || asOf.Offset != TimeSpan.Zero)
         {
             throw new ArgumentException("Observer adapter decision time must be an explicit UTC value.", nameof(asOf));
         }
 
+        (ObserverDataPolicy? verifiedPolicy, string? provenanceRejection) =
+            ObserverDataPolicyProvenanceVerifier.Verify(
+                policyContext,
+                trustConfiguration,
+                requiredDataUse,
+                asOf);
+        if (verifiedPolicy is null)
+        {
+            return Rejected(provenanceRejection!);
+        }
+
+        ObserverDataPolicy policy = verifiedPolicy;
         if (policy.OptInState != ObserverDataOptInState.Enabled)
         {
             return Rejected("aiops.observer.adapter.policy_disabled");
-        }
-
-        if (policy.DataUse != requiredDataUse)
-        {
-            return Rejected("aiops.observer.adapter.policy_purpose_mismatch");
         }
 
         if (asOf < policy.EffectiveFrom)
