@@ -55,6 +55,7 @@ Conflitos que ampliem materialmente o escopo, exijam ação externa irreversíve
 - Não executar deploy, migration remota, instalação, publicação ou controle de banco real sem autorização específica.
 - Separar credenciais de monitoramento das credenciais administrativas.
 - Preservar mudanças preexistentes e limitar alterações ao escopo autorizado.
+- Antes de processar qualquer nova mensagem do usuário, aplicar o shutdown preflight obrigatório definido em `../AGENTS.md` e detalhado em `operations/Operational-Playbooks.md`; nenhuma aprovação, pergunta ou tarefa documental reutiliza silenciosamente um runtime DB-Notifier da interação anterior.
 - Documentar código e configuração exclusivamente em inglês britânico (`en-GB`), conforme `../docs/Code-Documentation-Standards.md`, mantendo comentários concisos e sincronizados.
 - Aplicar `../docs/design/DB-Notifier-Design-System.md` a todo frontend novo ou alterado; não criar temas, tokens ou componentes paralelos fora do contrato oficial.
 - Consultar o estado antes de executar uma fase ou playbook.

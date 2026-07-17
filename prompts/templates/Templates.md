@@ -10,6 +10,7 @@ Templates não representam execução nem aprovação até serem preenchidos com
 - Arquivos/artefatos alterados:
 - ADRs e decisões:
 - Checks e resultados:
+- Shutdown preflight: componentes/PIDs encerrados, listeners verificados e resíduos:
 - Interfaces/schemas/protocolos:
 - Riscos e dívida:
 - Rollback:
@@ -30,6 +31,7 @@ Templates não representam execução nem aprovação até serem preenchidos com
 - Escopo e providers cobertos:
 - Pré-condições e configuração sanitizada:
 - Comandos/testes e resultados:
+- Shutdown preflight: identificação, encerramento, verificação e limitações:
 - Falhas e correções:
 - Itens não testados:
 - Riscos residuais:

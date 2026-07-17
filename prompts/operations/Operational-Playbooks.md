@@ -4,6 +4,19 @@
 
 Selecionar somente o playbook correspondente ao pedido. Todos dependem do estado atual, da governança, dos gates e das regras de segurança.
 
+## Shutdown preflight obrigatório
+
+Executar antes de qualquer ação em toda nova mensagem do usuário, inclusive aprovação, esclarecimento, ajuste, modificação, implementação, auditoria ou pedido documental. Uma resposta humana sobre uma amostra visível também é uma nova mensagem e começa pelo encerramento da amostra anterior.
+
+1. Inventariar WPF/Tray, Dashboard preview/dev server, Agent, API, helpers em background, runners de validação e navegador dedicado pertencentes ao DB-Notifier.
+2. Identificar processos hospedados por `dotnet`, Node, PowerShell ou navegador através de PID, caminho do executável, command line, parentage, porta e perfil temporário comprovadamente pertencentes ao projeto. Nome genérico de processo não basta.
+3. Encerrar primeiro os filhos e depois o processo proprietário, usando encerramento normal quando disponível e força somente para resíduo DB-Notifier confirmado.
+4. Verificar zero processo correspondente, zero janela/ícone de notificação do DB Notifier e zero listener pertencente aos PIDs encerrados. Registrar PIDs, resíduos e limitações sem expor dados alheios.
+5. Nunca encerrar PostgreSQL ou outro banco monitorado, serviço externo, browser/perfil comum do usuário, IDE, terminal alheio ou processo não atribuído com segurança ao DB-Notifier.
+6. Se qualquer componente não puder ser identificado ou encerrado com segurança, interromper o trabalho e informar o resíduo exato. Não continuar sobre um runtime anterior incerto.
+
+Uma amostra humana pode permanecer aberta somente quando a finalidade da interação atual é entregá-la visivelmente ao validador. Antes de processar a resposta seguinte, aplicar este protocolo integralmente. Processos de build/teste iniciados na própria tarefa continuam sujeitos ao encerramento normal antes do hand-off, salvo essa entrega visível limitada.
+
 ## Ajuste focado
 
 Quando usar: correção ou melhoria delimitada.

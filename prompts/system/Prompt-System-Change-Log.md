@@ -2,8 +2,8 @@
 
 ## Versão atual
 
-- Versão: `3.54.0`
-- Data: 2026-07-16
+- Versão: `3.55.0`
+- Data: 2026-07-17
 - Status: corpus DB-Notifier consolidado
 - Escopo: 13 arquivos ativos
 
@@ -16,6 +16,13 @@ A versão do corpus é independente da versão do software.
 - PATCH: clareza, correção ou referência sem mudança de autoridade.
 
 Toda alteração atualiza este arquivo e, quando necessário, `../Start-Here.md`.
+
+## 3.55.0 — 2026-07-17
+
+- Bruno determinou um shutdown preflight obrigatório no início de toda nova mensagem, inclusive solicitação, aprovação, esclarecimento, ajuste, modificação, implementação, auditoria ou pedido documental.
+- `AGENTS.md`, `Start-Here`, governança, playbook e templates passam a exigir encerramento e verificação de WPF/Tray, Dashboard preview/dev server, Agent, API, helpers e navegador dedicado pertencentes ao DB-Notifier antes de continuar. Uma amostra pode permanecer aberta somente até a resposta humana; essa resposta começa pelo shutdown.
+- Processos hospedados por runtimes compartilhados devem ser atribuídos por PID, caminho, command line, parentage, listener ou perfil temporário. Banco monitorado, serviço externo, navegador/perfil comum, IDE e processo não atribuído permanecem fora do encerramento automático.
+- Ao receber a instrução, o preview Dashboard preexistente PID `29292` foi encerrado; nenhum processo DB Notifier ou listener daquele PID permaneceu. A regra não altera o estado de ciclo de vida nem autoriza `STATE-06`.
 
 ## 3.54.0 — 2026-07-16
 

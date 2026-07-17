@@ -38,13 +38,14 @@ IDs não podem ser reutilizados com outro significado.
 ## Protocolo de execução
 
 1. Ler visão, estado corrente e regras aplicáveis.
-2. Inspecionar workspace, ferramentas e mudanças preexistentes.
-3. Confirmar escopo, estado e entregáveis permitidos.
-4. Planejar mudança e validação proporcional ao risco.
-5. Implementar somente o escopo autorizado.
-6. Executar checks reais e registrar evidências sanitizadas.
-7. Relatar resultado, riscos, itens não testados e próximo gate.
-8. Atualizar estado/histórico apenas quando houver mudança factual.
+2. Executar o shutdown preflight obrigatório e provar que nenhum componente ou runtime DB-Notifier da interação anterior permanece aberto, ativo ou escutando.
+3. Inspecionar workspace, ferramentas e mudanças preexistentes.
+4. Confirmar escopo, estado e entregáveis permitidos.
+5. Planejar mudança e validação proporcional ao risco.
+6. Implementar somente o escopo autorizado.
+7. Executar checks reais e registrar evidências sanitizadas.
+8. Relatar resultado, riscos, itens não testados e próximo gate.
+9. Atualizar estado/histórico apenas quando houver mudança factual.
 
 ## Ações permitidas por estado
 
