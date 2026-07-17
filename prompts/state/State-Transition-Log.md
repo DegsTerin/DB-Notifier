@@ -1220,6 +1220,20 @@
 - Aprovador: Bruno, 2026-07-17.
 - Estado resultante: `STATE-06 INTEGRATION`.
 
+## 2026-07-17 — Primeiro incremento MOD-12 de Integration
+
+- Estado anterior: `STATE-06 INTEGRATION`, primeiro incremento explicitamente autorizado depois do registro formal da transição; nenhum modo MOD-12 ativo.
+- Estado resultante: sem transição; `STATE-06 INTEGRATION` mantido e `none → OBSERVER` continua pendente.
+- Decisão: executar exatamente o incremento local e isolado autorizado por Bruno para adapter confiável de telemetria canônica, política opt-in de dados e avaliações offline, sem LLM, executor, banco externo, ações externas ou promoção automática.
+- Escopo: adapter de `HealthObservation` para a série provider-neutral de duração; política fail-closed por finalidade, vigência, escopo e par instância-Agent; dataset/evaluation runner in-memory com proveniência, autoridade, classificação, expiração, segmentação e casos adversariais; testes, arquitetura e documentação factual.
+- Implementação: handling fields derivam da política, não da telemetria; conteúdo provider-native/erro não é copiado; source/time/evidence/canonical bounds são recusados por códigos estáveis. A política nunca autoriza coleta, persistência ou ativação. O corpus sintético de cinco casos cobre detecção, não detecção, futuro, opt-in desabilitado e cruzamento de instância.
+- Gates: `54/54` testes MOD-12, `250/250` unit/model/provider/presentation, `15/15` arquitetura, build Release com zero avisos/erros e cobertura `80,02%` linhas/`60,30%` branches aprovados. .NET format/analyzers, documentação en-GB/XML, secret scan, diff, links Markdown e smoke fail-closed também aprovados.
+- Evidências: [relatório do incremento](../../docs/STATE-06-MOD-12-Trusted-Telemetry-Report.md), [estado atual](Current-State.md), [arquitetura](../foundation/Solution-Architecture-Document.md), testes `AIOpsIntegrationTests` e resposta de Bruno nesta sessão.
+- Segurança/limites: somente `HealthObservation` do Domain cruza a superfície pública; não há DI/runtime, I/O, dependência nova, provider concreto, banco, credential, rede MOD-12, UI, LLM, recomendação, plano ou executor. O smoke usou apenas loopback e encerrou os processos próprios. Auditorias online não foram repetidas.
+- Riscos/ressalvas: a policy provenance ainda depende de futura boundary autenticada; o corpus pequeno e sintético não prova calibração, provider real ou resistência geral a poisoning. Datasets multi-segmento, budget/backpressure, carga, tampering/replay e gates independentes permanecem obrigatórios antes de `OBSERVER`.
+- Shutdown preflight: um segundo inventário antes do incremento confirmou zero runtime, navegador dedicado, janela de produto ou listener DB-Notifier. Os processos locais de build/teste/smoke foram encerrados normalmente e a verificação final não encontrou resíduo proprietário.
+- Aprovador: Bruno, exclusivamente para este incremento local e isolado; nenhuma promoção de modo ou nova transição foi inferida.
+
 ## Template de nova entrada
 
 - Data:

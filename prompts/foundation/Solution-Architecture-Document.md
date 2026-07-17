@@ -121,7 +121,7 @@ Papéis, permissões, escopos e trilha imutável. Os detalhes normativos estão 
 
 ### MOD-12 AIOPS_AI
 
-Regras determinísticas, análise estatística, correlação, base de conhecimento, LLM, planejamento e automação controlada. A especificação completa está em `AIOps-And-AI-Module.md`. Uma fundação local, in-memory e não mutável de contratos/evidência, thresholds e previsão de capacidade existe em Application; nenhum modo está ativo, e pipeline, integração, persistência, UI, LLM, executor e promoção independente permanecem roadmap.
+Regras determinísticas, análise estatística, correlação, base de conhecimento, LLM, planejamento e automação controlada. A especificação completa está em `AIOps-And-AI-Module.md`. Application possui a fundação local, in-memory e não mutável de contratos/evidência, thresholds e previsão de capacidade, além de um adapter explícito que converte somente duração de `HealthObservation` canônica sob política opt-in e um runner de avaliações offline governadas. O adapter não está vinculado a runtime, coleta ou persistência; nenhum modo está ativo, e integração operacional, UI, LLM, executor e promoção independente permanecem sujeitos aos gates próprios.
 
 ## Comunicação Agent/API
 

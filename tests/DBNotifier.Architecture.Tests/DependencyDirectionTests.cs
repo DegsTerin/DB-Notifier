@@ -53,7 +53,7 @@ public sealed class DependencyDirectionTests
         Assert.Empty(references);
     }
 
-    /// <summary>Verifies the exact initial AIOps Observer surface and its absence of outer DB-Notifier contract types.</summary>
+    /// <summary>Verifies the exact approved AIOps surface and its sole intentional Domain health-observation dependency.</summary>
     [Fact]
     public void AIOpsObserverPublicSurfaceExposesOnlyApprovedContracts()
     {
@@ -65,6 +65,7 @@ public sealed class DependencyDirectionTests
         Assert.NotEmpty(observerTypes);
         string[] approvedTypeNames =
         [
+            "CanonicalObserverTelemetryAdapter",
             "CapacityForecastAnalyser",
             "DeterministicThresholdAnalyser",
             "ObserverAnalysisPolicy",
@@ -74,16 +75,31 @@ public sealed class DependencyDirectionTests
             "ObserverCapacityForecastPolicy",
             "ObserverCapacityForecastResult",
             "ObserverCapabilityProfile",
+            "ObserverCanonicalHealthTelemetry",
             "ObserverDataClassification",
+            "ObserverDataOptInState",
+            "ObserverDataPolicy",
+            "ObserverDataScope",
+            "ObserverDataUse",
             "ObserverEvidenceQuality",
             "ObserverFindingDisposition",
             "ObserverFindingSeverity",
             "ObserverMetricCardinality",
             "ObserverMetricSample",
             "ObserverMissingness",
+            "ObserverOfflineCaseKind",
+            "ObserverOfflineEvaluationCase",
+            "ObserverOfflineEvaluationCaseResult",
+            "ObserverOfflineEvaluationDataset",
+            "ObserverOfflineEvaluationReport",
+            "ObserverOfflineEvaluationRunner",
+            "ObserverOfflineEvaluationSegment",
+            "ObserverOfflineExpectedDisposition",
             "ObserverPermittedPurpose",
             "ObserverRedactionStatus",
             "ObserverRetentionClass",
+            "ObserverTelemetryAdaptationDisposition",
+            "ObserverTelemetryAdaptationResult",
             "ObserverThresholdComparison",
             "ObserverThresholdResult",
             "ObserverThresholdRule",
@@ -92,16 +108,18 @@ public sealed class DependencyDirectionTests
             approvedTypeNames.Order(StringComparer.Ordinal),
             observerTypes.Select(type => type.Name).Order(StringComparer.Ordinal));
 
-        string[] outerAssemblies = observerTypes
+        Type[] outerTypes = observerTypes
             .SelectMany(GetPublicSignatureTypes)
-            .Select(type => type.Assembly.GetName().Name ?? string.Empty)
-            .Where(name =>
-                name.StartsWith("DBNotifier.", StringComparison.Ordinal) &&
-                !string.Equals(name, "DBNotifier.Application", StringComparison.Ordinal))
-            .Distinct(StringComparer.Ordinal)
-            .Order(StringComparer.Ordinal)
+            .Where(type =>
+                (type.Assembly.GetName().Name ?? string.Empty).StartsWith("DBNotifier.", StringComparison.Ordinal) &&
+                !string.Equals(
+                    type.Assembly.GetName().Name,
+                    "DBNotifier.Application",
+                    StringComparison.Ordinal))
+            .Distinct()
+            .OrderBy(type => type.FullName, StringComparer.Ordinal)
             .ToArray();
-        Assert.Empty(outerAssemblies);
+        Assert.Equal([typeof(DBNotifier.Domain.HealthObservation)], outerTypes);
 
         string[] declaredOperationNames = observerTypes
             .SelectMany(type => type.GetMethods(
@@ -111,7 +129,7 @@ public sealed class DependencyDirectionTests
             .Distinct(StringComparer.Ordinal)
             .Order(StringComparer.Ordinal)
             .ToArray();
-        Assert.Equal(["Analyse"], declaredOperationNames);
+        Assert.Equal(["Adapt", "Analyse", "Evaluate"], declaredOperationNames);
     }
 
     /// <summary>Returns public constructor, property and method types for one exported contract type.</summary>
