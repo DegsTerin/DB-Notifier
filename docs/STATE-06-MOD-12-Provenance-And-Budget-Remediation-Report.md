@@ -97,6 +97,14 @@ Online NuGet/npm vulnerability audits were not repeated because no dependency ch
 - Local remediation Quality Gate: `APPROVED` for this isolated corrective scope.
 - `none → OBSERVER`: `PENDING` and outside this authority.
 - Later MOD-12 modes: `NOT AUTHORISED`.
-- Human acceptance of this corrective increment: not inferred from implementation authority and remains a separate review decision.
+- Human acceptance of this corrective increment: `ACCEPTED` on 2026-07-17, without lifecycle or mode promotion.
 
 Before any future runtime proposal, the architecture must still define authenticated issuance and distribution, atomic checkpoint advancement, durable anti-rollback state, key rotation/revocation, bounded caller-source ingestion, runtime memory/concurrency evidence and dedicated architecture, security, Quality and Human Gates.
+
+## Human acceptance of the remediation
+
+After receiving the commit report, Bruno responded exactly:
+
+`Revisão humana da remediação MOD-12 em STATE-06, commit 6a5f00f: ACEITA. Revisei o relatório e os resultados automáticos. Aceito as limitações registradas. Não autorizo promoção para OBSERVER nem novo incremento.`
+
+This decision accepts only the corrective increment recorded in commit `6a5f00f` and its stated limitations. It does not activate MOD-12, approve `none → OBSERVER`, authorise another increment, alter the lifecycle state or waive any future architecture, security, Quality or Human Gate.

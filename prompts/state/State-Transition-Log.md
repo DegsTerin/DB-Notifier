@@ -1275,6 +1275,18 @@
 - Gate humano: a autorização permitiu implementar a remediação, mas não pré-aprova sua aceitação. A revisão humana deste incremento corretivo permanece separada e não promove modo ou ciclo de vida.
 - Aprovador: Bruno, exclusivamente para a execução desta remediação restrita.
 
+## 2026-07-17 — Aceitação humana da remediação pós-code-review MOD-12
+
+- Estado anterior: `STATE-06 INTEGRATION`, remediação do commit `6a5f00f` automaticamente validada, aceitação humana corretiva pendente e nenhum modo MOD-12 ativo.
+- Estado resultante: `STATE-06 INTEGRATION` mantido; remediação aceita em seu escopo corretivo e `none → OBSERVER` continua pendente.
+- Decisão: Bruno declarou exatamente `Revisão humana da remediação MOD-12 em STATE-06, commit 6a5f00f: ACEITA. Revisei o relatório e os resultados automáticos. Aceito as limitações registradas. Não autorizo promoção para OBSERVER nem novo incremento.`
+- Escopo da aceitação: somente anti-rollback por checkpoint exato, validação NIST P-256, âncoras materialmente distintas, admissão anterior à materialização, testes e documentação registrados no commit `6a5f00f`.
+- Limites: a decisão não ativa runtime, não promove modo ou ciclo de vida, não autoriza novo incremento e não altera as condições futuras de emissão/distribuição, checkpoint durável, rotação, memória/concorrência runtime, arquitetura, segurança, Quality Gate ou Human Gate.
+- Gates: decisão registrada sobre a baseline automática de `71/71` testes AIOps, `267/267` unit/model/provider/presentation, `15/15` arquitetura, build Release sem avisos/erros, cobertura `80,41%`/`61,17%` e demais gates documentados. Nesta ação exclusivamente documental, o gate de `208` fontes comment-capable e `238` links Markdown locais em `66` arquivos passou; nenhum build, teste ou runtime foi repetido.
+- Evidências: [relatório da remediação](../../docs/STATE-06-MOD-12-Provenance-And-Budget-Remediation-Report.md), [estado atual](Current-State.md), commit `6a5f00f` e decisão de Bruno nesta sessão.
+- Shutdown preflight: zero processo, helper ou listener proprietário foi encontrado; a única janela com o nome do projeto era o Visual Studio Code do usuário e foi preservada.
+- Aprovador: Bruno, exclusivamente para a aceitação humana do incremento corretivo, sem autoridade adicional.
+
 ## Template de nova entrada
 
 - Data:
