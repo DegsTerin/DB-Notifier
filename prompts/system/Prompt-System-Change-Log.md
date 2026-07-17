@@ -2,7 +2,7 @@
 
 ## Versão atual
 
-- Versão: `3.55.1`
+- Versão: `3.55.2`
 - Data: 2026-07-17
 - Status: corpus DB-Notifier consolidado
 - Escopo: 13 arquivos ativos
@@ -16,6 +16,12 @@ A versão do corpus é independente da versão do software.
 - PATCH: clareza, correção ou referência sem mudança de autoridade.
 
 Toda alteração atualiza este arquivo e, quando necessário, `../Start-Here.md`.
+
+## 3.55.2 — 2026-07-17
+
+- Bruno determinou que toda entrega final informe explicitamente o próximo passo e detalhe o que ele deve fazer em linguagem acessível a uma pessoa leiga.
+- `AGENTS.md` passa a exigir instruções ordenadas, local e forma de execução, resultado esperado, limites de segurança/ciclo de vida e a evidência ou resposta exata necessária para continuidade, com explicação de termos e comandos não familiares.
+- Quando nenhuma ação do utilizador for necessária, a entrega deve declarar isso e identificar qual evento ou autorização abriria o próximo passo, em vez de terminar com recomendação vaga.
 
 ## 3.55.1 — 2026-07-17
 
