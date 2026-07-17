@@ -1098,6 +1098,17 @@
 - Riscos/ressalvas: a classificação prova apresentação visível apenas para a matriz local determinística nessa máquina/sessão. Não prova estado reconciliado, delivery operacional, preferência durável, outra política Windows, acessibilidade, produção ou integração. A decisão histórica `S05-HG-011` e o Human Gate completo não são restaurados por inferência.
 - Aprovador: Bruno, exclusivamente para a visibilidade dos oito casos de `REQ-067`; nenhuma aprovação adicional ou progressão foi inferida.
 
+## 2026-07-16 — Aprovação humana da amostra visual WPF 3.0.2
+
+- Estado anterior: `STATE-05 FRONTEND_IMPLEMENTATION`, progressão em espera e Human Gate pendente; a amostra visual WPF atual ainda precisava de decisão humana.
+- Estado resultante: sem transição; os aspectos visuais observados do WPF `3.0.2` estão aprovados em escopo limitado. Teclado, Narrator, High Contrast, scaling e o Human Gate completo permanecem pendentes.
+- Decisão: Bruno autorizou WPF `--show-desktop` para revisar Overview, TopBar, oito destinos, wordmark, caption e scrollbars em `pt-BR`/Light e `en-GB`/Dark a `1180×760` e `820×620`, com automação local limitada e restauração. Depois respondeu exatamente `Amostra visual WPF 3.0.2: APROVADA,` e observou diferenças visuais entre navegador e WPF que podem ser melhoradas posteriormente.
+- Escopo: build Release sem restore; um processo WPF PID `24000`; quatro combinações locale/tema/tamanho; navegação por oito destinos através dos AutomationIds do próprio aplicativo; nenhuma inspeção de outra janela. A preferência original `pt-BR`/Light foi restaurada antes do encerramento.
+- Gates: build com zero avisos/erros; processo responsivo em todos os ciclos; preferências persistidas restauradas; nenhum processo DB Notifier residual; worktree rastreada limpa.
+- Evidências: aprovação direta de Bruno; `HG05-04/05` visual aprovado; Overview, TopBar, wordmark, oito destinos, caption e scrollbar principal observados. As diferenças Web/WPF ficam como observação não bloqueante porque nenhum defeito ou critério específico foi nomeado.
+- Riscos/ressalvas: a aprovação não cobre teclado, screen reader, High Contrast, scaling, zoom, Dashboard nem scrollbars de DataGrid/ComboBox popup que não foram forçados visíveis. Não autoriza `STATE-06` nem restaura automaticamente a decisão histórica `S05-HG-011`.
+- Aprovador: Bruno, somente para a amostra visual WPF `3.0.2`; nenhuma aprovação adicional ou progressão foi inferida.
+
 ## Template de nova entrada
 
 - Data:
