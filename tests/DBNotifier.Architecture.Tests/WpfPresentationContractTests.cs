@@ -50,6 +50,25 @@ public sealed class WpfPresentationContractTests
         }
     }
 
+    /// <summary>Ensures read-only WPF tables remain one task-order stop without placing virtualised cells in the Tab sequence.</summary>
+    [Fact]
+    public void WpfReadOnlyDataGridsPreserveSingleTabStopContract()
+    {
+        string markup = File.ReadAllText(Path.Combine(RepositoryRoot(), "src", "DBNotifier.Desktop.Wpf", "MainWindow.xaml"));
+        MatchCollection dataGrids = Regex.Matches(markup, "<DataGrid(?=\\s)(?<attributes>[^>]*)>", RegexOptions.CultureInvariant);
+        Match dataGridStyle = Regex.Match(markup, "<Style TargetType=\"DataGrid\">(?<body>.*?)</Style>", RegexOptions.CultureInvariant | RegexOptions.Singleline);
+        Match dataGridCellStyle = Regex.Match(markup, "<Style TargetType=\"DataGridCell\">(?<body>.*?)</Style>", RegexOptions.CultureInvariant | RegexOptions.Singleline);
+
+        Assert.NotEmpty(dataGrids);
+        Assert.All(dataGrids.Cast<Match>(), dataGrid =>
+            Assert.Contains("IsReadOnly=\"True\"", dataGrid.Groups["attributes"].Value, StringComparison.Ordinal));
+        Assert.True(dataGridStyle.Success, "The shared WPF DataGrid style is missing.");
+        Assert.Contains("<Setter Property=\"KeyboardNavigation.IsTabStop\" Value=\"True\" />", dataGridStyle.Groups["body"].Value, StringComparison.Ordinal);
+        Assert.Contains("<Setter Property=\"KeyboardNavigation.TabNavigation\" Value=\"None\" />", dataGridStyle.Groups["body"].Value, StringComparison.Ordinal);
+        Assert.True(dataGridCellStyle.Success, "The shared WPF DataGridCell style is missing.");
+        Assert.Contains("<Setter Property=\"KeyboardNavigation.IsTabStop\" Value=\"False\" />", dataGridCellStyle.Groups["body"].Value, StringComparison.Ordinal);
+    }
+
     /// <summary>Ensures Windows shell and notification attribution use the canonical visual product name.</summary>
     [Fact]
     public void WpfAssemblyMetadataUsesCanonicalDisplayName()

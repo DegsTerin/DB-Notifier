@@ -94,6 +94,14 @@ The later `REQ-066` review found that the Windows-managed caption and default WP
 
 The High Contrast and scaling observations above predate this native-chrome implementation. They remain valid only for the code and environment sampled at that time; they do not prove the new DWM reset or themed scrollbar in a real High Contrast session. An authorised 2026-07-16 run exercised Light → Dark → Light at `1180×760` and `820×620`: the caption and visible main scrollbar followed both themes, and UI Automation moved the scrollbar from `0.00%` to `9.38%` and restored it in Light and Dark. DataGrid and ComboBox popup scrollbars were not independently forced visible, and no human acceptance was inferred. A new High Contrast sample remains pending and requires separate explicit permission before changing Windows settings.
 
+## Design System 3.0.3 read-only-grid keyboard addendum
+
+The authorised 2026-07-16 keyboard-only sample exposed a timing-sensitive focus-order defect in the Configuration capability `DataGrid`. A deliberately paced Tab sequence entered virtualised cells, then returned to the Window/TopBar after `service.stop` before reaching the two following buttons. A faster sequence could materialise the remaining rows and reach those actions, which proved that task order incorrectly depended on row realisation timing.
+
+Design System `3.0.3` keeps every strictly read-only shell `DataGrid` as one explicit table-level Tab stop, applies `KeyboardNavigation.TabNavigation=None`, and removes each virtualised cell from the Tab sequence. Headers and cells remain represented by the native WPF grid automation contract. A new architecture regression confirms that all five shell grids remain read-only and that the shared DataGrid/DataGridCell styles retain this contract.
+
+The focused Release build completed with zero warnings/errors. A dedicated visible-process regression paused `1.1 s` after every key in both `pt-BR`/Light and `en-GB`/Dark. Each Configuration path reached the confirmation action after eight stops, exposed exactly the two DataGrid controls once each, exposed no cell stop, contained forward/reverse dialogue focus, closed with Escape, restored the trigger and preserved reverse action order. A separate UI Automation read confirmed that both grids remained keyboard-focusable and retained their cell/data elements after the Tab change. Preferences were restored byte for byte and no dedicated WPF process or temporary script remained. This is automatic runtime evidence and does not replace the pending human repetition.
+
 ## Evidence and limitations
 
 - Raw JSON reports and target-window PNGs are stored under `%TEMP%\DBNotifier-State05-Audit` and are not committed because they are environment-specific.
@@ -104,8 +112,8 @@ The High Contrast and scaling observations above predate this native-chrome impl
 
 ## Lifecycle impact
 
-The automatic WPF/High Contrast/available-scaling evidence is approved with the limitations above. The Design System `2.6.14` native-chrome correction is structurally approved and visibly observed in the bounded caption/main-scrollbar run, but its human decision remains pending. The `STATE-05` Human Gate remains `PENDENTE`; no transition to `STATE-06` is authorised.
+The automatic WPF/High Contrast/available-scaling evidence is approved with the limitations above. The Design System `2.6.14` native-chrome correction is structurally approved and visibly observed in the bounded caption/main-scrollbar run. The Design System `3.0.3` read-only-grid Tab contract is structurally and technically approved, but its human repetition remains pending. The `STATE-05` Human Gate remains `PENDENTE`; no transition to `STATE-06` is authorised.
 
 ## Recommended next step
 
-Obtain Bruno's explicit scoped decision for the completed Light → Dark → Light caption/main-scrollbar sample. Retry High Contrast only under separate explicit permission, and do not retry Narrator until the human validator has a workable listening method or another named validator is available. Record Narrator as `NÃO EXECUTADO — VALIDADOR SEM CONDIÇÃO DE TESTE` in any interim gate decision. A final `STATE-05` approval must either include a completed screen-reader sample or carry an explicit, accepted reservation that accurately describes the missing evidence.
+Repeat the WPF `3.0.3` keyboard/dialogue path under the existing bounded Human Gate protocol. Retry High Contrast only under separate explicit permission, and do not retry Narrator until the human validator has a workable listening method or another named validator is available. Record Narrator as `NÃO EXECUTADO — VALIDADOR SEM CONDIÇÃO DE TESTE` in any interim gate decision. A final `STATE-05` approval must either include a completed screen-reader sample or carry an explicit, accepted reservation that accurately describes the missing evidence.

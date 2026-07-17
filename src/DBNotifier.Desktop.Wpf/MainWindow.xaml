@@ -149,6 +149,7 @@
         </Setter.Value>
       </Setter>
     </Style>
+    <!-- Read-only tables remain one task-order stop while virtualised cells retain grid semantics outside the Tab sequence. -->
     <Style TargetType="DataGrid">
       <Setter Property="Background" Value="{DynamicResource ComponentCardBackgroundBrush}" />
       <Setter Property="Foreground" Value="{DynamicResource ColourTextPrimaryBrush}" />
@@ -156,6 +157,8 @@
       <Setter Property="AlternatingRowBackground" Value="{DynamicResource ColourSurfaceSubtleBrush}" />
       <Setter Property="HorizontalGridLinesBrush" Value="{DynamicResource ColourBorderDefaultBrush}" />
       <Setter Property="VerticalGridLinesBrush" Value="{DynamicResource ColourBorderDefaultBrush}" />
+      <Setter Property="KeyboardNavigation.IsTabStop" Value="True" />
+      <Setter Property="KeyboardNavigation.TabNavigation" Value="None" />
     </Style>
     <Style TargetType="DataGridColumnHeader">
       <Setter Property="Background" Value="{DynamicResource ColourSurfaceSubtleBrush}" />
@@ -168,6 +171,7 @@
     <Style TargetType="DataGridCell">
       <Setter Property="BorderBrush" Value="{DynamicResource ColourBorderDefaultBrush}" />
       <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="KeyboardNavigation.IsTabStop" Value="False" />
       <Style.Triggers>
         <Trigger Property="IsSelected" Value="True">
           <Setter Property="Background" Value="{DynamicResource ColourSelectionBackgroundBrush}" />

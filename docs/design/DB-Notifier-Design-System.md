@@ -5,7 +5,7 @@
 | Field | Value |
 |---|---|
 | Status | Official frontend specification |
-| Design System version | `3.0.2` |
+| Design System version | `3.0.3` |
 | Product phase | `STATE-05 FRONTEND_IMPLEMENTATION` |
 | Platforms | React Web Dashboard and .NET 10 WPF Desktop/Tray |
 | Themes | Light and Dark; Windows High Contrast is an accessibility override |
@@ -507,6 +507,8 @@ At standard desktop width, fleet status and recent alerts form the primary two-c
 ### 10.7 Data presentation
 
 `DataTable`/WPF `DataGrid`, `DefinitionList`, `Timeline`, `KeyValueList` and responsive item cards share field labels and ordering. Tables require caption/accessible name, column headers, keyboard navigation, loading/empty/error treatment and a compact alternative where global reflow would otherwise fail.
+
+A strictly read-only WPF `DataGrid` MUST form one table-level Tab stop. Virtualised cells MUST remain available through the grid automation contract but MUST NOT each enter the task-order Tab sequence; forward and reverse Tab navigation MUST continue to the adjacent interactive control without depending on row realisation timing.
 
 Compact card alternatives MUST preserve a readable label/value relationship and at least one uncompressed content column. Long machine identifiers MAY wrap at arbitrary safe points for reflow, while their underlying text value remains unchanged.
 

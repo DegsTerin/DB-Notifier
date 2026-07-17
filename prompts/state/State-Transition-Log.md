@@ -1120,6 +1120,17 @@
 - Riscos/ressalvas: a aprovação não cobre operação por teclado, screen reader, zoom nativo, mudança do modo de aplicação do Windows, High Contrast, scaling, diálogo/foco, hora local, amostra narrow-desktop, a repetição atualizada do Tray/flyout, Agent/API/database, dados externos, ação administrativa ou produção. Emulação de CSS px não prova zoom nativo; o fixture continua demonstrativo e o refresh API TV continua em `STATE-06`.
 - Aprovador: Bruno, somente para a amostra visual Dashboard `3.0.2`; nenhuma aprovação do Human Gate completo, `S05-HG-011` atualizado ou progressão foi inferida.
 
+## 2026-07-16 — Remediação da ordem de Tab nas grades WPF 3.0.3
+
+- Estado anterior: `STATE-05 FRONTEND_IMPLEMENTATION`, progressão em espera e Human Gate pendente; a parte Dashboard da amostra somente por teclado passou, enquanto o WPF não concluiu diálogo/en-GB porque células virtualizadas da grade de Configuração tornaram a ordem de Tab dependente do tempo de realização.
+- Estado resultante: sem transição; Design System `3.0.3` implementado e verificado automaticamente. Cada DataGrid estritamente somente leitura é um único ponto de Tab, as células não entram individualmente na ordem de tarefas e a repetição humana WPF permanece pendente.
+- Decisão: Bruno declarou exatamente `AUTORIZO a remediação local no STATE-05 da navegação por Tab nas grades somente leitura do WPF 3.0.2, com testes automáticos, sem alterar dados operacionais, Agent/API/banco externo, ações externas ou transição.` A autorização cobre somente código, testes e validação local dessa interação.
+- Escopo: estilo compartilhado DataGrid/DataGridCell em `MainWindow.xaml`, regressão estrutural em `WpfPresentationContractTests`, contrato normativo e evidência corrente. Nenhuma fixture, dado operacional, idioma, tema, provider, Agent, API, banco, publisher, notificação ou ação administrativa foi alterado.
+- Gates: solução Release completa com zero avisos/erros; `225/225` testes unitários, `15/15` arquitetura e `42/42` Dashboard; .NET format, Node/npm toolchain, typecheck/build Vite, marca, tokens, localização, documentação de 203 arquivos, 192 links Markdown e secret scan aprovados. Uma regressão visível automatizada com pausa de `1,1 s` por tecla passou em `pt-BR`/Light e `en-GB`/Dark: oito pontos até confirmação, exatamente duas grades, nenhuma célula virtualizada, foco modal contido, Escape/restauração e ordem reversa.
+- Evidências: `MainWindow.xaml`, `WpfPresentationContractTests`, Design System `3.0.3`, `REQ-068`, relatório do Design System, auditoria WPF, protocolo de Human Gate e estado corrente. Preferências WPF foram restauradas byte a byte; processos e scripts dedicados foram removidos.
+- Riscos/ressalvas: a regressão técnica não substitui a observação nem a classificação humana. A amostra visual `3.0.2` e a parte Dashboard do teclado permanecem válidas; somente o WPF `3.0.3` de teclado/diálogo deve ser repetido. Narrator, High Contrast, scaling, integração e `STATE-06` não foram autorizados nem inferidos.
+- Aprovador: implementação automática autorizada por Bruno no limite citado; nenhuma aprovação humana da repetição, do Human Gate ou da progressão foi inferida.
+
 ## Template de nova entrada
 
 - Data:
