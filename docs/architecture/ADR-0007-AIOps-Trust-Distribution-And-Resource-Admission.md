@@ -154,3 +154,9 @@ No automatic fallback, generation decrement, key resurrection, schema downgrade 
 ## Acceptance and implementation gate
 
 This ADR is a proposed decision produced under a documentation-only `STATE-06` authority. Architecture, security and data review plus Bruno's separate Human Gate are required before it can become accepted. Acceptance would still not authorise code or runtime; any implementation would need a new, explicitly bounded increment and its own checks.
+
+## Documentary review record
+
+On 2026-07-17, Bruno accepted the commit `137c889` documentation increment and this ADR as a proposed documentary architecture decision. He explicitly stated that his review was based on the increment report and did not include direct independent access to this ADR, the conceptual contract or the threat model. The increment's documentary Human Gate is therefore closed as accepted, while this ADR's status remains `proposed`; changing it to `accepted` requires a separate, unambiguous decision after the reviewer has the evidence they choose to inspect.
+
+This review record does not authorise implementation, runtime, persistence, services, external action or promotion to `OBSERVER`.

@@ -117,3 +117,17 @@ Environment: Windows, documentation-only workspace, 2026-07-17.
 Bruno should review this report, proposed `ADR-0007`, the conceptual contract and the updated threat model. The valid decisions are `ACCEPTED`, `ACCEPTED WITH RESERVATIONS`, `CHANGES REQUESTED` or `REJECTED` for this documentation-only increment.
 
 If accepted, the next activity is not runtime. It is a separately proposed and separately authorised local contract/test increment, still without operational integration. No implementation may begin from this report alone.
+
+## Human review addendum — 2026-07-17
+
+After commit `137c889`, Bruno reviewed this report and accepted the documentation-only increment, including every limitation and residual condition recorded above. He expressly clarified that he did not have direct access to the local `ADR-0007`, conceptual contract or threat-model files; his decision therefore relies on this report's summary and references rather than an independent inspection of those documents. That precision limits the evidence reviewed but does not alter his acceptance of the documentary increment.
+
+The resulting classification is:
+
+- documentary increment: `ACCEPTED`;
+- human-review basis: this report, without independent human inspection of the linked local documents;
+- `ADR-0007`: remains `proposed`; it was accepted as a proposed documentary architecture decision, not promoted to `accepted` status;
+- implementation and runtime authority: absent;
+- lifecycle and MOD-12 mode: unchanged; `STATE-06 INTEGRATION` remains current and `none → OBSERVER` remains pending.
+
+The earlier pending classification and next-decision text remain the pre-decision automatic-report snapshot. This addendum is the later factual Human Gate outcome and grants no implementation authority.

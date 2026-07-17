@@ -1317,6 +1317,21 @@
 - Próxima decisão: Bruno poderá aceitar, aceitar com ressalvas, pedir ajustes ou rejeitar apenas este pacote documental. Qualquer implementação ou proposta `none → OBSERVER` exige nova autoridade e gates próprios.
 - Aprovador: Bruno, exclusivamente para executar o incremento documental; nenhuma aceitação humana do resultado foi inferida.
 
+## 2026-07-17 — Aceitação humana do incremento documental MOD-12 de governança de confiança
+
+- Estado anterior: `STATE-06 INTEGRATION`, pacote documental do commit `137c889` concluído, Quality Gate documental aprovado, Human Gate do incremento pendente, `ADR-0007` em status `proposed` e nenhum modo MOD-12 ativo.
+- Estado resultante: sem transição; `STATE-06 INTEGRATION` mantido, incremento documental `ACEITO`, `ADR-0007` mantido como `proposed` e `none → OBSERVER` pendente.
+- Decisão: Bruno declarou exatamente `Incremento documental MOD-12 — Trust Governance and Resource Envelope Design, commit 137c889: ACEITO. Revisei o relatório apresentado e aceito as limitações e condições residuais nele registradas. Aceito o ADR-0007 como uma decisão arquitetural documental proposta. Esta decisão não autoriza implementação, runtime, persistência, serviços, ações externas nem promoção para OBSERVER.`
+- Alcance da revisão: Bruno registrou que não teve acesso direto aos arquivos locais do `ADR-0007`, contrato conceitual e threat model. A aceitação se baseia no relatório que os resume e referencia; essa delimitação não altera a decisão sobre o incremento, mas não constitui inspeção humana independente desses documentos nem promove o ADR de `proposed` para `accepted`.
+- Limitações aceitas: checkpoint local isolado não prova restauração integral silenciosa; split view ainda exige witness ou reconciliação independente; não existem limites operacionais numéricos; nenhum vetor futuro foi executado; nenhuma tecnologia específica de armazenamento, assinatura ou distribuição foi escolhida.
+- Evidências: commit `137c889`, [relatório com adendo humano](../../docs/STATE-06-MOD-12-Trust-Governance-And-Resource-Envelope-Report.md), [ADR-0007](../../docs/architecture/ADR-0007-AIOps-Trust-Distribution-And-Resource-Admission.md), [contrato conceitual](../../docs/architecture/AIOps-Trust-Governance-And-Resource-Envelope.md), [threat model](../../docs/architecture/Threat-Model.md) e decisão de Bruno nesta sessão.
+- Shutdown preflight desta ação de registro: zero processo DB-Notifier encerrado ou remanescente, zero janela bloqueante e zero listener proprietário; a janela do Visual Studio Code do usuário, PID `6020`, foi identificada e preservada.
+- Gates deste registro: 270 links Markdown locais em 70 arquivos aprovados, documentação de 208 fontes comment-capable aprovada, secret scan do worktree não ignorado e histórico Git disponível aprovado, escopo confirmado em quatro arquivos Markdown, `git diff --check` e `git diff --cached --check` aprovados. Build, testes e runtime de produto não foram repetidos porque esta ação apenas registra a decisão humana e não altera produto ou execução.
+- Human Gate: `ACEITO` exclusivamente para o incremento documental. Não é Human Gate de ciclo de vida, ativação de modo, implementação ou operação.
+- Limites de autoridade: nenhuma implementação, runtime, persistência, serviço, ação externa, integração ou promoção para `OBSERVER` foi autorizada. Nenhum novo incremento foi autorizado.
+- Próxima atividade: nenhuma ação técnica está autorizada. Uma futura mudança de `ADR-0007` para `accepted` exige revisão/decisão separada e inequívoca; qualquer incremento posterior exige nova autoridade e gates próprios.
+- Aprovador: Bruno, com revisão limitada ao relatório apresentado e às condições nele resumidas.
+
 ## Template de nova entrada
 
 - Data:
