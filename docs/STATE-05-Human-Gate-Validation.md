@@ -2,9 +2,11 @@
 
 ## Gate status
 
-`APROVADO COM RESSALVAS`
+`APROVADO`
 
-This document records the completed human validation for `STATE-05 FRONTEND_IMPLEMENTATION`. Bruno formally approved the gate with reservations on 2026-07-17 and later approved the final visible Design System `3.0.4` remediation sample. The later sample closes the locally actionable visual and spoken evidence gaps but does not, by inference, replace the earlier formal gate decision.
+This document records the completed human validation for `STATE-05 FRONTEND_IMPLEMENTATION`. Bruno first approved the gate with reservations on 2026-07-17, later approved the final visible Design System `3.0.4` remediation sample and then issued an explicit superseding `APROVADO` decision. The original decision remains below as historical evidence; the later decision is the current Human Gate result.
+
+Chronological sample entries retain the gate status that applied when each observation was recorded. Their contemporaneous `PENDENTE` wording does not override the current status above or the superseding decision below.
 
 No transition to `STATE-06` is authorised by this document.
 
@@ -366,6 +368,7 @@ Do not mark a row until the named human validator has performed it.
 - Combined visible campaign, 2026-07-17: native Chrome 200% zoom covered all eight Dashboard destinations in `pt-BR`/Light and `en-GB`/Dark with `devicePixelRatio 2` and no global overflow in sixteen route observations; native zoom was restored to 100%. At a real `960` CSS px content width, the Alert summary retained three columns, zero right gap and no overflow in both combinations, and visible local time used `BRT`/`GMT-3` for `America/Sao_Paulo`. Dashboard explicit Dark and WPF explicit Light remained stable through `AppsUseLightTheme 0 → 1 → 0`. Real WPF High Contrast used `Preto em Alto Contraste`, exposed the minimum Inventory DataGrid horizontal scrollbar with approximately `50.19%` view size and allowed the Configuration ComboBox to expand; its seven-item fixture did not generate a separate popup scrollbar. Real Display Settings produced 125%/120 DPI and 150%/144 DPI WPF samples with accessible horizontal scrolling; 200% was not offered by the active monitor, and scaling was restored to 100%/96 DPI. Normal WPF startup remained hidden, and activation of the real `DB Notifier` notification-area icon opened the current fleet flyout. With Narrator active, the re-opened `pt-BR` flyout retained visible focus through ten observations across Open Dashboard, Open Configuration, Open logs and Exit. The validator responded exactly `Amostra combinada visível STATE-05: APROVADA. Narrator: AUDÍVEL E COMPREENSÍVEL.`
 - Evidence integrity and restoration: an initial run from the stale generic `net10.0-windows` output was discarded and every counted WPF observation was repeated against the current `net10.0-windows10.0.22621.0` executable with SHA-256 `6F817330E2743FA2A7FA2E29D98206703B691BECE984C4026B02FD1598D921AB`. A registry-only scaling attempt that left the observed DPI at 96 and an initial Narrator focus-loss attempt were also discarded. The original WPF preference bytes, Windows application mode, High Contrast flag, 100% scaling, Narrator-off state and clean worktree were restored; the dedicated Chrome/profile/preview and WPF processes were removed. The pre-existing preview on port `4173`, PID `29292`, remained untouched.
 - Human closure: `APROVADO COM LIMITES DE COBERTURA` for the combined visible campaign and the changed `S05-HG-010` details. Dashboard and WPF visual/keyboard portions, native browser zoom, Windows application-mode stability, WPF High Contrast/scaling, local time, narrow Alert summary, current Tray/flyout, DataGrid scrollbar and bounded `pt-BR` flyout Narrator path are approved. Dashboard High Contrast, Dashboard Narrator, full-shell WPF Narrator and `en-GB` Narrator were not exercised. The ComboBox fixture produced no independent popup scrollbar, so that rendering case remains unproved rather than failed.
+- Final closure after Design System `3.0.4`: `APROVADO` for the current `S05-HG-010` scope when the combined campaign is read with the final bilingual High Contrast/Narrator and ComboBox-popup sample. The remaining physical 200%/mixed-DPI evidence is an independently recorded hardware limitation and does not reopen this sample.
 
 ### `S05-HG-011` — Make the Windows client notification-area-first
 
@@ -401,7 +404,7 @@ Do not mark a row until the named human validator has performed it.
 - Human closure after remediation: `APROVADO` for the current changed `S05-HG-011` sample when read together with the combined 2026-07-17 normal-startup/icon/flyout observation. The notification-coverage finding and `REQ-067` are closed in their bounded local scope. The overall Human Gate is not approved automatically.
 - Lifecycle impact: no transition. `STATE-05` and its overall Human Gate remain pending.
 
-## Human Gate decision
+## Original Human Gate decision, later superseded
 
 - Phase: `STATE-05 FRONTEND_IMPLEMENTATION`
 - Validator: Bruno
@@ -414,7 +417,7 @@ Do not mark a row until the named human validator has performed it.
 - Decision: `APROVADO COM RESSALVAS`
 - Justification/evidence: Bruno responded exactly `Human Gate STATE-05: APROVADO COM RESSALVAS. Revisei o relatório automático e as amostras humanas repetidas. Aceito explicitamente as ressalvas registradas. Não autorizo transição automática para STATE-06.` This is the explicit decision for `STATE-05` only. It closes the Human Gate with the reservations above and expressly withholds lifecycle-transition authority.
 
-Permitted decisions after the sample are `APROVADO`, `APROVADO COM RESSALVAS` or `REPROVADO`. The explicit decision above closes this Human Gate; it does not authorise the separate lifecycle-transition workflow.
+Permitted decisions after the sample were `APROVADO`, `APROVADO COM RESSALVAS` or `REPROVADO`. The explicit decision above closed the original Human Gate with reservations and did not authorise the separate lifecycle-transition workflow. It is preserved rather than rewritten; the later explicit decision below supersedes its current result.
 
 ## Post-decision remediation of accepted reservations
 
@@ -436,8 +439,21 @@ After the successful visible observations, Chrome/profile/preview, WPF, Narrator
 
 This decision closes the remaining locally actionable High Contrast, broad Narrator and ComboBox-popup samples. Physical Windows scaling at 200% and movement between different-DPI monitors remain unavailable environmental evidence, not inferred passes or observed product failures.
 
-The formal decision remains `APROVADO COM RESSALVAS` until Bruno chooses whether to issue a later superseding Human Gate decision. Approval of the final sample is not itself that gate decision, and no transition to `STATE-06` is authorised.
+At the time of this sample decision, the formal result remained `APROVADO COM RESSALVAS` because approval of the sample was not itself a superseding gate decision. Bruno subsequently issued the explicit decision recorded below. No transition to `STATE-06` was authorised by either decision.
+
+## Superseding Human Gate decision
+
+- Phase: `STATE-05 FRONTEND_IMPLEMENTATION`
+- Validator: Bruno
+- Validation date: 2026-07-17
+- Automatic report reviewed: `SIM` — the validator explicitly confirmed review of the automatic report, including the final Design System `3.0.4` baseline of a zero-warning/error Release build, `230/230` unit/model/provider/presentation tests, `15/15` architecture tests, `42/42` Dashboard tests and the applicable documentation gates.
+- Critical samples repeated: `SIM` — the completed visual, keyboard/dialogue, notification, combined and final remediation campaigns were explicitly included.
+- Environmental limits: `ACEITOS COMO NÃO BLOQUEANTES` — physical Windows scaling at 200% and movement between different-DPI monitors remain unavailable on this hardware. This acceptance does not convert either limitation into an observed pass.
+- Security/authorisation truth: `CONFIRMADA` — no Agent, API, external database, external action, administrative execution, integration, homologation, production activity or lifecycle transition was exercised.
+- Decision: `APROVADO`
+- Justification/evidence: Bruno responded exactly `Human Gate STATE-05: APROVADO. Revisei o relatório automático, as amostras humanas repetidas e a remediação 3.0.4. Aceito scaling físico 200% e mixed-DPI como limitações ambientais indisponíveis neste hardware. Não autorizo transição para STATE-06.` The wording names one state, confirms the reviewed automatic and human evidence, explicitly accepts the two remaining environmental limitations and separately withholds transition authority.
+- Effect: this decision supersedes the earlier `APROVADO COM RESSALVAS` as the current Human Gate result without erasing it from the record. `STATE-05` remains active with progression on hold, and no `STATE-06` workflow is started.
 
 ## Recommended next step
 
-Retain every completed campaign and the final `3.0.4` remediation sample as approved within their bounded scopes. Do not repeat them unless an owning contract changes. If Bruno wishes to replace the formal `APROVADO COM RESSALVAS`, present one explicit `STATE-05` gate summary that names the automatic report, completed samples and the remaining 200%/mixed-DPI environmental limits, then request one unambiguous superseding decision. Keep the workspace in `STATE-05 FRONTEND_IMPLEMENTATION` with progression on hold; a later gate decision still does not start `STATE-06` without separate transition authority.
+Retain every completed campaign and the final `3.0.4` remediation sample as approved within their bounded scopes; do not repeat them unless an owning contract changes. Keep the workspace in `STATE-05 FRONTEND_IMPLEMENTATION` with progression on hold. The only possible lifecycle progression is a later, separate and explicit authorisation to transition to `STATE-06`; Bruno expressly withheld that authority in this decision.

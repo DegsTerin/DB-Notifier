@@ -1193,6 +1193,20 @@
 - Riscos/ressalvas: não houve scaling Windows, Agent, API, banco externo, ação administrativa, integração, homologação ou produção. Scaling 200% e mixed-DPI só podem ser amostrados quando hardware compatível existir; não são inferidos. Nenhum workflow de `STATE-06` foi iniciado.
 - Aprovador: Bruno, exclusivamente para a amostra final visível `3.0.4`; nenhuma nova decisão formal do Human Gate ou autorização de transição foi inferida.
 
+## 2026-07-17 — Decisão formal substitutiva do Human Gate de STATE-05
+
+- Estado anterior: `STATE-05 FRONTEND_IMPLEMENTATION`, progressão em espera e Human Gate formal `APROVADO COM RESSALVAS`; a remediação automática e a amostra final `3.0.4` estavam aprovadas, e scaling físico 200%/mixed-DPI permaneciam limitações ambientais indisponíveis.
+- Estado resultante: `STATE-05 FRONTEND_IMPLEMENTATION` mantido, progressão em espera e Human Gate `APROVADO`. A decisão substitui o resultado corrente anterior sem apagar seu registro. Nenhuma transição ou workflow de `STATE-06` foi iniciado.
+- Decisão: Bruno declarou exatamente `Human Gate STATE-05: APROVADO. Revisei o relatório automático, as amostras humanas repetidas e a remediação 3.0.4. Aceito scaling físico 200% e mixed-DPI como limitações ambientais indisponíveis neste hardware. Não autorizo transição para STATE-06.` A formulação nomeia um único estado, confirma a evidência revista, aceita os dois limites ambientais como não bloqueantes e separa explicitamente gate de transição.
+- Relatório e amostras: baseline Design System `3.0.4` com build Release sem avisos/erros, `230/230` testes unit/model/provider/presentation, `15/15` arquitetura e `42/42` Dashboard, além das campanhas humanas visual, teclado/diálogo, notificações, combinada e final de High Contrast/Narrator/ComboBox.
+- Limites aceitos: scaling físico Windows 200% e movimento mixed-DPI entre monitores continuam sem observação porque o hardware disponível não os oferece. A aprovação não os converte em passes, não amplia suporte e não substitui futura evidência física se o contrato mudar ou hardware adequado ficar disponível.
+- Segurança e fase: nenhum Agent, API, banco externo, ação externa, execução administrativa, integração, infraestrutura, homologação, produção ou release foi exercitado. `STATE-06` permanece sem autorização.
+- Shutdown preflight: esta nova ação documental começou com inventário e verificação obrigatórios; zero processo e zero listener pertencentes ao DB Notifier foram encontrados, e nenhum PID precisou ser encerrado.
+- Gates: verificação de 219 links Markdown locais em 63 arquivos, documentação de 204 arquivos de fonte comment-capable, `git diff --check` e `git diff --cached --check` aprovados. Nenhuma suíte de produto foi repetida porque esta ação somente registra a decisão humana sobre a baseline `3.0.4` já validada.
+- Evidências: [Human Gate](../../docs/STATE-05-Human-Gate-Validation.md), [estado atual](Current-State.md), [relatório do Design System](../../docs/STATE-05-Design-System-Implementation-Report.md), [auditoria WPF](../../docs/STATE-05-WPF-Accessibility-Audit.md) e [rastreabilidade](../../docs/STATE-05-Request-Traceability-Audit.md) sincronizados.
+- Riscos/ressalvas: o gate aprovado encerra a validação humana de `STATE-05` no escopo registrado, mas não implementa trabalho de integração, homologação ou release e não concede autoridade de progressão. Uma transição exige nova autorização explícita de Bruno.
+- Aprovador: Bruno, exclusivamente para o Human Gate de `STATE-05`, sem autorização de transição.
+
 ## Template de nova entrada
 
 - Data:
