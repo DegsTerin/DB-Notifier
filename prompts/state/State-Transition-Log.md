@@ -1622,6 +1622,24 @@
 - Próxima decisão: Bruno deve autorizar e revisar uma amostra visual local dedicada, depois aceitar com as limitações registradas, solicitar remediação específica ou rejeitar somente este incremento. Nenhuma resposta autoriza novo provider, acesso externo, promoção ou transição implicitamente.
 - Aprovador: Bruno autorizou a execução delimitada; a aceitação humana do resultado não foi inferida.
 
+## 2026-07-18 — Pesquisa de fontes alternativas para identidades visuais de providers
+
+- Estado anterior: `STATE-06 INTEGRATION`, baseline `Provider Identity Icons` com onze identidades/22 variantes automaticamente aprovada, amostra visual local anterior encerrada e Human Gate próprio ainda pendente.
+- Estado resultante: sem transição; `STATE-06 INTEGRATION` mantido, pesquisa alternativa concluída sem aceitar novo ativo e baseline visual inalterada.
+- Autorização: Bruno declarou exatamente `Os icones que você não conseguiu encontrar busque em outros sites na internet` depois de solicitar ícones correspondentes aos bancos. A autoridade cobriu pesquisa de fontes públicas alternativas dentro do incremento visual; não dispensou revisão de direitos e não autorizou provider, database externo, monitoramento, comando, runtime operacional, deploy, promoção ou transição.
+- Critério conservador: identidade exata, direito de cópia/redistribuição do arquivo e permissão de marca aplicável ao uso/suporte factual corrente devem ser evidenciados separada e simultaneamente. Licença de coleção, origem oficial, atribuição ou objetivo futuro não substituem os demais requisitos.
+- Pesquisa concluída: o arquivo Firebird do Devicon possui licença MIT, mas a autorização oficial examinada refere-se ao uso junto de backend suportado. Os ativos OpenSearch são oficiais, mas sua política só dispensa permissão para os contextos enumerados, incluindo indicar software ou serviço que usa OpenSearch; outros usos do logo exigem autorização prévia. Como DB-Notifier não implementa, integra, homologa nem suporta publicamente esses providers no estado corrente, nenhum dos dois ativos foi incorporado.
+- Fallback preservado: Firebird, OpenSearch, Microsoft SQL Server, Azure SQL, Oracle Database, SAP HANA, IBM Db2, MariaDB, Valkey, CockroachDB, Couchbase, Apache CouchDB, ScyllaDB, InfluxDB, Neo4j e todo ID não mapeado continuam com glifo neutro e nome integral. Nenhuma marca relacionada, corporativa ou de plataforma substitui um engine ausente.
+- Isolamento: nenhum código, manifest, gerador, asset, registro React/WPF, teste, projeto, dependência ou saída gerada integra o resultado final. `THIRD-PARTY-NOTICES.md` continua distribuindo somente a atribuição/licença Skill Icons já aceita.
+- Evidência de produto: geração, rasterização, build, testes Dashboard/.NET, runtime e nova amostra visual `NÃO APLICÁVEIS` e não executados, porque a pesquisa não alterou o produto. A evidência automática `11`/`22` anterior permanece histórica e não foi promovida como nova execução.
+- Evidências documentais: [relatório atualizado](../../docs/STATE-06-Provider-Identity-Icons-Report.md), [Design System `3.1.1`](../../docs/design/DB-Notifier-Design-System.md), [inventário de assets](../../design-system/provider-icons/README.md) e aviso Skill Icons existente.
+- Shutdown preflight: nenhum componente DB-Notifier ou listener proprietário permaneceu antes da ação técnica; o único match por command line foi o próprio shell da auditoria.
+- Cleanup da pesquisa: os quatro diretórios temporários verificados sob `C:\tmp` (checkouts/downloads Simple Icons, Devicon, Valkey e OpenSearch) foram removidos; eram reproduzíveis a partir das fontes públicas e as quatro verificações finais retornaram ausência.
+- Gates documentais: `APROVADOS`; documentação para `242` fontes comment-capable, `342` links Markdown locais em `83` arquivos, secret scan do worktree não ignorado e histórico disponível, escopo documental e `git diff --check` passaram com exit code `0`. Código, manifest, inventário, gerador, assets, registries, testes e notices distribuídos permaneceram sem diff.
+- Gates: Quality Gate automático histórico da baseline permanece `APROVADO`; Human Gate do incremento permanece `PENDENTE`; saída de `STATE-06`, `OBSERVER`, homologação, `STATE-07`, produção e release `NÃO AVALIADOS` e não autorizados.
+- Próxima decisão: concluir o gate documental deste registro. Como nenhum ativo visual mudou, a pesquisa não exige nova amostra; a decisão humana pendente continua referindo-se ao incremento visual já apresentado anteriormente.
+- Aprovador: Bruno autorizou exclusivamente a pesquisa alternativa; a aceitação humana do incremento não foi inferida.
+
 ## Template de nova entrada
 
 - Data:

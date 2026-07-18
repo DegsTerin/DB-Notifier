@@ -5,7 +5,7 @@
 | Field | Value |
 |---|---|
 | Status | Official frontend specification |
-| Design System version | `3.1.0` |
+| Design System version | `3.1.1` |
 | Product phase | `STATE-06 INTEGRATION` |
 | Platforms | React Web Dashboard and .NET 10 WPF Desktop/Tray |
 | Themes | Light and Dark; Windows High Contrast is an accessibility override |
@@ -337,6 +337,10 @@ Categorical graphics use the stable ordinal tokens below. Their values come only
 | `colour.data.category.5` | `#084B8A` | `#B9DDFF` |
 
 The former provider-named primitive and component tokens are removed in Design System `3.0.0`. Design System `3.1.0` introduces the presentation-only `ProviderIdentityIcon`: it resolves an exact, locally vendored and provenance-recorded provider asset from an open declarative registry, or the locally defined neutral database outline when no exact asset exists. The authoritative provider name MUST remain visible beside either result. A related vendor logo, plain-text abbreviation or approximation MUST NOT replace a missing exact identity. Asset presence MUST NOT declare provider implementation, homologation, support, health or freshness. The registry remains outside Domain and Application and MUST NOT create a closed engine catalogue.
+
+Design System `3.1.1` clarifies how an alternative source may qualify without changing the component semantics or the eleven-identity/22-variant baseline. Before registration, every asset MUST have pinned, reviewable provenance and local integrity evidence, MUST be the exact provider identity, MUST have file copying and redistribution rights, and MUST have trademark permission applicable to DB-Notifier's current factual implementation/support use. A collection licence, official download location, future provider objective or attribution alone MUST NOT be treated as satisfying all of those conditions.
+
+The current alternative-source review does not expand the registry. Firebird and OpenSearch retain the neutral fallback because the reviewed mark permissions are tied to use/support contexts that are not established by DB-Notifier's current planned/unimplemented provider state. Microsoft SQL Server, Azure SQL, Oracle Database, SAP HANA, IBM Db2, MariaDB, Valkey, CockroachDB, Couchbase, Apache CouchDB, ScyllaDB, InfluxDB and Neo4j also retain the fallback because an exact asset and the required redistribution/mark permission combination were not both evidenced for this application. This list records the current rights review, not a closed provider catalogue; every other unmapped provider follows the same fallback rule.
 
 Provider artwork retains its reviewed upstream geometry and colours as a narrow third-party identity exception to product-owned categorical tokens. Those colours MUST NOT be sampled, recoloured or reused as status, chart-category, support or theme tokens. In browser forced-colour mode and Windows High Contrast, multicolour artwork is hidden and the neutral database outline uses the current system text colour. Every categorical brush independently resolves to the current Windows text brush so the operating system owns contrast.
 
@@ -698,7 +702,7 @@ Acceptance requires no unintended page overflow, clipping, illegible truncation,
 - Side-by-side product-mark comparison at native 16/20/24 px shell roles and 32/40 px application roles, confirming that the same cylinder ellipse, two seams, bell, clapper, proportions and transparent silhouette remain recognisable without a size-specific alternate glyph.
 - Visual review for hierarchy, density, consistency and absence of neon/glow/exaggerated effects.
 - Explicit review that planned/unhomologated providers and unsupported actions remain truthful in both themes.
-- Side-by-side review that exact PostgreSQL, MySQL and MongoDB identities remain recognisable beside their names, while SQL Server and another unmapped identifier use the neutral fallback without suggesting a related vendor identity.
+- Side-by-side review that exact PostgreSQL, MySQL and MongoDB identities remain recognisable beside their names, while SQL Server, Firebird, OpenSearch and another unmapped identifier use the neutral fallback without suggesting a related vendor identity.
 
 ## 16. Implementation sequence within STATE-05
 

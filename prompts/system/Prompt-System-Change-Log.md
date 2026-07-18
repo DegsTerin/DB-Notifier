@@ -2,7 +2,7 @@
 
 ## Versão atual
 
-- Versão: `3.56.0`
+- Versão: `3.56.1`
 - Data: 2026-07-18
 - Status: corpus DB-Notifier consolidado
 - Escopo: 13 arquivos ativos
@@ -16,6 +16,13 @@ A versão do corpus é independente da versão do software.
 - PATCH: clareza, correção ou referência sem mudança de autoridade.
 
 Toda alteração atualiza este arquivo e, quando necessário, `../Start-Here.md`.
+
+## 3.56.1 — 2026-07-18
+
+- Bruno ampliou explicitamente a autoridade do incremento `Provider Identity Icons` com a instrução `Os icones que você não conseguiu encontrar busque em outros sites na internet`, limitada à pesquisa de ativos públicos estáticos exatos, sem dispensar revisão de licença/marca nem autorizar provider, runtime operacional, promoção ou transição.
+- O Design System `3.1.1` esclarece que uma fonte alternativa só pode entrar no registro quando identidade exata, cópia/redistribuição do arquivo e permissão de marca aplicável ao uso/suporte factual corrente estiverem simultaneamente evidenciadas. Licença de coleção, origem oficial, atribuição ou meta futura isoladas não bastam.
+- A pesquisa avaliou Firebird e OpenSearch, além dos nomes ausentes já conhecidos, mas não aceitou novo ativo. A cobertura implementada permanece nas onze identidades/22 variantes Skill Icons; Firebird, OpenSearch, Microsoft SQL Server, Azure SQL, Oracle Database, SAP HANA, IBM Db2, MariaDB, Valkey, CockroachDB, Couchbase, Apache CouchDB, ScyllaDB, InfluxDB, Neo4j e todo ID não mapeado preservam o fallback neutro.
+- Nenhum código, manifest, gerador, asset, registro, teste ou saída gerada integra o resultado conservador. Os gates documentais, de links, segredos e escopo foram aprovados; `STATE-06 INTEGRATION`, o Quality Gate automático histórico da baseline e o Human Gate próprio permanecem inalterados.
 
 ## 3.56.0 — 2026-07-18
 
