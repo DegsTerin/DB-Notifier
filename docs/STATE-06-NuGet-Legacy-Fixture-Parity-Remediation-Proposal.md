@@ -138,3 +138,9 @@ Bruno pode ajustar, adiar, rejeitar ou autorizar separadamente somente a remedia
 > AUTORIZO exclusivamente a remediação local da fixture positiva NuGet em STATE-06, limitada a acrescentar os projetos DBNotifier.IntegrationTests e DBNotifier.AgentFleet.SandboxHost com target net10.0 ao relatório sintético complete-empty, executar os testes Pester/offline correspondentes e atualizar a documentação factual. Não autorizo alteração do verificador, solução, projetos, packages, lockfiles, fontes NuGet, código de produto, acesso externo, runtime, promoção ou transição de estado.
 
 Essa autorização futura não deverá ser inferida desta proposta.
+
+## Adendo factual — autorização consumida e remediação executada
+
+Em 2026-07-18, Bruno autorizou separadamente somente a remediação delimitada. A fixture positiva recebeu exclusivamente as entradas `DBNotifier.IntegrationTests` e `DBNotifier.AgentFleet.SandboxHost`, ambas `net10.0`. O verificador permaneceu inalterado, aceitou os `15` projetos, recusou as duas fixtures negativas e o gate legado completo passou.
+
+Nenhum projeto, solução, package, lockfile, fonte NuGet, código de produto, acesso externo, build ou runtime mudou. O resultado e as limitações pertencem ao [relatório da remediação](STATE-06-NuGet-Legacy-Fixture-Parity-Remediation-Report.md). A decisão humana desse resultado permanece separada e pendente.

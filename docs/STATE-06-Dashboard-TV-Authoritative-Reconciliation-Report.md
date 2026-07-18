@@ -114,3 +114,7 @@ The automatic Quality Gate is `APPROVED WITH RESERVATION` only for this restrict
 Bruno accepted commit `70b3960` with the limitations and reservation after confirming that he reviewed the outcome, corrections, verification and residual conditions and understood that the increment is a deterministic local sandbox rather than operational monitoring. His decision applies exclusively to this increment and explicitly does not authorise new development, `OBSERVER`, operational activation, deploy or any lifecycle transition.
 
 Bruno's decision was: `Aceitar com as limitações e a ressalva o incremento correspondente ao commit 70b3960.` No further action is authorised by that acceptance.
+
+## Post-acceptance status of the legacy-fixture reservation
+
+A later, separately authorised remediation restored the positive synthetic NuGet report from `13` to exact parity with the solution's `15` projects. The verifier remained fail-closed, both negative fixtures remained rejected and the complete legacy gate passed. This later evidence resolves the known fixture-maintenance condition prospectively; it does not rewrite this report's original automatic gate or Bruno's acceptance of commit `70b3960` with the reservation then present. The owning evidence is the [NuGet fixture parity remediation report](STATE-06-NuGet-Legacy-Fixture-Parity-Remediation-Report.md).

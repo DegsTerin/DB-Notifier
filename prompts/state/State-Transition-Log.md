@@ -1556,6 +1556,23 @@
 - Próxima decisão: Bruno pode ajustar, adiar, rejeitar ou autorizar separadamente somente a remediação proposta. A proposta não é autorização implícita.
 - Aprovador: não aplicável; esta entrada registra solicitação, diagnóstico e proposta, não aprovação da execução.
 
+## 2026-07-18 — Remediação da paridade da fixture legada NuGet
+
+- Estado anterior: `STATE-06 INTEGRATION`, proposta documental `fd052f2`, fixture positiva com `13` dos `15` projetos e nenhuma execução autorizada até a decisão de Bruno.
+- Estado resultante: sem transição; `STATE-06 INTEGRATION` mantido, remediação tecnicamente concluída com Quality Gate automático restrito `APROVADO` e decisão humana própria pendente.
+- Autorização: Bruno declarou exatamente `AUTORIZO exclusivamente a remediação local da fixture positiva NuGet em STATE-06, limitada a acrescentar os projetos DBNotifier.IntegrationTests e DBNotifier.AgentFleet.SandboxHost com target net10.0 ao relatório sintético complete-empty, executar os testes Pester/offline correspondentes e atualizar a documentação factual. Não autorizo alteração do verificador, solução, projetos, packages, lockfiles, fontes NuGet, código de produto, acesso externo, runtime, promoção ou transição de estado.`
+- Escopo executado: duas entradas `net10.0` acrescentadas somente a `nuget-vulnerability-report.complete-empty.json`; relatório, proposta/adendo, ressalva histórica e estado factual atualizados.
+- Isolamento: verificador, fixtures negativas, solução, projetos, packages, lockfiles, fontes NuGet e código permaneceram inalterados; nenhum restore, build, acesso externo ou runtime ocorreu.
+- Evidência automática: relatório positivo aceito para `15` projetos; fixture inválida e fixture sem frameworks recusadas; gate legado `23` testes com `1` skip condicional aceito; cobertura Pester `32,08%` (`290/904`), acima do piso `25%`.
+- Correção da execução de evidência: o primeiro comando composto terminou depois do caso positivo porque `$LASTEXITCODE` não foi definido pelo script PowerShell bem-sucedido; nenhuma ausência de saída foi inferida. Cenários negativos e gate completo foram repetidos explicitamente e aprovados.
+- Ressalva histórica: a condição técnica da fixture foi resolvida prospectivamente, sem reclassificar retroativamente o Quality Gate ou a aceitação humana do commit Dashboard TV `70b3960`.
+- Shutdown/cleanup: preflight no commit limpo `fd052f2`, zero processo DB-Notifier e zero listener proprietário; nenhum runtime foi iniciado.
+- Gates documentais: documentação aprovada para `236` fontes comment-capable; `328` links Markdown locais em `79` arquivos; JSON/paridade, secret scan do worktree não ignorado e histórico disponível, escopo e `git diff --check` aprovados.
+- Evidências: [relatório da remediação](../../docs/STATE-06-NuGet-Legacy-Fixture-Parity-Remediation-Report.md), [proposta/adendo](../../docs/STATE-06-NuGet-Legacy-Fixture-Parity-Remediation-Proposal.md), fixture positiva, verificador e testes Pester locais.
+- Gates: Quality Gate automático `APROVADO` somente para esta remediação; Human Gate da remediação `PENDENTE`; saída de `STATE-06`, `OBSERVER`, `STATE-07`, produção e release `NÃO AVALIADOS` e não autorizados.
+- Próxima decisão: Bruno deve revisar o relatório e responder se aceita, solicita remediação documental/test-data especificamente delimitada ou rejeita somente este resultado. Nenhuma resposta autoriza novo incremento, acesso externo, promoção ou transição implicitamente.
+- Aprovador: pendente; esta entrada não preenche a decisão humana por Bruno.
+
 ## Template de nova entrada
 
 - Data:
