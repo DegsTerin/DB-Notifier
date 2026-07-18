@@ -1492,6 +1492,22 @@
 - Próxima atividade: nenhuma ação adicional é exigida de Bruno e nenhuma ação técnica está autorizada. Um próximo fluxo só começa se ele solicitar explicitamente uma proposta, remediação ou novo incremento, preservando gates e autoridade separados.
 - Aprovador: Bruno, exclusivamente para aceitar o incremento e registrar essa decisão; nenhuma promoção, transição ou autoridade executiva adicional foi inferida.
 
+## 2026-07-18 — Proposta documental de snapshot autoritativo e reconciliação periódica do modo TV
+
+- Estado anterior: `STATE-06 INTEGRATION`, incrementos Agent Fleet aceitos com limitações, Dashboard ainda demonstrativo, nenhum runtime operacional ativo e nenhum novo incremento autorizado.
+- Estado resultante: sem transição; `STATE-06 INTEGRATION` mantido, com uma proposta não executiva pendente de decisão e nenhuma alteração de produto.
+- Solicitação: Bruno declarou exatamente `Apresente uma proposta exclusivamente documental para o próximo incremento restrito de STATE-06, sem implementação, promoção ou transição de estado.`
+- Proposta: um futuro incremento `Dashboard TV Authoritative Snapshot and Periodic Reconciliation Sandbox`, limitado a read model e endpoint versionados/read-only, autenticação exclusivamente de teste, adapter Dashboard sob composição sandbox exata, leitura imediata na entrada, reconciliação serializada de 30 segundos, ETag/`304`, cancelamento, estados fail-closed, preservação factual do último snapshot e testes locais.
+- Justificativa factual: o Dashboard ainda usa `buildDemonstrationSnapshot`; o intervalo corrente de 30 segundos apenas recalcula freshness e não lê a API. A leitura imediata e periódica sem sobreposição é critério explícito de `STATE-06`.
+- Limites: esta proposta não autoriza código, configuração, contrato executável, dependência, build, teste de produto, runtime, SignalR, notificação, Agent/provider operacional, monitoramento, comando, persistência, banco ou identidade externa, LLM, executor, deploy, promoção ou transição.
+- Evidências: [proposta documental](../../docs/STATE-06-Dashboard-TV-Authoritative-Reconciliation-Proposal.md), [estado atual](Current-State.md), [Lifecycle](../governance/Lifecycle.md), código Dashboard/API inspecionado em somente leitura e decisão de Bruno nesta sessão.
+- Shutdown preflight: workspace limpo no commit `25b10dc`, zero processo DB-Notifier e nenhum processo, banco, browser, IDE ou recurso alheio alterado.
+- Build, testes e runtime: `NÃO APLICÁVEIS` e não executados neste escopo exclusivamente documental.
+- Gates documentais: documentação aprovada para `229` fontes comment-capable; `318` links Markdown locais em `76` arquivos; secret scan do worktree não ignorado e histórico disponível aprovado; inspeção factual de código, escopo e `git diff --check` aprovadas.
+- Classificação: proposta documental produzida; Quality/Human Gate de implementação e saída de `STATE-06` `NÃO AVALIADOS`; `OBSERVER`, `STATE-07`, release e novo incremento não autorizados.
+- Próxima decisão: Bruno poderá ajustar, adiar, rejeitar ou autorizar separadamente somente o incremento proposto. Nenhuma decisão curta será interpretada como implementação, promoção ou transição.
+- Aprovador: não aplicável; esta entrada registra solicitação e proposta, não aprovação da implementação descrita.
+
 ## Template de nova entrada
 
 - Data:
