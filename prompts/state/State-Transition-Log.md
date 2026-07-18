@@ -1588,6 +1588,22 @@
 - Próxima atividade: nenhuma ação adicional é exigida de Bruno e nenhum novo trabalho está autorizado. Um próximo fluxo só começa mediante solicitação e autoridade explícitas e separadas.
 - Aprovador: Bruno, exclusivamente para aceitar esta remediação e registrar a decisão; nenhuma promoção, transição ou autoridade executiva adicional foi inferida.
 
+## 2026-07-18 — Proposta documental de composição do Dashboard TV no navegador
+
+- Estado anterior: `STATE-06 INTEGRATION`, remediação NuGet aceita no commit `4732ed7`, sandbox Dashboard TV aceito no commit `70b3960` e nenhum novo incremento executável autorizado.
+- Estado resultante: sem transição; `STATE-06 INTEGRATION` mantido, com uma proposta documental não executiva pendente de decisão.
+- Solicitação: Bruno declarou exatamente `Apresente uma proposta exclusivamente documental para o próximo incremento restrito de STATE-06, sem implementação, acesso externo, promoção ou transição de estado.`
+- Lacuna selecionada: a API HTTPS sandbox e a lógica TypeScript do Dashboard foram testadas em camadas separadas, mas o relatório aceito registra que nenhum E2E da interface dentro de navegador foi executado.
+- Proposta: compor futuramente Dashboard TV e API existentes em HTTPS loopback, navegador dedicado e perfil efêmero; provar leitura imediata, cadência serial de 30 segundos, `ETag`/`304`, cancelamento, fencing e matriz determinística de falhas/recuperação; preservar modo normal demonstrativo e limpar integralmente processos/listeners.
+- Sequenciamento: SignalR permanece posterior e separado porque é apenas otimização da releitura autoritativa, não existe no Dashboard atual e seu cliente não pertence às dependências bloqueadas atuais.
+- Limites: nenhum código, configuração executável, harness, contrato, dependência, build, teste de produto ou runtime foi criado ou alterado; nenhum acesso externo, SignalR, notificação, Agent/provider operacional, monitoramento, persistência, banco, identidade real, comando, LLM, executor, deploy, promoção ou transição foi autorizado ou executado.
+- Evidências: [proposta documental](../../docs/STATE-06-Dashboard-TV-Browser-Composition-And-Recovery-Evidence-Proposal.md), [relatório Dashboard TV](../../docs/STATE-06-Dashboard-TV-Authoritative-Reconciliation-Report.md), lifecycle, Design System, dependências locais bloqueadas e decisão de Bruno nesta sessão.
+- Shutdown preflight: workspace limpo no commit `eeb5b62`, zero processo DB-Notifier e zero listener proprietário; nenhum processo, banco, browser, IDE ou recurso alheio foi alterado.
+- Build, testes de produto e runtime: `NÃO APLICÁVEIS` e não executados neste escopo exclusivamente documental.
+- Gates documentais: documentação aprovada para `236` fontes comment-capable; `332` links Markdown locais em `80` arquivos; secret scan do worktree não ignorado e histórico disponível aprovado; inspeção de escopo e `git diff --check` aprovadas. Quality/Human Gate do incremento futuro e saída de `STATE-06` permanecem `NÃO AVALIADOS`.
+- Próxima decisão: Bruno pode ajustar, adiar, rejeitar ou autorizar separadamente somente a implementação local proposta. A proposta não concede autoridade implícita.
+- Aprovador: não aplicável; esta entrada registra solicitação e proposta, não aprovação de execução.
+
 ## Template de nova entrada
 
 - Data:
