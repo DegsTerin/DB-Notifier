@@ -1447,6 +1447,19 @@
 - Próxima atividade: nenhuma ação adicional é exigida de Bruno e nenhuma ação técnica está autorizada. Um próximo fluxo só começa se ele solicitar explicitamente uma proposta, remediação ou novo incremento, preservando gates e autoridade separados.
 - Aprovador: Bruno, exclusivamente para aceitar o incremento e registrar essa decisão; nenhuma promoção, transição ou autoridade executiva adicional foi inferida.
 
+## 2026-07-18 — Proposta documental de resiliência e compatibilidade Agent Fleet em sandbox
+
+- Estado anterior: `STATE-06 INTEGRATION`, incrementos server-side e Agent-side de identidade/Agent Fleet aceitos com limitações, nenhum runtime operacional ativo e nenhuma nova implementação autorizada.
+- Estado resultante: sem transição; `STATE-06 INTEGRATION` mantido, com uma proposta não executiva pendente de decisão e nenhuma alteração de produto.
+- Solicitação: Bruno declarou exatamente `Apresente uma proposta exclusivamente documental para o próximo incremento restrito de STATE-06, sem implementação, promoção ou transição de estado.`
+- Proposta: um futuro incremento `Agent Fleet Sandbox Resilience and Protocol Compatibility`, limitado a harness multiprocesso local, restart real entre processos de teste, retry/backoff/cancelamento determinísticos, compatibilidade/falhas de protocolo, concorrência/fencing local, fault injection SQLite e prova coordenada da corrida assignment/revogação.
+- Limites: esta proposta não autoriza código, configuração, migration, build, teste executável, runtime, segredo, recurso externo, identidade operacional, provider, monitoramento, comando, UI, canal, MOD-12, promoção ou transição.
+- Evidências: [proposta documental](../../docs/STATE-06-Agent-Fleet-Sandbox-Resilience-And-Compatibility-Proposal.md), [estado atual](Current-State.md), [relatório Agent-side aceito](../../docs/STATE-06-Agent-Side-Identity-And-Assignment-Reconciliation-Report.md), [protocolo Agent/API](../../docs/architecture/Agent-API-Protocol.md) e solicitação de Bruno nesta sessão.
+- Shutdown preflight: zero processo DB-Notifier encontrado ou encerrado, zero processo correspondente remanescente e zero listener proprietário; nenhum navegador, IDE, banco ou processo alheio foi alterado.
+- Gates desta proposta: documentação aprovada para `223` fontes comment-capable; `303` links Markdown locais em `74` arquivos aprovados; secret scan do worktree não ignorado e histórico Git disponível aprovado; inspeção de escopo e `git diff --cached --check` aprovadas. Build, testes e runtime de produto são `NÃO APLICÁVEIS` e não foram executados neste escopo exclusivamente documental.
+- Próxima decisão: Bruno poderá ajustar, adiar, rejeitar ou autorizar separadamente somente o incremento proposto. Nenhuma decisão promoverá `OBSERVER`, encerrará `STATE-06` ou autorizará `STATE-07` automaticamente.
+- Aprovador: não aplicável; esta entrada registra solicitação e proposta, não aprovação do incremento descrito.
+
 ## Template de nova entrada
 
 - Data:
