@@ -44,13 +44,15 @@ One row per stream/cursor with a non-negative sequence. Checkpoints allow safe r
 ## Server PostgreSQL model
 
 ```text
-agents ──< agent_capabilities
-   │    └─< agent_heartbeats
-   └─< database_instances ──< health_samples ──< events
-              │                   │                 │
-              ├─< incidents       └─< command_attempts
-              ├─< maintenance_windows
-              └─< administrative_commands ──< command_attempts
+agent_enrollment_tokens >── agents ──< agent_certificates
+                              ├─< agent_capabilities
+                              ├─< agent_heartbeats
+                              ├── agent_heartbeat_cursors
+                              └─< database_instances ──< health_samples ──< events
+                                          │                   │                 │
+                                          ├─< incidents       └─< command_attempts
+                                          ├─< maintenance_windows
+                                          └─< administrative_commands ──< command_attempts
 
 alert_rules
 notification_channels ──< notification_deliveries >── events
@@ -62,9 +64,12 @@ outbox_messages
 
 ### Inventory and Agent fleet
 
-- `agents`: unique installation/certificate identity, environment/platform/version, enrollment/revocation/last-seen state, concurrency token.
+- `agent_enrollment_tokens`: public token ID, exact scope, random salt and SHA-256 proof, explicit issue/expiry instants and one-time consumption/revocation state; the original token is never stored. The schema requires expiry after issuance but does not currently impose a maximum lifetime.
+- `agents`: unique installation identity, environment/platform/version, enrollment/revocation/last-seen state and concurrency token. The legacy certificate-thumbprint pointer remains only as a compatibility bridge.
+- `agent_certificates`: authoritative normalised thumbprint, public-key/CSR digests, validity, lifecycle, monotonic revocation and concurrency metadata; it stores neither certificate bodies nor private keys.
 - `agent_capabilities`: versioned provider/platform claims, unique per Agent/capability combination.
-- `agent_heartbeats`: immutable process/connectivity evidence with unique message ID, sequence, protocol range, queue state, Agent/server times.
+- `agent_heartbeats`: immutable process/connectivity evidence with unique message ID and per-Agent sequence, canonical payload digest, protocol range, queue state, Agent/server times and explicit gap evidence.
+- `agent_heartbeat_cursors`: highest accepted per-Agent heartbeat sequence and last message ID, retained independently of heartbeat-detail deletion for fail-closed replay protection.
 - `database_instances`: provider-neutral inventory with `jsonb` endpoint/tags, separate credential references, assigned Agent, policy timings, archive time, concurrency token.
 
 Deleting an Agent or instance is restricted while durable evidence references it. Instance archival is explicit; it is not a history cascade.

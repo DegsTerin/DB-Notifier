@@ -1,6 +1,6 @@
 # Agent/API Protocol v1
 
-Observation batching and the receipt-only command polling/ack subset are implemented in `STATE-04`. Enrollment, heartbeat, configuration, event batching, command execution/result and SignalR remain conceptual targets.
+Observation batching and the receipt-only command polling/ack subset were implemented in `STATE-04`. The restricted `STATE-06` Agent Fleet increment implements HTTPS enrollment with an unavailable-by-default issuer, normalised certificate revocation, heartbeat and complete read-only assignments. Event batching, assignment activation/acknowledgement, certificate rotation, command execution/result and SignalR remain conceptual targets.
 
 ## Transport and trust
 
@@ -30,14 +30,19 @@ Observation ingestion supports current major `N` and previous major `N-1` during
 POST /api/v1/agents/enroll
 ```
 
-Input: one-time token, Agent-generated public key/CSR, installation ID, platform, and requested scope. Output: Agent ID, signed client certificate or approved enrollment result, API endpoints, server trust material reference, and compatibility policy.
+Input: one-time token, Agent-generated public key/CSR, installation ID, platform, Agent version and requested scope. Output: Agent ID, signed public client certificate and expiry, or a typed refusal.
+
+The implemented request carries the one-time token only as `Authorization: DBN-Enrollment <token>`; the JSON body contains public CSR and non-secret metadata. A successful response contains the Agent ID, public client-certificate DER and expiry. API endpoint discovery, trust-material distribution and certificate rotation are not implemented.
 
 Rules:
 
-- Token is single-use, short-lived, hashed at rest, scope-bound, and audited.
+- Token is single-use, has an explicit expiry, is hashed at rest, scope-bound, and audited. The current schema requires expiry after issuance but does not enforce a maximum lifetime; future provisioning must apply the operational lifetime policy.
 - Reusing a token or installation identity is rejected without revealing another Agent.
 - Private key never leaves the Agent key store.
 - Enrollment does not grant provider credentials or administrative permission.
+- The production composition uses `UnavailableAgentCertificateIssuer` and therefore fails closed with `503`; only the local E2E sandbox substitutes a P-256 CA and material generated at test runtime.
+- No token-provisioning API exists. The E2E test seeds a salt and SHA-256 proof directly into an ephemeral SQLite database; no raw token, certificate body or private key is stored by ordinary persistence.
+- Enrollment is limited to five attempts per loopback/client address per minute in the production API composition, with no queue.
 
 ## Heartbeat
 
@@ -45,7 +50,7 @@ Rules:
 POST /api/v1/agents/{agentId}/heartbeats
 ```
 
-Heartbeat uses `AgentHeartbeat` and is idempotent by `messageId`. Server response provides accepted time, clock-skew estimate, compatibility state, policy/config version hints, and command cursor hint. Heartbeat health does not imply instance health.
+Heartbeat uses a versioned `AgentHeartbeatRequest`, is bound to the mTLS Agent route and is idempotent by exact `messageId`, sequence and canonical payload digest. A durable per-Agent cursor survives heartbeat-detail retention. Exact replay returns the original receipt only while its immutable detail row remains retained; after detail retention, the cursor still rejects a stale sequence with `409` but cannot reconstruct the earlier receipt. Conflicting identifiers also return `409`; a higher sequence with a gap is accepted and marked explicitly. Server receipt time owns `LastSeenAt`, and the response provides accepted time, highest accepted sequence and clock-skew estimate. Heartbeat health does not imply instance health.
 
 ## Observation and event synchronization
 
@@ -64,14 +69,26 @@ Rules:
 - Validation failures are terminal for that item; transient server failures are retryable with bounded exponential backoff and jitter.
 - Agent retains an acknowledged tombstone/checkpoint long enough to survive response loss.
 
-## Configuration reconciliation
+## Read-only assignment reconciliation
 
 ```text
-GET /api/v1/agents/{agentId}/configuration?afterVersion=<token>
-POST /api/v1/agents/{agentId}/configuration/{version}:ack
+GET /api/v1/agents/{agentId}/assignments?afterVersion=<sha256>
 ```
 
-Configuration contains only authorized non-secret values and credential references. It is signed/hashed at the application layer, versioned, validated before activation, and applied atomically. Agent keeps last-known-valid configuration and reports rejection without discarding it.
+The implemented endpoint returns one complete, deterministically ordered snapshot for the exact active Agent and its environment. It includes endpoint JSON classified by contract as non-secret, tags and an opaque monitoring-only credential reference. `AdministrativeCredentialReference`, commands and provider execution are excluded. The snapshot is admitted incrementally under ceilings of 5,000 records and 4 MiB of aggregate UTF-8 endpoint/tag JSON, and fails closed rather than truncating. Its strong SHA-256 ETag supports `If-None-Match`, `afterVersion` and `304 Not Modified`.
+
+No Agent worker consumes or activates this snapshot in the current increment. Atomic local application, last-known-valid retention, acknowledgement and signed application-layer configuration remain future work and require separate authority.
+
+## Human Agent Fleet catalogue and revocation
+
+```text
+GET  /api/v1/agents
+POST /api/v1/agents/{agentId}:revoke
+```
+
+The catalogue requires the server-side `agents.read` permission under global or environment scope, admits at most 1,024 authorisation scopes and 5,000 complete safe rows, and omits installation IDs, token proofs, certificate metadata and private material. Revocation requires `agents.revoke`; it changes the Agent, at most 128 current certificate metadata rows and append-only audit evidence in one serialisable transaction. Repetition preserves the original `RevokedAt`. The certificate validator reads the normalised certificate table and, for non-legacy rows, rechecks the presented public-key digest on every authenticated request, so the next heartbeat or assignment request with a revoked certificate is denied.
+
+There is no external identity provider, operational certificate authority, certificate-rotation endpoint or token-management service in this increment.
 
 ## Command retrieval and lifecycle
 

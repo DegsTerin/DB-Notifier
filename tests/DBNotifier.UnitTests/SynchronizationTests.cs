@@ -612,6 +612,35 @@ public sealed class SynchronizationTests
         Assert.Contains("transport.https_required", await reader.ReadToEndAsync(), StringComparison.Ordinal);
     }
 
+    /// <summary>Verifies that anonymous enrollment metadata cannot bypass the mandatory HTTPS boundary.</summary>
+    [Fact]
+    public async Task ProtectedTransportRejectsMarkedAnonymousPlaintextRequest()
+    {
+        bool nextCalled = false;
+        ProtectedTransportMiddleware middleware = new(_ =>
+        {
+            nextCalled = true;
+            return Task.CompletedTask;
+        });
+        DefaultHttpContext context = new();
+        context.Request.Scheme = "http";
+        context.Response.Body = new MemoryStream();
+        context.SetEndpoint(new Endpoint(
+            _ => Task.CompletedTask,
+            new EndpointMetadataCollection(
+                new AllowAnonymousAttribute(),
+                ProtectedTransportRequirement.Instance),
+            "anonymous-enrollment-fixture"));
+
+        await middleware.InvokeAsync(context);
+
+        Assert.Equal(StatusCodes.Status426UpgradeRequired, context.Response.StatusCode);
+        Assert.False(nextCalled);
+        context.Response.Body.Position = 0;
+        using StreamReader reader = new(context.Response.Body);
+        Assert.Contains("transport.https_required", await reader.ReadToEndAsync(), StringComparison.Ordinal);
+    }
+
     [Fact]
     public async Task ProtectedTransportSeesAuthorisationMetadataAfterEndpointRouting()
     {

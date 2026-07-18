@@ -126,16 +126,35 @@ public sealed class PersistenceModelTests
         Assert.Contains("INSERT INTO agent_observation_cursors", migrationScript, StringComparison.Ordinal);
         Assert.Contains("INSERT INTO instance_observation_states", migrationScript, StringComparison.Ordinal);
         Assert.Contains("instance_row.assigned_agent_id = sample.agent_id", migrationScript, StringComparison.Ordinal);
+        Assert.Contains("agent_enrollment_tokens", migrationScript, StringComparison.Ordinal);
+        Assert.Contains("agent_certificates", migrationScript, StringComparison.Ordinal);
+        Assert.Contains("agent_heartbeat_cursors", migrationScript, StringComparison.Ordinal);
+        Assert.Contains("legacy.agent_revoked", migrationScript, StringComparison.Ordinal);
+        Assert.Contains("duplicate per-Agent sequences", migrationScript, StringComparison.Ordinal);
+        Assert.Contains("duplicate canonical thumbprints", migrationScript, StringComparison.Ordinal);
+        Assert.Contains("INSERT INTO agent_certificates", migrationScript, StringComparison.Ordinal);
+        Assert.Contains("INSERT INTO agent_heartbeat_cursors", migrationScript, StringComparison.Ordinal);
+        Assert.Contains("LAG(sequence, 1, 0)", migrationScript, StringComparison.Ordinal);
         Assert.Matches(
             @"ORDER BY\s+sample\.instance_id,\s+sample\.sequence DESC,\s+sample\.received_at DESC",
             migrationScript);
 
         string[] migrations = context.Database.GetMigrations().ToArray();
-        Assert.Equal(4, migrations.Length);
-        string rollbackScript = migrator.GenerateScript(migrations[3], migrations[2]);
-        Assert.Contains("DROP TABLE", rollbackScript, StringComparison.OrdinalIgnoreCase);
-        Assert.Contains("agent_observation_cursors", rollbackScript, StringComparison.Ordinal);
-        Assert.Contains("DROP COLUMN", rollbackScript, StringComparison.OrdinalIgnoreCase);
+        Assert.Equal(5, migrations.Length);
+        string agentFleetRollback = migrator.GenerateScript(migrations[4], migrations[3]);
+        Assert.Contains("DROP TABLE", agentFleetRollback, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("agent_certificates", agentFleetRollback, StringComparison.Ordinal);
+        Assert.Contains("agent_enrollment_tokens", agentFleetRollback, StringComparison.Ordinal);
+        Assert.Contains("agent_heartbeat_cursors", agentFleetRollback, StringComparison.Ordinal);
+        Assert.Contains(
+            "Active Agents enrolled by Agent Fleet would remain trusted after downgrade",
+            agentFleetRollback,
+            StringComparison.Ordinal);
+        Assert.Contains("DROP COLUMN", agentFleetRollback, StringComparison.OrdinalIgnoreCase);
+
+        string reconciliationRollback = migrator.GenerateScript(migrations[3], migrations[2]);
+        Assert.Contains("agent_observation_cursors", reconciliationRollback, StringComparison.Ordinal);
+        Assert.Contains("DROP COLUMN", reconciliationRollback, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]
@@ -159,10 +178,14 @@ public sealed class PersistenceModelTests
             .ToArray();
 
         Assert.Contains(propertyNames, name => name.EndsWith("CredentialReference", StringComparison.Ordinal));
+        Assert.Contains("SecretHash", propertyNames);
         Assert.DoesNotContain(propertyNames, name =>
             name.Contains("Password", StringComparison.OrdinalIgnoreCase) ||
             name.Contains("SecretValue", StringComparison.OrdinalIgnoreCase) ||
             name.Contains("ConnectionString", StringComparison.OrdinalIgnoreCase) ||
-            name.Contains("PrivateKey", StringComparison.OrdinalIgnoreCase));
+            name.Contains("PrivateKey", StringComparison.OrdinalIgnoreCase) ||
+            name.Contains("TokenValue", StringComparison.OrdinalIgnoreCase) ||
+            name.Contains("CertificateDer", StringComparison.OrdinalIgnoreCase) ||
+            name.Contains("CertificateBody", StringComparison.OrdinalIgnoreCase));
     }
 }

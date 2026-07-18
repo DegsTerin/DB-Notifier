@@ -3,10 +3,22 @@ using System.Text.Json;
 
 namespace DBNotifier.Application.Access;
 
+/// <summary>Defines stable server-side permission codes without granting any permission by declaration alone.</summary>
 public static class PlatformPermissions
 {
+    /// <summary>Reads database-instance catalogue entries within the actor's scope.</summary>
     public const string InstancesRead = "instances.read";
+
+    /// <summary>Reads safe Agent Fleet facts within the actor's scope.</summary>
+    public const string AgentsRead = "agents.read";
+
+    /// <summary>Revokes an Agent identity and its active certificates within the actor's scope.</summary>
+    public const string AgentsRevoke = "agents.revoke";
+
+    /// <summary>Creates an authorised administrative command receipt without executing it.</summary>
     public const string CommandsCreate = "commands.create";
+
+    /// <summary>Reads append-only audit evidence under global audit scope.</summary>
     public const string AuditRead = "audit.read";
 }
 

@@ -4,8 +4,23 @@ using Microsoft.AspNetCore.Authorization;
 namespace DBNotifier.Server.Api.Security;
 
 /// <summary>
-/// Enforces HTTPS for every endpoint carrying ASP.NET Core authorisation metadata.
-/// Health endpoints without protected metadata remain available to local hosting probes.
+/// Marks an endpoint whose payload or credential requires HTTPS even when the endpoint deliberately allows
+/// anonymous ASP.NET Core access, such as one-time Agent enrollment.
+/// </summary>
+public sealed class ProtectedTransportRequirement
+{
+    /// <summary>Gets the shared immutable endpoint marker.</summary>
+    public static ProtectedTransportRequirement Instance { get; } = new();
+
+    /// <summary>Prevents marker instances outside this assembly so endpoint metadata remains canonical.</summary>
+    private ProtectedTransportRequirement()
+    {
+    }
+}
+
+/// <summary>
+/// Enforces HTTPS for every endpoint carrying ASP.NET Core authorisation metadata or an explicit protected
+/// transport marker. Health endpoints without protected metadata remain available to local hosting probes.
 /// </summary>
 /// <param name="next">Next component in the routed HTTP pipeline.</param>
 public sealed class ProtectedTransportMiddleware(RequestDelegate next)
@@ -18,7 +33,9 @@ public sealed class ProtectedTransportMiddleware(RequestDelegate next)
     public async Task InvokeAsync(HttpContext context)
     {
         ArgumentNullException.ThrowIfNull(context);
-        bool protectedEndpoint = context.GetEndpoint()?.Metadata.GetMetadata<IAuthorizeData>() is not null;
+        Endpoint? endpoint = context.GetEndpoint();
+        bool protectedEndpoint = endpoint?.Metadata.GetMetadata<IAuthorizeData>() is not null ||
+            endpoint?.Metadata.GetMetadata<ProtectedTransportRequirement>() is not null;
         if (protectedEndpoint && !context.Request.IsHttps)
         {
             context.Response.StatusCode = StatusCodes.Status426UpgradeRequired;

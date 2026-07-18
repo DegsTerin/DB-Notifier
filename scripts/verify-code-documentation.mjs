@@ -19,13 +19,15 @@ const commentSyntax = new Map([
   [".config", /^\s*(?:<\?xml[^>]*>\s*)?<!--/m],
 ]);
 const ignoredDirectories = new Set([".git", ".dotnet", "bin", "dist", "node_modules", "obj"]);
-const appliedMigrations = new Set([
+const timestampedMigrations = new Set([
   "src/DBNotifier.Persistence.Agent.Sqlite/Migrations/20260712005330_InitialAgentSchema.cs",
   "src/DBNotifier.Persistence.Agent.Sqlite/Migrations/20260712005606_AddAgentStateConstraints.cs",
   "src/DBNotifier.Persistence.Agent.Sqlite/Migrations/20260712055252_AddCommandCompatibilityEnvelope.cs",
   "src/DBNotifier.Persistence.Server.PostgreSql/Migrations/20260712005336_InitialServerSchema.cs",
   "src/DBNotifier.Persistence.Server.PostgreSql/Migrations/20260712005611_AddServerStateConstraints.cs",
   "src/DBNotifier.Persistence.Server.PostgreSql/Migrations/20260712025130_EnforceAgentObservationSequence.cs",
+  "src/DBNotifier.Persistence.Server.PostgreSql/Migrations/20260716142357_HardenObservationReconciliation.cs",
+  "src/DBNotifier.Persistence.Server.PostgreSql/Migrations/20260718013515_IntegrateAgentFleetIdentity.cs",
 ]);
 
 /** Returns tracked and non-ignored new files so a source root cannot silently escape the documentation gate before staging. */
@@ -54,7 +56,7 @@ function hasModuleHeader(syntax, opening) {
 /** Identifies generated or immutable C# files whose contents must not be rewritten. */
 function isCSharpException(path) {
   const unixPath = relative(root, path).split(sep).join("/");
-  return path.endsWith(".Designer.cs") || path.endsWith("ModelSnapshot.cs") || appliedMigrations.has(unixPath);
+  return path.endsWith(".Designer.cs") || path.endsWith("ModelSnapshot.cs") || timestampedMigrations.has(unixPath);
 }
 
 const failures = [];

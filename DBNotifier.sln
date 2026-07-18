@@ -28,6 +28,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DBNotifier.UnitTests", "tes
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DBNotifier.Architecture.Tests", "tests\DBNotifier.Architecture.Tests\DBNotifier.Architecture.Tests.csproj", "{CA12D3BB-7CB8-4A21-AFA6-A41CEBB8441A}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DBNotifier.IntegrationTests", "tests\DBNotifier.IntegrationTests\DBNotifier.IntegrationTests.csproj", "{E1B4C86F-4900-4920-811E-0C890EAC60E1}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -86,5 +88,9 @@ Global
 		{CA12D3BB-7CB8-4A21-AFA6-A41CEBB8441A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CA12D3BB-7CB8-4A21-AFA6-A41CEBB8441A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CA12D3BB-7CB8-4A21-AFA6-A41CEBB8441A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E1B4C86F-4900-4920-811E-0C890EAC60E1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E1B4C86F-4900-4920-811E-0C890EAC60E1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E1B4C86F-4900-4920-811E-0C890EAC60E1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E1B4C86F-4900-4920-811E-0C890EAC60E1}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

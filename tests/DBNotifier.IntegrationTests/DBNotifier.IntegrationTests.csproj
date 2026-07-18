@@ -1,0 +1,26 @@
+<!-- Module purpose: Runs isolated local HTTPS integration tests for versioned DB-Notifier server boundaries without external providers or services. -->
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="coverlet.collector">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\DBNotifier.Application\DBNotifier.Application.csproj" />
+    <ProjectReference Include="..\..\src\DBNotifier.Persistence.Server.PostgreSql\DBNotifier.Persistence.Server.PostgreSql.csproj" />
+    <ProjectReference Include="..\..\src\DBNotifier.Server.Api\DBNotifier.Server.Api.csproj" />
+  </ItemGroup>
+</Project>

@@ -10,8 +10,19 @@ public sealed class ServerDbContext(DbContextOptions<ServerDbContext> options) :
 {
     public DbSet<DatabaseInstanceRow> Instances => Set<DatabaseInstanceRow>();
     public DbSet<RegisteredAgentRow> Agents => Set<RegisteredAgentRow>();
+
+    /// <summary>Gets the hashed, scope-bound one-time Agent enrollment challenges.</summary>
+    public DbSet<AgentEnrollmentTokenRow> AgentEnrollmentTokens => Set<AgentEnrollmentTokenRow>();
+
+    /// <summary>Gets the normalised revocable Agent certificate metadata.</summary>
+    public DbSet<AgentCertificateRow> AgentCertificates => Set<AgentCertificateRow>();
+
     public DbSet<AgentCapabilityRow> AgentCapabilities => Set<AgentCapabilityRow>();
     public DbSet<AgentHeartbeatRow> AgentHeartbeats => Set<AgentHeartbeatRow>();
+
+    /// <summary>Gets durable heartbeat anti-replay cursors independent of heartbeat-detail retention.</summary>
+    public DbSet<AgentHeartbeatCursorRow> AgentHeartbeatCursors => Set<AgentHeartbeatCursorRow>();
+
     public DbSet<HealthSampleRow> HealthSamples => Set<HealthSampleRow>();
 
     /// <summary>Gets the durable per-Agent contiguous observation cursors.</summary>
@@ -39,11 +50,98 @@ public sealed class ServerDbContext(DbContextOptions<ServerDbContext> options) :
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         ConfigureInventory(modelBuilder);
+        ConfigureAgentFleetIdentity(modelBuilder);
         ConfigureMonitoring(modelBuilder);
         ConfigureAlerting(modelBuilder);
         ConfigureCommands(modelBuilder);
         ConfigureIdentityAndAudit(modelBuilder);
         SnakeCaseModelConvention.Apply(modelBuilder);
+    }
+
+    /// <summary>Configures one-time enrollment, normalised certificate identity and durable heartbeat cursors.</summary>
+    /// <param name="modelBuilder">Model builder owned by this context.</param>
+    private static void ConfigureAgentFleetIdentity(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<AgentEnrollmentTokenRow>(entity =>
+        {
+            entity.ToTable("agent_enrollment_tokens", table =>
+            {
+                table.HasCheckConstraint(
+                    "ck_agent_enrollment_token_state",
+                    "state IN ('Active','Consumed','Revoked')");
+                table.HasCheckConstraint(
+                    "ck_agent_enrollment_token_expiry",
+                    "expires_at > issued_at");
+                table.HasCheckConstraint(
+                    "ck_agent_enrollment_token_proof",
+                    "hash_algorithm = 'SHA256' AND length(salt) = 16 AND length(secret_hash) = 32");
+                table.HasCheckConstraint(
+                    "ck_agent_enrollment_token_consumption",
+                    "(state = 'Consumed' AND consumed_at IS NOT NULL AND consumed_by_agent_id IS NOT NULL AND revoked_at IS NULL) OR " +
+                    "(state = 'Revoked' AND consumed_at IS NULL AND consumed_by_agent_id IS NULL AND revoked_at IS NOT NULL) OR " +
+                    "(state = 'Active' AND consumed_at IS NULL AND consumed_by_agent_id IS NULL AND revoked_at IS NULL)");
+            });
+            entity.HasKey(row => row.EnrollmentTokenId);
+            entity.Property(row => row.Salt).HasMaxLength(64).IsRequired();
+            entity.Property(row => row.SecretHash).HasMaxLength(64).IsRequired();
+            entity.Property(row => row.HashAlgorithm).HasMaxLength(64).IsRequired();
+            entity.Property(row => row.ExpectedInstallationId).HasMaxLength(160).IsRequired();
+            entity.Property(row => row.ExpectedEnvironment).HasMaxLength(100).IsRequired();
+            entity.Property(row => row.ExpectedPlatform).HasMaxLength(100).IsRequired();
+            entity.Property(row => row.Scope).HasMaxLength(160).IsRequired();
+            entity.Property(row => row.State).HasMaxLength(32).IsRequired();
+            entity.Property(row => row.ConcurrencyToken).IsConcurrencyToken();
+            entity.HasIndex(row => new { row.State, row.ExpiresAt });
+            entity.HasIndex(row => row.ExpectedInstallationId);
+            entity.HasOne<RegisteredAgentRow>()
+                .WithMany()
+                .HasForeignKey(row => row.ConsumedByAgentId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<AgentCertificateRow>(entity =>
+        {
+            entity.ToTable("agent_certificates", table =>
+            {
+                table.HasCheckConstraint(
+                    "ck_agent_certificate_state",
+                    "state IN ('Active','Revoked','Superseded')");
+                table.HasCheckConstraint(
+                    "ck_agent_certificate_validity",
+                    "not_before IS NULL OR not_after IS NULL OR not_after > not_before");
+                table.HasCheckConstraint(
+                    "ck_agent_certificate_revocation",
+                    "(state = 'Revoked' AND revoked_at IS NOT NULL AND revocation_reason_code IS NOT NULL) OR " +
+                    "(state IN ('Active','Superseded') AND revoked_at IS NULL AND revocation_reason_code IS NULL)");
+            });
+            entity.HasKey(row => row.AgentCertificateId);
+            entity.Property(row => row.Thumbprint).HasMaxLength(160).IsRequired();
+            entity.HasIndex(row => row.Thumbprint).IsUnique();
+            entity.Property(row => row.PublicKeySha256).HasMaxLength(64);
+            entity.Property(row => row.CertificateSigningRequestSha256).HasMaxLength(64);
+            entity.Property(row => row.State).HasMaxLength(32).IsRequired();
+            entity.Property(row => row.RevocationReasonCode).HasMaxLength(100);
+            entity.Property(row => row.ConcurrencyToken).IsConcurrencyToken();
+            entity.HasIndex(row => new { row.AgentId, row.State });
+            entity.HasOne<RegisteredAgentRow>()
+                .WithMany()
+                .HasForeignKey(row => row.AgentId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<AgentHeartbeatCursorRow>(entity =>
+        {
+            entity.ToTable("agent_heartbeat_cursors", table =>
+                table.HasCheckConstraint(
+                    "ck_agent_heartbeat_cursor_sequence",
+                    "highest_accepted_sequence >= 0"));
+            entity.HasKey(row => row.AgentId);
+            entity.Property(row => row.ConcurrencyToken).IsConcurrencyToken();
+            entity.HasOne<RegisteredAgentRow>()
+                .WithMany()
+                .HasForeignKey(row => row.AgentId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
     }
 
     private static void ConfigureInventory(ModelBuilder modelBuilder)
@@ -113,7 +211,9 @@ public sealed class ServerDbContext(DbContextOptions<ServerDbContext> options) :
             });
             entity.HasKey(row => row.HeartbeatId);
             entity.Property(row => row.AgentVersion).HasMaxLength(64).IsRequired();
+            entity.Property(row => row.PayloadSha256).HasMaxLength(64);
             entity.HasIndex(row => row.MessageId).IsUnique();
+            entity.HasIndex(row => new { row.AgentId, row.Sequence }).IsUnique();
             entity.HasIndex(row => new { row.AgentId, row.ReceivedAt });
             entity.HasOne<RegisteredAgentRow>().WithMany().HasForeignKey(row => row.AgentId).OnDelete(DeleteBehavior.Restrict);
         });

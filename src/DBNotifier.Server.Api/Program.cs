@@ -3,6 +3,7 @@ using System.Security.Claims;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading.RateLimiting;
 using DBNotifier.Application.Access;
+using DBNotifier.Application.AgentFleet;
 using DBNotifier.Application.Operations;
 using DBNotifier.Application.Synchronization;
 using DBNotifier.Persistence.Server.PostgreSql;
@@ -52,9 +53,23 @@ builder.Services.AddRateLimiter(options =>
                 QueueLimit = 0,
                 AutoReplenishment = true,
             }));
+    options.AddPolicy(AgentFleetEndpointRouteBuilderExtensions.EnrollmentRateLimitPolicy, httpContext =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown-enrollment-client",
+            _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 5,
+                Window = TimeSpan.FromMinutes(1),
+                QueueLimit = 0,
+                AutoReplenishment = true,
+            }));
 });
 builder.Services.AddDbContextFactory<ServerDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("ServerDatabase")));
+builder.Services.AddSingleton(TimeProvider.System);
+builder.Services.AddScoped<IAgentFleetStore, AgentFleetStore>();
+builder.Services.AddScoped<AgentFleetService>();
+builder.Services.AddSingleton<IAgentCertificateIssuer, UnavailableAgentCertificateIssuer>();
 builder.Services.AddScoped<IObservationIngestionStore, ServerObservationIngestionStore>();
 builder.Services.AddScoped<ObservationBatchIngestor>();
 builder.Services.AddScoped<IServerCommandDeliveryStore, ServerCommandDeliveryStore>();
@@ -478,6 +493,7 @@ app.MapPost(
         })
     .RequireAuthorization(ApiSecurityDefaults.AgentObservationIngestionPolicy)
     .RequireRateLimiting("AgentApiRateLimit");
+app.MapAgentFleetEndpoints();
 
 app.Run();
 

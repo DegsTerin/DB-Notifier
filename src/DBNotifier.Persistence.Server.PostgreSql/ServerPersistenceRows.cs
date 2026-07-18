@@ -51,19 +51,50 @@ public sealed class AgentCapabilityRow
     public DateTimeOffset ObservedAt { get; set; }
 }
 
+/// <summary>Stores one immutable accepted Agent heartbeat and the evidence required for exact replay handling.</summary>
 public sealed class AgentHeartbeatRow
 {
+    /// <summary>Gets or sets the durable heartbeat identifier.</summary>
     public Guid HeartbeatId { get; set; }
+
+    /// <summary>Gets or sets the Agent that owns the heartbeat sequence.</summary>
     public Guid AgentId { get; set; }
+
+    /// <summary>Gets or sets the Agent-provided idempotency identifier.</summary>
     public Guid MessageId { get; set; }
+
+    /// <summary>Gets or sets the monotonic per-Agent sequence.</summary>
     public long Sequence { get; set; }
+
+    /// <summary>Gets or sets the Agent version reported by the accepted heartbeat.</summary>
     public required string AgentVersion { get; set; }
+
+    /// <summary>Gets or sets the minimum protocol major supported by the Agent.</summary>
     public int ProtocolMinimum { get; set; }
+
+    /// <summary>Gets or sets the maximum protocol major supported by the Agent.</summary>
     public int ProtocolMaximum { get; set; }
+
+    /// <summary>Gets or sets the bounded local queue depth reported by the Agent.</summary>
     public long QueueDepth { get; set; }
+
+    /// <summary>Gets or sets the oldest queued-item instant when the queue is non-empty.</summary>
     public DateTimeOffset? OldestQueuedAt { get; set; }
+
+    /// <summary>Gets or sets the Agent clock instant used only for skew estimation.</summary>
     public DateTimeOffset AgentTime { get; set; }
+
+    /// <summary>Gets or sets the trusted server receipt instant.</summary>
     public DateTimeOffset ReceivedAt { get; set; }
+
+    /// <summary>Gets or sets the canonical SHA-256 payload digest, or null for legacy rows that cannot prove replay.</summary>
+    public string? PayloadSha256 { get; set; }
+
+    /// <summary>Gets or sets the cursor value immediately before this heartbeat was accepted.</summary>
+    public long? PreviousAcceptedSequence { get; set; }
+
+    /// <summary>Gets or sets whether this accepted heartbeat exposed a sequence gap.</summary>
+    public bool GapDetected { get; set; }
 }
 
 /// <summary>Stores one immutable raw health observation received from an authenticated assigned Agent.</summary>

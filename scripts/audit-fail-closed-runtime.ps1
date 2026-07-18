@@ -81,6 +81,7 @@ try {
         Wait-ForStatus $client ([System.Net.Http.HttpMethod]::Get) "$baseAddress/health/live" 200
         Wait-ForStatus $client ([System.Net.Http.HttpMethod]::Get) "$baseAddress/api/v1/catalog/instances" 426 1
         Wait-ForStatus $client ([System.Net.Http.HttpMethod]::Get) "$baseAddress/api/v1/audit" 426 1
+        Wait-ForStatus $client ([System.Net.Http.HttpMethod]::Post) "$baseAddress/api/v1/agents/enroll" 426 1
         $agentId = [Guid]::NewGuid().ToString('D')
         Wait-ForStatus $client ([System.Net.Http.HttpMethod]::Post) "$baseAddress/api/v1/agents/$agentId/commands:poll" 426 1
     }
