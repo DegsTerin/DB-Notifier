@@ -1384,6 +1384,21 @@
 - Próxima atividade: Bruno deve revisar a síntese factual corrigida e decidir uma vez entre aceitar o incremento com as limitações registradas ou solicitar novo ajuste específico. Nenhuma decisão promove estado ou concede autoridade adicional automaticamente.
 - Aprovador: Bruno, exclusivamente para a remediação documental delimitada; nenhuma implementação, ação externa, promoção ou transição foi inferida.
 
+## 2026-07-18 — Aceitação humana do incremento Agent Identity and Fleet
+
+- Estado anterior: `STATE-06 INTEGRATION`, implementação do commit `cc2d828` e remediação factual documental do commit `c5e3cbd` concluídas, Quality Gates restritos aprovados, revisão humana do incremento pendente e nenhuma autoridade técnica remanescente.
+- Estado resultante: sem transição; `STATE-06 INTEGRATION` mantido, incremento Agent Identity and Fleet `ACEITO COM AS LIMITAÇÕES REGISTRADAS`, Quality/Human Gate de saída de `STATE-06` não avaliado e nenhum modo MOD-12 ativo.
+- Decisão: Bruno declarou exatamente `Incremento STATE-06 Agent Identity and Fleet, commits cc2d828 e c5e3cbd: ACEITO COM AS LIMITAÇÕES REGISTRADAS. AUTORIZO exclusivamente o registro factual desta decisão. Não autorizo novo incremento, promoção nem transição de estado.`
+- Alcance: registro factual somente no relatório do incremento, estado atual e histórico append-only. Nenhum código, configuração, migration, teste executável, dependência, runtime ou artefacto gerado foi alterado.
+- Limitações aceitas: issuer/provisionador e fonte de entropia operacionais inexistentes; contratos humanos sem negociação de schema Agent; recusas anteriores à Application sem `audit_entries` duráveis; assignment/revogação sem snapshot comum; migration, backfill e corridas serializáveis PostgreSQL não executados; enrollment replay concorrente não exercitado; retenção de detalhe de heartbeat limitada; Agent worker sem enrollment, key store, heartbeat ou aplicação/ack de assignments; limites máximo-mais-um e múltiplos certificados não exercitados; ausência de prova de conteúdo não secreto por schema de provider; nenhuma integração ou ativação operacional.
+- Evidências aceitas: commits `cc2d828` e `c5e3cbd`, [relatório do incremento](../../docs/STATE-06-Agent-Identity-And-Fleet-Integration-Report.md), [Migration Runbook](../../docs/data/Migration-Runbook.md), resultados automáticos históricos e decisão de Bruno nesta sessão.
+- Shutdown preflight desta ação de registro: zero processo DB-Notifier encontrado ou encerrado, zero processo correspondente remanescente e zero listener proprietário; nenhum navegador, IDE, banco ou processo alheio foi alterado.
+- Gates deste registro: documentação aprovada para `215` fontes comment-capable; `282` links Markdown locais em `71` arquivos aprovados; secret scan do worktree não ignorado e histórico Git disponível aprovado; inspeção de escopo e `git diff --check` aprovadas. Build, testes e runtime de produto são `NÃO APLICÁVEIS` e não foram repetidos porque esta autoridade permite somente registrar a decisão humana.
+- Decisão humana: `ACEITO COM AS LIMITAÇÕES REGISTRADAS` exclusivamente para o incremento dos commits `cc2d828` e `c5e3cbd`. Isso não é o Human Gate canónico de saída de `STATE-06`, promoção de MOD-12, aprovação operacional nem autorização executiva adicional.
+- Limites de autoridade: nenhum novo incremento, código, runtime, ação externa, promoção ou transição foi autorizado. `OBSERVER`, `STATE-07` e toda integração operacional permanecem fora do escopo.
+- Próxima atividade: nenhuma ação adicional é exigida de Bruno para este incremento e nenhuma ação técnica está autorizada. Se ele decidir continuar futuramente, o primeiro passo será pedir uma proposta exclusivamente documental para um único incremento restrito de `STATE-06`; qualquer implementação ainda exigirá autorização separada.
+- Aprovador: Bruno, com aceitação expressamente limitada às evidências e limitações registradas.
+
 ## Template de nova entrada
 
 - Data:

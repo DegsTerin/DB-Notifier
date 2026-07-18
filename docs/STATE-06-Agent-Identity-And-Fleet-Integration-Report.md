@@ -4,6 +4,7 @@
 
 - Date: 2026-07-17
 - Documentary precision review: 2026-07-18, authorised separately after direct inspection of commit `cc2d828`
+- Human decision: 2026-07-18, accepted with the recorded limitations after commits `cc2d828` and `c5e3cbd`
 - Workspace lifecycle position: `STATE-06 INTEGRATION`
 - Authority: Bruno authorised one restricted local increment for test-only enrollment, Agent revocation, heartbeat, a human Agent Fleet catalogue, read-only assignments, versioned contracts, persistence, local sandbox E2E tests and factual README correction
 - Temporary runtime authority: local test runtimes only, with mandatory shutdown after validation
@@ -155,7 +156,7 @@ No product build, unit test, E2E, database migration or runtime smoke was repeat
 
 - Restricted-increment automatic Quality Gate: `APPROVED` for the implementation and recorded evidence of commit `cc2d828`; this is not a lifecycle exit gate.
 - Documentary precision remediation Quality Gate: `APPROVED` only after the local documentation, link, secret and Git-diff checks recorded in the transition log.
-- Human review of this increment: `PENDING`.
+- Human review of this increment: `ACCEPTED WITH RECORDED LIMITATIONS` for commits `cc2d828` and `c5e3cbd`.
 - Lifecycle position: remains `STATE-06 INTEGRATION`.
 - `STATE-06` lifecycle exit Quality/Human Gates: `NOT EVALUATED`; the wider integration state remains incomplete.
 - `none → OBSERVER`: `PENDING` and explicitly outside this authority.
@@ -163,11 +164,6 @@ No product build, unit test, E2E, database migration or runtime smoke was repeat
 
 ## Next activity for a non-specialist
 
-The next activity is one human review of this report, not another implementation and not a lifecycle promotion. Open this file and read the Summary, Local end-to-end evidence, Limitations and Gate classification sections. Check that the description matches what you intended to authorise and that the limitations are acceptable.
+No further user action is required for this increment. Its implementation, documentary remediation and human review are closed, with the limitations above preserved.
 
-Then send one of these clear decisions:
-
-- `Incremento STATE-06 Agent Identity and Fleet: ACEITO com as limitações registradas. Não autorizo novo incremento nem promoção.`
-- `Incremento STATE-06 Agent Identity and Fleet: AJUSTES NECESSÁRIOS`, followed by the exact concern.
-
-Acceptance closes only this increment. It does not enable production enrollment, run a provider, authorise a command, promote MOD-12 or move the project to another state.
+No new technical activity is authorised. If Bruno later wishes to continue `STATE-06`, the next safe step is to request a documentary proposal for one separately bounded increment. Reviewing such a proposal would not itself authorise implementation. Production enrollment, providers, commands, MOD-12 promotion and lifecycle transition remain unavailable until separately authorised and gated.
