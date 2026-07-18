@@ -8,6 +8,7 @@
 - Natureza deste artefato: proposta exclusivamente documental e não executiva
 - Origem: solicitação de Bruno por uma proposta para o próximo incremento restrito, sem implementação, runtime, ações externas ou promoção para `OBSERVER`
 - Baseline aceita: remediação local do commit `6a5f00f`, registrada no [`relatório de proveniência e budget`](STATE-06-MOD-12-Provenance-And-Budget-Remediation-Report.md)
+- Encerramento factual: proposta autorizada, pacote documental concluído/aceito e posteriormente reauditado/corrigido diretamente; nenhum pedido de nova revisão do mesmo pacote permanece pendente
 
 Este documento não autoriza o incremento proposto. Ele organiza uma possível próxima atividade para que Bruno possa revisar seu objetivo, limites, riscos e critérios antes de decidir separadamente se deseja autorizá-la.
 
@@ -298,3 +299,9 @@ O incremento documental autorizado materializa sua recomendação em:
 - [guardrails AIOps atualizados](architecture/AIOps-Architecture-Guardrails.md).
 
 A próxima decisão é a revisão humana desse pacote. Bruno poderá aceitá-lo, aceitá-lo com ressalvas, pedir ajustes ou rejeitá-lo. Até essa decisão, `ADR-0007` permanece `proposed`; o workspace continua em `STATE-06 INTEGRATION`, nenhum modo MOD-12 está ativo e nenhuma implementação está autorizada.
+
+## Nota factual de encerramento — 2026-07-17
+
+O texto anterior preserva a proposta e o ponto de decisão existentes quando ela foi produzida. A decisão posterior de Bruno aceitou o incremento exclusivamente como documentação e aceitou o `ADR-0007` como decisão arquitetural **proposta**. Essa aceitação não foi um Human Gate canônico de estado do ciclo de vida e não tornou o ADR `accepted`.
+
+Uma revisão automática direta posterior dos arquivos locais corrigiu ambiguidades de segurança e recursos no contrato, ADR, threat model, guardrails, relatório e estado factual, sem alterar a autorização original. Nenhuma nova revisão do mesmo pacote está pendente. O “caminho futuro condicionado” descreve somente uma possibilidade: não cria uma tarefa automática nem obriga Bruno a revisar documentos novamente. Qualquer implementação, adoção formal do ADR ou nova atividade dependerá de uma solicitação e autorização separadas.

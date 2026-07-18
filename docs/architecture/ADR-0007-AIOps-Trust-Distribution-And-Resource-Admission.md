@@ -22,17 +22,22 @@ The proposed decision has these invariants:
 
 1. The MOD-12 verifier remains a pure consumer of an immutable, already selected verification context. It owns no private key, network client, trust store, checkpoint store, queue or runtime lifecycle.
 2. A root trust anchor is provisioned through a boundary independent from the bundle and evidence it validates. A bundle may identify the expected root but cannot introduce or replace it.
-3. Policy decision, policy-authorisation attestation, grant/revocation/trust-bundle signing, key custody, publication, verification, checkpoint ownership and audit review are distinct responsibilities. A valid operational signature proves origin and integrity; legitimate scope additionally requires a separately signed, independently verified `PolicyAuthorisationAssertion`.
-4. A versioned canonical trust bundle binds authority, series, recovery epoch, tenant/environment, purpose, canonical requested scope, policy assertion, monotonic generation, validity, role-key delegations, required revocation state, predecessor digest, algorithm profile, complete finite resource ceilings, size/cardinality declarations and audit references. Its trust semantics are independent of whether a later separately authorised deployment carries one bounded contiguous chain over outbound Agent/API configuration or controlled offline import.
-5. Policy-attestation, grant, revocation and trust-bundle signing roles use distinct key identities and distinct public-key material. Every operational key has an exact root-signed `RoleKeyDelegation`; an operational signer cannot delegate itself or its successor.
-6. The host authenticates the assertion/delegations and evaluates a bounded canonical-set subset predicate; a digest alone cannot prove that requested scope is within the approved ceiling.
-7. A future host starts an absolute monotonic deadline before acquiring any lease, bounds silent/encoded/expanded input and validates canonical form, roles, scope, time, contiguous generation/recovery continuity and revocation before making a candidate visible to MOD-12.
-8. The host commits the selected bundle, revocation state, stable domain epoch/series high-water, subordinate checkpoint and durable audit intent as one local transaction. This is local atomicity only; it does not claim simultaneous global change across consumers.
-9. Missing, corrupt, restored, divergent or unverifiable current continuity places the affected MOD-12 scope in quarantine. A malformed/unauthenticated candidate alone does not deactivate a fresh intact current tuple. Consumption after continuity loss resumes only through authenticated reconciliation; normal processing never decreases an epoch or checkpoint. Quarantine does not disable provider-neutral deterministic monitoring.
-10. Resource admission uses a pre-authentication global ingress lease followed by atomic authenticated hierarchical quotas/capacity. Complete finite limits cover encoded/expanded bytes, liveness, cardinality, versioned accounted memory, deterministic work, deadline, cancellation, output and concurrency; the effective value is the minimum of host, policy assertion, bundle and request, while producer declarations only reduce or are checked against it. Any future queue is separately authorised and bounded.
-11. An interrupted, cancelled or over-budget evaluation publishes no passing or authorising partial result. Subset precision, recall, calibration and aggregates are absent rather than merely excluded from a gate; only bounded sanitised diagnostics may remain.
-12. Initial future proof remains serial (`maximum parallelism = 1`) and proves containment, not general fairness. Operational numerical limits, real cancellation latency and observed memory require reproducible measurement and a separately authorised implementation/load increment; this ADR invents none.
-13. Completion or later acceptance of this ADR does not activate `OBSERVER`, authorise telemetry collection, create persistence or permit a runtime integration.
+3. Root governance, policy and revocation decisions, policy/revocation/corpus attestation, grant/revocation/trust-bundle signing, key custody, publication, verification, checkpoint ownership and audit review are distinct responsibilities. Policy and revocation decisions require independently authenticated dual control; an attestation signer cannot invent an approval.
+4. A versioned canonical trust bundle binds the root-set head, authority, immutable series, positive recovery epoch, non-circular `epochContextId`, tenant/environment, purpose, canonical requested scope, policy decision/assertion, monotonic generation, validity, role-key delegations, cumulative revocation state, authorised corpus heads, predecessor digest, algorithm profile, complete finite resource ceilings, exact/maximum declarations and audit references. Transport remains outside the trust root.
+5. Root, approval, policy-attestation, corpus-attestation, grant, revocation-decision, revocation-snapshot and trust-bundle roles use distinct key identities and distinct public-key material. Every subordinate key has an exact root-signed `RoleKeyDelegation`; root material is never reused operationally and no operational signer delegates itself or its successor.
+6. The currently accepted root and revocation heads authenticate an ordinary candidate before candidate state applies. Every subordinate security artefact binds a host-derived non-circular `epochContextId`; recovery makes all old-epoch artefacts ineligible and requires fresh identifiers/issuance. Ordinary revocation uses direct-successor or bounded-complete-chain continuity, independently approved irreversible cumulative tombstones, no identifier reuse and a finite accumulator; a candidate cannot legitimise itself or omit an earlier tombstone.
+7. Bootstrap, root-set transition and compromise recovery use distinct authenticated one-use approvals under independently selected trust: bootstrap quorum plus pristine marker, current-root-delegated transition quorum plus independent successor provisioning, or out-of-band recovery quorum. Each approval precommits to the exact non-circular proposed head. Recovery checked-increments a constant-size epoch high-water, installs a sequence-`1` revocation head/new namespace and may choose one series immutable inside that epoch. Absence is not first installation without an independent marker, and no counter wraps.
+8. A future host processes root, revocation, policy and corpus-head updates through bounded host-reserved control-plane capacity that evaluation work cannot consume. It starts deadlines before reservation, bounds pre-authentication work and commits a complete candidate before publishing a new immutable `contextRevision`.
+9. The host commits the selected root reference, consumed one-use approval where applicable, bundle, cumulative revocation state, corpus heads, stable domain head, subordinate checkpoint and durable audit intent as one local transaction. This is local atomicity only; it does not claim simultaneous fleet-wide change.
+10. Missing, corrupt, restored, divergent, stale or unverifiable **current** continuity places the affected MOD-12 scope in quarantine. A malformed, unauthenticated, expired, not-yet-valid or lower-generation candidate alone does not deactivate a fresh intact current tuple. An authenticated same-generation divergent candidate or gap is continuity evidence and quarantines. Consumption after continuity loss resumes only through authenticated reconciliation or extraordinary recovery; normal processing never decreases a head. Quarantine does not disable provider-neutral deterministic monitoring.
+11. Resource fields compose by class: validated numeric ceilings use the minimum; allowlists intersect; denial dominates capabilities; profiles require exact or explicitly approved compatibility; and queue state remains disabled. A bundle above its policy assertion or a request above the trusted host/policy/bundle result is rejected rather than silently clamped. Producer exact declarations must equal final observation, maxima may only reduce, and omitted applicable fields fail closed.
+12. Evaluation admission uses one uniquely fenced coordinator on one host/process, then atomic authenticated hierarchical quotas/capacity. Limits cover encoded/expanded bytes and ratio, parser structure/cardinality, deterministic accounted memory, work, total/phase/liveness time, cancellation, output count/bytes and concurrency. Observed heap/working-set memory is empirical calibration only.
+13. Lease expiry requests cancellation but never proves capacity reusable. Capacity is released exactly once only after owned work is quiescent or an independently authorised termination fence ends it; an unfenced non-pre-emptible primitive is refused.
+14. Every evaluation pins one active immutable `contextRevision`, and its deadline cannot outlive relevant trust/corpus validity. An accepted control update cancels old-context work; publication revalidates the exact revision and stale results are non-authorising.
+15. A future corpus uses an independently approved, role-signed manifest and monotonic durable corpus head with exact case/partition membership, quantitative segment criteria and irreversible withdrawal. Replacing content, manifest and self-consistent digests together cannot establish authority.
+16. An interrupted, cancelled, superseded or over-budget evaluation publishes no passing or authorising partial result. Subset precision, recall, calibration and aggregates are absent rather than merely excluded from a gate; only bounded sanitised diagnostics may remain.
+17. The first future proof remains serial (`maximum parallelism = 1`) within one fenced coordinator and proves containment, not fleet-wide accounting, deterministic fairness or starvation freedom. Any contender registry/queue, cross-restart quota claim and operational numerical limit require separate authority and evidence; this ADR invents none.
+18. Completion or later acceptance of this ADR does not activate `OBSERVER`, authorise telemetry collection, create persistence or permit a runtime integration.
 
 ## Responsibility boundary
 
@@ -40,10 +45,13 @@ The proposed decision has these invariants:
 Policy authority ---- authorises purpose, canonical scope ceiling and validity
         |
         v
-Independent attestation/root delegations ---- prove the approved decision and role keys
+Independent approval/attestation boundaries ---- prove policy, revocation and corpus decisions
         |
         v
-Role-specific signing boundaries ---- produce grant/revocation/bundle signatures
+Root governance and delegations ---- bind root-set transitions and exact subordinate roles
+        |
+        v
+Role-specific signing boundaries ---- produce grant/revocation/corpus/bundle signatures
         |
         v
 Untrusted publisher/transport ---- carries bounded public artefacts only
@@ -103,11 +111,13 @@ Normal rotation is a planned change within the existing authority and scope ceil
 
 Rotation cannot change tenant/environment, purpose or scope ceiling implicitly.
 
+Root-set rotation is a separate ceremony. It requires an independently provisioned direct-successor root set and one-use `RootSetTransitionApproval` bound to the exact old/new versions, digests, bounded overlap and proposed head. Before commit, every candidate subordinate artefact must validate under the proposed remaining root set; removal is refused while any artefact depends exclusively on the retiring root. A bundle cannot introduce or silently retain a root, and root material cannot be reused by a subordinate role. Replay of a lower root candidate rejects without deactivating a fresh intact current root; rollback of the independently provisioned current root or an authenticated same-version-divergent/gapped transition quarantines the domain.
+
 ## Compromise recovery
 
-Compromise recovery is not normal rotation. It requires a separately authorised security procedure, a new recovery epoch or series, explicit quarantine and independent reconciliation evidence. One local recovery transaction advances an epoch/series high-water mark keyed without the epoch and permanently supersedes the old continuity branch. A compromised operational signer cannot authorise its own recovery. Root compromise requires replacement through the out-of-band provisioning boundary and cannot be repaired by a bundle signed under the compromised root.
+Compromise recovery is not normal rotation. It requires a separately authorised security procedure, explicit quarantine, independent reconciliation evidence and one unused `TrustRecoveryApproval` that binds the exact old/new heads, root-set references, reason, validity, quorum and nonce. One local recovery transaction checked-increments the constant-size `recoveryEpochHighWater`, selects a series immutable inside that new epoch and permanently supersedes every lower epoch. A compromised operational signer cannot authorise its own recovery. Root compromise requires replacement through an out-of-band quorum that does not rely only on the compromised root.
 
-No automatic fallback, generation decrement, key resurrection, schema downgrade or algorithm downgrade is permitted during recovery.
+No automatic fallback, generation decrement, same-epoch series change, identifier/key resurrection, schema downgrade, algorithm downgrade or counter wrap is permitted during recovery. Exhaustion remains quarantined until a separately authorised new trust-domain ceremony.
 
 ## Consequences
 
@@ -123,7 +133,7 @@ No automatic fallback, generation decrement, key resurrection, schema downgrade 
 
 - A future implementation needs a host-owned coordinator, durable state, protected audit and a recovery procedure, each under new authority.
 - Role and key separation increases operational ceremony and demands rehearsed rotation/compromise runbooks.
-- Per-scope and global reservations require capacity measurement before safe numerical defaults can be approved.
+- Per-scope and coordinator-global reservations require capacity measurement before safe numerical defaults can be approved.
 - Offline availability is intentionally lost when freshness, continuity or reconciliation cannot be proved.
 
 ### Residual risks
@@ -131,6 +141,9 @@ No automatic fallback, generation decrement, key resurrection, schema downgrade 
 - Local state plus digest chaining does not prove absence of fleet-wide split view. Independent reconciliation or witnesses are needed for that assurance.
 - An undetected full restore of both checkpoint and local audit can defeat purely local monotonicity. Backup/restore integration or an independent witness must expose continuity loss; until then, restore must quarantine by procedure.
 - A legitimately authorised but compromised root remains a catastrophic trust event requiring out-of-band recovery.
+- A compromised policy/revocation approval quorum remains catastrophic even though an attestation signer alone cannot invent a decision.
+- A cancelled component that cannot prove quiescence retains its reservation unless an authorised termination fence ends it; safe isolation technology remains undecided.
+- A signed corpus proves authority and integrity, not correctness of labels or freedom from bias.
 - Resource dimensions do not establish safe values. Load and memory evidence remains future work.
 
 ## Security and operational constraints
@@ -139,6 +152,7 @@ No automatic fallback, generation decrement, key resurrection, schema downgrade 
 - The trust bundle is public security metadata but remains untrusted input until fully validated.
 - Authorisation is deny-by-default and bounded by tenant/environment, purpose and scope ceiling.
 - The host authenticates before high-cost semantic processing wherever framing permits, while a bounded reader limits work required to reach signature verification.
+- Trust/revocation/root/corpus admission capacity and deterministic priority scheduling are separate from evaluation capacity, so evaluation cannot consume or cause capacity refusal of a narrowing update. Scheduler/CPU/GC latency remains bounded by a future control-phase deadline and requires empirical evidence; all control metadata remains explicitly bounded.
 - Audit records contain identifiers, generations, digests, decisions and sanitised refusal codes, never private material or sensitive telemetry.
 - Retry is never implicit. A rejected candidate requires a new explicit admission after the reported condition changes.
 
@@ -153,10 +167,12 @@ No automatic fallback, generation decrement, key resurrection, schema downgrade 
 
 ## Acceptance and implementation gate
 
-This ADR is a proposed decision produced under a documentation-only `STATE-06` authority. Architecture, security and data review plus Bruno's separate Human Gate are required before it can become accepted. Acceptance would still not authorise code or runtime; any implementation would need a new, explicitly bounded increment and its own checks.
+This ADR remains a proposed decision produced under documentation-only `STATE-06` authority. Bruno's 2026-07-17 decision explicitly accepted it **as proposed**, not as an adopted implementation decision. A separate, unambiguous architecture decision is required only if a future authorised implementation proposal seeks to adopt it. Such adoption would not itself authorise code or runtime; implementation would still need a new explicitly bounded increment and its own automatic Quality Gate and human authority. No review of the unchanged documentary package is currently pending.
 
 ## Documentary review record
 
-On 2026-07-17, Bruno accepted the commit `137c889` documentation increment and this ADR as a proposed documentary architecture decision. He explicitly stated that his review was based on the increment report and did not include direct independent access to this ADR, the conceptual contract or the threat model. The increment's documentary Human Gate is therefore closed as accepted, while this ADR's status remains `proposed`; changing it to `accepted` requires a separate, unambiguous decision after the reviewer has the evidence they choose to inspect.
+On 2026-07-17, Bruno accepted the commit `137c889` documentation increment and this ADR as a proposed documentary architecture decision. He explicitly stated that his review was based on the increment report and did not include direct independent access to this ADR, the conceptual contract or the threat model. This was human acceptance of a documentary increment, not a canonical lifecycle Human Gate. The ADR status remains `proposed` because that was the explicit decision, not because direct file inspection is a mandatory gate.
+
+A later direct automatic re-audit of the linked local documents strengthened bootstrap/recovery/root continuity, cumulative revocation, control/data-plane separation, quiescence before lease reuse, resource-field composition, coordinator fencing and authenticated corpus heads. Those factual corrections do not expand authority, change the lifecycle or require Bruno to repeat the earlier review. Changing this ADR to `accepted` remains a new optional decision tied to a future proposal, not a current task.
 
 This review record does not authorise implementation, runtime, persistence, services, external action or promotion to `OBSERVER`.

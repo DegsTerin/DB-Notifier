@@ -7,8 +7,9 @@
 - MOD-12 mode status: no active mode; `none → OBSERVER` remains pending
 - Authority: after reviewing the [documentation-only proposal](STATE-06-MOD-12-Trust-Governance-And-Resource-Envelope-Proposal.md), Bruno authorised only the responsibility map, ADR, conceptual trust/checkpoint/resource contracts, threat model, traceability and future-test plan
 - Explicit exclusions: implementation, code, migrations, runtime, real keys, persistence, services, external actions and promotion to `OBSERVER`
+- Current documentary status: accepted as documentation and subsequently re-audited/corrected directly; `ADR-0007` remains explicitly `proposed`, and no repeat review of this unchanged package is pending
 
-This report records a documentary architecture increment. It is not implementation evidence and grants no authority beyond review of the resulting documents.
+This report records a documentary architecture increment. It is not implementation evidence and grants no authority beyond review of the resulting documents. Sections through “Next decision” preserve the commit `137c889` pre-decision snapshot; the later addenda are the current status and supersede its counts/design summary without rewriting that historical evidence.
 
 ## Outcome
 
@@ -130,4 +131,56 @@ The resulting classification is:
 - implementation and runtime authority: absent;
 - lifecycle and MOD-12 mode: unchanged; `STATE-06 INTEGRATION` remains current and `none → OBSERVER` remains pending.
 
-The earlier pending classification and next-decision text remain the pre-decision automatic-report snapshot. This addendum is the later factual Human Gate outcome and grants no implementation authority.
+The earlier pending classification and next-decision text remain the pre-decision automatic-report snapshot. This addendum is the later factual human acceptance of a documentary increment, not a canonical lifecycle Human Gate, and grants no implementation authority.
+
+## Direct automatic re-audit addendum — 2026-07-17
+
+Bruno subsequently authorised a complete direct review and factual correction of the documentary package so he would not need to repeat manual document reviews. The re-audit inspected the local ADR, conceptual contract, threat model, guardrails, report, proposal, current state and append-only transition history. It also compared the documents with the existing inactive MOD-12 implementation boundary. No implementation file was changed.
+
+### Findings and corrections
+
+The original design contained six high-severity and eleven medium-severity **future architecture design** findings. They were not current runtime vulnerabilities because the affected distributor, checkpoint, resource coordinator and corpus authority do not exist. The high-severity findings were:
+
+- an expired/not-yet-valid candidate could quarantine a fresh active context, allowing signed stale replay to cause denial of service;
+- revocation continuity did not prevent omitted tombstones, identifier resurrection, self-authorisation or ambiguous sequence gaps;
+- bootstrap/recovery lacked complete replay-resistant one-use approvals bound to old/new heads and an independent first-install marker;
+- lease expiry/release did not require proved quiescence or termination fencing before capacity reuse;
+- a corpus manifest plus self-consistent digests had no independent signing authority or monotonic head, so the entire corpus could be replaced together; and
+- evaluation saturation could block a trust/revocation update, while an evaluation pinned to old authority lacked a publication-time context check.
+
+The medium findings covered constant-size recovery/root heads, root-material separation and rotation, validation under the previously accepted authority, independently approved policy/revocation decisions, class-specific resource composition, the empirical-only role of observed memory, bounded control metadata, precise coordinator scope/restart semantics, exact versus maximum source declarations and the absence of a supportable fairness claim when no contender registry or queue exists.
+
+The package now specifies:
+
+- dual-control policy/revocation/corpus decisions, distinct attestation/signing roles and materially distinct bootstrap/root-transition/recovery/root/operational keys;
+- a host-derived non-circular `epochContextId`, exact proposed-head commitments, old-epoch artefact ineligibility/fresh issuance and root-removal revalidation under the proposed remaining root set;
+- replay-resistant one-use bootstrap, root-transition and recovery approvals, an independently provisioned pristine marker, constant-size root/epoch heads, no counter wrap and no identifier resurrection;
+- irreversible cumulative revocation with direct-successor/complete-chain rules and authentication under the previously accepted state;
+- a dedicated bounded control plane, immutable `contextRevision`, cancellation on supersession and publication-time revalidation;
+- resource composition by field class, exact/maximum declarations, deterministic accounted memory, quiescence/fencing before release, bounded metadata and one uniquely fenced host/process coordinator;
+- an explicit statement that the serial/no-queue proof establishes containment only and makes no fairness or fleet-wide accounting claim; and
+- an independently approved role-signed corpus manifest, monotonic corpus head, exact case/partition membership, quantitative segment criteria and irreversible withdrawal.
+
+Traceability now contains `24` threats (`M12-T01`–`M12-T24`) and `68` unexecuted deterministic future vectors: `24` trust/checkpoint vectors, `36` resource/backpressure vectors and `8` corpus-governance vectors. The three empirical campaigns remain future work. The original `22`-threat/`53`-vector figures above are preserved solely as the commit `137c889` pre-re-audit snapshot and are superseded for the current documentary contract.
+
+### Authority and next-decision status
+
+The re-audit does not alter `STATE-06 INTEGRATION`, does not promote MOD-12, does not adopt `ADR-0007`, and does not authorise implementation, persistence, runtime, service, provider, external action or real key/corpus work. Human operational samples are not applicable because no executable behaviour or interface was produced. Bruno does not need to review the same package again. A new decision is required only if he later requests a materially new increment, formal ADR adoption, implementation or the independent `none → OBSERVER` process.
+
+### Re-audit verification
+
+Environment: Windows, documentation-only workspace, 2026-07-17.
+
+| Check | Directly observed result |
+|---|---|
+| Mandatory shutdown preflight | Passed: `Stopped=0`, `Remaining=0`, `BlockingWindows=0`, `OwnedListeners=0`; the user's Visual Studio Code window, PID `6020`, was identified and preserved |
+| Current MOD-12 boundary comparison | Read-only inspection confirmed the existing P-256 grant/revocation verification, exact application-supplied revocation sequence, distinct anchors, pre-materialisation local budget and absence of durable checkpoint/distributor/resource coordinator/runtime registration; no source was changed |
+| Independent specialist passes | Trust/checkpoint/corpus and resource/backpressure re-audits reported no residual after correction; the governance pass required the present report addendum and new append-only log entry, both completed |
+| Changed-file scope | `git diff --name-only`: nine Markdown files only; no product source, executable test, configuration, migration or dependency file changed |
+| Markdown links | `node scripts/verify-markdown-links.mjs`: passed for `275` local links in `70` files, exit code `0` |
+| Code-documentation gate | `node scripts/verify-code-documentation.mjs`: passed for `208` comment-capable source files, exit code `0` |
+| Secret scan | `scripts/verify-secrets.ps1`: current non-ignored worktree and available Git history passed, exit code `0` |
+| Traceability/refusal consistency | Continuous definitions: `24` threats, `24` trust vectors, `36` resource vectors, `8` corpus vectors and `3` empirical campaigns; all `58` refusal codes are defined and used, with no undefined/catalogue-only code |
+| Git whitespace check | `git diff --check`: passed, exit code `0` |
+| Product build/tests/runtime | `NOT APPLICABLE`; no executable behaviour changed and no product runtime/build/test was started |
+| Human operational sample | `NOT APPLICABLE`; no UI, service, runtime or externally observable behaviour was created |

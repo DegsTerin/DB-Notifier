@@ -2,7 +2,7 @@
 
 ## Status and authority
 
-This pack contains the `STATE-02 ARCHITECTURE` decisions and contracts used by the technical implementation. It defines boundaries and constraints but is not evidence of implementation. On 2026-07-13, validator Bruno retrospectively ratified `STATE-02` as `APROVADO COM RESSALVAS`: ADR-0001/2/3/4/6 were accepted and ADR-0005 was accepted with reservations. The ratification does not prove operational infrastructure, provider homologation, penetration testing, real updates or administrative execution; each decision governs subsequent work until superseded by an accepted ADR.
+This pack contains accepted `STATE-02 ARCHITECTURE` decisions, current architecture contracts and later explicitly proposed decisions. A document's own status controls: inclusion in this index does not accept an ADR and is never implementation evidence. On 2026-07-13, validator Bruno retrospectively ratified `STATE-02` as `APROVADO COM RESSALVAS`: ADR-0001/2/3/4/6 were accepted and ADR-0005 was accepted with reservations. ADR-0007 remains `proposed`, although its documentation-only increment was accepted as documentation. The ratification and documentary acceptance do not prove operational infrastructure, provider homologation, penetration testing, real updates, administrative execution or MOD-12 activation; only an accepted ADR governs implementation until superseded.
 
 ## System context
 
@@ -92,6 +92,6 @@ Infrastructure / Providers / Agent / API / Desktop
 - [Threat model](Threat-Model.md)
 - [Provider capability matrix](Provider-Capability-Matrix.md)
 - [AIOps/AI guardrails](AIOps-Architecture-Guardrails.md)
-- [AIOps trust governance and resource envelope](AIOps-Trust-Governance-And-Resource-Envelope.md) (review candidate; no implementation authority)
+- [AIOps trust governance and resource envelope](AIOps-Trust-Governance-And-Resource-Envelope.md) (reviewed documentary contract supporting proposed ADR-0007; no implementation authority)
 
 The incremental delivery and rollback sequence remains in [`../Legacy-Migration-Plan.md`](../Legacy-Migration-Plan.md). Legacy naming compatibility remains in [`../Legacy-Compatibility.md`](../Legacy-Compatibility.md).
