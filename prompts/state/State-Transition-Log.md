@@ -1524,6 +1524,22 @@
 - Próxima decisão: Bruno deve revisar o relatório e o commit e responder se aceita com as limitações/ressalva, solicita remediação especificamente delimitada ou rejeita somente este incremento. Nenhuma resposta autoriza novo incremento, promoção ou transição implicitamente.
 - Aprovador: pendente; esta entrada não preenche o Human Gate por Bruno.
 
+## 2026-07-18 — Aceitação humana do incremento Dashboard TV em sandbox
+
+- Estado anterior: `STATE-06 INTEGRATION`, commit `70b3960` tecnicamente concluído, Quality Gate automático restrito `APROVADO COM RESSALVA`, decisão humana do incremento pendente e nenhuma promoção/transição autorizada.
+- Estado resultante: sem transição; `STATE-06 INTEGRATION` mantido, incremento `Dashboard TV Authoritative Snapshot and Periodic Reconciliation Sandbox` `ACEITO COM AS LIMITAÇÕES E A RESSALVA REGISTRADAS`, sem runtime operacional ou nova autoridade.
+- Decisão: depois de confirmar a leitura das seções de resultado, correções, verificação e limitações, Bruno declarou `Decisão: Aceitar com as limitações e a ressalva o incremento correspondente ao commit 70b3960.`
+- Compreensão registrada: Bruno confirmou que o incremento usa somente sandbox local e dados determinísticos/fictícios, sem monitoramento real, bancos, Agents, providers, SignalR, notificações, persistência operacional ou infraestrutura de produção, e que os resultados não comprovam funcionamento operacional.
+- Alcance: registro factual somente no relatório, adendo da proposta, estado atual e histórico append-only. Nenhum código, configuração, dependência, teste executável, runtime ou artefacto gerado foi alterado.
+- Limitações e ressalva aceitas: todas as condições residuais do relatório; Quality Gate automático restrito com a ressalva preexistente da fixture legada NuGet de `13` projetos contra os `15` do baseline/solução, não relacionada ao diff do incremento.
+- Evidências aceitas: commit `70b3960`, [relatório Dashboard TV](../../docs/STATE-06-Dashboard-TV-Authoritative-Reconciliation-Report.md), resultados automáticos e decisão informada de Bruno nesta sessão.
+- Shutdown preflight: workspace limpo no commit `70b3960`, zero processo DB-Notifier e zero listener proprietário; nenhum processo, banco, browser, IDE ou recurso alheio foi alterado.
+- Build, testes e runtime: `NÃO APLICÁVEIS` e não repetidos, porque esta ação registra somente a decisão em Markdown. Os resultados do commit `70b3960` permanecem evidência histórica e não são apresentados como nova execução.
+- Gates documentais: documentação aprovada para `236` fontes comment-capable; `323` links Markdown locais em `77` arquivos; secret scan do worktree não ignorado e histórico disponível aprovado; inspeção de escopo e `git diff --check` aprovadas.
+- Classificação: decisão humana `ACEITA COM AS LIMITAÇÕES E A RESSALVA REGISTRADAS` somente para o incremento; Quality/Human Gate de saída de `STATE-06` continua `NÃO AVALIADO`; `OBSERVER`, ativação operacional, deploy, `STATE-07`, release, novo desenvolvimento e transição não autorizados.
+- Próxima atividade: nenhuma ação adicional é exigida de Bruno e nenhum novo trabalho técnico está autorizado. Um próximo fluxo só começa com solicitação e autoridade explícitas e separadas.
+- Aprovador: Bruno, exclusivamente para aceitar este incremento; nenhuma promoção, transição ou autoridade executiva adicional foi inferida.
+
 ## Template de nova entrada
 
 - Data:

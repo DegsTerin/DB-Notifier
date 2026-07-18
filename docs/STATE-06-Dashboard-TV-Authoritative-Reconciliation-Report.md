@@ -7,11 +7,11 @@
 - Increment: `Dashboard TV Authoritative Snapshot and Periodic Reconciliation Sandbox`
 - Authority: Bruno authorised only a versioned read-only snapshot, test-only authentication, exact local sandbox activation, immediate TV entry read, serial 30-second reconciliation, strong ETag/`304`, cancellation, last-valid-snapshot preservation and deterministic/local E2E tests
 - Automatic restricted-increment Quality Gate: `APPROVED WITH RESERVATION`
-- Human review of this increment: `PENDING`
+- Human review of this increment: `ACCEPTED WITH RECORDED LIMITATIONS AND RESERVATION` on 2026-07-18 for commit `70b3960`
 - `STATE-06` exit Quality/Human Gate: `NOT EVALUATED`
 - SignalR, notifications, operational Agent/provider/monitoring, commands, external persistence/identity, LLM, executor, deploy, promotion and lifecycle transition: `NOT AUTHORISED`
 
-This report records one local sandbox implementation. It does not enable an operational runtime, approve `OBSERVER`, authorise another increment or transition the lifecycle.
+This report records one local sandbox implementation. Bruno subsequently accepted commit `70b3960` with the limitations and unrelated legacy-test reservation recorded here. That decision does not enable an operational runtime, approve `OBSERVER`, authorise another increment or transition the lifecycle.
 
 ## Plain-language outcome
 
@@ -107,8 +107,10 @@ Online dependency audits are not authorised because this increment prohibits ext
 
 These limitations prevent any claim of complete `STATE-06`, operational readiness, `OBSERVER`, `STATE-07`, production or release.
 
-## Gate classification and next decision
+## Gate classification and human decision
 
 The automatic Quality Gate is `APPROVED WITH RESERVATION` only for this restricted increment. Every changed-product, architecture, integration, frontend, coverage, format, documentation, link, secret and fail-closed runtime gate passed. The reservation is the unrelated legacy characterisation fixture described above; it already listed `13` projects while baseline commit `f58dd05` contained `15`, and repairing it was not silently added to this Dashboard-only authority.
 
-Human review of this increment remains pending. Bruno may accept the resulting commit with the limitations, request a specifically bounded remediation or reject it. None of those decisions implicitly authorises a new increment, SignalR, notification, operational activation, promotion or lifecycle transition.
+Bruno accepted commit `70b3960` with the limitations and reservation after confirming that he reviewed the outcome, corrections, verification and residual conditions and understood that the increment is a deterministic local sandbox rather than operational monitoring. His decision applies exclusively to this increment and explicitly does not authorise new development, `OBSERVER`, operational activation, deploy or any lifecycle transition.
+
+Bruno's decision was: `Aceitar com as limitações e a ressalva o incremento correspondente ao commit 70b3960.` No further action is authorised by that acceptance.

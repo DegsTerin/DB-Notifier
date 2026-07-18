@@ -194,3 +194,9 @@ Essa eventual autorização permitiria somente a implementação local descrita.
 Em 2026-07-18, Bruno emitiu separadamente a autorização exata proposta acima. A autoridade foi consumida somente pelo contrato `dashboard-tv.v1`, endpoint read-only sob dupla ativação sandbox, autenticação humana em processo de teste, adapter HTTPS loopback, leitura imediata, reconciliação serial após 30 segundos, ETag/`304`, cancelamento, preservação do último snapshot e testes locais.
 
 O modo normal continua demonstrativo. A fonte sandbox é uma fixture imutável em memória e nenhum SignalR, notificação, Agent/provider operacional, monitoramento, comando, persistência externa, IdP/PKI/vault real, LLM, executor, deploy, promoção ou transição foi implementado. O resultado e suas limitações pertencem ao [relatório do incremento](STATE-06-Dashboard-TV-Authoritative-Reconciliation-Report.md); este adendo não transforma a proposta histórica em autoridade permanente.
+
+## Adendo factual — decisão humana do incremento
+
+Depois de ler o relatório e confirmar que compreendeu o caráter exclusivamente local, determinístico, fictício e não operacional do sandbox, Bruno decidiu em 2026-07-18: `Aceitar com as limitações e a ressalva o incremento correspondente ao commit 70b3960.` Ele confirmou que a ressalva do teste legado não decorre das alterações deste incremento.
+
+A decisão aplica-se exclusivamente ao resultado implementado e não autoriza novo desenvolvimento, promoção para `OBSERVER`, ativação operacional, deploy ou transição de estado. Este registro não reabre a autoridade consumida nem cria um próximo incremento.
