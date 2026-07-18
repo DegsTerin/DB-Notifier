@@ -100,11 +100,12 @@ The existing baseline evidence remains the previously recorded result and was no
 | Unit tests | `304/304` approved |
 | Architecture tests | `17/17` approved |
 
-No generation, raster, Dashboard, .NET, runtime or visual gate is newly applicable because the alternative candidates were rejected and no product code, manifest, asset, registry, test or generated output is part of the final research result.
+A preliminary local `node scripts/generate-provider-icon-assets.mjs --generate` invocation occurred before the final rights conclusion. It exited with code `1` before writing outputs because the provisional Firebird working-tree bytes did not match the declared raw upstream Git blob. This demonstrated the generator's fail-closed integrity boundary; the provisional source and all related code/documentation changes were then removed. After the candidates were rejected on their current mark-use conditions, no successful generation, raster, Dashboard, .NET, runtime or visual gate was applicable, and none was run as new evidence.
 
 | Documentary record check | Observed result |
 |---|---|
 | Mandatory shutdown preflight | No DB-Notifier component or owned listener remained before the technical action; the audit shell itself was the only workspace-command-line match |
+| Preliminary generator diagnostic | Failed closed before output with exit code `1` on the provisional Firebird Git-blob mismatch; no generated or product file remained changed |
 | Scope/diff confirmation | Approved, exit code `0`; `.gitattributes`, notices, manifest, generated inventory, generator, product source and tests have no diff, and the final scope contains only six Markdown files |
 | Temporary research cleanup | Four verified project-owned directories under `C:\tmp` were removed after the review; each contained only reproducible checkouts/downloads and all four absence checks returned `False` |
 | Code-documentation and diff gates | `242` comment-capable source files approved; `git diff --check` approved, both exit code `0` |
