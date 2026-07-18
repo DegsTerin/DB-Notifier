@@ -7,7 +7,7 @@
 - Increment: `Agent-side Test Identity and Read-only Assignment Reconciliation`
 - Authority: Bruno authorised test-only enrollment, an E2E-only ephemeral private identity, durable heartbeat, read-only assignment reconciliation, Agent SQLite persistence/migration and local sandbox tests
 - Automatic restricted-increment Quality Gate: `APPROVED`
-- Human review of this increment: `PENDING`
+- Human review of this increment: `ACCEPTED WITH RECORDED LIMITATIONS` on 2026-07-18 for commit `beb936b`
 - `STATE-06` exit Quality/Human Gate: `NOT EVALUATED`
 - Runtime activation, `OBSERVER`, promotion and lifecycle transition: `NOT AUTHORISED`
 
@@ -119,8 +119,10 @@ Online NuGet/npm vulnerability audits were not run because this increment expres
 
 These are accepted boundaries of the restricted sandbox increment, not evidence of operational readiness.
 
-## Gate classification and next decision
+## Gate classification and human decision
 
-The automatic Quality Gate is `APPROVED` only for this restricted implementation and its recorded local evidence. Human review of this increment is `PENDING`. The Quality/Human Gate for leaving `STATE-06`, promotion to `OBSERVER`, `STATE-07`, release and every operational integration are `NOT EVALUATED` and remain independently gated.
+The automatic Quality Gate is `APPROVED` only for this restricted implementation and its recorded local evidence. Bruno accepted commit `beb936b` with the limitations recorded in this report. The Quality/Human Gate for leaving `STATE-06`, promotion to `OBSERVER`, `STATE-07`, release and every operational integration are `NOT EVALUATED` and remain independently gated.
 
-The next activity is one human decision on this report and commit. Bruno should either accept the increment with these limitations, request a specifically bounded remediation, or reject it. That decision must not authorise another increment or lifecycle transition implicitly.
+Bruno's exact decision was: `Incremento STATE-06 Agent-side Identity and Assignment Reconciliation, commit beb936b: ACEITO COM AS LIMITAÇÕES REGISTRADAS. AUTORIZO exclusivamente o registro factual desta decisão. Não autorizo novo incremento, promoção nem transição de estado.`
+
+No further action is pending for this increment. A future proposal, remediation, implementation, promotion or lifecycle decision requires new and explicit authority.

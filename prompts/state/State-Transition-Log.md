@@ -1432,6 +1432,21 @@
 - Próxima atividade: Bruno deve revisar uma única vez o relatório/commit e responder com aceitação das limitações, remediação especificamente delimitada ou rejeição. Nenhuma dessas opções autoriza automaticamente outro incremento ou transição.
 - Aprovador: Bruno autorizou a execução delimitada; a aceitação humana do resultado não foi inferida.
 
+## 2026-07-18 — Aceitação humana do incremento Agent-side sandbox
+
+- Estado anterior: `STATE-06 INTEGRATION`, commit `beb936b` tecnicamente concluído, Quality Gate automático restrito aprovado, decisão humana do incremento pendente e nenhuma promoção/transição autorizada.
+- Estado resultante: sem transição; `STATE-06 INTEGRATION` mantido, incremento Agent-side Identity and Assignment Reconciliation `ACEITO COM AS LIMITAÇÕES REGISTRADAS`, sem runtime operacional ou nova autoridade.
+- Decisão: Bruno declarou exatamente `Incremento STATE-06 Agent-side Identity and Assignment Reconciliation, commit beb936b: ACEITO COM AS LIMITAÇÕES REGISTRADAS. AUTORIZO exclusivamente o registro factual desta decisão. Não autorizo novo incremento, promoção nem transição de estado.`
+- Alcance: registro factual somente no relatório, adendo factual da proposta, estado atual e histórico append-only. Nenhum código, configuração, migration, dependência, teste executável, runtime ou artefacto gerado foi alterado.
+- Limitações aceitas: identity adapter/key P-256 somente no E2E; ausência de key store, issuer, token provisioner, trust distribution, rotação e recovery operacionais; Worker sem scheduler/transporte ativável; restart apenas lógico; expiração/incompatibilidade sem cenário Agent-side E2E separado; concorrência/crash/disk-full SQLite não exercitados; PostgreSQL/rede/identidade externas ausentes; classificação não secreta de futuros provider schemas não provada; nenhum acknowledgement operacional, provider, monitoring, UI, notification, LLM ou ação externa.
+- Evidências aceitas: commit `beb936b`, [relatório Agent-side](../../docs/STATE-06-Agent-Side-Identity-And-Assignment-Reconciliation-Report.md), resultados automáticos registrados, revisão direta e decisão de Bruno nesta sessão.
+- Shutdown preflight: workspace limpo no commit `beb936b`, zero processo DB-Notifier e zero listener proprietário; nenhum processo, banco, browser, IDE ou recurso alheio foi alterado.
+- Build, testes e runtime: `NÃO APLICÁVEIS` e não repetidos, porque esta autoridade permite somente registro Markdown factual. Os resultados do commit `beb936b` permanecem evidência histórica e não são promovidos como nova observação.
+- Gates documentais: documentação aprovada para `223` fontes comment-capable; `294` links Markdown locais em `73` arquivos; secret scan do worktree não ignorado e histórico disponível aprovado; inspeção de escopo e `git diff --check` aprovadas.
+- Classificação: decisão humana `ACEITA COM AS LIMITAÇÕES REGISTRADAS` somente para o incremento; Quality/Human Gate de saída de `STATE-06` continua `NÃO AVALIADO`; `OBSERVER`, `STATE-07`, release, integração externa e novo incremento não autorizados.
+- Próxima atividade: nenhuma ação adicional é exigida de Bruno e nenhuma ação técnica está autorizada. Um próximo fluxo só começa se ele solicitar explicitamente uma proposta, remediação ou novo incremento, preservando gates e autoridade separados.
+- Aprovador: Bruno, exclusivamente para aceitar o incremento e registrar essa decisão; nenhuma promoção, transição ou autoridade executiva adicional foi inferida.
+
 ## Template de nova entrada
 
 - Data:

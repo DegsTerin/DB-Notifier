@@ -11,7 +11,7 @@
 
 Este documento não autoriza o incremento que descreve. Ele não altera código, configuração, migration, runtime, ADR, modo MOD-12 ou posição do ciclo de vida. Seu único objetivo é permitir uma decisão posterior, separada e informada.
 
-> Nota factual posterior: Bruno usou a redação delimitada ao final deste documento para autorizar separadamente a implementação em 2026-07-18. O incremento foi implementado e passou seu Quality Gate automático restrito; a revisão humana do resultado permanece pendente. O relatório proprietário é [`STATE-06 Agent-side Identity and Assignment Reconciliation Report`](STATE-06-Agent-Side-Identity-And-Assignment-Reconciliation-Report.md). Esta nota não reescreve a natureza não executiva da proposta original nem autoriza trabalho adicional.
+> Nota factual posterior: Bruno usou a redação delimitada ao final deste documento para autorizar separadamente a implementação em 2026-07-18. O incremento foi implementado, passou seu Quality Gate automático restrito e foi aceito humanamente com as limitações registradas no commit `beb936b`. O relatório proprietário é [`STATE-06 Agent-side Identity and Assignment Reconciliation Report`](STATE-06-Agent-Side-Identity-And-Assignment-Reconciliation-Report.md). Esta nota não reescreve a natureza não executiva da proposta original nem autoriza trabalho adicional.
 
 ## Resumo para não especialistas
 
@@ -331,4 +331,4 @@ Bruno também poderá pedir ajustes ou adiar/rejeitar a proposta. Nenhuma respos
 - Evidência automática: build Release sem avisos, `283/283` testes unit/model/provider/presentation, `15/15` arquitetura, `2/2` E2E, coverage acima dos pisos, migration SQLite exercitada e smoke fail-closed aprovado.
 - Revisão direta: problemas encontrados em digest verificável, canonicalização JSON, classificação da recusa de revogação, guard de rollback e limites foram corrigidos antes da entrega.
 - Limitações: key store/issuer/token provisioning, scheduler/retry operacional, restart entre processos, concorrência/crash de SQLite, PostgreSQL e qualquer provider ou integração externa permanecem não implementados.
-- Decisão humana: pendente; nenhum estado ou modo foi promovido.
+- Decisão humana: aceita com as limitações registradas no commit `beb936b`; nenhum estado ou modo foi promovido e nenhum novo incremento foi autorizado.
