@@ -1399,6 +1399,19 @@
 - Próxima atividade: nenhuma ação adicional é exigida de Bruno para este incremento e nenhuma ação técnica está autorizada. Se ele decidir continuar futuramente, o primeiro passo será pedir uma proposta exclusivamente documental para um único incremento restrito de `STATE-06`; qualquer implementação ainda exigirá autorização separada.
 - Aprovador: Bruno, com aceitação expressamente limitada às evidências e limitações registradas.
 
+## 2026-07-18 — Proposta documental do próximo incremento Agent-side em STATE-06
+
+- Estado anterior: `STATE-06 INTEGRATION`, incremento server-side Agent Identity and Fleet dos commits `cc2d828` e `c5e3cbd` aceito com limitações, nenhum novo incremento autorizado e nenhum runtime operacional ativo.
+- Estado resultante: sem transição; `STATE-06 INTEGRATION` mantido, com proposta não autorizante pendente de decisão e nenhuma alteração de produto.
+- Solicitação: Bruno declarou exatamente `Apresente uma proposta exclusivamente documental para o próximo incremento restrito de STATE-06, sem implementação.`
+- Proposta: um futuro incremento `Agent-side Test Identity and Read-only Assignment Reconciliation`, limitado a enrollment exclusivamente de teste, heartbeat com replay durável, aplicação atômica/LKG de assignments no SQLite Agent, comportamento offline/revogado/incompatível e E2E sandbox sem provider ou monitoramento.
+- Limites: a proposta não autoriza implementação, código, configuração, migration, runtime, segredo, key store/issuer/token service operacional, provider, monitoramento, comando, UI, canal, ação externa, MOD-12, promoção ou transição.
+- Evidências: [proposta documental](../../docs/STATE-06-Agent-Side-Identity-And-Assignment-Reconciliation-Proposal.md), [estado atual](Current-State.md), [protocolo Agent/API](../../docs/architecture/Agent-API-Protocol.md), ADR-0002/ADR-0003 aceitos, baseline dos commits `cc2d828`, `c5e3cbd` e `27673d8`, e solicitação de Bruno nesta sessão.
+- Shutdown preflight: zero processo DB-Notifier encontrado ou encerrado, zero processo correspondente remanescente e zero listener proprietário; nenhum navegador, IDE, banco ou processo alheio foi alterado.
+- Gates desta proposta: documentação aprovada para `215` fontes comment-capable; `286` links Markdown locais em `72` arquivos aprovados; secret scan do worktree não ignorado e histórico Git disponível aprovado; escopo exato de três arquivos Markdown e `git diff --check` aprovados. Build, testes e runtime de produto são `NÃO APLICÁVEIS` e não foram executados neste escopo exclusivamente documental.
+- Próxima decisão: Bruno poderá ajustar, adiar, rejeitar ou autorizar separadamente somente o incremento proposto. Nenhuma decisão promoverá `OBSERVER`, encerrará `STATE-06` ou autorizará `STATE-07` automaticamente.
+- Aprovador: não aplicável; esta entrada registra solicitação e proposta, não aprovação do incremento descrito.
+
 ## Template de nova entrada
 
 - Data:
