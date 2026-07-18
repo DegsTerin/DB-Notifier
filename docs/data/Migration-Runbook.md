@@ -2,7 +2,7 @@
 
 ## Scope
 
-These commands generate/validate non-production migrations only. Applying them to production or a monitored database is prohibited without a later authorized release/migration procedure.
+These commands generate/validate non-production migrations only. Applying them to production or a monitored database is prohibited without a later authorised release/migration procedure.
 
 ## Tooling
 
@@ -40,10 +40,10 @@ Design-time factories select providers without storing connection strings. Migra
 
 1. Build with warnings-as-errors and inspect generated Up/Down operations.
 2. Confirm correct context/provider and no cross-store table.
-3. Confirm IDs, UTC times, required fields, max lengths, FKs/delete behavior, unique/idempotency constraints, status checks, and indexes.
+3. Confirm IDs, UTC times, required fields, max lengths, FKs/delete behaviour, unique/idempotency constraints, status checks, and indexes.
 4. Search for password, secret value, connection string, private key, token value, or provider-native sensitive content.
 5. Review destructive operations explicitly; a generated drop/rename is never accepted blindly.
-6. For custom SQL, verify provider syntax, transactional behavior, idempotent cleanup in Down, and least privilege.
+6. For custom SQL, verify provider syntax, transactional behaviour, idempotent cleanup in Down, and least privilege.
 7. Generate scripts for initial→latest, previous→latest, latest→previous, and latest→zero where supported.
 8. Run SQLite migration tests against an ephemeral database and PostgreSQL script/model tests without a real target.
 9. Run locked restore, build, tests, format, and dependency vulnerability audit.
@@ -52,7 +52,8 @@ Design-time factories select providers without storing connection strings. Migra
 
 - Agent SQLite: `InitialAgentSchema` → `AddAgentStateConstraints` → `AddCommandCompatibilityEnvelope`.
 - Server PostgreSQL: `InitialServerSchema` → `AddServerStateConstraints` →
-  `EnforceAgentObservationSequence` → `HardenObservationReconciliation`.
+  `EnforceAgentObservationSequence` → `HardenObservationReconciliation` →
+  `IntegrateAgentFleetIdentity`.
 
 The server initial migration adds an append-only trigger for `audit_entries`; Down removes the trigger/function before dropping tables.
 `EnforceAgentObservationSequence` makes each Agent observation sequence unique. `HardenObservationReconciliation`
@@ -68,8 +69,15 @@ a payload hash cannot prove an exact replay and therefore remains fail-closed as
 The `HardenObservationReconciliation` Down operation removes the durable cursor and instance-state tables,
 their constraints and indexes, and the new health-sample columns. That rollback loses reconciliation
 checkpoints and payload-hash evidence, so it requires an application/protocol compatibility review and an
-internal-store backup. Migration source and offline scripts are not evidence that any real PostgreSQL store
-has been migrated.
+internal-store backup.
+
+`IntegrateAgentFleetIdentity` adds normalised enrollment-token, Agent-certificate and heartbeat-cursor
+tables; canonical heartbeat digest/gap evidence; uniqueness guards; conservative legacy backfills; and a
+fail-closed `Down` guard. The guard refuses to remove normalised identity evidence while an active Agent
+enrolled by this feature could remain trusted through the legacy certificate pointer. Its generated SQL was
+inspected, but `Up`, backfill, serialisable races and `Down` were not executed against PostgreSQL. The local
+Agent Fleet E2E used SQLite `EnsureCreated`, which is not migration evidence. Migration source and offline
+scripts are not evidence that any real PostgreSQL store has been migrated.
 
 ## Rollback rules
 
@@ -78,4 +86,4 @@ has been migrated.
 - Never use rollback to alter a monitored database.
 - Prefer forward-fix when Down would lose accepted data; record the decision and new migration.
 - SQLite rollback tests use an in-memory ephemeral database and validate latest→previous→zero.
-- PostgreSQL Down scripts are reviewed/generated offline in `STATE-03`; execution requires a later disposable PostgreSQL sandbox authorization.
+- PostgreSQL Down scripts are reviewed/generated offline; execution remains unproved and requires separate authority for a disposable PostgreSQL sandbox.

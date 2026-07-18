@@ -3,6 +3,7 @@
 ## Status and authority
 
 - Date: 2026-07-17
+- Documentary precision review: 2026-07-18, authorised separately after direct inspection of commit `cc2d828`
 - Workspace lifecycle position: `STATE-06 INTEGRATION`
 - Authority: Bruno authorised one restricted local increment for test-only enrollment, Agent revocation, heartbeat, a human Agent Fleet catalogue, read-only assignments, versioned contracts, persistence, local sandbox E2E tests and factual README correction
 - Temporary runtime authority: local test runtimes only, with mandatory shutdown after validation
@@ -26,17 +27,17 @@ The implementation is deliberately unable to issue production certificates. The 
 | Human catalogue | `GET /api/v1/agents`; active human identity plus server-side `agents.read` RBAC and safe projected fields only | No UI or external IdP flow was added |
 | Revocation | `POST /api/v1/agents/{agentId}:revoke`; active human identity plus `agents.revoke`, monotonic Agent/certificate transition and append-only audit in one serialisable store transaction | An already authenticated in-flight request may linearise before revocation; every later certificate validation observes the revoked state |
 
-All new HTTP contracts use protocol/schema version one, bounded input validation, correlation metadata and typed outcomes. Enrollment is the only anonymous route, and anonymous means only that no prior Agent identity exists: the route still requires the protected-transport marker and production rate policy.
+The Agent-facing enrollment, heartbeat and assignment routes validate Agent Fleet protocol/schema version one and return version/correlation metadata with typed outcomes. The human catalogue and revocation routes are typed endpoints under `/api/v1` and return the same version/correlation response headers, but they do not negotiate or require the Agent protocol/schema headers and their request/response bodies do not carry an Agent Fleet `SchemaVersion`. Enrollment is the only anonymous route, and anonymous means only that no prior Agent identity exists: the route still requires the protected-transport marker and production rate policy.
 
 ## Identity, provenance and secret handling
 
-- The enrollment token has a public identifier and a 32-byte random secret. Persistence stores only its 16-byte salt and domain-separated SHA-256 proof, never the raw token.
+- The local E2E fixture creates the enrollment token from a public identifier and a cryptographically generated 32-byte test secret. The accepted token format requires a 32-byte secret, and persistence stores only its 16-byte salt and domain-separated SHA-256 proof, never the raw token. No production provisioner exists, so the origin and entropy of a future operational token are not proved by this increment.
 - The token is bound to installation, environment, platform and scope, has explicit issue/expiry instants and is consumed in the same transaction that creates the Agent and certificate metadata.
-- The schema requires expiry after issuance but does not impose a maximum token lifetime. A future token-provisioning authority must supply that operational policy.
+- The schema requires expiry after issuance but does not impose a maximum token lifetime. A future token-provisioning authority must enforce both cryptographically secure token generation and that operational lifetime policy.
 - The Agent owns the private key. The request carries only a public PKCS#10 CSR; production persistence stores neither private key, certificate body nor raw token.
 - Issued certificate evidence is accepted only for ECDSA on the explicit NIST P-256 OIDs, client-authentication use, non-CA basic constraints, digital signature, the exact CSR digest and a current validity window.
 - Authentication rechecks canonical thumbprint, active certificate state, active Agent state, validity and, for non-legacy rows, the SHA-256 digest of the presented subject public key.
-- Enrollment denials, including unavailable issuance, are audited with sanitised codes that contain no presented token or certificate material.
+- Enrollment denials that reach the Application/store boundary, including unavailable issuance, are persisted with sanitised audit codes that contain no presented token or certificate material. Rejections performed earlier by HTTPS enforcement, protocol validation, request binding or the rate limiter do not call `AuditEnrollmentDenialAsync` and are not claimed as durable `audit_entries` evidence.
 
 ## Persistence, bounds and backpressure
 
@@ -97,7 +98,7 @@ An independent read-only review identified one high rollback risk, the absence o
 - assignments, catalogue, RBAC scopes and revocation certificate sets have explicit ceilings; and
 - documentation now distinguishes explicit token expiry from a maximum lifetime and exact heartbeat replay within detail retention from fail-closed cursor rejection after retention.
 
-The review also noted a general concurrency boundary: a request already authenticated before a concurrent revocation may complete as an operation ordered before that revocation. The next request is denied. Existing administrative command poll/ack code was not expanded or enabled under this increment, and command execution remains prohibited and disabled.
+The review also noted a general concurrency boundary: a request already authenticated before a concurrent revocation may complete as an operation ordered before that revocation. Assignment retrieval reads the active Agent and then the assignment projection in separate database queries without a shared snapshot transaction, so this increment does not prove immediate cancellation or a stronger cross-query linearisation guarantee. No revocation violation was observed: a certificate validation begun after the revocation transaction commits is denied. Existing administrative command poll/ack code was not expanded or enabled under this increment, and command execution remains prohibited and disabled.
 
 ## Verification
 
@@ -112,18 +113,36 @@ Environment: Windows, .NET SDK `10.0.301`, Release configuration, 2026-07-17.
 | Local Agent Fleet E2E | `1/1` passed over loopback HTTPS/mTLS and in-memory SQLite |
 | Coverage gate | passed: `77.36%` lines and `53.78%` branches; floors `70%`/`45%` |
 | .NET format/analyser gate | passed with no required changes |
-| Code-documentation and Markdown-link gates | passed after factual synchronisation |
+| Code-documentation and Markdown-link gates | passed for the automated source/comment inventory and local links; those automated checks do not prove prose accuracy |
 | Secret scan | passed for the non-ignored worktree and available Git history |
 | Fail-closed runtime smoke | passed: liveness `200`; catalogue, audit, enrollment and command poll protected HTTP routes returned `426`; all Agent workers remained disabled and local Agent persistence was not initialised |
 | Git diff checks | passed before commit |
 
 Online NuGet/npm vulnerability audits were not repeated because the authorised increment prohibits external resources and no result was inferred from an earlier audit. No operational PostgreSQL, database provider, OIDC service, PKI, vault, external channel, deployment or publication was contacted.
 
+## Documentary precision remediation after commit
+
+A direct read-only review of commit `cc2d828` on 2026-07-18 confirmed the implemented server boundary and E2E flow, found no Critical or High defect in the restricted scope, and identified factual precision gaps in the report and migration runbook. Bruno then authorised only a local documentary remediation, without code, runtime, external action, new increment, promotion or lifecycle transition.
+
+This remediation:
+
+- distinguishes Agent protocol/schema negotiation from the `/api/v1` versioning of human catalogue and revocation contracts;
+- limits the durable enrollment-audit claim to denials that reach the Application/store boundary;
+- records the separate-query assignment/revocation concurrency boundary without presenting an unexecuted race as a proved guarantee;
+- limits the 32-byte entropy claim to the cryptographically generated E2E test token and leaves future provisioner entropy as unproved;
+- adds `IntegrateAgentFleetIdentity` to the factual Server PostgreSQL migration chain; and
+- makes the gate classification explicitly increment-only and separate from the unexecuted `STATE-06` exit gate.
+
+No product build, unit test, E2E, database migration or runtime smoke was repeated because no product, executable, schema or configuration changed. The original automated results above remain historical evidence of commit `cc2d828`, not newly observed results of this documentation-only follow-up. Documentary verification results are recorded in the append-only transition log.
+
 ## Limitations and residual conditions
 
 - Production enrollment always returns issuer unavailable until a separately authorised PKI/provisioning design is implemented.
-- There is no token-provisioning API, certificate rotation/overlap, CRL/OCSP integration, external IdP exercise or operational key store.
+- There is no token-provisioning API, proved operational token-entropy source, certificate rotation/overlap, CRL/OCSP integration, external IdP exercise or operational key store.
+- Human catalogue and revocation are typed `/api/v1` contracts but do not negotiate Agent protocol/schema headers or carry an Agent Fleet `SchemaVersion` in their bodies.
+- HTTPS, protocol, request-binding and rate-limit rejections occur before the Application/store enrollment audit and therefore are not durable `audit_entries` evidence.
 - PostgreSQL migration/backfill/rollback and serialisable concurrency races were not executed; only SQL generation/inspection and SQLite behaviour were tested.
+- Assignment retrieval and revocation do not share one snapshot transaction; a request authorised before revocation may finish afterwards, while a later certificate validation is denied.
 - Enrollment replay was exercised sequentially, not as two concurrent PostgreSQL transactions.
 - Exact heartbeat receipt replay requires the immutable detail row. After detail retention, the cursor still rejects stale sequences but cannot reconstruct the earlier receipt.
 - The Agent worker does not enroll, store a client identity, send heartbeat, reconcile/apply assignments or acknowledge configuration.
@@ -134,9 +153,11 @@ Online NuGet/npm vulnerability audits were not repeated because the authorised i
 
 ## Gate classification
 
-- Local automatic Quality Gate: `APPROVED` for this restricted implementation and its recorded evidence.
+- Restricted-increment automatic Quality Gate: `APPROVED` for the implementation and recorded evidence of commit `cc2d828`; this is not a lifecycle exit gate.
+- Documentary precision remediation Quality Gate: `APPROVED` only after the local documentation, link, secret and Git-diff checks recorded in the transition log.
 - Human review of this increment: `PENDING`.
 - Lifecycle position: remains `STATE-06 INTEGRATION`.
+- `STATE-06` lifecycle exit Quality/Human Gates: `NOT EVALUATED`; the wider integration state remains incomplete.
 - `none → OBSERVER`: `PENDING` and explicitly outside this authority.
 - New implementation increment, external integration or `STATE-07`: `NOT AUTHORISED`.
 
