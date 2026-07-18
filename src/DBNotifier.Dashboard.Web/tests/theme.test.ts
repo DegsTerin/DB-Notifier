@@ -212,16 +212,19 @@ test("canonical Light and Dark semantic text pairs meet WCAG AA", () => {
   }
 });
 
-test("provider presentation uses only neutral categorical tokens and locally defined generic geometry", () => {
+test("provider presentation keeps categorical semantics neutral while using the bounded local artwork component", () => {
   const core = readFileSync(new URL("../../../design-system/tokens/core.tokens.json", import.meta.url), "utf8");
   const components = readFileSync(new URL("../../../design-system/tokens/components.tokens.json", import.meta.url), "utf8");
   const providerIcon = readFileSync(new URL("../src/ProviderIcon.tsx", import.meta.url), "utf8");
+  const providerRegistry = readFileSync(new URL("../src/providerIconRegistry.ts", import.meta.url), "utf8");
   const css = readFileSync(new URL("../src/styles.css", import.meta.url), "utf8");
 
   assert.doesNotMatch(core, /palette\.provider\./);
   assert.doesNotMatch(components, /component\.provider\./);
-  assert.doesNotMatch(providerIcon, /providerType ===|provider-\$\{providerType\}/);
+  assert.match(providerIcon, /resolveProviderIconAssets\(providerType\)/);
   assert.match(providerIcon, /<ellipse cx="16" cy="8" rx="10" ry="4"\/>/);
+  assert.doesNotMatch(providerRegistry, /https?:\/\//);
+  assert.doesNotMatch(providerRegistry, /providerType\s*===|\/provider-icons\/\$\{/);
   assert.match(css, /provider-ring-segment\.segment-5[^{]*\{[^}]*--db-colour-data-category-5/s);
   assert.doesNotMatch(css, /provider-ring-segment[^}]*--db-(?:component|colour)-status/s);
 });

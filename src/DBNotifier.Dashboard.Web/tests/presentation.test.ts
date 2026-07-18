@@ -714,7 +714,7 @@ test("provider-neutral database mark is shared by active Web and Windows surface
   assert.match(desktopCode, /BrandStatusIconPolicy\.ApplyNativeWindowIcons\(this, aggregateState\)/);
   assert.match(desktopApp, /DesktopDemonstrationEvidence\.Create\(generatedAt\)/);
   assert.match(desktopApp, /evidence\.Summarise\(generatedAt\)/);
-  assert.match(desktopApp, /new\(localisation, theme, evidence, fleetSummary\.State, accessibilityReviewMode\)/);
+  assert.match(desktopApp, /new\(\s*localisation,\s*theme,\s*providerVisualIdentityPolicy,\s*evidence,\s*fleetSummary\.State,\s*accessibilityReviewMode\)/);
   assert.match(desktopEvidence, /TrayFleetPresentationPolicy\.Summarise\(CreateInventorySnapshot/);
   assert.match(desktopEvidence, /GeneratedAt = generatedAt/);
   assert.match(flyoutXaml, /x:Name="BrandStatusImage"/);
@@ -814,7 +814,7 @@ test("Tray flyout preserves operational scanning while administrative execution 
   assert.match(flyout, /DynamicResource Tray\.RestartUnavailable/);
   assert.match(flyout, /Grid\.Column="2"/);
   assert.doesNotMatch(flyout, /Click="Restart/);
-  assert.match(controller, /new TrayFlyoutWindow\(localisation, evidence, initialSummary, ShowView/);
+  assert.match(controller, /new TrayFlyoutWindow\(\s*localisation,\s*providerVisualIdentityPolicy,\s*evidence,\s*initialSummary,\s*ShowView/);
   assert.match(controller, /evidence\.Summarise\(evaluatedAt\)/);
   assert.match(controller, /Interval = TimeSpan\.FromSeconds\(30\)/);
   assert.match(controller, /window\.RefreshOperationalEvidence\(evaluatedAt, next\.State\)/);

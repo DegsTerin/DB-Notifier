@@ -5,8 +5,8 @@
 | Field | Value |
 |---|---|
 | Status | Official frontend specification |
-| Design System version | `3.0.4` |
-| Product phase | `STATE-05 FRONTEND_IMPLEMENTATION` |
+| Design System version | `3.1.0` |
+| Product phase | `STATE-06 INTEGRATION` |
 | Platforms | React Web Dashboard and .NET 10 WPF Desktop/Tray |
 | Themes | Light and Dark; Windows High Contrast is an accessibility override |
 | Accessibility target | WCAG 2.2 AA |
@@ -336,7 +336,9 @@ Categorical graphics use the stable ordinal tokens below. Their values come only
 | `colour.data.category.4` | `#526273` | `#94A6B2` |
 | `colour.data.category.5` | `#084B8A` | `#B9DDFF` |
 
-The former provider-named primitive and component tokens are removed in Design System `3.0.0`. Provider glyphs in the neutral catalogue use the locally defined generic database outline or plain text abbreviations, never an unlicensed vendor logo or an approximation of vendor artwork. In Windows High Contrast, every categorical brush resolves to the current Windows text brush so the operating system owns contrast.
+The former provider-named primitive and component tokens are removed in Design System `3.0.0`. Design System `3.1.0` introduces the presentation-only `ProviderIdentityIcon`: it resolves an exact, locally vendored and provenance-recorded provider asset from an open declarative registry, or the locally defined neutral database outline when no exact asset exists. The authoritative provider name MUST remain visible beside either result. A related vendor logo, plain-text abbreviation or approximation MUST NOT replace a missing exact identity. Asset presence MUST NOT declare provider implementation, homologation, support, health or freshness. The registry remains outside Domain and Application and MUST NOT create a closed engine catalogue.
+
+Provider artwork retains its reviewed upstream geometry and colours as a narrow third-party identity exception to product-owned categorical tokens. Those colours MUST NOT be sampled, recoloured or reused as status, chart-category, support or theme tokens. In browser forced-colour mode and Windows High Contrast, multicolour artwork is hidden and the neutral database outline uses the current system text colour. Every categorical brush independently resolves to the current Windows text brush so the operating system owns contrast.
 
 ### 6.5 Required contrast evidence
 
@@ -393,8 +395,9 @@ Body copy MUST NOT be smaller than 14 px by default. Uppercase is limited to sho
 - Icon-only buttons require an accessible name and tooltip.
 - Decorative icons are hidden from assistive technology.
 - Status icons always have adjacent visible text.
-- Provider logos MAY appear in provider detail/catalogue contexts, never as the only provider name or status indicator.
-- Third-party icons MUST be vendored with recorded licence/provenance; runtime downloads are prohibited.
+- `ProviderIdentityIcon` MAY appear beside the visible provider name in instance, inventory, event, alert, configuration, Overview and provider catalogue/distribution contexts. It is decorative, never the only provider name, and remains separate from every health, freshness, support and homologation indicator.
+- Third-party provider icons MUST be exact reviewed identities, vendored with source revision, upstream path/blob, local SHA-256 and complete licence/provenance. Runtime downloads and construction of an asset path from untrusted provider text are prohibited. A missing registry entry, failed asset load or unsupported forced-colour environment MUST fall back to the neutral database outline without hiding the provider name.
+- `design-system/provider-icons/manifest.json` is the canonical third-party source inventory. `scripts/generate-provider-icon-assets.mjs` owns offline Web mirrors, WPF raster derivatives and deterministic drift verification. WPF raster generation uses the manifest-pinned isolated headless renderer; ordinary builds and runtime require neither that renderer nor network access.
 - The DB-Notifier product mark uses a large database cylinder with one clear Windows-blue `#0078D4` outline of `3.5` units on its canonical `64×64` canvas, a fully transparent interior and a compact solid notification bell on a transparent canvas. It has no enclosing tile, theme-specific backing fill, stacked keyline or white outline. Every aggregate-bearing operational occurrence MUST share the same provider-neutral fleet aggregate: green for Healthy, yellow for Warning, deep red `#C62828` for Critical and neutral grey for Unknown. The bell expresses state and notification purpose without identifying a database vendor; shape and adjacent text keep status independent of colour. Static executable, installer, shortcut and documentation assets that cannot observe fleet state MUST use Unknown rather than implying Healthy. The mark MUST remain readable over both Light and Dark shell surfaces and MUST NOT be replaced by a PostgreSQL, MySQL or other vendor logo.
 - `scripts/generate-brand-assets.mjs` is the canonical cross-platform generator. It owns the single database-and-bell geometry and every generated identity asset; a consumer MUST NOT redraw, approximate or maintain a second product-mark model. The generator emits one neutral default plus Healthy, Warning, Critical and Unknown Web SVGs, browser favicon ICOs at 16/20/24/32 px, Windows ICOs at 16/20/24/32/40/48/64/128/256 px, one transparent 64 px availability PNG and transparent Healthy, Warning, Critical and Unknown 64 px PNGs for event-specific Windows app notifications; CI MUST fail on generated drift.
 - The Dashboard MUST resolve header and favicon paths from one aggregate-state function. When the aggregate changes, it MUST atomically replace identified and legacy favicon candidates with one state-and-revision-specific node before paint instead of mutating a previously associated link in place or leaving competing candidates; the initial static node remains Unknown until factual evidence exists. This forces Chromium to re-evaluate one deterministic candidate and reduces the risk that favicon history/cache retains a Healthy, Warning or older-build bitmap after the visible header has moved to another state.
@@ -497,7 +500,7 @@ Summary bands MUST use the available width of their owning operational region an
 
 ### 10.5.1 Operational overview
 
-`OperationalOverview` is the default Dashboard and Desktop landing view. It composes the existing inventory, alert and freshness presentation adapters into four summary metrics, a fleet-status list with one generic database glyph beside authoritative provider text and textual status, a recent-alert list with semantic icons including a rotating-arrow Restarted symbol, a deterministic Performance chart and a Providers distribution. Every panel MUST expose its demonstration or source truth and link only to existing safe detailed views. Graphics supplement visible text and MUST NOT imply external telemetry, support or homologation.
+`OperationalOverview` is the default Dashboard and Desktop landing view. It composes the existing inventory, alert and freshness presentation adapters into four summary metrics, a fleet-status list with `ProviderIdentityIcon` beside authoritative provider text and textual status, a recent-alert list with semantic icons including a rotating-arrow Restarted symbol, a deterministic Performance chart and a Providers distribution. An exact registered provider identity is used when available; every unknown or unmapped provider receives the neutral database fallback. Every panel MUST expose its demonstration or source truth and link only to existing safe detailed views. Graphics supplement visible text and MUST NOT imply external telemetry, support or homologation.
 
 At standard desktop width, fleet status and recent alerts form the primary two-column row, with trend and provider distribution beneath it. At compact widths all panels reflow to one content column, instance status/latency remain textual and decorative sparklines MAY be reduced without removing evidence. TV mode uses this same Overview rather than creating an independent data contract.
 
@@ -639,7 +642,9 @@ Parity means semantic equivalence, not identical pixels. Native platform behavio
 - Generated CSS/XAML is deterministic and has no drift.
 - Hand-written feature styles contain no raw colour values, shadows, radii or spacing outside approved exceptions.
 - Every consumed semantic token exists in Light and Dark.
-- No component imports provider-specific presentation into the core design layer.
+- No provider artwork enters Domain, Application, semantic product tokens or the global product-mark layer; presentation adapters consume only the reviewed identity manifest.
+- The provider identity manifest is declarative and presentation-only; arbitrary future provider identifiers resolve the neutral fallback without adding a core enum or engine branch.
+- Every provider source and generated derivative passes local hash/provenance verification, no product runtime URL references `skillicons.dev` or another icon host, and the complete third-party licence accompanies distributed assets.
 
 ### 15.2 Theme behaviour gates
 
@@ -658,6 +663,7 @@ Parity means semantic equivalence, not identical pixels. Native platform behavio
 - Exercise keyboard order, focus visibility, dialogue entry/containment/Escape/restoration and live states.
 - Verify accessibility trees contain expected landmarks/roles/names and no unnamed interactive controls.
 - Verify reduced motion and forced-colours/high-contrast behaviour. Dashboard forced-colour automation MUST cover all eight destinations in both locales and both explicit themes, retaining system canvas/text/highlight colours, visible focus, status boundaries, current-navigation semantics and zero unnamed interactive controls.
+- Verify provider artwork is decorative and accompanied by authoritative text; failed/unknown assets and forced-colour/High Contrast modes use the neutral system-colour fallback without changing health or support state.
 - Verify the WPF startup contract selects Per-Monitor V2 before creating the application, and record the running process as per-monitor aware. A physical mixed-DPI move remains a separate environment-dependent sample.
 
 ### 15.4 Visual and responsive matrix
@@ -676,7 +682,7 @@ Preferences: reduced motion and 200% native browser zoom
 
 WPF samples MUST cover `pt-BR` and `en-GB` with Light, Dark and Windows High Contrast at the default and minimum window sizes, plus 100%, 125%, 150% and 200% Windows scaling where the environment permits.
 
-Acceptance requires no unintended page overflow, clipping, illegible truncation, overlapping focus ring, theme mismatch or state communicated only by colour.
+Acceptance requires no unintended page overflow, clipping, illegible truncation, overlapping focus ring, theme mismatch or state communicated only by colour. Provider identity samples MUST include an exact Light/Dark asset, a single-variant asset, an unmapped future provider and forced-colour/High Contrast fallback at 100% and 200% scaling.
 
 ### 15.5 Human Gate samples
 
@@ -692,6 +698,7 @@ Acceptance requires no unintended page overflow, clipping, illegible truncation,
 - Side-by-side product-mark comparison at native 16/20/24 px shell roles and 32/40 px application roles, confirming that the same cylinder ellipse, two seams, bell, clapper, proportions and transparent silhouette remain recognisable without a size-specific alternate glyph.
 - Visual review for hierarchy, density, consistency and absence of neon/glow/exaggerated effects.
 - Explicit review that planned/unhomologated providers and unsupported actions remain truthful in both themes.
+- Side-by-side review that exact PostgreSQL, MySQL and MongoDB identities remain recognisable beside their names, while SQL Server and another unmapped identifier use the neutral fallback without suggesting a related vendor identity.
 
 ## 16. Implementation sequence within STATE-05
 
@@ -727,5 +734,6 @@ The implementation MUST remain deterministic and disconnected from real database
 - Responsive/visual matrices pass without unintended overflow or clipping.
 - Human screen-reader, zoom, scaling and theme samples are recorded.
 - Documentation, token version and evidence are synchronised.
+- Provider identities are local, provenance-recorded and hash-verified; unknown/error/forced-colour paths preserve the neutral fallback and visible provider name on both platforms.
 - Automatic re-audit is approved.
 - Human Gate is explicitly approved before `STATE-06`.

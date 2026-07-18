@@ -1,4 +1,5 @@
 // Module purpose: Guards WPF markup contracts that compile successfully but can fail when templates are materialised at runtime.
+using System.Text.Json;
 using System.Text.RegularExpressions;
 
 namespace DBNotifier.Architecture.Tests;
@@ -84,6 +85,82 @@ public sealed class WpfPresentationContractTests
         Assert.DoesNotContain("<AssemblyName>DB Notifier</AssemblyName>", project, StringComparison.Ordinal);
     }
 
+    /// <summary>Ensures WPF provider identities use only declared local theme assets and retain neutral accessible fallbacks.</summary>
+    [Fact]
+    public void WpfProviderIdentitiesUseLocalThemeAssetsAndNeutralFallbacks()
+    {
+        string desktopDirectory = Path.Combine(RepositoryRoot(), "src", "DBNotifier.Desktop.Wpf");
+        string policy = File.ReadAllText(Path.Combine(desktopDirectory, "ProviderVisualIdentityPolicy.cs"));
+        string identityMarkup = File.ReadAllText(Path.Combine(desktopDirectory, "ProviderIdentityView.xaml"));
+        string identityView = File.ReadAllText(Path.Combine(desktopDirectory, "ProviderIdentityView.xaml.cs"));
+        string mainWindowMarkup = File.ReadAllText(Path.Combine(desktopDirectory, "MainWindow.xaml"));
+        string flyoutMarkup = File.ReadAllText(Path.Combine(desktopDirectory, "TrayFlyoutWindow.xaml"));
+        string project = File.ReadAllText(Path.Combine(desktopDirectory, "DBNotifier.Desktop.Wpf.csproj"));
+        string iconDirectory = Path.Combine(desktopDirectory, "Assets", "ProviderIcons");
+        string[] providerTypes =
+        [
+            "cassandra",
+            "dynamodb",
+            "elasticsearch",
+            "firebase",
+            "mongodb",
+            "mysql",
+            "planetscale",
+            "postgresql",
+            "redis",
+            "sqlite",
+            "supabase",
+        ];
+        using JsonDocument manifest = JsonDocument.Parse(File.ReadAllText(Path.Combine(
+            RepositoryRoot(),
+            "design-system",
+            "provider-icons",
+            "manifest.json")));
+        string[] manifestProviderTypes = manifest.RootElement.GetProperty("icons")
+            .EnumerateArray()
+            .Select(icon => icon.GetProperty("providerType").GetString()!)
+            .ToArray();
+
+        Assert.Equal(providerTypes, manifestProviderTypes);
+        Assert.Contains("pack://application:,,,/DBNotifier.Desktop.Wpf;component/", policy, StringComparison.Ordinal);
+        Assert.Contains("theme.EffectiveTheme == EffectiveTheme.Dark", policy, StringComparison.Ordinal);
+        Assert.Contains("theme.IsHighContrastActive", policy, StringComparison.Ordinal);
+        Assert.Contains("string visibleProviderType = providerType ?? \"unknown\"", policy, StringComparison.Ordinal);
+        Assert.Contains("Assets.TryGetValue(providerType", policy, StringComparison.Ordinal);
+        Assert.DoesNotContain(".Trim()", policy, StringComparison.Ordinal);
+        Assert.Contains("new ProviderVisualIdentity(visibleProviderType, null)", policy, StringComparison.Ordinal);
+        Assert.DoesNotContain("http://", policy, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("https://", policy, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("<Resource Include=\"Assets\\ProviderIcons\\*.png\" />", project, StringComparison.Ordinal);
+        Assert.Contains("SkillIcons.LICENSE.txt", project, StringComparison.Ordinal);
+        Assert.Contains("THIRD-PARTY-NOTICES.md", project, StringComparison.Ordinal);
+
+        foreach (string providerType in providerTypes)
+        {
+            Assert.Contains($"[\"{providerType}\"] = ProviderVisualAsset.Create(\"{providerType}\")", policy, StringComparison.Ordinal);
+            Assert.True(File.Exists(Path.Combine(iconDirectory, $"{providerType}-light.png")), $"Missing Light provider icon for '{providerType}'.");
+            Assert.True(File.Exists(Path.Combine(iconDirectory, $"{providerType}-dark.png")), $"Missing Dark provider icon for '{providerType}'.");
+        }
+
+        Assert.Contains("<local:DecorativeProviderImage", identityMarkup, StringComparison.Ordinal);
+        Assert.Contains("RenderOptions.BitmapScalingMode=\"HighQuality\"", identityMarkup, StringComparison.Ordinal);
+        Assert.Contains("x:Name=\"ProviderText\"", identityMarkup, StringComparison.Ordinal);
+        Assert.Contains("<ColumnDefinition Width=\"*\" />", identityMarkup, StringComparison.Ordinal);
+        Assert.Contains("Grid.Column=\"1\"", identityMarkup, StringComparison.Ordinal);
+        Assert.DoesNotContain("<StackPanel Orientation=\"Horizontal\"", identityMarkup, StringComparison.Ordinal);
+        Assert.Contains("x:Name=\"FallbackGlyph\"", identityMarkup, StringComparison.Ordinal);
+        Assert.Contains("ImageFailed=\"ProviderImageFailed\"", identityMarkup, StringComparison.Ordinal);
+        Assert.Contains("UseNeutralFallback()", identityView, StringComparison.Ordinal);
+        Assert.Contains("OnCreateAutomationPeer() => null", identityView, StringComparison.Ordinal);
+        Assert.DoesNotContain("AutomationProperties.AccessibilityView", identityMarkup, StringComparison.Ordinal);
+        Assert.Contains("ProviderIdentityView", mainWindowMarkup, StringComparison.Ordinal);
+        Assert.Equal(3, Regex.Count(mainWindowMarkup, "SortMemberPath=\\\"ProviderType\\\""));
+        Assert.Contains("ProviderIdentityView", flyoutMarkup, StringComparison.Ordinal);
+        Assert.Contains("x:Name=\"BrandStatusImage\"", mainWindowMarkup, StringComparison.Ordinal);
+        Assert.Contains("x:Name=\"BrandStatusImage\"", flyoutMarkup, StringComparison.Ordinal);
+        Assert.Contains("x:Name=\"FinanceStatusGlyph\"", flyoutMarkup, StringComparison.Ordinal);
+    }
+
     /// <summary>Ensures invalid future or reversed inventory evidence is not rendered as a factual desktop timestamp.</summary>
     [Fact]
     public void WpfInventorySuppressesTimestampWhenFreshnessIsUnknown()
@@ -96,7 +173,7 @@ public sealed class WpfPresentationContractTests
 
         Assert.Contains("string observedAt = freshness == EvidenceFreshness.Unknown", mainWindow, StringComparison.Ordinal);
         Assert.Contains("? localisation.Text(\"Status.Unknown\")", mainWindow, StringComparison.Ordinal);
-        Assert.Contains("observedAt, latency", mainWindow, StringComparison.Ordinal);
+        Assert.Matches("observedAt,\\s*latency\\);", mainWindow);
     }
 
     /// <summary>Ensures native caption and scrolling chrome follow generated theme resources without replacing Windows accessibility ownership.</summary>

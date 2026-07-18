@@ -1,0 +1,192 @@
+{
+  "generatedBy": "scripts/generate-provider-icon-assets.mjs",
+  "sourceRevision": "7f7e691e71aec64e8354bf697835e009d1ad80f8",
+  "rasteriser": {
+    "engine": "Google Chrome Headless",
+    "version": "150.0.7871.125",
+    "width": 64,
+    "height": 64
+  },
+  "assets": [
+    {
+      "providerType": "cassandra",
+      "variant": "light",
+      "webPath": "src/DBNotifier.Dashboard.Web/public/provider-icons/cassandra-light.svg",
+      "webSha256": "15b8a17e95aac5323a744a34f4bf0e654a53c86c4bdceccf2814c47169791370",
+      "desktopPath": "src/DBNotifier.Desktop.Wpf/Assets/ProviderIcons/cassandra-light.png",
+      "desktopSha256": "5466e35b509800e588bc0f94f6c54f9a398a1d56ef30f1eff4b7b7c95e99e532"
+    },
+    {
+      "providerType": "cassandra",
+      "variant": "dark",
+      "webPath": "src/DBNotifier.Dashboard.Web/public/provider-icons/cassandra-dark.svg",
+      "webSha256": "368e943ef101f3b4f5c5bda881070cb72b7971644aa0078cf916a66e1dbe85cf",
+      "desktopPath": "src/DBNotifier.Desktop.Wpf/Assets/ProviderIcons/cassandra-dark.png",
+      "desktopSha256": "bbfcd42cc2b5c8d1d64366d28443b5253676d6edddccbf5b663d7b1365d6b1e5"
+    },
+    {
+      "providerType": "dynamodb",
+      "variant": "light",
+      "webPath": "src/DBNotifier.Dashboard.Web/public/provider-icons/dynamodb-light.svg",
+      "webSha256": "688d8da335997466abb8ede1823b7f02a89a2af5d5ecdf395e1ec7ff66f892db",
+      "desktopPath": "src/DBNotifier.Desktop.Wpf/Assets/ProviderIcons/dynamodb-light.png",
+      "desktopSha256": "ded8530606b07af4af32713c3633264f9ce01ee5ba3cbacc4e7248bf807e5bad"
+    },
+    {
+      "providerType": "dynamodb",
+      "variant": "dark",
+      "webPath": "src/DBNotifier.Dashboard.Web/public/provider-icons/dynamodb-dark.svg",
+      "webSha256": "5172776dec6387fedd897ecb5d7ecc72bd57637db0d22ca12300846b7b8ae8a8",
+      "desktopPath": "src/DBNotifier.Desktop.Wpf/Assets/ProviderIcons/dynamodb-dark.png",
+      "desktopSha256": "435a84406f36bf27cbf71d5dd9c39f452b6933308fae76043f3be955fbe18ea9"
+    },
+    {
+      "providerType": "elasticsearch",
+      "variant": "light",
+      "webPath": "src/DBNotifier.Dashboard.Web/public/provider-icons/elasticsearch-light.svg",
+      "webSha256": "ccfcc693e28f8aa988b5469ebe38bee17525ae669bbdf63c2403d77a8e1349c7",
+      "desktopPath": "src/DBNotifier.Desktop.Wpf/Assets/ProviderIcons/elasticsearch-light.png",
+      "desktopSha256": "68198ffaf8beaa5ae5d7d0b06b6dc0cb763d02e61974c6dd0c342497db3b70f4"
+    },
+    {
+      "providerType": "elasticsearch",
+      "variant": "dark",
+      "webPath": "src/DBNotifier.Dashboard.Web/public/provider-icons/elasticsearch-dark.svg",
+      "webSha256": "e3d5c358f3159ff8f25fe26670392c0a6ffca7d5bedab9abf74ab4e544ac0050",
+      "desktopPath": "src/DBNotifier.Desktop.Wpf/Assets/ProviderIcons/elasticsearch-dark.png",
+      "desktopSha256": "610026de3d205b790ac8ef067cf4824317b0a5f79ee2e0d5c80e4cfb8cfde38c"
+    },
+    {
+      "providerType": "firebase",
+      "variant": "light",
+      "webPath": "src/DBNotifier.Dashboard.Web/public/provider-icons/firebase-light.svg",
+      "webSha256": "8728cea6df2a8c93fce8c53895bee89933c7d7f92d43b509da6825dc122bf7bb",
+      "desktopPath": "src/DBNotifier.Desktop.Wpf/Assets/ProviderIcons/firebase-light.png",
+      "desktopSha256": "25e89cd3cfa7defa928a53802dcb295c82b0f0b5c121f886a3ab1f1fa1aa1024"
+    },
+    {
+      "providerType": "firebase",
+      "variant": "dark",
+      "webPath": "src/DBNotifier.Dashboard.Web/public/provider-icons/firebase-dark.svg",
+      "webSha256": "e796fa112a3f5126c1320455e418f2f12852c8d2bb6fef3aa61cbd922910fb8f",
+      "desktopPath": "src/DBNotifier.Desktop.Wpf/Assets/ProviderIcons/firebase-dark.png",
+      "desktopSha256": "99ef5c04fffbbbf693692aad0b201f07ac39bf75cbbdfa3281ad1fc2267b0450"
+    },
+    {
+      "providerType": "mongodb",
+      "variant": "light",
+      "webPath": "src/DBNotifier.Dashboard.Web/public/provider-icons/mongodb-light.svg",
+      "webSha256": "c5425d229c17b8d496ad1867c2484cb69beea296da77bbeb4ac74d63700c9670",
+      "desktopPath": "src/DBNotifier.Desktop.Wpf/Assets/ProviderIcons/mongodb-light.png",
+      "desktopSha256": "c582fc478c69c28e2ffd3b7a33f66d7d53b5bd5034265ff6d8fbc94b753fc4b4"
+    },
+    {
+      "providerType": "mongodb",
+      "variant": "dark",
+      "webPath": "src/DBNotifier.Dashboard.Web/public/provider-icons/mongodb-dark.svg",
+      "webSha256": "c5425d229c17b8d496ad1867c2484cb69beea296da77bbeb4ac74d63700c9670",
+      "desktopPath": "src/DBNotifier.Desktop.Wpf/Assets/ProviderIcons/mongodb-dark.png",
+      "desktopSha256": "c582fc478c69c28e2ffd3b7a33f66d7d53b5bd5034265ff6d8fbc94b753fc4b4"
+    },
+    {
+      "providerType": "mysql",
+      "variant": "light",
+      "webPath": "src/DBNotifier.Dashboard.Web/public/provider-icons/mysql-light.svg",
+      "webSha256": "9fc7b32edb6f7b177407ee383c2ce030eca2a4a475df3c5185f538f6565ac23c",
+      "desktopPath": "src/DBNotifier.Desktop.Wpf/Assets/ProviderIcons/mysql-light.png",
+      "desktopSha256": "fed139fc4ef6a056af4c253ad95baacfa30e5c05db925081c86e307c6c286396"
+    },
+    {
+      "providerType": "mysql",
+      "variant": "dark",
+      "webPath": "src/DBNotifier.Dashboard.Web/public/provider-icons/mysql-dark.svg",
+      "webSha256": "c952996f8c47b0963eaac79acc7fd38f128456c4777a791d087cea089912465d",
+      "desktopPath": "src/DBNotifier.Desktop.Wpf/Assets/ProviderIcons/mysql-dark.png",
+      "desktopSha256": "8bb6f60f4be428c2694425e1e99c7ebd838b875d20b3c06ca5df9c7379842e56"
+    },
+    {
+      "providerType": "planetscale",
+      "variant": "light",
+      "webPath": "src/DBNotifier.Dashboard.Web/public/provider-icons/planetscale-light.svg",
+      "webSha256": "77a4905ab96c7a7a00ba9b3be870c971384de7ba2f6f6c556672213cb1504b78",
+      "desktopPath": "src/DBNotifier.Desktop.Wpf/Assets/ProviderIcons/planetscale-light.png",
+      "desktopSha256": "50f1c83a02e5e7c0db0c76c3030c1c5340b744f2b7b2bc7093c1679ec2c46468"
+    },
+    {
+      "providerType": "planetscale",
+      "variant": "dark",
+      "webPath": "src/DBNotifier.Dashboard.Web/public/provider-icons/planetscale-dark.svg",
+      "webSha256": "e564864486b4b3c476a901b7c3485009cb812d6648dcb1aee9c750dbfb3ee115",
+      "desktopPath": "src/DBNotifier.Desktop.Wpf/Assets/ProviderIcons/planetscale-dark.png",
+      "desktopSha256": "a7a689c35e43e4907b4884cf6b92dc2aafea0fa1aae8c12d956c0013c55f460f"
+    },
+    {
+      "providerType": "postgresql",
+      "variant": "light",
+      "webPath": "src/DBNotifier.Dashboard.Web/public/provider-icons/postgresql-light.svg",
+      "webSha256": "0f726fab4d4fb028d064a75ade87a1156dd8a6e3ed58179f4cdb038931c87d1a",
+      "desktopPath": "src/DBNotifier.Desktop.Wpf/Assets/ProviderIcons/postgresql-light.png",
+      "desktopSha256": "6551d13b8b90df4b62b144680743e9978459602d40defa81f0a4c84016920d59"
+    },
+    {
+      "providerType": "postgresql",
+      "variant": "dark",
+      "webPath": "src/DBNotifier.Dashboard.Web/public/provider-icons/postgresql-dark.svg",
+      "webSha256": "fef054cc1c14c1c2ad5c51fd1a566426ddd9d8fc2ba83e93e819d382b446d99d",
+      "desktopPath": "src/DBNotifier.Desktop.Wpf/Assets/ProviderIcons/postgresql-dark.png",
+      "desktopSha256": "8afed5afa31ab66854a02e37570e13930e765bd14fb3911be463312ae0f51adc"
+    },
+    {
+      "providerType": "redis",
+      "variant": "light",
+      "webPath": "src/DBNotifier.Dashboard.Web/public/provider-icons/redis-light.svg",
+      "webSha256": "9ea9bf00a861f743b283a06700ff471aadf675c3d936b5bc54a2a6bec56d51b8",
+      "desktopPath": "src/DBNotifier.Desktop.Wpf/Assets/ProviderIcons/redis-light.png",
+      "desktopSha256": "fbf03222e86d5f6ac59d7991b162f6d2425e898495c50fea8724ca9d7058d3b0"
+    },
+    {
+      "providerType": "redis",
+      "variant": "dark",
+      "webPath": "src/DBNotifier.Dashboard.Web/public/provider-icons/redis-dark.svg",
+      "webSha256": "d750492f31881e89d4c858acd39d0264da972c4fb6af1350f0286ae463f0dff0",
+      "desktopPath": "src/DBNotifier.Desktop.Wpf/Assets/ProviderIcons/redis-dark.png",
+      "desktopSha256": "fbfdd3b21d39772a36a02a16a0fa4374f2ec3f7bc5b3baf86d40c50dca85b9c2"
+    },
+    {
+      "providerType": "sqlite",
+      "variant": "light",
+      "webPath": "src/DBNotifier.Dashboard.Web/public/provider-icons/sqlite-light.svg",
+      "webSha256": "9bdf50f06d9ef1366092060aae832de2bf57babeaa88ac636a9a6eff0373bd0a",
+      "desktopPath": "src/DBNotifier.Desktop.Wpf/Assets/ProviderIcons/sqlite-light.png",
+      "desktopSha256": "689f24afa996edbd986e9d2dff9cd5b185310c9f72d6cbc6362bac70c4b17f26"
+    },
+    {
+      "providerType": "sqlite",
+      "variant": "dark",
+      "webPath": "src/DBNotifier.Dashboard.Web/public/provider-icons/sqlite-dark.svg",
+      "webSha256": "9bdf50f06d9ef1366092060aae832de2bf57babeaa88ac636a9a6eff0373bd0a",
+      "desktopPath": "src/DBNotifier.Desktop.Wpf/Assets/ProviderIcons/sqlite-dark.png",
+      "desktopSha256": "689f24afa996edbd986e9d2dff9cd5b185310c9f72d6cbc6362bac70c4b17f26"
+    },
+    {
+      "providerType": "supabase",
+      "variant": "light",
+      "webPath": "src/DBNotifier.Dashboard.Web/public/provider-icons/supabase-light.svg",
+      "webSha256": "b65168d9360e6388dc4167cb6fe9fb5534c488044bafe35ea273c9f52f31c615",
+      "desktopPath": "src/DBNotifier.Desktop.Wpf/Assets/ProviderIcons/supabase-light.png",
+      "desktopSha256": "07d5bea3659b42a4de40514d9cae73fff203412a1ea7b9aa760c02d22cf0a425"
+    },
+    {
+      "providerType": "supabase",
+      "variant": "dark",
+      "webPath": "src/DBNotifier.Dashboard.Web/public/provider-icons/supabase-dark.svg",
+      "webSha256": "0faec57b31bb23e3a97385c4fde9244b9fe4e92cc171d0ecc13cd10898fa4fde",
+      "desktopPath": "src/DBNotifier.Desktop.Wpf/Assets/ProviderIcons/supabase-dark.png",
+      "desktopSha256": "b6751564e6498387c534399e73260e6902b77b6978abc5548dc7e8ef1e3a3f69"
+    }
+  ],
+  "licence": {
+    "webPath": "src/DBNotifier.Dashboard.Web/public/provider-icons/SkillIcons.LICENSE.txt",
+    "sha256": "8c8671d83b894c6e0c0e7bf0f69d51338c75e63b0bd6c947cedaac407df69c3f"
+  }
+}

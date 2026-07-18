@@ -34,10 +34,12 @@ public partial class MainWindow : Window
 {
     private readonly DesktopLocalisationService localisation;
     private readonly DesktopThemeService theme;
+    private readonly ProviderVisualIdentityPolicy providerVisualIdentityPolicy;
     private readonly DesktopDemonstrationEvidence evidence;
     private readonly ObservableCollection<InventoryRow> rows = [];
     private readonly ObservableCollection<TimelineRow> timelineRows = [];
     private readonly ObservableCollection<AlertRow> alertRows = [];
+    private readonly ObservableCollection<ProviderDistributionRow> providerRows = [];
     private readonly ObservableCollection<CapabilityRow> capabilityRows = [];
     private InventorySnapshot snapshot = null!;
     private TimelineAlertSnapshot timelineSnapshot = null!;
@@ -50,18 +52,21 @@ public partial class MainWindow : Window
     /// <summary>Initialises the local demonstration surface with loaded preferences and one factual aggregate icon state.</summary>
     /// <param name="localisation">Desktop localisation owner shared with the application and tray controller.</param>
     /// <param name="theme">Desktop theme owner shared with the application.</param>
+    /// <param name="providerVisualIdentityPolicy">Local resolver for decorative provider logos and neutral fallbacks.</param>
     /// <param name="evidence">Immutable locale-independent evidence shared with Tray presentation.</param>
     /// <param name="aggregateState">Initial provider-neutral fleet state shared by every product-mark surface.</param>
     /// <param name="accessibilityReviewMode">Optional isolated geometry used only for a bounded accessibility review.</param>
     internal MainWindow(
         DesktopLocalisationService localisation,
         DesktopThemeService theme,
+        ProviderVisualIdentityPolicy providerVisualIdentityPolicy,
         DesktopDemonstrationEvidence evidence,
         TrayAggregateState aggregateState,
         DesktopAccessibilityReviewMode accessibilityReviewMode)
     {
         this.localisation = localisation;
         this.theme = theme;
+        this.providerVisualIdentityPolicy = providerVisualIdentityPolicy;
         this.evidence = evidence;
         this.aggregateState = aggregateState;
         InitializeComponent();
@@ -75,15 +80,19 @@ public partial class MainWindow : Window
         InventoryGrid.ItemsSource = rows;
         HistoryGrid.ItemsSource = timelineRows;
         AlertsGrid.ItemsSource = alertRows;
+        OverviewProviderList.ItemsSource = providerRows;
+        ProviderCatalogueList.ItemsSource = providerRows;
         CapabilityGrid.ItemsSource = capabilityRows;
         localisation.LanguageChanged += LocalisationLanguageChanged;
         theme.ThemeChanged += ThemeChanged;
+        providerVisualIdentityPolicy.VisualIdentityChanged += ProviderVisualIdentityChanged;
         Closed += (_, _) =>
         {
             SourceInitialized -= MainWindowSourceInitialized;
             windowIconLease?.Dispose();
             localisation.LanguageChanged -= LocalisationLanguageChanged;
             theme.ThemeChanged -= ThemeChanged;
+            providerVisualIdentityPolicy.VisualIdentityChanged -= ProviderVisualIdentityChanged;
         };
         RebuildLocalisedData();
         PresentReadyState();
@@ -384,7 +393,12 @@ public partial class MainWindow : Window
         }
 
         InventoryStatusSummary summary = snapshot.Summarize(now, DesktopDemonstrationEvidence.StaleAfter);
-        Replace(rows, snapshot.Items.Select(item => InventoryRow.From(item, now, DesktopDemonstrationEvidence.StaleAfter, localisation)));
+        Replace(rows, snapshot.Items.Select(item => InventoryRow.From(
+            item,
+            now,
+            DesktopDemonstrationEvidence.StaleAfter,
+            localisation,
+            providerVisualIdentityPolicy)));
         UpdatedAtText.Text = Text("Wpf.UpdatedAt", FormatUtc(snapshot.GeneratedAt));
         TotalCountText.Text = summary.Total.ToString(localisation.Culture);
         HealthyCountText.Text = summary.Healthy.ToString(localisation.Culture);
@@ -399,8 +413,16 @@ public partial class MainWindow : Window
     private void PresentOverview(DateTimeOffset now)
     {
         InventoryStatusSummary summary = snapshot.Summarize(now, DesktopDemonstrationEvidence.StaleAfter);
-        Replace(rows, snapshot.Items.Select(item => InventoryRow.From(item, now, DesktopDemonstrationEvidence.StaleAfter, localisation)));
-        Replace(alertRows, timelineSnapshot.Alerts.Select(item => AlertRow.From(item, localisation)));
+        Replace(rows, snapshot.Items.Select(item => InventoryRow.From(
+            item,
+            now,
+            DesktopDemonstrationEvidence.StaleAfter,
+            localisation,
+            providerVisualIdentityPolicy)));
+        Replace(alertRows, timelineSnapshot.Alerts.Select(item => AlertRow.From(
+            item,
+            localisation,
+            providerVisualIdentityPolicy)));
         UpdatedAtText.Text = Text("Wpf.UpdatedFromAdapters", FormatUtc(snapshot.GeneratedAt));
         OverviewTotalCountText.Text = summary.Total.ToString(localisation.Culture);
         OverviewHealthyCountText.Text = summary.Healthy.ToString(localisation.Culture);
@@ -412,8 +434,14 @@ public partial class MainWindow : Window
     /// <summary>Presents local event and alert fixtures using localised severity and state labels.</summary>
     private void PresentHistoryAndAlerts(DesktopView view)
     {
-        Replace(timelineRows, timelineSnapshot.Events.Select(item => TimelineRow.From(item, localisation)));
-        Replace(alertRows, timelineSnapshot.Alerts.Select(item => AlertRow.From(item, localisation)));
+        Replace(timelineRows, timelineSnapshot.Events.Select(item => TimelineRow.From(
+            item,
+            localisation,
+            providerVisualIdentityPolicy)));
+        Replace(alertRows, timelineSnapshot.Alerts.Select(item => AlertRow.From(
+            item,
+            localisation,
+            providerVisualIdentityPolicy)));
         AlertStatusSummary summary = timelineSnapshot.Summarize();
         AlertSummaryText.Text = Text("Wpf.AlertSummary", summary.Active, summary.UnresolvedCritical);
         HistoryPanel.Visibility = view == DesktopView.History ? Visibility.Visible : Visibility.Collapsed;
@@ -428,7 +456,8 @@ public partial class MainWindow : Window
     {
         Replace(capabilityRows, configurationSnapshot.Capabilities.Select(item => CapabilityRow.From(item, localisation)));
         ConfigurationGrid.ItemsSource = configurationSnapshot.Fields;
-        ConfigurationInstanceText.Text = $"{configurationSnapshot.InstanceName} · {configurationSnapshot.ProviderType}";
+        ConfigurationInstanceText.Text = configurationSnapshot.InstanceName;
+        ConfigurationProviderIdentity.Identity = providerVisualIdentityPolicy.Resolve(configurationSnapshot.ProviderType);
         CapabilityGrid.SelectedIndex = capabilityRows.Count > 0 ? 0 : -1;
         UpdatedAtText.Text = Text("Wpf.LocalPreview", FormatUtc(evidence.GeneratedAt));
         ShowOnly(ConfigurationSurface);
@@ -483,8 +512,41 @@ public partial class MainWindow : Window
         snapshot = evidence.CreateInventorySnapshot(localisation);
         timelineSnapshot = CreateTimelineSnapshot(evidence.GeneratedAt);
         configurationSnapshot = CreateConfigurationSnapshot();
+        Replace(providerRows, snapshot.Items
+            .GroupBy(item => item.ProviderType, StringComparer.Ordinal)
+            .Select(group => new ProviderDistributionRow(
+                providerVisualIdentityPolicy.Resolve(group.Key),
+                group.Count())));
         ConfigurationGrid.ItemsSource = configurationSnapshot.Fields;
         RefreshGridHeaders();
+    }
+
+    /// <summary>Re-resolves only decorative provider identities after theme or High Contrast changes.</summary>
+    /// <param name="sender">Local provider-identity policy that observed the effective presentation change.</param>
+    /// <param name="e">Identity-change event data.</param>
+    private void ProviderVisualIdentityChanged(object? sender, EventArgs e)
+    {
+        Replace(rows, rows.Select(row => row with
+        {
+            ProviderIdentity = providerVisualIdentityPolicy.Resolve(row.ProviderType),
+        }).ToArray());
+        Replace(timelineRows, timelineRows.Select(row => row with
+        {
+            ProviderIdentity = providerVisualIdentityPolicy.Resolve(row.ProviderType),
+        }).ToArray());
+        Replace(alertRows, alertRows.Select(row => row with
+        {
+            ProviderIdentity = providerVisualIdentityPolicy.Resolve(row.ProviderType),
+        }).ToArray());
+        Replace(providerRows, providerRows.Select(row => row with
+        {
+            ProviderIdentity = providerVisualIdentityPolicy.Resolve(row.ProviderIdentity.ProviderType),
+        }).ToArray());
+
+        if (configurationSnapshot is not null)
+        {
+            ConfigurationProviderIdentity.Identity = providerVisualIdentityPolicy.Resolve(configurationSnapshot.ProviderType);
+        }
     }
 
     /// <summary>Refreshes detached DataGrid column headers that do not inherit WPF dynamic-resource invalidation.</summary>
@@ -639,10 +701,29 @@ public partial class MainWindow : Window
         new(Guid.Parse(id), Guid.Parse(id.Replace("0002-", "0000-")), name, provider, severity, state, rule, summary, updatedAt.AddMinutes(-10), updatedAt);
 
     /// <summary>Represents one localised inventory grid row.</summary>
-    private sealed record InventoryRow(string DisplayName, string ProviderType, string SupportLabel, string Environment, string StatusLabel, string ObservedAtLabel, string LatencyLabel)
+    private sealed record InventoryRow(
+        string DisplayName,
+        string ProviderType,
+        ProviderVisualIdentity ProviderIdentity,
+        string SupportLabel,
+        string Environment,
+        string StatusLabel,
+        string ObservedAtLabel,
+        string LatencyLabel)
     {
         /// <summary>Maps a canonical inventory item to non-colour-only localised presentation.</summary>
-        public static InventoryRow From(InstanceInventoryItem item, DateTimeOffset now, TimeSpan staleAfter, DesktopLocalisationService localisation)
+        /// <param name="item">Canonical provider-neutral inventory evidence.</param>
+        /// <param name="now">UTC evaluation instant used for freshness classification.</param>
+        /// <param name="staleAfter">Maximum evidence age before the row is explicitly stale.</param>
+        /// <param name="localisation">Desktop localisation owner for visible labels.</param>
+        /// <param name="providerVisualIdentityPolicy">Local decorative provider-identity resolver.</param>
+        /// <returns>A localised row that keeps provider identity separate from operational health.</returns>
+        public static InventoryRow From(
+            InstanceInventoryItem item,
+            DateTimeOffset now,
+            TimeSpan staleAfter,
+            DesktopLocalisationService localisation,
+            ProviderVisualIdentityPolicy providerVisualIdentityPolicy)
         {
             EvidenceFreshness freshness = item.GetFreshness(now, staleAfter);
             string status = freshness == EvidenceFreshness.Stale
@@ -663,30 +744,70 @@ public partial class MainWindow : Window
             string observedAt = freshness == EvidenceFreshness.Unknown
                 ? localisation.Text("Status.Unknown")
                 : item.ObservedAt.UtcDateTime.ToString("yyyy-MM-dd HH:mm:ss", localisation.Culture);
-            return new(item.DisplayName, item.ProviderType, item.SupportLabel, item.Environment, status,
-                observedAt, latency);
+            return new(
+                item.DisplayName,
+                item.ProviderType,
+                providerVisualIdentityPolicy.Resolve(item.ProviderType),
+                item.SupportLabel,
+                item.Environment,
+                status,
+                observedAt,
+                latency);
         }
     }
 
     /// <summary>Represents one localised event timeline row.</summary>
-    private sealed record TimelineRow(string OccurredAtLabel, string SeverityLabel, string EventType, string InstanceName, string ProviderType, string Summary)
+    private sealed record TimelineRow(
+        string OccurredAtLabel,
+        string SeverityLabel,
+        string EventType,
+        string InstanceName,
+        string ProviderType,
+        ProviderVisualIdentity ProviderIdentity,
+        string Summary)
     {
         /// <summary>Maps canonical event severity without altering its provider-neutral event type.</summary>
-        public static TimelineRow From(TimelineEventItem item, DesktopLocalisationService localisation) => new(
+        /// <param name="item">Canonical provider-neutral event evidence.</param>
+        /// <param name="localisation">Desktop localisation owner for visible labels.</param>
+        /// <param name="providerVisualIdentityPolicy">Local decorative provider-identity resolver.</param>
+        /// <returns>A localised event row with a visible stable provider identifier.</returns>
+        public static TimelineRow From(
+            TimelineEventItem item,
+            DesktopLocalisationService localisation,
+            ProviderVisualIdentityPolicy providerVisualIdentityPolicy) => new(
             item.OccurredAt.UtcDateTime.ToString("yyyy-MM-dd HH:mm:ss", localisation.Culture),
             item.Severity switch
             {
                 EventSeverity.Critical => $"■ {localisation.Text("Severity.Critical")}",
                 EventSeverity.Warning => $"▲ {localisation.Text("Severity.Warning")}",
                 _ => $"● {localisation.Text("Severity.Information")}",
-            }, item.EventType, item.InstanceName, item.ProviderType, item.Summary);
+            },
+            item.EventType,
+            item.InstanceName,
+            item.ProviderType,
+            providerVisualIdentityPolicy.Resolve(item.ProviderType),
+            item.Summary);
     }
 
     /// <summary>Represents one localised alert grid row.</summary>
-    private sealed record AlertRow(string SeverityLabel, string StateLabel, string RuleName, string InstanceName, string ProviderType, string Summary)
+    private sealed record AlertRow(
+        string SeverityLabel,
+        string StateLabel,
+        string RuleName,
+        string InstanceName,
+        string ProviderType,
+        ProviderVisualIdentity ProviderIdentity,
+        string Summary)
     {
         /// <summary>Maps canonical alert state and severity to localised display labels.</summary>
-        public static AlertRow From(AlertPresentationItem item, DesktopLocalisationService localisation) => new(
+        /// <param name="item">Canonical provider-neutral alert evidence.</param>
+        /// <param name="localisation">Desktop localisation owner for visible labels.</param>
+        /// <param name="providerVisualIdentityPolicy">Local decorative provider-identity resolver.</param>
+        /// <returns>A localised alert row with provider identity distinct from alert severity.</returns>
+        public static AlertRow From(
+            AlertPresentationItem item,
+            DesktopLocalisationService localisation,
+            ProviderVisualIdentityPolicy providerVisualIdentityPolicy) => new(
             item.Severity switch
             {
                 EventSeverity.Critical => $"■ {localisation.Text("Severity.Critical")}",
@@ -699,8 +820,16 @@ public partial class MainWindow : Window
                 AlertPresentationState.Acknowledged => localisation.Text("AlertState.Acknowledged"),
                 AlertPresentationState.Silenced => localisation.Text("AlertState.Silenced"),
                 _ => localisation.Text("AlertState.Resolved"),
-            }, item.RuleName, item.InstanceName, item.ProviderType, item.Summary);
+            },
+            item.RuleName,
+            item.InstanceName,
+            item.ProviderType,
+            providerVisualIdentityPolicy.Resolve(item.ProviderType),
+            item.Summary);
     }
+
+    /// <summary>Represents one provider count without implying implementation, health or homologation.</summary>
+    private sealed record ProviderDistributionRow(ProviderVisualIdentity ProviderIdentity, int Count);
 
     /// <summary>Represents one fail-closed capability decision row.</summary>
     private sealed record CapabilityRow(string CapabilityId, string DisplayName, string StateLabel, string ReasonCode)

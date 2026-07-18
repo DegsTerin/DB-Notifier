@@ -2,8 +2,8 @@
 
 ## Versão atual
 
-- Versão: `3.55.2`
-- Data: 2026-07-17
+- Versão: `3.56.0`
+- Data: 2026-07-18
 - Status: corpus DB-Notifier consolidado
 - Escopo: 13 arquivos ativos
 
@@ -16,6 +16,13 @@ A versão do corpus é independente da versão do software.
 - PATCH: clareza, correção ou referência sem mudança de autoridade.
 
 Toda alteração atualiza este arquivo e, quando necessário, `../Start-Here.md`.
+
+## 3.56.0 — 2026-07-18
+
+- Bruno autorizou um incremento de identidade visual de providers para que cada banco use seu ícone exato quando disponível, preservando a meta aberta de aceitar providers futuros.
+- O Design System `3.1.0` introduz `ProviderIdentityIcon` na fronteira de apresentação: nome textual obrigatório, registro declarativo aberto, fallback neutro para qualquer ID não mapeado ou falha de ativo e fallback por cor de sistema em forced colours/Windows High Contrast.
+- Ativos de terceiros devem permanecer locais, fixados por revisão, hash, licença e proveniência, sem download em runtime nem substituição por marca semelhante. Presença do ícone não prova implementação, homologação, saúde, freshness ou suporte público.
+- A marca global DB Notifier, seus estados agregados e os tokens categoriais provider-neutral permanecem independentes da identidade visual de qualquer fornecedor.
 
 ## 3.55.2 — 2026-07-17
 

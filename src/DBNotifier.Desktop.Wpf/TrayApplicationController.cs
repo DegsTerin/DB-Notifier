@@ -46,6 +46,7 @@ internal sealed class TrayApplicationController : IDisposable
     /// <param name="window">Secondary WPF shell controlled by notification-area intents.</param>
     /// <param name="application">Owning WPF application lifecycle.</param>
     /// <param name="localisation">Localisation owner used by Tray text and the flyout.</param>
+    /// <param name="providerVisualIdentityPolicy">Theme-aware local provider-logo resolver used only by per-instance rows.</param>
     /// <param name="evidence">Immutable locale-independent evidence shared with the full desktop shell.</param>
     /// <param name="initialSummary">Aggregate evaluated at the evidence creation instant.</param>
     /// <param name="notificationValidationMode">Explicit validation-only mode; invalid values fail safely to normal fixture behaviour.</param>
@@ -53,6 +54,7 @@ internal sealed class TrayApplicationController : IDisposable
         MainWindow window,
         System.Windows.Application application,
         DesktopLocalisationService localisation,
+        ProviderVisualIdentityPolicy providerVisualIdentityPolicy,
         DesktopDemonstrationEvidence evidence,
         TrayFleetSummary initialSummary,
         TrayNotificationValidationMode notificationValidationMode)
@@ -66,7 +68,13 @@ internal sealed class TrayApplicationController : IDisposable
             : [];
         fleetSummary = initialSummary;
         instanceStates = evidence.CaptureInstanceStates(evidence.GeneratedAt);
-        flyout = new TrayFlyoutWindow(localisation, evidence, initialSummary, ShowView, () => Apply(TrayWindowIntent.Exit));
+        flyout = new TrayFlyoutWindow(
+            localisation,
+            providerVisualIdentityPolicy,
+            evidence,
+            initialSummary,
+            ShowView,
+            () => Apply(TrayWindowIntent.Exit));
         (applicationIcon, notifyIcon) = CreateNotificationAreaResources(initialSummary.State);
         notificationIconRestoreTimer = new DispatcherTimer
         {

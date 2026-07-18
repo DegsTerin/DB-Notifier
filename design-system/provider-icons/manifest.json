@@ -1,0 +1,89 @@
+{
+  "schemaVersion": 1,
+  "source": {
+    "name": "Skill Icons",
+    "website": "https://skillicons.dev/",
+    "repository": "https://github.com/tandpfun/skill-icons",
+    "revision": "7f7e691e71aec64e8354bf697835e009d1ad80f8",
+    "retrievedOn": "2026-07-18",
+    "license": "MIT",
+    "licensePath": "skill-icons/LICENSE",
+    "licenseUpstreamBlobSha": "b02571d3e88d576e46ed95780b55e3f1fcef785c",
+    "licenseSha256": "8c8671d83b894c6e0c0e7bf0f69d51338c75e63b0bd6c947cedaac407df69c3f",
+    "runtimeNetworkAccess": false
+  },
+  "desktopRaster": {
+    "engine": "Google Chrome Headless",
+    "version": "150.0.7871.125",
+    "width": 64,
+    "height": 64
+  },
+  "icons": [
+    {
+      "providerType": "cassandra",
+      "displayName": "Apache Cassandra",
+      "light": { "sourcePath": "skill-icons/icons/Cassandra-Light.svg", "upstreamPath": "icons/Cassandra-Light.svg", "upstreamBlobSha": "a4cd01c5d38905c26e3665bb46646ffd727cba34", "sourceSha256": "15b8a17e95aac5323a744a34f4bf0e654a53c86c4bdceccf2814c47169791370" },
+      "dark": { "sourcePath": "skill-icons/icons/Cassandra-Dark.svg", "upstreamPath": "icons/Cassandra-Dark.svg", "upstreamBlobSha": "85375f156c4855b096564d53add1d73b9c2230be", "sourceSha256": "368e943ef101f3b4f5c5bda881070cb72b7971644aa0078cf916a66e1dbe85cf" }
+    },
+    {
+      "providerType": "dynamodb",
+      "displayName": "Amazon DynamoDB",
+      "light": { "sourcePath": "skill-icons/icons/DynamoDB-Light.svg", "upstreamPath": "icons/DynamoDB-Light.svg", "upstreamBlobSha": "4215a0ae61751bccd0dd238e68c7e55cd1e6fd6e", "sourceSha256": "688d8da335997466abb8ede1823b7f02a89a2af5d5ecdf395e1ec7ff66f892db" },
+      "dark": { "sourcePath": "skill-icons/icons/DynamoDB-Dark.svg", "upstreamPath": "icons/DynamoDB-Dark.svg", "upstreamBlobSha": "55cb347d60363b000a37d0479fd068fcdc6d7c71", "sourceSha256": "5172776dec6387fedd897ecb5d7ecc72bd57637db0d22ca12300846b7b8ae8a8" }
+    },
+    {
+      "providerType": "elasticsearch",
+      "displayName": "Elasticsearch",
+      "light": { "sourcePath": "skill-icons/icons/Elasticsearch-Light.svg", "upstreamPath": "icons/Elasticsearch-Light.svg", "upstreamBlobSha": "3b401ceb849b432655b62b64cb9af8c8ba29a4e1", "sourceSha256": "ccfcc693e28f8aa988b5469ebe38bee17525ae669bbdf63c2403d77a8e1349c7" },
+      "dark": { "sourcePath": "skill-icons/icons/Elasticsearch-Dark.svg", "upstreamPath": "icons/Elasticsearch-Dark.svg", "upstreamBlobSha": "9e1d5f236f27abe8b7b8ed16e973c6e758523376", "sourceSha256": "e3d5c358f3159ff8f25fe26670392c0a6ffca7d5bedab9abf74ab4e544ac0050" }
+    },
+    {
+      "providerType": "firebase",
+      "displayName": "Firebase",
+      "light": { "sourcePath": "skill-icons/icons/Firebase-Light.svg", "upstreamPath": "icons/Firebase-Light.svg", "upstreamBlobSha": "3d513278458c96f7b542f1fd6d55faf3b1808ba3", "sourceSha256": "8728cea6df2a8c93fce8c53895bee89933c7d7f92d43b509da6825dc122bf7bb" },
+      "dark": { "sourcePath": "skill-icons/icons/Firebase-Dark.svg", "upstreamPath": "icons/Firebase-Dark.svg", "upstreamBlobSha": "9dcf51ad3e48ea2b47f1fb982392c5687ed92df1", "sourceSha256": "e796fa112a3f5126c1320455e418f2f12852c8d2bb6fef3aa61cbd922910fb8f" }
+    },
+    {
+      "providerType": "mongodb",
+      "displayName": "MongoDB",
+      "light": { "sourcePath": "skill-icons/icons/MongoDB.svg", "upstreamPath": "icons/MongoDB.svg", "upstreamBlobSha": "df96445cd38d1f38ba84391027e6cb6947d83d4e", "sourceSha256": "c5425d229c17b8d496ad1867c2484cb69beea296da77bbeb4ac74d63700c9670" },
+      "dark": { "sourcePath": "skill-icons/icons/MongoDB.svg", "upstreamPath": "icons/MongoDB.svg", "upstreamBlobSha": "df96445cd38d1f38ba84391027e6cb6947d83d4e", "sourceSha256": "c5425d229c17b8d496ad1867c2484cb69beea296da77bbeb4ac74d63700c9670" }
+    },
+    {
+      "providerType": "mysql",
+      "displayName": "MySQL",
+      "light": { "sourcePath": "skill-icons/icons/MySQL-Light.svg", "upstreamPath": "icons/MySQL-Light.svg", "upstreamBlobSha": "d0a04e5a3bea0b7d0dd2bf24220344766b33c4ed", "sourceSha256": "9fc7b32edb6f7b177407ee383c2ce030eca2a4a475df3c5185f538f6565ac23c" },
+      "dark": { "sourcePath": "skill-icons/icons/MySQL-Dark.svg", "upstreamPath": "icons/MySQL-Dark.svg", "upstreamBlobSha": "a9d7b932c12e9ee626664322c9b625d80fdd7901", "sourceSha256": "c952996f8c47b0963eaac79acc7fd38f128456c4777a791d087cea089912465d" }
+    },
+    {
+      "providerType": "planetscale",
+      "displayName": "PlanetScale",
+      "light": { "sourcePath": "skill-icons/icons/PlanetScale-Light.svg", "upstreamPath": "icons/PlanetScale-Light.svg", "upstreamBlobSha": "01e13ed3a173daf0bbebd81aca0ba61b4b71806b", "sourceSha256": "77a4905ab96c7a7a00ba9b3be870c971384de7ba2f6f6c556672213cb1504b78" },
+      "dark": { "sourcePath": "skill-icons/icons/PlanetScale-Dark.svg", "upstreamPath": "icons/PlanetScale-Dark.svg", "upstreamBlobSha": "9d065dd5c018bb581a366ccaf00bba0e80d45aae", "sourceSha256": "e564864486b4b3c476a901b7c3485009cb812d6648dcb1aee9c750dbfb3ee115" }
+    },
+    {
+      "providerType": "postgresql",
+      "displayName": "PostgreSQL",
+      "light": { "sourcePath": "skill-icons/icons/PostgreSQL-Light.svg", "upstreamPath": "icons/PostgreSQL-Light.svg", "upstreamBlobSha": "942ceb8c0536e964034aee7dab323e82083c0dee", "sourceSha256": "0f726fab4d4fb028d064a75ade87a1156dd8a6e3ed58179f4cdb038931c87d1a" },
+      "dark": { "sourcePath": "skill-icons/icons/PostgreSQL-Dark.svg", "upstreamPath": "icons/PostgreSQL-Dark.svg", "upstreamBlobSha": "b06ed5a0f6c67d8c5ca0132f311c8b81bb0655c3", "sourceSha256": "fef054cc1c14c1c2ad5c51fd1a566426ddd9d8fc2ba83e93e819d382b446d99d" }
+    },
+    {
+      "providerType": "redis",
+      "displayName": "Redis",
+      "light": { "sourcePath": "skill-icons/icons/Redis-Light.svg", "upstreamPath": "icons/Redis-Light.svg", "upstreamBlobSha": "67925cb8f15edaf67207fa9280e52333c7536097", "sourceSha256": "9ea9bf00a861f743b283a06700ff471aadf675c3d936b5bc54a2a6bec56d51b8" },
+      "dark": { "sourcePath": "skill-icons/icons/Redis-Dark.svg", "upstreamPath": "icons/Redis-Dark.svg", "upstreamBlobSha": "68ec898cb29f2e1b13047f93eb44355527954065", "sourceSha256": "d750492f31881e89d4c858acd39d0264da972c4fb6af1350f0286ae463f0dff0" }
+    },
+    {
+      "providerType": "sqlite",
+      "displayName": "SQLite",
+      "light": { "sourcePath": "skill-icons/icons/SQLite.svg", "upstreamPath": "icons/SQLite.svg", "upstreamBlobSha": "0a0d23771e856d82ad4501390b6819cdf12f7096", "sourceSha256": "9bdf50f06d9ef1366092060aae832de2bf57babeaa88ac636a9a6eff0373bd0a" },
+      "dark": { "sourcePath": "skill-icons/icons/SQLite.svg", "upstreamPath": "icons/SQLite.svg", "upstreamBlobSha": "0a0d23771e856d82ad4501390b6819cdf12f7096", "sourceSha256": "9bdf50f06d9ef1366092060aae832de2bf57babeaa88ac636a9a6eff0373bd0a" }
+    },
+    {
+      "providerType": "supabase",
+      "displayName": "Supabase",
+      "light": { "sourcePath": "skill-icons/icons/Supabase-Light.svg", "upstreamPath": "icons/Supabase-Light.svg", "upstreamBlobSha": "c1bd4b9d76e11ac18e911664a6b96e937018f907", "sourceSha256": "b65168d9360e6388dc4167cb6fe9fb5534c488044bafe35ea273c9f52f31c615" },
+      "dark": { "sourcePath": "skill-icons/icons/Supabase-Dark.svg", "upstreamPath": "icons/Supabase-Dark.svg", "upstreamBlobSha": "670173b9480156004f426072e9b3c588be8aa73a", "sourceSha256": "0faec57b31bb23e3a97385c4fde9244b9fe4e92cc171d0ecc13cd10898fa4fde" }
+    }
+  ]
+}

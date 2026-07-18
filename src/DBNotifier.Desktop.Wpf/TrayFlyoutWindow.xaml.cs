@@ -18,6 +18,7 @@ namespace DBNotifier.Desktop.Wpf;
 internal sealed partial class TrayFlyoutWindow : Window
 {
     private readonly DesktopLocalisationService localisation;
+    private readonly ProviderVisualIdentityPolicy providerVisualIdentityPolicy;
     private readonly DesktopDemonstrationEvidence evidence;
     private readonly Action<DesktopView> openView;
     private readonly Action exitApplication;
@@ -28,18 +29,21 @@ internal sealed partial class TrayFlyoutWindow : Window
 
     /// <summary>Initialises the flyout with safe callbacks owned by the tray lifecycle controller.</summary>
     /// <param name="localisation">Generated localisation resource owner.</param>
+    /// <param name="providerVisualIdentityPolicy">Theme-aware resolver for decorative per-instance provider logos.</param>
     /// <param name="evidence">Immutable locale-independent evidence shared with the desktop shell.</param>
     /// <param name="initialSummary">Aggregate evaluated at the evidence creation instant.</param>
     /// <param name="openView">Callback that opens one validated read-only desktop destination.</param>
     /// <param name="exitApplication">Callback that explicitly exits DB Notifier.</param>
     internal TrayFlyoutWindow(
         DesktopLocalisationService localisation,
+        ProviderVisualIdentityPolicy providerVisualIdentityPolicy,
         DesktopDemonstrationEvidence evidence,
         TrayFleetSummary initialSummary,
         Action<DesktopView> openView,
         Action exitApplication)
     {
         this.localisation = localisation;
+        this.providerVisualIdentityPolicy = providerVisualIdentityPolicy;
         this.evidence = evidence;
         fleetSummary = initialSummary;
         this.openView = openView;
@@ -50,6 +54,8 @@ internal sealed partial class TrayFlyoutWindow : Window
         };
         activationTimer.Tick += CompleteActivation;
         InitializeComponent();
+        providerVisualIdentityPolicy.VisualIdentityChanged += ProviderVisualIdentityChanged;
+        Closed += TrayFlyoutWindowClosed;
         RefreshPresentation(evidence.GeneratedAt, initialSummary);
     }
 
@@ -90,9 +96,12 @@ internal sealed partial class TrayFlyoutWindow : Window
         InstanceInventoryItem[] items = evidence.CreateInventorySnapshot(localisation).Items.ToArray();
         Shape[] glyphs = [FinanceStatusGlyph, OrdersStatusGlyph, AnalyticsStatusGlyph, CatalogueStatusGlyph];
         System.Windows.Controls.TextBlock[] labels = [FinanceStatusText, OrdersStatusText, AnalyticsStatusText, CatalogueStatusText];
+        ProviderIdentityView[] providerIdentities =
+            [FinanceProviderIdentity, OrdersProviderIdentity, AnalyticsProviderIdentity, CatalogueProviderIdentity];
         for (int index = 0; index < Math.Min(items.Length, labels.Length); index++)
         {
             InstanceInventoryItem item = items[index];
+            providerIdentities[index].Identity = providerVisualIdentityPolicy.Resolve(item.ProviderType);
             EvidenceFreshness freshness = item.GetFreshness(evaluatedAt, DesktopDemonstrationEvidence.StaleAfter);
             (string labelKey, string brushKey) = freshness switch
             {
@@ -111,6 +120,29 @@ internal sealed partial class TrayFlyoutWindow : Window
             glyphs[index].SetResourceReference(Shape.FillProperty, brushKey);
             glyphs[index].SetResourceReference(Shape.StrokeProperty, brushKey);
         }
+    }
+
+    /// <summary>Re-resolves decorative provider identities without re-evaluating immutable operational evidence.</summary>
+    /// <param name="sender">Provider identity policy that observed an effective presentation change.</param>
+    /// <param name="e">Identity-change event data.</param>
+    private void ProviderVisualIdentityChanged(object? sender, EventArgs e)
+    {
+        InstanceInventoryItem[] items = evidence.CreateInventorySnapshot(localisation).Items.ToArray();
+        ProviderIdentityView[] providerIdentities =
+            [FinanceProviderIdentity, OrdersProviderIdentity, AnalyticsProviderIdentity, CatalogueProviderIdentity];
+        for (int index = 0; index < Math.Min(items.Length, providerIdentities.Length); index++)
+        {
+            providerIdentities[index].Identity = providerVisualIdentityPolicy.Resolve(items[index].ProviderType);
+        }
+    }
+
+    /// <summary>Releases provider-identity observation after the reusable flyout is closed for application exit.</summary>
+    /// <param name="sender">Flyout that completed its final close.</param>
+    /// <param name="e">Window close event data.</param>
+    private void TrayFlyoutWindowClosed(object? sender, EventArgs e)
+    {
+        providerVisualIdentityPolicy.VisualIdentityChanged -= ProviderVisualIdentityChanged;
+        Closed -= TrayFlyoutWindowClosed;
     }
 
     /// <summary>Closes the reusable flyout during application disposal.</summary>

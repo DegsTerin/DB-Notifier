@@ -13,6 +13,7 @@ public partial class App : System.Windows.Application, IDisposable
     private TrayApplicationController? trayController;
     private DesktopLocalisationService? localisation;
     private DesktopThemeService? theme;
+    private ProviderVisualIdentityPolicy? providerVisualIdentityPolicy;
 
     /// <summary>Loads safe preferences and starts in the notification area with only explicitly requested local review modes enabled.</summary>
     /// <param name="e">Startup arguments; exact desktop, notification-transition and accessibility review switches remain independent and opt-in.</param>
@@ -24,17 +25,25 @@ public partial class App : System.Windows.Application, IDisposable
         theme = new DesktopThemeService(this, preferences);
         localisation.Initialise();
         theme.Initialise();
+        providerVisualIdentityPolicy = new ProviderVisualIdentityPolicy(theme);
         DateTimeOffset generatedAt = TimeProvider.System.GetUtcNow();
         DesktopDemonstrationEvidence evidence = DesktopDemonstrationEvidence.Create(generatedAt);
         TrayFleetSummary fleetSummary = evidence.Summarise(generatedAt);
         DesktopAccessibilityReviewMode accessibilityReviewMode = DesktopAccessibilityReviewPolicy.Resolve(e.Args);
-        MainWindow window = new(localisation, theme, evidence, fleetSummary.State, accessibilityReviewMode);
+        MainWindow window = new(
+            localisation,
+            theme,
+            providerVisualIdentityPolicy,
+            evidence,
+            fleetSummary.State,
+            accessibilityReviewMode);
         MainWindow = window;
         TrayNotificationValidationMode notificationValidationMode = TrayNotificationValidationPolicy.Resolve(e.Args);
         trayController = new TrayApplicationController(
             window,
             this,
             localisation,
+            providerVisualIdentityPolicy,
             evidence,
             fleetSummary,
             notificationValidationMode);
@@ -57,6 +66,8 @@ public partial class App : System.Windows.Application, IDisposable
     {
         trayController?.Dispose();
         trayController = null;
+        providerVisualIdentityPolicy?.Dispose();
+        providerVisualIdentityPolicy = null;
         theme?.Dispose();
         theme = null;
         GC.SuppressFinalize(this);

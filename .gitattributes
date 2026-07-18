@@ -14,4 +14,6 @@
 *.yaml text eol=lf
 *.mjs text eol=lf
 *.svg text eol=lf
+design-system/provider-icons/skill-icons/LICENSE text eol=lf
+src/DBNotifier.Dashboard.Web/public/provider-icons/SkillIcons.LICENSE.txt text eol=lf
 *.ico binary

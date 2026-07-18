@@ -18,6 +18,8 @@
     "localisation:generate": "node ../../scripts/generate-localisation.mjs",
     "localisation:verify": "node ../../scripts/generate-localisation.mjs --verify",
     "markdown:verify": "node ../../scripts/verify-markdown-links.mjs",
+    "provider-icons:generate": "node ../../scripts/generate-provider-icon-assets.mjs --generate",
+    "provider-icons:verify": "node ../../scripts/generate-provider-icon-assets.mjs --verify",
     "preview": "vite preview",
     "test": "node --experimental-strip-types --test tests/*.test.ts",
     "tokens:generate": "node ../../scripts/generate-design-tokens.mjs",
