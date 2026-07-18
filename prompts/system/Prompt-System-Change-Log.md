@@ -2,7 +2,7 @@
 
 ## Versão atual
 
-- Versão: `3.56.1`
+- Versão: `3.56.2`
 - Data: 2026-07-18
 - Status: corpus DB-Notifier consolidado
 - Escopo: 13 arquivos ativos
@@ -16,6 +16,11 @@ A versão do corpus é independente da versão do software.
 - PATCH: clareza, correção ou referência sem mudança de autoridade.
 
 Toda alteração atualiza este arquivo e, quando necessário, `../Start-Here.md`.
+
+## 3.56.2 — 2026-07-18
+
+- Bruno aceitou explicitamente o Human Gate próprio de `Provider Identity Icons` no `STATE-06`, com todas as limitações registradas, depois do resumo da evidência automática, da amostra anterior Dashboard/WPF/Tray em Light, Dark e High Contrast, da baseline inalterada de onze identidades/22 variantes e do resultado conservador da pesquisa alternativa.
+- A decisão não autoriza provider, banco externo, monitoramento, comando, infraestrutura, runtime, promoção ou transição. Os providers sem asset elegível continuam no fallback neutro, e `STATE-06 INTEGRATION` permanece inalterado.
 
 ## 3.56.1 — 2026-07-18
 

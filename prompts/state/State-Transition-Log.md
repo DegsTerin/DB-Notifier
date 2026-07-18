@@ -1640,6 +1640,20 @@
 - Próxima decisão: concluir o gate documental deste registro. Como nenhum ativo visual mudou, a pesquisa não exige nova amostra; a decisão humana pendente continua referindo-se ao incremento visual já apresentado anteriormente.
 - Aprovador: Bruno autorizou exclusivamente a pesquisa alternativa; a aceitação humana do incremento não foi inferida.
 
+## 2026-07-18 — Aceitação humana de Provider Identity Icons
+
+- Estado anterior: `STATE-06 INTEGRATION`, baseline de onze identidades/22 variantes com Quality Gate automático aprovado, pesquisa alternativa documental aprovada, amostra Dashboard/WPF/Tray encerrada e Human Gate próprio pendente.
+- Estado resultante: sem transição; `STATE-06 INTEGRATION` mantido e Human Gate de `Provider Identity Icons` aceito com as limitações registradas.
+- Decisão: Bruno declarou exatamente `ACEITO o incremento Provider Identity Icons no STATE-06, com as limitações registradas; não autorizo provider, banco externo nem transição de estado.`
+- Base informada: a solicitação de decisão identificou o relatório/evidência automática aprovados, a amostra local anterior de Dashboard e WPF/Tray em Light, Dark e High Contrast, a baseline inalterada de onze identidades/22 variantes e o fallback conservador resultante da pesquisa em fontes alternativas. A resposta exata ao pedido condicional confirma a revisão humana sem inferir autoridade adicional.
+- Limitações aceitas: cobertura de asset não é implementação, homologação ou suporte; PostgreSQL continua não homologado e suporte público `No`; providers não mapeados preservam glifo neutro e nome integral; Firebird/OpenSearch e os demais candidatos rejeitados só podem ser reconsiderados com direitos e verdade factual próprios.
+- Escopo desta ação: registro Markdown factual somente; nenhum código, manifest, inventário, gerador, asset, registry, teste, dependência, runtime ou saída gerada foi alterado.
+- Evidências: [relatório Provider Identity Icons](../../docs/STATE-06-Provider-Identity-Icons-Report.md), commits `f93804c`, `cc767f4` e `1bccf47`, decisão explícita de Bruno nesta sessão e preflight sem componente/listener DB-Notifier ativo.
+- Gates documentais: `APROVADOS`; documentação para `242` fontes comment-capable, `343` links Markdown locais em `83` arquivos, secret scan do worktree não ignorado e histórico disponível, escopo restrito a quatro documentos e `git diff --check` passaram com exit code `0`. Código, assets, geradores e testes permaneceram sem diff.
+- Classificação: Human Gate do incremento `ACEITO COM AS LIMITAÇÕES REGISTRADAS`; Quality/Human Gate de saída de `STATE-06`, homologação, `OBSERVER`, `STATE-07`, produção e release `NÃO AVALIADOS` e não autorizados.
+- Próxima atividade: nenhuma ação adicional é exigida de Bruno e nenhum novo trabalho é autorizado. Uma futura identidade/provider exige solicitação e autoridade explícitas separadas.
+- Aprovador: Bruno, exclusivamente para o incremento `Provider Identity Icons`.
+
 ## Template de nova entrada
 
 - Data:

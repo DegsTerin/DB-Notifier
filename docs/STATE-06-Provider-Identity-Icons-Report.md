@@ -4,7 +4,7 @@
 
 Bruno explicitly requested that database instances use the corresponding database identity, naming PostgreSQL and MongoDB as examples, and asked for an open solution covering every database the platform may accept. After the eleven-identity Skill Icons implementation and its local visual sample, Bruno issued the additional instruction: `Os icones que você não conseguiu encontrar busque em outros sites na internet`. That instruction authorised bounded internet research for exact missing identities. It did not waive licence/trademark review and did not authorise provider implementation, homologation, database access, monitoring, commands, deployment, lifecycle promotion or transition.
 
-Status: alternative-source research `COMPLETE`; no candidate asset accepted and no product/asset expansion produced; the existing eleven-identity/22-variant baseline remains unchanged. Its restricted automatic Quality Gate remains the previously recorded `APPROVED` result, while the increment-specific Human Gate remains `PENDING`. The documentary checks for this research record are `APPROVED`; `STATE-06 INTEGRATION` is unchanged.
+Status: alternative-source research `COMPLETE`; no candidate asset accepted and no product/asset expansion produced; the existing eleven-identity/22-variant baseline remains unchanged. Its restricted automatic Quality Gate and the documentary checks for this research record are `APPROVED`. The increment-specific Human Gate is `ACCEPTED WITH THE RECORDED LIMITATIONS`; `STATE-06 INTEGRATION` is unchanged.
 
 ## Current implemented outcome
 
@@ -118,11 +118,17 @@ A preliminary local `node scripts/generate-provider-icon-assets.mjs --generate` 
 - The eleven registered identities are asset coverage, not the complete universe of databases and not a support catalogue. The neutral fallback is the universal compatibility mechanism.
 - PostgreSQL remains unhomologated and publicly unsupported; all other displayed fixture providers remain planned and unimplemented.
 - A rejected candidate may be reconsidered only after exact file redistribution and mark permission are established for the then-current factual product use. Research availability alone is not approval.
-- The prior full human comparison of Web and WPF Light, Dark, forced colours/High Contrast and scaling still requires an explicit decision for this increment. The research adds no new visual surface and does not replace or pre-fill that Human Gate.
+- The prior human comparison of Dashboard and WPF/Tray in Light, Dark and forced colours/High Contrast was the visual basis named in the explicit gate request. The alternative-source research added no visual surface and required no repeat sample.
 - Regeneration remains pinned to one renderer version because Chromium antialiasing can change across versions. Ordinary CI verifies checked-in bytes and does not silently regenerate them.
+
+## Human Gate decision
+
+On 2026-07-18, after the gate summary identified the approved automatic evidence, the prior Dashboard/WPF/Tray Light, Dark and High Contrast sample, the unchanged eleven-identity/22-variant baseline and the recorded limitations, Bruno replied exactly: `ACEITO o incremento Provider Identity Icons no STATE-06, com as limitações registradas; não autorizo provider, banco externo nem transição de estado.`
+
+This is an informed acceptance of the `Provider Identity Icons` increment only. It accepts the neutral fallback for every identity that lacks applicable asset/mark permission and preserves the distinction between visual coverage, provider implementation, homologation and public support. It does not authorise a provider, database access, monitoring, commands, infrastructure, runtime integration, deployment, release, lifecycle promotion or state transition.
 
 ## Gate classification and next decision
 
-The restricted automatic Quality Gate for the existing eleven-identity implementation remains the previously recorded `APPROVED` result. This research creates no new product Quality Gate; its documentary checks are `APPROVED`. The increment-specific Human Gate remains `PENDING`; the Quality/Human Gate for leaving `STATE-06`, provider homologation, `STATE-07`, release and production remain `NOT EVALUATED`.
+The restricted automatic Quality Gate for the existing eleven-identity implementation remains the previously recorded `APPROVED` result. This research creates no new product Quality Gate; its documentary checks are `APPROVED`. The increment-specific Human Gate is `ACCEPTED WITH THE RECORDED LIMITATIONS`. The Quality/Human Gate for leaving `STATE-06`, provider homologation, `STATE-07`, release and production remain `NOT EVALUATED`.
 
-Bruno may now give one explicit decision for the unchanged icon increment based on the prior authorised visual sample: accept with the limitations recorded, request a specifically bounded remediation, or reject. No additional visual sample is required solely by this research because no displayed asset changed. No decision about these icons authorises a new provider, monitoring, external access, lifecycle promotion or transition.
+No further action is required for this increment. A future provider identity may be reconsidered only through a separately authorised increment that proves the exact asset, redistribution rights, applicable mark permission and current provider truth. This acceptance does not open or authorise that future work.
