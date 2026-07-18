@@ -321,3 +321,9 @@ Aceitar o desenho não implementa nada. Para permitir a execução futura exatam
 > AUTORIZO o incremento restrito de STATE-06 — Agent Fleet Sandbox Resilience and Protocol Compatibility, limitado a harness e runtimes temporários exclusivamente locais, reinício E2E entre processos, retry/backoff/cancelamento determinísticos, compatibilidade e falhas de protocolo, concorrência/fencing local, fault injection SQLite e corrida assignment/revogação, mantendo o Worker normal desabilitado e encerrando todos os processos ao final. Permanecem proibidos recursos operacionais ou externos, PKI/key store/token service operacionais, providers, monitoramento, comandos, UI, notificações, LLM, executor, deploy, promoção e transição de estado.
 
 Essa eventual autorização permitiria somente o incremento descrito. A conclusão técnica ainda dependeria de Quality Gate, revisão direta e decisão humana próprias.
+
+## Adendo factual posterior à proposta
+
+Bruno emitiu em 2026-07-18 a autorização exata sugerida acima. O incremento foi implementado somente no sandbox local delimitado e está documentado no [relatório de resiliência e compatibilidade](STATE-06-Agent-Fleet-Sandbox-Resilience-And-Compatibility-Report.md). Este adendo não reescreve a natureza originalmente não executiva da proposta e não representa aceitação humana do resultado.
+
+O Quality Gate automático restrito foi aprovado com as limitações registradas no relatório. O Human Gate deste incremento permanece pendente. A posição continua `STATE-06 INTEGRATION`; Worker operacional, recursos externos, promoção e transição de estado permanecem não autorizados.

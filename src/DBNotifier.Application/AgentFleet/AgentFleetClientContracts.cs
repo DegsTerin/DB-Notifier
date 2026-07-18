@@ -132,7 +132,31 @@ public sealed record AgentFleetTransportResult<T>(
     AgentFleetTransportDisposition Disposition,
     T? Value,
     string? EntityTag,
-    string? ErrorCode);
+    string? ErrorCode,
+    TimeSpan? RetryAfter = null);
+
+/// <summary>Identifies the only Agent Fleet operations admitted by the sandbox resilience lease.</summary>
+public enum AgentFleetOperationKind
+{
+    /// <summary>One durable heartbeat delivery or exact replay.</summary>
+    Heartbeat,
+
+    /// <summary>One read-only assignment reconciliation.</summary>
+    AssignmentReconciliation,
+}
+
+/// <summary>Fences one bounded Agent Fleet operation across local processes.</summary>
+/// <param name="AgentId">Exact local Agent registration.</param>
+/// <param name="OwnerId">Bounded sandbox-process owner identifier.</param>
+/// <param name="Kind">Operation protected by the lease.</param>
+/// <param name="FenceToken">Strictly increasing token that invalidates earlier owners.</param>
+/// <param name="ExpiresAt">UTC instant after which another owner may acquire the lease.</param>
+public sealed record AgentFleetOperationLease(
+    Guid AgentId,
+    string OwnerId,
+    AgentFleetOperationKind Kind,
+    long FenceToken,
+    DateTimeOffset ExpiresAt);
 
 /// <summary>Creates and retains private enrollment identity material outside ordinary Agent persistence.</summary>
 public interface IAgentEnrollmentIdentityStore
@@ -217,6 +241,29 @@ public interface IAgentFleetLocalStore
     /// <param name="cancellationToken">Cancellation for the atomic commit.</param>
     ValueTask SaveEnrollmentAsync(AgentLocalRegistration registration, CancellationToken cancellationToken);
 
+    /// <summary>Attempts to acquire one expiring, monotonically fenced local operation lease.</summary>
+    /// <param name="agentId">Exact local Agent identifier.</param>
+    /// <param name="ownerId">Bounded sandbox-process owner identifier.</param>
+    /// <param name="kind">Operation that the lease protects.</param>
+    /// <param name="now">Trusted UTC acquisition instant.</param>
+    /// <param name="duration">Bounded lease duration.</param>
+    /// <param name="cancellationToken">Cancellation for the serialisable acquisition.</param>
+    /// <returns>The acquired lease, or <see langword="null"/> while another unexpired owner holds it.</returns>
+    ValueTask<AgentFleetOperationLease?> TryAcquireOperationLeaseAsync(
+        Guid agentId,
+        string ownerId,
+        AgentFleetOperationKind kind,
+        DateTimeOffset now,
+        TimeSpan duration,
+        CancellationToken cancellationToken);
+
+    /// <summary>Releases only the exact lease still owned by the caller.</summary>
+    /// <param name="lease">Exact owner and fence token previously acquired.</param>
+    /// <param name="cancellationToken">Cancellation for the bounded release.</param>
+    ValueTask ReleaseOperationLeaseAsync(
+        AgentFleetOperationLease lease,
+        CancellationToken cancellationToken);
+
     /// <summary>Returns bounded outbox facts without loading payloads.</summary>
     /// <param name="cancellationToken">Cancellation for the aggregate read.</param>
     /// <returns>Bounded queue depth and age evidence.</returns>
@@ -234,6 +281,7 @@ public interface IAgentFleetLocalStore
         string agentVersion,
         AgentHeartbeatQueueEvidence queueEvidence,
         DateTimeOffset now,
+        AgentFleetOperationLease lease,
         CancellationToken cancellationToken);
 
     /// <summary>Commits a compatible heartbeat receipt and clears only its exact pending envelope.</summary>
@@ -243,6 +291,8 @@ public interface IAgentFleetLocalStore
     ValueTask AcknowledgeHeartbeatAsync(
         AgentHeartbeatRequest request,
         AgentHeartbeatOutcome outcome,
+        DateTimeOffset acknowledgedAt,
+        AgentFleetOperationLease lease,
         CancellationToken cancellationToken);
 
     /// <summary>Changes the identity state while preserving durable evidence.</summary>
@@ -256,6 +306,7 @@ public interface IAgentFleetLocalStore
         AgentLocalIdentityState state,
         string errorCode,
         DateTimeOffset now,
+        AgentFleetOperationLease lease,
         CancellationToken cancellationToken);
 
     /// <summary>Returns last-known-valid assignment reconciliation evidence.</summary>
@@ -275,6 +326,7 @@ public interface IAgentFleetLocalStore
         AgentAssignmentSnapshot snapshot,
         string entityTag,
         DateTimeOffset appliedAt,
+        AgentFleetOperationLease lease,
         CancellationToken cancellationToken);
 
     /// <summary>Records a successful not-modified reconciliation without changing the snapshot.</summary>
@@ -288,6 +340,7 @@ public interface IAgentFleetLocalStore
         string version,
         string entityTag,
         DateTimeOffset checkedAt,
+        AgentFleetOperationLease lease,
         CancellationToken cancellationToken);
 
     /// <summary>Records a sanitised reconciliation failure while preserving the active snapshot.</summary>
@@ -301,6 +354,7 @@ public interface IAgentFleetLocalStore
         AgentLocalIdentityState state,
         string errorCode,
         DateTimeOffset failedAt,
+        AgentFleetOperationLease lease,
         CancellationToken cancellationToken);
 }
 
@@ -308,4 +362,9 @@ public interface IAgentFleetLocalStore
 /// <param name="Succeeded">Whether the operation reached its safe success condition.</param>
 /// <param name="State">Resulting local identity/reconciliation state.</param>
 /// <param name="Code">Stable sanitised result code.</param>
-public sealed record AgentFleetClientResult(bool Succeeded, AgentLocalIdentityState State, string Code);
+public sealed record AgentFleetClientResult(
+    bool Succeeded,
+    AgentLocalIdentityState State,
+    string Code,
+    bool Retryable = false,
+    TimeSpan? RetryAfter = null);

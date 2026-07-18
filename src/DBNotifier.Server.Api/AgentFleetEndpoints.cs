@@ -289,6 +289,7 @@ public static class AgentFleetEndpointRouteBuilderExtensions
                 false),
             AgentAssignmentDisposition.LimitExceeded or
             AgentAssignmentDisposition.InvalidStoredConfiguration => AssignmentUnavailableProblem(context),
+            AgentAssignmentDisposition.TemporarilyUnavailable => AssignmentUnavailableProblem(context, retryable: true),
             _ => AssignmentUnavailableProblem(context),
         };
     }
@@ -538,13 +539,14 @@ public static class AgentFleetEndpointRouteBuilderExtensions
 
     /// <summary>Creates one generic response when a complete safe assignment snapshot cannot be proved.</summary>
     /// <param name="context">Current HTTP context.</param>
+    /// <param name="retryable">Whether a transient consistency conflict permits bounded retry.</param>
     /// <returns>HTTP 503 Problem Details.</returns>
-    private static IResult AssignmentUnavailableProblem(HttpContext context) => Problem(
+    private static IResult AssignmentUnavailableProblem(HttpContext context, bool retryable = false) => Problem(
         context,
         StatusCodes.Status503ServiceUnavailable,
         "Agent assignments are unavailable",
         "assignments.unavailable",
-        false);
+        retryable);
 
     /// <summary>Creates bounded Problem Details with correlation and retry semantics.</summary>
     /// <param name="context">Current HTTP context.</param>

@@ -130,17 +130,23 @@ public sealed class AgentFleetClientCoordinator(
 
     /// <summary>Sends or exactly replays one durable heartbeat without inferring instance health.</summary>
     /// <param name="agentVersion">Bounded Agent version reported to the Server.</param>
+    /// <param name="operationLease">Exact local owner and fence required for every durable mutation.</param>
     /// <param name="cancellationToken">Cancellation propagated through store and transport boundaries.</param>
     /// <returns>Sanitised heartbeat result.</returns>
     public async ValueTask<AgentFleetClientResult> SendHeartbeatOnceAsync(
         string agentVersion,
+        AgentFleetOperationLease operationLease,
         CancellationToken cancellationToken)
     {
+        ArgumentNullException.ThrowIfNull(operationLease);
         ValidateAgentVersion(agentVersion);
         AgentLocalRegistration? registration = await localStore
             .GetRegistrationAsync(cancellationToken)
             .ConfigureAwait(false);
-        AgentFleetClientResult? unavailable = await CheckActiveRegistrationAsync(registration, cancellationToken)
+        AgentFleetClientResult? unavailable = await CheckActiveRegistrationAsync(
+                registration,
+                operationLease,
+                cancellationToken)
             .ConfigureAwait(false);
         if (unavailable is not null)
         {
@@ -152,7 +158,13 @@ public sealed class AgentFleetClientCoordinator(
             .ConfigureAwait(false);
         DateTimeOffset now = timeProvider.GetUtcNow();
         PendingAgentHeartbeat pending = await localStore
-            .GetOrCreatePendingHeartbeatAsync(registration!, agentVersion, queue, now, cancellationToken)
+            .GetOrCreatePendingHeartbeatAsync(
+                registration!,
+                agentVersion,
+                queue,
+                now,
+                operationLease,
+                cancellationToken)
             .ConfigureAwait(false);
         AgentFleetTransportResult<AgentHeartbeatOutcome> response = await transport
             .SendHeartbeatAsync(
@@ -169,7 +181,12 @@ public sealed class AgentFleetClientCoordinator(
             outcome.HighestAcceptedSequence == pending.Request.Sequence &&
             outcome.AcceptedAt is not null)
         {
-            await localStore.AcknowledgeHeartbeatAsync(pending.Request, outcome, cancellationToken)
+            await localStore.AcknowledgeHeartbeatAsync(
+                    pending.Request,
+                    outcome,
+                    timeProvider.GetUtcNow(),
+                    operationLease,
+                    cancellationToken)
                 .ConfigureAwait(false);
             return new AgentFleetClientResult(true, AgentLocalIdentityState.Active, "heartbeat.accepted");
         }
@@ -191,23 +208,35 @@ public sealed class AgentFleetClientCoordinator(
             state,
             code,
             timeProvider.GetUtcNow(),
+            operationLease,
             cancellationToken).ConfigureAwait(false);
-        return new AgentFleetClientResult(false, state, code);
+        return new AgentFleetClientResult(
+            false,
+            state,
+            code,
+            response.Disposition == AgentFleetTransportDisposition.TransientFailure,
+            response.RetryAfter);
     }
 
     /// <summary>Reads and atomically applies one complete assignment snapshot or preserves the current LKG.</summary>
     /// <param name="agentVersion">Bounded Agent version used for protocol negotiation.</param>
+    /// <param name="operationLease">Exact local owner and fence required for every durable mutation.</param>
     /// <param name="cancellationToken">Cancellation propagated through store and transport boundaries.</param>
     /// <returns>Sanitised reconciliation result.</returns>
     public async ValueTask<AgentFleetClientResult> ReconcileAssignmentsOnceAsync(
         string agentVersion,
+        AgentFleetOperationLease operationLease,
         CancellationToken cancellationToken)
     {
+        ArgumentNullException.ThrowIfNull(operationLease);
         ValidateAgentVersion(agentVersion);
         AgentLocalRegistration? registration = await localStore
             .GetRegistrationAsync(cancellationToken)
             .ConfigureAwait(false);
-        AgentFleetClientResult? unavailable = await CheckActiveRegistrationAsync(registration, cancellationToken)
+        AgentFleetClientResult? unavailable = await CheckActiveRegistrationAsync(
+                registration,
+                operationLease,
+                cancellationToken)
             .ConfigureAwait(false);
         if (unavailable is not null)
         {
@@ -236,6 +265,7 @@ public sealed class AgentFleetClientCoordinator(
                 current.Version,
                 response.EntityTag!,
                 now,
+                operationLease,
                 cancellationToken).ConfigureAwait(false);
             return new AgentFleetClientResult(true, AgentLocalIdentityState.Active, "assignments.not_modified");
         }
@@ -252,6 +282,7 @@ public sealed class AgentFleetClientCoordinator(
                 snapshot,
                 response.EntityTag!,
                 now,
+                operationLease,
                 cancellationToken).ConfigureAwait(false);
             return new AgentFleetClientResult(true, AgentLocalIdentityState.Active, "assignments.applied");
         }
@@ -283,12 +314,19 @@ public sealed class AgentFleetClientCoordinator(
             state,
             code,
             now,
+            operationLease,
             cancellationToken).ConfigureAwait(false);
-        return new AgentFleetClientResult(false, state, code);
+        return new AgentFleetClientResult(
+            false,
+            state,
+            code,
+            response.Disposition == AgentFleetTransportDisposition.TransientFailure,
+            response.RetryAfter);
     }
 
     private async ValueTask<AgentFleetClientResult?> CheckActiveRegistrationAsync(
         AgentLocalRegistration? registration,
+        AgentFleetOperationLease operationLease,
         CancellationToken cancellationToken)
     {
         if (registration is null)
@@ -310,6 +348,7 @@ public sealed class AgentFleetClientCoordinator(
                 AgentLocalIdentityState.Expired,
                 "agent.certificate_expired",
                 timeProvider.GetUtcNow(),
+                operationLease,
                 cancellationToken).ConfigureAwait(false);
             return new AgentFleetClientResult(false, AgentLocalIdentityState.Expired, "agent.certificate_expired");
         }

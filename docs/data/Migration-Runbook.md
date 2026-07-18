@@ -51,7 +51,7 @@ Design-time factories select providers without storing connection strings. Migra
 ## Current migration chain
 
 - Agent SQLite: `InitialAgentSchema` → `AddAgentStateConstraints` → `AddCommandCompatibilityEnvelope` →
-  `IntegrateAgentFleetClientState`.
+  `IntegrateAgentFleetClientState` → `HardenAgentFleetSandboxResilience`.
 - Server PostgreSQL: `InitialServerSchema` → `AddServerStateConstraints` →
   `EnforceAgentObservationSequence` → `HardenObservationReconciliation` →
   `IntegrateAgentFleetIdentity`.
@@ -80,6 +80,15 @@ local registration exists, because removing identity/revocation state could make
 row it can no longer classify. The sandbox migration tests exercised clean `Up`, refusal with a registration,
 explicit removal of the test identity, `Down` to the preceding migration and `Up` again. This is local
 SQLite evidence only; no operational store was touched.
+
+`HardenAgentFleetSandboxResilience` adds the next monotonic operation fence and the all-or-none
+owner/kind/fence/expiry lease tuple to `agent_fleet_state`. Existing rows start safely at fence one with no
+owner. Its `Down` guard refuses while any lease tuple remains, because removing fencing under an active or
+abandoned owner could allow an old process to confirm work. Local tests exercised clean `Up`, real
+`BUSY/LOCKED` refusal, active-lease `Down` refusal, exact release, `Down` to the previous schema and `Up`
+again. A separate read-only sandbox guard runs SQLite `quick_check(1)` and requires the exact ordered known
+migration list before the child harness uses an existing file; corrupt, future and incomplete stores are
+preserved and refused rather than recreated. No migration was applied outside ephemeral local fixtures.
 
 `IntegrateAgentFleetIdentity` adds normalised enrollment-token, Agent-certificate and heartbeat-cursor
 tables; canonical heartbeat digest/gap evidence; uniqueness guards; conservative legacy backfills; and a

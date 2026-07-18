@@ -53,6 +53,21 @@ public sealed class DependencyDirectionTests
         Assert.Empty(references);
     }
 
+    /// <summary>Proves the temporary resilience harness and the ordinary Agent Worker cannot compose one another.</summary>
+    [Fact]
+    public void AgentFleetSandboxHarnessRemainsOutsideTheOrdinaryWorker()
+    {
+        string[] workerReferences = GetDBNotifierReferences(typeof(DBNotifier.Agent.Worker.AgentFleetClientOptions).Assembly);
+        string[] harnessReferences = GetDBNotifierReferences(
+            typeof(DBNotifier.AgentFleet.SandboxHost.SandboxHostMarker).Assembly);
+
+        Assert.DoesNotContain("DBNotifier.AgentFleet.SandboxHost", workerReferences);
+        Assert.DoesNotContain("DBNotifier.Agent.Worker", harnessReferences);
+        Assert.DoesNotContain("DBNotifier.Persistence.Server.PostgreSql", harnessReferences);
+        Assert.DoesNotContain("DBNotifier.Server.Api", harnessReferences);
+        Assert.Contains("DBNotifier.Persistence.Agent.Sqlite", harnessReferences);
+    }
+
     /// <summary>Verifies the exact approved AIOps surface and its sole intentional Domain health-observation dependency.</summary>
     [Fact]
     public void AIOpsObserverPublicSurfaceExposesOnlyApprovedContracts()

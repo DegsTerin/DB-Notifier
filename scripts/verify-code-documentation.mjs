@@ -23,6 +23,7 @@ const timestampedMigrations = new Set([
   "src/DBNotifier.Persistence.Agent.Sqlite/Migrations/20260712005330_InitialAgentSchema.cs",
   "src/DBNotifier.Persistence.Agent.Sqlite/Migrations/20260712005606_AddAgentStateConstraints.cs",
   "src/DBNotifier.Persistence.Agent.Sqlite/Migrations/20260712055252_AddCommandCompatibilityEnvelope.cs",
+  "src/DBNotifier.Persistence.Agent.Sqlite/Migrations/20260718051712_HardenAgentFleetSandboxResilience.cs",
   "src/DBNotifier.Persistence.Server.PostgreSql/Migrations/20260712005336_InitialServerSchema.cs",
   "src/DBNotifier.Persistence.Server.PostgreSql/Migrations/20260712005611_AddServerStateConstraints.cs",
   "src/DBNotifier.Persistence.Server.PostgreSql/Migrations/20260712025130_EnforceAgentObservationSequence.cs",

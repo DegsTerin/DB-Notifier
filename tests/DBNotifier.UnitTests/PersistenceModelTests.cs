@@ -25,7 +25,7 @@ public sealed class PersistenceModelTests
         await context.Database.MigrateAsync();
 
         string[] appliedMigrations = (await context.Database.GetAppliedMigrationsAsync()).ToArray();
-        Assert.Equal(4, appliedMigrations.Length);
+        Assert.Equal(5, appliedMigrations.Length);
 
         context.InstanceAssignments.Add(new AgentInstanceAssignmentRow
         {
@@ -117,7 +117,7 @@ public sealed class PersistenceModelTests
         await using AgentDbContext context = new(options);
         await context.Database.MigrateAsync();
         string[] appliedMigrations = (await context.Database.GetAppliedMigrationsAsync()).ToArray();
-        Assert.Equal(4, appliedMigrations.Length);
+        Assert.Equal(5, appliedMigrations.Length);
 
         Guid agentId = Guid.NewGuid();
         DateTimeOffset now = DateTimeOffset.UtcNow;
@@ -150,7 +150,7 @@ public sealed class PersistenceModelTests
         Assert.Equal(3, (await context.Database.GetAppliedMigrationsAsync()).Count());
 
         await migrator.MigrateAsync();
-        Assert.Equal(4, (await context.Database.GetAppliedMigrationsAsync()).Count());
+        Assert.Equal(5, (await context.Database.GetAppliedMigrationsAsync()).Count());
     }
 
     [Fact]

@@ -1,5 +1,6 @@
 // Module purpose: Persists bounded Agent Fleet identity, heartbeat and read-only assignment state without provider execution or secret material.
 using System.Data;
+using System.Data.Common;
 using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
@@ -373,10 +374,17 @@ public sealed class AgentFleetStore(IDbContextFactory<ServerDbContext> contextFa
         await using ServerDbContext context = await contextFactory
             .CreateDbContextAsync(cancellationToken)
             .ConfigureAwait(false);
+        await using IDbContextTransaction transaction = await context.Database
+            .BeginTransactionAsync(IsolationLevel.Serializable, cancellationToken)
+            .ConfigureAwait(false);
         ActiveAgentProjection? agent = await context.Agents
             .AsNoTracking()
             .Where(row => row.AgentId == agentId && row.State == "Active" && row.RevokedAt == null)
-            .Select(row => new ActiveAgentProjection(row.AgentId, row.Environment, row.AgentVersion))
+            .Select(row => new ActiveAgentProjection(
+                row.AgentId,
+                row.Environment,
+                row.AgentVersion,
+                row.ConcurrencyToken))
             .SingleOrDefaultAsync(cancellationToken)
             .ConfigureAwait(false);
         if (agent is null || !string.Equals(agent.AgentVersion, agentVersion, StringComparison.Ordinal))
@@ -473,27 +481,57 @@ public sealed class AgentFleetStore(IDbContextFactory<ServerDbContext> contextFa
             return InvalidStoredAssignments();
         }
 
-        string version = AgentAssignmentVersion.Compute(agentId, assignments);
-        if (string.Equals(afterVersion, version, StringComparison.Ordinal))
+        bool stillAuthorised = await context.Agents.AsNoTracking()
+            .AnyAsync(row => row.AgentId == agent.AgentId && row.State == "Active" && row.RevokedAt == null &&
+                row.ConcurrencyToken == agent.ConcurrencyToken, cancellationToken)
+            .ConfigureAwait(false);
+        if (!stillAuthorised)
         {
             return new AgentAssignmentOutcome(
+                AgentAssignmentDisposition.AgentInactive,
+                null,
+                null,
+                "assignments.agent_inactive");
+        }
+
+        string version = AgentAssignmentVersion.Compute(agentId, assignments);
+        AgentAssignmentOutcome outcome;
+        if (string.Equals(afterVersion, version, StringComparison.Ordinal))
+        {
+            outcome = new AgentAssignmentOutcome(
                 AgentAssignmentDisposition.NotModified,
                 null,
                 version,
                 null);
         }
+        else
+        {
+            AgentAssignmentSnapshot snapshot = new(
+                AgentFleetProtocol.CurrentSchemaVersion,
+                agentId,
+                version,
+                generatedAt,
+                assignments);
+            outcome = new AgentAssignmentOutcome(
+                AgentAssignmentDisposition.Available,
+                snapshot,
+                version,
+                null);
+        }
 
-        AgentAssignmentSnapshot snapshot = new(
-            AgentFleetProtocol.CurrentSchemaVersion,
-            agentId,
-            version,
-            generatedAt,
-            assignments);
-        return new AgentAssignmentOutcome(
-            AgentAssignmentDisposition.Available,
-            snapshot,
-            version,
-            null);
+        try
+        {
+            await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
+            return outcome;
+        }
+        catch (DbException)
+        {
+            return new AgentAssignmentOutcome(
+                AgentAssignmentDisposition.TemporarilyUnavailable,
+                null,
+                null,
+                "assignments.consistency_conflict");
+        }
     }
 
     /// <inheritdoc />
@@ -900,7 +938,12 @@ public sealed class AgentFleetStore(IDbContextFactory<ServerDbContext> contextFa
     /// <param name="AgentId">Owning Agent identifier.</param>
     /// <param name="Environment">Exact assignment environment.</param>
     /// <param name="AgentVersion">Currently accepted Agent version.</param>
-    private sealed record ActiveAgentProjection(Guid AgentId, string Environment, string AgentVersion);
+    /// <param name="ConcurrencyToken">Exact state token used to recheck authorisation before commit.</param>
+    private sealed record ActiveAgentProjection(
+        Guid AgentId,
+        string Environment,
+        string AgentVersion,
+        Guid ConcurrencyToken);
 
     /// <summary>Projects assignment-safe columns and deliberately omits the administrative credential reference.</summary>
     /// <param name="InstanceId">Database-instance identifier.</param>

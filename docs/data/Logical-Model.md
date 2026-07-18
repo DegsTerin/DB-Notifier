@@ -18,7 +18,7 @@ Stores locally recognised Agent identity metadata by `agent_id`, with unique ins
 
 ### Agent Fleet state
 
-Stores the next heartbeat sequence, exact pending heartbeat envelope, last durable receipt, assignment ETag/generation/freshness evidence, latest sanitised failure and concurrency token. The pending envelope is retained across a lost response and cleared only after a compatible receipt. It contains process/connectivity evidence, not instance-health evidence.
+Stores the next heartbeat sequence, exact pending heartbeat envelope, last durable receipt, assignment ETag/generation/freshness evidence, latest sanitised failure, next monotonic operation fence, current lease owner/kind/fence/expiry and concurrency token. The lease tuple is either completely absent or completely populated, and every heartbeat/assignment mutation validates the exact unexpired fence inside its transaction. The pending envelope is retained across a lost response and cleared only after a compatible receipt. It contains process/connectivity evidence, not instance-health evidence.
 
 ### Instance assignments
 
@@ -123,3 +123,5 @@ Stores durable integration events inside the same transaction as state changes. 
 - Append-only tables do not expose soft delete.
 - Migrations are provider-specific and never run against a monitored database.
 - Agent Fleet assignment persistence is configuration evidence only; it does not activate a provider, probe, scheduler or command path.
+- Agent Fleet leases coordinate only temporary local sandbox processes. They are not a distributed lock, service lease or authority to enable the ordinary Worker.
+- A corrupt, future or incomplete Agent SQLite schema is refused by the sandbox guard without repair or silent recreation.

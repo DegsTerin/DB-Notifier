@@ -136,6 +136,21 @@ public sealed class AgentFleetStateRow
     /// <summary>Gets or sets the latest sanitised failure code.</summary>
     public string? LastErrorCode { get; set; }
 
+    /// <summary>Gets or sets the next strictly increasing local operation fence.</summary>
+    public long NextOperationFence { get; set; }
+
+    /// <summary>Gets or sets the bounded owner of the current sandbox operation lease.</summary>
+    public string? OperationLeaseOwner { get; set; }
+
+    /// <summary>Gets or sets the exact operation protected by the current lease.</summary>
+    public string? OperationLeaseKind { get; set; }
+
+    /// <summary>Gets or sets the current monotonic fence token.</summary>
+    public long? OperationLeaseFence { get; set; }
+
+    /// <summary>Gets or sets the UTC expiry after which another sandbox process may acquire the lease.</summary>
+    public DateTimeOffset? OperationLeaseExpiresAt { get; set; }
+
     /// <summary>Gets or sets the optimistic concurrency token.</summary>
     public Guid ConcurrencyToken { get; set; }
 }

@@ -3,6 +3,7 @@ using System.Data;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using DBNotifier.Application.AgentFleet;
+using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 
 namespace DBNotifier.Persistence.Agent.Sqlite;
@@ -12,7 +13,10 @@ namespace DBNotifier.Persistence.Agent.Sqlite;
 /// resolved credentials or provider results.
 /// </summary>
 /// <param name="contextFactory">Factory for short-lived Agent SQLite contexts.</param>
-public sealed class AgentFleetLocalStore(IDbContextFactory<AgentDbContext> contextFactory) : IAgentFleetLocalStore
+/// <param name="faultInjector">Optional deterministic test-only fault injector.</param>
+public sealed class AgentFleetLocalStore(
+    IDbContextFactory<AgentDbContext> contextFactory,
+    IAgentFleetLocalStoreFaultInjector? faultInjector = null) : IAgentFleetLocalStore
 {
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web)
     {
@@ -71,10 +75,102 @@ public sealed class AgentFleetLocalStore(IDbContextFactory<AgentDbContext> conte
         {
             AgentId = registration.AgentId,
             NextHeartbeatSequence = 1,
+            NextOperationFence = 1,
             ConcurrencyToken = Guid.NewGuid(),
         });
         await context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
         await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <inheritdoc />
+    public async ValueTask<AgentFleetOperationLease?> TryAcquireOperationLeaseAsync(
+        Guid agentId,
+        string ownerId,
+        AgentFleetOperationKind kind,
+        DateTimeOffset now,
+        TimeSpan duration,
+        CancellationToken cancellationToken)
+    {
+        ValidateLeaseRequest(agentId, ownerId, kind, now, duration);
+        await InjectAsync(AgentFleetLocalStoreFaultPoint.BeforeLeaseAcquire, cancellationToken).ConfigureAwait(false);
+        DateTimeOffset expiresAt = now + duration;
+        await using AgentDbContext context = await contextFactory
+            .CreateDbContextAsync(cancellationToken).ConfigureAwait(false);
+        int updated;
+        try
+        {
+            updated = await context.Database.ExecuteSqlInterpolatedAsync(
+                $"""
+                UPDATE agent_fleet_state
+                SET operation_lease_owner = {ownerId},
+                    operation_lease_kind = {kind.ToString()},
+                    operation_lease_fence = next_operation_fence,
+                    operation_lease_expires_at = {expiresAt},
+                    next_operation_fence = next_operation_fence + 1,
+                    concurrency_token = {Guid.NewGuid()}
+                WHERE agent_id = {agentId}
+                  AND next_operation_fence < {long.MaxValue}
+                  AND (operation_lease_owner IS NULL OR operation_lease_expires_at <= {now});
+                """,
+                cancellationToken).ConfigureAwait(false);
+        }
+        catch (SqliteException exception) when (exception.SqliteErrorCode is 5 or 6)
+        {
+            // SQLite BUSY/LOCKED is a bounded acquisition refusal, never permission to run without a fence.
+            return null;
+        }
+        if (updated == 0)
+        {
+            return null;
+        }
+
+        var lease = await context.AgentFleetStates.AsNoTracking()
+            .Where(row => row.AgentId == agentId)
+            .Select(row => new
+            {
+                row.OperationLeaseOwner,
+                row.OperationLeaseKind,
+                row.OperationLeaseFence,
+                row.OperationLeaseExpiresAt,
+            })
+            .SingleAsync(cancellationToken).ConfigureAwait(false);
+        if (!string.Equals(lease.OperationLeaseOwner, ownerId, StringComparison.Ordinal) ||
+            !string.Equals(lease.OperationLeaseKind, kind.ToString(), StringComparison.Ordinal) ||
+            lease.OperationLeaseExpiresAt != expiresAt)
+        {
+            throw new InvalidOperationException("agent_fleet.lease_invalid");
+        }
+        await InjectAsync(AgentFleetLocalStoreFaultPoint.AfterLeaseAcquire, cancellationToken).ConfigureAwait(false);
+        return new AgentFleetOperationLease(
+            agentId,
+            ownerId,
+            kind,
+            lease.OperationLeaseFence ?? throw new InvalidOperationException("agent_fleet.lease_invalid"),
+            expiresAt);
+    }
+
+    /// <inheritdoc />
+    public async ValueTask ReleaseOperationLeaseAsync(
+        AgentFleetOperationLease lease,
+        CancellationToken cancellationToken)
+    {
+        ValidateLease(lease);
+        await using AgentDbContext context = await contextFactory
+            .CreateDbContextAsync(cancellationToken).ConfigureAwait(false);
+        await context.Database.ExecuteSqlInterpolatedAsync(
+            $"""
+            UPDATE agent_fleet_state
+            SET operation_lease_owner = NULL,
+                operation_lease_kind = NULL,
+                operation_lease_fence = NULL,
+                operation_lease_expires_at = NULL,
+                concurrency_token = {Guid.NewGuid()}
+            WHERE agent_id = {lease.AgentId}
+              AND operation_lease_owner = {lease.OwnerId}
+              AND operation_lease_kind = {lease.Kind.ToString()}
+              AND operation_lease_fence = {lease.FenceToken};
+            """,
+            cancellationToken).ConfigureAwait(false);
     }
 
     /// <inheritdoc />
@@ -103,6 +199,7 @@ public sealed class AgentFleetLocalStore(IDbContextFactory<AgentDbContext> conte
         string agentVersion,
         AgentHeartbeatQueueEvidence queueEvidence,
         DateTimeOffset now,
+        AgentFleetOperationLease lease,
         CancellationToken cancellationToken)
     {
         ValidateRegistration(registration);
@@ -120,6 +217,7 @@ public sealed class AgentFleetLocalStore(IDbContextFactory<AgentDbContext> conte
             .BeginTransactionAsync(IsolationLevel.Serializable, cancellationToken).ConfigureAwait(false);
         AgentFleetStateRow state = await context.AgentFleetStates
             .SingleAsync(row => row.AgentId == registration.AgentId, cancellationToken).ConfigureAwait(false);
+        EnsureLease(state, lease, AgentFleetOperationKind.Heartbeat, now);
         if (state.PendingHeartbeatPayloadJson is not null)
         {
             AgentHeartbeatRequest pending = JsonSerializer.Deserialize<AgentHeartbeatRequest>(
@@ -158,8 +256,12 @@ public sealed class AgentFleetLocalStore(IDbContextFactory<AgentDbContext> conte
         state.PendingHeartbeatPayloadJson = JsonSerializer.Serialize(request, JsonOptions);
         state.LastAttemptAt = now;
         state.ConcurrencyToken = Guid.NewGuid();
+        await InjectAsync(AgentFleetLocalStoreFaultPoint.BeforeHeartbeatPendingCommit, cancellationToken)
+            .ConfigureAwait(false);
         await context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
         await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
+        await InjectAsync(AgentFleetLocalStoreFaultPoint.AfterHeartbeatPendingCommit, cancellationToken)
+            .ConfigureAwait(false);
         return new PendingAgentHeartbeat(request, true);
     }
 
@@ -167,13 +269,16 @@ public sealed class AgentFleetLocalStore(IDbContextFactory<AgentDbContext> conte
     public async ValueTask AcknowledgeHeartbeatAsync(
         AgentHeartbeatRequest request,
         AgentHeartbeatOutcome outcome,
+        DateTimeOffset acknowledgedAt,
+        AgentFleetOperationLease lease,
         CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(request);
         ArgumentNullException.ThrowIfNull(outcome);
         if (outcome.Disposition is not (AgentHeartbeatDisposition.Accepted or
                 AgentHeartbeatDisposition.Duplicate or AgentHeartbeatDisposition.AcceptedWithGap) ||
-            outcome.AcceptedAt is null || outcome.HighestAcceptedSequence != request.Sequence)
+            outcome.AcceptedAt is null || outcome.HighestAcceptedSequence != request.Sequence ||
+            acknowledgedAt == default || acknowledgedAt.Offset != TimeSpan.Zero)
         {
             throw new ArgumentException("Heartbeat outcome cannot acknowledge the pending envelope.", nameof(outcome));
         }
@@ -184,6 +289,7 @@ public sealed class AgentFleetLocalStore(IDbContextFactory<AgentDbContext> conte
             .BeginTransactionAsync(IsolationLevel.Serializable, cancellationToken).ConfigureAwait(false);
         AgentFleetStateRow state = await context.AgentFleetStates
             .SingleAsync(row => row.AgentId == request.AgentId, cancellationToken).ConfigureAwait(false);
+        EnsureLease(state, lease, AgentFleetOperationKind.Heartbeat, acknowledgedAt);
         AgentRegistrationRow registration = await context.Registrations
             .SingleAsync(row => row.AgentId == request.AgentId, cancellationToken).ConfigureAwait(false);
         if (state.PendingHeartbeatMessageId != request.MessageId ||
@@ -206,8 +312,12 @@ public sealed class AgentFleetLocalStore(IDbContextFactory<AgentDbContext> conte
         registration.IdentityState = AgentLocalIdentityState.Active.ToString();
         registration.UpdatedAt = outcome.AcceptedAt.Value;
         registration.ConcurrencyToken = Guid.NewGuid();
+        await InjectAsync(AgentFleetLocalStoreFaultPoint.BeforeHeartbeatAcknowledgementCommit, cancellationToken)
+            .ConfigureAwait(false);
         await context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
         await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
+        await InjectAsync(AgentFleetLocalStoreFaultPoint.AfterHeartbeatAcknowledgementCommit, cancellationToken)
+            .ConfigureAwait(false);
     }
 
     /// <inheritdoc />
@@ -216,15 +326,19 @@ public sealed class AgentFleetLocalStore(IDbContextFactory<AgentDbContext> conte
         AgentLocalIdentityState state,
         string errorCode,
         DateTimeOffset now,
+        AgentFleetOperationLease lease,
         CancellationToken cancellationToken)
     {
         ValidateStateChange(agentId, state, errorCode, now);
         await using AgentDbContext context = await contextFactory
             .CreateDbContextAsync(cancellationToken).ConfigureAwait(false);
+        await using var transaction = await context.Database
+            .BeginTransactionAsync(IsolationLevel.Serializable, cancellationToken).ConfigureAwait(false);
         AgentRegistrationRow registration = await context.Registrations
             .SingleAsync(row => row.AgentId == agentId, cancellationToken).ConfigureAwait(false);
         AgentFleetStateRow fleet = await context.AgentFleetStates
             .SingleAsync(row => row.AgentId == agentId, cancellationToken).ConfigureAwait(false);
+        EnsureLease(fleet, lease, lease.Kind, now);
         registration.IdentityState = state.ToString();
         registration.UpdatedAt = now;
         registration.ConcurrencyToken = Guid.NewGuid();
@@ -232,6 +346,7 @@ public sealed class AgentFleetLocalStore(IDbContextFactory<AgentDbContext> conte
         fleet.LastErrorCode = errorCode;
         fleet.ConcurrencyToken = Guid.NewGuid();
         await context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+        await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
     }
 
     /// <inheritdoc />
@@ -270,6 +385,7 @@ public sealed class AgentFleetLocalStore(IDbContextFactory<AgentDbContext> conte
         AgentAssignmentSnapshot snapshot,
         string entityTag,
         DateTimeOffset appliedAt,
+        AgentFleetOperationLease lease,
         CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(snapshot);
@@ -284,6 +400,9 @@ public sealed class AgentFleetLocalStore(IDbContextFactory<AgentDbContext> conte
             .BeginTransactionAsync(IsolationLevel.Serializable, cancellationToken).ConfigureAwait(false);
         AgentRegistrationRow registration = await context.Registrations
             .SingleAsync(row => row.AgentId == snapshot.AgentId, cancellationToken).ConfigureAwait(false);
+        AgentFleetStateRow fleet = await context.AgentFleetStates
+            .SingleAsync(row => row.AgentId == snapshot.AgentId, cancellationToken).ConfigureAwait(false);
+        EnsureLease(fleet, lease, AgentFleetOperationKind.AssignmentReconciliation, appliedAt);
         if (!AgentAssignmentVersion.TryValidate(
                 snapshot,
                 snapshot.AgentId,
@@ -312,8 +431,6 @@ public sealed class AgentFleetLocalStore(IDbContextFactory<AgentDbContext> conte
             UpdatedAt = assignment.UpdatedAt,
             ConcurrencyToken = Guid.NewGuid(),
         }));
-        AgentFleetStateRow fleet = await context.AgentFleetStates
-            .SingleAsync(row => row.AgentId == snapshot.AgentId, cancellationToken).ConfigureAwait(false);
         registration.ActiveConfigurationVersion = snapshot.Version;
         registration.IdentityState = AgentLocalIdentityState.Active.ToString();
         registration.UpdatedAt = appliedAt;
@@ -324,8 +441,12 @@ public sealed class AgentFleetLocalStore(IDbContextFactory<AgentDbContext> conte
         fleet.LastAttemptAt = appliedAt;
         fleet.LastErrorCode = null;
         fleet.ConcurrencyToken = Guid.NewGuid();
+        await InjectAsync(AgentFleetLocalStoreFaultPoint.BeforeAssignmentCommit, cancellationToken)
+            .ConfigureAwait(false);
         await context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
         await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
+        await InjectAsync(AgentFleetLocalStoreFaultPoint.AfterAssignmentCommit, cancellationToken)
+            .ConfigureAwait(false);
     }
 
     /// <inheritdoc />
@@ -334,6 +455,7 @@ public sealed class AgentFleetLocalStore(IDbContextFactory<AgentDbContext> conte
         string version,
         string entityTag,
         DateTimeOffset checkedAt,
+        AgentFleetOperationLease lease,
         CancellationToken cancellationToken)
     {
         if (agentId == Guid.Empty || !AgentAssignmentVersion.IsUpperHexDigest(version) ||
@@ -344,10 +466,13 @@ public sealed class AgentFleetLocalStore(IDbContextFactory<AgentDbContext> conte
 
         await using AgentDbContext context = await contextFactory
             .CreateDbContextAsync(cancellationToken).ConfigureAwait(false);
+        await using var transaction = await context.Database
+            .BeginTransactionAsync(IsolationLevel.Serializable, cancellationToken).ConfigureAwait(false);
         AgentRegistrationRow registration = await context.Registrations
             .SingleAsync(row => row.AgentId == agentId, cancellationToken).ConfigureAwait(false);
         AgentFleetStateRow fleet = await context.AgentFleetStates
             .SingleAsync(row => row.AgentId == agentId, cancellationToken).ConfigureAwait(false);
+        EnsureLease(fleet, lease, AgentFleetOperationKind.AssignmentReconciliation, checkedAt);
         if (!string.Equals(registration.ActiveConfigurationVersion, version, StringComparison.Ordinal) ||
             !string.Equals(fleet.AssignmentEntityTag, entityTag, StringComparison.Ordinal))
         {
@@ -362,6 +487,7 @@ public sealed class AgentFleetLocalStore(IDbContextFactory<AgentDbContext> conte
         fleet.LastErrorCode = null;
         fleet.ConcurrencyToken = Guid.NewGuid();
         await context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+        await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
     }
 
     /// <inheritdoc />
@@ -370,8 +496,72 @@ public sealed class AgentFleetLocalStore(IDbContextFactory<AgentDbContext> conte
         AgentLocalIdentityState state,
         string errorCode,
         DateTimeOffset failedAt,
+        AgentFleetOperationLease lease,
         CancellationToken cancellationToken) =>
-        SetIdentityStateAsync(agentId, state, errorCode, failedAt, cancellationToken);
+        SetIdentityStateAsync(agentId, state, errorCode, failedAt, lease, cancellationToken);
+
+    /// <summary>Invokes the optional deterministic test fault boundary without affecting ordinary composition.</summary>
+    /// <param name="point">Exact persistence boundary.</param>
+    /// <param name="cancellationToken">Cancellation propagated to the fixture hook.</param>
+    /// <returns>Completed work when no injector is supplied.</returns>
+    private ValueTask InjectAsync(AgentFleetLocalStoreFaultPoint point, CancellationToken cancellationToken) =>
+        faultInjector?.InjectAsync(point, cancellationToken) ?? ValueTask.CompletedTask;
+
+    /// <summary>Refuses a mutation unless the row still carries the caller's exact unexpired fence.</summary>
+    /// <param name="state">Tracked Agent Fleet state row.</param>
+    /// <param name="lease">Caller-provided lease.</param>
+    /// <param name="expectedKind">Operation required by the mutation.</param>
+    /// <param name="now">Controlled UTC mutation instant.</param>
+    private static void EnsureLease(
+        AgentFleetStateRow state,
+        AgentFleetOperationLease lease,
+        AgentFleetOperationKind expectedKind,
+        DateTimeOffset now)
+    {
+        ValidateLease(lease);
+        if (state.AgentId != lease.AgentId || lease.Kind != expectedKind ||
+            !string.Equals(state.OperationLeaseOwner, lease.OwnerId, StringComparison.Ordinal) ||
+            !string.Equals(state.OperationLeaseKind, lease.Kind.ToString(), StringComparison.Ordinal) ||
+            state.OperationLeaseFence != lease.FenceToken || state.OperationLeaseExpiresAt != lease.ExpiresAt ||
+            lease.ExpiresAt <= now)
+        {
+            throw new InvalidOperationException("agent_fleet.lease_lost");
+        }
+    }
+
+    /// <summary>Validates bounded lease acquisition inputs before SQLite access.</summary>
+    /// <param name="agentId">Exact Agent identifier.</param>
+    /// <param name="ownerId">Bounded sandbox owner.</param>
+    /// <param name="kind">Protected operation.</param>
+    /// <param name="now">Controlled UTC acquisition instant.</param>
+    /// <param name="duration">Bounded lease duration.</param>
+    private static void ValidateLeaseRequest(
+        Guid agentId,
+        string ownerId,
+        AgentFleetOperationKind kind,
+        DateTimeOffset now,
+        TimeSpan duration)
+    {
+        if (agentId == Guid.Empty || string.IsNullOrWhiteSpace(ownerId) || ownerId.Length is < 8 or > 160 ||
+            ownerId.Any(character => !char.IsAsciiLetterOrDigit(character) && character is not ('.' or '_' or ':' or '-')) ||
+            !Enum.IsDefined(kind) || now == default || now.Offset != TimeSpan.Zero ||
+            duration < TimeSpan.FromSeconds(1) || duration > TimeSpan.FromMinutes(30))
+        {
+            throw new ArgumentException("Agent Fleet operation lease request is outside policy.");
+        }
+    }
+
+    /// <summary>Validates a caller-provided lease before it influences a mutation or release.</summary>
+    /// <param name="lease">Lease to validate.</param>
+    private static void ValidateLease(AgentFleetOperationLease lease)
+    {
+        ArgumentNullException.ThrowIfNull(lease);
+        if (lease.AgentId == Guid.Empty || string.IsNullOrWhiteSpace(lease.OwnerId) || lease.FenceToken < 1 ||
+            !Enum.IsDefined(lease.Kind) || lease.ExpiresAt == default || lease.ExpiresAt.Offset != TimeSpan.Zero)
+        {
+            throw new ArgumentException("Agent Fleet operation lease is outside policy.", nameof(lease));
+        }
+    }
 
     private static AgentLocalRegistration ToRegistration(AgentRegistrationRow row)
     {

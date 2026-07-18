@@ -1,12 +1,16 @@
 // Module purpose: Exercises the production Agent Fleet routes over isolated loopback HTTPS with ephemeral identity material and SQLite state.
+using System.Data.Common;
+using System.Diagnostics;
 using System.Formats.Asn1;
 using System.Globalization;
+using System.IO.Pipes;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
+using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Threading.RateLimiting;
@@ -29,6 +33,7 @@ using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.AspNetCore.Server.Kestrel.Https;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -116,6 +121,39 @@ public sealed class AgentFleetApiEndToEndTests
         await sandbox.SeedAssignmentsAndHumanAccessAsync(agentId);
 
         using HttpClient agentClient = sandbox.CreateClient(agentCertificate);
+        foreach (string unsupportedProtocol in new[] { "0", "2" })
+        {
+            using HttpRequestMessage incompatibleRequest = CreateAgentRequest(
+                HttpMethod.Get,
+                $"/api/v1/agents/{agentId:D}/assignments");
+            incompatibleRequest.Headers.Remove("DBN-Protocol-Version");
+            incompatibleRequest.Headers.Add("DBN-Protocol-Version", unsupportedProtocol);
+            using HttpResponseMessage incompatibleResponse = await agentClient.SendAsync(incompatibleRequest);
+            Assert.Equal(HttpStatusCode.UpgradeRequired, incompatibleResponse.StatusCode);
+        }
+
+        using (HttpRequestMessage missingSchemaRequest = CreateAgentRequest(
+            HttpMethod.Get,
+            $"/api/v1/agents/{agentId:D}/assignments"))
+        {
+            missingSchemaRequest.Headers.Remove("DBN-Message-Schema");
+            using HttpResponseMessage missingSchemaResponse = await agentClient.SendAsync(missingSchemaRequest);
+            Assert.Equal(HttpStatusCode.UpgradeRequired, missingSchemaResponse.StatusCode);
+        }
+
+        AgentHeartbeatRequest unknownSchemaHeartbeat = CreateHeartbeat(agentId, 1, sandbox.Now) with
+        {
+            SchemaVersion = AgentFleetProtocol.CurrentSchemaVersion + 1,
+        };
+        using (HttpResponseMessage unknownSchemaResponse = await SendAgentJsonAsync(
+            agentClient,
+            HttpMethod.Post,
+            $"/api/v1/agents/{agentId:D}/heartbeats",
+            unknownSchemaHeartbeat))
+        {
+            Assert.Equal(HttpStatusCode.UpgradeRequired, unknownSchemaResponse.StatusCode);
+        }
+
         AgentHeartbeatRequest firstHeartbeat = CreateHeartbeat(agentId, 1, sandbox.Now);
         using HttpResponseMessage firstHeartbeatResponse = await SendAgentJsonAsync(
             agentClient,
@@ -162,6 +200,31 @@ public sealed class AgentFleetApiEndToEndTests
         Assert.Equal(AgentHeartbeatDisposition.AcceptedWithGap, gapOutcome.Disposition);
         Assert.Equal(3, gapOutcome.HighestAcceptedSequence);
 
+        AgentHeartbeatRequest reorderedHeartbeat = CreateHeartbeat(agentId, 2, sandbox.Now) with
+        {
+            OccurredAt = sandbox.Now.AddSeconds(3),
+            SentAt = sandbox.Now.AddSeconds(3),
+            AgentTime = sandbox.Now.AddSeconds(3),
+        };
+        using HttpResponseMessage reorderedResponse = await SendAgentJsonAsync(
+            agentClient,
+            HttpMethod.Post,
+            $"/api/v1/agents/{agentId:D}/heartbeats",
+            reorderedHeartbeat);
+        Assert.Equal(HttpStatusCode.Conflict, reorderedResponse.StatusCode);
+
+        AgentHeartbeatRequest reusedMessageId = reorderedHeartbeat with
+        {
+            MessageId = firstHeartbeat.MessageId,
+            Sequence = 4,
+        };
+        using HttpResponseMessage reusedMessageResponse = await SendAgentJsonAsync(
+            agentClient,
+            HttpMethod.Post,
+            $"/api/v1/agents/{agentId:D}/heartbeats",
+            reusedMessageId);
+        Assert.Equal(HttpStatusCode.Conflict, reusedMessageResponse.StatusCode);
+
         using HttpRequestMessage assignmentsRequest = CreateAgentRequest(
             HttpMethod.Get,
             $"/api/v1/agents/{agentId:D}/assignments");
@@ -178,6 +241,26 @@ public sealed class AgentFleetApiEndToEndTests
         Assert.Equal(agentId, assignments.AgentId);
         Assert.Equal("fixture-provider", assignment.ProviderType);
         Assert.Equal("fixture:monitoring-only", assignment.MonitoringCredentialReference);
+
+        using (HttpRequestMessage weakEntityTagRequest = CreateAgentRequest(
+            HttpMethod.Get,
+            $"/api/v1/agents/{agentId:D}/assignments"))
+        {
+            weakEntityTagRequest.Headers.IfNoneMatch.Add(
+                new EntityTagHeaderValue($"\"{assignments.Version}\"", isWeak: true));
+            using HttpResponseMessage weakEntityTagResponse = await agentClient.SendAsync(weakEntityTagRequest);
+            Assert.Equal(HttpStatusCode.BadRequest, weakEntityTagResponse.StatusCode);
+        }
+
+        using (HttpRequestMessage divergentConditionRequest = CreateAgentRequest(
+            HttpMethod.Get,
+            $"/api/v1/agents/{agentId:D}/assignments?afterVersion={assignments.Version}"))
+        {
+            divergentConditionRequest.Headers.IfNoneMatch.Add(
+                new EntityTagHeaderValue($"\"{new string('F', 64)}\""));
+            using HttpResponseMessage divergentConditionResponse = await agentClient.SendAsync(divergentConditionRequest);
+            Assert.Equal(HttpStatusCode.BadRequest, divergentConditionResponse.StatusCode);
+        }
 
         using HttpRequestMessage notModifiedRequest = CreateAgentRequest(
             HttpMethod.Get,
@@ -307,9 +390,10 @@ public sealed class AgentFleetApiEndToEndTests
         Assert.DoesNotContain(token, await local.ReadPersistedTextAsync(), StringComparison.Ordinal);
         await sandbox.SeedAssignmentsAndHumanAccessAsync(registration.AgentId);
 
-        AgentFleetClientResult responseLost = await coordinator.SendHeartbeatOnceAsync(
-            AgentVersion,
-            CancellationToken.None);
+        AgentFleetClientResult responseLost = await RunHeartbeatOnceAsync(
+            coordinator,
+            local.Store,
+            sandbox.Now);
         Assert.False(responseLost.Succeeded);
         Assert.Equal(AgentLocalIdentityState.Offline, responseLost.State);
         PendingAgentHeartbeat pendingAfterLoss = await local.ReadPendingHeartbeatAsync(registration.AgentId);
@@ -320,22 +404,25 @@ public sealed class AgentFleetApiEndToEndTests
             local.Store,
             new FixedTimeProvider(sandbox.Now),
             TimeSpan.FromMinutes(5));
-        AgentFleetClientResult replayed = await restartedCoordinator.SendHeartbeatOnceAsync(
-            AgentVersion,
-            CancellationToken.None);
+        AgentFleetClientResult replayed = await RunHeartbeatOnceAsync(
+            restartedCoordinator,
+            local.Store,
+            sandbox.Now);
         Assert.True(replayed.Succeeded);
         Assert.Equal("heartbeat.accepted", replayed.Code);
         Assert.Equal(1, pendingAfterLoss.Request.Sequence);
 
-        AgentFleetClientResult nextHeartbeat = await restartedCoordinator.SendHeartbeatOnceAsync(
-            AgentVersion,
-            CancellationToken.None);
+        AgentFleetClientResult nextHeartbeat = await RunHeartbeatOnceAsync(
+            restartedCoordinator,
+            local.Store,
+            sandbox.Now);
         Assert.True(nextHeartbeat.Succeeded);
         Assert.Equal(3, lossyTransport.HeartbeatCalls);
 
-        AgentFleetClientResult applied = await restartedCoordinator.ReconcileAssignmentsOnceAsync(
-            AgentVersion,
-            CancellationToken.None);
+        AgentFleetClientResult applied = await RunAssignmentsOnceAsync(
+            restartedCoordinator,
+            local.Store,
+            sandbox.Now);
         Assert.True(applied.Succeeded);
         Assert.Equal("assignments.applied", applied.Code);
         AgentAssignmentLocalState firstState = await local.Store.GetAssignmentStateAsync(
@@ -346,9 +433,10 @@ public sealed class AgentFleetApiEndToEndTests
         Assert.All(await local.ReadAssignmentsAsync(), row =>
             Assert.Null(row.AdministrativeCredentialReference));
 
-        AgentFleetClientResult unchanged = await restartedCoordinator.ReconcileAssignmentsOnceAsync(
-            AgentVersion,
-            CancellationToken.None);
+        AgentFleetClientResult unchanged = await RunAssignmentsOnceAsync(
+            restartedCoordinator,
+            local.Store,
+            sandbox.Now);
         Assert.True(unchanged.Succeeded);
         Assert.Equal("assignments.not_modified", unchanged.Code);
 
@@ -360,9 +448,10 @@ public sealed class AgentFleetApiEndToEndTests
             local.Store,
             new FixedTimeProvider(sandbox.Now),
             TimeSpan.FromMinutes(5));
-        AgentFleetClientResult rejected = await tamperedCoordinator.ReconcileAssignmentsOnceAsync(
-            AgentVersion,
-            CancellationToken.None);
+        AgentFleetClientResult rejected = await RunAssignmentsOnceAsync(
+            tamperedCoordinator,
+            local.Store,
+            sandbox.Now);
         Assert.False(rejected.Succeeded);
         Assert.Equal(AgentLocalIdentityState.Active, rejected.State);
         Assert.Equal("assignments.digest_mismatch", rejected.Code);
@@ -371,9 +460,10 @@ public sealed class AgentFleetApiEndToEndTests
             CancellationToken.None)).Version);
         Assert.Equal(1, await local.CountAssignmentsAsync());
 
-        AgentFleetClientResult replaced = await restartedCoordinator.ReconcileAssignmentsOnceAsync(
-            AgentVersion,
-            CancellationToken.None);
+        AgentFleetClientResult replaced = await RunAssignmentsOnceAsync(
+            restartedCoordinator,
+            local.Store,
+            sandbox.Now);
         Assert.True(replaced.Succeeded);
         Assert.Equal(2, await local.CountAssignmentsAsync());
         Assert.NotEqual(firstState.Version, (await local.Store.GetAssignmentStateAsync(
@@ -381,19 +471,282 @@ public sealed class AgentFleetApiEndToEndTests
             CancellationToken.None)).Version);
 
         await sandbox.RevokeAgentAsync(registration.AgentId);
-        AgentFleetClientResult revoked = await restartedCoordinator.SendHeartbeatOnceAsync(
-            AgentVersion,
-            CancellationToken.None);
+        AgentFleetClientResult revoked = await RunHeartbeatOnceAsync(
+            restartedCoordinator,
+            local.Store,
+            sandbox.Now);
         Assert.False(revoked.Succeeded);
         Assert.Equal(AgentLocalIdentityState.RevokedOrDenied, revoked.State);
-        AgentFleetClientResult quarantined = await restartedCoordinator.ReconcileAssignmentsOnceAsync(
-            AgentVersion,
-            CancellationToken.None);
+        AgentFleetClientResult quarantined = await RunAssignmentsOnceAsync(
+            restartedCoordinator,
+            local.Store,
+            sandbox.Now);
         Assert.False(quarantined.Succeeded);
         Assert.Equal(AgentLocalIdentityState.RevokedOrDenied, quarantined.State);
 
         await local.AssertNoOperationalEffectsAsync();
         await sandbox.AssertClientIsolationAsync(registration.AgentId);
+    }
+
+    /// <summary>Proves controlled certificate expiry is persisted and blocks transport across coordinator restart.</summary>
+    [Fact]
+    public async Task AgentSideCertificateExpiryRemainsFailClosedAfterLogicalRestart()
+    {
+        await using AgentFleetSandbox sandbox = await AgentFleetSandbox.StartAsync();
+        await using AgentLocalSandbox local = await AgentLocalSandbox.StartAsync();
+        await using SandboxAgentIdentityStore identities = new(sandbox);
+        string installationId = $"installation:{Guid.NewGuid():N}";
+        AgentEnrollmentRequest tokenBinding = new(
+            Guid.NewGuid(),
+            AgentFleetProtocol.CurrentSchemaVersion,
+            installationId,
+            "Sandbox Expiry Client",
+            EnvironmentName,
+            PlatformName,
+            AgentVersion,
+            ScopeName,
+            sandbox.Now,
+            sandbox.Now,
+            "test-only-public-csr-placeholder");
+        string token = await sandbox.SeedEnrollmentTokenAsync(tokenBinding);
+        HttpAgentFleetClientTransport enrollmentTransport = new(
+            sandbox.BaseAddress,
+            AgentVersion,
+            identities.GetClient);
+        AgentFleetClientCoordinator enrollmentCoordinator = new(
+            identities,
+            enrollmentTransport,
+            local.Store,
+            new FixedTimeProvider(sandbox.Now),
+            TimeSpan.FromMinutes(5));
+        AgentFleetClientResult enrolled = await enrollmentCoordinator.EnrolForTestAsync(
+            new AgentEnrollmentBootstrap(
+                token,
+                installationId,
+                "Sandbox Expiry Client",
+                EnvironmentName,
+                PlatformName,
+                AgentVersion,
+                ScopeName),
+            CancellationToken.None);
+        Assert.True(enrolled.Succeeded);
+        AgentLocalRegistration registration = Assert.IsType<AgentLocalRegistration>(
+            await local.Store.GetRegistrationAsync(CancellationToken.None));
+        FailIfCalledTransport blockedTransport = new();
+        DateTimeOffset expiredAt = registration.CertificateNotAfter.AddTicks(1);
+        AgentFleetClientCoordinator expiredCoordinator = new(
+            identities,
+            blockedTransport,
+            local.Store,
+            new FixedTimeProvider(expiredAt),
+            TimeSpan.FromMinutes(5));
+
+        AgentFleetClientResult expired = await RunHeartbeatOnceAsync(
+            expiredCoordinator,
+            local.Store,
+            expiredAt);
+        Assert.False(expired.Succeeded);
+        Assert.Equal(AgentLocalIdentityState.Expired, expired.State);
+        AgentFleetClientCoordinator restarted = new(
+            identities,
+            blockedTransport,
+            local.Store,
+            new FixedTimeProvider(expiredAt.AddMinutes(1)),
+            TimeSpan.FromMinutes(5));
+        AgentFleetClientResult stillExpired = await RunAssignmentsOnceAsync(
+            restarted,
+            local.Store,
+            expiredAt.AddMinutes(1));
+        Assert.False(stillExpired.Succeeded);
+        Assert.Equal(AgentLocalIdentityState.Expired, stillExpired.State);
+        Assert.Equal(0, blockedTransport.Calls);
+        await local.AssertNoOperationalEffectsAsync();
+    }
+
+    /// <summary>
+    /// Proves an assignment authorised and committed before revocation can finish delivery afterwards as historical
+    /// evidence, while every request whose authorisation occurs after revocation is refused.
+    /// </summary>
+    [Fact]
+    public async Task AssignmentResponseAndRevocationRaceHasExplicitAuthorisationSemantics()
+    {
+        PauseAfterCommitInterceptor pause = new();
+        await using AgentFleetSandbox sandbox = await AgentFleetSandbox.StartAsync(pause);
+        using ECDsa agentKey = ECDsa.Create(ECCurve.NamedCurves.nistP256);
+        CertificateRequest signingRequest = new(
+            "CN=DB-Notifier Sandbox Race Agent",
+            agentKey,
+            HashAlgorithmName.SHA256);
+        byte[] certificateSigningRequest = signingRequest.CreateSigningRequest();
+        string installationId = $"installation:{Guid.NewGuid():N}";
+        AgentEnrollmentRequest enrollmentRequest = new(
+            Guid.NewGuid(),
+            AgentFleetProtocol.CurrentSchemaVersion,
+            installationId,
+            "Sandbox Race Agent",
+            EnvironmentName,
+            PlatformName,
+            AgentVersion,
+            ScopeName,
+            sandbox.Now,
+            sandbox.Now,
+            Convert.ToBase64String(certificateSigningRequest));
+        try
+        {
+            string token = await sandbox.SeedEnrollmentTokenAsync(enrollmentRequest);
+            using HttpClient enrollmentClient = sandbox.CreateClient();
+            using HttpResponseMessage enrollmentResponse = await SendEnrollmentAsync(
+                enrollmentClient,
+                token,
+                enrollmentRequest);
+            AgentEnrollmentOutcome enrollment = await ReadRequiredJsonAsync<AgentEnrollmentOutcome>(
+                enrollmentResponse);
+            Assert.Equal(HttpStatusCode.OK, enrollmentResponse.StatusCode);
+            Guid agentId = Assert.IsType<Guid>(enrollment.AgentId);
+            using X509Certificate2 publicCertificate = X509CertificateLoader.LoadCertificate(
+                enrollment.CertificateDer.Span);
+            using X509Certificate2 combinedCertificate = publicCertificate.CopyWithPrivateKey(agentKey);
+            using X509Certificate2 transportCertificate = AgentFleetSandbox.CreateTransportCertificate(
+                combinedCertificate);
+            await sandbox.SeedAssignmentsAndHumanAccessAsync(agentId);
+            using HttpClient agentClient = sandbox.CreateClient(transportCertificate);
+            using HttpClient humanClient = sandbox.CreateHumanClient(HumanSubject);
+            using HttpRequestMessage assignmentRequest = CreateAgentRequest(
+                HttpMethod.Get,
+                $"/api/v1/agents/{agentId:D}/assignments");
+
+            pause.Arm();
+            Task<HttpResponseMessage> delayedAssignment = agentClient.SendAsync(assignmentRequest);
+            await pause.WaitUntilPausedAsync(CancellationToken.None);
+            using HttpResponseMessage revocationResponse = await humanClient.PostAsJsonAsync(
+                $"/api/v1/agents/{agentId:D}:revoke",
+                new AgentRevocationRequest("sandbox-race"),
+                JsonOptions);
+            AgentRevocationOutcome revocation = await ReadRequiredJsonAsync<AgentRevocationOutcome>(
+                revocationResponse);
+            Assert.Equal(AgentRevocationDisposition.Revoked, revocation.Disposition);
+            pause.Release();
+
+            using HttpResponseMessage historicalResponse = await delayedAssignment;
+            AgentAssignmentSnapshot historical = await ReadRequiredJsonAsync<AgentAssignmentSnapshot>(
+                historicalResponse);
+            Assert.Equal(HttpStatusCode.OK, historicalResponse.StatusCode);
+            Assert.Equal(agentId, historical.AgentId);
+            using HttpRequestMessage afterRevocationRequest = CreateAgentRequest(
+                HttpMethod.Get,
+                $"/api/v1/agents/{agentId:D}/assignments");
+            using HttpResponseMessage afterRevocationResponse = await agentClient.SendAsync(afterRevocationRequest);
+            Assert.Contains(
+                afterRevocationResponse.StatusCode,
+                new[] { HttpStatusCode.Unauthorized, HttpStatusCode.Forbidden });
+            await sandbox.AssertRaceIsolationAsync(agentId, revocation.RevokedAt);
+        }
+        finally
+        {
+            pause.Release();
+            CryptographicOperations.ZeroMemory(certificateSigningRequest);
+        }
+    }
+
+    /// <summary>
+    /// Proves exact heartbeat replay after a real child-process termination, expired-lease takeover and private
+    /// identity transfer through bounded local IPC rather than arguments, environment variables or SQLite.
+    /// </summary>
+    [Fact]
+    public async Task HeartbeatReplaySurvivesRealProcessTerminationUnderANewerFence()
+    {
+        await using AgentFleetSandbox sandbox = await AgentFleetSandbox.StartAsync();
+        await using AgentFileSandbox local = await AgentFileSandbox.StartAsync();
+        await using SandboxAgentIdentityStore identities = new(sandbox);
+        string installationId = $"installation:{Guid.NewGuid():N}";
+        AgentEnrollmentRequest tokenBinding = new(
+            Guid.NewGuid(),
+            AgentFleetProtocol.CurrentSchemaVersion,
+            installationId,
+            "Multiprocess Sandbox Agent",
+            EnvironmentName,
+            PlatformName,
+            AgentVersion,
+            ScopeName,
+            sandbox.Now,
+            sandbox.Now,
+            "test-only-public-csr-placeholder");
+        string token = await sandbox.SeedEnrollmentTokenAsync(tokenBinding);
+        HttpAgentFleetClientTransport transport = new(
+            sandbox.BaseAddress,
+            AgentVersion,
+            identities.GetClient);
+        AgentFleetClientCoordinator coordinator = new(
+            identities,
+            transport,
+            local.Store,
+            new FixedTimeProvider(sandbox.Now),
+            TimeSpan.FromMinutes(5));
+        AgentFleetClientResult enrollment = await coordinator.EnrolForTestAsync(
+            new AgentEnrollmentBootstrap(
+                token,
+                installationId,
+                "Multiprocess Sandbox Agent",
+                EnvironmentName,
+                PlatformName,
+                AgentVersion,
+                ScopeName),
+            CancellationToken.None);
+        Assert.True(enrollment.Succeeded);
+        AgentLocalRegistration registration = Assert.IsType<AgentLocalRegistration>(
+            await local.Store.GetRegistrationAsync(CancellationToken.None));
+        (byte[] pkcs12, string password) = identities.ExportIdentityPackage(registration.IdentityReference);
+        Process? interrupted = null;
+        try
+        {
+            string marker = Path.Combine(local.RootPath, "server-accepted.marker");
+            interrupted = await StartPausedSandboxHostAsync(
+                local,
+                sandbox,
+                registration,
+                pkcs12,
+                password,
+                sandbox.Now,
+                marker);
+            Assert.True(File.Exists(marker));
+            Assert.False(interrupted.HasExited);
+            int interruptedProcessId = interrupted.Id;
+            interrupted.Kill(entireProcessTree: true);
+            await interrupted.WaitForExitAsync();
+            Assert.NotEqual(Environment.ProcessId, interruptedProcessId);
+            PendingAgentHeartbeat pending = await local.ReadPendingHeartbeatAsync(registration.AgentId);
+            Assert.Equal(1, pending.Request.Sequence);
+
+            SandboxChildResult replayed = await RunSandboxHostAsync(
+                local,
+                sandbox,
+                registration,
+                pkcs12,
+                password,
+                sandbox.Now.AddSeconds(6));
+            Assert.True(replayed.Succeeded);
+            Assert.Equal("heartbeat.accepted", replayed.Code);
+            Assert.Equal(1, replayed.Attempts);
+            Assert.Equal(2, replayed.FenceToken);
+            AgentFleetStateRow durable = await local.ReadFleetStateAsync(registration.AgentId);
+            Assert.Null(durable.PendingHeartbeatPayloadJson);
+            Assert.Equal(2, durable.NextHeartbeatSequence);
+            Assert.Equal(3, durable.NextOperationFence);
+            Assert.Null(durable.OperationLeaseOwner);
+            await local.AssertNoOperationalEffectsAsync();
+            await sandbox.AssertMultiprocessReplayIsolationAsync(registration.AgentId);
+        }
+        finally
+        {
+            if (interrupted is { HasExited: false })
+            {
+                interrupted.Kill(entireProcessTree: true);
+                await interrupted.WaitForExitAsync();
+            }
+
+            interrupted?.Dispose();
+            CryptographicOperations.ZeroMemory(pkcs12);
+        }
     }
 
     /// <summary>Creates the canonical version-one heartbeat for one enrolled Agent.</summary>
@@ -415,6 +768,311 @@ public sealed class AgentFleetApiEndToEndTests
             0,
             null,
             now.AddSeconds(-1));
+
+    /// <summary>Runs one heartbeat attempt under a fresh sandbox-only local fence.</summary>
+    /// <param name="coordinator">One-shot Agent Fleet coordinator.</param>
+    /// <param name="store">Real Agent SQLite store.</param>
+    /// <param name="now">Controlled sandbox instant.</param>
+    /// <returns>The one-shot sanitised result.</returns>
+    private static async Task<AgentFleetClientResult> RunHeartbeatOnceAsync(
+        AgentFleetClientCoordinator coordinator,
+        AgentFleetLocalStore store,
+        DateTimeOffset now)
+    {
+        AgentFleetSandboxResilienceCoordinator resilience = CreateOneShotResilience(coordinator, store, now);
+        AgentFleetSandboxResilienceResult outcome = await resilience.SendHeartbeatAsync(
+            $"sandbox:e2e:{Guid.NewGuid():N}",
+            AgentVersion,
+            CancellationToken.None);
+        Assert.Equal(1, outcome.Attempts);
+        Assert.NotNull(outcome.FenceToken);
+        return outcome.Result;
+    }
+
+    /// <summary>Runs one assignment reconciliation attempt under a fresh sandbox-only local fence.</summary>
+    /// <param name="coordinator">One-shot Agent Fleet coordinator.</param>
+    /// <param name="store">Real Agent SQLite store.</param>
+    /// <param name="now">Controlled sandbox instant.</param>
+    /// <returns>The one-shot sanitised result.</returns>
+    private static async Task<AgentFleetClientResult> RunAssignmentsOnceAsync(
+        AgentFleetClientCoordinator coordinator,
+        AgentFleetLocalStore store,
+        DateTimeOffset now)
+    {
+        AgentFleetSandboxResilienceCoordinator resilience = CreateOneShotResilience(coordinator, store, now);
+        AgentFleetSandboxResilienceResult outcome = await resilience.ReconcileAssignmentsAsync(
+            $"sandbox:e2e:{Guid.NewGuid():N}",
+            AgentVersion,
+            CancellationToken.None);
+        Assert.Equal(1, outcome.Attempts);
+        Assert.NotNull(outcome.FenceToken);
+        return outcome.Result;
+    }
+
+    /// <summary>Creates a one-attempt resilience boundary for the pre-existing end-to-end flow.</summary>
+    /// <param name="coordinator">One-shot Agent Fleet coordinator.</param>
+    /// <param name="store">Real Agent SQLite store.</param>
+    /// <param name="now">Controlled sandbox instant.</param>
+    /// <returns>Sandbox resilience coordinator with no retry delay.</returns>
+    private static AgentFleetSandboxResilienceCoordinator CreateOneShotResilience(
+        AgentFleetClientCoordinator coordinator,
+        AgentFleetLocalStore store,
+        DateTimeOffset now) => new(
+            coordinator,
+            store,
+            new FixedTimeProvider(now),
+            new RejectingDelay(),
+            new FixedJitter(0.5),
+            new AgentFleetSandboxRetryPolicy(
+                1,
+                TimeSpan.Zero,
+                TimeSpan.Zero,
+                TimeSpan.Zero,
+                TimeSpan.FromMinutes(1),
+                0));
+
+    /// <summary>Starts a child that pauses only after the real Server accepted its heartbeat.</summary>
+    /// <param name="local">File-backed Agent sandbox.</param>
+    /// <param name="sandbox">Loopback HTTPS Server sandbox.</param>
+    /// <param name="registration">Exact local registration.</param>
+    /// <param name="pkcs12">Private test identity package held only in memory and IPC.</param>
+    /// <param name="password">Ephemeral package password held only in memory and IPC.</param>
+    /// <param name="now">Controlled child-process clock.</param>
+    /// <param name="marker">Fixture-owned non-secret response marker.</param>
+    /// <returns>Running child process paused before local acknowledgement.</returns>
+    private static async Task<Process> StartPausedSandboxHostAsync(
+        AgentFileSandbox local,
+        AgentFleetSandbox sandbox,
+        AgentLocalRegistration registration,
+        byte[] pkcs12,
+        string password,
+        DateTimeOffset now,
+        string marker)
+    {
+        string pipeName = $"dbnotifier-agent-fleet-{Guid.NewGuid():N}";
+        using NamedPipeServerStream pipe = CreateIdentityPipe(pipeName);
+        ProcessStartInfo startInfo = CreateSandboxHostStartInfo(
+            local,
+            sandbox,
+            registration,
+            pipeName,
+            $"sandbox:process-a:{Guid.NewGuid():N}",
+            now,
+            marker);
+        Process process = Process.Start(startInfo) ?? throw new InvalidOperationException("Sandbox host did not start.");
+        try
+        {
+            using CancellationTokenSource timeout = new(TimeSpan.FromSeconds(20));
+            Task sender = SendIdentityPackageAsync(
+                pipe,
+                pkcs12,
+                password,
+                sandbox.ServerThumbprint,
+                timeout.Token);
+            while (!File.Exists(marker))
+            {
+                if (process.HasExited)
+                {
+                    string error = await process.StandardError.ReadToEndAsync(timeout.Token);
+                    throw new InvalidOperationException($"Sandbox host exited before the marker: {error}");
+                }
+
+                await Task.Delay(TimeSpan.FromMilliseconds(25), timeout.Token);
+            }
+
+            await sender;
+            return process;
+        }
+        catch
+        {
+            if (!process.HasExited)
+            {
+                process.Kill(entireProcessTree: true);
+                await process.WaitForExitAsync();
+            }
+
+            process.Dispose();
+            throw;
+        }
+    }
+
+    /// <summary>Runs a second child to replay and durably acknowledge the exact pending heartbeat.</summary>
+    /// <param name="local">File-backed Agent sandbox.</param>
+    /// <param name="sandbox">Loopback HTTPS Server sandbox.</param>
+    /// <param name="registration">Exact local registration.</param>
+    /// <param name="pkcs12">Private test identity package held only in memory and IPC.</param>
+    /// <param name="password">Ephemeral package password held only in memory and IPC.</param>
+    /// <param name="now">Controlled instant after the interrupted lease expires.</param>
+    /// <returns>Sanitised child result.</returns>
+    private static async Task<SandboxChildResult> RunSandboxHostAsync(
+        AgentFileSandbox local,
+        AgentFleetSandbox sandbox,
+        AgentLocalRegistration registration,
+        byte[] pkcs12,
+        string password,
+        DateTimeOffset now)
+    {
+        string pipeName = $"dbnotifier-agent-fleet-{Guid.NewGuid():N}";
+        using NamedPipeServerStream pipe = CreateIdentityPipe(pipeName);
+        ProcessStartInfo startInfo = CreateSandboxHostStartInfo(
+            local,
+            sandbox,
+            registration,
+            pipeName,
+            $"sandbox:process-b:{Guid.NewGuid():N}",
+            now,
+            null);
+        using Process process = Process.Start(startInfo) ?? throw new InvalidOperationException("Sandbox host did not start.");
+        using CancellationTokenSource timeout = new(TimeSpan.FromSeconds(20));
+        Task sender = SendIdentityPackageAsync(pipe, pkcs12, password, sandbox.ServerThumbprint, timeout.Token);
+        Task<string> output = process.StandardOutput.ReadToEndAsync(timeout.Token);
+        Task<string> error = process.StandardError.ReadToEndAsync(timeout.Token);
+        try
+        {
+            await Task.WhenAll(sender, process.WaitForExitAsync(timeout.Token));
+        }
+        catch
+        {
+            if (!process.HasExited)
+            {
+                process.Kill(entireProcessTree: true);
+                await process.WaitForExitAsync();
+            }
+
+            throw;
+        }
+
+        string standardOutput = await output;
+        string standardError = await error;
+        Assert.True(process.HasExited);
+        Assert.Equal(0, process.ExitCode);
+        Assert.True(string.IsNullOrWhiteSpace(standardError), standardError);
+        return JsonSerializer.Deserialize<SandboxChildResult>(standardOutput.Trim(), JsonOptions) ??
+            throw new InvalidOperationException("Sandbox host returned no typed result.");
+    }
+
+    private static ProcessStartInfo CreateSandboxHostStartInfo(
+        AgentFileSandbox local,
+        AgentFleetSandbox sandbox,
+        AgentLocalRegistration registration,
+        string pipeName,
+        string owner,
+        DateTimeOffset now,
+        string? marker)
+    {
+        ProcessStartInfo startInfo = new("dotnet")
+        {
+            UseShellExecute = false,
+            CreateNoWindow = true,
+            WindowStyle = ProcessWindowStyle.Hidden,
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+            WorkingDirectory = local.RootPath,
+        };
+        startInfo.ArgumentList.Add(ResolveSandboxHostPath());
+        startInfo.ArgumentList.Add("--sandbox-agent-fleet");
+        AddArgument(startInfo, "--sandbox-root", local.RootPath);
+        AddArgument(startInfo, "--database", local.DatabasePath);
+        AddArgument(startInfo, "--base-address", sandbox.BaseAddress.AbsoluteUri);
+        AddArgument(startInfo, "--identity-reference", registration.IdentityReference);
+        AddArgument(startInfo, "--identity-pipe", pipeName);
+        AddArgument(startInfo, "--owner", owner);
+        AddArgument(startInfo, "--agent-version", AgentVersion);
+        AddArgument(startInfo, "--utc-now", now.ToString("O", CultureInfo.InvariantCulture));
+        if (marker is not null)
+        {
+            AddArgument(startInfo, "--pause-after-response-marker", marker);
+        }
+
+        Assert.DoesNotContain(startInfo.ArgumentList, value => value.Contains("PRIVATE", StringComparison.OrdinalIgnoreCase));
+        return startInfo;
+    }
+
+    /// <summary>Resolves the built harness from its owning project instead of an incomplete test-output copy.</summary>
+    /// <returns>Absolute path to the sandbox host assembly for the active build configuration.</returns>
+    private static string ResolveSandboxHostPath()
+    {
+        DirectoryInfo? candidate = new(AppContext.BaseDirectory);
+        while (candidate is not null && !File.Exists(Path.Combine(candidate.FullName, "DBNotifier.sln")))
+        {
+            candidate = candidate.Parent;
+        }
+
+        string configuration = new DirectoryInfo(AppContext.BaseDirectory).Parent?.Name ?? string.Empty;
+        if (candidate is null || string.IsNullOrWhiteSpace(configuration))
+        {
+            throw new FileNotFoundException("The sandbox host workspace or build configuration was not found.");
+        }
+
+        string hostPath = Path.Combine(
+            candidate.FullName,
+            "tests",
+            "DBNotifier.AgentFleet.SandboxHost",
+            "bin",
+            configuration,
+            "net10.0",
+            "DBNotifier.AgentFleet.SandboxHost.dll");
+        if (!File.Exists(hostPath))
+        {
+            throw new FileNotFoundException("The built sandbox host was not found.", hostPath);
+        }
+
+        return hostPath;
+    }
+
+    private static void AddArgument(ProcessStartInfo startInfo, string name, string value)
+    {
+        startInfo.ArgumentList.Add(name);
+        startInfo.ArgumentList.Add(value);
+    }
+
+    private static NamedPipeServerStream CreateIdentityPipe(string pipeName) => new(
+        pipeName,
+        PipeDirection.Out,
+        1,
+        PipeTransmissionMode.Byte,
+        PipeOptions.Asynchronous | PipeOptions.CurrentUserOnly);
+
+    private static async Task SendIdentityPackageAsync(
+        NamedPipeServerStream pipe,
+        byte[] pkcs12,
+        string password,
+        string serverThumbprint,
+        CancellationToken cancellationToken)
+    {
+        await pipe.WaitForConnectionAsync(cancellationToken);
+        byte[] passwordBytes = Encoding.UTF8.GetBytes(password);
+        byte[] thumbprintBytes = Encoding.ASCII.GetBytes(serverThumbprint);
+        try
+        {
+            await WriteFrameAsync(pipe, passwordBytes, cancellationToken);
+            await WriteFrameAsync(pipe, pkcs12, cancellationToken);
+            await WriteFrameAsync(pipe, thumbprintBytes, cancellationToken);
+            await pipe.FlushAsync(cancellationToken);
+        }
+        finally
+        {
+            CryptographicOperations.ZeroMemory(passwordBytes);
+            CryptographicOperations.ZeroMemory(thumbprintBytes);
+        }
+    }
+
+    private static async Task WriteFrameAsync(
+        Stream stream,
+        byte[] payload,
+        CancellationToken cancellationToken)
+    {
+        byte[] length = BitConverter.GetBytes(IPAddress.HostToNetworkOrder(payload.Length));
+        await stream.WriteAsync(length, cancellationToken);
+        await stream.WriteAsync(payload, cancellationToken);
+    }
+
+    private sealed record SandboxChildResult(
+        bool Succeeded,
+        string State,
+        string Code,
+        int Attempts,
+        long FenceToken);
 
     /// <summary>Sends enrollment with the credential isolated in the authorisation header.</summary>
     /// <param name="client">Anonymous HTTPS client.</param>
@@ -484,6 +1142,131 @@ public sealed class AgentFleetApiEndToEndTests
     private static async Task<T> ReadRequiredJsonAsync<T>(HttpResponseMessage response) =>
         await response.Content.ReadFromJsonAsync<T>(JsonOptions) ??
         throw new InvalidOperationException($"The sandbox response did not contain {typeof(T).Name}.");
+
+    /// <summary>Owns one fixture-scoped file SQLite database used only for real child-process restart evidence.</summary>
+    private sealed class AgentFileSandbox : IAsyncDisposable
+    {
+        private readonly DbContextOptions<AgentDbContext> options;
+        private bool disposed;
+
+        private AgentFileSandbox(
+            string rootPath,
+            string databasePath,
+            DbContextOptions<AgentDbContext> options,
+            AgentFleetLocalStore store)
+        {
+            RootPath = rootPath;
+            DatabasePath = databasePath;
+            this.options = options;
+            Store = store;
+        }
+
+        /// <summary>Gets the validated fixture-owned temporary root.</summary>
+        public string RootPath { get; }
+
+        /// <summary>Gets the exact Agent SQLite path shared only by the two child processes.</summary>
+        public string DatabasePath { get; }
+
+        /// <summary>Gets the real SQLite local store used by the parent test.</summary>
+        public AgentFleetLocalStore Store { get; }
+
+        /// <summary>Creates and migrates one isolated file store under the operating-system temporary directory.</summary>
+        /// <returns>Disposable file-backed Agent sandbox.</returns>
+        public static async Task<AgentFileSandbox> StartAsync()
+        {
+            DirectoryInfo root = Directory.CreateTempSubdirectory("dbnotifier-agent-fleet-sandbox-");
+            string rootPath = root.FullName;
+            string databasePath = Path.Combine(rootPath, "agent.db");
+            string connectionString = new SqliteConnectionStringBuilder
+            {
+                DataSource = databasePath,
+                Mode = SqliteOpenMode.ReadWriteCreate,
+                Cache = SqliteCacheMode.Shared,
+                ForeignKeys = true,
+                DefaultTimeout = 1,
+            }.ToString();
+            DbContextOptions<AgentDbContext> options = new DbContextOptionsBuilder<AgentDbContext>()
+                .UseSqlite(connectionString)
+                .Options;
+            AgentContextFactory factory = new(options);
+            await using (AgentDbContext context = new(options))
+            {
+                await context.Database.MigrateAsync();
+            }
+
+            return new AgentFileSandbox(rootPath, databasePath, options, new AgentFleetLocalStore(factory));
+        }
+
+        /// <summary>Reads the exact durable pending heartbeat after the interrupted child exits.</summary>
+        /// <param name="agentId">Exact local Agent registration.</param>
+        /// <returns>Typed pending heartbeat.</returns>
+        public async Task<PendingAgentHeartbeat> ReadPendingHeartbeatAsync(Guid agentId)
+        {
+            AgentFleetStateRow row = await ReadFleetStateAsync(agentId);
+            AgentHeartbeatRequest request = JsonSerializer.Deserialize<AgentHeartbeatRequest>(
+                row.PendingHeartbeatPayloadJson ?? throw new InvalidOperationException("No pending heartbeat exists."),
+                JsonOptions) ?? throw new InvalidOperationException("Pending heartbeat could not be read.");
+            return new PendingAgentHeartbeat(request, false);
+        }
+
+        /// <summary>Reads exact local lease and replay evidence after a child-process boundary.</summary>
+        /// <param name="agentId">Exact local Agent registration.</param>
+        /// <returns>Untracked Agent Fleet state.</returns>
+        public async Task<AgentFleetStateRow> ReadFleetStateAsync(Guid agentId)
+        {
+            await using AgentDbContext context = new(options);
+            return await context.AgentFleetStates.AsNoTracking()
+                .SingleAsync(row => row.AgentId == agentId);
+        }
+
+        /// <summary>Proves that multiprocess heartbeat replay activated no operational data path.</summary>
+        public async Task AssertNoOperationalEffectsAsync()
+        {
+            await using AgentDbContext context = new(options);
+            Assert.Equal(0, await context.HealthObservations.CountAsync());
+            Assert.Equal(0, await context.OutboxMessages.CountAsync());
+            Assert.Equal(0, await context.InboxCommands.CountAsync());
+            Assert.Equal(0, await context.InstanceAssignments.CountAsync());
+        }
+
+        /// <inheritdoc />
+        public ValueTask DisposeAsync()
+        {
+            if (disposed)
+            {
+                return ValueTask.CompletedTask;
+            }
+
+            disposed = true;
+            string fullRoot = Path.GetFullPath(RootPath);
+            string tempRoot = Path.GetFullPath(Path.GetTempPath());
+            string relative = Path.GetRelativePath(tempRoot, fullRoot);
+            if (Path.IsPathRooted(relative) || relative.StartsWith("..", StringComparison.Ordinal) ||
+                !Path.GetFileName(fullRoot).StartsWith("dbnotifier-agent-fleet-sandbox-", StringComparison.Ordinal))
+            {
+                throw new InvalidOperationException("The sandbox root cannot be safely removed.");
+            }
+
+            if (Directory.Exists(fullRoot))
+            {
+                SqliteConnection.ClearAllPools();
+                Directory.Delete(fullRoot, recursive: true);
+            }
+
+            return ValueTask.CompletedTask;
+        }
+
+        private sealed class AgentContextFactory(DbContextOptions<AgentDbContext> options)
+            : IDbContextFactory<AgentDbContext>
+        {
+            /// <inheritdoc />
+            public AgentDbContext CreateDbContext() => new(options);
+
+            /// <inheritdoc />
+            public Task<AgentDbContext> CreateDbContextAsync(CancellationToken cancellationToken = default) =>
+                Task.FromResult(new AgentDbContext(options));
+        }
+    }
 
     /// <summary>Owns one temporary Agent SQLite database and exposes only test assertions over non-secret state.</summary>
     private sealed class AgentLocalSandbox : IAsyncDisposable
@@ -713,6 +1496,20 @@ public sealed class AgentFleetApiEndToEndTests
                 : throw new InvalidOperationException("The sandbox identity reference is unavailable.");
         }
 
+        /// <summary>Exports one encrypted test package for immediate transfer through the fixture-owned IPC pipe.</summary>
+        /// <param name="identityReference">Exact completed E2E identity reference.</param>
+        /// <returns>PKCS#12 bytes and an ephemeral password held only by the test process.</returns>
+        public (byte[] Pkcs12, string Password) ExportIdentityPackage(string identityReference)
+        {
+            if (!completed.TryGetValue(identityReference, out var identity))
+            {
+                throw new InvalidOperationException("The sandbox identity reference is unavailable.");
+            }
+
+            string password = $"sandbox-{Guid.NewGuid():N}";
+            return (identity.Certificate.Export(X509ContentType.Pkcs12, password), password);
+        }
+
         /// <inheritdoc />
         public ValueTask DisposeAsync()
         {
@@ -828,6 +1625,74 @@ public sealed class AgentFleetApiEndToEndTests
         }
     }
 
+    /// <summary>Fails if an expired or quarantined coordinator reaches any transport method.</summary>
+    private sealed class FailIfCalledTransport : IAgentFleetClientTransport
+    {
+        /// <summary>Gets the number of forbidden calls observed.</summary>
+        public int Calls { get; private set; }
+
+        /// <inheritdoc />
+        public ValueTask<AgentFleetTransportResult<AgentEnrollmentOutcome>> EnrolAsync(
+            string token,
+            AgentEnrollmentRequest request,
+            CancellationToken cancellationToken) => Reject<AgentEnrollmentOutcome>();
+
+        /// <inheritdoc />
+        public ValueTask<AgentFleetTransportResult<AgentHeartbeatOutcome>> SendHeartbeatAsync(
+            string identityReference,
+            AgentHeartbeatRequest request,
+            CancellationToken cancellationToken) => Reject<AgentHeartbeatOutcome>();
+
+        /// <inheritdoc />
+        public ValueTask<AgentFleetTransportResult<AgentAssignmentSnapshot>> GetAssignmentsAsync(
+            string identityReference,
+            Guid agentId,
+            string agentVersion,
+            string? currentVersion,
+            CancellationToken cancellationToken) => Reject<AgentAssignmentSnapshot>();
+
+        private ValueTask<AgentFleetTransportResult<T>> Reject<T>()
+        {
+            Calls++;
+            throw new InvalidOperationException("Expired identity reached transport.");
+        }
+    }
+
+    /// <summary>Pauses one armed transaction after durable commit so revocation timing is deterministic.</summary>
+    private sealed class PauseAfterCommitInterceptor : DbTransactionInterceptor
+    {
+        private readonly TaskCompletionSource paused = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        private readonly TaskCompletionSource released = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        private int armed;
+
+        /// <summary>Arms the next committed transaction as the exact assignment authorisation point.</summary>
+        public void Arm() => Interlocked.Exchange(ref armed, 1);
+
+        /// <summary>Waits until the armed transaction has committed but has not returned to the store.</summary>
+        /// <param name="cancellationToken">Bounded test cancellation.</param>
+        /// <returns>A task that completes at the post-commit boundary.</returns>
+        public Task WaitUntilPausedAsync(CancellationToken cancellationToken) =>
+            paused.Task.WaitAsync(TimeSpan.FromSeconds(10), cancellationToken);
+
+        /// <summary>Releases the paused assignment path; repeated release is harmless.</summary>
+        public void Release() => released.TrySetResult();
+
+        /// <inheritdoc />
+        public override async Task TransactionCommittedAsync(
+            DbTransaction transaction,
+            TransactionEndEventData eventData,
+            CancellationToken cancellationToken = default)
+        {
+            if (Interlocked.Exchange(ref armed, 0) == 1)
+            {
+                paused.TrySetResult();
+                await released.Task.WaitAsync(cancellationToken).ConfigureAwait(false);
+            }
+
+            await base.TransactionCommittedAsync(transaction, eventData, cancellationToken).ConfigureAwait(false);
+        }
+    }
+
     /// <summary>Owns the disposable HTTPS server, ephemeral CA and shared in-memory SQLite database.</summary>
     private sealed class AgentFleetSandbox : IAsyncDisposable
     {
@@ -874,9 +1739,13 @@ public sealed class AgentFleetApiEndToEndTests
         /// <summary>Gets the fixed UTC clock used by the Application service.</summary>
         public DateTimeOffset Now { get; }
 
+        /// <summary>Gets the public loopback server thumbprint sent through bounded local IPC for exact pinning.</summary>
+        public string ServerThumbprint => NormaliseThumbprint(serverCertificate.Thumbprint);
+
         /// <summary>Creates and starts the loopback-only sandbox.</summary>
+        /// <param name="interceptor">Optional fixture-owned coordination interceptor; never registered operationally.</param>
         /// <returns>Started disposable sandbox.</returns>
-        public static async Task<AgentFleetSandbox> StartAsync()
+        public static async Task<AgentFleetSandbox> StartAsync(IInterceptor? interceptor = null)
         {
             DateTimeOffset now = DateTimeOffset.UtcNow;
             ECDsa rootKey = ECDsa.Create(ECCurve.NamedCurves.nistP256);
@@ -885,7 +1754,8 @@ public sealed class AgentFleetApiEndToEndTests
             X509Certificate2 serverCertificate = CreateServerCertificate(
                 rootCertificate,
                 serverKey,
-                now);
+            now);
+
             if (!serverCertificate.HasPrivateKey ||
                 !BuildCustomChain(serverCertificate, rootCertificate, "1.3.6.1.5.5.7.3.1"))
             {
@@ -923,7 +1793,14 @@ public sealed class AgentFleetApiEndToEndTests
                     }));
             });
             builder.Services.AddProblemDetails();
-            builder.Services.AddDbContextFactory<ServerDbContext>(options => options.UseSqlite(connectionString));
+            builder.Services.AddDbContextFactory<ServerDbContext>(options =>
+            {
+                options.UseSqlite(connectionString);
+                if (interceptor is not null)
+                {
+                    options.AddInterceptors(interceptor);
+                }
+            });
             builder.Services.AddSingleton<TimeProvider>(new FixedTimeProvider(now));
             builder.Services.AddSingleton<IAgentCertificateIssuer>(
                 new EphemeralAgentCertificateIssuer(rootCertificate));
@@ -1241,6 +2118,51 @@ public sealed class AgentFleetApiEndToEndTests
             Assert.Equal("Revoked", agent.State);
             Assert.Equal(2, cursor.HighestAcceptedSequence);
             Assert.Equal(new long[] { 1, 2 }, sequences);
+            Assert.Equal(0, await context.AdministrativeCommands.CountAsync());
+            Assert.Equal(0, await context.CommandAttempts.CountAsync());
+            Assert.Equal(0, await context.HealthSamples.CountAsync());
+            Assert.Equal(0, await context.Events.CountAsync());
+            Assert.Equal(0, await context.OutboxMessages.CountAsync());
+            Assert.Equal(0, await context.NotificationDeliveries.CountAsync());
+        }
+
+        /// <summary>Confirms one server-side heartbeat effect after two child processes replayed the same envelope.</summary>
+        /// <param name="agentId">Exact enrolled Agent identifier.</param>
+        public async Task AssertMultiprocessReplayIsolationAsync(Guid agentId)
+        {
+            await using AsyncServiceScope scope = application.Services.CreateAsyncScope();
+            ServerDbContext context = scope.ServiceProvider.GetRequiredService<ServerDbContext>();
+            AgentHeartbeatCursorRow cursor = await context.AgentHeartbeatCursors.SingleAsync(
+                row => row.AgentId == agentId);
+            AgentHeartbeatRow[] heartbeats = await context.AgentHeartbeats
+                .Where(row => row.AgentId == agentId)
+                .OrderBy(row => row.Sequence)
+                .ToArrayAsync();
+            Assert.Equal(1, cursor.HighestAcceptedSequence);
+            AgentHeartbeatRow heartbeat = Assert.Single(heartbeats);
+            Assert.Equal(1, heartbeat.Sequence);
+            Assert.Equal(0, await context.AdministrativeCommands.CountAsync());
+            Assert.Equal(0, await context.CommandAttempts.CountAsync());
+            Assert.Equal(0, await context.HealthSamples.CountAsync());
+            Assert.Equal(0, await context.Events.CountAsync());
+            Assert.Equal(0, await context.OutboxMessages.CountAsync());
+            Assert.Equal(0, await context.NotificationDeliveries.CountAsync());
+        }
+
+        /// <summary>Confirms the coordinated assignment race created revocation evidence and no operational effects.</summary>
+        /// <param name="agentId">Enrolled and revoked race-fixture Agent.</param>
+        /// <param name="expectedRevokedAt">Exact durable revocation instant.</param>
+        public async Task AssertRaceIsolationAsync(Guid agentId, DateTimeOffset? expectedRevokedAt)
+        {
+            await using AsyncServiceScope scope = application.Services.CreateAsyncScope();
+            ServerDbContext context = scope.ServiceProvider.GetRequiredService<ServerDbContext>();
+            RegisteredAgentRow agent = await context.Agents.SingleAsync(row => row.AgentId == agentId);
+            AgentCertificateRow certificate = await context.AgentCertificates.SingleAsync(row => row.AgentId == agentId);
+            Assert.Equal("Revoked", agent.State);
+            Assert.Equal(expectedRevokedAt, agent.RevokedAt);
+            Assert.Equal("Revoked", certificate.State);
+            Assert.Equal("sandbox-race", certificate.RevocationReasonCode);
+            Assert.Empty(await context.AgentHeartbeats.Where(row => row.AgentId == agentId).ToArrayAsync());
             Assert.Equal(0, await context.AdministrativeCommands.CountAsync());
             Assert.Equal(0, await context.CommandAttempts.CountAsync());
             Assert.Equal(0, await context.HealthSamples.CountAsync());
@@ -1654,6 +2576,22 @@ public sealed class AgentFleetApiEndToEndTests
     {
         /// <inheritdoc />
         public override DateTimeOffset GetUtcNow() => now;
+    }
+
+    /// <summary>Fails if a one-attempt E2E path unexpectedly schedules a retry.</summary>
+    private sealed class RejectingDelay : IAgentFleetSandboxDelay
+    {
+        /// <inheritdoc />
+        public ValueTask DelayAsync(TimeSpan delay, CancellationToken cancellationToken) =>
+            throw new InvalidOperationException("The one-attempt sandbox path must not schedule a delay.");
+    }
+
+    /// <summary>Returns one deterministic unit-interval jitter sample.</summary>
+    /// <param name="sample">Fixed sample returned for every request.</param>
+    private sealed class FixedJitter(double sample) : IAgentFleetSandboxJitter
+    {
+        /// <inheritdoc />
+        public double NextUnitInterval() => sample;
     }
 
     /// <summary>Authenticates a bounded test subject header only inside the integration-test assembly.</summary>

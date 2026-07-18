@@ -1460,6 +1460,23 @@
 - Próxima decisão: Bruno poderá ajustar, adiar, rejeitar ou autorizar separadamente somente o incremento proposto. Nenhuma decisão promoverá `OBSERVER`, encerrará `STATE-06` ou autorizará `STATE-07` automaticamente.
 - Aprovador: não aplicável; esta entrada registra solicitação e proposta, não aprovação do incremento descrito.
 
+## 2026-07-18 — Implementação restrita de resiliência e compatibilidade Agent Fleet em sandbox
+
+- Estado anterior: `STATE-06 INTEGRATION`, proposta documental registrada, incrementos server-side/Agent-side anteriores aceitos, Worker Agent Fleet desabilitado e nenhum runtime operacional autorizado.
+- Estado resultante: sem transição; `STATE-06 INTEGRATION` mantido, incremento tecnicamente concluído com Quality Gate automático restrito aprovado e Human Gate próprio pendente.
+- Autorização: Bruno declarou exatamente `AUTORIZO o incremento restrito de STATE-06 — Agent Fleet Sandbox Resilience and Protocol Compatibility, limitado a harness e runtimes temporários exclusivamente locais, reinício E2E entre processos, retry/backoff/cancelamento determinísticos, compatibilidade e falhas de protocolo, concorrência/fencing local, fault injection SQLite e corrida assignment/revogação, mantendo o Worker normal desabilitado e encerrando todos os processos ao final. Permanecem proibidos recursos operacionais ou externos, PKI/key store/token service operacionais, providers, monitoramento, comandos, UI, notificações, LLM, executor, deploy, promoção e transição de estado.`
+- Escopo executado: orquestrador sandbox de retry/cancelamento; lease/fencing monotónico no SQLite Agent; guard de integridade/schema; migration `HardenAgentFleetSandboxResilience`; harness filho loopback com IPC current-user-only; E2E multiprocesso; protocolo negativo/expiração; fault injection/lock/corrupção; consistência assignment/revogação; isolamento arquitetural do Worker e documentação factual.
+- Evidência automática: build Release dos 15 projetos sem avisos/erros; `300/300` unit/model/provider/presentation; `16/16` arquitetura; `5/5` integração HTTPS/mTLS/SQLite; cobertura `78,54%` linhas/`52,73%` branches; sem model drift; format aprovado; documentação `229` fontes; `312` links locais em `75` arquivos; secret scan, diff e Git aprovados; smoke fail-closed aprovado.
+- E2E principal: processo A persistiu/enviou heartbeat sequência um, foi encerrado pelo PID exato depois da aceitação Server e antes do ack local; processo B reabriu o mesmo store após expiração, obteve fence superior, repetiu o envelope exato e avançou uma única vez; o Server manteve um único efeito.
+- Corrida assignment/revogação: snapshot autorizado/committed antes da revogação pode terminar entrega depois apenas como evidência histórica; a próxima autorização após revogação é recusada. O LKG não equivale a autorização atual.
+- Revisão direta: nenhum Critical/High não resolvido. Foram corrigidos resolução incompleta do artefacto filho, resultado ainda retryable após budget, `503` não retryable, expectativas da quinta migration e pool SQLite no cleanup.
+- Shutdown/cleanup: preflights sem componente DB-Notifier ativo; runtimes temporários locais iniciados somente pelos testes; ao fim, zero processo DB-Notifier, zero listener proprietário e zero diretório `dbnotifier-agent-fleet-sandbox-*` remanescente.
+- Limites: identidade/CA/IPC somente de teste; sem key store/PKI/token service/rotação/recovery operacionais; sem scheduler contínuo, multi-host/fleet load, PostgreSQL real, IdP/vault/proxy/provider/monitoring/comando/UI/notificação/LLM/executor/deploy; protocol Agent Fleet somente major `1`; corrupção/fault injection não é certificação de power-loss; revogação não possui push channel.
+- Gates: Quality Gate automático `APROVADO` somente para este incremento; Human Gate do incremento `PENDENTE`; saída de `STATE-06`, `OBSERVER`, `STATE-07`, produção e release `NÃO AVALIADOS` e não autorizados.
+- Evidências: [relatório](../../docs/STATE-06-Agent-Fleet-Sandbox-Resilience-And-Compatibility-Report.md), [proposta/adendo](../../docs/STATE-06-Agent-Fleet-Sandbox-Resilience-And-Compatibility-Proposal.md), [protocolo](../../docs/architecture/Agent-API-Protocol.md), [modelo lógico](../../docs/data/Logical-Model.md), [Migration Runbook](../../docs/data/Migration-Runbook.md), [threat model](../../docs/architecture/Threat-Model.md), código e testes locais.
+- Próxima decisão: Bruno deve revisar o relatório e responder se aceita, aceita com limitações, solicita remediação específica ou rejeita somente este incremento. Nenhuma resposta autoriza novo incremento, promoção ou transição implicitamente.
+- Aprovador: pendente; esta entrada não preenche o Human Gate por Bruno.
+
 ## Template de nova entrada
 
 - Data:

@@ -222,6 +222,15 @@
           "xunit.extensibility.core": "[2.9.3]"
         }
       },
+      "dbnotifier.agentfleet.sandboxhost": {
+        "type": "Project",
+        "dependencies": {
+          "DBNotifier.Application": "[1.0.0, )",
+          "DBNotifier.Infrastructure": "[1.0.0, )",
+          "DBNotifier.Persistence.Agent.Sqlite": "[1.0.0, )",
+          "Microsoft.EntityFrameworkCore.Sqlite": "[10.0.9, )"
+        }
+      },
       "dbnotifier.application": {
         "type": "Project",
         "dependencies": {

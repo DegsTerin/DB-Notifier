@@ -120,14 +120,20 @@ public sealed class AgentDbContext(DbContextOptions<AgentDbContext> options) : D
             entity.ToTable("agent_fleet_state", table =>
             {
                 table.HasCheckConstraint("ck_agent_fleet_next_heartbeat", "next_heartbeat_sequence >= 1");
+                table.HasCheckConstraint("ck_agent_fleet_next_operation_fence", "next_operation_fence >= 1");
                 table.HasCheckConstraint(
                     "ck_agent_fleet_pending_heartbeat",
                     "(pending_heartbeat_message_id IS NULL AND pending_heartbeat_sequence IS NULL AND pending_heartbeat_payload_json IS NULL) OR (pending_heartbeat_message_id IS NOT NULL AND pending_heartbeat_sequence >= 1 AND pending_heartbeat_payload_json IS NOT NULL)");
+                table.HasCheckConstraint(
+                    "ck_agent_fleet_operation_lease",
+                    "(operation_lease_owner IS NULL AND operation_lease_kind IS NULL AND operation_lease_fence IS NULL AND operation_lease_expires_at IS NULL) OR (operation_lease_owner IS NOT NULL AND operation_lease_kind IN ('Heartbeat','AssignmentReconciliation') AND operation_lease_fence >= 1 AND operation_lease_expires_at IS NOT NULL)");
             });
             entity.HasKey(row => row.AgentId);
             entity.Property(row => row.PendingHeartbeatPayloadJson);
             entity.Property(row => row.AssignmentEntityTag).HasMaxLength(66);
             entity.Property(row => row.LastErrorCode).HasMaxLength(100);
+            entity.Property(row => row.OperationLeaseOwner).HasMaxLength(160);
+            entity.Property(row => row.OperationLeaseKind).HasMaxLength(32);
             entity.Property(row => row.ConcurrencyToken).IsConcurrencyToken();
             entity.HasOne<AgentRegistrationRow>()
                 .WithOne()

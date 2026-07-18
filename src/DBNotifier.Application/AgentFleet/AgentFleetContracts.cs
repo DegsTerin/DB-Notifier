@@ -378,6 +378,9 @@ public enum AgentAssignmentDisposition
 
     /// <summary>Stored configuration was invalid and no partial snapshot was returned.</summary>
     InvalidStoredConfiguration,
+
+    /// <summary>A concurrent consistency boundary prevented an authoritative complete snapshot.</summary>
+    TemporarilyUnavailable,
 }
 
 /// <summary>

@@ -24,5 +24,7 @@
     <ProjectReference Include="..\..\src\DBNotifier.Persistence.Agent.Sqlite\DBNotifier.Persistence.Agent.Sqlite.csproj" />
     <ProjectReference Include="..\..\src\DBNotifier.Persistence.Server.PostgreSql\DBNotifier.Persistence.Server.PostgreSql.csproj" />
     <ProjectReference Include="..\..\src\DBNotifier.Server.Api\DBNotifier.Server.Api.csproj" />
+    <ProjectReference Include="..\DBNotifier.AgentFleet.SandboxHost\DBNotifier.AgentFleet.SandboxHost.csproj"
+                      ReferenceOutputAssembly="false" />
   </ItemGroup>
 </Project>

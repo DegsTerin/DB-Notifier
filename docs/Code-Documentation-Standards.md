@@ -16,7 +16,7 @@ These files cannot safely receive inline comments or must remain generated/immut
 
 - Strict JSON: `config/appsettings.json`, runtime `appsettings.json` files, `global.json`, package manifests, package lockfiles, TypeScript configuration and debug settings.
 - Generated C#: `*.Designer.cs` and `*ModelSnapshot.cs`.
-  - Timestamped EF migration implementations: the eight generated implementation files under the Agent SQLite and Server PostgreSQL migration directories; this documentation exception does not claim that a migration was applied to a database.
+  - Timestamped EF migration implementations: the nine generated implementation files listed by the documentation gate under the Agent SQLite and Server PostgreSQL migration directories; this documentation exception does not claim that a migration was applied to a database.
 - Generated/build artefacts: `.dotnet/`, `bin/`, `obj/`, `dist/`, `node_modules/` and Git internals.
 - Exact tool formats without a portable comment syntax: `DBNotifier.sln`, `.gitignore`, `.gitattributes`, binary/image assets and licence text.
 

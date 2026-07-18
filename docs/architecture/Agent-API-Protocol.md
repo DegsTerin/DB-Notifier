@@ -22,7 +22,7 @@ DBN-Message-Schema: <positive integer>
 
 Responses include the selected protocol, supported range, server version, and a correlation ID. Unsupported versions return a typed `426 ProtocolUpgradeRequired` response without accepting state.
 
-Observation ingestion supports current major `N` and previous major `N-1` during declared rolling-upgrade windows. Commands are assigned only when Agent, provider, and command schema are explicitly compatible.
+Observation ingestion conceptually supports current major `N` and previous major `N-1` during declared rolling-upgrade windows. The implemented Agent Fleet enrollment/heartbeat/assignment slice declares only protocol major `1`: local tests prove `1/1`, while `0` and future `2` fail closed with `426`. No Agent Fleet `N-1` compatibility is claimed until a later contract declares and tests it. Commands are assigned only when Agent, provider, and command schema are explicitly compatible.
 
 ## Enrollment
 
@@ -52,7 +52,9 @@ POST /api/v1/agents/{agentId}/heartbeats
 
 Heartbeat uses a versioned `AgentHeartbeatRequest`, is bound to the mTLS Agent route and is idempotent by exact `messageId`, sequence and canonical payload digest. A durable per-Agent cursor survives heartbeat-detail retention. Exact replay returns the original receipt only while its immutable detail row remains retained; after detail retention, the cursor still rejects a stale sequence with `409` but cannot reconstruct the earlier receipt. Conflicting identifiers also return `409`; a higher sequence with a gap is accepted and marked explicitly. Server receipt time owns `LastSeenAt`, and the response provides accepted time, highest accepted sequence and clock-skew estimate. Heartbeat health does not imply instance health.
 
-The sandbox Agent-side store persists the complete pending heartbeat envelope before transport. A lost response leaves that exact envelope pending, including its `messageId` and sequence; a later coordinator instance replays it byte-equivalently and advances the next sequence only after a compatible durable receipt. This is one-shot coordinator behaviour exercised by tests, not a continuously scheduled Worker, retry loop or operational heartbeat service.
+The sandbox Agent-side store persists the complete pending heartbeat envelope before transport. A lost response leaves that exact envelope pending, including its `messageId` and sequence. A real second operating-system process reopens the same fixture-owned SQLite file, obtains a newer fencing token after the abandoned lease expires, replays the exact envelope and advances only after the Server returns a compatible duplicate receipt. The two processes create one Server heartbeat row. This is explicit sandbox harness behaviour, not a continuously scheduled Worker or operational heartbeat service.
+
+Every sandbox heartbeat mutation requires an exact unexpired local lease containing Agent, owner, operation kind and monotonic fence. A previous process cannot clear a pending envelope or release a newer owner's lease. SQLite `BUSY`/`LOCKED` is a refusal, never permission to proceed without a fence.
 
 ## Observation and event synchronization
 
@@ -79,7 +81,9 @@ GET /api/v1/agents/{agentId}/assignments?afterVersion=<sha256>
 
 The implemented endpoint returns one complete, deterministically ordered snapshot for the exact active Agent and its environment. It includes endpoint JSON classified by contract as non-secret, tags and an opaque monitoring-only credential reference. `AdministrativeCredentialReference`, commands and provider execution are excluded. The snapshot is admitted incrementally under ceilings of 5,000 records and 4 MiB of aggregate UTF-8 endpoint/tag JSON, and fails closed rather than truncating. Its strong SHA-256 ETag supports `If-None-Match`, `afterVersion` and `304 Not Modified`. The digest now covers only transmitted fields and canonicalised endpoint/tag JSON, so the Agent can independently recompute it after HTTP serialisation.
 
-The sandbox Agent-side coordinator validates schema, Agent/environment binding, strong ETag, digest, uniqueness, field limits and aggregate JSON bytes before atomically replacing the local SQLite assignment set. `304` refreshes reconciliation evidence without replacing rows, and an invalid response preserves the last-known-valid set. Local rows never receive the server-side administrative credential reference. This persistence is not operational activation: no assignment is delivered to a provider or scheduler, no acknowledgement protocol was added, and the ordinary Worker rejects Agent Fleet client activation.
+The sandbox Agent-side coordinator validates schema, Agent/environment binding, strong ETag, digest, uniqueness, field limits and aggregate JSON bytes before atomically replacing the local SQLite assignment set. `304` refreshes reconciliation evidence only when its strong ETag exactly matches the local version; weak, divergent or reordered evidence is refused. Invalid or non-retryable responses preserve the last-known-valid set. Local rows never receive the server-side administrative credential reference. This persistence is not operational activation: no assignment is delivered to a provider or scheduler, no acknowledgement protocol was added, and the ordinary Worker rejects Agent Fleet client activation.
+
+The Server reads assignments inside a serialisable transaction, captures the Agent concurrency token, rechecks active/unrevoked state immediately before commit and returns a retryable consistency refusal if the commit cannot prove a coherent view. A snapshot whose authorisation transaction committed before revocation can finish HTTP delivery afterwards; it is historical configuration evidence, not proof of current authority. A request whose authorisation occurs after the durable revocation is refused, and the Agent quarantines its identity on the proved denial while retaining any LKG only as historical evidence.
 
 ## Human Agent Fleet catalogue and revocation
 
@@ -120,10 +124,13 @@ The implemented receipt-only path stops at `Acknowledged`: it creates no `Comman
 
 ## Retry policy
 
-- Retry only failures classified retryable.
-- Use exponential backoff with jitter and a server-provided `Retry-After` ceiling.
-- Authentication, authorization, revoked identity, incompatible version, invalid schema, and unsupported capability do not retry indefinitely.
+- Retry only failures classified retryable. A transient HTTP status carrying `retryable=false` is terminal for the unchanged request.
+- The sandbox coordinator uses injected time, delay and jitter, bounded exponential backoff, a bounded delta `Retry-After` ceiling, maximum attempts, maximum cumulative delay and an enclosing lease expiry.
+- Cancellation interrupts transport or backoff and the exact lease is released; an abandoned process lease is recoverable only after expiry under a higher fence.
+- Authentication, authorisation, revoked/expired identity, incompatible version, invalid schema, conflict, invalid stored configuration and unsupported capability do not retry.
 - Backpressure reduces batch size/frequency and exposes queue depth/age.
+
+These retry and fencing rules are composed only by the temporary test harness. The ordinary Worker has no Agent Fleet scheduler, identity adapter or transport registration and rejects attempted activation with `agent_fleet.sandbox_only`.
 
 ## Error response
 
@@ -140,6 +147,8 @@ ProblemDetails
 ```
 
 Responses never include secrets, stack traces, native command lines, or another tenant's identifiers.
+
+For the implemented Agent Fleet slice, the `retryable` field is authoritative when present. `Retry-After` is read only as a non-negative delta no greater than five minutes and only for a response that remains classified transient. Missing/duplicated/future negotiation headers, partial JSON, unknown body fields and over-limit response bodies are invalid responses rather than compatibility or revocation evidence.
 
 ## Required compatibility scenarios
 

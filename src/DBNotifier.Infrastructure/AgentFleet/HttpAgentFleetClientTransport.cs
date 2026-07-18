@@ -156,8 +156,9 @@ public sealed class HttpAgentFleetClientTransport(
             string? entityTag = response.Headers.ETag?.ToString();
             if (!response.IsSuccessStatusCode && response.StatusCode != HttpStatusCode.NotModified)
             {
-                string errorCode = await ReadProblemCodeAsync(response.Content, cancellationToken).ConfigureAwait(false) ??
-                    "protocol.request_failed";
+                ProblemEvidence? problem = await ReadProblemEvidenceAsync(response.Content, cancellationToken)
+                    .ConfigureAwait(false);
+                string errorCode = problem?.Code ?? "protocol.request_failed";
                 AgentFleetTransportDisposition disposition = response.StatusCode switch
                 {
                     HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden => AgentFleetTransportDisposition.Denied,
@@ -168,7 +169,18 @@ public sealed class HttpAgentFleetClientTransport(
                         AgentFleetTransportDisposition.TransientFailure,
                     _ => AgentFleetTransportDisposition.InvalidResponse,
                 };
-                return Failure<T>(disposition, errorCode, entityTag);
+                if (disposition == AgentFleetTransportDisposition.TransientFailure && problem?.Retryable == false)
+                {
+                    disposition = AgentFleetTransportDisposition.InvalidResponse;
+                }
+
+                return Failure<T>(
+                    disposition,
+                    errorCode,
+                    entityTag,
+                    disposition == AgentFleetTransportDisposition.TransientFailure
+                        ? ReadRetryAfterCeiling(response)
+                        : null);
             }
 
             if (!TryValidateVersionHeaders(response))
@@ -252,7 +264,11 @@ public sealed class HttpAgentFleetClientTransport(
         return JsonSerializer.Deserialize<T>(buffer.GetBuffer().AsSpan(0, total), JsonOptions);
     }
 
-    private static async ValueTask<string?> ReadProblemCodeAsync(
+    /// <summary>Reads bounded machine code and retry authority from a Problem Details response.</summary>
+    /// <param name="content">Untrusted response body.</param>
+    /// <param name="cancellationToken">Cancellation for the bounded content read.</param>
+    /// <returns>Validated evidence fields, or <see langword="null"/> when the body is absent or malformed.</returns>
+    private static async ValueTask<ProblemEvidence?> ReadProblemEvidenceAsync(
         HttpContent content,
         CancellationToken cancellationToken)
     {
@@ -262,16 +278,27 @@ public sealed class HttpAgentFleetClientTransport(
                 content,
                 MaximumSmallResponseBytes,
                 cancellationToken).ConfigureAwait(false) ?? throw new JsonException();
-            return problem.RootElement.TryGetProperty("code", out JsonElement code) &&
-                code.ValueKind == JsonValueKind.String && code.GetString() is { Length: > 0 and <= 100 } value
+            string? code = problem.RootElement.TryGetProperty("code", out JsonElement codeElement) &&
+                codeElement.ValueKind == JsonValueKind.String &&
+                codeElement.GetString() is { Length: > 0 and <= 100 } value
                     ? value
                     : null;
+            bool? retryable = problem.RootElement.TryGetProperty("retryable", out JsonElement retryableElement) &&
+                retryableElement.ValueKind is JsonValueKind.True or JsonValueKind.False
+                    ? retryableElement.GetBoolean()
+                    : null;
+            return code is null && retryable is null ? null : new ProblemEvidence(code, retryable);
         }
         catch (Exception exception) when (exception is JsonException or InvalidDataException)
         {
             return null;
         }
     }
+
+    /// <summary>Contains the only Problem Details fields allowed to influence retry classification.</summary>
+    /// <param name="Code">Optional bounded machine-readable code.</param>
+    /// <param name="Retryable">Optional explicit retry authority.</param>
+    private sealed record ProblemEvidence(string? Code, bool? Retryable);
 
     private static bool TryValidateVersionHeaders(HttpResponseMessage response)
     {
@@ -290,7 +317,19 @@ public sealed class HttpAgentFleetClientTransport(
     private static AgentFleetTransportResult<T> Failure<T>(
         AgentFleetTransportDisposition disposition,
         string errorCode,
-        string? entityTag) => new(disposition, default, entityTag, errorCode);
+        string? entityTag,
+        TimeSpan? retryAfter = null) => new(disposition, default, entityTag, errorCode, retryAfter);
+
+    /// <summary>Reads only a bounded delta Retry-After value for deterministic sandbox scheduling.</summary>
+    /// <param name="response">Transient HTTP response.</param>
+    /// <returns>A non-negative ceiling no greater than five minutes, or <see langword="null"/>.</returns>
+    private static TimeSpan? ReadRetryAfterCeiling(HttpResponseMessage response)
+    {
+        TimeSpan? delta = response.Headers.RetryAfter?.Delta;
+        return delta is { } value && value >= TimeSpan.Zero && value <= TimeSpan.FromMinutes(5)
+            ? value
+            : null;
+    }
 
     private static Uri ValidateBaseAddress(Uri value)
     {

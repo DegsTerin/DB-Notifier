@@ -1,0 +1,13 @@
+<!-- Module purpose: Hosts one explicitly gated local Agent Fleet resilience operation for multiprocess E2E tests only. -->
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" />
+    <ProjectReference Include="..\..\src\DBNotifier.Application\DBNotifier.Application.csproj" />
+    <ProjectReference Include="..\..\src\DBNotifier.Infrastructure\DBNotifier.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\DBNotifier.Persistence.Agent.Sqlite\DBNotifier.Persistence.Agent.Sqlite.csproj" />
+  </ItemGroup>
+</Project>
