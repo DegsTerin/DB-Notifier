@@ -7,11 +7,11 @@
 - Remediation: positive synthetic NuGet report parity from `13` to `15` solution projects
 - Authority: Bruno authorised only the two missing `net10.0` project entries, corresponding offline Pester verification and factual documentation
 - Automatic restricted-remediation Quality Gate: `APPROVED`
-- Human review of this remediation: `PENDING`
+- Human review of this remediation: `ACCEPTED WITH RECORDED LIMITATIONS` on 2026-07-18 for commit `4732ed7`
 - `STATE-06` exit Quality/Human Gate: `NOT EVALUATED`
 - Runtime, external access, packages, product changes, promotion and lifecycle transition: `NOT AUTHORISED`
 
-This report records a local test-data correction. It does not change the NuGet verifier, product, dependencies or lifecycle and does not constitute a current online vulnerability audit.
+This report records a local test-data correction. Bruno subsequently accepted commit `4732ed7` with the limitations recorded here. That decision does not change the NuGet verifier, product, dependencies or lifecycle and does not constitute a current online vulnerability audit.
 
 ## Plain-language outcome
 
@@ -80,4 +80,6 @@ The review confirmed:
 
 ## Gate classification and next decision
 
-The automatic Quality Gate is `APPROVED` only for this restricted fixture remediation. Human review remains pending. Bruno may accept the remediation, request a specifically bounded documentation/test-data correction or reject it. No response implicitly authorises another increment, online audit, product change, promotion or lifecycle transition.
+The automatic Quality Gate is `APPROVED` only for this restricted fixture remediation. Bruno accepted commit `4732ed7` with the limitations recorded after confirming the synthetic, offline nature of the evidence. His acceptance authorises no further work, online audit, product change, promotion or lifecycle transition.
+
+Bruno's exact decision was: `Remediação da fixture legada NuGet, commit 4732ed7: ACEITA COM AS LIMITAÇÕES REGISTRADAS. AUTORIZO exclusivamente o registro factual desta decisão. Não autorizo novo incremento, acesso externo, promoção nem transição de estado.`

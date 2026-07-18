@@ -1573,6 +1573,21 @@
 - Próxima decisão: Bruno deve revisar o relatório e responder se aceita, solicita remediação documental/test-data especificamente delimitada ou rejeita somente este resultado. Nenhuma resposta autoriza novo incremento, acesso externo, promoção ou transição implicitamente.
 - Aprovador: pendente; esta entrada não preenche a decisão humana por Bruno.
 
+## 2026-07-18 — Aceitação humana da remediação da fixture legada NuGet
+
+- Estado anterior: `STATE-06 INTEGRATION`, commit `4732ed7` tecnicamente concluído, Quality Gate automático restrito aprovado, decisão humana da remediação pendente e nenhuma promoção/transição autorizada.
+- Estado resultante: sem transição; `STATE-06 INTEGRATION` mantido, remediação `NuGet Legacy Fixture Parity` `ACEITA COM AS LIMITAÇÕES REGISTRADAS`, sem runtime operacional ou nova autoridade.
+- Decisão: Bruno declarou exatamente `Remediação da fixture legada NuGet, commit 4732ed7: ACEITA COM AS LIMITAÇÕES REGISTRADAS. AUTORIZO exclusivamente o registro factual desta decisão. Não autorizo novo incremento, acesso externo, promoção nem transição de estado.`
+- Alcance: registro factual somente no relatório, adendo da proposta, estado atual e histórico append-only. Nenhuma fixture, script, solução, projeto, package, lockfile, fonte NuGet, código, teste executável ou runtime foi alterado.
+- Limitações aceitas: relatório positivo estritamente sintético/offline; ausência de auditoria atual de feeds/advisories; manutenção futura necessária se projetos/TFMs mudarem; skip condicional `pg_isready` não relacionado; ausência de efeito sobre saída de `STATE-06` ou release.
+- Evidências aceitas: commit `4732ed7`, [relatório da remediação](../../docs/STATE-06-NuGet-Legacy-Fixture-Parity-Remediation-Report.md), resultados automáticos registrados e decisão de Bruno nesta sessão.
+- Shutdown preflight: workspace limpo no commit `4732ed7`, zero processo DB-Notifier e zero listener proprietário; nenhum processo, banco, browser, IDE ou recurso alheio foi alterado.
+- Build, testes e runtime: `NÃO APLICÁVEIS` e não repetidos, porque esta autoridade permite somente registro Markdown factual. Os resultados do commit `4732ed7` permanecem evidência histórica e não são promovidos como nova execução.
+- Gates documentais: documentação aprovada para `236` fontes comment-capable; `329` links Markdown locais em `79` arquivos; secret scan do worktree não ignorado e histórico disponível, escopo e `git diff --check` aprovados.
+- Classificação: decisão humana `ACEITA COM AS LIMITAÇÕES REGISTRADAS` somente para a remediação; Quality/Human Gate de saída de `STATE-06` continua `NÃO AVALIADO`; acesso externo, `OBSERVER`, `STATE-07`, release, novo incremento e transição não autorizados.
+- Próxima atividade: nenhuma ação adicional é exigida de Bruno e nenhum novo trabalho está autorizado. Um próximo fluxo só começa mediante solicitação e autoridade explícitas e separadas.
+- Aprovador: Bruno, exclusivamente para aceitar esta remediação e registrar a decisão; nenhuma promoção, transição ou autoridade executiva adicional foi inferida.
+
 ## Template de nova entrada
 
 - Data:
