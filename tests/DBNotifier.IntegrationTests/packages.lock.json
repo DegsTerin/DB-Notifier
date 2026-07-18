@@ -241,6 +241,15 @@
           "Microsoft.EntityFrameworkCore.Relational": "[10.0.9, )"
         }
       },
+      "dbnotifier.persistence.agent.sqlite": {
+        "type": "Project",
+        "dependencies": {
+          "DBNotifier.Application": "[1.0.0, )",
+          "DBNotifier.Domain": "[1.0.0, )",
+          "DBNotifier.Infrastructure": "[1.0.0, )",
+          "Microsoft.EntityFrameworkCore.Sqlite": "[10.0.9, )"
+        }
+      },
       "dbnotifier.persistence.server.postgresql": {
         "type": "Project",
         "dependencies": {

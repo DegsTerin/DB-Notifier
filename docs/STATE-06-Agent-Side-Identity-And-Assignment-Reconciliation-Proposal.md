@@ -11,6 +11,8 @@
 
 Este documento não autoriza o incremento que descreve. Ele não altera código, configuração, migration, runtime, ADR, modo MOD-12 ou posição do ciclo de vida. Seu único objetivo é permitir uma decisão posterior, separada e informada.
 
+> Nota factual posterior: Bruno usou a redação delimitada ao final deste documento para autorizar separadamente a implementação em 2026-07-18. O incremento foi implementado e passou seu Quality Gate automático restrito; a revisão humana do resultado permanece pendente. O relatório proprietário é [`STATE-06 Agent-side Identity and Assignment Reconciliation Report`](STATE-06-Agent-Side-Identity-And-Assignment-Reconciliation-Report.md). Esta nota não reescreve a natureza não executiva da proposta original nem autoriza trabalho adicional.
+
 ## Resumo para não especialistas
 
 O servidor já possui uma porta local de testes pela qual um Agent pode receber uma identidade, informar que continua ativo e consultar quais instâncias lhe foram atribuídas. Entretanto, o programa Agent ainda não usa essa porta: hoje ele depende de um identificador e de um certificado configurados manualmente, não envia o novo heartbeat e não guarda os assignments recebidos do servidor.
@@ -321,3 +323,12 @@ Uma autorização inequívoca poderá usar a seguinte redação:
 > AUTORIZO o incremento restrito de STATE-06 — Agent-side Test Identity and Read-only Assignment Reconciliation, limitado a enrollment exclusivamente de teste, identidade privada somente em adapter E2E efêmero, heartbeat durável, reconciliação read-only de assignments, persistência/migration Agent SQLite e testes locais sandbox, mantendo todos os runtimes desabilitados por padrão e encerrados após os testes. Permanecem proibidos recursos operacionais ou externos, providers, monitoramento, comandos, UI, notificações, LLM, executor, promoção e transição de estado.
 
 Bruno também poderá pedir ajustes ou adiar/rejeitar a proposta. Nenhuma resposta curta será interpretada como autorização de implementação.
+
+## Resultado posterior da autorização separada
+
+- Implementação: concluída dentro do sandbox local delimitado.
+- Runtime normal: permanece desabilitado e recusa ativação porque não existe identity adapter operacional.
+- Evidência automática: build Release sem avisos, `283/283` testes unit/model/provider/presentation, `15/15` arquitetura, `2/2` E2E, coverage acima dos pisos, migration SQLite exercitada e smoke fail-closed aprovado.
+- Revisão direta: problemas encontrados em digest verificável, canonicalização JSON, classificação da recusa de revogação, guard de rollback e limites foram corrigidos antes da entrega.
+- Limitações: key store/issuer/token provisioning, scheduler/retry operacional, restart entre processos, concorrência/crash de SQLite, PostgreSQL e qualquer provider ou integração externa permanecem não implementados.
+- Decisão humana: pendente; nenhum estado ou modo foi promovido.

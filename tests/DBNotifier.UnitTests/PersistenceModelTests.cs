@@ -25,7 +25,7 @@ public sealed class PersistenceModelTests
         await context.Database.MigrateAsync();
 
         string[] appliedMigrations = (await context.Database.GetAppliedMigrationsAsync()).ToArray();
-        Assert.Equal(3, appliedMigrations.Length);
+        Assert.Equal(4, appliedMigrations.Length);
 
         context.InstanceAssignments.Add(new AgentInstanceAssignmentRow
         {
@@ -101,6 +101,56 @@ public sealed class PersistenceModelTests
         command.CommandText = "SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' AND name = 'instance_assignments'";
         long tableCount = (long)(await command.ExecuteScalarAsync() ?? -1L);
         Assert.Equal(0L, tableCount);
+    }
+
+    [Fact]
+    public async Task AgentFleetMigrationRefusesRollbackUntilLocalIdentityIsRemoved()
+    {
+        SqliteConnectionStringBuilder connectionString = new() { DataSource = ":memory:" };
+        await using SqliteConnection connection = new(connectionString.ToString());
+        await connection.OpenAsync();
+
+        DbContextOptions<AgentDbContext> options = new DbContextOptionsBuilder<AgentDbContext>()
+            .UseSqlite(connection)
+            .Options;
+
+        await using AgentDbContext context = new(options);
+        await context.Database.MigrateAsync();
+        string[] appliedMigrations = (await context.Database.GetAppliedMigrationsAsync()).ToArray();
+        Assert.Equal(4, appliedMigrations.Length);
+
+        Guid agentId = Guid.NewGuid();
+        DateTimeOffset now = DateTimeOffset.UtcNow;
+        context.Registrations.Add(new AgentRegistrationRow
+        {
+            AgentId = agentId,
+            InstallationId = "migration-guard-fixture",
+            Environment = "test",
+            IdentityCertificateReference = "e2e:identity-reference",
+            CertificateThumbprint = new string('A', 64),
+            CertificateNotAfter = now.AddHours(1),
+            IdentityState = "Active",
+            CreatedAt = now,
+            UpdatedAt = now,
+            ConcurrencyToken = Guid.NewGuid(),
+        });
+        await context.SaveChangesAsync();
+
+        IMigrator migrator = context.Database.GetService<IMigrator>();
+        SqliteException refusal = await Assert.ThrowsAsync<SqliteException>(
+            () => migrator.MigrateAsync(appliedMigrations[2]));
+        Assert.Equal(19, refusal.SqliteErrorCode);
+        Assert.Equal(4, (await context.Database.GetAppliedMigrationsAsync()).Count());
+
+        await context.Database.ExecuteSqlInterpolatedAsync(
+            $"DELETE FROM agent_fleet_state WHERE agent_id = {agentId}");
+        await context.Database.ExecuteSqlInterpolatedAsync(
+            $"DELETE FROM agent_registration WHERE agent_id = {agentId}");
+        await migrator.MigrateAsync(appliedMigrations[2]);
+        Assert.Equal(3, (await context.Database.GetAppliedMigrationsAsync()).Count());
+
+        await migrator.MigrateAsync();
+        Assert.Equal(4, (await context.Database.GetAppliedMigrationsAsync()).Count());
     }
 
     [Fact]

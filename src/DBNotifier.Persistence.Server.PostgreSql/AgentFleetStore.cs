@@ -1,5 +1,4 @@
 // Module purpose: Persists bounded Agent Fleet identity, heartbeat and read-only assignment state without provider execution or secret material.
-using System.Buffers.Binary;
 using System.Data;
 using System.Globalization;
 using System.Security.Cryptography;
@@ -474,7 +473,7 @@ public sealed class AgentFleetStore(IDbContextFactory<ServerDbContext> contextFa
             return InvalidStoredAssignments();
         }
 
-        string version = ComputeAssignmentVersion(agentId, rows);
+        string version = AgentAssignmentVersion.Compute(agentId, assignments);
         if (string.Equals(afterVersion, version, StringComparison.Ordinal))
         {
             return new AgentAssignmentOutcome(
@@ -808,47 +807,6 @@ public sealed class AgentFleetStore(IDbContextFactory<ServerDbContext> contextFa
         return assigned
             .Where(scope => scope.ExpiresAt is null || scope.ExpiresAt > now)
             .ToArray();
-    }
-
-    /// <summary>Computes a deterministic version over the complete ordered assignment projection.</summary>
-    /// <param name="agentId">Owning Agent identifier.</param>
-    /// <param name="rows">Complete assignment rows in stable identifier order.</param>
-    /// <returns>Uppercase SHA-256 hexadecimal version.</returns>
-    private static string ComputeAssignmentVersion(Guid agentId, IReadOnlyList<AssignmentProjection> rows)
-    {
-        using IncrementalHash hash = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
-        AppendHashValue(hash, AgentFleetProtocol.CurrentSchemaVersion.ToString(CultureInfo.InvariantCulture));
-        AppendHashValue(hash, agentId.ToString("D"));
-        AppendHashValue(hash, rows.Count.ToString(CultureInfo.InvariantCulture));
-        foreach (AssignmentProjection row in rows)
-        {
-            AppendHashValue(hash, row.InstanceId.ToString("D"));
-            AppendHashValue(hash, row.DisplayName);
-            AppendHashValue(hash, row.ProviderType);
-            AppendHashValue(hash, row.Environment);
-            AppendHashValue(hash, row.EndpointJson);
-            AppendHashValue(hash, row.MonitoringCredentialReference ?? string.Empty);
-            AppendHashValue(hash, row.TagsJson);
-            AppendHashValue(hash, row.IntervalSeconds.ToString(CultureInfo.InvariantCulture));
-            AppendHashValue(hash, row.TimeoutSeconds.ToString(CultureInfo.InvariantCulture));
-            AppendHashValue(hash, row.RetryCount.ToString(CultureInfo.InvariantCulture));
-            AppendHashValue(hash, row.UpdatedAt.ToString("O", CultureInfo.InvariantCulture));
-            AppendHashValue(hash, row.ConcurrencyToken.ToString("D"));
-        }
-
-        return Convert.ToHexString(hash.GetHashAndReset());
-    }
-
-    /// <summary>Appends one UTF-8 value with an unambiguous big-endian byte length.</summary>
-    /// <param name="hash">Incremental SHA-256 computation.</param>
-    /// <param name="value">Value to append.</param>
-    private static void AppendHashValue(IncrementalHash hash, string value)
-    {
-        byte[] bytes = Encoding.UTF8.GetBytes(value);
-        Span<byte> length = stackalloc byte[sizeof(int)];
-        BinaryPrimitives.WriteInt32BigEndian(length, bytes.Length);
-        hash.AppendData(length);
-        hash.AppendData(bytes);
     }
 
     /// <summary>Calculates the signed server-minus-Agent clock-skew estimate in whole milliseconds.</summary>

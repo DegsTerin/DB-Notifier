@@ -4,6 +4,7 @@
 
 ```text
 agent_registration
+agent_fleet_state
 instance_assignments
 health_observations
 outbox_messages
@@ -13,11 +14,15 @@ checkpoints
 
 ### Agent registration
 
-Stores one or more locally recognized Agent identity records by `agent_id`, with unique installation ID, environment, certificate reference, configuration version, timestamps, and concurrency token. The certificate field is a reference/locator, never a private key.
+Stores locally recognised Agent identity metadata by `agent_id`, with unique installation ID, environment, opaque certificate/key-store reference, public thumbprint, certificate expiry, fail-closed identity state, active configuration version, timestamps, and concurrency token. The ordinary store contains no private key, certificate body or enrollment token. The current Agent-side coordinator refuses a second local registration.
+
+### Agent Fleet state
+
+Stores the next heartbeat sequence, exact pending heartbeat envelope, last durable receipt, assignment ETag/generation/freshness evidence, latest sanitised failure and concurrency token. The pending envelope is retained across a lost response and cleared only after a compatible receipt. It contains process/connectivity evidence, not instance-health evidence.
 
 ### Instance assignments
 
-Stores the last-known-valid authorized assignment for each instance: provider, non-secret endpoint JSON, separate monitoring/admin credential references, interval, timeout, retries, policy version, enabled state, and concurrency token.
+Stores the last-known-valid authorised assignment for each instance: provider, non-secret endpoint JSON, opaque monitoring credential reference, tags, interval, timeout, retries, policy/version, enabled state, and concurrency token. The broader historical row still has a separate administrative reference for pre-existing command contracts, but Agent Fleet reconciliation always writes that field as null and the transmitted contract cannot carry it.
 
 Constraints enforce positive intervals/timeouts and non-negative retries. Assignment deletion does not cascade into observation history.
 
@@ -117,3 +122,4 @@ Stores durable integration events inside the same transaction as state changes. 
 - Optimistic concurrency is explicit on mutable configuration/aggregate rows.
 - Append-only tables do not expose soft delete.
 - Migrations are provider-specific and never run against a monitored database.
+- Agent Fleet assignment persistence is configuration evidence only; it does not activate a provider, probe, scheduler or command path.

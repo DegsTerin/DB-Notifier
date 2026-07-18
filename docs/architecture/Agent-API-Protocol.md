@@ -1,6 +1,6 @@
 # Agent/API Protocol v1
 
-Observation batching and the receipt-only command polling/ack subset were implemented in `STATE-04`. The restricted `STATE-06` Agent Fleet increment implements HTTPS enrollment with an unavailable-by-default issuer, normalised certificate revocation, heartbeat and complete read-only assignments. Event batching, assignment activation/acknowledgement, certificate rotation, command execution/result and SignalR remain conceptual targets.
+Observation batching and the receipt-only command polling/ack subset were implemented in `STATE-04`. The restricted `STATE-06` Agent Fleet increments implement HTTPS enrollment with an unavailable-by-default issuer, normalised certificate revocation, heartbeat and complete read-only assignments. A sandbox-only Agent-side coordinator consumes enrollment, heartbeat and assignment routes through bounded HTTPS transport, but the ordinary Worker cannot activate that client. Event batching, operational assignment activation/acknowledgement, certificate rotation, command execution/result and SignalR remain conceptual targets.
 
 ## Transport and trust
 
@@ -52,6 +52,8 @@ POST /api/v1/agents/{agentId}/heartbeats
 
 Heartbeat uses a versioned `AgentHeartbeatRequest`, is bound to the mTLS Agent route and is idempotent by exact `messageId`, sequence and canonical payload digest. A durable per-Agent cursor survives heartbeat-detail retention. Exact replay returns the original receipt only while its immutable detail row remains retained; after detail retention, the cursor still rejects a stale sequence with `409` but cannot reconstruct the earlier receipt. Conflicting identifiers also return `409`; a higher sequence with a gap is accepted and marked explicitly. Server receipt time owns `LastSeenAt`, and the response provides accepted time, highest accepted sequence and clock-skew estimate. Heartbeat health does not imply instance health.
 
+The sandbox Agent-side store persists the complete pending heartbeat envelope before transport. A lost response leaves that exact envelope pending, including its `messageId` and sequence; a later coordinator instance replays it byte-equivalently and advances the next sequence only after a compatible durable receipt. This is one-shot coordinator behaviour exercised by tests, not a continuously scheduled Worker, retry loop or operational heartbeat service.
+
 ## Observation and event synchronization
 
 ```text
@@ -75,9 +77,9 @@ Rules:
 GET /api/v1/agents/{agentId}/assignments?afterVersion=<sha256>
 ```
 
-The implemented endpoint returns one complete, deterministically ordered snapshot for the exact active Agent and its environment. It includes endpoint JSON classified by contract as non-secret, tags and an opaque monitoring-only credential reference. `AdministrativeCredentialReference`, commands and provider execution are excluded. The snapshot is admitted incrementally under ceilings of 5,000 records and 4 MiB of aggregate UTF-8 endpoint/tag JSON, and fails closed rather than truncating. Its strong SHA-256 ETag supports `If-None-Match`, `afterVersion` and `304 Not Modified`.
+The implemented endpoint returns one complete, deterministically ordered snapshot for the exact active Agent and its environment. It includes endpoint JSON classified by contract as non-secret, tags and an opaque monitoring-only credential reference. `AdministrativeCredentialReference`, commands and provider execution are excluded. The snapshot is admitted incrementally under ceilings of 5,000 records and 4 MiB of aggregate UTF-8 endpoint/tag JSON, and fails closed rather than truncating. Its strong SHA-256 ETag supports `If-None-Match`, `afterVersion` and `304 Not Modified`. The digest now covers only transmitted fields and canonicalised endpoint/tag JSON, so the Agent can independently recompute it after HTTP serialisation.
 
-No Agent worker consumes or activates this snapshot in the current increment. Atomic local application, last-known-valid retention, acknowledgement and signed application-layer configuration remain future work and require separate authority.
+The sandbox Agent-side coordinator validates schema, Agent/environment binding, strong ETag, digest, uniqueness, field limits and aggregate JSON bytes before atomically replacing the local SQLite assignment set. `304` refreshes reconciliation evidence without replacing rows, and an invalid response preserves the last-known-valid set. Local rows never receive the server-side administrative credential reference. This persistence is not operational activation: no assignment is delivered to a provider or scheduler, no acknowledgement protocol was added, and the ordinary Worker rejects Agent Fleet client activation.
 
 ## Human Agent Fleet catalogue and revocation
 

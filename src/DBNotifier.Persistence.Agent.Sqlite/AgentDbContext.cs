@@ -12,19 +12,28 @@ public sealed class AgentDbContext(DbContextOptions<AgentDbContext> options) : D
     public DbSet<AgentOutboxMessageRow> OutboxMessages => Set<AgentOutboxMessageRow>();
     public DbSet<AgentInboxCommandRow> InboxCommands => Set<AgentInboxCommandRow>();
     public DbSet<AgentCheckpointRow> Checkpoints => Set<AgentCheckpointRow>();
+    /// <summary>Gets the durable Agent Fleet heartbeat and assignment-reconciliation state.</summary>
+    public DbSet<AgentFleetStateRow> AgentFleetStates => Set<AgentFleetStateRow>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<AgentRegistrationRow>(entity =>
         {
-            entity.ToTable("agent_registration");
             entity.HasKey(row => row.AgentId);
             entity.Property(row => row.InstallationId).HasMaxLength(160).IsRequired();
             entity.HasIndex(row => row.InstallationId).IsUnique();
             entity.Property(row => row.Environment).HasMaxLength(100).IsRequired();
             entity.Property(row => row.IdentityCertificateReference).HasMaxLength(500).IsRequired();
+            entity.Property(row => row.CertificateThumbprint).HasMaxLength(160).IsRequired();
+            entity.Property(row => row.IdentityState).HasMaxLength(32).IsRequired();
             entity.Property(row => row.ActiveConfigurationVersion).HasMaxLength(100);
             entity.Property(row => row.ConcurrencyToken).IsConcurrencyToken();
+            entity.ToTable("agent_registration", table =>
+            {
+                table.HasCheckConstraint(
+                    "ck_agent_registration_identity_state",
+                    "identity_state IN ('NotEnrolled','Active','Offline','Stale','Incompatible','Expired','RevokedOrDenied','Conflict')");
+            });
         });
 
         modelBuilder.Entity<AgentInstanceAssignmentRow>(entity =>
@@ -41,6 +50,7 @@ public sealed class AgentDbContext(DbContextOptions<AgentDbContext> options) : D
             entity.Property(row => row.EndpointJson).IsRequired();
             entity.Property(row => row.MonitoringCredentialReference).HasMaxLength(500);
             entity.Property(row => row.AdministrativeCredentialReference).HasMaxLength(500);
+            entity.Property(row => row.TagsJson).IsRequired();
             entity.Property(row => row.PolicyVersion).HasMaxLength(100).IsRequired();
             entity.Property(row => row.ConcurrencyToken).IsConcurrencyToken();
             entity.HasIndex(row => new { row.ProviderType, row.Enabled });
@@ -103,6 +113,26 @@ public sealed class AgentDbContext(DbContextOptions<AgentDbContext> options) : D
             entity.ToTable("checkpoints", table => table.HasCheckConstraint("ck_checkpoint_sequence", "sequence >= 0"));
             entity.HasKey(row => row.StreamName);
             entity.Property(row => row.StreamName).HasMaxLength(100);
+        });
+
+        modelBuilder.Entity<AgentFleetStateRow>(entity =>
+        {
+            entity.ToTable("agent_fleet_state", table =>
+            {
+                table.HasCheckConstraint("ck_agent_fleet_next_heartbeat", "next_heartbeat_sequence >= 1");
+                table.HasCheckConstraint(
+                    "ck_agent_fleet_pending_heartbeat",
+                    "(pending_heartbeat_message_id IS NULL AND pending_heartbeat_sequence IS NULL AND pending_heartbeat_payload_json IS NULL) OR (pending_heartbeat_message_id IS NOT NULL AND pending_heartbeat_sequence >= 1 AND pending_heartbeat_payload_json IS NOT NULL)");
+            });
+            entity.HasKey(row => row.AgentId);
+            entity.Property(row => row.PendingHeartbeatPayloadJson);
+            entity.Property(row => row.AssignmentEntityTag).HasMaxLength(66);
+            entity.Property(row => row.LastErrorCode).HasMaxLength(100);
+            entity.Property(row => row.ConcurrencyToken).IsConcurrencyToken();
+            entity.HasOne<AgentRegistrationRow>()
+                .WithOne()
+                .HasForeignKey<AgentFleetStateRow>(row => row.AgentId)
+                .OnDelete(DeleteBehavior.Restrict);
         });
 
         SnakeCaseModelConvention.Apply(modelBuilder);

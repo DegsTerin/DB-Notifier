@@ -12,6 +12,8 @@ using System.Text.Json;
 using System.Threading.RateLimiting;
 using DBNotifier.Application.Access;
 using DBNotifier.Application.AgentFleet;
+using DBNotifier.Infrastructure.AgentFleet;
+using DBNotifier.Persistence.Agent.Sqlite;
 using DBNotifier.Persistence.Server.PostgreSql;
 using DBNotifier.Server.Api;
 using DBNotifier.Server.Api.Security;
@@ -252,6 +254,148 @@ public sealed class AgentFleetApiEndToEndTests
         CryptographicOperations.ZeroMemory(certificateSigningRequest);
     }
 
+    /// <summary>
+    /// Proves the Agent-side coordinator against the real local HTTPS routes, including response loss, logical
+    /// restart, content-digest validation, atomic LKG preservation and revocation quarantine.
+    /// </summary>
+    [Fact]
+    public async Task AgentSideIdentityHeartbeatAndAssignmentsRemainSandboxedAndFailClosed()
+    {
+        await using AgentFleetSandbox sandbox = await AgentFleetSandbox.StartAsync();
+        await using AgentLocalSandbox local = await AgentLocalSandbox.StartAsync();
+        await using SandboxAgentIdentityStore identities = new(sandbox);
+        string installationId = $"installation:{Guid.NewGuid():N}";
+        AgentEnrollmentRequest tokenBinding = new(
+            Guid.NewGuid(),
+            AgentFleetProtocol.CurrentSchemaVersion,
+            installationId,
+            "Sandbox Agent-side Client",
+            EnvironmentName,
+            PlatformName,
+            AgentVersion,
+            ScopeName,
+            sandbox.Now,
+            sandbox.Now,
+            "test-only-public-csr-placeholder");
+        string token = await sandbox.SeedEnrollmentTokenAsync(tokenBinding);
+        HttpAgentFleetClientTransport httpTransport = new(
+            sandbox.BaseAddress,
+            AgentVersion,
+            identities.GetClient);
+        DropFirstHeartbeatResponseTransport lossyTransport = new(httpTransport);
+        AgentFleetClientCoordinator coordinator = new(
+            identities,
+            lossyTransport,
+            local.Store,
+            new FixedTimeProvider(sandbox.Now),
+            TimeSpan.FromMinutes(5));
+
+        AgentFleetClientResult enrolled = await coordinator.EnrolForTestAsync(
+            new AgentEnrollmentBootstrap(
+                token,
+                installationId,
+                "Sandbox Agent-side Client",
+                EnvironmentName,
+                PlatformName,
+                AgentVersion,
+                ScopeName),
+            CancellationToken.None);
+        Assert.True(enrolled.Succeeded);
+        Assert.Equal(AgentLocalIdentityState.Active, enrolled.State);
+        AgentLocalRegistration registration = Assert.IsType<AgentLocalRegistration>(
+            await local.Store.GetRegistrationAsync(CancellationToken.None));
+        Assert.DoesNotContain(token, await local.ReadPersistedTextAsync(), StringComparison.Ordinal);
+        await sandbox.SeedAssignmentsAndHumanAccessAsync(registration.AgentId);
+
+        AgentFleetClientResult responseLost = await coordinator.SendHeartbeatOnceAsync(
+            AgentVersion,
+            CancellationToken.None);
+        Assert.False(responseLost.Succeeded);
+        Assert.Equal(AgentLocalIdentityState.Offline, responseLost.State);
+        PendingAgentHeartbeat pendingAfterLoss = await local.ReadPendingHeartbeatAsync(registration.AgentId);
+
+        AgentFleetClientCoordinator restartedCoordinator = new(
+            identities,
+            lossyTransport,
+            local.Store,
+            new FixedTimeProvider(sandbox.Now),
+            TimeSpan.FromMinutes(5));
+        AgentFleetClientResult replayed = await restartedCoordinator.SendHeartbeatOnceAsync(
+            AgentVersion,
+            CancellationToken.None);
+        Assert.True(replayed.Succeeded);
+        Assert.Equal("heartbeat.accepted", replayed.Code);
+        Assert.Equal(1, pendingAfterLoss.Request.Sequence);
+
+        AgentFleetClientResult nextHeartbeat = await restartedCoordinator.SendHeartbeatOnceAsync(
+            AgentVersion,
+            CancellationToken.None);
+        Assert.True(nextHeartbeat.Succeeded);
+        Assert.Equal(3, lossyTransport.HeartbeatCalls);
+
+        AgentFleetClientResult applied = await restartedCoordinator.ReconcileAssignmentsOnceAsync(
+            AgentVersion,
+            CancellationToken.None);
+        Assert.True(applied.Succeeded);
+        Assert.Equal("assignments.applied", applied.Code);
+        AgentAssignmentLocalState firstState = await local.Store.GetAssignmentStateAsync(
+            registration.AgentId,
+            CancellationToken.None);
+        Assert.True(AgentAssignmentVersion.IsUpperHexDigest(firstState.Version));
+        Assert.Equal(1, await local.CountAssignmentsAsync());
+        Assert.All(await local.ReadAssignmentsAsync(), row =>
+            Assert.Null(row.AdministrativeCredentialReference));
+
+        AgentFleetClientResult unchanged = await restartedCoordinator.ReconcileAssignmentsOnceAsync(
+            AgentVersion,
+            CancellationToken.None);
+        Assert.True(unchanged.Succeeded);
+        Assert.Equal("assignments.not_modified", unchanged.Code);
+
+        await sandbox.ReplaceAssignmentsAsync(registration.AgentId);
+        TamperNextAssignmentTransport tamperedTransport = new(httpTransport);
+        AgentFleetClientCoordinator tamperedCoordinator = new(
+            identities,
+            tamperedTransport,
+            local.Store,
+            new FixedTimeProvider(sandbox.Now),
+            TimeSpan.FromMinutes(5));
+        AgentFleetClientResult rejected = await tamperedCoordinator.ReconcileAssignmentsOnceAsync(
+            AgentVersion,
+            CancellationToken.None);
+        Assert.False(rejected.Succeeded);
+        Assert.Equal(AgentLocalIdentityState.Active, rejected.State);
+        Assert.Equal("assignments.digest_mismatch", rejected.Code);
+        Assert.Equal(firstState.Version, (await local.Store.GetAssignmentStateAsync(
+            registration.AgentId,
+            CancellationToken.None)).Version);
+        Assert.Equal(1, await local.CountAssignmentsAsync());
+
+        AgentFleetClientResult replaced = await restartedCoordinator.ReconcileAssignmentsOnceAsync(
+            AgentVersion,
+            CancellationToken.None);
+        Assert.True(replaced.Succeeded);
+        Assert.Equal(2, await local.CountAssignmentsAsync());
+        Assert.NotEqual(firstState.Version, (await local.Store.GetAssignmentStateAsync(
+            registration.AgentId,
+            CancellationToken.None)).Version);
+
+        await sandbox.RevokeAgentAsync(registration.AgentId);
+        AgentFleetClientResult revoked = await restartedCoordinator.SendHeartbeatOnceAsync(
+            AgentVersion,
+            CancellationToken.None);
+        Assert.False(revoked.Succeeded);
+        Assert.Equal(AgentLocalIdentityState.RevokedOrDenied, revoked.State);
+        AgentFleetClientResult quarantined = await restartedCoordinator.ReconcileAssignmentsOnceAsync(
+            AgentVersion,
+            CancellationToken.None);
+        Assert.False(quarantined.Succeeded);
+        Assert.Equal(AgentLocalIdentityState.RevokedOrDenied, quarantined.State);
+
+        await local.AssertNoOperationalEffectsAsync();
+        await sandbox.AssertClientIsolationAsync(registration.AgentId);
+    }
+
     /// <summary>Creates the canonical version-one heartbeat for one enrolled Agent.</summary>
     /// <param name="agentId">Enrolled Agent identifier.</param>
     /// <param name="sequence">Monotonic heartbeat sequence.</param>
@@ -341,6 +485,349 @@ public sealed class AgentFleetApiEndToEndTests
         await response.Content.ReadFromJsonAsync<T>(JsonOptions) ??
         throw new InvalidOperationException($"The sandbox response did not contain {typeof(T).Name}.");
 
+    /// <summary>Owns one temporary Agent SQLite database and exposes only test assertions over non-secret state.</summary>
+    private sealed class AgentLocalSandbox : IAsyncDisposable
+    {
+        private readonly SqliteConnection keeper;
+        private readonly DbContextOptions<AgentDbContext> options;
+
+        private AgentLocalSandbox(
+            SqliteConnection keeper,
+            DbContextOptions<AgentDbContext> options,
+            AgentFleetLocalStore store)
+        {
+            this.keeper = keeper;
+            this.options = options;
+            Store = store;
+        }
+
+        /// <summary>Gets the real SQLite implementation used by the Agent-side coordinator.</summary>
+        public AgentFleetLocalStore Store { get; }
+
+        /// <summary>Creates the migrated named in-memory Agent store.</summary>
+        /// <returns>Disposable local Agent sandbox.</returns>
+        public static async Task<AgentLocalSandbox> StartAsync()
+        {
+            string connectionString = new SqliteConnectionStringBuilder
+            {
+                DataSource = $"DBNotifierAgentClient{Guid.NewGuid():N}",
+                Mode = SqliteOpenMode.Memory,
+                Cache = SqliteCacheMode.Shared,
+                ForeignKeys = true,
+            }.ToString();
+            SqliteConnection keeper = new(connectionString);
+            await keeper.OpenAsync();
+            DbContextOptions<AgentDbContext> options = new DbContextOptionsBuilder<AgentDbContext>()
+                .UseSqlite(connectionString)
+                .Options;
+            AgentContextFactory factory = new(options);
+            await using AgentDbContext context = new(options);
+            await context.Database.MigrateAsync();
+            return new AgentLocalSandbox(keeper, options, new AgentFleetLocalStore(factory));
+        }
+
+        /// <summary>Reads the exact durable pending heartbeat for restart/replay assertions.</summary>
+        /// <param name="agentId">Enrolled Agent identifier.</param>
+        /// <returns>Pending typed heartbeat.</returns>
+        public async Task<PendingAgentHeartbeat> ReadPendingHeartbeatAsync(Guid agentId)
+        {
+            await using AgentDbContext context = new(options);
+            AgentFleetStateRow row = await context.AgentFleetStates.AsNoTracking()
+                .SingleAsync(item => item.AgentId == agentId);
+            AgentHeartbeatRequest request = JsonSerializer.Deserialize<AgentHeartbeatRequest>(
+                row.PendingHeartbeatPayloadJson ?? throw new InvalidOperationException("No pending heartbeat exists."),
+                JsonOptions) ?? throw new InvalidOperationException("Pending heartbeat could not be read.");
+            return new PendingAgentHeartbeat(request, false);
+        }
+
+        /// <summary>Returns all persisted text used to prove that the one-time token was not stored.</summary>
+        /// <returns>Concatenated non-secret text columns.</returns>
+        public async Task<string> ReadPersistedTextAsync()
+        {
+            await using AgentDbContext context = new(options);
+            string[] registration = await context.Registrations.AsNoTracking()
+                .Select(row => row.InstallationId + row.Environment + row.IdentityCertificateReference +
+                    row.CertificateThumbprint + row.IdentityState + row.ActiveConfigurationVersion)
+                .ToArrayAsync();
+            string[] fleet = await context.AgentFleetStates.AsNoTracking()
+                .Select(row => (row.PendingHeartbeatPayloadJson ?? string.Empty) +
+                    (row.AssignmentEntityTag ?? string.Empty) + (row.LastErrorCode ?? string.Empty))
+                .ToArrayAsync();
+            return string.Concat(registration.Concat(fleet));
+        }
+
+        /// <summary>Counts the currently active complete local assignment set.</summary>
+        /// <returns>Assignment row count.</returns>
+        public async Task<int> CountAssignmentsAsync()
+        {
+            await using AgentDbContext context = new(options);
+            return await context.InstanceAssignments.CountAsync();
+        }
+
+        /// <summary>Reads local assignments for secret-purpose and replacement assertions.</summary>
+        /// <returns>Complete local assignment rows.</returns>
+        public async Task<AgentInstanceAssignmentRow[]> ReadAssignmentsAsync()
+        {
+            await using AgentDbContext context = new(options);
+            return await context.InstanceAssignments.AsNoTracking().OrderBy(row => row.InstanceId).ToArrayAsync();
+        }
+
+        /// <summary>Proves that assignment reconciliation activated no monitoring, outbox or command path.</summary>
+        public async Task AssertNoOperationalEffectsAsync()
+        {
+            await using AgentDbContext context = new(options);
+            Assert.Equal(0, await context.HealthObservations.CountAsync());
+            Assert.Equal(0, await context.OutboxMessages.CountAsync());
+            Assert.Equal(0, await context.InboxCommands.CountAsync());
+            Assert.All(await context.InstanceAssignments.AsNoTracking().ToArrayAsync(), row =>
+                Assert.Null(row.AdministrativeCredentialReference));
+            Assert.DoesNotContain(
+                context.Model.GetEntityTypes().SelectMany(entity => entity.GetProperties()),
+                property => property.Name.Contains("PrivateKey", StringComparison.OrdinalIgnoreCase) ||
+                    property.Name.Contains("EnrollmentToken", StringComparison.OrdinalIgnoreCase) ||
+                    property.Name.Contains("CertificateDer", StringComparison.OrdinalIgnoreCase));
+        }
+
+        /// <inheritdoc />
+        public ValueTask DisposeAsync() => keeper.DisposeAsync();
+
+        private sealed class AgentContextFactory(DbContextOptions<AgentDbContext> options)
+            : IDbContextFactory<AgentDbContext>
+        {
+            /// <inheritdoc />
+            public AgentDbContext CreateDbContext() => new(options);
+
+            /// <inheritdoc />
+            public Task<AgentDbContext> CreateDbContextAsync(CancellationToken cancellationToken = default) =>
+                Task.FromResult(new AgentDbContext(options));
+        }
+    }
+
+    /// <summary>Holds P-256 private identity material only in the E2E process and disposes every client/container.</summary>
+    private sealed class SandboxAgentIdentityStore(AgentFleetSandbox sandbox)
+        : IAgentEnrollmentIdentityStore, IAsyncDisposable
+    {
+        private readonly Dictionary<Guid, ECDsa> pending = [];
+        private readonly Dictionary<string, (X509Certificate2 Certificate, HttpClient Client)> completed = [];
+        private readonly HttpClient enrollmentClient = sandbox.CreateClient();
+
+        /// <inheritdoc />
+        public ValueTask<AgentEnrollmentKeyMaterial> BeginAsync(
+            string installationId,
+            CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            ArgumentException.ThrowIfNullOrWhiteSpace(installationId);
+            ECDsa key = ECDsa.Create(ECCurve.NamedCurves.nistP256);
+            Guid operationId = Guid.NewGuid();
+            pending.Add(operationId, key);
+            CertificateRequest request = new(
+                "CN=DB-Notifier Agent-side Sandbox",
+                key,
+                HashAlgorithmName.SHA256);
+            byte[] csr = request.CreateSigningRequest();
+            try
+            {
+                return ValueTask.FromResult(new AgentEnrollmentKeyMaterial(
+                    operationId,
+                    Convert.ToBase64String(csr)));
+            }
+            finally
+            {
+                CryptographicOperations.ZeroMemory(csr);
+            }
+        }
+
+        /// <inheritdoc />
+        public ValueTask<AgentIdentityCompletion> CompleteAsync(
+            Guid operationId,
+            ReadOnlyMemory<byte> certificateDer,
+            CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            if (!pending.Remove(operationId, out ECDsa? key))
+            {
+                throw new InvalidOperationException("The sandbox enrollment key is unavailable.");
+            }
+
+            using (key)
+            using (X509Certificate2 publicCertificate = X509CertificateLoader.LoadCertificate(certificateDer.Span))
+            using (ECDsa publicKey = publicCertificate.GetECDsaPublicKey() ??
+                throw new CryptographicException("The issued certificate has no ECDSA key."))
+            {
+                if (!CryptographicOperations.FixedTimeEquals(
+                        key.ExportSubjectPublicKeyInfo(),
+                        publicKey.ExportSubjectPublicKeyInfo()))
+                {
+                    throw new CryptographicException("The issued certificate does not match the pending key.");
+                }
+
+                using X509Certificate2 combined = publicCertificate.CopyWithPrivateKey(key);
+                X509Certificate2 transportCertificate = AgentFleetSandbox.CreateTransportCertificate(combined);
+                string reference = $"sandbox-identity:{Guid.NewGuid():N}";
+                HttpClient client = sandbox.CreateClient(transportCertificate);
+                completed.Add(reference, (transportCertificate, client));
+                return ValueTask.FromResult(new AgentIdentityCompletion(
+                    reference,
+                    AgentFleetSandbox.NormaliseThumbprint(transportCertificate.Thumbprint)));
+            }
+        }
+
+        /// <inheritdoc />
+        public ValueTask AbortAsync(Guid operationId, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            if (pending.Remove(operationId, out ECDsa? key))
+            {
+                key.Dispose();
+            }
+
+            return ValueTask.CompletedTask;
+        }
+
+        /// <inheritdoc />
+        public ValueTask RemoveAsync(string identityReference, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            if (completed.Remove(identityReference, out var identity))
+            {
+                identity.Client.Dispose();
+                identity.Certificate.Dispose();
+            }
+
+            return ValueTask.CompletedTask;
+        }
+
+        /// <summary>Returns the anonymous enrollment client or the exact completed mTLS client.</summary>
+        /// <param name="identityReference">Opaque identity reference, or null for enrollment.</param>
+        /// <returns>Reusable sandbox HTTP client.</returns>
+        public HttpClient GetClient(string? identityReference)
+        {
+            if (identityReference is null)
+            {
+                return enrollmentClient;
+            }
+
+            return completed.TryGetValue(identityReference, out var identity)
+                ? identity.Client
+                : throw new InvalidOperationException("The sandbox identity reference is unavailable.");
+        }
+
+        /// <inheritdoc />
+        public ValueTask DisposeAsync()
+        {
+            enrollmentClient.Dispose();
+            foreach (ECDsa key in pending.Values)
+            {
+                key.Dispose();
+            }
+
+            foreach (var identity in completed.Values)
+            {
+                identity.Client.Dispose();
+                identity.Certificate.Dispose();
+            }
+
+            pending.Clear();
+            completed.Clear();
+            return ValueTask.CompletedTask;
+        }
+    }
+
+    /// <summary>Simulates one lost heartbeat response after the real Server has already accepted the request.</summary>
+    private sealed class DropFirstHeartbeatResponseTransport(IAgentFleetClientTransport inner)
+        : IAgentFleetClientTransport
+    {
+        private bool drop = true;
+
+        /// <summary>Gets the number of real heartbeat requests sent through the wrapper.</summary>
+        public int HeartbeatCalls { get; private set; }
+
+        /// <inheritdoc />
+        public ValueTask<AgentFleetTransportResult<AgentEnrollmentOutcome>> EnrolAsync(
+            string token,
+            AgentEnrollmentRequest request,
+            CancellationToken cancellationToken) => inner.EnrolAsync(token, request, cancellationToken);
+
+        /// <inheritdoc />
+        public async ValueTask<AgentFleetTransportResult<AgentHeartbeatOutcome>> SendHeartbeatAsync(
+            string identityReference,
+            AgentHeartbeatRequest request,
+            CancellationToken cancellationToken)
+        {
+            HeartbeatCalls++;
+            AgentFleetTransportResult<AgentHeartbeatOutcome> result = await inner.SendHeartbeatAsync(
+                identityReference,
+                request,
+                cancellationToken);
+            if (drop)
+            {
+                drop = false;
+                return new AgentFleetTransportResult<AgentHeartbeatOutcome>(
+                    AgentFleetTransportDisposition.TransientFailure,
+                    null,
+                    null,
+                    "transport.response_lost");
+            }
+
+            return result;
+        }
+
+        /// <inheritdoc />
+        public ValueTask<AgentFleetTransportResult<AgentAssignmentSnapshot>> GetAssignmentsAsync(
+            string identityReference,
+            Guid agentId,
+            string agentVersion,
+            string? currentVersion,
+            CancellationToken cancellationToken) =>
+            inner.GetAssignmentsAsync(identityReference, agentId, agentVersion, currentVersion, cancellationToken);
+    }
+
+    /// <summary>Mutates one authenticated assignment body after transport to prove client-side digest rejection.</summary>
+    private sealed class TamperNextAssignmentTransport(IAgentFleetClientTransport inner)
+        : IAgentFleetClientTransport
+    {
+        private bool tamper = true;
+
+        /// <inheritdoc />
+        public ValueTask<AgentFleetTransportResult<AgentEnrollmentOutcome>> EnrolAsync(
+            string token,
+            AgentEnrollmentRequest request,
+            CancellationToken cancellationToken) => inner.EnrolAsync(token, request, cancellationToken);
+
+        /// <inheritdoc />
+        public ValueTask<AgentFleetTransportResult<AgentHeartbeatOutcome>> SendHeartbeatAsync(
+            string identityReference,
+            AgentHeartbeatRequest request,
+            CancellationToken cancellationToken) => inner.SendHeartbeatAsync(identityReference, request, cancellationToken);
+
+        /// <inheritdoc />
+        public async ValueTask<AgentFleetTransportResult<AgentAssignmentSnapshot>> GetAssignmentsAsync(
+            string identityReference,
+            Guid agentId,
+            string agentVersion,
+            string? currentVersion,
+            CancellationToken cancellationToken)
+        {
+            AgentFleetTransportResult<AgentAssignmentSnapshot> result = await inner.GetAssignmentsAsync(
+                identityReference,
+                agentId,
+                agentVersion,
+                currentVersion,
+                cancellationToken);
+            if (!tamper || result.Disposition != AgentFleetTransportDisposition.Succeeded ||
+                result.Value is not { Assignments.Count: > 0 } snapshot)
+            {
+                return result;
+            }
+
+            tamper = false;
+            AgentReadOnlyAssignment[] assignments = snapshot.Assignments.ToArray();
+            assignments[0] = assignments[0] with { DisplayName = assignments[0].DisplayName + " tampered" };
+            return result with { Value = snapshot with { Assignments = assignments } };
+        }
+    }
+
     /// <summary>Owns the disposable HTTPS server, ephemeral CA and shared in-memory SQLite database.</summary>
     private sealed class AgentFleetSandbox : IAsyncDisposable
     {
@@ -382,7 +869,7 @@ public sealed class AgentFleetApiEndToEndTests
         }
 
         /// <summary>Gets the exact HTTPS loopback address selected by Kestrel.</summary>
-        private Uri BaseAddress { get; }
+        public Uri BaseAddress { get; }
 
         /// <summary>Gets the fixed UTC clock used by the Application service.</summary>
         public DateTimeOffset Now { get; }
@@ -668,6 +1155,100 @@ public sealed class AgentFleetApiEndToEndTests
             await context.SaveChangesAsync();
         }
 
+        /// <summary>Replaces the complete server assignment projection with a deterministic second version.</summary>
+        /// <param name="agentId">Enrolled Agent that owns the replacement snapshot.</param>
+        public async Task ReplaceAssignmentsAsync(Guid agentId)
+        {
+            await using AsyncServiceScope scope = application.Services.CreateAsyncScope();
+            ServerDbContext context = scope.ServiceProvider.GetRequiredService<ServerDbContext>();
+            DatabaseInstanceRow[] previous = await context.Instances
+                .Where(row => row.AssignedAgentId == agentId)
+                .ToArrayAsync();
+            context.Instances.RemoveRange(previous);
+            DateTimeOffset updatedAt = Now.AddMinutes(1);
+            context.Instances.AddRange(
+                new DatabaseInstanceRow
+                {
+                    InstanceId = Guid.Parse("11111111-1111-1111-1111-111111111111"),
+                    DisplayName = "Replacement Assignment A",
+                    ProviderType = "fixture-provider",
+                    Environment = EnvironmentName,
+                    EndpointJson = "{\"host\":\"replacement-a.invalid\",\"port\":5432}",
+                    MonitoringCredentialReference = "fixture:monitoring-only",
+                    AdministrativeCredentialReference = "fixture:administrative-never-sent",
+                    AssignedAgentId = agentId,
+                    TagsJson = "{\"revision\":2}",
+                    IntervalSeconds = 45,
+                    TimeoutSeconds = 6,
+                    RetryCount = 1,
+                    Enabled = true,
+                    CreatedAt = Now,
+                    UpdatedAt = updatedAt,
+                    ArchivedAt = null,
+                    ConcurrencyToken = Guid.NewGuid(),
+                },
+                new DatabaseInstanceRow
+                {
+                    InstanceId = Guid.Parse("22222222-2222-2222-2222-222222222222"),
+                    DisplayName = "Replacement Assignment B",
+                    ProviderType = "fixture-provider",
+                    Environment = EnvironmentName,
+                    EndpointJson = "{\"host\":\"replacement-b.invalid\",\"port\":5433}",
+                    MonitoringCredentialReference = null,
+                    AdministrativeCredentialReference = "fixture:administrative-never-sent",
+                    AssignedAgentId = agentId,
+                    TagsJson = "[\"sandbox\",\"replacement\"]",
+                    IntervalSeconds = 60,
+                    TimeoutSeconds = 7,
+                    RetryCount = 2,
+                    Enabled = true,
+                    CreatedAt = Now,
+                    UpdatedAt = updatedAt,
+                    ArchivedAt = null,
+                    ConcurrencyToken = Guid.NewGuid(),
+                });
+            await context.SaveChangesAsync();
+        }
+
+        /// <summary>Revokes one Agent through the real human-authorised endpoint.</summary>
+        /// <param name="agentId">Agent to revoke.</param>
+        public async Task RevokeAgentAsync(Guid agentId)
+        {
+            using HttpClient human = CreateHumanClient(HumanSubject);
+            using HttpResponseMessage response = await human.PostAsJsonAsync(
+                $"/api/v1/agents/{agentId:D}:revoke",
+                new AgentRevocationRequest("sandbox-client-review-complete"),
+                JsonOptions);
+            AgentRevocationOutcome outcome = await ReadRequiredJsonAsync<AgentRevocationOutcome>(response);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.Equal(AgentRevocationDisposition.Revoked, outcome.Disposition);
+        }
+
+        /// <summary>Confirms Agent-side E2E server evidence without requiring the direct-route test's gap sequence.</summary>
+        /// <param name="agentId">Enrolled and revoked Agent identifier.</param>
+        public async Task AssertClientIsolationAsync(Guid agentId)
+        {
+            await using AsyncServiceScope scope = application.Services.CreateAsyncScope();
+            ServerDbContext context = scope.ServiceProvider.GetRequiredService<ServerDbContext>();
+            RegisteredAgentRow agent = await context.Agents.SingleAsync(row => row.AgentId == agentId);
+            AgentHeartbeatCursorRow cursor = await context.AgentHeartbeatCursors.SingleAsync(
+                row => row.AgentId == agentId);
+            long[] sequences = await context.AgentHeartbeats
+                .Where(row => row.AgentId == agentId)
+                .OrderBy(row => row.Sequence)
+                .Select(row => row.Sequence)
+                .ToArrayAsync();
+            Assert.Equal("Revoked", agent.State);
+            Assert.Equal(2, cursor.HighestAcceptedSequence);
+            Assert.Equal(new long[] { 1, 2 }, sequences);
+            Assert.Equal(0, await context.AdministrativeCommands.CountAsync());
+            Assert.Equal(0, await context.CommandAttempts.CountAsync());
+            Assert.Equal(0, await context.HealthSamples.CountAsync());
+            Assert.Equal(0, await context.Events.CountAsync());
+            Assert.Equal(0, await context.OutboxMessages.CountAsync());
+            Assert.Equal(0, await context.NotificationDeliveries.CountAsync());
+        }
+
         /// <summary>Creates an HTTPS client optionally carrying one ephemeral Agent certificate.</summary>
         /// <param name="clientCertificate">Agent certificate with private key, or null for public enrollment.</param>
         /// <returns>Client pinned to the ephemeral server certificate.</returns>
@@ -930,7 +1511,7 @@ public sealed class AgentFleetApiEndToEndTests
         /// <summary>Normalises a framework thumbprint for exact sandbox pinning.</summary>
         /// <param name="thumbprint">Framework thumbprint.</param>
         /// <returns>Uppercase hexadecimal text without separators.</returns>
-        private static string NormaliseThumbprint(string thumbprint) =>
+        public static string NormaliseThumbprint(string thumbprint) =>
             thumbprint
                 .Replace(" ", string.Empty, StringComparison.Ordinal)
                 .Replace(":", string.Empty, StringComparison.Ordinal)

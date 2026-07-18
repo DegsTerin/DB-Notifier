@@ -21,6 +21,9 @@ AgentWorkerOptions workerOptions = new();
 builder.Configuration.GetSection(AgentWorkerOptions.SectionName).Bind(workerOptions);
 AgentSynchronizationOptions synchronizationOptions = new();
 builder.Configuration.GetSection(AgentSynchronizationOptions.SectionName).Bind(synchronizationOptions);
+AgentFleetClientOptions agentFleetClientOptions = new();
+builder.Configuration.GetSection(AgentFleetClientOptions.SectionName).Bind(agentFleetClientOptions);
+agentFleetClientOptions.ValidateForStartup();
 AgentRetentionOptions retentionOptions = new();
 builder.Configuration.GetSection(AgentRetentionOptions.SectionName).Bind(retentionOptions);
 string databasePath = AgentWorkerOptions.ResolveDatabasePath(workerOptions.DatabasePath);
@@ -33,6 +36,7 @@ string connectionString = new SqliteConnectionStringBuilder
 
 builder.Services.AddSingleton(workerOptions);
 builder.Services.AddSingleton(synchronizationOptions);
+builder.Services.AddSingleton(agentFleetClientOptions);
 builder.Services.AddSingleton(retentionOptions);
 builder.Services.AddDbContextFactory<AgentDbContext>(options => options.UseSqlite(connectionString));
 builder.Services.AddSingleton(services => new AgentStoreInitializer(

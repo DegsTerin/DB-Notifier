@@ -50,7 +50,8 @@ Design-time factories select providers without storing connection strings. Migra
 
 ## Current migration chain
 
-- Agent SQLite: `InitialAgentSchema` → `AddAgentStateConstraints` → `AddCommandCompatibilityEnvelope`.
+- Agent SQLite: `InitialAgentSchema` → `AddAgentStateConstraints` → `AddCommandCompatibilityEnvelope` →
+  `IntegrateAgentFleetClientState`.
 - Server PostgreSQL: `InitialServerSchema` → `AddServerStateConstraints` →
   `EnforceAgentObservationSequence` → `HardenObservationReconciliation` →
   `IntegrateAgentFleetIdentity`.
@@ -70,6 +71,15 @@ The `HardenObservationReconciliation` Down operation removes the durable cursor 
 their constraints and indexes, and the new health-sample columns. That rollback loses reconciliation
 checkpoints and payload-hash evidence, so it requires an application/protocol compatibility review and an
 internal-store backup.
+
+`IntegrateAgentFleetClientState` adds public certificate metadata and a fail-closed identity state to the
+local registration, assignment tags, and the one-to-one `agent_fleet_state` row used for exact pending
+heartbeat replay and last-known-valid reconciliation evidence. Existing registrations are marked
+`Conflict` during `Up` rather than silently adopted. Its custom `Down` guard refuses rollback while any
+local registration exists, because removing identity/revocation state could make an older runtime trust a
+row it can no longer classify. The sandbox migration tests exercised clean `Up`, refusal with a registration,
+explicit removal of the test identity, `Down` to the preceding migration and `Up` again. This is local
+SQLite evidence only; no operational store was touched.
 
 `IntegrateAgentFleetIdentity` adds normalised enrollment-token, Agent-certificate and heartbeat-cursor
 tables; canonical heartbeat digest/gap evidence; uniqueness guards; conservative legacy backfills; and a
