@@ -99,7 +99,7 @@ These tests characterize the only functional legacy provider behavior under its 
 
 ## Dashboard bootstrap
 
-`src/DBNotifier.Dashboard.Web` contains the deterministic STATE-05 React demonstration views and Design System theme runtime. It has no external Agent, API, database, IdP or administrative integration. Its CI job uses the committed lockfile and runs:
+`src/DBNotifier.Dashboard.Web` contains the deterministic React demonstration views and Design System theme runtime. The normal build has no Agent, API, database, IdP or administrative integration. One restricted `STATE-06` adapter exists only for the exact `local-test` flag on an HTTPS loopback origin and reads the fixed, test-authenticated, in-memory Dashboard TV sandbox endpoint; it does not admit an external endpoint or operational identity. Its CI job uses the committed lockfile and runs:
 
 ```powershell
 npm run toolchain:verify
@@ -115,7 +115,7 @@ npm run build
 npm audit --audit-level=high
 ```
 
-Keep presentation adapters deterministic until the owning integration state explicitly authorises external dependencies.
+Keep presentation adapters deterministic and disabled by default until the owning integration state explicitly authorises another source or dependency.
 
 ## Configuration and secrets
 

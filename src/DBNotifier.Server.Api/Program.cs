@@ -28,6 +28,9 @@ builder.WebHost.ConfigureKestrel(options =>
         httpsOptions.ClientCertificateMode = ClientCertificateMode.AllowCertificate);
 });
 builder.Services.AddProblemDetails();
+bool dashboardTvSandboxEnabled = builder.Services.AddDashboardTvSandbox(
+    builder.Environment,
+    builder.Configuration);
 builder.Services.AddRateLimiter(options =>
 {
     options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
@@ -271,6 +274,7 @@ app.UseRateLimiter();
 app.UseAuthorization();
 
 app.MapGet("/health/live", () => Results.Ok(new { status = "Alive" }));
+app.MapDashboardTvSandboxEndpoint(dashboardTvSandboxEnabled);
 app.MapGet(
         "/api/v1/catalog/instances",
         async Task<IResult> (

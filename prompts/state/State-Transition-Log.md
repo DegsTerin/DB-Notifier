@@ -1508,6 +1508,22 @@
 - Próxima decisão: Bruno poderá ajustar, adiar, rejeitar ou autorizar separadamente somente o incremento proposto. Nenhuma decisão curta será interpretada como implementação, promoção ou transição.
 - Aprovador: não aplicável; esta entrada registra solicitação e proposta, não aprovação da implementação descrita.
 
+## 2026-07-18 — Implementação restrita do snapshot autoritativo e reconciliação periódica do modo TV
+
+- Estado anterior: `STATE-06 INTEGRATION`, proposta documental registrada, Dashboard normal demonstrativo, nenhum runtime operacional ativo e nenhuma implementação nova autorizada além deste pedido.
+- Estado resultante: sem transição; `STATE-06 INTEGRATION` mantido, incremento tecnicamente concluído com Quality Gate automático restrito `APROVADO COM RESSALVA` e decisão humana própria pendente.
+- Autorização: Bruno declarou exatamente `AUTORIZO o incremento restrito de STATE-06 — Dashboard TV Authoritative Snapshot and Periodic Reconciliation Sandbox, limitado a contrato versionado e endpoint read-only de snapshot, autenticação exclusivamente de teste, adapter Dashboard ativado somente em sandbox local, leitura imediata ao entrar no modo TV, reconciliação serializada a cada 30 segundos, ETag/304, cancelamento, preservação factual do último snapshot e testes locais determinísticos/E2E, com runtimes temporários encerrados ao final. Permanecem proibidos SignalR, notificações, Agent ou provider operacional, monitoramento, comandos, persistência ou banco externo, IdP/PKI/vault reais, LLM, executor, deploy, promoção e transição de estado.`
+- Escopo executado: contrato `dashboard-tv.v1` e validação bounded; fixture imutável em memória; endpoint read-only sob dupla ativação; política/test subject exclusivos de HTTPS loopback; strong ETag/`304`; adapter same-origin sob flag exata; leitura imediata; reconciliação serial após 30 segundos; cancelamento/fencing de sessão; LKG factual; rótulos acessíveis; testes e documentação.
+- Isolamento: modo normal continua demonstrativo; a política sandbox não autoriza rotas humanas comuns; nenhum SignalR, notificação, Agent/provider, monitoramento, comando, persistência, banco externo, IdP/PKI/vault real, LLM, executor, deploy, promoção ou transição foi acrescentado.
+- Evidência automática: build Release dos `15` projetos sem avisos/erros; `304/304` unitários, `16/16` arquitetura, `8/8` integração e `49/49` Dashboard aprovados; cobertura `78,37%` linhas/`52,34%` branches; format/analyzers, geração, documentação `236` fontes, links, secrets e smoke fail-closed aprovados.
+- Revisão direta: corrigiu um achado Alto de política JWT comum inicialmente reutilizada pelo endpoint, três achados Médios de relógio/rejeição/certificado nos testes e um achado Baixo de regressão textual. Nenhum Critical/High permanece aberto no escopo.
+- Ressalva automática: o conjunto legado tem um teste preexistente de fixture NuGet que ainda lista `13` projetos embora o baseline `f58dd05` e a solução corrente tenham `15`. A correção desse teste não foi inferida dentro da autoridade restrita do Dashboard; os testes legados restantes não indicaram regressão do produto alterado.
+- Shutdown/cleanup: preflight inicial sem componente DB-Notifier; runtimes Kestrel/certificados iniciados apenas por E2E e dispostos; smoke local encerrado; verificação final sem processo ou listener DB-Notifier.
+- Evidências: [relatório](../../docs/STATE-06-Dashboard-TV-Authoritative-Reconciliation-Report.md), [proposta/adendo](../../docs/STATE-06-Dashboard-TV-Authoritative-Reconciliation-Proposal.md), [Design System](../../docs/design/DB-Notifier-Design-System.md), [threat model](../../docs/architecture/Threat-Model.md), código e testes locais.
+- Gates: Quality Gate automático `APROVADO COM RESSALVA` somente para este incremento; Human Gate do incremento `PENDENTE`; saída de `STATE-06`, `OBSERVER`, `STATE-07`, produção e release `NÃO AVALIADOS` e não autorizados.
+- Próxima decisão: Bruno deve revisar o relatório e o commit e responder se aceita com as limitações/ressalva, solicita remediação especificamente delimitada ou rejeita somente este incremento. Nenhuma resposta autoriza novo incremento, promoção ou transição implicitamente.
+- Aprovador: pendente; esta entrada não preenche o Human Gate por Bruno.
+
 ## Template de nova entrada
 
 - Data:

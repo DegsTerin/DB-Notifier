@@ -1,4 +1,4 @@
-<!-- Generated from dbnotifier.localisation.v1; culture:en-GB; source sha256:5dd30535a88ffe45c6ae5dfa41f8047abfb6365950d9f1f069bb4c1106799c59. Do not edit directly. -->
+<!-- Generated from dbnotifier.localisation.v1; culture:en-GB; source sha256:06e0643610087b51ffc8f434bafe968ead44230a7195468934f6f7b97d86fcc0. Do not edit directly. -->
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:sys="clr-namespace:System;assembly=System.Runtime">
@@ -230,9 +230,16 @@
   <sys:String x:Key="Tray.TransitionValidationCase">Transition validation {0}/{1}</sys:String>
   <sys:String x:Key="Tray.TransitionValidationTitle">Local notification transition validation</sys:String>
   <sys:String x:Key="TV.Active">TV mode · demonstration</sys:String>
+  <sys:String x:Key="TV.ActiveSandbox">TV mode · local authoritative sandbox</sys:String>
   <sys:String x:Key="TV.Enter">Enter TV mode</sys:String>
   <sys:String x:Key="TV.Exit">Exit TV mode</sys:String>
   <sys:String x:Key="TV.FullscreenUnavailable">TV mode is active; Fullscreen is unavailable in this browser.</sys:String>
+  <sys:String x:Key="TV.SourceSandbox">Local sandbox snapshot</sys:String>
+  <sys:String x:Key="TV.SourceSandbox.denied">Local sandbox access denied</sys:String>
+  <sys:String x:Key="TV.SourceSandbox.error">Local sandbox unavailable</sys:String>
+  <sys:String x:Key="TV.SourceSandbox.incompatible">Incompatible local sandbox snapshot</sys:String>
+  <sys:String x:Key="TV.SourceSandbox.loading">Loading local sandbox snapshot</sys:String>
+  <sys:String x:Key="TV.SourceSandbox.offline">Local sandbox offline</sys:String>
   <sys:String x:Key="View.Alerts.Description">Demonstration alert and rule states without external delivery or mutation.</sys:String>
   <sys:String x:Key="View.Alerts.Eyebrow">Operational attention</sys:String>
   <sys:String x:Key="View.Alerts.Title">Alerts</sys:String>

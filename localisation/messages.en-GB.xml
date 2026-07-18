@@ -18,6 +18,13 @@
   <message key="TV.Enter">Enter TV mode</message>
   <message key="TV.Exit">Exit TV mode</message>
   <message key="TV.Active">TV mode · demonstration</message>
+  <message key="TV.ActiveSandbox">TV mode · local authoritative sandbox</message>
+  <message key="TV.SourceSandbox">Local sandbox snapshot</message>
+  <message key="TV.SourceSandbox.loading">Loading local sandbox snapshot</message>
+  <message key="TV.SourceSandbox.offline">Local sandbox offline</message>
+  <message key="TV.SourceSandbox.error">Local sandbox unavailable</message>
+  <message key="TV.SourceSandbox.denied">Local sandbox access denied</message>
+  <message key="TV.SourceSandbox.incompatible">Incompatible local sandbox snapshot</message>
   <message key="TV.FullscreenUnavailable">TV mode is active; Fullscreen is unavailable in this browser.</message>
   <message key="Navigation.Label">Main navigation</message>
   <message key="Navigation.Overview">Overview</message>

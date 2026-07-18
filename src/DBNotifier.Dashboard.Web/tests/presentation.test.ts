@@ -356,7 +356,7 @@ test("enterprise shell uses coherent icons, complete navigation and separated ov
   assert.match(css, /\.overview-summary \.summary-card:last-child\s*\{\s*grid-column:\s*auto;/);
 });
 
-test("TV mode keeps a visible Fullscreen toggle and factual demonstration context", () => {
+test("TV mode keeps Fullscreen, factual source context and independently aged evidence", () => {
   const app = readFileSync(new URL("../src/App.tsx", import.meta.url), "utf8");
   const control = readFileSync(new URL("../src/TvModeButton.tsx", import.meta.url), "utf8");
   const css = readFileSync(new URL("../src/styles.css", import.meta.url), "utf8");
@@ -364,8 +364,9 @@ test("TV mode keeps a visible Fullscreen toggle and factual demonstration contex
   const auditGate = readFileSync(new URL("../../../scripts/run-state05-dashboard-audit.ps1", import.meta.url), "utf8");
 
   assert.match(app, /<TvModeButton active=\{tvMode\} onActiveChange=\{handleTvModeChange\}/);
-  assert.match(app, /tvMode && <TvModeStatus \/>/);
-  assert.match(app, /function TvModeStatus\(\)[\s\S]*setInterval\(\(\) => setClock\(new Date\(\)\), 1_000\)/);
+  assert.match(app, /tvMode && <TvModeStatus authoritativeSandbox=\{authoritativeSandbox\} \/>/);
+  assert.match(app, /function TvModeStatus\(\{ authoritativeSandbox \}[\s\S]*setInterval\(\(\) => setClock\(new Date\(\)\), 1_000\)/);
+  assert.match(app, /TV\.SourceSandbox/);
   assert.match(app, /setInterval\(\(\) => setNow\(new Date\(\)\), 30_000\)/);
   assert.match(app, /navigate\("overview"\)/);
   assert.match(control, /requestFullscreen\(\)/);

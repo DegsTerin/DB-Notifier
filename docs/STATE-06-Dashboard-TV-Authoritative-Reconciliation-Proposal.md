@@ -188,3 +188,9 @@ Uma autorização futura inequívoca poderá usar a seguinte redação:
 > AUTORIZO o incremento restrito de STATE-06 — Dashboard TV Authoritative Snapshot and Periodic Reconciliation Sandbox, limitado a contrato versionado e endpoint read-only de snapshot, autenticação exclusivamente de teste, adapter Dashboard ativado somente em sandbox local, leitura imediata ao entrar no modo TV, reconciliação serializada a cada 30 segundos, ETag/304, cancelamento, preservação factual do último snapshot e testes locais determinísticos/E2E, com runtimes temporários encerrados ao final. Permanecem proibidos SignalR, notificações, Agent ou provider operacional, monitoramento, comandos, persistência ou banco externo, IdP/PKI/vault reais, LLM, executor, deploy, promoção e transição de estado.
 
 Essa eventual autorização permitiria somente a implementação local descrita. Qualquer SignalR, canal, fonte operacional, novo incremento, promoção ou transição continuaria exigindo decisão separada.
+
+## Adendo factual — autorização consumida e implementação local
+
+Em 2026-07-18, Bruno emitiu separadamente a autorização exata proposta acima. A autoridade foi consumida somente pelo contrato `dashboard-tv.v1`, endpoint read-only sob dupla ativação sandbox, autenticação humana em processo de teste, adapter HTTPS loopback, leitura imediata, reconciliação serial após 30 segundos, ETag/`304`, cancelamento, preservação do último snapshot e testes locais.
+
+O modo normal continua demonstrativo. A fonte sandbox é uma fixture imutável em memória e nenhum SignalR, notificação, Agent/provider operacional, monitoramento, comando, persistência externa, IdP/PKI/vault real, LLM, executor, deploy, promoção ou transição foi implementado. O resultado e suas limitações pertencem ao [relatório do incremento](STATE-06-Dashboard-TV-Authoritative-Reconciliation-Report.md); este adendo não transforma a proposta histórica em autoridade permanente.

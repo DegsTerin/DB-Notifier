@@ -29,6 +29,12 @@ import { formatSystemDateTime, formatSystemTime } from "./systemDateTime";
 import { ProviderIcon } from "./ProviderIcon";
 import { replaceSemanticFavicon, semanticBrandAssets } from "./semanticBrand";
 import { dashboardViewHash, focusDashboardMain, parseDashboardView, subscribeDashboardRoute, type DashboardView } from "./routing";
+import {
+  DashboardTvHttpSnapshotReader,
+  DashboardTvReconciliationCoordinator,
+  isDashboardTvSandboxEnabled,
+  type DashboardTvReconciliationView,
+} from "./dashboardTvReconciliation";
 
 const stateOptions: ReadonlyArray<{ value: InventoryState; labelKey: MessageKey }> = [
   { value: "ready", labelKey: "Scenario.Ready" },
@@ -163,14 +169,14 @@ function hasInvalidTimestampOrder(earlier: string, later: string): boolean {
  * Owns the one-second TV clock so fleet summaries are not recalculated for presentation-only ticks.
  * @returns The factual session-only TV state and system-local clock presentation.
  */
-function TvModeStatus() {
+function TvModeStatus({ authoritativeSandbox }: { authoritativeSandbox: boolean }) {
   const { locale, t } = useLocalisation();
   const [clock, setClock] = useState(() => new Date());
   useEffect(() => {
     const interval = window.setInterval(() => setClock(new Date()), 1_000);
     return () => window.clearInterval(interval);
   }, []);
-  return <div className="tv-mode-status"><span aria-hidden="true" /><strong>{t("TV.Active")}</strong><time dateTime={clock.toISOString()}>{formatSystemDateTime(clock, locale)}</time></div>;
+  return <div className="tv-mode-status"><span aria-hidden="true" /><strong>{t(authoritativeSandbox ? "TV.ActiveSandbox" : "TV.Active")}</strong><time dateTime={clock.toISOString()}>{formatSystemDateTime(clock, locale)}</time></div>;
 }
 
 /**
@@ -186,8 +192,22 @@ export function App() {
   const [tvMode, setTvMode] = useState(false);
   const [snapshotTime] = useState(() => new Date());
   const [now, setNow] = useState(snapshotTime);
+  const [tvReconciliation, setTvReconciliation] = useState<DashboardTvReconciliationView>({ state: "loading" });
+  const tvCoordinatorRef = useRef<DashboardTvReconciliationCoordinator>();
   const mainContentRef = useRef<HTMLElement>(null);
-  const snapshot = useMemo(() => buildDemonstrationSnapshot(snapshotTime, locale), [snapshotTime, locale]);
+  const demonstrationSnapshot = useMemo(() => buildDemonstrationSnapshot(snapshotTime, locale), [snapshotTime, locale]);
+  const authoritativeSandbox = useMemo(
+    () => isDashboardTvSandboxEnabled(import.meta.env, window.location),
+    [],
+  );
+  const snapshot = tvMode && authoritativeSandbox && tvReconciliation.snapshot
+    ? tvReconciliation.snapshot
+    : demonstrationSnapshot;
+  const effectiveState: InventoryState = tvMode && authoritativeSandbox
+    ? tvReconciliation.snapshot
+      ? "ready"
+      : tvReconciliation.state === "incompatible" ? "error" : tvReconciliation.state
+    : state;
   const timelineSnapshot = useMemo(() => buildTimelineAlertSnapshot(snapshotTime, locale), [snapshotTime, locale]);
   const configurationSnapshot = useMemo(() => buildConfigurationSnapshot(locale), [locale]);
   const summary = useMemo(() => summarizeInventory(snapshot, now), [snapshot, now]);
@@ -213,6 +233,25 @@ export function App() {
   useEffect(() => {
     return subscribeDashboardRoute(window, setView);
   }, []);
+
+  useEffect(() => {
+    if (!tvMode || !authoritativeSandbox) {
+      tvCoordinatorRef.current?.stop();
+      tvCoordinatorRef.current = undefined;
+      return;
+    }
+
+    const coordinator = new DashboardTvReconciliationCoordinator(
+      new DashboardTvHttpSnapshotReader(),
+      setTvReconciliation,
+    );
+    tvCoordinatorRef.current = coordinator;
+    coordinator.start();
+    return () => {
+      coordinator.stop();
+      if (tvCoordinatorRef.current === coordinator) tvCoordinatorRef.current = undefined;
+    };
+  }, [tvMode, authoritativeSandbox]);
 
   useLayoutEffect(() => {
     // Replacing legacy candidates makes Chromium re-evaluate the favicon and reduces reuse of an older aggregate or build.
@@ -244,14 +283,18 @@ export function App() {
           <span className="brand-mark"><img src={brandAssets.iconPath} alt="" /></span>
           <span><strong className="brand-wordmark"><span>DB</span><span>Notifier</span></strong><small>{t("Brand.Subtitle")}</small></span>
         </div>
-        {tvMode && <TvModeStatus />}
+        {tvMode && <TvModeStatus authoritativeSandbox={authoritativeSandbox} />}
         <div className="topbar-controls">
           <LanguageSelector />
           <ThemeSelector />
           <TvModeButton active={tvMode} onActiveChange={handleTvModeChange} />
           {!tvMode && <button type="button" className="preference-icon-button topbar-feature-button" title={t("TopBar.Notifications", timelineSnapshot.alerts.filter((alert) => alert.state === "active").length)} aria-label={t("TopBar.Notifications", timelineSnapshot.alerts.filter((alert) => alert.state === "active").length)} onClick={() => navigate("alerts")}><AppIcon name="notifications" /><span className="topbar-count" aria-hidden="true">{timelineSnapshot.alerts.filter((alert) => alert.state === "active").length}</span></button>}
           {!tvMode && <button type="button" className="preference-icon-button topbar-feature-button" title={t("TopBar.Settings")} aria-label={t("TopBar.Settings")} onClick={() => navigate("settings")}><AppIcon name="settings" /></button>}
-          <div className="demo-badge"><span aria-hidden="true" />{t("Demo.Badge")}</div>
+          <div className="demo-badge" role="status" aria-live="polite"><span aria-hidden="true" />{
+            tvMode && authoritativeSandbox
+              ? t(tvReconciliation.state === "ready" ? "TV.SourceSandbox" : `TV.SourceSandbox.${tvReconciliation.state}` as MessageKey)
+              : t("Demo.Badge")
+          }</div>
         </div>
       </header>
 
@@ -282,13 +325,13 @@ export function App() {
             </div>
             <label className="scenario-control">
               <span>{t("Scenario.Label")}</span>
-              <select value={state} onChange={(event) => setState(event.target.value as InventoryState)}>
+              <select value={effectiveState} onChange={(event) => setState(event.target.value as InventoryState)}>
                 {stateOptions.map((option) => <option key={option.value} value={option.value}>{t(option.labelKey)}</option>)}
               </select>
             </label>
           </section>
 
-          {state === "ready" && view === "overview" ? (
+          {effectiveState === "ready" && view === "overview" ? (
             <OverviewView
               items={snapshot.items}
               alerts={timelineSnapshot.alerts}
@@ -297,7 +340,7 @@ export function App() {
               summary={summary}
               onNavigate={navigate}
             />
-          ) : state === "ready" && view === "inventory" ? (
+          ) : effectiveState === "ready" && view === "inventory" ? (
             <ReadyInventory
               items={filteredItems}
               now={now}
@@ -308,20 +351,23 @@ export function App() {
               onQueryChange={setQuery}
               onStatusChange={setStatusFilter}
             />
-          ) : state === "ready" && view === "history" ? (
+          ) : effectiveState === "ready" && view === "history" ? (
             <HistoryView snapshot={timelineSnapshot} now={now} />
-          ) : state === "ready" && view === "alerts" ? (
+          ) : effectiveState === "ready" && view === "alerts" ? (
             <AlertsView alerts={timelineSnapshot.alerts} generatedAt={timelineSnapshot.generatedAt} now={now} />
-          ) : state === "ready" && view === "performance" ? (
+          ) : effectiveState === "ready" && view === "performance" ? (
             <PerformanceView />
-          ) : state === "ready" && view === "configuration" ? (
+          ) : effectiveState === "ready" && view === "configuration" ? (
             <ConfigurationView snapshot={configurationSnapshot} />
-          ) : state === "ready" && view === "providers" ? (
+          ) : effectiveState === "ready" && view === "providers" ? (
             <ProvidersView items={snapshot.items} />
-          ) : state === "ready" && view === "settings" ? (
+          ) : effectiveState === "ready" && view === "settings" ? (
             <SettingsView />
           ) : (
-            <OperationalState state={state as Exclude<InventoryState, "ready">} onRetry={() => setState("ready")} />
+            <OperationalState
+              state={effectiveState as Exclude<InventoryState, "ready">}
+              onRetry={() => authoritativeSandbox && tvMode ? tvCoordinatorRef.current?.retry() : setState("ready")}
+            />
           )}
         </main>
       </div>
