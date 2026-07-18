@@ -7,11 +7,11 @@
 - Increment: `Agent Fleet Sandbox Resilience and Protocol Compatibility`
 - Authority: Bruno authorised only temporary local harness runtimes, real process restart, deterministic retry/backoff/cancellation, protocol failures, local concurrency/fencing, SQLite fault injection and the assignment/revocation race
 - Automatic restricted-increment Quality Gate: `APPROVED`
-- Human review of this increment: `PENDING`
+- Human review of this increment: `ACCEPTED WITH RECORDED LIMITATIONS` on 2026-07-18 for commit `cee9cdf`
 - `STATE-06` exit Quality/Human Gate: `NOT EVALUATED`
 - Operational runtime, external resources, promotion and lifecycle transition: `NOT AUTHORISED`
 
-This report records one local implementation and its automatic evidence. It does not accept the result on Bruno's behalf, enable the ordinary Worker, approve `OBSERVER` or authorise another increment.
+This report records one local implementation and its automatic evidence. Bruno subsequently accepted commit `cee9cdf` with the limitations recorded here. That decision does not enable the ordinary Worker, approve `OBSERVER` or authorise another increment.
 
 ## Plain-language outcome
 
@@ -124,8 +124,10 @@ Online NuGet/npm vulnerability audits remain `NOT AUTHORISED` because this incre
 
 These limitations prevent any claim of operational readiness, `OBSERVER`, `STATE-07`, production or release.
 
-## Gate classification and decision requested
+## Gate classification and human decision
 
-The automatic Quality Gate is `APPROVED` only for this restricted local increment and the observed evidence above. The Human Gate for this increment is `PENDING`. The exit gate for `STATE-06`, promotion to `OBSERVER`, operational activation and lifecycle transition are `NOT EVALUATED` and remain separately prohibited.
+The automatic Quality Gate is `APPROVED` only for this restricted local increment and the observed evidence above. Bruno accepted commit `cee9cdf` with the limitations recorded in this report. The exit gate for `STATE-06`, promotion to `OBSERVER`, operational activation and lifecycle transition are `NOT EVALUATED` and remain separately prohibited.
 
-Bruno should review this report, especially the E2E sequence, direct-review findings and residual limitations. He may accept this restricted increment, accept it with the listed limitations, request a scoped remediation or reject it. Any decision applies only to this increment and cannot authorise a new increment, promotion or state transition implicitly.
+Bruno's exact decision was: `Incremento STATE-06 Agent Fleet Sandbox Resilience and Protocol Compatibility, commit cee9cdf: ACEITO COM AS LIMITAÇÕES REGISTRADAS. AUTORIZO exclusivamente o registro factual desta decisão. Não autorizo novo incremento, promoção nem transição de estado.`
+
+No further action is pending for this increment. A future proposal, remediation, implementation, promotion or lifecycle decision requires new and explicit authority.

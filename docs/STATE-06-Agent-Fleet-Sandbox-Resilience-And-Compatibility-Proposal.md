@@ -326,4 +326,4 @@ Essa eventual autorização permitiria somente o incremento descrito. A conclus�
 
 Bruno emitiu em 2026-07-18 a autorização exata sugerida acima. O incremento foi implementado somente no sandbox local delimitado e está documentado no [relatório de resiliência e compatibilidade](STATE-06-Agent-Fleet-Sandbox-Resilience-And-Compatibility-Report.md). Este adendo não reescreve a natureza originalmente não executiva da proposta e não representa aceitação humana do resultado.
 
-O Quality Gate automático restrito foi aprovado com as limitações registradas no relatório. O Human Gate deste incremento permanece pendente. A posição continua `STATE-06 INTEGRATION`; Worker operacional, recursos externos, promoção e transição de estado permanecem não autorizados.
+O Quality Gate automático restrito foi aprovado com as limitações registradas no relatório. Bruno aceitou posteriormente o commit `cee9cdf` com essas limitações e autorizou somente o registro factual da decisão. A posição continua `STATE-06 INTEGRATION`; Worker operacional, recursos externos, novo incremento, promoção e transição de estado permanecem não autorizados.

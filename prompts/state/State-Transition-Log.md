@@ -1477,6 +1477,21 @@
 - Próxima decisão: Bruno deve revisar o relatório e responder se aceita, aceita com limitações, solicita remediação específica ou rejeita somente este incremento. Nenhuma resposta autoriza novo incremento, promoção ou transição implicitamente.
 - Aprovador: pendente; esta entrada não preenche o Human Gate por Bruno.
 
+## 2026-07-18 — Aceitação humana do incremento de resiliência e compatibilidade Agent Fleet em sandbox
+
+- Estado anterior: `STATE-06 INTEGRATION`, commit `cee9cdf` tecnicamente concluído, Quality Gate automático restrito aprovado, decisão humana do incremento pendente e nenhuma promoção/transição autorizada.
+- Estado resultante: sem transição; `STATE-06 INTEGRATION` mantido, incremento `Agent Fleet Sandbox Resilience and Protocol Compatibility` `ACEITO COM AS LIMITAÇÕES REGISTRADAS`, sem runtime operacional ou nova autoridade.
+- Decisão: Bruno declarou exatamente `Incremento STATE-06 Agent Fleet Sandbox Resilience and Protocol Compatibility, commit cee9cdf: ACEITO COM AS LIMITAÇÕES REGISTRADAS. AUTORIZO exclusivamente o registro factual desta decisão. Não autorizo novo incremento, promoção nem transição de estado.`
+- Alcance: registro factual somente no relatório, adendo factual da proposta, estado atual e histórico append-only. Nenhum código, configuração, migration, dependência, teste executável, runtime ou artefacto gerado foi alterado.
+- Limitações aceitas: identidade/CA/IPC somente de teste; ausência de key store, PKI, token service, trust distribution, rotação e recovery operacionais; ausência de scheduler contínuo, multi-host e fleet load; SQLite local sem certificação de power-loss; revogação sem push channel; somente protocolo Agent Fleet major `1`; sem PostgreSQL real, IdP, vault, proxy, provider, monitoring, comando, UI, notificação, LLM, executor, deploy, produção ou release.
+- Evidências aceitas: commit `cee9cdf`, [relatório de resiliência e compatibilidade](../../docs/STATE-06-Agent-Fleet-Sandbox-Resilience-And-Compatibility-Report.md), resultados automáticos registrados, revisão direta e decisão de Bruno nesta sessão.
+- Shutdown preflight: workspace limpo no commit `cee9cdf`, zero processo DB-Notifier e nenhum processo, banco, browser, IDE ou recurso alheio alterado.
+- Build, testes e runtime: `NÃO APLICÁVEIS` e não repetidos, porque esta autoridade permite somente registro Markdown factual. Os resultados do commit `cee9cdf` permanecem evidência histórica e não são promovidos como nova observação.
+- Gates documentais: documentação aprovada para `229` fontes comment-capable; `313` links Markdown locais em `75` arquivos; secret scan do worktree não ignorado e histórico disponível aprovado; inspeção de escopo e `git diff --check` aprovadas.
+- Classificação: decisão humana `ACEITA COM AS LIMITAÇÕES REGISTRADAS` somente para o incremento; Quality/Human Gate de saída de `STATE-06` continua `NÃO AVALIADO`; `OBSERVER`, `STATE-07`, release, integração externa e novo incremento não autorizados.
+- Próxima atividade: nenhuma ação adicional é exigida de Bruno e nenhuma ação técnica está autorizada. Um próximo fluxo só começa se ele solicitar explicitamente uma proposta, remediação ou novo incremento, preservando gates e autoridade separados.
+- Aprovador: Bruno, exclusivamente para aceitar o incremento e registrar essa decisão; nenhuma promoção, transição ou autoridade executiva adicional foi inferida.
+
 ## Template de nova entrada
 
 - Data:
