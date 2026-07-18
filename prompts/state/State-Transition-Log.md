@@ -1540,6 +1540,22 @@
 - Próxima atividade: nenhuma ação adicional é exigida de Bruno e nenhum novo trabalho técnico está autorizado. Um próximo fluxo só começa com solicitação e autoridade explícitas e separadas.
 - Aprovador: Bruno, exclusivamente para aceitar este incremento; nenhuma promoção, transição ou autoridade executiva adicional foi inferida.
 
+## 2026-07-18 — Proposta documental de remediação da fixture legada NuGet
+
+- Estado anterior: `STATE-06 INTEGRATION`, incremento Dashboard TV aceito no commit `70b3960` com uma ressalva automática preexistente da fixture NuGet e nenhuma nova implementação autorizada.
+- Estado resultante: sem transição; `STATE-06 INTEGRATION` mantido, com uma proposta não executiva pendente de decisão e nenhuma alteração de produto ou teste.
+- Solicitação: Bruno declarou exatamente `Apresente uma proposta exclusivamente documental para remediar a fixture legada do relatório NuGet de 13 para 15 projetos, sem implementação, promoção ou transição de estado.`
+- Diagnóstico observado: `DBNotifier.sln` contém `15` projetos; `nuget-vulnerability-report.complete-empty.json` contém `13`; faltam exclusivamente `DBNotifier.IntegrationTests` e `DBNotifier.AgentFleet.SandboxHost`, ambos `net10.0`. O verificador recusa corretamente a cobertura incompleta.
+- Proposta: acrescentar futuramente somente essas duas entradas à fixture positiva, preservar o script fail-closed e as fixtures negativas, executar o verificador offline e o conjunto Pester/legado, e atualizar a documentação factual sem reescrever a evidência histórica.
+- Limites: nenhum JSON, PowerShell, teste, solução, projeto, package, lockfile, fonte NuGet ou código foi alterado; nenhum restore, build, teste executável, acesso externo, runtime, promoção ou transição foi autorizado ou executado.
+- Evidências: [proposta documental](../../docs/STATE-06-NuGet-Legacy-Fixture-Parity-Remediation-Proposal.md), solução, fixture positiva, verificador NuGet, teste Pester e decisão de Bruno nesta sessão.
+- Shutdown preflight: workspace limpo no commit `68b9f4e`, zero processo DB-Notifier e zero listener proprietário; nenhum processo, banco, browser, IDE ou recurso alheio foi alterado.
+- Build, testes e runtime: `NÃO APLICÁVEIS` e não executados neste escopo exclusivamente documental.
+- Gates documentais: documentação aprovada para `236` fontes comment-capable; `324` links Markdown locais em `78` arquivos; secret scan do worktree não ignorado e histórico disponível aprovado; inspeção de escopo e `git diff --check` aprovadas.
+- Classificação: proposta documental produzida; Quality/Human Gate de remediação e saída de `STATE-06` `NÃO AVALIADOS`; `OBSERVER`, `STATE-07`, release e implementação não autorizados.
+- Próxima decisão: Bruno pode ajustar, adiar, rejeitar ou autorizar separadamente somente a remediação proposta. A proposta não é autorização implícita.
+- Aprovador: não aplicável; esta entrada registra solicitação, diagnóstico e proposta, não aprovação da execução.
+
 ## Template de nova entrada
 
 - Data:
