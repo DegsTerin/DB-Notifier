@@ -1916,7 +1916,7 @@ public sealed class AgentFleetApiEndToEndTests
         Guid UnsupportedCommandId,
         Guid ExpiredCommandId,
         Guid IncompatibleCommandId,
-        Guid OperationalControlCommandId);
+        Guid NonSandboxControlCommandId);
 
     /// <summary>Sends enrollment with the credential isolated in the authorisation header.</summary>
     /// <param name="client">Anonymous HTTPS client.</param>
@@ -3087,7 +3087,7 @@ public sealed class AgentFleetApiEndToEndTests
                 CreateCommand(ids.UnsupportedCommandId, "sandbox.command.unsupported.v1", "sandbox-provider-v1", now.AddMinutes(-4), now.AddMinutes(5)),
                 CreateCommand(ids.ExpiredCommandId, "sandbox.command.expired.v1", "sandbox-provider-v1", now.AddMinutes(-3), now.AddMinutes(-1)),
                 CreateCommand(ids.IncompatibleCommandId, "sandbox.command.incompatible.v1", "other-provider-version", now.AddMinutes(-2), now.AddMinutes(5)),
-                CreateCommand(ids.OperationalControlCommandId, "control.start", "sandbox-provider-v1", now.AddMinutes(-1), now.AddMinutes(5)));
+                CreateCommand(ids.NonSandboxControlCommandId, "blocked.namespace.fixture.v1", "sandbox-provider-v1", now.AddMinutes(-1), now.AddMinutes(5)));
             await context.SaveChangesAsync();
             return ids;
 
@@ -3165,7 +3165,7 @@ public sealed class AgentFleetApiEndToEndTests
             Assert.Equal("Unsupported", states[fixtures.UnsupportedCommandId]);
             Assert.Equal("Expired", states[fixtures.ExpiredCommandId]);
             Assert.Equal("Pending", states[fixtures.IncompatibleCommandId]);
-            Assert.Equal("Pending", states[fixtures.OperationalControlCommandId]);
+            Assert.Equal("Pending", states[fixtures.NonSandboxControlCommandId]);
             Assert.Equal(0, await context.CommandAttempts.CountAsync());
             Assert.Equal(0, await context.HealthSamples.CountAsync());
             Assert.Equal(0, await context.Events.CountAsync());

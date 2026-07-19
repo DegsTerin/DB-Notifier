@@ -576,7 +576,7 @@ public sealed class CommandTransportSafetyTests
                 Command("01-received", "sandbox.command.received.v1", Now.AddMinutes(5)),
                 Command("02-unsupported", "sandbox.command.unsupported.v1", Now.AddMinutes(5)),
                 Command("03-expired", "sandbox.command.expired.v1", Now.AddSeconds(-1)),
-                Command("04-real-blocked", "control.start.v1", Now.AddMinutes(5)));
+                Command("04-nonsandbox-blocked", "blocked.namespace.fixture.v1", Now.AddMinutes(5)));
             await setup.SaveChangesAsync();
             return new ServerFixture(keeper, options, agentId);
 
