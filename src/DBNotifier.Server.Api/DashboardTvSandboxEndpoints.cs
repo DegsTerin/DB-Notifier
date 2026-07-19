@@ -7,6 +7,7 @@ using DBNotifier.Application.Presentation;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
 
 namespace DBNotifier.Server.Api;
@@ -52,7 +53,9 @@ public static class DashboardTvSandboxEndpointRouteBuilderExtensions
             return false;
         }
 
-        services.AddSingleton<DashboardTvSandboxSnapshotSource>();
+        services.TryAddSingleton<DashboardTvSandboxSnapshotSource>();
+        services.TryAddSingleton<IDashboardTvSnapshotSource>(services =>
+            services.GetRequiredService<DashboardTvSandboxSnapshotSource>());
         services
             .AddAuthentication()
             .AddScheme<AuthenticationSchemeOptions, DashboardTvSandboxAuthenticationHandler>(
@@ -84,19 +87,40 @@ public static class DashboardTvSandboxEndpointRouteBuilderExtensions
 
         endpoints.MapGet(
                 SnapshotRoute,
-                (HttpContext context, DashboardTvSandboxSnapshotSource source, TimeProvider timeProvider) =>
-                    ReadSnapshot(context, source, timeProvider))
+                (HttpContext context, IDashboardTvSnapshotSource source, TimeProvider timeProvider,
+                    CancellationToken cancellationToken) =>
+                    ReadSnapshotAsync(context, source, timeProvider, cancellationToken))
             .RequireAuthorization(ReadPolicy)
             .RequireRateLimiting("HumanApiRateLimit");
         return endpoints;
     }
 
-    private static IResult ReadSnapshot(
+    private static async Task<IResult> ReadSnapshotAsync(
         HttpContext context,
-        DashboardTvSandboxSnapshotSource source,
-        TimeProvider timeProvider)
+        IDashboardTvSnapshotSource source,
+        TimeProvider timeProvider,
+        CancellationToken cancellationToken)
     {
-        DashboardTvSnapshot snapshot = source.Snapshot;
+        DashboardTvSnapshot snapshot;
+        try
+        {
+            snapshot = await source.ReadAsync(cancellationToken).ConfigureAwait(false);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (Exception exception) when (exception is not OutOfMemoryException)
+        {
+            return TypedResults.Problem(
+                statusCode: StatusCodes.Status503ServiceUnavailable,
+                title: "Dashboard TV sandbox projection unavailable",
+                extensions: new Dictionary<string, object?>
+                {
+                    ["code"] = "dashboard_tv.projection_unavailable",
+                });
+        }
+
         if (!DashboardTvSnapshotValidator.TryValidate(snapshot, timeProvider.GetUtcNow(), out string errorCode))
         {
             return TypedResults.Problem(
@@ -182,7 +206,7 @@ internal sealed class DashboardTvSandboxAuthenticationHandler : AuthenticationHa
 }
 
 /// <summary>Owns the deterministic, immutable, non-operational snapshot used only by the local sandbox.</summary>
-public sealed class DashboardTvSandboxSnapshotSource
+public sealed class DashboardTvSandboxSnapshotSource : IDashboardTvSnapshotSource
 {
     /// <summary>Initialises one immutable snapshot from the process clock without contacting an Agent or provider.</summary>
     /// <param name="timeProvider">Clock used once to anchor deterministic relative fixture timestamps.</param>
@@ -201,6 +225,13 @@ public sealed class DashboardTvSandboxSnapshotSource
 
     /// <summary>Gets the immutable snapshot for the lifetime of the temporary sandbox process.</summary>
     public DashboardTvSnapshot Snapshot { get; }
+
+    /// <inheritdoc />
+    public ValueTask<DashboardTvSnapshot> ReadAsync(CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        return ValueTask.FromResult(Snapshot);
+    }
 
     private static DashboardTvInventoryItem CreateItem(
         string instanceId,

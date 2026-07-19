@@ -11,6 +11,14 @@
 
 Este documento responde à autorização explícita de Bruno para elaborar um plano único de fechamento do `STATE-06`. Ele consolida as lacunas, a ordem recomendada, os limites e os gates futuros. Não implementa nenhuma das capacidades descritas, não declara o estado concluído e não substitui as autorizações específicas que serão necessárias antes de cada ação técnica.
 
+## Atualização factual posterior — Incremento 1
+
+Depois da publicação deste plano, Bruno emitiu uma autorização separada e explícita para executar somente o `Incremento 1 — Authoritative Observation Pipeline E2E Sandbox`, preservando todas as proibições transcritas abaixo. Essa autorização posterior não nasceu deste documento e não liberou os Incrementos 2–4.
+
+O Incremento 1 foi concluído tecnicamente no sandbox local em 2026-07-19. A cadeia testada usa fonte provider-neutral sintética, processos Agent efêmeros, SQLite/outbox local, HTTPS/mTLS com material somente de teste, ingestão central efêmera e projeção read-only para o contrato TV existente. O relatório proprietário é o [Relatório STATE-06 — Authoritative Observation Pipeline E2E Sandbox](STATE-06-Authoritative-Observation-Pipeline-E2E-Sandbox-Report.md). O Quality Gate automático restrito está aprovado, e o Human Gate próprio do incremento permanece pendente. `STATE-06 INTEGRATION` não foi encerrado nem promovido.
+
+A próxima decisão é exclusivamente humana: aceitar o Incremento 1 com suas limitações, solicitar remediação delimitada ou rejeitá-lo. SignalR e o Incremento 2 continuam sem autorização.
+
 ## Resumo para não especialistas
 
 As principais peças locais já existem: identidade de Agent para teste, heartbeat, assignments read-only, armazenamento SQLite do Agent, recuperação entre processos e um Dashboard TV que consulta uma API sandbox a cada 30 segundos sem sobrepor pedidos. Essas peças foram aceitas nos seus incrementos restritos.
@@ -83,6 +91,8 @@ O cliente SignalR não aparece hoje no lockfile do Dashboard. Este plano não se
 ## Sequência de execução futura
 
 ### Incremento 1 — Authoritative Observation Pipeline E2E Sandbox
+
+**Status factual posterior:** implementação local concluída em 2026-07-19; Quality Gate automático restrito aprovado; Human Gate próprio pendente. Consulte o [relatório do incremento](STATE-06-Authoritative-Observation-Pipeline-E2E-Sandbox-Report.md). Esta atualização não altera o texto original de escopo nem autoriza o incremento seguinte.
 
 #### Objetivo
 
@@ -335,21 +345,21 @@ Qualquer necessidade de acesso externo, dependência não disponível, credencia
 
 ## Autorizações futuras e ordem para Bruno
 
-Nenhuma execução está autorizada por este documento. A ordem recomendada é:
+Nenhuma execução é autorizada pelo plano em si. A autorização separada posterior liberou e concluiu tecnicamente somente o passo 1. A ordem corrente é:
 
-1. autorizar somente o Incremento 1;
-2. revisar seu relatório e aceitar, pedir remediação ou rejeitar;
+1. revisar o relatório do Incremento 1 e aceitar, pedir remediação ou rejeitar;
+2. somente se o Incremento 1 for aceito, decidir separadamente se deseja solicitar uma proposta ou autorização para o Incremento 2;
 3. repetir o processo para os Incrementos 2, 3 e 4;
 4. autorizar a campanha automática consolidada;
 5. revisar o relatório final e autorizar as amostras humanas;
 6. decidir o Human Gate do `STATE-06`;
 7. somente depois, decidir separadamente se autoriza a transição para `STATE-07`.
 
-O texto recomendado para a próxima autorização é:
+O texto abaixo é preservado como o texto histórico que autorizou o Incremento 1; ele já foi usado e não deve ser repetido como nova autorização:
 
 > AUTORIZO o Incremento 1 do Plano Consolidado de Fechamento do STATE-06 — Authoritative Observation Pipeline E2E Sandbox, limitado à fonte provider-neutral exclusivamente sintética, observações canônicas versionadas, persistência/outbox Agent SQLite, transporte HTTPS/mTLS de teste, ingestão e projeção read-only da API, snapshot Dashboard TV e testes locais de reinício, offline/reconexão, replay, duplicidade, reorder, staleness, revogação e incompatibilidade. Autorizo runtimes temporários exclusivamente locais, que deverão ser encerrados ao final. Permanecem proibidos acesso externo, dependências/downloads, provider ou banco operacional, SignalR, notificações, comandos, executor, serviços permanentes, deploy, LLM, promoção e transição de estado.
 
-Essa autorização futura liberaria somente o primeiro incremento. O presente documento, por si só, não libera implementação.
+Essa autorização separada liberou somente o primeiro incremento. O presente documento, por si só, continua sem liberar implementação.
 
 ## Entregáveis deste incremento documental
 

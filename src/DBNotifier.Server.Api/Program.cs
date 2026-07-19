@@ -449,54 +449,7 @@ app.MapPost(
         })
     .RequireAuthorization(ApiSecurityDefaults.AgentApiPolicy)
     .RequireRateLimiting("AgentApiRateLimit");
-app.MapPost(
-        "/api/v1/agents/{agentId:guid}/observations:batch",
-        async Task<IResult> (
-            Guid agentId,
-            ObservationBatchRequest request,
-            ObservationBatchIngestor ingestor,
-            HttpContext httpContext,
-            CancellationToken cancellationToken) =>
-        {
-            if (!httpContext.Request.Headers.TryGetValue("DBN-Protocol-Version", out var protocol) ||
-                protocol.Count != 1 || protocol[0] != "1")
-            {
-                return Results.Problem(
-                    statusCode: StatusCodes.Status426UpgradeRequired,
-                    title: "Unsupported DB-Notifier protocol version",
-                    extensions: new Dictionary<string, object?>
-                    {
-                        ["code"] = "protocol.version_unsupported",
-                        ["retryable"] = false,
-                    });
-            }
-
-            try
-            {
-                if (request.AgentId != agentId)
-                {
-                    throw new ArgumentException("The observation batch Agent does not match the authorized route.");
-                }
-
-                ObservationBatchResult result = await ingestor
-                    .HandleAsync(request, cancellationToken)
-                    .ConfigureAwait(false);
-                return Results.Ok(result);
-            }
-            catch (ArgumentException)
-            {
-                return Results.Problem(
-                    statusCode: StatusCodes.Status400BadRequest,
-                    title: "Invalid observation batch",
-                    extensions: new Dictionary<string, object?>
-                    {
-                        ["code"] = "observation.batch_invalid",
-                        ["retryable"] = false,
-                    });
-            }
-        })
-    .RequireAuthorization(ApiSecurityDefaults.AgentObservationIngestionPolicy)
-    .RequireRateLimiting("AgentApiRateLimit");
+app.MapObservationIngestionEndpoint();
 app.MapAgentFleetEndpoints();
 
 app.Run();

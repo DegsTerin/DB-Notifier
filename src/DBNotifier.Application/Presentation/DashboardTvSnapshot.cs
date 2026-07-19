@@ -17,6 +17,15 @@ public static class DashboardTvSnapshotContract
     public const int MaximumLatencyMilliseconds = 3_600_000;
 }
 
+/// <summary>Reads one bounded Dashboard TV snapshot without exposing persistence or transport details.</summary>
+public interface IDashboardTvSnapshotSource
+{
+    /// <summary>Reads the current authoritative snapshot for one explicitly authorised composition.</summary>
+    /// <param name="cancellationToken">Cancellation propagated from the read-only API request.</param>
+    /// <returns>A complete immutable snapshot that will be validated before transport.</returns>
+    ValueTask<DashboardTvSnapshot> ReadAsync(CancellationToken cancellationToken);
+}
+
 /// <summary>Contains one immutable, provider-neutral item in a Dashboard TV snapshot.</summary>
 /// <param name="InstanceId">Stable non-secret instance identifier.</param>
 /// <param name="DisplayName">Human-readable instance label.</param>

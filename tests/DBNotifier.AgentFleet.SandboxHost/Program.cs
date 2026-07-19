@@ -1,4 +1,4 @@
-// Module purpose: Executes one loopback-only, test-material-only Agent Fleet heartbeat in a temporary child process and exposes no operational composition.
+// Module purpose: Executes explicitly selected Agent Fleet or synthetic-observation operations in a temporary loopback-only child process.
 using System.Globalization;
 using System.IO.Pipes;
 using System.Net;
@@ -19,18 +19,26 @@ namespace DBNotifier.AgentFleet.SandboxHost
     /// <summary>Provides a stable assembly marker so the integration test can locate this temporary harness.</summary>
     public static class SandboxHostMarker;
 
-    /// <summary>Owns strict argument admission, private IPC loading, one fenced heartbeat and deterministic cleanup.</summary>
+    /// <summary>
+    /// Owns strict mode admission, private IPC loading and deterministic cleanup for one Agent Fleet heartbeat or
+    /// synthetic-observation sandbox operation.
+    /// </summary>
     internal static class SandboxHostProgram
     {
         private const int MaximumPasswordBytes = 128;
         private const int MaximumPkcs12Bytes = 32 * 1024;
         private const int MaximumThumbprintBytes = 160;
 
-        /// <summary>Runs one explicitly marked sandbox heartbeat and returns a bounded process exit code.</summary>
+        /// <summary>Dispatches one explicitly marked sandbox operation and returns its bounded process exit code.</summary>
         /// <param name="args">Strict non-secret harness arguments.</param>
         /// <returns>Zero for safe completion or a non-zero bounded failure code.</returns>
         public static async Task<int> RunAsync(string[] args)
         {
+            if (args is { Length: > 0 } && args[0] == "--sandbox-observation-pipeline")
+            {
+                return await ObservationPipelineSandboxHost.RunAsync(args).ConfigureAwait(false);
+            }
+
             string stage = "argument_validation";
             try
             {
@@ -135,7 +143,12 @@ namespace DBNotifier.AgentFleet.SandboxHost
             return new AgentFleetLocalStore(factory);
         }
 
-        private static HttpClient CreatePinnedClient(
+        /// <summary>Creates one caller-owned mTLS client pinned to the exact public loopback Server thumbprint.</summary>
+        /// <param name="identity">Test-only client certificate and private key container.</param>
+        /// <param name="serverThumbprint">Canonical expected public Server thumbprint.</param>
+        /// <param name="baseAddress">Validated HTTPS loopback base address.</param>
+        /// <returns>A disposable HTTP client that owns its configured handler.</returns>
+        internal static HttpClient CreatePinnedClient(
             X509Certificate2 identity,
             string serverThumbprint,
             Uri baseAddress)
@@ -153,7 +166,11 @@ namespace DBNotifier.AgentFleet.SandboxHost
             return new HttpClient(handler, disposeHandler: true) { BaseAddress = baseAddress };
         }
 
-        private static async Task<IdentityPackage> ReadIdentityPackageAsync(string pipeName)
+        /// <summary>Reads one bounded identity package from the fixture-owned local pipe and clears failed transfers.</summary>
+        /// <param name="pipeName">Validated name of the fixture-owned local pipe.</param>
+        /// <returns>The complete identity package, whose PKCS#12 buffer ownership passes to the caller.</returns>
+        /// <exception cref="InvalidDataException">Thrown when the package framing or public identity metadata is invalid.</exception>
+        internal static async Task<IdentityPackage> ReadIdentityPackageAsync(string pipeName)
         {
             using NamedPipeClientStream pipe = new(
                 ".",
@@ -162,12 +179,15 @@ namespace DBNotifier.AgentFleet.SandboxHost
                 PipeOptions.Asynchronous);
             using CancellationTokenSource timeout = new(TimeSpan.FromSeconds(10));
             await pipe.ConnectAsync(timeout.Token).ConfigureAwait(false);
-            byte[] passwordBytes = await ReadFrameAsync(pipe, MaximumPasswordBytes, timeout.Token).ConfigureAwait(false);
-            byte[] pkcs12 = await ReadFrameAsync(pipe, MaximumPkcs12Bytes, timeout.Token).ConfigureAwait(false);
-            byte[] thumbprintBytes = await ReadFrameAsync(pipe, MaximumThumbprintBytes, timeout.Token)
-                .ConfigureAwait(false);
+            byte[] passwordBytes = [];
+            byte[] pkcs12 = [];
+            byte[] thumbprintBytes = [];
             try
             {
+                passwordBytes = await ReadFrameAsync(pipe, MaximumPasswordBytes, timeout.Token).ConfigureAwait(false);
+                pkcs12 = await ReadFrameAsync(pipe, MaximumPkcs12Bytes, timeout.Token).ConfigureAwait(false);
+                thumbprintBytes = await ReadFrameAsync(pipe, MaximumThumbprintBytes, timeout.Token)
+                    .ConfigureAwait(false);
                 string password = Encoding.UTF8.GetString(passwordBytes);
                 string thumbprint = NormaliseThumbprint(Encoding.ASCII.GetString(thumbprintBytes));
                 if (password.Length is < 16 or > 128 || thumbprint.Length is < 40 or > 128 ||
@@ -176,36 +196,55 @@ namespace DBNotifier.AgentFleet.SandboxHost
                     throw new InvalidDataException("sandbox_host.identity_package_invalid");
                 }
 
-                return new IdentityPackage(pkcs12, password, thumbprint);
-            }
-            catch
-            {
-                CryptographicOperations.ZeroMemory(pkcs12);
-                throw;
+                IdentityPackage package = new(pkcs12, password, thumbprint);
+                pkcs12 = [];
+                return package;
             }
             finally
             {
                 CryptographicOperations.ZeroMemory(passwordBytes);
+                CryptographicOperations.ZeroMemory(pkcs12);
                 CryptographicOperations.ZeroMemory(thumbprintBytes);
             }
         }
 
+        /// <summary>Reads one length-prefixed bounded frame and clears any incomplete payload after a failed read.</summary>
+        /// <param name="stream">Connected fixture-owned pipe stream.</param>
+        /// <param name="maximumLength">Maximum accepted payload length in bytes.</param>
+        /// <param name="cancellationToken">Token that bounds or cancels the read.</param>
+        /// <returns>The complete payload, whose buffer ownership passes to the caller.</returns>
+        /// <exception cref="InvalidDataException">Thrown when the declared payload length is outside its bound.</exception>
         private static async Task<byte[]> ReadFrameAsync(
             Stream stream,
             int maximumLength,
             CancellationToken cancellationToken)
         {
             byte[] lengthBytes = new byte[sizeof(int)];
-            await stream.ReadExactlyAsync(lengthBytes, cancellationToken).ConfigureAwait(false);
-            int length = IPAddress.NetworkToHostOrder(BitConverter.ToInt32(lengthBytes));
-            if (length is < 1 || length > maximumLength)
+            try
             {
-                throw new InvalidDataException("sandbox_host.identity_frame_invalid");
-            }
+                await stream.ReadExactlyAsync(lengthBytes, cancellationToken).ConfigureAwait(false);
+                int length = IPAddress.NetworkToHostOrder(BitConverter.ToInt32(lengthBytes));
+                if (length is < 1 || length > maximumLength)
+                {
+                    throw new InvalidDataException("sandbox_host.identity_frame_invalid");
+                }
 
-            byte[] payload = new byte[length];
-            await stream.ReadExactlyAsync(payload, cancellationToken).ConfigureAwait(false);
-            return payload;
+                byte[] payload = new byte[length];
+                try
+                {
+                    await stream.ReadExactlyAsync(payload, cancellationToken).ConfigureAwait(false);
+                    return payload;
+                }
+                catch
+                {
+                    CryptographicOperations.ZeroMemory(payload);
+                    throw;
+                }
+            }
+            finally
+            {
+                CryptographicOperations.ZeroMemory(lengthBytes);
+            }
         }
 
         private static string NormaliseThumbprint(string value) => value
@@ -213,7 +252,8 @@ namespace DBNotifier.AgentFleet.SandboxHost
             .Replace(":", string.Empty, StringComparison.Ordinal)
             .ToUpperInvariant();
 
-        private sealed record IdentityPackage(byte[] Pkcs12, string Password, string ServerThumbprint);
+        /// <summary>Transfers one complete encrypted test identity package and pinned public Server identity.</summary>
+        internal sealed record IdentityPackage(byte[] Pkcs12, string Password, string ServerThumbprint);
 
         private sealed record SandboxResult(
             bool Succeeded,

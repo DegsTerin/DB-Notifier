@@ -6,6 +6,7 @@ using DBNotifier.Application.Synchronization;
 
 namespace DBNotifier.Infrastructure.Synchronization;
 
+/// <summary>Transfers bounded canonical observation batches to one configured HTTPS Server boundary.</summary>
 public sealed class HttpObservationBatchTransport : IObservationBatchTransport
 {
     private static readonly JsonSerializerOptions SerializerOptions = new(JsonSerializerDefaults.Web);
@@ -13,6 +14,12 @@ public sealed class HttpObservationBatchTransport : IObservationBatchTransport
     private readonly Uri serverBaseAddress;
     private readonly string agentVersion;
 
+    /// <summary>Initialises one transport without opening a connection or resolving credentials.</summary>
+    /// <param name="httpClient">Caller-owned authenticated HTTP client.</param>
+    /// <param name="serverBaseAddress">Absolute HTTPS Server base address without user info, query or fragment.</param>
+    /// <param name="agentVersion">Bounded Agent version header value.</param>
+    /// <exception cref="ArgumentNullException">Thrown when the client or address is null.</exception>
+    /// <exception cref="ArgumentException">Thrown when the address or Agent version is invalid.</exception>
     public HttpObservationBatchTransport(
         HttpClient httpClient,
         Uri serverBaseAddress,
@@ -37,6 +44,7 @@ public sealed class HttpObservationBatchTransport : IObservationBatchTransport
         this.agentVersion = agentVersion;
     }
 
+    /// <inheritdoc />
     public async ValueTask<ObservationBatchResult> SendAsync(
         Guid agentId,
         IReadOnlyList<AgentOutboxEnvelope> messages,
@@ -89,7 +97,7 @@ public sealed class HttpObservationBatchTransport : IObservationBatchTransport
                     ObservationBatchResult? result = await response.Content
                         .ReadFromJsonAsync<ObservationBatchResult>(SerializerOptions, cancellationToken)
                         .ConfigureAwait(false);
-                    if (result?.Items is not null)
+                    if (result is not null && IsValidSuccessResponse(result, valid))
                     {
                         return new ObservationBatchResult(
                             [.. localResults, .. result.Items],
@@ -182,6 +190,30 @@ public sealed class HttpObservationBatchTransport : IObservationBatchTransport
         statusCode == HttpStatusCode.RequestTimeout ||
         statusCode == HttpStatusCode.TooManyRequests ||
         (int)statusCode >= 500;
+
+    /// <summary>Accepts only one terminal or retryable result for every message sent in the HTTP batch.</summary>
+    private static bool IsValidSuccessResponse(
+        ObservationBatchResult result,
+        List<ObservationSyncMessage> sent)
+    {
+        if (result.Items is null || result.Items.Count != sent.Count || result.HighestContiguousSequence < 0)
+        {
+            return false;
+        }
+
+        HashSet<Guid> expected = sent.Select(message => message.MessageId).ToHashSet();
+        HashSet<Guid> returned = [];
+        foreach (ObservationItemResult? item in result.Items)
+        {
+            if (item is null || !expected.Contains(item.MessageId) ||
+                !Enum.IsDefined(item.Disposition) || !returned.Add(item.MessageId))
+            {
+                return false;
+            }
+        }
+
+        return returned.SetEquals(expected);
+    }
 
     private sealed record ObservationPayload(
         Guid MessageId,

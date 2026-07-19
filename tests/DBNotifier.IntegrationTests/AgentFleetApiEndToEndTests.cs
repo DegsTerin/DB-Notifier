@@ -7,6 +7,7 @@ using System.IO.Pipes;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using System.Net.Sockets;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
@@ -16,6 +17,9 @@ using System.Text.Json;
 using System.Threading.RateLimiting;
 using DBNotifier.Application.Access;
 using DBNotifier.Application.AgentFleet;
+using DBNotifier.Application.Presentation;
+using DBNotifier.Application.Synchronization;
+using DBNotifier.Domain;
 using DBNotifier.Infrastructure.AgentFleet;
 using DBNotifier.Persistence.Agent.Sqlite;
 using DBNotifier.Persistence.Server.PostgreSql;
@@ -34,7 +38,9 @@ using Microsoft.AspNetCore.Server.Kestrel.Https;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Xunit;
@@ -43,7 +49,8 @@ namespace DBNotifier.IntegrationTests;
 
 /// <summary>
 /// Verifies enrollment, mTLS heartbeat, read-only fleet data and immediate revocation through a disposable local
-/// HTTPS host. The fixture creates no external connection, provider, command, worker or durable certificate file.
+/// HTTPS host. The fixture creates no external connection, operational provider, command, worker or durable
+/// certificate file; its observation scenario uses only a private deterministic synthetic provider.
 /// </summary>
 public sealed class AgentFleetApiEndToEndTests
 {
@@ -749,6 +756,372 @@ public sealed class AgentFleetApiEndToEndTests
         }
     }
 
+    /// <summary>
+    /// Proves the authorised synthetic observation path across real Agent process restarts, Agent SQLite/outbox,
+    /// HTTPS/mTLS ingestion and the read-only Dashboard TV projection without enabling an operational runtime.
+    /// </summary>
+    [Fact]
+    public async Task SyntheticObservationPipelineSurvivesOfflineReplayReorderStalenessAndRevocation()
+    {
+        ObservationIngestionPause ingestionPause = new(targetSequence: 5);
+        await using AgentFleetSandbox sandbox = await AgentFleetSandbox.StartAsync(
+            enableObservationPipeline: true,
+            observationPause: ingestionPause);
+        await using AgentFileSandbox local = await AgentFileSandbox.StartAsync();
+        await using SandboxAgentIdentityStore identities = new(sandbox);
+        string installationId = $"installation:{Guid.NewGuid():N}";
+        AgentEnrollmentRequest tokenBinding = new(
+            Guid.NewGuid(),
+            AgentFleetProtocol.CurrentSchemaVersion,
+            installationId,
+            "Synthetic Observation Sandbox Agent",
+            EnvironmentName,
+            PlatformName,
+            AgentVersion,
+            ScopeName,
+            sandbox.Now,
+            sandbox.Now,
+            "test-only-public-csr-placeholder");
+        string token = await sandbox.SeedEnrollmentTokenAsync(tokenBinding);
+        HttpAgentFleetClientTransport fleetTransport = new(
+            sandbox.BaseAddress,
+            AgentVersion,
+            identities.GetClient);
+        AgentFleetClientCoordinator coordinator = new(
+            identities,
+            fleetTransport,
+            local.Store,
+            new FixedTimeProvider(sandbox.Now),
+            TimeSpan.FromMinutes(5));
+        AgentFleetClientResult enrollment = await coordinator.EnrolForTestAsync(
+            new AgentEnrollmentBootstrap(
+                token,
+                installationId,
+                "Synthetic Observation Sandbox Agent",
+                EnvironmentName,
+                PlatformName,
+                AgentVersion,
+                ScopeName),
+            CancellationToken.None);
+        Assert.True(enrollment.Succeeded);
+        AgentLocalRegistration registration = Assert.IsType<AgentLocalRegistration>(
+            await local.Store.GetRegistrationAsync(CancellationToken.None));
+        Guid instanceId = await sandbox.SeedAssignmentsAndHumanAccessAsync(
+            registration.AgentId,
+            omitMonitoringCredential: true);
+        AgentFleetClientResult assignments = await RunAssignmentsOnceAsync(
+            coordinator,
+            local.Store,
+            sandbox.Now);
+        Assert.True(assignments.Succeeded);
+        Assert.Equal("assignments.applied", assignments.Code);
+
+        (byte[] pkcs12, string password) = identities.ExportIdentityPackage(registration.IdentityReference);
+        try
+        {
+            Uri unavailableAddress = GetUnusedLoopbackHttpsAddress();
+            ObservationSandboxChildResult offline = await RunObservationSandboxHostAsync(
+                local,
+                sandbox,
+                registration,
+                instanceId,
+                pkcs12,
+                password,
+                unavailableAddress,
+                sandbox.Now,
+                nameof(HealthStatus.Degraded),
+                "normal");
+            Assert.Equal(new ObservationSandboxChildResult(1, 1, 0, 1), offline);
+
+            sandbox.Advance(TimeSpan.FromSeconds(3));
+            ObservationSandboxChildResult reconnected = await RunObservationSandboxHostAsync(
+                local,
+                sandbox,
+                registration,
+                instanceId,
+                pkcs12,
+                password,
+                sandbox.BaseAddress,
+                sandbox.Now,
+                "none",
+                "normal");
+            Assert.Equal(new ObservationSandboxChildResult(0, 1, 1, 0), reconnected);
+
+            using HttpClient dashboardClient = sandbox.CreateDashboardTvClient();
+            (DashboardTvSnapshot firstSnapshot, string firstEntityTag) = await ReadDashboardSnapshotAsync(
+                dashboardClient);
+            DashboardTvInventoryItem firstItem = Assert.Single(firstSnapshot.Items);
+            Assert.Equal(instanceId, firstItem.InstanceId);
+            Assert.Equal("degraded", firstItem.Status);
+            Assert.Equal("Synthetic sandbox evidence", firstItem.SupportLabel);
+
+            sandbox.Advance(TimeSpan.FromSeconds(31));
+            ObservationSandboxChildResult responseLost = await RunObservationSandboxHostAsync(
+                local,
+                sandbox,
+                registration,
+                instanceId,
+                pkcs12,
+                password,
+                sandbox.BaseAddress,
+                sandbox.Now,
+                nameof(HealthStatus.Unavailable),
+                "drop-accepted-response");
+            Assert.Equal(new ObservationSandboxChildResult(1, 1, 0, 1), responseLost);
+            (DashboardTvSnapshot afterLoss, string lossEntityTag) = await ReadDashboardSnapshotAsync(dashboardClient);
+            Assert.Equal("unavailable", Assert.Single(afterLoss.Items).Status);
+            Assert.NotEqual(firstEntityTag, lossEntityTag);
+
+            sandbox.Advance(TimeSpan.FromSeconds(3));
+            ObservationSandboxChildResult replayed = await RunObservationSandboxHostAsync(
+                local,
+                sandbox,
+                registration,
+                instanceId,
+                pkcs12,
+                password,
+                sandbox.BaseAddress,
+                sandbox.Now,
+                "none",
+                "normal");
+            Assert.Equal(new ObservationSandboxChildResult(0, 1, 1, 0), replayed);
+
+            sandbox.Advance(TimeSpan.FromSeconds(62));
+            ObservationSandboxChildResult reordered = await RunObservationSandboxHostAsync(
+                local,
+                sandbox,
+                registration,
+                instanceId,
+                pkcs12,
+                password,
+                sandbox.BaseAddress,
+                sandbox.Now.AddSeconds(-31),
+                $"{nameof(HealthStatus.Degraded)},{nameof(HealthStatus.Unavailable)}",
+                "reverse-batch");
+            Assert.Equal(new ObservationSandboxChildResult(2, 2, 2, 0), reordered);
+            (DashboardTvSnapshot reorderedSnapshot, string reconciledEntityTag) = await ReadDashboardSnapshotAsync(
+                dashboardClient);
+            DashboardTvInventoryItem reconciledItem = Assert.Single(reorderedSnapshot.Items);
+            Assert.Equal("unavailable", reconciledItem.Status);
+            Assert.NotEqual(lossEntityTag, reconciledEntityTag);
+
+            HttpClient agentClient = identities.GetClient(registration.IdentityReference);
+            foreach ((string schema, string version) in new[]
+            {
+                ("2", AgentVersion),
+                ("1", "invalid version"),
+            })
+            {
+                using HttpRequestMessage incompatible = CreateObservationRequest(
+                    registration.AgentId,
+                    instanceId,
+                    sandbox.Now,
+                    schema,
+                    version);
+                using HttpResponseMessage incompatibleResponse = await agentClient.SendAsync(incompatible);
+                Assert.Equal(HttpStatusCode.UpgradeRequired, incompatibleResponse.StatusCode);
+            }
+
+            using (HttpRequestMessage missingProtocol = CreateObservationRequest(
+                registration.AgentId,
+                instanceId,
+                sandbox.Now,
+                "1",
+                AgentVersion))
+            {
+                missingProtocol.Headers.Remove("DBN-Protocol-Version");
+                using HttpResponseMessage response = await agentClient.SendAsync(missingProtocol);
+                Assert.Equal(HttpStatusCode.UpgradeRequired, response.StatusCode);
+            }
+
+            using (HttpRequestMessage duplicateProtocol = CreateObservationRequest(
+                registration.AgentId,
+                instanceId,
+                sandbox.Now,
+                "1",
+                AgentVersion))
+            {
+                duplicateProtocol.Headers.Remove("DBN-Protocol-Version");
+                duplicateProtocol.Headers.TryAddWithoutValidation("DBN-Protocol-Version", ["1", "1"]);
+                using HttpResponseMessage response = await agentClient.SendAsync(duplicateProtocol);
+                Assert.Equal(HttpStatusCode.UpgradeRequired, response.StatusCode);
+            }
+
+            sandbox.Advance(TimeSpan.FromMinutes(6));
+            DateTimeOffset receivedAt = DateTimeOffset.ParseExact(
+                reconciledItem.ReceivedAt,
+                "yyyy-MM-dd'T'HH:mm:ss.fff'Z'",
+                CultureInfo.InvariantCulture,
+                DateTimeStyles.AssumeUniversal);
+            Assert.True(sandbox.Now - receivedAt >= TimeSpan.FromMinutes(5));
+            await AssertDashboardNotModifiedAsync(dashboardClient, reconciledEntityTag);
+
+            Task<ObservationSandboxChildResult> deniedAttempt = RunObservationSandboxHostAsync(
+                local,
+                sandbox,
+                registration,
+                instanceId,
+                pkcs12,
+                password,
+                sandbox.BaseAddress,
+                sandbox.Now,
+                nameof(HealthStatus.Degraded),
+                "normal");
+            using CancellationTokenSource revocationTimeout = new(TimeSpan.FromSeconds(20));
+            try
+            {
+                await ingestionPause.WaitUntilPausedAsync(revocationTimeout.Token);
+                await sandbox.RevokeAgentAsync(registration.AgentId);
+            }
+            catch
+            {
+                ingestionPause.Release();
+                await deniedAttempt;
+                throw;
+            }
+            finally
+            {
+                ingestionPause.Release();
+            }
+
+            ObservationSandboxChildResult denied = await deniedAttempt;
+            Assert.Equal(new ObservationSandboxChildResult(1, 1, 1, 0), denied);
+            ObservationItemResult revocationResult = await ingestionPause.WaitForResultAsync(
+                revocationTimeout.Token);
+            Assert.Equal(ObservationIngestionDisposition.Rejected, revocationResult.Disposition);
+            Assert.Equal("agent.not_active", revocationResult.ErrorCode);
+            await AssertDashboardNotModifiedAsync(dashboardClient, reconciledEntityTag);
+
+            await local.AssertSyntheticObservationOutboxAsync();
+            await sandbox.AssertSyntheticObservationPipelineAsync(registration.AgentId, instanceId);
+        }
+        finally
+        {
+            CryptographicOperations.ZeroMemory(pkcs12);
+        }
+    }
+
+    /// <summary>Verifies that an identity pipe closed mid-frame fails closed without disclosing received material.</summary>
+    [Fact]
+    public async Task SandboxHostFailsClosedWhenIdentityPipeClosesMidFrame()
+    {
+        await using AgentFleetSandbox sandbox = await AgentFleetSandbox.StartAsync();
+        await using AgentFileSandbox local = await AgentFileSandbox.StartAsync();
+        DateTimeOffset now = sandbox.Now;
+        AgentLocalRegistration registration = new(
+            Guid.NewGuid(),
+            $"installation:{Guid.NewGuid():N}",
+            EnvironmentName,
+            $"sandbox-identity:{Guid.NewGuid():N}",
+            new string('a', 64),
+            now.AddHours(1),
+            now,
+            AgentLocalIdentityState.Active,
+            null);
+        string pipeName = $"dbnotifier-truncated-identity-{Guid.NewGuid():N}";
+        using NamedPipeServerStream pipe = CreateIdentityPipe(pipeName);
+        ProcessStartInfo startInfo = CreateSandboxHostStartInfo(
+            local,
+            sandbox,
+            registration,
+            pipeName,
+            $"sandbox:truncated-frame:{Guid.NewGuid():N}",
+            now,
+            null);
+        using Process process = Process.Start(startInfo) ??
+            throw new InvalidOperationException("Sandbox host did not start.");
+        using CancellationTokenSource timeout = new(TimeSpan.FromSeconds(20));
+        const string secretCanary = "partial-pkcs12-secret-canary";
+        Task sender = SendTruncatedIdentityPackageAsync(pipe, secretCanary, timeout.Token);
+        Task<string> output = process.StandardOutput.ReadToEndAsync(timeout.Token);
+        Task<string> error = process.StandardError.ReadToEndAsync(timeout.Token);
+        try
+        {
+            await Task.WhenAll(sender, process.WaitForExitAsync(timeout.Token));
+        }
+        catch
+        {
+            if (!process.HasExited)
+            {
+                process.Kill(entireProcessTree: true);
+                await process.WaitForExitAsync();
+            }
+
+            throw;
+        }
+
+        string standardOutput = await output;
+        string standardError = await error;
+        Assert.Equal(2, process.ExitCode);
+        Assert.True(string.IsNullOrWhiteSpace(standardOutput), standardOutput);
+        Assert.StartsWith("sandbox_host.failed:identity_pipe:EndOfStreamException:", standardError.Trim());
+        Assert.DoesNotContain(secretCanary, standardError, StringComparison.Ordinal);
+    }
+
+    /// <summary>Creates a deliberately incompatible observation request whose body would otherwise be canonical.</summary>
+    private static HttpRequestMessage CreateObservationRequest(
+        Guid agentId,
+        Guid instanceId,
+        DateTimeOffset observedAt,
+        string messageSchema,
+        string agentVersion)
+    {
+        ObservationSyncMessage message = new(
+            Guid.NewGuid(),
+            1,
+            5,
+            Guid.NewGuid(),
+            instanceId,
+            agentId,
+            "fixture-provider",
+            "sandbox-synthetic-v1",
+            nameof(HealthStatus.Degraded),
+            "sandbox-synthetic",
+            nameof(EvidenceLevel.Synthetic),
+            1,
+            observedAt,
+            13,
+            null,
+            null,
+            ["synthetic-no-external-data"]);
+        HttpRequestMessage request = new(
+            HttpMethod.Post,
+            $"/api/v1/agents/{agentId:D}/observations:batch")
+        {
+            Content = JsonContent.Create(new ObservationBatchRequest(agentId, [message]), options: JsonOptions),
+        };
+        request.Headers.Add("DBN-Protocol-Version", "1");
+        request.Headers.Add("DBN-Message-Schema", messageSchema);
+        request.Headers.Add("DBN-Agent-Version", agentVersion);
+        return request;
+    }
+
+    /// <summary>Reads one authenticated snapshot and requires an exact strong ETag.</summary>
+    private static async Task<(DashboardTvSnapshot Snapshot, string EntityTag)> ReadDashboardSnapshotAsync(
+        HttpClient client)
+    {
+        using HttpResponseMessage response = await client.GetAsync(
+            DashboardTvSandboxEndpointRouteBuilderExtensions.SnapshotRoute);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        DashboardTvSnapshot snapshot = await ReadRequiredJsonAsync<DashboardTvSnapshot>(response);
+        string entityTag = response.Headers.ETag?.Tag ??
+            throw new InvalidOperationException("Dashboard TV snapshot returned no strong ETag.");
+        Assert.False(response.Headers.ETag!.IsWeak);
+        return (snapshot, entityTag);
+    }
+
+    /// <summary>Requires one unchanged authoritative snapshot to return 304 without replacing the last body.</summary>
+    private static async Task AssertDashboardNotModifiedAsync(HttpClient client, string entityTag)
+    {
+        using HttpRequestMessage request = new(
+            HttpMethod.Get,
+            DashboardTvSandboxEndpointRouteBuilderExtensions.SnapshotRoute);
+        request.Headers.TryAddWithoutValidation("If-None-Match", entityTag);
+        using HttpResponseMessage response = await client.SendAsync(request);
+        Assert.Equal(HttpStatusCode.NotModified, response.StatusCode);
+        Assert.Equal(0, response.Content.Headers.ContentLength ?? 0);
+    }
+
     /// <summary>Creates the canonical version-one heartbeat for one enrolled Agent.</summary>
     /// <param name="agentId">Enrolled Agent identifier.</param>
     /// <param name="sequence">Monotonic heartbeat sequence.</param>
@@ -835,8 +1208,8 @@ public sealed class AgentFleetApiEndToEndTests
     /// <param name="local">File-backed Agent sandbox.</param>
     /// <param name="sandbox">Loopback HTTPS Server sandbox.</param>
     /// <param name="registration">Exact local registration.</param>
-    /// <param name="pkcs12">Private test identity package held only in memory and IPC.</param>
-    /// <param name="password">Ephemeral package password held only in memory and IPC.</param>
+    /// <param name="pkcs12">Private test identity package transferred only through bounded local IPC.</param>
+    /// <param name="password">Ephemeral package password transferred only through bounded local IPC.</param>
     /// <param name="now">Controlled child-process clock.</param>
     /// <param name="marker">Fixture-owned non-secret response marker.</param>
     /// <returns>Running child process paused before local acknowledgement.</returns>
@@ -900,8 +1273,8 @@ public sealed class AgentFleetApiEndToEndTests
     /// <param name="local">File-backed Agent sandbox.</param>
     /// <param name="sandbox">Loopback HTTPS Server sandbox.</param>
     /// <param name="registration">Exact local registration.</param>
-    /// <param name="pkcs12">Private test identity package held only in memory and IPC.</param>
-    /// <param name="password">Ephemeral package password held only in memory and IPC.</param>
+    /// <param name="pkcs12">Private test identity package transferred only through bounded local IPC.</param>
+    /// <param name="password">Ephemeral package password transferred only through bounded local IPC.</param>
     /// <param name="now">Controlled instant after the interrupted lease expires.</param>
     /// <returns>Sanitised child result.</returns>
     private static async Task<SandboxChildResult> RunSandboxHostAsync(
@@ -949,6 +1322,115 @@ public sealed class AgentFleetApiEndToEndTests
         Assert.True(string.IsNullOrWhiteSpace(standardError), standardError);
         return JsonSerializer.Deserialize<SandboxChildResult>(standardOutput.Trim(), JsonOptions) ??
             throw new InvalidOperationException("Sandbox host returned no typed result.");
+    }
+
+    /// <summary>Runs one synthetic observation attempt in a fresh child process using only private local IPC.</summary>
+    private static async Task<ObservationSandboxChildResult> RunObservationSandboxHostAsync(
+        AgentFileSandbox local,
+        AgentFleetSandbox sandbox,
+        AgentLocalRegistration registration,
+        Guid instanceId,
+        byte[] pkcs12,
+        string password,
+        Uri baseAddress,
+        DateTimeOffset now,
+        string statuses,
+        string dispatchMode)
+    {
+        string pipeName = $"dbnotifier-observation-{Guid.NewGuid():N}";
+        using NamedPipeServerStream pipe = CreateIdentityPipe(pipeName);
+        ProcessStartInfo startInfo = CreateObservationSandboxHostStartInfo(
+            local,
+            registration,
+            instanceId,
+            pipeName,
+            baseAddress,
+            now,
+            statuses,
+            dispatchMode);
+        using Process process = Process.Start(startInfo) ??
+            throw new InvalidOperationException("Observation sandbox host did not start.");
+        using CancellationTokenSource timeout = new(TimeSpan.FromSeconds(30));
+        Task sender = SendIdentityPackageAsync(
+            pipe,
+            pkcs12,
+            password,
+            sandbox.ServerThumbprint,
+            timeout.Token);
+        Task<string> output = process.StandardOutput.ReadToEndAsync(timeout.Token);
+        Task<string> error = process.StandardError.ReadToEndAsync(timeout.Token);
+        try
+        {
+            await Task.WhenAll(sender, process.WaitForExitAsync(timeout.Token));
+        }
+        catch
+        {
+            if (!process.HasExited)
+            {
+                process.Kill(entireProcessTree: true);
+                await process.WaitForExitAsync();
+            }
+
+            throw;
+        }
+
+        string standardOutput = await output;
+        string standardError = await error;
+        Assert.True(process.HasExited);
+        Assert.Equal(0, process.ExitCode);
+        Assert.True(string.IsNullOrWhiteSpace(standardError), standardError);
+        return JsonSerializer.Deserialize<ObservationSandboxChildResult>(standardOutput.Trim(), JsonOptions) ??
+            throw new InvalidOperationException("Observation sandbox host returned no typed result.");
+    }
+
+    /// <summary>Creates the strict non-secret argument set for one observation child process.</summary>
+    private static ProcessStartInfo CreateObservationSandboxHostStartInfo(
+        AgentFileSandbox local,
+        AgentLocalRegistration registration,
+        Guid instanceId,
+        string pipeName,
+        Uri baseAddress,
+        DateTimeOffset now,
+        string statuses,
+        string dispatchMode)
+    {
+        ProcessStartInfo startInfo = new("dotnet")
+        {
+            UseShellExecute = false,
+            CreateNoWindow = true,
+            WindowStyle = ProcessWindowStyle.Hidden,
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+            WorkingDirectory = local.RootPath,
+        };
+        startInfo.ArgumentList.Add(ResolveSandboxHostPath());
+        startInfo.ArgumentList.Add("--sandbox-observation-pipeline");
+        AddArgument(startInfo, "--sandbox-root", local.RootPath);
+        AddArgument(startInfo, "--database", local.DatabasePath);
+        AddArgument(startInfo, "--base-address", baseAddress.AbsoluteUri);
+        AddArgument(startInfo, "--identity-reference", registration.IdentityReference);
+        AddArgument(startInfo, "--identity-pipe", pipeName);
+        AddArgument(startInfo, "--agent-version", AgentVersion);
+        AddArgument(startInfo, "--utc-now", now.ToString("O", CultureInfo.InvariantCulture));
+        AddArgument(startInfo, "--agent-id", registration.AgentId.ToString("D"));
+        AddArgument(startInfo, "--instance-id", instanceId.ToString("D"));
+        AddArgument(startInfo, "--provider-type", "fixture-provider");
+        AddArgument(startInfo, "--statuses", statuses);
+        AddArgument(startInfo, "--dispatch-mode", dispatchMode);
+        Assert.DoesNotContain(startInfo.ArgumentList, value =>
+            value.Contains("PRIVATE", StringComparison.OrdinalIgnoreCase) ||
+            value.Contains("password", StringComparison.OrdinalIgnoreCase));
+        return startInfo;
+    }
+
+    /// <summary>Reserves and releases one loopback port so a bounded attempt observes an unavailable local listener.</summary>
+    private static Uri GetUnusedLoopbackHttpsAddress()
+    {
+        using TcpListener listener = new(IPAddress.Loopback, 0);
+        listener.Start();
+        int port = ((IPEndPoint)listener.LocalEndpoint).Port;
+        listener.Stop();
+        return new Uri($"https://127.0.0.1:{port}/", UriKind.Absolute);
     }
 
     private static ProcessStartInfo CreateSandboxHostStartInfo(
@@ -1057,6 +1539,35 @@ public sealed class AgentFleetApiEndToEndTests
         }
     }
 
+    /// <summary>Sends one complete password frame and an intentionally incomplete PKCS#12 frame, then disconnects.</summary>
+    /// <param name="pipe">Fixture-owned local pipe connected to the child process.</param>
+    /// <param name="secretCanary">Non-operational marker used to prove sanitised child diagnostics.</param>
+    /// <param name="cancellationToken">Token bounding the local IPC operation.</param>
+    private static async Task SendTruncatedIdentityPackageAsync(
+        NamedPipeServerStream pipe,
+        string secretCanary,
+        CancellationToken cancellationToken)
+    {
+        await pipe.WaitForConnectionAsync(cancellationToken);
+        byte[] passwordBytes = Encoding.UTF8.GetBytes("test-password-material-1234");
+        byte[] partialPkcs12 = Encoding.UTF8.GetBytes(secretCanary);
+        byte[] declaredLength = BitConverter.GetBytes(IPAddress.HostToNetworkOrder(partialPkcs12.Length + 8));
+        try
+        {
+            await WriteFrameAsync(pipe, passwordBytes, cancellationToken);
+            await pipe.WriteAsync(declaredLength, cancellationToken);
+            await pipe.WriteAsync(partialPkcs12, cancellationToken);
+            await pipe.FlushAsync(cancellationToken);
+            pipe.Disconnect();
+        }
+        finally
+        {
+            CryptographicOperations.ZeroMemory(passwordBytes);
+            CryptographicOperations.ZeroMemory(partialPkcs12);
+            CryptographicOperations.ZeroMemory(declaredLength);
+        }
+    }
+
     private static async Task WriteFrameAsync(
         Stream stream,
         byte[] payload,
@@ -1073,6 +1584,12 @@ public sealed class AgentFleetApiEndToEndTests
         string Code,
         int Attempts,
         long FenceToken);
+
+    private sealed record ObservationSandboxChildResult(
+        int PersistedCount,
+        int PendingCount,
+        int AcknowledgedCount,
+        int RetryableCount);
 
     /// <summary>Sends enrollment with the credential isolated in the authorisation header.</summary>
     /// <param name="client">Anonymous HTTPS client.</param>
@@ -1164,7 +1681,7 @@ public sealed class AgentFleetApiEndToEndTests
         /// <summary>Gets the validated fixture-owned temporary root.</summary>
         public string RootPath { get; }
 
-        /// <summary>Gets the exact Agent SQLite path shared only by the two child processes.</summary>
+        /// <summary>Gets the exact Agent SQLite path shared only by fixture-owned child processes.</summary>
         public string DatabasePath { get; }
 
         /// <summary>Gets the real SQLite local store used by the parent test.</summary>
@@ -1227,6 +1744,40 @@ public sealed class AgentFleetApiEndToEndTests
             Assert.Equal(0, await context.OutboxMessages.CountAsync());
             Assert.Equal(0, await context.InboxCommands.CountAsync());
             Assert.Equal(0, await context.InstanceAssignments.CountAsync());
+        }
+
+        /// <summary>Confirms the exact durable synthetic observations and terminal local outbox state across restarts.</summary>
+        public async Task AssertSyntheticObservationOutboxAsync()
+        {
+            await using AgentDbContext context = new(options);
+            AgentHealthObservationRow[] observations = await context.HealthObservations
+                .AsNoTracking()
+                .ToArrayAsync();
+            AgentOutboxMessageRow[] messages = await context.OutboxMessages
+                .AsNoTracking()
+                .OrderBy(row => row.Sequence)
+                .ToArrayAsync();
+            Assert.Equal(5, observations.Length);
+            Assert.Equal(new long[] { 1, 2, 3, 4, 5 }, messages.Select(row => row.Sequence));
+            Assert.Collection(
+                messages,
+                row => Assert.Equal(2, row.AttemptCount),
+                row => Assert.Equal(2, row.AttemptCount),
+                row => Assert.Equal(1, row.AttemptCount),
+                row => Assert.Equal(1, row.AttemptCount),
+                row => Assert.Equal(1, row.AttemptCount));
+            Assert.All(messages, row =>
+            {
+                Assert.NotNull(row.AcknowledgedAt);
+                Assert.DoesNotContain("sandbox.invalid", row.PayloadJson, StringComparison.Ordinal);
+                Assert.DoesNotContain("credential", row.PayloadJson, StringComparison.OrdinalIgnoreCase);
+            });
+            Assert.All(observations, row =>
+            {
+                Assert.Equal(nameof(EvidenceLevel.Synthetic), row.EvidenceLevel);
+                Assert.Equal("fixture-provider", row.ProviderType);
+            });
+            Assert.Equal(0, await context.InboxCommands.CountAsync());
         }
 
         /// <inheritdoc />
@@ -1386,7 +1937,10 @@ public sealed class AgentFleetApiEndToEndTests
         }
     }
 
-    /// <summary>Holds P-256 private identity material only in the E2E process and disposes every client/container.</summary>
+    /// <summary>
+    /// Owns parent P-256 identity material, transfers child copies only through fixture IPC and disposes every
+    /// client and certificate container.
+    /// </summary>
     private sealed class SandboxAgentIdentityStore(AgentFleetSandbox sandbox)
         : IAgentEnrollmentIdentityStore, IAsyncDisposable
     {
@@ -1498,7 +2052,7 @@ public sealed class AgentFleetApiEndToEndTests
 
         /// <summary>Exports one encrypted test package for immediate transfer through the fixture-owned IPC pipe.</summary>
         /// <param name="identityReference">Exact completed E2E identity reference.</param>
-        /// <returns>PKCS#12 bytes and an ephemeral password held only by the test process.</returns>
+        /// <returns>PKCS#12 bytes and an ephemeral password returned only for bounded test-harness IPC transfer.</returns>
         public (byte[] Pkcs12, string Password) ExportIdentityPackage(string identityReference)
         {
             if (!completed.TryGetValue(identityReference, out var identity))
@@ -1702,6 +2256,7 @@ public sealed class AgentFleetApiEndToEndTests
         private readonly X509Certificate2 rootCertificate;
         private readonly X509Certificate2 serverCertificate;
         private readonly WebApplication application;
+        private readonly AdjustableTimeProvider clock;
         private bool disposed;
 
         /// <summary>Initialises a fully composed but already started local sandbox.</summary>
@@ -1712,7 +2267,7 @@ public sealed class AgentFleetApiEndToEndTests
         /// <param name="serverCertificate">Ephemeral loopback server certificate.</param>
         /// <param name="application">Started local Web application.</param>
         /// <param name="baseAddress">Bound loopback HTTPS address.</param>
-        /// <param name="now">Fixed trusted application time.</param>
+        /// <param name="clock">Adjustable fixture clock that remains fixed unless the owning test advances it.</param>
         private AgentFleetSandbox(
             SqliteConnection databaseKeeper,
             ECDsa rootKey,
@@ -1721,7 +2276,7 @@ public sealed class AgentFleetApiEndToEndTests
             X509Certificate2 serverCertificate,
             WebApplication application,
             Uri baseAddress,
-            DateTimeOffset now)
+            AdjustableTimeProvider clock)
         {
             this.databaseKeeper = databaseKeeper;
             this.rootKey = rootKey;
@@ -1729,25 +2284,38 @@ public sealed class AgentFleetApiEndToEndTests
             this.rootCertificate = rootCertificate;
             this.serverCertificate = serverCertificate;
             this.application = application;
+            this.clock = clock;
             BaseAddress = baseAddress;
-            Now = now;
         }
 
         /// <summary>Gets the exact HTTPS loopback address selected by Kestrel.</summary>
         public Uri BaseAddress { get; }
 
-        /// <summary>Gets the fixed UTC clock used by the Application service.</summary>
-        public DateTimeOffset Now { get; }
+        /// <summary>Gets the current controlled UTC clock used by the Application service.</summary>
+        public DateTimeOffset Now => clock.GetUtcNow();
 
         /// <summary>Gets the public loopback server thumbprint sent through bounded local IPC for exact pinning.</summary>
         public string ServerThumbprint => NormaliseThumbprint(serverCertificate.Thumbprint);
 
         /// <summary>Creates and starts the loopback-only sandbox.</summary>
         /// <param name="interceptor">Optional fixture-owned coordination interceptor; never registered operationally.</param>
+        /// <param name="enableObservationPipeline">Whether to compose the explicitly guarded synthetic observation and TV routes.</param>
+        /// <param name="observationPause">Optional E2E-only barrier before one selected observation enters persistence.</param>
         /// <returns>Started disposable sandbox.</returns>
-        public static async Task<AgentFleetSandbox> StartAsync(IInterceptor? interceptor = null)
+        public static async Task<AgentFleetSandbox> StartAsync(
+            IInterceptor? interceptor = null,
+            bool enableObservationPipeline = false,
+            ObservationIngestionPause? observationPause = null)
         {
+            if (observationPause is not null && !enableObservationPipeline)
+            {
+                throw new ArgumentException(
+                    "An observation pause requires the explicitly enabled observation pipeline.",
+                    nameof(observationPause));
+            }
+
             DateTimeOffset now = DateTimeOffset.UtcNow;
+            AdjustableTimeProvider clock = new(now);
             ECDsa rootKey = ECDsa.Create(ECCurve.NamedCurves.nistP256);
             ECDsa serverKey = ECDsa.Create(ECCurve.NamedCurves.nistP256);
             X509Certificate2 rootCertificate = CreateRootCertificate(rootKey, now);
@@ -1776,8 +2344,17 @@ public sealed class AgentFleetApiEndToEndTests
             WebApplicationBuilder builder = WebApplication.CreateBuilder(new WebApplicationOptions
             {
                 ApplicationName = typeof(AgentFleetEndpointRouteBuilderExtensions).Assembly.FullName,
-                EnvironmentName = "IntegrationTests",
+                EnvironmentName = enableObservationPipeline
+                    ? DashboardTvSandboxEndpointRouteBuilderExtensions.EnvironmentName
+                    : "IntegrationTests",
             });
+            if (enableObservationPipeline)
+            {
+                builder.Configuration.AddInMemoryCollection(new Dictionary<string, string?>
+                {
+                    [$"{DashboardTvSandboxEndpointRouteBuilderExtensions.ConfigurationSection}:Enabled"] = "true",
+                });
+            }
             builder.Logging.AddFilter("Microsoft.AspNetCore.Server.Kestrel", LogLevel.Warning);
             builder.Logging.AddFilter("Microsoft.EntityFrameworkCore", LogLevel.Warning);
             builder.WebHost.ConfigureKestrel(options =>
@@ -1801,7 +2378,7 @@ public sealed class AgentFleetApiEndToEndTests
                     options.AddInterceptors(interceptor);
                 }
             });
-            builder.Services.AddSingleton<TimeProvider>(new FixedTimeProvider(now));
+            builder.Services.AddSingleton<TimeProvider>(clock);
             builder.Services.AddSingleton<IAgentCertificateIssuer>(
                 new EphemeralAgentCertificateIssuer(rootCertificate));
             builder.Services.AddScoped<IAgentFleetStore, AgentFleetStore>();
@@ -1809,8 +2386,29 @@ public sealed class AgentFleetApiEndToEndTests
             builder.Services.AddScoped<AgentCertificateIdentityValidator>();
             builder.Services.AddSingleton<HumanActorResolver>();
             builder.Services.AddSingleton<IAuthorizationHandler, AgentRouteAuthorizationHandler>();
+            bool dashboardTvEnabled = false;
+            if (enableObservationPipeline)
+            {
+                builder.Services.AddScoped<ServerObservationIngestionStore>();
+                builder.Services.AddScoped<IObservationIngestionStore>(services =>
+                {
+                    ServerObservationIngestionStore inner = services
+                        .GetRequiredService<ServerObservationIngestionStore>();
+                    return observationPause is null
+                        ? inner
+                        : new PausingObservationIngestionStore(inner, observationPause);
+                });
+                builder.Services.AddScoped<ObservationBatchIngestor>();
+                dashboardTvEnabled = builder.Services.AddDashboardTvSandbox(
+                    builder.Environment,
+                    builder.Configuration);
+                builder.Services.RemoveAll<IDashboardTvSnapshotSource>();
+                builder.Services.AddSingleton<IDashboardTvSnapshotSource, DashboardTvSyntheticObservationSnapshotSource>();
+            }
+
             AddAuthentication(builder.Services, rootCertificate);
-            builder.Services.AddAuthorizationBuilder()
+            Microsoft.AspNetCore.Authorization.AuthorizationBuilder authorisation = builder.Services
+                .AddAuthorizationBuilder()
                 .AddPolicy(ApiSecurityDefaults.AgentApiPolicy, policy =>
                 {
                     policy.AddAuthenticationSchemes(CertificateAuthenticationDefaults.AuthenticationScheme);
@@ -1823,6 +2421,15 @@ public sealed class AgentFleetApiEndToEndTests
                     policy.RequireAuthenticatedUser();
                     policy.RequireClaim("sub");
                 });
+            if (enableObservationPipeline)
+            {
+                authorisation.AddPolicy(ApiSecurityDefaults.AgentObservationIngestionPolicy, policy =>
+                {
+                    policy.AddAuthenticationSchemes(CertificateAuthenticationDefaults.AuthenticationScheme);
+                    policy.RequireAuthenticatedUser();
+                    policy.AddRequirements(new AgentRouteRequirement());
+                });
+            }
             builder.Services.AddRateLimiter(options =>
             {
                 options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
@@ -1838,6 +2445,11 @@ public sealed class AgentFleetApiEndToEndTests
             application.UseRateLimiter();
             application.UseAuthorization();
             application.MapAgentFleetEndpoints();
+            if (enableObservationPipeline)
+            {
+                application.MapObservationIngestionEndpoint();
+                application.MapDashboardTvSandboxEndpoint(dashboardTvEnabled);
+            }
 
             try
             {
@@ -1867,7 +2479,7 @@ public sealed class AgentFleetApiEndToEndTests
                     serverCertificate,
                     application,
                     baseAddress,
-                    now);
+                    clock);
             }
             catch
             {
@@ -1934,7 +2546,10 @@ public sealed class AgentFleetApiEndToEndTests
 
         /// <summary>Seeds one safe assignment and the minimal global read/revoke RBAC role.</summary>
         /// <param name="agentId">Enrolled Agent identifier.</param>
-        public async Task SeedAssignmentsAndHumanAccessAsync(Guid agentId)
+        /// <param name="omitMonitoringCredential">Whether the observation E2E requires a credential-free synthetic assignment.</param>
+        public async Task<Guid> SeedAssignmentsAndHumanAccessAsync(
+            Guid agentId,
+            bool omitMonitoringCredential = false)
         {
             await using AsyncServiceScope scope = application.Services.CreateAsyncScope();
             ServerDbContext context = scope.ServiceProvider.GetRequiredService<ServerDbContext>();
@@ -1943,15 +2558,18 @@ public sealed class AgentFleetApiEndToEndTests
             Guid readPermissionId = Guid.NewGuid();
             Guid revokePermissionId = Guid.NewGuid();
             DateTimeOffset now = Now;
+            Guid activeInstanceId = Guid.NewGuid();
             context.Instances.AddRange(
                 new DatabaseInstanceRow
                 {
-                    InstanceId = Guid.NewGuid(),
+                    InstanceId = activeInstanceId,
                     DisplayName = "Sandbox Assignment",
                     ProviderType = "fixture-provider",
                     Environment = EnvironmentName,
                     EndpointJson = "{\"host\":\"sandbox.invalid\",\"port\":5432}",
-                    MonitoringCredentialReference = "fixture:monitoring-only",
+                    MonitoringCredentialReference = omitMonitoringCredential
+                        ? null
+                        : "fixture:monitoring-only",
                     AdministrativeCredentialReference = "fixture:administrative-omitted",
                     AssignedAgentId = agentId,
                     TagsJson = "{\"purpose\":\"integration-test\"}",
@@ -2030,6 +2648,22 @@ public sealed class AgentFleetApiEndToEndTests
                 ExpiresAt = now.AddHours(1),
             });
             await context.SaveChangesAsync();
+            return activeInstanceId;
+        }
+
+        /// <summary>Advances the controlled application clock without sleeping or changing any persisted state.</summary>
+        /// <param name="duration">Positive bounded duration used by one deterministic E2E scenario.</param>
+        public void Advance(TimeSpan duration) => clock.Advance(duration);
+
+        /// <summary>Creates the dedicated read-only Dashboard TV sandbox client with its bounded test subject.</summary>
+        /// <returns>HTTPS client pinned to the ephemeral server identity.</returns>
+        public HttpClient CreateDashboardTvClient()
+        {
+            HttpClient client = CreateClient();
+            client.DefaultRequestHeaders.Add(
+                DashboardTvSandboxEndpointRouteBuilderExtensions.TestSubjectHeader,
+                "sandbox-tv-reviewer");
+            return client;
         }
 
         /// <summary>Replaces the complete server assignment projection with a deterministic second version.</summary>
@@ -2147,6 +2781,45 @@ public sealed class AgentFleetApiEndToEndTests
             Assert.Equal(0, await context.Events.CountAsync());
             Assert.Equal(0, await context.OutboxMessages.CountAsync());
             Assert.Equal(0, await context.NotificationDeliveries.CountAsync());
+        }
+
+        /// <summary>Confirms contiguous reconciliation, retained synthetic provenance and zero operational effects.</summary>
+        /// <param name="agentId">Revoked Agent whose first four observations were accepted.</param>
+        /// <param name="instanceId">Sole synthetic assignment projected to Dashboard TV.</param>
+        public async Task AssertSyntheticObservationPipelineAsync(Guid agentId, Guid instanceId)
+        {
+            await using AsyncServiceScope scope = application.Services.CreateAsyncScope();
+            ServerDbContext context = scope.ServiceProvider.GetRequiredService<ServerDbContext>();
+            RegisteredAgentRow agent = await context.Agents.SingleAsync(row => row.AgentId == agentId);
+            AgentObservationCursorRow cursor = await context.AgentObservationCursors
+                .SingleAsync(row => row.AgentId == agentId);
+            HealthSampleRow[] samples = await context.HealthSamples
+                .AsNoTracking()
+                .Where(row => row.AgentId == agentId)
+                .OrderBy(row => row.Sequence)
+                .ToArrayAsync();
+            InstanceObservationStateRow state = await context.InstanceObservationStates
+                .AsNoTracking()
+                .SingleAsync(row => row.InstanceId == instanceId);
+
+            Assert.Equal("Revoked", agent.State);
+            Assert.Equal(4, cursor.HighestContiguousSequence);
+            Assert.Equal(new long[] { 1, 2, 3, 4 }, samples.Select(row => row.Sequence));
+            Assert.All(samples, sample =>
+            {
+                Assert.Equal(nameof(EvidenceLevel.Synthetic), sample.EvidenceLevel);
+                Assert.Equal("fixture-provider", sample.ProviderType);
+                Assert.Equal(instanceId, sample.InstanceId);
+                Assert.Equal(64, sample.PayloadHash?.Length);
+            });
+            Assert.Equal(4, state.LastProcessedSequence);
+            Assert.Equal(nameof(HealthStatus.Unavailable), state.Status);
+            Assert.Equal(samples[^1].ObservationId, state.ObservationId);
+            Assert.Equal(4, await context.Events.CountAsync());
+            Assert.Equal(4, await context.OutboxMessages.CountAsync());
+            Assert.Equal(0, await context.NotificationDeliveries.CountAsync());
+            Assert.Equal(0, await context.AdministrativeCommands.CountAsync());
+            Assert.Equal(0, await context.CommandAttempts.CountAsync());
         }
 
         /// <summary>Confirms the coordinated assignment race created revocation evidence and no operational effects.</summary>
@@ -2576,6 +3249,101 @@ public sealed class AgentFleetApiEndToEndTests
     {
         /// <inheritdoc />
         public override DateTimeOffset GetUtcNow() => now;
+    }
+
+    /// <summary>Supplies a deterministic Server clock that advances only when its owning E2E fixture requests it.</summary>
+    /// <param name="now">Initial UTC instant.</param>
+    private sealed class AdjustableTimeProvider(DateTimeOffset now) : TimeProvider
+    {
+        /// <inheritdoc />
+        public override DateTimeOffset GetUtcNow() => now;
+
+        /// <summary>Advances the fixture clock by one positive duration no greater than one hour.</summary>
+        /// <param name="duration">Deterministic amount to add.</param>
+        public void Advance(TimeSpan duration)
+        {
+            ArgumentOutOfRangeException.ThrowIfLessThanOrEqual(duration, TimeSpan.Zero);
+            ArgumentOutOfRangeException.ThrowIfGreaterThan(duration, TimeSpan.FromHours(1));
+            now = now.Add(duration);
+        }
+    }
+
+    /// <summary>
+    /// Coordinates one E2E-only pause after HTTP authentication and request validation but before persistence
+    /// admission, allowing revocation to complete while the synchronisation request remains in flight.
+    /// </summary>
+    private sealed class ObservationIngestionPause(long targetSequence)
+    {
+        private readonly TaskCompletionSource<bool> paused = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        private readonly TaskCompletionSource<bool> released = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        private readonly TaskCompletionSource<ObservationItemResult> result = new(
+            TaskCreationOptions.RunContinuationsAsynchronously);
+        private int interceptionCount;
+
+        /// <summary>Pauses only the first ingestion carrying the selected positive Agent sequence.</summary>
+        /// <param name="sequence">Canonical Agent sequence entering the store boundary.</param>
+        /// <param name="cancellationToken">Request cancellation propagated by the sandbox endpoint.</param>
+        public async ValueTask PauseIfSelectedAsync(long sequence, CancellationToken cancellationToken)
+        {
+            if (sequence != targetSequence || Interlocked.CompareExchange(ref interceptionCount, 1, 0) != 0)
+            {
+                return;
+            }
+
+            paused.TrySetResult(true);
+            await released.Task.WaitAsync(cancellationToken);
+        }
+
+        /// <summary>Waits until the selected request has reached the pre-persistence barrier.</summary>
+        /// <param name="cancellationToken">Token bounding the deterministic coordination wait.</param>
+        /// <returns>A task whose successful result confirms that the barrier was reached.</returns>
+        public Task<bool> WaitUntilPausedAsync(CancellationToken cancellationToken) =>
+            paused.Task.WaitAsync(cancellationToken);
+
+        /// <summary>Releases the selected request exactly once; repeated cleanup calls are harmless.</summary>
+        public void Release() => released.TrySetResult(true);
+
+        /// <summary>Records the terminal store result for the selected request.</summary>
+        /// <param name="sequence">Canonical Agent sequence returned by the decorated store.</param>
+        /// <param name="itemResult">Exact ingestion classification returned by the production store.</param>
+        public void RecordResult(long sequence, ObservationItemResult itemResult)
+        {
+            if (sequence == targetSequence)
+            {
+                result.TrySetResult(itemResult);
+            }
+        }
+
+        /// <summary>Waits for the production store classification of the selected request.</summary>
+        /// <param name="cancellationToken">Token bounding the deterministic result wait.</param>
+        /// <returns>The exact selected ingestion result.</returns>
+        public Task<ObservationItemResult> WaitForResultAsync(CancellationToken cancellationToken) =>
+            result.Task.WaitAsync(cancellationToken);
+    }
+
+    /// <summary>Applies the fixture-owned revocation barrier without changing the production ingestion store.</summary>
+    private sealed class PausingObservationIngestionStore(
+        IObservationIngestionStore inner,
+        ObservationIngestionPause pause) : IObservationIngestionStore
+    {
+        /// <inheritdoc />
+        public async ValueTask<ObservationItemResult> IngestAsync(
+            ObservationSyncMessage message,
+            DateTimeOffset receivedAt,
+            CancellationToken cancellationToken)
+        {
+            await pause.PauseIfSelectedAsync(message.Sequence, cancellationToken);
+            ObservationItemResult result = await inner.IngestAsync(message, receivedAt, cancellationToken);
+            pause.RecordResult(message.Sequence, result);
+            return result;
+        }
+
+        /// <inheritdoc />
+        public ValueTask<long> GetHighestContiguousSequenceAsync(
+            Guid agentId,
+            CancellationToken cancellationToken) => inner.GetHighestContiguousSequenceAsync(
+                agentId,
+                cancellationToken);
     }
 
     /// <summary>Fails if a one-attempt E2E path unexpectedly schedules a retry.</summary>

@@ -2,8 +2,8 @@
 
 ## Versão atual
 
-- Versão: `3.56.4`
-- Data: 2026-07-18
+- Versão: `3.56.5`
+- Data: 2026-07-19
 - Status: corpus DB-Notifier consolidado
 - Escopo: 13 arquivos ativos
 
@@ -16,6 +16,12 @@ A versão do corpus é independente da versão do software.
 - PATCH: clareza, correção ou referência sem mudança de autoridade.
 
 Toda alteração atualiza este arquivo e, quando necessário, `../Start-Here.md`.
+
+## 3.56.5 — 2026-07-19
+
+- Bruno autorizou separadamente somente o `Incremento 1 — Authoritative Observation Pipeline E2E Sandbox` do plano consolidado, com fonte sintética/provider-neutral, Agent SQLite/outbox, HTTPS/mTLS de teste, ingestão/projeção read-only e runtimes temporários exclusivamente locais.
+- A implementação e o relatório registram a cadeia sintética → Agent → outbox → API → snapshot TV, falhas/replay/reorder/staleness, recusa de uma requisição em voo depois da revogação commitada, isolamento da composição normal e cleanup integral. A janela interna pós-consulta `Active`/pré-commit, PostgreSQL real, Agent version N-1/N+1 e identidade operacional permanecem limitações explícitas.
+- O Quality Gate automático restrito está aprovado no escopo local/offline. O Human Gate do incremento, Incrementos 2–4, SignalR, notificações, comandos, promoção e transição continuam pendentes ou não autorizados; `STATE-06 INTEGRATION` permanece inalterado.
 
 ## 3.56.4 — 2026-07-18
 

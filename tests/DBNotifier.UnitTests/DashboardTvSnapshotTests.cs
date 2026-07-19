@@ -45,6 +45,29 @@ public sealed class DashboardTvSnapshotTests
         Assert.DoesNotContain(services, descriptor => descriptor.ServiceType == typeof(DashboardTvSandboxSnapshotSource));
     }
 
+    /// <summary>Verifies that the normal opted-in sandbox retains the immutable fixture as its only TV source.</summary>
+    [Fact]
+    public void SandboxRegistrationUsesTheImmutableFixtureByDefault()
+    {
+        ServiceCollection services = new();
+        IConfiguration configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                [$"{DashboardTvSandboxEndpointRouteBuilderExtensions.ConfigurationSection}:Enabled"] = bool.TrueString,
+            })
+            .Build();
+
+        bool registered = services.AddDashboardTvSandbox(
+            new TestHostEnvironment(DashboardTvSandboxEndpointRouteBuilderExtensions.EnvironmentName),
+            configuration);
+        using ServiceProvider provider = services.BuildServiceProvider();
+
+        Assert.True(registered);
+        IDashboardTvSnapshotSource source = provider.GetRequiredService<IDashboardTvSnapshotSource>();
+        Assert.IsType<DashboardTvSandboxSnapshotSource>(source);
+        Assert.Same(source, provider.GetRequiredService<IDashboardTvSnapshotSource>());
+    }
+
     [Fact]
     public void ValidationRejectsDuplicateIdentifiersAndFutureEvidence()
     {

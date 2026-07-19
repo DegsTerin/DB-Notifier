@@ -91,12 +91,22 @@ public interface IObservationIngestionStore
         CancellationToken cancellationToken);
 }
 
+/// <summary>Dispatches one bounded local Agent outbox batch and applies only unambiguous response classifications.</summary>
+/// <param name="agentId">Exact enrolled Agent whose stream is being dispatched.</param>
+/// <param name="outboxStore">Durable local outbox boundary.</param>
+/// <param name="transport">Authenticated observation batch transport.</param>
+/// <param name="timeProvider">Trusted local clock used for leases and result timestamps.</param>
 public sealed class AgentOutboxDispatchRunner(
     Guid agentId,
     IAgentOutboxStore outboxStore,
     IObservationBatchTransport transport,
     TimeProvider timeProvider)
 {
+    /// <summary>Dispatches at most one bounded batch and records terminal or retryable outcomes in the local store.</summary>
+    /// <param name="maximumBatchSize">Maximum number of pending envelopes, from one through one hundred.</param>
+    /// <param name="cancellationToken">Token propagated through local persistence and transport operations.</param>
+    /// <returns>Counts of selected, acknowledged and retryable envelopes.</returns>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown for an empty Agent identifier or invalid batch size.</exception>
     public async ValueTask<AgentOutboxDispatchResult> RunOnceAsync(
         int maximumBatchSize,
         CancellationToken cancellationToken = default)
@@ -117,19 +127,25 @@ public sealed class AgentOutboxDispatchRunner(
         ObservationBatchResult response = await transport
             .SendAsync(agentId, pending, cancellationToken)
             .ConfigureAwait(false);
-        Dictionary<Guid, ObservationItemResult> returned = response.Items
-            .OfType<ObservationItemResult>()
-            .GroupBy(result => result.MessageId)
-            .ToDictionary(group => group.Key, group => group.First());
         List<ObservationItemResult> completeResults = new(pending.Count);
-        foreach (AgentOutboxEnvelope message in pending)
+        if (!TryIndexResponse(response, pending, out Dictionary<Guid, ObservationItemResult>? returned))
         {
-            completeResults.Add(returned.TryGetValue(message.MessageId, out ObservationItemResult? result)
-                ? result
-                : new ObservationItemResult(
+            completeResults.AddRange(pending.Select(message => new ObservationItemResult(
+                message.MessageId,
+                ObservationIngestionDisposition.Retryable,
+                "sync.response_invalid")));
+        }
+        else
+        {
+            foreach (AgentOutboxEnvelope message in pending)
+            {
+                completeResults.Add(returned.TryGetValue(message.MessageId, out ObservationItemResult? result)
+                    ? result
+                    : new ObservationItemResult(
                     message.MessageId,
                     ObservationIngestionDisposition.Retryable,
                     "sync.response_missing"));
+            }
         }
 
         DateTimeOffset completedAt = timeProvider.GetUtcNow();
@@ -142,6 +158,32 @@ public sealed class AgentOutboxDispatchRunner(
             pending.Count,
             acknowledged,
             completeResults.Count - acknowledged);
+    }
+
+    /// <summary>Indexes only an unambiguous response whose identifiers are a unique subset of the pending batch.</summary>
+    private static bool TryIndexResponse(
+        ObservationBatchResult response,
+        IReadOnlyList<AgentOutboxEnvelope> pending,
+        out Dictionary<Guid, ObservationItemResult> indexed)
+    {
+        indexed = [];
+        if (response.Items is null || response.HighestContiguousSequence < 0)
+        {
+            return false;
+        }
+
+        HashSet<Guid> expected = pending.Select(message => message.MessageId).ToHashSet();
+        foreach (ObservationItemResult? result in response.Items)
+        {
+            if (result is null || !expected.Contains(result.MessageId) ||
+                !Enum.IsDefined(result.Disposition) || !indexed.TryAdd(result.MessageId, result))
+            {
+                indexed.Clear();
+                return false;
+            }
+        }
+
+        return true;
     }
 }
 

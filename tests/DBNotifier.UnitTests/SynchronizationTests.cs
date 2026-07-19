@@ -121,6 +121,26 @@ public sealed class SynchronizationTests
     }
 
     [Fact]
+    public async Task DispatchRunnerRetriesEntireAmbiguousServerResponse()
+    {
+        AgentOutboxMessageRow row = Outbox(1);
+        InMemoryOutboxStore store = new(row);
+        AgentOutboxDispatchRunner runner = new(
+            Guid.NewGuid(),
+            store,
+            new AmbiguousResponseTransport(),
+            new FixedTimeProvider(Now));
+
+        AgentOutboxDispatchResult result = await runner.RunOnceAsync(50);
+
+        Assert.Equal(1, result.RetryableCount);
+        ObservationItemResult applied = Assert.Single(store.AppliedResults);
+        Assert.Equal(row.MessageId, applied.MessageId);
+        Assert.Equal(ObservationIngestionDisposition.Retryable, applied.Disposition);
+        Assert.Equal("sync.response_invalid", applied.ErrorCode);
+    }
+
+    [Fact]
     public async Task ServerIngestionIsIdempotentAndCreatesCanonicalEventsAndAlertDeliveries()
     {
         await using SqliteConnection connection = new("Data Source=:memory:");
@@ -963,6 +983,26 @@ public sealed class SynchronizationTests
     }
 
     [Fact]
+    public async Task HttpTransportRetriesSuccessfulResponseWithDuplicateMessageResults()
+    {
+        AgentOutboxMessageRow row = Outbox(1);
+        using HttpClient httpClient = new(new DuplicateResultHttpHandler(row.MessageId));
+        HttpObservationBatchTransport transport = new(
+            httpClient,
+            new Uri("https://server.example.test/"),
+            "0.1.0");
+
+        ObservationBatchResult result = await transport.SendAsync(
+            Guid.Parse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"),
+            [Envelope(row)],
+            CancellationToken.None);
+
+        ObservationItemResult item = Assert.Single(result.Items);
+        Assert.Equal(ObservationIngestionDisposition.Retryable, item.Disposition);
+        Assert.Equal("sync.response_invalid", item.ErrorCode);
+    }
+
+    [Fact]
     public async Task HttpTransportMapsClientTimeoutToRetryableOutcome()
     {
         AgentOutboxMessageRow row = Outbox(1);
@@ -1261,6 +1301,21 @@ public sealed class SynchronizationTests
             ValueTask.FromResult(new ObservationBatchResult([], 0));
     }
 
+    /// <summary>Returns contradictory duplicate results to exercise the dispatcher's fail-closed response boundary.</summary>
+    private sealed class AmbiguousResponseTransport : IObservationBatchTransport
+    {
+        public ValueTask<ObservationBatchResult> SendAsync(
+            Guid agentId,
+            IReadOnlyList<AgentOutboxEnvelope> messages,
+            CancellationToken cancellationToken) =>
+            ValueTask.FromResult(new ObservationBatchResult(
+            [
+                new(messages[0].MessageId, ObservationIngestionDisposition.Accepted),
+                new(messages[0].MessageId, ObservationIngestionDisposition.Retryable),
+            ],
+            1));
+    }
+
     private sealed class InMemoryOutboxStore(AgentOutboxMessageRow row) : IAgentOutboxStore
     {
         public IReadOnlyList<ObservationItemResult> AppliedResults { get; private set; } = [];
@@ -1334,6 +1389,27 @@ public sealed class SynchronizationTests
             Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
             {
                 Content = new StringContent("{not-json", Encoding.UTF8, "application/json"),
+            });
+    }
+
+    /// <summary>Returns a syntactically valid but contradictory duplicate-result HTTP contract.</summary>
+    private sealed class DuplicateResultHttpHandler(Guid messageId) : HttpMessageHandler
+    {
+        protected override Task<HttpResponseMessage> SendAsync(
+            HttpRequestMessage request,
+            CancellationToken cancellationToken) =>
+            Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent(
+                    JsonSerializer.Serialize(new ObservationBatchResult(
+                    [
+                        new(messageId, ObservationIngestionDisposition.Accepted),
+                        new(messageId, ObservationIngestionDisposition.Retryable),
+                    ],
+                    1),
+                    SerializerOptions),
+                    Encoding.UTF8,
+                    "application/json"),
             });
     }
 

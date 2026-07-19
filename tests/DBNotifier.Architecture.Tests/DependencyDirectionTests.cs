@@ -65,7 +65,9 @@ public sealed class DependencyDirectionTests
         Assert.DoesNotContain("DBNotifier.Agent.Worker", harnessReferences);
         Assert.DoesNotContain("DBNotifier.Persistence.Server.PostgreSql", harnessReferences);
         Assert.DoesNotContain("DBNotifier.Server.Api", harnessReferences);
+        Assert.DoesNotContain("DBNotifier.Providers.PostgreSql", harnessReferences);
         Assert.Contains("DBNotifier.Persistence.Agent.Sqlite", harnessReferences);
+        Assert.Contains("DBNotifier.Provider.Abstractions", harnessReferences);
     }
 
     /// <summary>Verifies the exact approved AIOps surface and its sole intentional Domain health-observation dependency.</summary>

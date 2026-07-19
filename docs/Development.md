@@ -99,7 +99,7 @@ These tests characterize the only functional legacy provider behavior under its 
 
 ## Dashboard bootstrap
 
-`src/DBNotifier.Dashboard.Web` contains the deterministic React demonstration views and Design System theme runtime. The normal build has no Agent, API, database, IdP or administrative integration. One restricted `STATE-06` adapter exists only for the exact `local-test` flag on an HTTPS loopback origin and reads the fixed, test-authenticated, in-memory Dashboard TV sandbox endpoint; it does not admit an external endpoint or operational identity. Its CI job uses the committed lockfile and runs:
+`src/DBNotifier.Dashboard.Web` contains the deterministic React demonstration views and Design System theme runtime. The normal build has no Agent, API, database, IdP or administrative integration. One restricted `STATE-06` adapter exists only for the exact `local-test` flag on an HTTPS loopback origin and reads the test-authenticated Dashboard TV sandbox endpoint; it does not admit an external endpoint or operational identity. The ordinary sandbox registration still supplies the fixed in-memory fixture. Only the integration-test host replaces that source with a read-only projection of synthetic observations received through Agent SQLite/outbox and HTTPS/mTLS; neither this projection nor its synthetic provider is registered by the normal API or Agent Worker. The Dashboard CI job uses the committed lockfile and runs:
 
 ```powershell
 npm run toolchain:verify
@@ -122,6 +122,16 @@ The separately authorised Dashboard TV browser composition gate uses only an alr
 ```
 
 It builds the exact local-test Dashboard, starts one temporary HTTPS loopback host, creates an isolated browser profile, observes the 30-second cadence plus the deterministic recovery matrix, rejects external HTTP origins and removes every owned process/profile at the end. This is local sandbox evidence, not browser homologation or an operational runtime command.
+
+The separately authorised observation-pipeline E2E reuses the existing Agent Fleet process harness. It starts only temporary .NET child processes and an HTTPS loopback test host, transfers P-256 test identity material through a current-user-only named pipe, reopens one fixture-owned Agent SQLite file across restarts and removes every owned process/database at the end. Run the focused scenario after a Release build with:
+
+```powershell
+dotnet test .\tests\DBNotifier.IntegrationTests\DBNotifier.IntegrationTests.csproj `
+  --configuration Release --no-build `
+  --filter "FullyQualifiedName~SyntheticObservationPipelineSurvivesOfflineReplayReorderStalenessAndRevocation"
+```
+
+This command is test evidence only. It does not activate monitoring, an operational provider, the normal Worker, SignalR, notifications or commands.
 
 Keep presentation adapters deterministic and disabled by default until the owning integration state explicitly authorises another source or dependency.
 
