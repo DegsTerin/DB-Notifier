@@ -1,6 +1,6 @@
 # Proposta STATE-06 — Command Transport Safety E2E Sandbox
 
-> **Status factual posterior (2026-07-19):** Bruno autorizou separadamente a implementação restrita. O incremento foi concluído no commit final `54a65f5`; o [relatório factual](STATE-06-Command-Transport-Safety-E2E-Sandbox-Report.md) registra o Quality Gate automático restrito aprovado e o Human Gate próprio pendente. O `STATE-06` permanece inalterado, sem runtime operacional, comando, promoção ou transição.
+> **Status factual posterior (2026-07-19):** Bruno autorizou separadamente a implementação restrita. O incremento foi concluído no commit final `54a65f5`; o [relatório factual](STATE-06-Command-Transport-Safety-E2E-Sandbox-Report.md) registra o Quality Gate automático restrito aprovado e o Human Gate próprio aceito com as limitações registradas. O `STATE-06` permanece inalterado, sem campanha consolidada, runtime operacional, comando, promoção ou transição.
 
 ## Status e autoridade
 

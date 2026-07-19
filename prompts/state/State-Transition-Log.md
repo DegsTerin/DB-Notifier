@@ -1848,6 +1848,21 @@
 - Próxima decisão: Bruno deve aceitar com as limitações, solicitar remediação delimitada ou rejeitar somente este Incremento 4. Mesmo uma aceitação autorizará apenas seu registro; campanha consolidada, runtime, promoção e transição permanecerão separados.
 - Aprovador: Bruno autorizou a execução delimitada; a decisão do Human Gate próprio do resultado não foi inferida.
 
+## 2026-07-19 — Aceitação do Incremento 4 Command Transport Safety E2E Sandbox
+
+- Estado anterior: `STATE-06 INTEGRATION`, incremento do commit final `54a65f5` tecnicamente concluído, Quality Gate automático restrito aprovado e Human Gate próprio pendente.
+- Estado resultante: sem transição; `STATE-06 INTEGRATION` mantido e Human Gate próprio do Incremento 4 aceito com as limitações registradas.
+- Decisão: Bruno declarou exatamente `Incremento STATE-06 Command Transport Safety E2E Sandbox, commit 54a65f5: ACEITO COM AS LIMITAÇÕES REGISTRADAS. AUTORIZO exclusivamente o registro factual desta decisão. Não autorizo campanha consolidada, novo incremento, runtime operacional, promoção nem transição de estado.`
+- Evidências revisadas: [relatório do incremento](../../docs/STATE-06-Command-Transport-Safety-E2E-Sandbox-Report.md), especialmente resultado em linguagem simples, sequência E2E observada, limitações e condições residuais e classificação dos gates; commit `54a65f5`; decisão explícita de Bruno nesta sessão.
+- Limitações aceitas: Server E2E em SQLite memória e sem restart Server em disco; migration PostgreSQL somente gerada e inspecionada offline; ausência de deadline absoluta persistida para a intenção; backpressure global e estrito sem fairness de frota; pendência pós-revogação preservada sem dead-letter; identidade/PKI exclusivamente de teste; limites sem sizing ou prova operacional.
+- Autoridade: exclusivamente o registro factual da decisão. Campanha consolidada, novo incremento, runtime operacional, promoção e transição permanecem não autorizados.
+- Shutdown preflight: zero processo e zero listener pertencente ao DB-Notifier antes desta alteração documental; nenhum processo alheio foi encerrado.
+- Escopo desta ação: somente cinco documentos Markdown factuais; nenhum código, projeto, pacote, lockfile, configuração executável, build, teste de produto ou runtime foi alterado ou executado.
+- Gates documentais deste registro: documentação aprovada para `273` fontes comment-capable; `390` links Markdown locais em `92` arquivos aprovados; secret scan do worktree não ignorado e histórico disponível aprovado; inspeção de escopo e `git diff --check` aprovadas. Build, testes e runtime de produto são `NÃO APLICÁVEIS` e não foram executados.
+- Gates: Quality Gate automático restrito `APROVADO`; Human Gate próprio do Incremento 4 `ACEITO COM AS LIMITAÇÕES REGISTRADAS`; campanha Quality Gate consolidada e Human Gate final do `STATE-06` não inferidos, não executados e não autorizados.
+- Próxima atividade: nenhuma atividade técnica está autorizada ou é exigida. Qualquer proposta ou execução da campanha consolidada exige solicitação e autorização posteriores, separadas e explícitas de Bruno.
+- Aprovador: Bruno, 2026-07-19.
+
 ## Template de nova entrada
 
 - Data:

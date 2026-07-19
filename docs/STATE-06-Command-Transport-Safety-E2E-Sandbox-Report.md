@@ -7,7 +7,7 @@
 - Incremento técnico: implementação base no commit `3f23d3e` e correção final de escopo das fixtures no commit `54a65f5`.
 - Autoridade: autorização explícita de Bruno limitada ao sandbox local descrito na [proposta](STATE-06-Command-Transport-Safety-E2E-Sandbox-Proposal.md).
 - Quality Gate automático deste incremento: `APROVADO` no escopo local documentado.
-- Human Gate próprio do Incremento 4: `PENDENTE`.
+- Human Gate próprio do Incremento 4: `ACEITO COM AS LIMITAÇÕES REGISTRADAS` por Bruno em 2026-07-19.
 - Campanha consolidada, runtime operacional, promoção e transição: `NÃO AUTORIZADOS` e não executados.
 
 ## Resultado em linguagem simples
@@ -128,17 +128,15 @@ Não restou achado crítico, alto ou médio conhecido no diff final.
 ## Classificação dos gates
 
 - Quality Gate automático deste Incremento 4 restrito: **APROVADO** no escopo local documentado.
-- Human Gate próprio do Incremento 4: **PENDENTE**; não foi inferido da autorização de implementação nem dos testes.
-- Incrementos 1–3: permanecem **ACEITOS COM AS LIMITAÇÕES REGISTRADAS** nas decisões anteriores.
+- Human Gate próprio do Incremento 4: **ACEITO COM AS LIMITAÇÕES REGISTRADAS** por Bruno em 2026-07-19.
+- Incrementos 1–4: permanecem **ACEITOS COM AS LIMITAÇÕES REGISTRADAS** nas respectivas decisões.
 - Campanha Quality Gate consolidada e Human Gate final do `STATE-06`: **NÃO EXECUTADOS E NÃO AUTORIZADOS**.
 - Runtime operacional, comandos reais, promoção `none → OBSERVER`, `STATE-07`, deploy, produção e transição: **NÃO AVALIADOS E NÃO AUTORIZADOS**.
 
-## Próxima decisão
+## Decisão humana registrada
 
-Bruno deve revisar principalmente `Resultado em linguagem simples`, `Sequência E2E observada`, `Limitações e condições residuais` e `Classificação dos gates`. A decisão deve aceitar com as limitações, solicitar uma remediação delimitada ou rejeitar somente este incremento.
-
-Uma eventual aceitação autorizará exclusivamente o registro factual dessa decisão. Ela não autorizará a campanha consolidada, runtime operacional, comando, promoção ou transição de estado.
-
-Se concordar, a decisão exata sugerida é:
+Depois de solicitar a leitura direta de `Resultado em linguagem simples`, `Sequência E2E observada`, `Limitações e condições residuais` e `Classificação dos gates`, Bruno declarou em 2026-07-19:
 
 > Incremento STATE-06 Command Transport Safety E2E Sandbox, commit 54a65f5: ACEITO COM AS LIMITAÇÕES REGISTRADAS. AUTORIZO exclusivamente o registro factual desta decisão. Não autorizo campanha consolidada, novo incremento, runtime operacional, promoção nem transição de estado.
+
+Essa decisão encerra somente o Human Gate próprio do Incremento 4 e aceita as limitações documentadas. O `STATE-06 INTEGRATION` permanece inalterado; campanha consolidada, novo incremento, runtime operacional, promoção e transição continuam não autorizados.
