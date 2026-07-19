@@ -15,9 +15,9 @@ Este documento responde à autorização explícita de Bruno para elaborar um pl
 
 Depois da publicação deste plano, Bruno emitiu uma autorização separada e explícita para executar somente o `Incremento 1 — Authoritative Observation Pipeline E2E Sandbox`, preservando todas as proibições transcritas abaixo. Essa autorização posterior não nasceu deste documento e não liberou os Incrementos 2–4.
 
-O Incremento 1 foi concluído tecnicamente no sandbox local em 2026-07-19. A cadeia testada usa fonte provider-neutral sintética, processos Agent efêmeros, SQLite/outbox local, HTTPS/mTLS com material somente de teste, ingestão central efêmera e projeção read-only para o contrato TV existente. O relatório proprietário é o [Relatório STATE-06 — Authoritative Observation Pipeline E2E Sandbox](STATE-06-Authoritative-Observation-Pipeline-E2E-Sandbox-Report.md). O Quality Gate automático restrito está aprovado, e o Human Gate próprio do incremento permanece pendente. `STATE-06 INTEGRATION` não foi encerrado nem promovido.
+O Incremento 1 foi concluído tecnicamente no sandbox local em 2026-07-19. A cadeia testada usa fonte provider-neutral sintética, processos Agent efêmeros, SQLite/outbox local, HTTPS/mTLS com material somente de teste, ingestão central efêmera e projeção read-only para o contrato TV existente. O relatório proprietário é o [Relatório STATE-06 — Authoritative Observation Pipeline E2E Sandbox](STATE-06-Authoritative-Observation-Pipeline-E2E-Sandbox-Report.md). O Quality Gate automático restrito está aprovado, e Bruno aceitou o Human Gate próprio do incremento com as limitações registradas. `STATE-06 INTEGRATION` não foi encerrado nem promovido.
 
-A próxima decisão é exclusivamente humana: aceitar o Incremento 1 com suas limitações, solicitar remediação delimitada ou rejeitá-lo. SignalR e o Incremento 2 continuam sem autorização.
+A aceitação autorizou exclusivamente seu registro factual. SignalR e o Incremento 2 continuam sem autorização; qualquer próxima atividade técnica depende de uma decisão posterior, separada e explícita de Bruno.
 
 ## Resumo para não especialistas
 
@@ -92,7 +92,7 @@ O cliente SignalR não aparece hoje no lockfile do Dashboard. Este plano não se
 
 ### Incremento 1 — Authoritative Observation Pipeline E2E Sandbox
 
-**Status factual posterior:** implementação local concluída em 2026-07-19; Quality Gate automático restrito aprovado; Human Gate próprio pendente. Consulte o [relatório do incremento](STATE-06-Authoritative-Observation-Pipeline-E2E-Sandbox-Report.md). Esta atualização não altera o texto original de escopo nem autoriza o incremento seguinte.
+**Status factual posterior:** implementação local concluída no commit `3449918` em 2026-07-19; Quality Gate automático restrito aprovado; Human Gate próprio aceito por Bruno com as limitações registradas. Consulte o [relatório do incremento](STATE-06-Authoritative-Observation-Pipeline-E2E-Sandbox-Report.md). Esta atualização não altera o texto original de escopo nem autoriza o incremento seguinte.
 
 #### Objetivo
 
@@ -345,15 +345,14 @@ Qualquer necessidade de acesso externo, dependência não disponível, credencia
 
 ## Autorizações futuras e ordem para Bruno
 
-Nenhuma execução é autorizada pelo plano em si. A autorização separada posterior liberou e concluiu tecnicamente somente o passo 1. A ordem corrente é:
+Nenhuma execução é autorizada pelo plano em si. A autorização separada posterior liberou e concluiu tecnicamente somente o passo 1, e Bruno aceitou seu Human Gate próprio com as limitações registradas. A ordem restante é:
 
-1. revisar o relatório do Incremento 1 e aceitar, pedir remediação ou rejeitar;
-2. somente se o Incremento 1 for aceito, decidir separadamente se deseja solicitar uma proposta ou autorização para o Incremento 2;
-3. repetir o processo para os Incrementos 2, 3 e 4;
-4. autorizar a campanha automática consolidada;
-5. revisar o relatório final e autorizar as amostras humanas;
-6. decidir o Human Gate do `STATE-06`;
-7. somente depois, decidir separadamente se autoriza a transição para `STATE-07`.
+1. decidir separadamente se deseja solicitar uma proposta ou autorização para o Incremento 2;
+2. repetir o processo para os Incrementos 2, 3 e 4;
+3. autorizar a campanha automática consolidada;
+4. revisar o relatório final e autorizar as amostras humanas;
+5. decidir o Human Gate do `STATE-06`;
+6. somente depois, decidir separadamente se autoriza a transição para `STATE-07`.
 
 O texto abaixo é preservado como o texto histórico que autorizou o Incremento 1; ele já foi usado e não deve ser repetido como nova autorização:
 

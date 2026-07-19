@@ -2,7 +2,7 @@
 
 ## Versão atual
 
-- Versão: `3.56.5`
+- Versão: `3.56.6`
 - Data: 2026-07-19
 - Status: corpus DB-Notifier consolidado
 - Escopo: 13 arquivos ativos
@@ -16,6 +16,12 @@ A versão do corpus é independente da versão do software.
 - PATCH: clareza, correção ou referência sem mudança de autoridade.
 
 Toda alteração atualiza este arquivo e, quando necessário, `../Start-Here.md`.
+
+## 3.56.6 — 2026-07-19
+
+- Bruno aceitou explicitamente o Human Gate próprio do `Incremento 1 — Authoritative Observation Pipeline E2E Sandbox`, commit `3449918`, com todas as limitações registradas depois da revisão orientada do resultado em linguagem simples, da sequência E2E, das limitações residuais e da classificação dos gates.
+- A decisão autoriza exclusivamente seu registro factual e não autoriza novo incremento, runtime operacional, SignalR, notificações, comandos, promoção ou transição. `STATE-06 INTEGRATION` permanece inalterado.
+- O Quality Gate automático restrito e a evidência técnica permanecem como documentados. Incrementos 2–4 e o Quality/Human Gate final de saída do `STATE-06` continuam não avaliados e não autorizados.
 
 ## 3.56.5 — 2026-07-19
 

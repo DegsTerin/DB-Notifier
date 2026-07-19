@@ -15,7 +15,7 @@ Isso não ativa monitoramento real. O provider sintético existe somente no harn
 - Autoridade: autorização explícita de Bruno para o `Incremento 1 — Authoritative Observation Pipeline E2E Sandbox` do [plano consolidado](STATE-06-Consolidated-Closure-Plan.md).
 - Permitido: fonte provider-neutral exclusivamente sintética; observações canônicas versionadas; Agent SQLite/outbox; HTTPS/mTLS de teste; ingestão e projeção read-only; snapshot TV; processos e runtimes temporários exclusivamente locais; reinício, offline/reconexão, replay, duplicidade, reorder, staleness, revogação e incompatibilidade.
 - Proibido e não executado: acesso externo, dependência/download, provider ou banco operacional, SignalR, notificações, comandos, executor, serviços permanentes, deploy, LLM, promoção e transição de estado.
-- Identificador do commit: será atribuído somente quando este relatório integrar o commit local focado e será informado no hand-off; nenhum hash foi antecipado.
+- Commit local da implementação e deste relatório: `3449918`.
 
 ## Implementação concluída
 
@@ -154,9 +154,13 @@ Auditorias NuGet/npm online permanecem deliberadamente não executadas porque ac
 ## Classificação dos gates
 
 - Quality Gate automático deste incremento restrito: **APROVADO** no escopo local e offline documentado acima.
-- Human Gate deste incremento: **PENDENTE**.
+- Human Gate deste incremento: **ACEITO COM AS LIMITAÇÕES REGISTRADAS** por Bruno em 2026-07-19.
 - Incremento 2/SignalR, notificações, comandos, saída de `STATE-06`, promoção `none → OBSERVER`, produção e release: **NÃO AVALIADOS E NÃO AUTORIZADOS**.
 
-## Próxima decisão humana
+## Decisão humana registrada
 
-Bruno deve revisar este relatório, especialmente a sequência E2E, os achados corrigidos e as limitações residuais. A decisão possível é aceitar o Incremento 1 com as limitações registradas, solicitar uma remediação local delimitada ou rejeitá-lo. Nenhuma dessas opções autoriza automaticamente o Incremento 2 ou qualquer transição de estado.
+Depois de receber orientação explícita para revisar principalmente o resultado em linguagem simples, a sequência E2E observada, as limitações e condições residuais e a classificação dos gates, Bruno declarou em 2026-07-19:
+
+> Incremento STATE-06 Authoritative Observation Pipeline E2E Sandbox, commit 3449918: ACEITO COM AS LIMITAÇÕES REGISTRADAS. AUTORIZO exclusivamente o registro factual desta decisão. Não autorizo novo incremento, runtime operacional, promoção nem transição de estado.
+
+Essa decisão encerra somente o Human Gate próprio deste incremento. O `STATE-06 INTEGRATION` permanece inalterado; Incremento 2, runtime operacional, promoção e transição continuam não autorizados.

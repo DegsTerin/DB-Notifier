@@ -1711,6 +1711,20 @@
 - Próxima decisão: Bruno deve revisar o relatório e aceitar o Incremento 1 com as limitações, solicitar remediação delimitada ou rejeitá-lo. Nenhuma opção autoriza automaticamente o Incremento 2, runtime operacional, promoção ou transição.
 - Aprovador: Bruno autorizou a execução delimitada; a decisão do Human Gate do resultado não foi inferida.
 
+## 2026-07-19 — Aceitação do Incremento 1 Authoritative Observation Pipeline E2E Sandbox
+
+- Estado anterior: `STATE-06 INTEGRATION`, incremento do commit `3449918` tecnicamente concluído, Quality Gate automático restrito aprovado e Human Gate próprio pendente.
+- Estado resultante: sem transição; `STATE-06 INTEGRATION` mantido, Human Gate próprio do incremento aceito com as limitações registradas.
+- Decisão: Bruno declarou exatamente `Incremento STATE-06 Authoritative Observation Pipeline E2E Sandbox, commit 3449918: ACEITO COM AS LIMITAÇÕES REGISTRADAS. AUTORIZO exclusivamente o registro factual desta decisão. Não autorizo novo incremento, runtime operacional, promoção nem transição de estado.`
+- Evidências revisadas: [relatório do incremento](../../docs/STATE-06-Authoritative-Observation-Pipeline-E2E-Sandbox-Report.md), incluindo resultado em linguagem simples, sequência E2E observada, limitações e condições residuais e classificação dos gates; commit local `3449918`; decisão de Bruno nesta sessão.
+- Limitações aceitas: fonte/provider/identidade somente de teste; Server central E2E em SQLite em memória; possível contêiner temporário `UserKeySet` não inspecionado; ausência de negociação N-1/N+1 de Agent version; janela interna pós-consulta `Active`/pré-commit não disputada; replay/reorder curtos; SignalR, notificações, comandos, browser integrado, produção, `OBSERVER` e estados posteriores não avaliados.
+- Autoridade: exclusivamente o registro factual desta decisão. Incrementos 2–4, runtime operacional, promoção e transição permanecem não autorizados.
+- Shutdown preflight: `0` processo e `0` listener pertencente ao DB-Notifier antes da alteração documental; nenhum processo ou recurso alheio foi encerrado.
+- Gates documentais deste registro: documentação aprovada para `250` fontes comment-capable; `356` links Markdown locais em `86` arquivos aprovados; secret scan do worktree não ignorado e histórico disponível aprovado; nenhum build, teste ou runtime de produto foi repetido porque esta ação altera somente o registro factual da decisão humana.
+- Gates: Quality Gate automático restrito `APROVADO`; Human Gate próprio do Incremento 1 `ACEITO COM AS LIMITAÇÕES REGISTRADAS`; Quality/Human Gate final do `STATE-06` não inferido e ainda não executado.
+- Próxima atividade: nenhuma atividade técnica está autorizada. Qualquer proposta ou execução do Incremento 2 exige decisão posterior, separada e explícita de Bruno.
+- Aprovador: Bruno, 2026-07-19.
+
 ## Template de nova entrada
 
 - Data:
