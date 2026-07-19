@@ -253,9 +253,9 @@ Completar o protocolo durável de polling/acknowledgement do Agent e provar expi
 
 ## Campanha final — Quality Gate consolidado do STATE-06
 
-**Status factual atual:** Bruno autorizou separadamente a [campanha consolidada](STATE-06-Consolidated-Quality-Gate-Campaign-Proposal.md) sobre o commit `5a47aae`. Os checks e harnesses existentes passaram, mas o [relatório factual](STATE-06-Consolidated-Quality-Gate-Campaign-Report.md) classificou o Quality Gate consolidado como `BLOQUEADO`: pipeline, browser/SignalR, notificação e comando usam sandboxes independentes, e uma cadeia única exige novo harness. Nenhuma remediação, amostra humana, promoção ou transição está autorizada.
+**Status factual atual:** Bruno autorizou separadamente a [campanha consolidada](STATE-06-Consolidated-Quality-Gate-Campaign-Proposal.md) sobre o commit `5a47aae`. Os checks e harnesses existentes passaram, mas o [relatório factual](STATE-06-Consolidated-Quality-Gate-Campaign-Report.md) classificou o Quality Gate consolidado como `BLOQUEADO`: pipeline, browser/SignalR, notificação e comando usam sandboxes independentes, e uma cadeia única exige novo harness. Bruno solicitou então exclusivamente a [proposta documental de remediação](STATE-06-Consolidated-Quality-Gate-Remediation-Proposal.md), que está pronta para revisão. Implementação, nova campanha, amostra humana, promoção e transição não estão autorizadas.
 
-O Human Gate próprio do Incremento 4 foi aceito, mas esta campanha somente poderá começar se Bruno a autorizar separadamente. Ela não deverá corrigir falhas silenciosamente; achados exigirão remediação autorizada e nova execução proporcional.
+O Human Gate próprio do Incremento 4 foi aceito. A primeira campanha já terminou bloqueada e não corrigiu falhas silenciosamente; os achados agora exigem remediação autorizada e nova execução proporcional.
 
 ### E2E consolidado obrigatório
 
@@ -357,11 +357,12 @@ Nenhuma execução é autorizada pelo plano em si. Autorizações separadas conc
 
 1. Incrementos 1–4 concluídos e aceitos em seus escopos restritos;
 2. campanha consolidada executada e `BLOQUEADA` pela ausência de composição única;
-3. propor e autorizar separadamente a remediação, somente se Bruno desejar continuar;
-4. repetir a campanha consolidada depois de uma eventual remediação aceita;
-5. somente com Quality Gate aprovado, revisar o relatório final e autorizar separadamente as amostras humanas;
-6. decidir o Human Gate do `STATE-06`;
-7. somente depois, decidir separadamente se autoriza a transição para `STATE-07`.
+3. proposta documental da remediação concluída; Bruno poderá revisá-la e, somente se desejar, autorizar separadamente sua implementação;
+4. revisar e aceitar o relatório de uma eventual remediação antes de autorizar outra campanha;
+5. repetir a campanha consolidada depois de uma eventual remediação aceita;
+6. somente com Quality Gate aprovado, revisar o relatório final e autorizar separadamente as amostras humanas;
+7. decidir o Human Gate do `STATE-06`;
+8. somente depois, decidir separadamente se autoriza a transição para `STATE-07`.
 
 O texto abaixo é preservado como o texto histórico que autorizou o Incremento 1; ele já foi usado e não deve ser repetido como nova autorização:
 

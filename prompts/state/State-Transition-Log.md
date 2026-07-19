@@ -1896,6 +1896,22 @@
 - Próxima atividade: nenhuma atividade técnica está autorizada. Bruno pode solicitar uma proposta exclusivamente documental de remediação do harness consolidado e dos achados não bloqueantes.
 - Aprovador: Bruno autorizou a campanha; a classificação automática é `BLOQUEADO` e nenhuma decisão de Human Gate foi inferida.
 
+## 2026-07-19 — Proposta documental de remediação do Quality Gate consolidado do STATE-06
+
+- Estado anterior: `STATE-06 INTEGRATION`, Quality Gate consolidado `BLOQUEADO` pela ausência de uma composição única correlacionada; Human Gate final não aberto.
+- Estado resultante: sem transição; `STATE-06 INTEGRATION` e bloqueio mantidos, com proposta documental de remediação pronta para revisão.
+- Solicitação: Bruno pediu exclusivamente uma proposta para um harness único que correlacione os quatro incrementos, os warnings EF de ordenação e a compatibilidade do runner com a versão declarada de PowerShell, proibindo implementação, runtime, acesso externo, promoção e transição.
+- Proposta: host/orquestrador exclusivamente de teste com um run correlacionado, um Agent sintético, stores Agent/Server SQLite efêmeros, identidades Agent/humana separadas, projeção Server compartilhada por Dashboard/SignalR/notificação, comando `Never`, revogação, replay, evidence ledger sanitizado e cleanup.
+- Achados menores: ordenação futura por chaves estáveis antes dos dois `Take` EF, sem migration ou mudança RBAC; PowerShell 7 mínimo declarado para runners modernos, mantendo o legado em Windows PowerShell 5.1.
+- Escopo futuro sugerido: novo projeto sob `tests/`, inclusão mínima `Any CPU` na solução e fixture NuGet positiva, runner/auditor sem dependência nova, testes e documentação. Packages, lockfiles, migrations, acesso externo e composição normal permaneceriam proibidos.
+- Autoridade corrente: somente documentação. Nenhum código, configuração executável, solução, projeto, fixture, script, build, teste de produto, runtime ou browser foi criado, alterado ou executado.
+- Shutdown preflight: zero processo e zero listener pertencente ao DB-Notifier antes da alteração documental; nenhum processo alheio foi encerrado.
+- Gates documentais: documentação aprovada para `273` fontes comment-capable; `403` links Markdown locais em `95` arquivos aprovados; secret scan do worktree não ignorado e histórico disponível aprovado; inspeção de escopo e `git diff --check` aprovadas. Build, testes e runtime de produto são `NÃO APLICÁVEIS` e não foram executados.
+- Gates: Quality Gate consolidado continua `BLOQUEADO`; Human Gate final não aberto; implementação, nova campanha, amostra humana, promoção e transição não inferidas.
+- Evidência: [proposta de remediação](../../docs/STATE-06-Consolidated-Quality-Gate-Remediation-Proposal.md), [relatório bloqueado](../../docs/STATE-06-Consolidated-Quality-Gate-Campaign-Report.md), [plano consolidado](../../docs/STATE-06-Consolidated-Closure-Plan.md) e inspeção read-only das fronteiras existentes.
+- Próxima decisão: Bruno pode revisar, pedir alterações, adiar ou emitir separadamente o texto da seção `Decisão futura de Bruno`. O documento não autoriza sua própria implementação.
+- Aprovador: não aplicável; registro de solicitação e proposta, não aprovação da remediação.
+
 ## Template de nova entrada
 
 - Data:
