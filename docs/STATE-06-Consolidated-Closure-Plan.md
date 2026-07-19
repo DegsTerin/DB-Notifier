@@ -17,7 +17,7 @@ Depois da publicação deste plano, Bruno emitiu uma autorização separada e ex
 
 O Incremento 1 foi concluído tecnicamente no sandbox local em 2026-07-19. A cadeia testada usa fonte provider-neutral sintética, processos Agent efêmeros, SQLite/outbox local, HTTPS/mTLS com material somente de teste, ingestão central efêmera e projeção read-only para o contrato TV existente. O relatório proprietário é o [Relatório STATE-06 — Authoritative Observation Pipeline E2E Sandbox](STATE-06-Authoritative-Observation-Pipeline-E2E-Sandbox-Report.md). O Quality Gate automático restrito está aprovado, e Bruno aceitou o Human Gate próprio do incremento com as limitações registradas. `STATE-06 INTEGRATION` não foi encerrado nem promovido.
 
-A aceitação autorizou exclusivamente seu registro factual. Posteriormente, Bruno autorizou separadamente o Incremento 2 e a aquisição controlada do cliente oficial; a implementação local foi concluída no commit `c945c1b`, e Bruno aceitou seu Human Gate próprio com as limitações registradas. Bruno solicitou depois somente a [proposta documental do Incremento 3](STATE-06-Reconciled-Local-Notification-Delivery-Sandbox-Proposal.md). Sua implementação e qualquer outra atividade técnica continuam dependentes de decisão posterior, separada e explícita de Bruno.
+A aceitação autorizou exclusivamente seu registro factual. Posteriormente, Bruno autorizou separadamente o Incremento 2 e a aquisição controlada do cliente oficial; a implementação local foi concluída no commit `c945c1b`, e Bruno aceitou seu Human Gate próprio com as limitações registradas. Bruno autorizou depois separadamente o [Incremento 3](STATE-06-Reconciled-Local-Notification-Delivery-Sandbox-Report.md), concluído no commit `d43e49a` com Quality Gate automático restrito aprovado e Human Gate próprio pendente. O Incremento 4 e qualquer outra atividade técnica continuam dependentes de decisão posterior, separada e explícita de Bruno.
 
 ## Resumo para não especialistas
 
@@ -169,7 +169,7 @@ Antecipar a reconciliação do Dashboard TV quando a projeção autoritativa mud
 
 ### Incremento 3 — Reconciled Local Notification Delivery Sandbox
 
-**Status factual atual:** a [proposta documental detalhada](STATE-06-Reconciled-Local-Notification-Delivery-Sandbox-Proposal.md) foi elaborada para revisão. Ela identifica como lacunas atuais a ausência de endpoint read-only de transições para o WPF, de par anterior/atual no contrato consumível, de cursor/deduplicação duráveis e de ligação entre o evento reconciliado e o publicador Windows. Nenhuma implementação, runtime, notificação, acesso externo, promoção ou transição foi autorizada.
+**Status factual atual:** Bruno autorizou separadamente a [proposta detalhada](STATE-06-Reconciled-Local-Notification-Delivery-Sandbox-Proposal.md). A implementação local foi concluída no commit `d43e49a`; o [relatório do Incremento 3](STATE-06-Reconciled-Local-Notification-Delivery-Sandbox-Report.md) registra contrato/projeção read-only, baseline silenciosa, ledger/cursor/deduplicação/fencing, consumidor WPF opt-in, testes locais e Quality Gate automático restrito aprovado. O Human Gate próprio está pendente. Runtime operacional, Incremento 4, promoção e transição permanecem não autorizados.
 
 #### Objetivo
 

@@ -1788,6 +1788,21 @@
 - Próxima decisão: Bruno pode revisar, ajustar, adiar ou rejeitar a proposta. Qualquer implementação exige autorização posterior, separada e explícita; o texto sugerido no documento não é autorização por si só.
 - Aprovador: não aplicável; esta entrada registra solicitação e proposta, não aprovação de execução.
 
+## 2026-07-19 — Incremento 3 Reconciled Local Notification Delivery Sandbox
+
+- Estado anterior: `STATE-06 INTEGRATION`, Incrementos 1 e 2 aceitos com limitações e proposta documental do Incremento 3 pronta; execução ainda não autorizada naquele momento.
+- Estado resultante: sem transição; `STATE-06 INTEGRATION` mantido, implementação local do commit `d43e49a` concluída, Quality Gate automático restrito aprovado e Human Gate próprio pendente.
+- Autorização: Bruno autorizou separadamente contrato/projeção read-only de transições canónicas commitadas, endpoint HTTPS loopback autenticado somente para teste, consumidor WPF sandbox opt-in, baseline silenciosa, ledger local isolado, cursor/deduplicação/fencing, fila/budget/cancelamento/silêncio, localização, caminho Windows/fallback existentes e testes determinísticos/E2E locais. Runtimes temporários deveriam ser encerrados; todo recurso operacional ou externo permaneceu proibido.
+- Implementação: contratos `reconciled-local-notification-transition.v1`, `reconciled-local-notification-ledger.v1` e detalhes `canonical-event-details.v1`; cursor vectorial monotónico; projeção que confirma evento/observação sintéticos; endpoint fora do `Program` normal; reader HTTPS limitado; ledger atómico com ownership lock; coordinator com intent antes do Windows, baseline/supressão/retry/deduplicação; WPF ativado apenas por argumentos locais exatos e opt-in; publisher/fallback existentes com conteúdo localizado.
+- Evidência E2E: Kestrel HTTPS em `127.0.0.1`, certificado P-256 e identidade de teste, Server SQLite em memória, baseline sem entrega, commit `Healthy → Unavailable`, uma leitura/entrega, reabertura do ledger sem repetição e `401` sem identidade. O sink E2E termina antes da API Windows e não prova apresentação visível.
+- Gates: build Release dos `16` projetos com zero erro/aviso; `327/327` unitários, `22/22` arquitetura, `13/13` integração e `60/60` Dashboard; cobertura `77,14%`/`49,71%`; Pester `23` com um skip previsto e cobertura `32,08%`; format, documentação `263`, links `373/89`, NuGet offline `16`, secrets, localisation/assets/tokens/provider icons e smoke fail-closed aprovados.
+- Revisão direta: incompatibilidade evento/observação, evento sintético malformado, media type, cancelamento pré-replace e caracteres de controlo foram endurecidos. A primeira falha Schannel e seu lock temporário residual foram corrigidos e limpos pontualmente.
+- Limitações: não há exactly-once entre ledger e Windows; aceite local não prova apresentação; full-storage rollback não é detectável pelo arquivo sozinho; WPF/Windows visual real não foi executado; Server E2E usa SQLite em memória; certificado de teste usa `UserKeySet | Exportable`; limites são somente do sandbox, sem alegação operacional ou fleet-wide.
+- Evidências: [relatório do incremento](../../docs/STATE-06-Reconciled-Local-Notification-Delivery-Sandbox-Report.md), [proposta autorizada](../../docs/STATE-06-Reconciled-Local-Notification-Delivery-Sandbox-Proposal.md), commit `d43e49a`, testes e inspeção direta do diff.
+- Cleanup: zero processo, zero listener e zero diretório temporário pertencente ao incremento depois da validação final; nenhum processo ou arquivo alheio foi alterado.
+- Próxima decisão: Bruno deve aceitar com as limitações, solicitar remediação delimitada ou rejeitar somente este Incremento 3. Nenhuma decisão libera automaticamente o Incremento 4, runtime operacional, promoção ou transição.
+- Aprovador: Bruno autorizou a execução delimitada; a decisão do Human Gate próprio do resultado não foi inferida.
+
 ## Template de nova entrada
 
 - Data:
