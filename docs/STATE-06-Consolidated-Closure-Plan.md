@@ -17,7 +17,7 @@ Depois da publicação deste plano, Bruno emitiu uma autorização separada e ex
 
 O Incremento 1 foi concluído tecnicamente no sandbox local em 2026-07-19. A cadeia testada usa fonte provider-neutral sintética, processos Agent efêmeros, SQLite/outbox local, HTTPS/mTLS com material somente de teste, ingestão central efêmera e projeção read-only para o contrato TV existente. O relatório proprietário é o [Relatório STATE-06 — Authoritative Observation Pipeline E2E Sandbox](STATE-06-Authoritative-Observation-Pipeline-E2E-Sandbox-Report.md). O Quality Gate automático restrito está aprovado, e Bruno aceitou o Human Gate próprio do incremento com as limitações registradas. `STATE-06 INTEGRATION` não foi encerrado nem promovido.
 
-A aceitação autorizou exclusivamente seu registro factual. SignalR e o Incremento 2 continuam sem autorização; qualquer próxima atividade técnica depende de uma decisão posterior, separada e explícita de Bruno.
+A aceitação autorizou exclusivamente seu registro factual. Posteriormente, Bruno autorizou separadamente o Incremento 2 e a aquisição controlada do cliente oficial; a implementação local foi concluída no commit `c945c1b` e aguarda Human Gate próprio. O Incremento 3 e qualquer outra atividade técnica continuam dependentes de decisão posterior, separada e explícita de Bruno.
 
 ## Resumo para não especialistas
 
@@ -131,7 +131,7 @@ Compor a fonte sintética, o Agent, sua persistência local, a ingestão da API 
 
 ### Incremento 2 — Authenticated SignalR Change Hint Sandbox
 
-**Status factual posterior:** Bruno solicitou em 2026-07-19 uma proposta exclusivamente documental, produzida no [documento próprio do Incremento 2](STATE-06-Authenticated-SignalR-Change-Hint-Sandbox-Proposal.md). Nenhuma implementação ou dependência foi autorizada. O cliente oficial `@microsoft/signalr` não aparece no manifesto ou lockfile, e a consulta direcionada ao cache npm local não retornou entrada correspondente; portanto, implementação futura depende de uma decisão explícita sobre aquisição controlada da dependência ou adiamento. SignalR, acesso externo, runtime, promoção e transição permanecem não autorizados.
+**Status factual posterior:** depois da proposta documental, Bruno autorizou separadamente a implementação local e o acesso temporário exclusivo ao registry npm oficial. O [relatório do Incremento 2](STATE-06-Authenticated-SignalR-Change-Hint-Sandbox-Report.md) registra a implementação do commit `c945c1b`, o cliente oficial `@microsoft/signalr@10.0.0` fixado, o Quality Gate automático restrito aprovado e o Human Gate próprio pendente. A API e o polling continuam autoritativos; a composição normal permanece sem hub/publisher ativo. Incremento 3, runtime operacional, promoção e transição não foram autorizados.
 
 #### Objetivo
 
@@ -347,10 +347,10 @@ Qualquer necessidade de acesso externo, dependência não disponível, credencia
 
 ## Autorizações futuras e ordem para Bruno
 
-Nenhuma execução é autorizada pelo plano em si. A autorização separada posterior liberou e concluiu tecnicamente somente o passo 1, e Bruno aceitou seu Human Gate próprio com as limitações registradas. A ordem restante é:
+Nenhuma execução é autorizada pelo plano em si. Autorizações separadas posteriores concluíram tecnicamente os passos 1 e 2; Bruno aceitou o Human Gate próprio do passo 1, enquanto o passo 2 aguarda decisão humana. A ordem restante é:
 
-1. decidir separadamente se deseja solicitar uma proposta ou autorização para o Incremento 2;
-2. repetir o processo para os Incrementos 2, 3 e 4;
+1. decidir o Human Gate próprio do Incremento 2 sem liberar atividade seguinte;
+2. solicitar e autorizar separadamente os Incrementos 3 e 4, um por vez;
 3. autorizar a campanha automática consolidada;
 4. revisar o relatório final e autorizar as amostras humanas;
 5. decidir o Human Gate do `STATE-06`;
@@ -360,7 +360,7 @@ O texto abaixo é preservado como o texto histórico que autorizou o Incremento 
 
 > AUTORIZO o Incremento 1 do Plano Consolidado de Fechamento do STATE-06 — Authoritative Observation Pipeline E2E Sandbox, limitado à fonte provider-neutral exclusivamente sintética, observações canônicas versionadas, persistência/outbox Agent SQLite, transporte HTTPS/mTLS de teste, ingestão e projeção read-only da API, snapshot Dashboard TV e testes locais de reinício, offline/reconexão, replay, duplicidade, reorder, staleness, revogação e incompatibilidade. Autorizo runtimes temporários exclusivamente locais, que deverão ser encerrados ao final. Permanecem proibidos acesso externo, dependências/downloads, provider ou banco operacional, SignalR, notificações, comandos, executor, serviços permanentes, deploy, LLM, promoção e transição de estado.
 
-Essa autorização separada liberou somente o primeiro incremento. O presente documento, por si só, continua sem liberar implementação.
+Essa autorização histórica liberou somente o primeiro incremento. O presente documento, por si só, continua sem liberar implementação; o segundo incremento dependeu de outra autorização explícita já registrada.
 
 ## Entregáveis deste incremento documental
 

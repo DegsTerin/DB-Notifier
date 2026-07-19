@@ -1742,6 +1742,22 @@
 - Próxima decisão: Bruno pode ajustar, adiar ou rejeitar a proposta. Para implementação, deverá autorizar separadamente o incremento e decidir explicitamente entre aquisição controlada do cliente oficial e manutenção da proibição de acesso externo/pacote novo.
 - Aprovador: não aplicável; esta entrada registra solicitação e proposta, não aprovação de execução.
 
+## 2026-07-19 — Incremento 2 Authenticated SignalR Change Hint Sandbox
+
+- Estado anterior: `STATE-06 INTEGRATION`, Incremento 1 aceito e proposta documental do Incremento 2 pronta, sem implementação autorizada naquele momento.
+- Estado resultante: sem transição; `STATE-06 INTEGRATION` mantido, implementação local do commit `c945c1b` concluída, Quality Gate automático restrito aprovado e Human Gate próprio pendente.
+- Autorização: Bruno autorizou separadamente contrato mínimo versionado, hub read-only somente no sandbox HTTPS loopback, autenticação exclusivamente de teste e mesma origem, cliente Dashboard somente na composição sandbox, API/polling autoritativos, concorrência `1`, coalescência, budget, cancelamento, fencing, reconnect limitado, testes determinísticos e browser E2E. Também autorizou temporariamente somente o registry npm oficial para `@microsoft/signalr` e suas dependências transitivas. Todo outro pacote/fonte e todo recurso operacional permaneceram proibidos.
+- Implementação: contrato `dashboard-tv-change-hint.v1`; cookie host-only efêmero com token aleatório/digest em memória; hub sem método cliente; publisher de revisão opaca; coordinator com dois hints por janela e deadline periódico independente; cliente oficial lazy somente após guardas do TV sandbox; fonte/control/evidência provider-neutral apenas no host E2E.
+- Isolamento: o `Program` normal não registra nem mapeia o hub/publisher; a composição normal não carrega o chunk SignalR. Não houve notificação, Agent/provider/monitoramento real, banco externo, identidade operacional, comando, LLM, executor, deploy, promoção ou transição.
+- Evidência browser: Chrome `150.0.7871.125`; hint produziu read HTTPS condicional `200`; polling seguinte retornou `304` após `30.016 ms` sem ser adiado; concorrência máxima de snapshot e conexão autenticada `1`; offline preservou estado e uma reconexão SignalR foi observada; `1.226` requisições HTTP/HTTPS e `26` WebSockets locais, `0` origem externa; cleanup integral aprovado.
+- Supply chain: `@microsoft/signalr@10.0.0` e 17 transitivas exatas, todas do registry oficial e com integridade; 15 MIT, uma BSD-2-Clause, uma BSD-3-Clause e uma Unlicense; `npm audit` com zero vulnerabilidade conhecida no momento da consulta. Nenhum outro pacote/fonte foi utilizado.
+- Gates: build Release dos 16 projetos com zero erro/aviso; `321/321` unitários, `19/19` arquitetura, `11/11` integração e `60/60` Dashboard; cobertura .NET `77,97%` linhas/`51,62%` branches; Pester compatível `23` com um skip previsto e cobertura `32,08%`; format, documentação, assets, TypeScript/Vite, fixture NuGet offline, secrets, smoke fail-closed e E2E aprovados.
+- Revisão direta: dois achados médios de lifecycle/cleanup foram corrigidos, a prova de reconexão foi elevada de inferência para observação e a ordenação de imports foi corrigida. A execução Pester 3.4 sob PowerShell 7.6 apresentou incompatibilidade de `Should Throw`; o host Windows PowerShell compatível passou e sondas diretas confirmaram fail-closed. Nenhum código legado foi alterado.
+- Limitações: SignalR continua best-effort; cookie/PKI são somente de teste; um Chrome/um Kestrel não provam browser/deploy/escala; Long Polling forçado, múltiplos clientes, carga/endurance/DDoS e identidade operacional não foram testados; budget local não é backpressure de frota; audit npm é pontual.
+- Evidências: [relatório do incremento](../../docs/STATE-06-Authenticated-SignalR-Change-Hint-Sandbox-Report.md), [proposta autorizada](../../docs/STATE-06-Authenticated-SignalR-Change-Hint-Sandbox-Proposal.md), commit `c945c1b`, código, lockfile, testes e resumo sanitizado do Chrome E2E.
+- Próxima decisão: Bruno deve revisar o relatório e aceitar com as limitações, solicitar remediação específica ou rejeitar somente este incremento. Nenhuma decisão libera automaticamente o Incremento 3, runtime operacional, promoção ou transição.
+- Aprovador: Bruno autorizou a execução delimitada; a decisão do Human Gate do resultado não foi inferida.
+
 ## Template de nova entrada
 
 - Data:

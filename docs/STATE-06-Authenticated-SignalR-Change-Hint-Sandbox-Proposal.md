@@ -292,3 +292,9 @@ Bruno poderá ajustar, adiar ou rejeitar esta proposta. Como o cliente oficial n
 - **Manter acesso externo proibido:** adiar o Incremento 2 e conservar exclusivamente o polling atual.
 
 Nenhuma dessas opções é inferida por este documento. A implementação, o acesso externo, o pacote e o runtime continuam proibidos até uma decisão posterior explícita.
+
+## Adendo factual posterior
+
+Em 2026-07-19, Bruno autorizou separadamente a implementação local descrita nesta proposta e o acesso temporário exclusivo ao registry npm oficial para o cliente oficial e suas dependências transitivas. O incremento foi implementado no commit `c945c1b`; `@microsoft/signalr@10.0.0` ficou fixado no manifesto/lockfile, e o [relatório de implementação](STATE-06-Authenticated-SignalR-Change-Hint-Sandbox-Report.md) registra evidências, supply chain, limitações e Quality Gate automático restrito aprovado.
+
+Este adendo não reescreve o escopo documental original nem constitui aceitação humana. O Human Gate próprio permanece pendente. Incremento 3, runtime operacional, notificações, promoção e transição continuam sem autorização.
