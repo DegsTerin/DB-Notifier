@@ -12,6 +12,8 @@ public sealed class AgentDbContext(DbContextOptions<AgentDbContext> options) : D
     public DbSet<AgentOutboxMessageRow> OutboxMessages => Set<AgentOutboxMessageRow>();
     public DbSet<AgentInboxCommandRow> InboxCommands => Set<AgentInboxCommandRow>();
     public DbSet<AgentCheckpointRow> Checkpoints => Set<AgentCheckpointRow>();
+    /// <summary>Gets durable request replay and fencing state for the isolated command-transport sandbox.</summary>
+    public DbSet<AgentCommandTransportStateRow> CommandTransportStates => Set<AgentCommandTransportStateRow>();
     /// <summary>Gets the durable Agent Fleet heartbeat and assignment-reconciliation state.</summary>
     public DbSet<AgentFleetStateRow> AgentFleetStates => Set<AgentFleetStateRow>();
 
@@ -94,7 +96,7 @@ public sealed class AgentDbContext(DbContextOptions<AgentDbContext> options) : D
         modelBuilder.Entity<AgentInboxCommandRow>(entity =>
         {
             entity.ToTable("inbox_commands", table =>
-                table.HasCheckConstraint("ck_agent_command_state", "state IN ('Pending','Available','Acknowledged','Running','Succeeded','Failed','Cancelled','Expired','Rejected','UnknownOutcome')"));
+                table.HasCheckConstraint("ck_agent_command_state", "state IN ('Pending','Available','Acknowledged','Running','Succeeded','Failed','Cancelled','Expired','Rejected','Unsupported','UnknownOutcome')"));
             entity.HasKey(row => row.CommandId);
             entity.Property(row => row.IdempotencyKey).HasMaxLength(200).IsRequired();
             entity.HasIndex(row => row.IdempotencyKey).IsUnique();
@@ -113,6 +115,34 @@ public sealed class AgentDbContext(DbContextOptions<AgentDbContext> options) : D
             entity.ToTable("checkpoints", table => table.HasCheckConstraint("ck_checkpoint_sequence", "sequence >= 0"));
             entity.HasKey(row => row.StreamName);
             entity.Property(row => row.StreamName).HasMaxLength(100);
+        });
+
+        modelBuilder.Entity<AgentCommandTransportStateRow>(entity =>
+        {
+            entity.ToTable("command_transport_state", table =>
+            {
+                table.HasCheckConstraint("ck_command_transport_next_sequence", "next_sequence >= 1");
+                table.HasCheckConstraint("ck_command_transport_next_fence", "next_fence >= 1");
+                table.HasCheckConstraint("ck_command_transport_attempts", "pending_attempt_count >= 0");
+                table.HasCheckConstraint(
+                    "ck_command_transport_pending",
+                    "(pending_message_id IS NULL AND pending_sequence IS NULL AND pending_message_kind IS NULL AND pending_payload_json IS NULL AND pending_payload_sha256 IS NULL AND pending_attempt_count = 0 AND pending_last_attempt_at IS NULL) OR " +
+                    "(pending_message_id IS NOT NULL AND pending_sequence >= 1 AND pending_message_kind IN ('Poll','Acknowledgement') AND pending_payload_json IS NOT NULL AND pending_payload_sha256 IS NOT NULL)");
+                table.HasCheckConstraint(
+                    "ck_command_transport_lease",
+                    "(lease_owner IS NULL AND lease_fence IS NULL AND lease_expires_at IS NULL) OR " +
+                    "(lease_owner IS NOT NULL AND lease_fence >= 1 AND lease_expires_at IS NOT NULL)");
+            });
+            entity.HasKey(row => row.AgentId);
+            entity.Property(row => row.PendingMessageKind).HasMaxLength(32);
+            entity.Property(row => row.PendingPayloadJson).HasMaxLength(64 * 1024);
+            entity.Property(row => row.PendingPayloadSha256).HasMaxLength(64);
+            entity.Property(row => row.LeaseOwner).HasMaxLength(160);
+            entity.Property(row => row.ConcurrencyToken).IsConcurrencyToken();
+            entity.HasOne<AgentRegistrationRow>()
+                .WithOne()
+                .HasForeignKey<AgentCommandTransportStateRow>(row => row.AgentId)
+                .OnDelete(DeleteBehavior.Restrict);
         });
 
         modelBuilder.Entity<AgentFleetStateRow>(entity =>

@@ -120,7 +120,7 @@ public sealed class AgentRuntimeTests
             Assert.True(File.Exists(databasePath));
 
             await using AgentDbContext verification = new(options);
-            Assert.Equal(5, (await verification.Database.GetAppliedMigrationsAsync()).Count());
+            Assert.Equal(6, (await verification.Database.GetAppliedMigrationsAsync()).Count());
         }
         finally
         {

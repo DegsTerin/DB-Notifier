@@ -550,12 +550,17 @@ public sealed class AgentFleetSandboxResilienceTests
         Assert.True(migrations.Length >= 2);
         IMigrator migrator = context.Database.GetService<IMigrator>();
 
+        int resilienceIndex = Array.FindIndex(
+            migrations,
+            migration => migration.EndsWith("HardenAgentFleetSandboxResilience", StringComparison.Ordinal));
+        Assert.True(resilienceIndex > 0);
+        string beforeResilience = migrations[resilienceIndex - 1];
         await Assert.ThrowsAsync<SqliteException>(() => migrator
-            .MigrateAsync(migrations[^2], CancellationToken.None));
+            .MigrateAsync(beforeResilience, CancellationToken.None));
         await fixture.Store.ReleaseOperationLeaseAsync(lease, CancellationToken.None);
-        await migrator.MigrateAsync(migrations[^2], CancellationToken.None);
-        Assert.Equal(migrations[^2], Assert.Single(await context.Database.GetAppliedMigrationsAsync(),
-            migration => migration == migrations[^2]));
+        await migrator.MigrateAsync(beforeResilience, CancellationToken.None);
+        Assert.Equal(beforeResilience, Assert.Single(await context.Database.GetAppliedMigrationsAsync(),
+            migration => migration == beforeResilience));
         await migrator.MigrateAsync(migrations[^1], CancellationToken.None);
         Assert.Equal(migrations, (await context.Database.GetAppliedMigrationsAsync()).ToArray());
     }

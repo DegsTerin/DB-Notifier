@@ -38,6 +38,11 @@ public sealed class ServerDbContext(DbContextOptions<ServerDbContext> options) :
     public DbSet<NotificationDeliveryRow> NotificationDeliveries => Set<NotificationDeliveryRow>();
     public DbSet<AdministrativeCommandRow> AdministrativeCommands => Set<AdministrativeCommandRow>();
     public DbSet<CommandAttemptRow> CommandAttempts => Set<CommandAttemptRow>();
+    /// <summary>Gets durable per-Agent cursors for the isolated command-transport sandbox.</summary>
+    public DbSet<ServerCommandTransportCursorRow> CommandTransportCursors => Set<ServerCommandTransportCursorRow>();
+
+    /// <summary>Gets exact request/response replay evidence for the isolated command-transport sandbox.</summary>
+    public DbSet<ServerCommandTransportJournalRow> CommandTransportJournal => Set<ServerCommandTransportJournalRow>();
     public DbSet<PlatformUserRow> Users => Set<PlatformUserRow>();
     public DbSet<RoleRow> Roles => Set<RoleRow>();
     public DbSet<PermissionRow> Permissions => Set<PermissionRow>();
@@ -366,7 +371,7 @@ public sealed class ServerDbContext(DbContextOptions<ServerDbContext> options) :
             entity.ToTable("administrative_commands", table =>
             {
                 table.HasCheckConstraint("ck_command_expiry", "expires_at > requested_at");
-                table.HasCheckConstraint("ck_command_state", "state IN ('Pending','Available','Acknowledged','Running','Succeeded','Failed','Cancelled','Expired','Rejected','UnknownOutcome')");
+                table.HasCheckConstraint("ck_command_state", "state IN ('Pending','Available','Acknowledged','Running','Succeeded','Failed','Cancelled','Expired','Rejected','Unsupported','UnknownOutcome')");
             });
             entity.HasKey(row => row.CommandId);
             entity.Property(row => row.IdempotencyKey).HasMaxLength(200).IsRequired();
@@ -400,6 +405,36 @@ public sealed class ServerDbContext(DbContextOptions<ServerDbContext> options) :
             entity.HasIndex(row => new { row.CommandId, row.AttemptNumber }).IsUnique();
             entity.HasOne<AdministrativeCommandRow>().WithMany().HasForeignKey(row => row.CommandId).OnDelete(DeleteBehavior.Restrict);
             entity.HasOne<HealthSampleRow>().WithMany().HasForeignKey(row => row.PostProbeObservationId).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<ServerCommandTransportCursorRow>(entity =>
+        {
+            entity.ToTable("agent_command_transport_cursors", table =>
+                table.HasCheckConstraint(
+                    "ck_agent_command_transport_cursor_sequence",
+                    "highest_accepted_sequence >= 0"));
+            entity.HasKey(row => row.AgentId);
+            entity.Property(row => row.ConcurrencyToken).IsConcurrencyToken();
+            entity.HasOne<RegisteredAgentRow>()
+                .WithOne()
+                .HasForeignKey<ServerCommandTransportCursorRow>(row => row.AgentId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<ServerCommandTransportJournalRow>(entity =>
+        {
+            entity.ToTable("command_transport_journal", table =>
+                table.HasCheckConstraint("ck_command_transport_journal_sequence", "sequence >= 1"));
+            entity.HasKey(row => row.MessageId);
+            entity.Property(row => row.MessageType).HasMaxLength(64).IsRequired();
+            entity.Property(row => row.RequestPayloadSha256).HasMaxLength(64).IsRequired();
+            entity.Property(row => row.ResponsePayloadJson).HasColumnType("jsonb").IsRequired();
+            entity.HasIndex(row => new { row.AgentId, row.Sequence }).IsUnique();
+            entity.HasIndex(row => row.ResponseMessageId).IsUnique();
+            entity.HasOne<RegisteredAgentRow>()
+                .WithMany()
+                .HasForeignKey(row => row.AgentId)
+                .OnDelete(DeleteBehavior.Restrict);
         });
     }
 

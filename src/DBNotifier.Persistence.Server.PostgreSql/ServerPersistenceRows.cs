@@ -292,6 +292,50 @@ public sealed class CommandAttemptRow
     public string? DiagnosticReference { get; set; }
 }
 
+/// <summary>Persists the highest contiguous command-transport sequence accepted for one Agent.</summary>
+public sealed class ServerCommandTransportCursorRow
+{
+    /// <summary>Gets or sets the owning Agent identifier.</summary>
+    public Guid AgentId { get; set; }
+
+    /// <summary>Gets or sets the highest request sequence committed by the sandbox protocol.</summary>
+    public long HighestAcceptedSequence { get; set; }
+
+    /// <summary>Gets or sets the trusted UTC cursor update instant.</summary>
+    public DateTimeOffset UpdatedAt { get; set; }
+
+    /// <summary>Gets or sets the optimistic concurrency token.</summary>
+    public Guid ConcurrencyToken { get; set; }
+}
+
+/// <summary>Persists exact request identity, digest and stable response for safe command-transport replay.</summary>
+public sealed class ServerCommandTransportJournalRow
+{
+    /// <summary>Gets or sets the immutable request message identifier.</summary>
+    public Guid MessageId { get; set; }
+
+    /// <summary>Gets or sets the authenticated Agent identifier.</summary>
+    public Guid AgentId { get; set; }
+
+    /// <summary>Gets or sets the exact per-Agent request sequence.</summary>
+    public long Sequence { get; set; }
+
+    /// <summary>Gets or sets the closed request message type.</summary>
+    public required string MessageType { get; set; }
+
+    /// <summary>Gets or sets the SHA-256 digest of the canonical request JSON.</summary>
+    public required string RequestPayloadSha256 { get; set; }
+
+    /// <summary>Gets or sets the stable response message identifier.</summary>
+    public Guid ResponseMessageId { get; set; }
+
+    /// <summary>Gets or sets the exact bounded response JSON returned for every exact replay.</summary>
+    public required string ResponsePayloadJson { get; set; }
+
+    /// <summary>Gets or sets the trusted first-receipt UTC instant.</summary>
+    public DateTimeOffset ReceivedAt { get; set; }
+}
+
 public sealed class PlatformUserRow
 {
     public Guid UserId { get; set; }

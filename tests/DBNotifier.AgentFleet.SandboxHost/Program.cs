@@ -39,6 +39,11 @@ namespace DBNotifier.AgentFleet.SandboxHost
                 return await ObservationPipelineSandboxHost.RunAsync(args).ConfigureAwait(false);
             }
 
+            if (args is { Length: > 0 } && args[0] == "--sandbox-command-transport")
+            {
+                return await CommandTransportSandboxHost.RunAsync(args).ConfigureAwait(false);
+            }
+
             string stage = "argument_validation";
             try
             {

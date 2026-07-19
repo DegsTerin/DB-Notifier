@@ -25,7 +25,7 @@ public sealed class PersistenceModelTests
         await context.Database.MigrateAsync();
 
         string[] appliedMigrations = (await context.Database.GetAppliedMigrationsAsync()).ToArray();
-        Assert.Equal(5, appliedMigrations.Length);
+        Assert.Equal(6, appliedMigrations.Length);
 
         context.InstanceAssignments.Add(new AgentInstanceAssignmentRow
         {
@@ -117,7 +117,7 @@ public sealed class PersistenceModelTests
         await using AgentDbContext context = new(options);
         await context.Database.MigrateAsync();
         string[] appliedMigrations = (await context.Database.GetAppliedMigrationsAsync()).ToArray();
-        Assert.Equal(5, appliedMigrations.Length);
+        Assert.Equal(6, appliedMigrations.Length);
 
         Guid agentId = Guid.NewGuid();
         DateTimeOffset now = DateTimeOffset.UtcNow;
@@ -150,7 +150,7 @@ public sealed class PersistenceModelTests
         Assert.Equal(3, (await context.Database.GetAppliedMigrationsAsync()).Count());
 
         await migrator.MigrateAsync();
-        Assert.Equal(5, (await context.Database.GetAppliedMigrationsAsync()).Count());
+        Assert.Equal(6, (await context.Database.GetAppliedMigrationsAsync()).Count());
     }
 
     [Fact]
@@ -190,7 +190,11 @@ public sealed class PersistenceModelTests
             migrationScript);
 
         string[] migrations = context.Database.GetMigrations().ToArray();
-        Assert.Equal(5, migrations.Length);
+        Assert.Equal(6, migrations.Length);
+        string commandTransportRollback = migrator.GenerateScript(migrations[5], migrations[4]);
+        Assert.Contains("command_transport_journal", commandTransportRollback, StringComparison.Ordinal);
+        Assert.Contains("agent_command_transport_cursors", commandTransportRollback, StringComparison.Ordinal);
+        Assert.Contains("'Rejected','UnknownOutcome'", commandTransportRollback, StringComparison.Ordinal);
         string agentFleetRollback = migrator.GenerateScript(migrations[4], migrations[3]);
         Assert.Contains("DROP TABLE", agentFleetRollback, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("agent_certificates", agentFleetRollback, StringComparison.Ordinal);

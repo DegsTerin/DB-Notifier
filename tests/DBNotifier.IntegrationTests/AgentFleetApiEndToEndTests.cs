@@ -1058,6 +1058,314 @@ public sealed class AgentFleetApiEndToEndTests
         Assert.DoesNotContain(secretCanary, standardError, StringComparison.Ordinal);
     }
 
+    /// <summary>
+    /// Proves durable poll and acknowledgement replay across fresh child processes, bounded response loss,
+    /// protocol rejection and revocation while every fixture remains structurally execution-ineligible.
+    /// </summary>
+    [Fact]
+    public async Task CommandTransportReplaysAcrossProcessesAndCannotCreateAnExecutionAttempt()
+    {
+        PauseAfterCommitInterceptor commitPause = new();
+        await using AgentFleetSandbox sandbox = await AgentFleetSandbox.StartAsync(
+            commitPause,
+            enableCommandTransport: true);
+        await using AgentFileSandbox local = await AgentFileSandbox.StartCommandTransportAsync();
+        await using SandboxAgentIdentityStore identities = new(sandbox);
+        string installationId = $"installation:{Guid.NewGuid():N}";
+        AgentEnrollmentRequest tokenBinding = new(
+            Guid.NewGuid(),
+            AgentFleetProtocol.CurrentSchemaVersion,
+            installationId,
+            "Command Transport Sandbox Agent",
+            EnvironmentName,
+            PlatformName,
+            AgentVersion,
+            ScopeName,
+            sandbox.Now,
+            sandbox.Now,
+            "test-only-public-csr-placeholder");
+        string token = await sandbox.SeedEnrollmentTokenAsync(tokenBinding);
+        HttpAgentFleetClientTransport enrollmentTransport = new(
+            sandbox.BaseAddress,
+            AgentVersion,
+            identities.GetClient);
+        AgentFleetClientCoordinator enrollmentCoordinator = new(
+            identities,
+            enrollmentTransport,
+            local.Store,
+            new FixedTimeProvider(sandbox.Now),
+            TimeSpan.FromMinutes(5));
+        AgentFleetClientResult enrollment = await enrollmentCoordinator.EnrolForTestAsync(
+            new AgentEnrollmentBootstrap(
+                token,
+                installationId,
+                "Command Transport Sandbox Agent",
+                EnvironmentName,
+                PlatformName,
+                AgentVersion,
+                ScopeName),
+            CancellationToken.None);
+        Assert.True(enrollment.Succeeded);
+        AgentLocalRegistration registration = Assert.IsType<AgentLocalRegistration>(
+            await local.Store.GetRegistrationAsync(CancellationToken.None));
+        Guid instanceId = await sandbox.SeedAssignmentsAndHumanAccessAsync(registration.AgentId);
+        CommandTransportFixtureIds fixtures = await sandbox.SeedCommandTransportFixturesAsync(
+            registration.AgentId,
+            instanceId);
+        (byte[] pkcs12, string password) = identities.ExportIdentityPackage(registration.IdentityReference);
+        try
+        {
+            using X509Certificate2 identity = X509CertificateLoader.LoadPkcs12(
+                pkcs12,
+                password,
+                X509KeyStorageFlags.UserKeySet | X509KeyStorageFlags.Exportable);
+            using HttpClient directClient = sandbox.CreateClient(identity);
+            using HttpResponseMessage incompatible = await SendCommandTransportPollAsync(
+                directClient,
+                registration.AgentId,
+                sequence: 1,
+                schemaVersion: 1,
+                maximumCount: 4);
+            Assert.Equal(HttpStatusCode.UpgradeRequired, incompatible.StatusCode);
+
+            using HttpResponseMessage gap = await SendCommandTransportPollAsync(
+                directClient,
+                registration.AgentId,
+                sequence: 2,
+                schemaVersion: CommandTransportProtocol.CurrentSchemaVersion,
+                maximumCount: 4);
+            Assert.Equal(HttpStatusCode.Conflict, gap.StatusCode);
+            CommandTransportProblem gapProblem = await ReadRequiredJsonAsync<CommandTransportProblem>(gap);
+            Assert.Equal("command.transport_sequence_gap", gapProblem.Code);
+            Assert.Equal(1, gapProblem.ExpectedSequence);
+
+            using HttpResponseMessage oversized = await SendOversizedCommandTransportRequestAsync(
+                directClient,
+                registration.AgentId);
+            Assert.Equal(HttpStatusCode.RequestEntityTooLarge, oversized.StatusCode);
+
+            using HttpResponseMessage wrongRoute = await SendCommandTransportPollAsync(
+                directClient,
+                Guid.NewGuid(),
+                sequence: 1,
+                schemaVersion: CommandTransportProtocol.CurrentSchemaVersion,
+                maximumCount: 4);
+            Assert.Equal(HttpStatusCode.Forbidden, wrongRoute.StatusCode);
+
+            CommandTransportProcessResult lostPoll = await RunCommandTransportHostAsync(
+                local,
+                sandbox,
+                registration,
+                pkcs12,
+                password,
+                sandbox.Now,
+                "lose-poll");
+            Assert.Equal(3, lostPoll.ExitCode);
+            Assert.Contains("command_transport_host.failed:cycle:IOException", lostPoll.StandardError);
+            await local.AssertCommandTransportPendingAsync(
+                registration.AgentId,
+                CommandTransportMessageKind.Poll,
+                sequence: 1,
+                attemptCount: 3,
+                expectedInboxCount: 0);
+            await sandbox.AssertCommandTransportJournalAsync(registration.AgentId, 1, 1);
+
+            CommandTransportProcessResult lostAcknowledgement = await RunCommandTransportHostAsync(
+                local,
+                sandbox,
+                registration,
+                pkcs12,
+                password,
+                sandbox.Now,
+                "lose-ack");
+            Assert.Equal(3, lostAcknowledgement.ExitCode);
+            Assert.Contains("command_transport_host.failed:cycle:IOException", lostAcknowledgement.StandardError);
+            await local.AssertCommandTransportPendingAsync(
+                registration.AgentId,
+                CommandTransportMessageKind.Acknowledgement,
+                sequence: 2,
+                attemptCount: 3,
+                expectedInboxCount: 2);
+            await sandbox.AssertCommandTransportJournalAsync(registration.AgentId, 2, 2);
+
+            CommandTransportProcessResult replayed = await RunCommandTransportHostAsync(
+                local,
+                sandbox,
+                registration,
+                pkcs12,
+                password,
+                sandbox.Now,
+                "none");
+            Assert.Equal(0, replayed.ExitCode);
+            CommandTransportChildResult completed = JsonSerializer.Deserialize<CommandTransportChildResult>(
+                replayed.StandardOutput.Trim(),
+                JsonOptions) ?? throw new InvalidOperationException("Command transport child returned no result.");
+            Assert.True(completed.Succeeded);
+            Assert.Equal(0, completed.Delivered);
+            Assert.Equal(2, completed.Acknowledged);
+            Assert.Equal(1, completed.Attempts);
+            await local.AssertCommandTransportCompletedAsync(registration.AgentId, fixtures);
+
+            commitPause.Arm();
+            Task<HttpResponseMessage> committedPoll = SendCommandTransportPollAsync(
+                directClient,
+                registration.AgentId,
+                sequence: 3,
+                schemaVersion: CommandTransportProtocol.CurrentSchemaVersion,
+                maximumCount: 4);
+            await commitPause.WaitUntilPausedAsync(CancellationToken.None);
+            await sandbox.RevokeAgentAsync(registration.AgentId);
+            commitPause.Release();
+            using HttpResponseMessage historicalPoll = await committedPoll;
+            Assert.Equal(HttpStatusCode.OK, historicalPoll.StatusCode);
+            CommandTransportPollResponse historical = await ReadRequiredJsonAsync<CommandTransportPollResponse>(
+                historicalPoll);
+            Assert.Equal(3, historical.Sequence);
+            Assert.Empty(historical.Commands);
+
+            CommandTransportProcessResult revoked = await RunCommandTransportHostAsync(
+                local,
+                sandbox,
+                registration,
+                pkcs12,
+                password,
+                sandbox.Now,
+                "none");
+            Assert.Equal(3, revoked.ExitCode);
+            Assert.Contains("command_transport_host.failed:cycle:CommandTransportException", revoked.StandardError);
+            await local.AssertCommandTransportPendingAsync(
+                registration.AgentId,
+                CommandTransportMessageKind.Poll,
+                sequence: 3,
+                attemptCount: 1,
+                expectedInboxCount: 2);
+            await sandbox.AssertCommandTransportFinalIsolationAsync(registration.AgentId, fixtures);
+        }
+        finally
+        {
+            commitPause.Release();
+            CryptographicOperations.ZeroMemory(pkcs12);
+        }
+    }
+
+    private static async Task<HttpResponseMessage> SendCommandTransportPollAsync(
+        HttpClient client,
+        Guid routeAgentId,
+        long sequence,
+        int schemaVersion,
+        int maximumCount)
+    {
+        DateTimeOffset now = DateTimeOffset.UtcNow;
+        CommandTransportPollRequest body = new(
+            Guid.NewGuid(),
+            schemaVersion,
+            routeAgentId,
+            sequence,
+            now,
+            now,
+            AgentVersion,
+            new Dictionary<string, string>(StringComparer.Ordinal)
+            {
+                ["fixture-provider"] = "sandbox-provider-v1",
+            },
+            maximumCount);
+        using HttpRequestMessage request = new(
+            HttpMethod.Post,
+            $"/api/v2/sandbox/agents/{routeAgentId:D}/commands:poll")
+        {
+            Content = JsonContent.Create(body, options: JsonOptions),
+        };
+        AddCommandTransportHeaders(request, schemaVersion);
+        return await client.SendAsync(request);
+    }
+
+    private static async Task<HttpResponseMessage> SendOversizedCommandTransportRequestAsync(
+        HttpClient client,
+        Guid agentId)
+    {
+        using HttpRequestMessage request = new(
+            HttpMethod.Post,
+            $"/api/v2/sandbox/agents/{agentId:D}/commands:poll")
+        {
+            Content = new StringContent(
+                new string('x', CommandTransportProtocol.MaximumHttpBodyBytes + 1),
+                Encoding.UTF8,
+                "application/json"),
+        };
+        AddCommandTransportHeaders(request, CommandTransportProtocol.CurrentSchemaVersion);
+        return await client.SendAsync(request);
+    }
+
+    private static void AddCommandTransportHeaders(HttpRequestMessage request, int schemaVersion)
+    {
+        string version = schemaVersion.ToString(CultureInfo.InvariantCulture);
+        request.Headers.Add("DBN-Protocol-Version", version);
+        request.Headers.Add("DBN-Message-Schema", version);
+        request.Headers.Add("DBN-Agent-Version", AgentVersion);
+    }
+
+    private static async Task<CommandTransportProcessResult> RunCommandTransportHostAsync(
+        AgentFileSandbox local,
+        AgentFleetSandbox sandbox,
+        AgentLocalRegistration registration,
+        byte[] pkcs12,
+        string password,
+        DateTimeOffset now,
+        string fault)
+    {
+        string pipeName = $"dbnotifier-command-transport-{Guid.NewGuid():N}";
+        using NamedPipeServerStream pipe = CreateIdentityPipe(pipeName);
+        ProcessStartInfo startInfo = new("dotnet")
+        {
+            UseShellExecute = false,
+            CreateNoWindow = true,
+            WindowStyle = ProcessWindowStyle.Hidden,
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+            WorkingDirectory = local.RootPath,
+        };
+        startInfo.ArgumentList.Add(ResolveSandboxHostPath());
+        startInfo.ArgumentList.Add("--sandbox-command-transport");
+        AddArgument(startInfo, "--sandbox-root", local.RootPath);
+        AddArgument(startInfo, "--database", local.DatabasePath);
+        AddArgument(startInfo, "--base-address", sandbox.BaseAddress.AbsoluteUri);
+        AddArgument(startInfo, "--identity-pipe", pipeName);
+        AddArgument(startInfo, "--owner", $"sandbox:command:{Guid.NewGuid():N}");
+        AddArgument(startInfo, "--agent-id", registration.AgentId.ToString("D"));
+        AddArgument(startInfo, "--agent-version", AgentVersion);
+        AddArgument(startInfo, "--provider-id", "fixture-provider");
+        AddArgument(startInfo, "--provider-version", "sandbox-provider-v1");
+        AddArgument(startInfo, "--maximum-count", "4");
+        AddArgument(startInfo, "--utc-now", now.ToString("O", CultureInfo.InvariantCulture));
+        AddArgument(startInfo, "--fault", fault);
+        Assert.DoesNotContain(startInfo.ArgumentList, value =>
+            value.Contains("PRIVATE", StringComparison.OrdinalIgnoreCase) ||
+            value.Contains("password", StringComparison.OrdinalIgnoreCase));
+
+        using Process process = Process.Start(startInfo) ??
+            throw new InvalidOperationException("Command transport sandbox host did not start.");
+        using CancellationTokenSource timeout = new(TimeSpan.FromSeconds(20));
+        Task sender = SendIdentityPackageAsync(pipe, pkcs12, password, sandbox.ServerThumbprint, timeout.Token);
+        Task<string> output = process.StandardOutput.ReadToEndAsync(timeout.Token);
+        Task<string> error = process.StandardError.ReadToEndAsync(timeout.Token);
+        try
+        {
+            await Task.WhenAll(sender, process.WaitForExitAsync(timeout.Token));
+        }
+        catch
+        {
+            if (!process.HasExited)
+            {
+                process.Kill(entireProcessTree: true);
+                await process.WaitForExitAsync();
+            }
+
+            throw;
+        }
+
+        return new(process.ExitCode, await output, await error);
+    }
+
     /// <summary>Creates a deliberately incompatible observation request whose body would otherwise be canonical.</summary>
     private static HttpRequestMessage CreateObservationRequest(
         Guid agentId,
@@ -1591,6 +1899,25 @@ public sealed class AgentFleetApiEndToEndTests
         int AcknowledgedCount,
         int RetryableCount);
 
+    private sealed record CommandTransportChildResult(
+        bool Succeeded,
+        int Delivered,
+        int Acknowledged,
+        int Attempts,
+        long Fence);
+
+    private sealed record CommandTransportProcessResult(
+        int ExitCode,
+        string StandardOutput,
+        string StandardError);
+
+    private sealed record CommandTransportFixtureIds(
+        Guid AcceptedCommandId,
+        Guid UnsupportedCommandId,
+        Guid ExpiredCommandId,
+        Guid IncompatibleCommandId,
+        Guid OperationalControlCommandId);
+
     /// <summary>Sends enrollment with the credential isolated in the authorisation header.</summary>
     /// <param name="client">Anonymous HTTPS client.</param>
     /// <param name="token">Ephemeral one-time token.</param>
@@ -1691,7 +2018,19 @@ public sealed class AgentFleetApiEndToEndTests
         /// <returns>Disposable file-backed Agent sandbox.</returns>
         public static async Task<AgentFileSandbox> StartAsync()
         {
-            DirectoryInfo root = Directory.CreateTempSubdirectory("dbnotifier-agent-fleet-sandbox-");
+            return await StartAsync("dbnotifier-agent-fleet-sandbox-");
+        }
+
+        /// <summary>Creates a file store whose strict name is admitted by the command-transport child harness.</summary>
+        /// <returns>Disposable file-backed command-transport sandbox.</returns>
+        public static async Task<AgentFileSandbox> StartCommandTransportAsync()
+        {
+            return await StartAsync("dbnotifier-command-transport-sandbox-");
+        }
+
+        private static async Task<AgentFileSandbox> StartAsync(string prefix)
+        {
+            DirectoryInfo root = Directory.CreateTempSubdirectory(prefix);
             string rootPath = root.FullName;
             string databasePath = Path.Combine(rootPath, "agent.db");
             string connectionString = new SqliteConnectionStringBuilder
@@ -1734,6 +2073,69 @@ public sealed class AgentFleetApiEndToEndTests
             await using AgentDbContext context = new(options);
             return await context.AgentFleetStates.AsNoTracking()
                 .SingleAsync(row => row.AgentId == agentId);
+        }
+
+        /// <summary>Confirms exact durable pending identity after a child process loses all bounded responses.</summary>
+        public async Task AssertCommandTransportPendingAsync(
+            Guid agentId,
+            CommandTransportMessageKind kind,
+            long sequence,
+            int attemptCount,
+            int expectedInboxCount)
+        {
+            await using AgentDbContext context = new(options);
+            AgentCommandTransportStateRow state = await context.CommandTransportStates
+                .AsNoTracking()
+                .SingleAsync(row => row.AgentId == agentId);
+            Assert.Equal(kind.ToString(), state.PendingMessageKind);
+            Assert.Equal(sequence, state.PendingSequence);
+            Assert.NotEqual(Guid.Empty, state.PendingMessageId);
+            Assert.False(string.IsNullOrWhiteSpace(state.PendingPayloadJson));
+            Assert.Equal(
+                CommandTransportCodec.ComputeSha256(state.PendingPayloadJson),
+                state.PendingPayloadSha256);
+            Assert.Equal(attemptCount, state.PendingAttemptCount);
+            Assert.Null(state.LeaseOwner);
+            Assert.Null(state.LeaseFence);
+            Assert.Null(state.LeaseExpiresAt);
+            Assert.Equal(expectedInboxCount, await context.InboxCommands.CountAsync());
+            Assert.All(await context.InboxCommands.AsNoTracking().ToArrayAsync(), row =>
+            {
+                Assert.Null(row.CompletedAt);
+                Assert.Null(row.ResultJson);
+            });
+        }
+
+        /// <summary>Confirms terminal receipt-only inbox state after the exact acknowledgement replay succeeds.</summary>
+        public async Task AssertCommandTransportCompletedAsync(
+            Guid agentId,
+            CommandTransportFixtureIds fixtures)
+        {
+            await using AgentDbContext context = new(options);
+            AgentCommandTransportStateRow state = await context.CommandTransportStates
+                .AsNoTracking()
+                .SingleAsync(row => row.AgentId == agentId);
+            Assert.Equal(3, state.NextSequence);
+            Assert.Null(state.PendingMessageId);
+            Assert.Null(state.PendingSequence);
+            Assert.Null(state.PendingMessageKind);
+            Assert.Null(state.PendingPayloadJson);
+            Assert.Null(state.PendingPayloadSha256);
+            Assert.Equal(0, state.PendingAttemptCount);
+            AgentInboxCommandRow accepted = await context.InboxCommands.AsNoTracking()
+                .SingleAsync(row => row.CommandId == fixtures.AcceptedCommandId);
+            AgentInboxCommandRow unsupported = await context.InboxCommands.AsNoTracking()
+                .SingleAsync(row => row.CommandId == fixtures.UnsupportedCommandId);
+            Assert.Equal("Acknowledged", accepted.State);
+            Assert.NotNull(accepted.AcknowledgedAt);
+            Assert.Equal("Unsupported", unsupported.State);
+            Assert.Null(unsupported.AcknowledgedAt);
+            Assert.All(new[] { accepted, unsupported }, row =>
+            {
+                Assert.StartsWith(CommandTransportProtocol.SyntheticCapabilityPrefix, row.CapabilityId);
+                Assert.Null(row.CompletedAt);
+                Assert.Null(row.ResultJson);
+            });
         }
 
         /// <summary>Proves that multiprocess heartbeat replay activated no operational data path.</summary>
@@ -1792,8 +2194,10 @@ public sealed class AgentFleetApiEndToEndTests
             string fullRoot = Path.GetFullPath(RootPath);
             string tempRoot = Path.GetFullPath(Path.GetTempPath());
             string relative = Path.GetRelativePath(tempRoot, fullRoot);
+            string rootName = Path.GetFileName(fullRoot);
             if (Path.IsPathRooted(relative) || relative.StartsWith("..", StringComparison.Ordinal) ||
-                !Path.GetFileName(fullRoot).StartsWith("dbnotifier-agent-fleet-sandbox-", StringComparison.Ordinal))
+                !(rootName.StartsWith("dbnotifier-agent-fleet-sandbox-", StringComparison.Ordinal) ||
+                    rootName.StartsWith("dbnotifier-command-transport-sandbox-", StringComparison.Ordinal)))
             {
                 throw new InvalidOperationException("The sandbox root cannot be safely removed.");
             }
@@ -2301,11 +2705,13 @@ public sealed class AgentFleetApiEndToEndTests
         /// <param name="interceptor">Optional fixture-owned coordination interceptor; never registered operationally.</param>
         /// <param name="enableObservationPipeline">Whether to compose the explicitly guarded synthetic observation and TV routes.</param>
         /// <param name="observationPause">Optional E2E-only barrier before one selected observation enters persistence.</param>
+        /// <param name="enableCommandTransport">Whether to compose the execution-ineligible command transport routes.</param>
         /// <returns>Started disposable sandbox.</returns>
         public static async Task<AgentFleetSandbox> StartAsync(
             IInterceptor? interceptor = null,
             bool enableObservationPipeline = false,
-            ObservationIngestionPause? observationPause = null)
+            ObservationIngestionPause? observationPause = null,
+            bool enableCommandTransport = false)
         {
             if (observationPause is not null && !enableObservationPipeline)
             {
@@ -2384,6 +2790,11 @@ public sealed class AgentFleetApiEndToEndTests
             builder.Services.AddScoped<IAgentFleetStore, AgentFleetStore>();
             builder.Services.AddScoped<AgentFleetService>();
             builder.Services.AddScoped<AgentCertificateIdentityValidator>();
+            if (enableCommandTransport)
+            {
+                builder.Services.AddScoped<ICommandTransportServerStore, ServerCommandTransportSandboxStore>();
+            }
+
             builder.Services.AddSingleton<HumanActorResolver>();
             builder.Services.AddSingleton<IAuthorizationHandler, AgentRouteAuthorizationHandler>();
             bool dashboardTvEnabled = false;
@@ -2445,6 +2856,11 @@ public sealed class AgentFleetApiEndToEndTests
             application.UseRateLimiter();
             application.UseAuthorization();
             application.MapAgentFleetEndpoints();
+            if (enableCommandTransport)
+            {
+                application.MapCommandTransportSafetySandboxEndpoints();
+            }
+
             if (enableObservationPipeline)
             {
                 application.MapObservationIngestionEndpoint();
@@ -2649,6 +3065,112 @@ public sealed class AgentFleetApiEndToEndTests
             });
             await context.SaveChangesAsync();
             return activeInstanceId;
+        }
+
+        /// <summary>Seeds only synthetic non-executable command fixtures plus explicit negative controls.</summary>
+        public async Task<CommandTransportFixtureIds> SeedCommandTransportFixturesAsync(
+            Guid agentId,
+            Guid instanceId)
+        {
+            await using AsyncServiceScope scope = application.Services.CreateAsyncScope();
+            ServerDbContext context = scope.ServiceProvider.GetRequiredService<ServerDbContext>();
+            Guid userId = await context.Users.Select(row => row.UserId).SingleAsync();
+            DateTimeOffset now = Now;
+            CommandTransportFixtureIds ids = new(
+                Guid.NewGuid(),
+                Guid.NewGuid(),
+                Guid.NewGuid(),
+                Guid.NewGuid(),
+                Guid.NewGuid());
+            context.AdministrativeCommands.AddRange(
+                CreateCommand(ids.AcceptedCommandId, "sandbox.command.receipt.v1", "sandbox-provider-v1", now.AddMinutes(-5), now.AddMinutes(5)),
+                CreateCommand(ids.UnsupportedCommandId, "sandbox.command.unsupported.v1", "sandbox-provider-v1", now.AddMinutes(-4), now.AddMinutes(5)),
+                CreateCommand(ids.ExpiredCommandId, "sandbox.command.expired.v1", "sandbox-provider-v1", now.AddMinutes(-3), now.AddMinutes(-1)),
+                CreateCommand(ids.IncompatibleCommandId, "sandbox.command.incompatible.v1", "other-provider-version", now.AddMinutes(-2), now.AddMinutes(5)),
+                CreateCommand(ids.OperationalControlCommandId, "control.start", "sandbox-provider-v1", now.AddMinutes(-1), now.AddMinutes(5)));
+            await context.SaveChangesAsync();
+            return ids;
+
+            AdministrativeCommandRow CreateCommand(
+                Guid commandId,
+                string capabilityId,
+                string providerVersion,
+                DateTimeOffset requestedAt,
+                DateTimeOffset expiresAt) => new()
+                {
+                    CommandId = commandId,
+                    IdempotencyKey = $"sandbox-command-{commandId:N}",
+                    InstanceId = instanceId,
+                    AssignedAgentId = agentId,
+                    CapabilityId = capabilityId,
+                    TypedParametersJson = "{\"fixture\":\"receipt-only\"}",
+                    RequestedByUserId = userId,
+                    RequestedAt = requestedAt,
+                    Reason = "Synthetic command-transport safety fixture; never executable.",
+                    ExpiresAt = expiresAt,
+                    AuthorizationSnapshotReference = "sandbox:test-only:non-authoritative",
+                    ExpectedAgentVersion = AgentVersion,
+                    ExpectedProviderVersion = providerVersion,
+                    State = "Pending",
+                    ConcurrencyToken = Guid.NewGuid(),
+                };
+        }
+
+        /// <summary>Confirms exact server replay cardinality after one or more client-side response losses.</summary>
+        public async Task AssertCommandTransportJournalAsync(Guid agentId, long sequence, int count)
+        {
+            await using AsyncServiceScope scope = application.Services.CreateAsyncScope();
+            ServerDbContext context = scope.ServiceProvider.GetRequiredService<ServerDbContext>();
+            ServerCommandTransportCursorRow cursor = await context.CommandTransportCursors.AsNoTracking()
+                .SingleAsync(row => row.AgentId == agentId);
+            Assert.Equal(sequence, cursor.HighestAcceptedSequence);
+            Assert.Equal(count, await context.CommandTransportJournal.CountAsync(row => row.AgentId == agentId));
+            Assert.Equal(0, await context.CommandAttempts.CountAsync());
+        }
+
+        /// <summary>Confirms revocation advanced no stream state and every fixture remained free of execution effects.</summary>
+        public async Task AssertCommandTransportFinalIsolationAsync(
+            Guid agentId,
+            CommandTransportFixtureIds fixtures)
+        {
+            await using AsyncServiceScope scope = application.Services.CreateAsyncScope();
+            ServerDbContext context = scope.ServiceProvider.GetRequiredService<ServerDbContext>();
+            RegisteredAgentRow agent = await context.Agents.AsNoTracking()
+                .SingleAsync(row => row.AgentId == agentId);
+            ServerCommandTransportCursorRow cursor = await context.CommandTransportCursors.AsNoTracking()
+                .SingleAsync(row => row.AgentId == agentId);
+            ServerCommandTransportJournalRow[] journal = await context.CommandTransportJournal.AsNoTracking()
+                .Where(row => row.AgentId == agentId)
+                .OrderBy(row => row.Sequence)
+                .ToArrayAsync();
+            Assert.Equal("Revoked", agent.State);
+            Assert.Equal(3, cursor.HighestAcceptedSequence);
+            Assert.Equal(new long[] { 1, 2, 3 }, journal.Select(row => row.Sequence));
+            Assert.Equal(
+                new[]
+                {
+                    CommandTransportProtocol.PollMessageType,
+                    CommandTransportProtocol.AcknowledgementMessageType,
+                    CommandTransportProtocol.PollMessageType,
+                },
+                journal.Select(row => row.MessageType));
+            Assert.Equal(3, journal.Select(row => row.MessageId).Distinct().Count());
+            Assert.Equal(3, journal.Select(row => row.ResponseMessageId).Distinct().Count());
+            Assert.All(journal, row => Assert.Equal(64, row.RequestPayloadSha256.Length));
+
+            Dictionary<Guid, string> states = await context.AdministrativeCommands.AsNoTracking()
+                .Where(row => row.AssignedAgentId == agentId)
+                .ToDictionaryAsync(row => row.CommandId, row => row.State);
+            Assert.Equal("Acknowledged", states[fixtures.AcceptedCommandId]);
+            Assert.Equal("Unsupported", states[fixtures.UnsupportedCommandId]);
+            Assert.Equal("Expired", states[fixtures.ExpiredCommandId]);
+            Assert.Equal("Pending", states[fixtures.IncompatibleCommandId]);
+            Assert.Equal("Pending", states[fixtures.OperationalControlCommandId]);
+            Assert.Equal(0, await context.CommandAttempts.CountAsync());
+            Assert.Equal(0, await context.HealthSamples.CountAsync());
+            Assert.Equal(0, await context.Events.CountAsync());
+            Assert.Equal(0, await context.OutboxMessages.CountAsync());
+            Assert.Equal(0, await context.NotificationDeliveries.CountAsync());
         }
 
         /// <summary>Advances the controlled application clock without sleeping or changing any persisted state.</summary>

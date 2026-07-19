@@ -100,6 +100,52 @@ public sealed class AgentCheckpointRow
     public DateTimeOffset UpdatedAt { get; set; }
 }
 
+/// <summary>Persists the sole pending command-transport message and monotonic local fencing state for one Agent.</summary>
+public sealed class AgentCommandTransportStateRow
+{
+    /// <summary>Gets or sets the owning Agent identifier.</summary>
+    public Guid AgentId { get; set; }
+
+    /// <summary>Gets or sets the next sequence reserved only after a new pending message is committed.</summary>
+    public long NextSequence { get; set; }
+
+    /// <summary>Gets or sets the exact pending message identifier.</summary>
+    public Guid? PendingMessageId { get; set; }
+
+    /// <summary>Gets or sets the exact pending stream sequence.</summary>
+    public long? PendingSequence { get; set; }
+
+    /// <summary>Gets or sets the closed pending message kind.</summary>
+    public string? PendingMessageKind { get; set; }
+
+    /// <summary>Gets or sets the exact bounded pending payload JSON.</summary>
+    public string? PendingPayloadJson { get; set; }
+
+    /// <summary>Gets or sets the SHA-256 digest of the exact pending payload.</summary>
+    public string? PendingPayloadSha256 { get; set; }
+
+    /// <summary>Gets or sets the durable number of send attempts for the current pending identity.</summary>
+    public int PendingAttemptCount { get; set; }
+
+    /// <summary>Gets or sets the last UTC attempt instant without changing the pending identity.</summary>
+    public DateTimeOffset? PendingLastAttemptAt { get; set; }
+
+    /// <summary>Gets or sets the next monotonically increasing local fence.</summary>
+    public long NextFence { get; set; }
+
+    /// <summary>Gets or sets the bounded owner of the current sandbox lease.</summary>
+    public string? LeaseOwner { get; set; }
+
+    /// <summary>Gets or sets the current monotonic fence token.</summary>
+    public long? LeaseFence { get; set; }
+
+    /// <summary>Gets or sets the exclusive UTC expiry of the current sandbox lease.</summary>
+    public DateTimeOffset? LeaseExpiresAt { get; set; }
+
+    /// <summary>Gets or sets the optimistic concurrency token.</summary>
+    public Guid ConcurrencyToken { get; set; }
+}
+
 /// <summary>Persists exact heartbeat replay evidence and last-known-valid assignment reconciliation metadata.</summary>
 public sealed class AgentFleetStateRow
 {
