@@ -6,6 +6,7 @@ import {
   DashboardTvReadError,
   DashboardTvReconciliationCoordinator,
   dashboardTvReconciliationMilliseconds,
+  dashboardTvRequestTimeoutMilliseconds,
   isDashboardTvSandboxEnabled,
   type DashboardTvReadResult,
   type DashboardTvReconciliationView,
@@ -70,6 +71,22 @@ test("HTTP reader accepts one bounded snapshot and sends its ETag on reconciliat
   assert.equal(new Headers(requests[0].headers).get("X-DBN-TV-Test-Human"), "dashboard-tv-local-test");
 });
 
+test("HTTP reader preserves the browser-global receiver for a captured Fetch operation", async () => {
+  let observedReceiver: unknown;
+  const receiverAwareFetch = async function (this: unknown): Promise<Response> {
+    observedReceiver = this;
+    return new Response(JSON.stringify(snapshotBody), {
+      status: 200,
+      headers: { ETag: entityTag, "DBN-Snapshot-Schema": "dashboard-tv.v1" },
+    });
+  };
+  const reader = new DashboardTvHttpSnapshotReader(receiverAwareFetch as typeof fetch);
+
+  await reader.read(undefined, new AbortController().signal);
+
+  assert.equal(observedReceiver, globalThis);
+});
+
 test("HTTP reader rejects unknown fields, future evidence and weak ETags", async () => {
   const incompatible = { ...snapshotBody, unexpected: true };
   const reader = new DashboardTvHttpSnapshotReader(async () => new Response(JSON.stringify(incompatible), {
@@ -104,6 +121,28 @@ test("HTTP reader classifies denied, incompatible and oversized responses withou
     oversized.read(undefined, new AbortController().signal),
     (error: unknown) => error instanceof DashboardTvReadError && error.state === "incompatible",
   );
+});
+
+test("HTTP reader bounds a stalled response without weakening caller cancellation", async () => {
+  let observedSignal: AbortSignal | undefined;
+  const reader = new DashboardTvHttpSnapshotReader(
+    async (_input, init) => new Promise<Response>((_resolve, reject) => {
+      observedSignal = init?.signal as AbortSignal;
+      observedSignal.addEventListener(
+        "abort",
+        () => reject(new DOMException("The local sandbox request was aborted.", "AbortError")),
+        { once: true },
+      );
+    }),
+    5,
+  );
+
+  await assert.rejects(
+    reader.read(undefined, new AbortController().signal),
+    (error: unknown) => error instanceof DashboardTvReadError && error.state === "offline",
+  );
+  assert.equal(observedSignal?.aborted, true);
+  assert.equal(dashboardTvRequestTimeoutMilliseconds, 10_000);
 });
 
 test("coordinator reads immediately, never overlaps and preserves evidence across 304", async () => {

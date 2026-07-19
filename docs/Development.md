@@ -115,6 +115,14 @@ npm run build
 npm audit --audit-level=high
 ```
 
+The separately authorised Dashboard TV browser composition gate uses only an already installed Chrome or Edge and never downloads a browser or package:
+
+```powershell
+.\scripts\run-state06-dashboard-tv-browser-e2e.ps1 -BrowserProduct Chrome
+```
+
+It builds the exact local-test Dashboard, starts one temporary HTTPS loopback host, creates an isolated browser profile, observes the 30-second cadence plus the deterministic recovery matrix, rejects external HTTP origins and removes every owned process/profile at the end. This is local sandbox evidence, not browser homologation or an operational runtime command.
+
 Keep presentation adapters deterministic and disabled by default until the owning integration state explicitly authorises another source or dependency.
 
 ## Configuration and secrets

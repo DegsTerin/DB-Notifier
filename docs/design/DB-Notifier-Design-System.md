@@ -5,7 +5,7 @@
 | Field | Value |
 |---|---|
 | Status | Official frontend specification |
-| Design System version | `3.1.1` |
+| Design System version | `3.1.2` |
 | Product phase | `STATE-06 INTEGRATION` |
 | Platforms | React Web Dashboard and .NET 10 WPF Desktop/Tray |
 | Themes | Light and Dark; Windows High Contrast is an accessibility override |
@@ -340,6 +340,8 @@ The former provider-named primitive and component tokens are removed in Design S
 
 Design System `3.1.1` clarifies how an alternative source may qualify without changing the component semantics or the eleven-identity/22-variant baseline. Before registration, every asset MUST have pinned, reviewable provenance and local integrity evidence, MUST be the exact provider identity, MUST have file copying and redistribution rights, and MUST have trademark permission applicable to DB-Notifier's current factual implementation/support use. A collection licence, official download location, future provider objective or attribution alone MUST NOT be treated as satisfying all of those conditions.
 
+Design System `3.1.2` records the implemented ten-second request deadline and the dedicated local Chrome composition evidence for the restricted Dashboard TV sandbox. This evidence refines the factual test baseline only; it does not homologate a browser, activate an operational source or change provider support.
+
 The current alternative-source review does not expand the registry. Firebird and OpenSearch retain the neutral fallback because the reviewed mark permissions are tied to use/support contexts that are not established by DB-Notifier's current planned/unimplemented provider state. Microsoft SQL Server, Azure SQL, Oracle Database, SAP HANA, IBM Db2, MariaDB, Valkey, CockroachDB, Couchbase, Apache CouchDB, ScyllaDB, InfluxDB and Neo4j also retain the fallback because an exact asset and the required redistribution/mark permission combination were not both evidenced for this application. This list records the current rights review, not a closed provider catalogue; every other unmapped provider follows the same fallback rule.
 
 Provider artwork retains its reviewed upstream geometry and colours as a narrow third-party identity exception to product-owned categorical tokens. Those colours MUST NOT be sampled, recoloured or reused as status, chart-category, support or theme tokens. In browser forced-colour mode and Windows High Contrast, multicolour artwork is hidden and the neutral database outline uses the current system text colour. Every categorical brush independently resolves to the current Windows text brush so the operating system owns contrast.
@@ -454,7 +456,7 @@ The Dashboard Web provides a dedicated, session-only TV presentation for continu
 
 TV presentation hides primary navigation and scenario selection, increases Overview metric/panel viewing distance, and preserves the product identity, language selector, theme selector, system-local clock with an explicit time-zone label, freshness/stale semantics, status text/shapes, read-only state, demonstration badge and footer truth. It MUST NOT auto-start, persist across sessions, rotate views without an approved contract, conceal degraded/unknown data or permit administrative execution.
 
-The normal Dashboard continues to recalculate visible freshness and its system-local presentation clock from the in-memory demonstration snapshot; this proves presentation behaviour only and is not an external real-time stream. The restricted `STATE-06` sandbox performs an immediate authorised API read on TV entry and schedules another read 30 seconds after the previous read completes. Its exact local-test composition preserves the last known snapshot and timestamps while presenting factual denied, incompatible, error, offline or stale state. It uses no SignalR hint, notification, operational source or external identity. Reconnection beyond periodic reads, browser endurance, backpressure outside one serial client and live-source health remain future integration work. WPF, native mobile, unattended kiosk provisioning and burn-in mitigation are outside this increment.
+The normal Dashboard continues to recalculate visible freshness and its system-local presentation clock from the in-memory demonstration snapshot; this proves presentation behaviour only and is not an external real-time stream. The restricted `STATE-06` sandbox performs an immediate authorised API read on TV entry, bounds each read to ten seconds and schedules another read 30 seconds after the previous read completes. Its exact local-test composition preserves the last known snapshot and timestamps while presenting factual denied, incompatible, error, offline or stale state. A dedicated ephemeral Chrome run has exercised this composition, its ETag/304 path, cancellation/fencing and deterministic recovery matrix on HTTPS loopback; that evidence does not homologate Chrome or prove an operational source. The sandbox uses no SignalR hint, notification, operational source or external identity. Reconnection beyond periodic reads, browser endurance, backpressure outside one serial client and live-source health remain future integration work. WPF, native mobile, unattended kiosk provisioning and burn-in mitigation are outside this increment.
 
 ## 10. Reusable component catalogue
 

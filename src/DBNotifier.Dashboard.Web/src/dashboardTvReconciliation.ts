@@ -3,6 +3,7 @@ import { inventorySchemaVersion, type HealthStatus, type InventorySnapshot } fro
 
 export const dashboardTvSchemaVersion = "dashboard-tv.v1" as const;
 export const dashboardTvReconciliationMilliseconds = 30_000;
+export const dashboardTvRequestTimeoutMilliseconds = 10_000;
 const maximumBodyBytes = 512 * 1024;
 const maximumItems = 500;
 const maximumTextLength = 200;
@@ -74,10 +75,18 @@ export function isDashboardTvSandboxEnabled(
 /** Reads and validates the fixed same-origin snapshot route without accepting a configurable endpoint or credential. */
 export class DashboardTvHttpSnapshotReader implements DashboardTvSnapshotReader {
   private readonly fetchImplementation: typeof fetch;
+  private readonly requestTimeoutMilliseconds: number;
 
-  /** Creates a same-origin reader after the caller has passed the exact sandbox activation guard. */
-  public constructor(fetchImplementation: typeof fetch = fetch) {
+  /** Creates a same-origin reader with a bounded deadline after the caller has passed the exact sandbox activation guard. */
+  public constructor(
+    fetchImplementation: typeof fetch = fetch,
+    requestTimeoutMilliseconds: number = dashboardTvRequestTimeoutMilliseconds,
+  ) {
+    if (!Number.isInteger(requestTimeoutMilliseconds) || requestTimeoutMilliseconds < 1 || requestTimeoutMilliseconds > 60_000) {
+      throw new RangeError("Dashboard TV request timeout must be an integer between 1 and 60000 milliseconds.");
+    }
     this.fetchImplementation = fetchImplementation;
+    this.requestTimeoutMilliseconds = requestTimeoutMilliseconds;
   }
 
   /**
@@ -90,50 +99,62 @@ export class DashboardTvHttpSnapshotReader implements DashboardTvSnapshotReader 
   public async read(entityTag: string | undefined, signal: AbortSignal): Promise<DashboardTvReadResult> {
     const headers = new Headers({ Accept: "application/json", [testSubjectHeader]: testSubject });
     if (entityTag) headers.set("If-None-Match", entityTag);
+    const requestController = new AbortController();
+    const abortFromSession = () => requestController.abort();
+    if (signal.aborted) requestController.abort();
+    else signal.addEventListener("abort", abortFromSession, { once: true });
+    const timeoutHandle = globalThis.setTimeout(
+      () => requestController.abort(),
+      this.requestTimeoutMilliseconds,
+    );
 
-    let response: Response;
     try {
-      response = await this.fetchImplementation(snapshotRoute, {
+      // Native browser Fetch is a Web IDL operation and must retain the global receiver after dependency capture.
+      const response = await this.fetchImplementation.call(globalThis, snapshotRoute, {
         method: "GET",
         credentials: "same-origin",
         cache: "no-store",
         redirect: "error",
         headers,
-        signal,
+        signal: requestController.signal,
       });
+
+      if (response.status === 401 || response.status === 403) throw new DashboardTvReadError("denied");
+      if (response.status === 304) {
+        const returnedEntityTag = requireStrongEntityTag(response.headers.get("ETag"));
+        if (!entityTag || returnedEntityTag !== entityTag) throw new DashboardTvReadError("incompatible");
+        return { disposition: "notModified", entityTag: returnedEntityTag };
+      }
+      if (!response.ok) throw new DashboardTvReadError(response.status === 406 || response.status === 426 ? "incompatible" : "error");
+      if (response.headers.get("DBN-Snapshot-Schema") !== dashboardTvSchemaVersion) {
+        throw new DashboardTvReadError("incompatible");
+      }
+
+      const returnedEntityTag = requireStrongEntityTag(response.headers.get("ETag"));
+      const contentLength = Number(response.headers.get("Content-Length"));
+      if (Number.isFinite(contentLength) && contentLength > maximumBodyBytes) throw new DashboardTvReadError("incompatible");
+      const body = await response.text();
+      if (new TextEncoder().encode(body).byteLength > maximumBodyBytes) throw new DashboardTvReadError("incompatible");
+
+      let value: unknown;
+      try {
+        value = JSON.parse(body);
+      } catch {
+        throw new DashboardTvReadError("incompatible");
+      }
+      return {
+        disposition: "modified",
+        entityTag: returnedEntityTag,
+        snapshot: validateDashboardTvSnapshot(value, new Date()),
+      };
     } catch (error) {
       if (signal.aborted) throw error;
+      if (error instanceof DashboardTvReadError) throw error;
       throw new DashboardTvReadError("offline");
+    } finally {
+      globalThis.clearTimeout(timeoutHandle);
+      signal.removeEventListener("abort", abortFromSession);
     }
-
-    if (response.status === 401 || response.status === 403) throw new DashboardTvReadError("denied");
-    if (response.status === 304) {
-      const returnedEntityTag = requireStrongEntityTag(response.headers.get("ETag"));
-      if (!entityTag || returnedEntityTag !== entityTag) throw new DashboardTvReadError("incompatible");
-      return { disposition: "notModified", entityTag: returnedEntityTag };
-    }
-    if (!response.ok) throw new DashboardTvReadError(response.status === 406 || response.status === 426 ? "incompatible" : "error");
-    if (response.headers.get("DBN-Snapshot-Schema") !== dashboardTvSchemaVersion) {
-      throw new DashboardTvReadError("incompatible");
-    }
-
-    const returnedEntityTag = requireStrongEntityTag(response.headers.get("ETag"));
-    const contentLength = Number(response.headers.get("Content-Length"));
-    if (Number.isFinite(contentLength) && contentLength > maximumBodyBytes) throw new DashboardTvReadError("incompatible");
-    const body = await response.text();
-    if (new TextEncoder().encode(body).byteLength > maximumBodyBytes) throw new DashboardTvReadError("incompatible");
-
-    let value: unknown;
-    try {
-      value = JSON.parse(body);
-    } catch {
-      throw new DashboardTvReadError("incompatible");
-    }
-    return {
-      disposition: "modified",
-      entityTag: returnedEntityTag,
-      snapshot: validateDashboardTvSnapshot(value, new Date()),
-    };
   }
 }
 

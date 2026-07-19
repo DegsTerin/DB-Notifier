@@ -169,3 +169,7 @@ Bruno pode ajustar, adiar, rejeitar ou autorizar separadamente a implementação
 > AUTORIZO o incremento restrito de STATE-06 — Dashboard TV Browser Composition and Recovery Evidence Sandbox, limitado a harness HTTPS loopback temporário, autenticação exclusivamente de teste, composição do Dashboard TV e API sandbox em navegador dedicado com perfil efêmero, E2E da leitura imediata e cadência serial de 30 segundos, ETag/304, cancelamento, fencing, matriz determinística de falhas/recuperação, evidência sanitizada e encerramento integral dos runtimes ao final. Permanecem proibidos acesso externo, novas dependências ou downloads, SignalR, notificações, Agent/provider operacional, monitoramento, persistência ou banco externo, IdP/PKI/vault reais, comandos, LLM, executor, deploy, promoção e transição de estado.
 
 Essa eventual resposta autorizaria somente a implementação local descrita. Qualquer ampliação continuaria exigindo uma nova decisão explícita.
+
+## Resultado posterior da proposta
+
+Bruno forneceu depois exatamente a autorização delimitada acima. A implementação local foi concluída sob essa autoridade e está documentada no [relatório de composição e recuperação no navegador](STATE-06-Dashboard-TV-Browser-Composition-And-Recovery-Evidence-Report.md). O Quality Gate automático restrito foi aprovado; o Human Gate próprio permanece pendente. Esta atualização factual não altera a natureza originalmente documental desta proposta, não promove o produto e não concede autoridade adicional.

@@ -1,0 +1,14 @@
+<!-- Module purpose: Builds an opt-in HTTPS loopback host for isolated Dashboard TV browser evidence without operational integrations. -->
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\DBNotifier.Application\DBNotifier.Application.csproj" />
+    <ProjectReference Include="..\..\src\DBNotifier.Server.Api\DBNotifier.Server.Api.csproj" />
+  </ItemGroup>
+</Project>
