@@ -17,7 +17,7 @@ Depois da publicação deste plano, Bruno emitiu uma autorização separada e ex
 
 O Incremento 1 foi concluído tecnicamente no sandbox local em 2026-07-19. A cadeia testada usa fonte provider-neutral sintética, processos Agent efêmeros, SQLite/outbox local, HTTPS/mTLS com material somente de teste, ingestão central efêmera e projeção read-only para o contrato TV existente. O relatório proprietário é o [Relatório STATE-06 — Authoritative Observation Pipeline E2E Sandbox](STATE-06-Authoritative-Observation-Pipeline-E2E-Sandbox-Report.md). O Quality Gate automático restrito está aprovado, e Bruno aceitou o Human Gate próprio do incremento com as limitações registradas. `STATE-06 INTEGRATION` não foi encerrado nem promovido.
 
-A aceitação autorizou exclusivamente seu registro factual. Posteriormente, Bruno autorizou separadamente o Incremento 2 e a aquisição controlada do cliente oficial; a implementação local foi concluída no commit `c945c1b`, e Bruno aceitou seu Human Gate próprio com as limitações registradas. Bruno autorizou depois separadamente o [Incremento 3](STATE-06-Reconciled-Local-Notification-Delivery-Sandbox-Report.md), concluído no commit `d43e49a` com Quality Gate automático restrito aprovado e Human Gate próprio aceito com as limitações registradas. O Incremento 4 e qualquer outra atividade técnica continuam dependentes de decisão posterior, separada e explícita de Bruno.
+A aceitação autorizou exclusivamente seu registro factual. Posteriormente, Bruno autorizou separadamente o Incremento 2 e a aquisição controlada do cliente oficial; a implementação local foi concluída no commit `c945c1b`, e Bruno aceitou seu Human Gate próprio com as limitações registradas. Bruno autorizou depois separadamente o [Incremento 3](STATE-06-Reconciled-Local-Notification-Delivery-Sandbox-Report.md), concluído no commit `d43e49a` com Quality Gate automático restrito aprovado e Human Gate próprio aceito com as limitações registradas. O [Incremento 4](STATE-06-Command-Transport-Safety-E2E-Sandbox-Report.md) foi autorizado e concluído localmente no commit final `54a65f5`; seu Quality Gate automático restrito foi aprovado e seu Human Gate próprio permanece pendente. Qualquer campanha consolidada ou nova atividade técnica depende de decisão posterior, separada e explícita de Bruno.
 
 ## Resumo para não especialistas
 
@@ -169,7 +169,7 @@ Antecipar a reconciliação do Dashboard TV quando a projeção autoritativa mud
 
 ### Incremento 3 — Reconciled Local Notification Delivery Sandbox
 
-**Status factual atual:** Bruno autorizou separadamente a [proposta detalhada](STATE-06-Reconciled-Local-Notification-Delivery-Sandbox-Proposal.md). A implementação local foi concluída no commit `d43e49a`; o [relatório do Incremento 3](STATE-06-Reconciled-Local-Notification-Delivery-Sandbox-Report.md) registra contrato/projeção read-only, baseline silenciosa, ledger/cursor/deduplicação/fencing, consumidor WPF opt-in, testes locais e Quality Gate automático restrito aprovado. Bruno aceitou o Human Gate próprio com as limitações registradas. Runtime operacional, Incremento 4, promoção e transição permanecem não autorizados.
+**Status factual atual:** Bruno autorizou separadamente a [proposta detalhada](STATE-06-Reconciled-Local-Notification-Delivery-Sandbox-Proposal.md). A implementação local foi concluída no commit `d43e49a`; o [relatório do Incremento 3](STATE-06-Reconciled-Local-Notification-Delivery-Sandbox-Report.md) registra contrato/projeção read-only, baseline silenciosa, ledger/cursor/deduplicação/fencing, consumidor WPF opt-in, testes locais e Quality Gate automático restrito aprovado. Bruno aceitou o Human Gate próprio com as limitações registradas. O Incremento 4 foi posteriormente implementado, mas ainda aguarda Human Gate próprio; runtime operacional, campanha consolidada, promoção e transição permanecem não autorizados.
 
 #### Objetivo
 
@@ -207,7 +207,7 @@ Produzir uma notificação Windows local somente quando uma transição factual 
 
 ### Incremento 4 — Command Transport Safety E2E Sandbox
 
-**Status factual atual:** os Incrementos 1–3 foram concluídos e aceitos com as limitações registradas. Bruno solicitou exclusivamente a elaboração da [proposta detalhada do Incremento 4](STATE-06-Command-Transport-Safety-E2E-Sandbox-Proposal.md). A proposta está pronta para revisão, mas implementação, runtime, comando, executor, promoção e transição permanecem não autorizados.
+**Status factual atual:** os Incrementos 1–3 foram concluídos e aceitos com as limitações registradas. Bruno autorizou separadamente a [proposta detalhada do Incremento 4](STATE-06-Command-Transport-Safety-E2E-Sandbox-Proposal.md). A implementação local foi concluída no commit final `54a65f5`, e o [relatório próprio](STATE-06-Command-Transport-Safety-E2E-Sandbox-Report.md) classifica o Quality Gate automático restrito como aprovado. O Human Gate próprio do Incremento 4 permanece pendente; campanha consolidada, runtime operacional, comando, executor, promoção e transição continuam não autorizados.
 
 #### Objetivo
 
@@ -253,7 +253,7 @@ Completar o protocolo durável de polling/acknowledgement do Agent e provar expi
 
 ## Campanha final — Quality Gate consolidado do STATE-06
 
-Esta campanha só poderá começar depois que os quatro incrementos estiverem concluídos e aceitos. Ela não deverá corrigir falhas silenciosamente; achados exigirão remediação autorizada e nova execução proporcional.
+Esta campanha só poderá começar depois que o Human Gate próprio do Incremento 4 for aceito e Bruno a autorizar separadamente. Ela não deverá corrigir falhas silenciosamente; achados exigirão remediação autorizada e nova execução proporcional.
 
 ### E2E consolidado obrigatório
 
@@ -351,11 +351,11 @@ Qualquer necessidade de acesso externo, dependência não disponível, credencia
 
 ## Autorizações futuras e ordem para Bruno
 
-Nenhuma execução é autorizada pelo plano em si. Autorizações separadas posteriores concluíram tecnicamente os Incrementos 1–3, e Bruno aceitou os respectivos Human Gates próprios com as limitações registradas. A ordem restante é:
+Nenhuma execução é autorizada pelo plano em si. Autorizações separadas posteriores concluíram tecnicamente os quatro incrementos; Bruno aceitou os Human Gates próprios dos Incrementos 1–3, enquanto o Incremento 4 aguarda decisão. A ordem restante é:
 
 1. Incrementos 1–3 concluídos e aceitos em seus escopos restritos;
-2. revisar a [proposta detalhada do Incremento 4](STATE-06-Command-Transport-Safety-E2E-Sandbox-Proposal.md) e, somente se concordar, autorizar separadamente sua implementação;
-3. autorizar a campanha automática consolidada;
+2. revisar o [relatório do Incremento 4](STATE-06-Command-Transport-Safety-E2E-Sandbox-Report.md) e decidir seu Human Gate próprio;
+3. somente depois dessa aceitação, autorizar separadamente a campanha automática consolidada;
 4. revisar o relatório final e autorizar as amostras humanas;
 5. decidir o Human Gate do `STATE-06`;
 6. somente depois, decidir separadamente se autoriza a transição para `STATE-07`.

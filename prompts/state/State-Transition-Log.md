@@ -1833,6 +1833,21 @@
 - Próxima decisão: Bruno pode revisar, ajustar, adiar ou rejeitar a proposta. Qualquer implementação exige autorização posterior, separada e explícita; o texto sugerido no documento não é autorização por si só.
 - Aprovador: não aplicável; esta entrada registra solicitação e proposta, não aprovação de execução.
 
+## 2026-07-19 — Incremento 4 Command Transport Safety E2E Sandbox
+
+- Estado anterior: `STATE-06 INTEGRATION`, Incrementos 1–3 aceitos com limitações e proposta documental do Incremento 4 pronta; implementação ainda não autorizada naquele ponto histórico.
+- Estado resultante: sem transição; `STATE-06 INTEGRATION` mantido, implementação local concluída no commit final `54a65f5`, Quality Gate automático restrito aprovado e Human Gate próprio pendente.
+- Autorização: Bruno autorizou contratos v2 de poll/acknowledgement e erros tipados, outbox/journal/cursor duráveis, migrations somente sandbox, HTTPS/mTLS e revogação de teste, fixtures não executáveis, budget/backpressure/cancelamento/retry/replay/fencing/fault injection/restart locais. Runtime operacional, ação, executor, `CommandAttempt`, acesso externo, deploy, promoção e transição permaneceram proibidos.
+- Implementação: stream monotónico compartilhado; request/response IDs e SHA-256 exatos; resposta estável; Agent SQLite com pendência/lease/fence; Server cursor/journal; limites de lote/corpo/parâmetros/provider versions, timeout e retries; endpoints/client/host somente sandbox; `CommandExecutionPolicy.Never` e prefixo sintético obrigatório.
+- Evidência E2E: schema, gap, tamanho e identidade divergente recusados; perda das três respostas de poll e ack preservou e repetiu a mesma mensagem entre processos; inbox terminou `Acknowledged`/`Unsupported`; expirada ficou `Expired`; versão incompatível e controle neutro fora do namespace não foram entregues; request commitado antes da revogação retornou resposta histórica e request posterior foi recusado sem avanço.
+- Isolamento: zero `CommandAttempt`, `Running`, `Succeeded`, resultado de provider, post-probe, shell, processo/serviço/banco/infraestrutura afetados; API e Worker normais não compõem o v2 e o guard de polling continua fail-closed.
+- Gates: build Release dos `16` projetos com zero erro/aviso; `332/332` unitários, `25/25` arquitetura, `14/14` integração e `60/60` Dashboard; cobertura `78,91%`/`49,51%`; Pester `23` com um skip previsto e cobertura `32,08%`; format, documentação `273`, links Markdown `390/92`, NuGet offline `16`, secrets, assets/localização e smoke fail-closed aprovados.
+- Limitações: Server E2E em SQLite memória e sem restart Server em disco; migration PostgreSQL somente gerada/inspecionada offline; nenhuma deadline absoluta da intenção persistida; backpressure global e estrito; pendência pós-revogação preservada sem dead-letter; identidade/PKI exclusivamente de teste; nenhum sizing ou runtime operacional comprovado.
+- Cleanup: zero processo, zero listener e zero diretório `dbnotifier-command-transport-sandbox-*` pertencente ao incremento após a validação.
+- Evidências: [relatório do incremento](../../docs/STATE-06-Command-Transport-Safety-E2E-Sandbox-Report.md), [proposta autorizada](../../docs/STATE-06-Command-Transport-Safety-E2E-Sandbox-Proposal.md), commits `3f23d3e` e `54a65f5`, testes e inspeção direta do diff.
+- Próxima decisão: Bruno deve aceitar com as limitações, solicitar remediação delimitada ou rejeitar somente este Incremento 4. Mesmo uma aceitação autorizará apenas seu registro; campanha consolidada, runtime, promoção e transição permanecerão separados.
+- Aprovador: Bruno autorizou a execução delimitada; a decisão do Human Gate próprio do resultado não foi inferida.
+
 ## Template de nova entrada
 
 - Data:
