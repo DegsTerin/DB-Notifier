@@ -17,7 +17,7 @@ Depois da publicação deste plano, Bruno emitiu uma autorização separada e ex
 
 O Incremento 1 foi concluído tecnicamente no sandbox local em 2026-07-19. A cadeia testada usa fonte provider-neutral sintética, processos Agent efêmeros, SQLite/outbox local, HTTPS/mTLS com material somente de teste, ingestão central efêmera e projeção read-only para o contrato TV existente. O relatório proprietário é o [Relatório STATE-06 — Authoritative Observation Pipeline E2E Sandbox](STATE-06-Authoritative-Observation-Pipeline-E2E-Sandbox-Report.md). O Quality Gate automático restrito está aprovado, e Bruno aceitou o Human Gate próprio do incremento com as limitações registradas. `STATE-06 INTEGRATION` não foi encerrado nem promovido.
 
-A aceitação autorizou exclusivamente seu registro factual. Posteriormente, Bruno autorizou separadamente o Incremento 2 e a aquisição controlada do cliente oficial; a implementação local foi concluída no commit `c945c1b` e aguarda Human Gate próprio. O Incremento 3 e qualquer outra atividade técnica continuam dependentes de decisão posterior, separada e explícita de Bruno.
+A aceitação autorizou exclusivamente seu registro factual. Posteriormente, Bruno autorizou separadamente o Incremento 2 e a aquisição controlada do cliente oficial; a implementação local foi concluída no commit `c945c1b`, e Bruno aceitou seu Human Gate próprio com as limitações registradas. O Incremento 3 e qualquer outra atividade técnica continuam dependentes de decisão posterior, separada e explícita de Bruno.
 
 ## Resumo para não especialistas
 
@@ -131,7 +131,7 @@ Compor a fonte sintética, o Agent, sua persistência local, a ingestão da API 
 
 ### Incremento 2 — Authenticated SignalR Change Hint Sandbox
 
-**Status factual posterior:** depois da proposta documental, Bruno autorizou separadamente a implementação local e o acesso temporário exclusivo ao registry npm oficial. O [relatório do Incremento 2](STATE-06-Authenticated-SignalR-Change-Hint-Sandbox-Report.md) registra a implementação do commit `c945c1b`, o cliente oficial `@microsoft/signalr@10.0.0` fixado, o Quality Gate automático restrito aprovado e o Human Gate próprio pendente. A API e o polling continuam autoritativos; a composição normal permanece sem hub/publisher ativo. Incremento 3, runtime operacional, promoção e transição não foram autorizados.
+**Status factual posterior:** depois da proposta documental, Bruno autorizou separadamente a implementação local e o acesso temporário exclusivo ao registry npm oficial. O [relatório do Incremento 2](STATE-06-Authenticated-SignalR-Change-Hint-Sandbox-Report.md) registra a implementação do commit `c945c1b`, o cliente oficial `@microsoft/signalr@10.0.0` fixado, o Quality Gate automático restrito aprovado e o Human Gate próprio aceito com as limitações registradas. A API e o polling continuam autoritativos; a composição normal permanece sem hub/publisher ativo. Incremento 3, runtime operacional, promoção e transição não foram autorizados.
 
 #### Objetivo
 
@@ -347,10 +347,10 @@ Qualquer necessidade de acesso externo, dependência não disponível, credencia
 
 ## Autorizações futuras e ordem para Bruno
 
-Nenhuma execução é autorizada pelo plano em si. Autorizações separadas posteriores concluíram tecnicamente os passos 1 e 2; Bruno aceitou o Human Gate próprio do passo 1, enquanto o passo 2 aguarda decisão humana. A ordem restante é:
+Nenhuma execução é autorizada pelo plano em si. Autorizações separadas posteriores concluíram tecnicamente os passos 1 e 2, e Bruno aceitou os respectivos Human Gates próprios com as limitações registradas. A ordem restante é:
 
-1. decidir o Human Gate próprio do Incremento 2 sem liberar atividade seguinte;
-2. solicitar e autorizar separadamente os Incrementos 3 e 4, um por vez;
+1. solicitar e autorizar separadamente o Incremento 3, se Bruno desejar continuar;
+2. repetir o processo separadamente para o Incremento 4;
 3. autorizar a campanha automática consolidada;
 4. revisar o relatório final e autorizar as amostras humanas;
 5. decidir o Human Gate do `STATE-06`;

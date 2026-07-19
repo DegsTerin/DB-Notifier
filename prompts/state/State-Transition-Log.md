@@ -1758,6 +1758,20 @@
 - Próxima decisão: Bruno deve revisar o relatório e aceitar com as limitações, solicitar remediação específica ou rejeitar somente este incremento. Nenhuma decisão libera automaticamente o Incremento 3, runtime operacional, promoção ou transição.
 - Aprovador: Bruno autorizou a execução delimitada; a decisão do Human Gate do resultado não foi inferida.
 
+## 2026-07-19 — Aceitação do Incremento 2 Authenticated SignalR Change Hint Sandbox
+
+- Estado anterior: `STATE-06 INTEGRATION`, incremento do commit `c945c1b` tecnicamente concluído, Quality Gate automático restrito aprovado e Human Gate próprio pendente.
+- Estado resultante: sem transição; `STATE-06 INTEGRATION` mantido e Human Gate próprio do Incremento 2 aceito com as limitações registradas.
+- Decisão: Bruno declarou exatamente `Incremento STATE-06 Authenticated SignalR Change Hint Sandbox, commit c945c1b: ACEITO COM AS LIMITAÇÕES REGISTRADAS. AUTORIZO exclusivamente o registro factual desta decisão. Não autorizo novo incremento, runtime operacional, promoção nem transição de estado.`
+- Evidências revisadas: [relatório do incremento](../../docs/STATE-06-Authenticated-SignalR-Change-Hint-Sandbox-Report.md), especialmente resultado em linguagem simples, sequência E2E observada, limitações e condições residuais e classificação dos gates; commit `c945c1b`; decisão explícita de Bruno nesta sessão.
+- Limitações aceitas: SignalR best-effort; cookie/PKI exclusivamente de teste; Chrome/Kestrel únicos sem prova de deploy ou escala; Long Polling forçado, múltiplos clientes, carga/endurance/DDoS e identidade operacional não testados; budget local sem alegação de backpressure de frota; audit npm pontual.
+- Autoridade: exclusivamente o registro factual da decisão. Incremento 3, runtime operacional, promoção e transição permanecem não autorizados.
+- Shutdown preflight: zero processo sandbox pertencente ao projeto, zero processo DB-Notifier e zero listener DB-Notifier antes desta alteração documental; nenhum processo alheio foi encerrado.
+- Escopo desta ação: somente cinco documentos Markdown factuais; nenhum código, projeto, pacote, lockfile, configuração executável, build, teste de produto ou runtime foi alterado ou executado.
+- Gates: Quality Gate automático restrito `APROVADO`; Human Gate próprio do Incremento 2 `ACEITO COM AS LIMITAÇÕES REGISTRADAS`; Quality/Human Gate final do `STATE-06` não inferido e ainda não executado.
+- Próxima atividade: nenhuma atividade técnica está autorizada ou é exigida. Qualquer proposta ou execução do Incremento 3 exige solicitação e autorização posteriores, separadas e explícitas de Bruno.
+- Aprovador: Bruno, 2026-07-19.
+
 ## Template de nova entrada
 
 - Data:

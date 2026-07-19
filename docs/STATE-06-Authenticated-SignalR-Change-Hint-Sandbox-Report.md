@@ -132,9 +132,13 @@ Não restou achado crítico, alto ou médio conhecido no diff final.
 ## Classificação dos gates
 
 - Quality Gate automático deste incremento restrito: **APROVADO** no escopo local documentado.
-- Human Gate próprio do incremento: **PENDENTE**; não foi inferido.
+- Human Gate próprio do incremento: **ACEITO COM AS LIMITAÇÕES REGISTRADAS** por Bruno em 2026-07-19.
 - Quality/Human Gate final do `STATE-06`, Incremento 3, runtime operacional, promoção `none → OBSERVER`, `STATE-07`, produção e release: **NÃO AVALIADOS E NÃO AUTORIZADOS**.
 
-## Próxima decisão humana
+## Decisão humana registrada
 
-Bruno deve revisar principalmente `Resultado em linguagem simples`, `Sequência E2E observada`, `Limitações e condições residuais` e `Classificação dos gates`. Ele pode aceitar com as limitações, solicitar uma remediação específica ou rejeitar este incremento. Qualquer decisão autoriza somente o registro factual correspondente; não libera o Incremento 3, runtime operacional, promoção ou transição.
+Depois de solicitar a leitura direta do relatório, especialmente de `Resultado em linguagem simples`, `Sequência E2E observada`, `Limitações e condições residuais` e `Classificação dos gates`, Bruno declarou em 2026-07-19:
+
+> Incremento STATE-06 Authenticated SignalR Change Hint Sandbox, commit c945c1b: ACEITO COM AS LIMITAÇÕES REGISTRADAS. AUTORIZO exclusivamente o registro factual desta decisão. Não autorizo novo incremento, runtime operacional, promoção nem transição de estado.
+
+Essa decisão encerra somente o Human Gate próprio do Incremento 2 e aceita as limitações documentadas. O `STATE-06 INTEGRATION` permanece inalterado; Incremento 3, runtime operacional, promoção e transição continuam sem autorização.
