@@ -1817,6 +1817,22 @@
 - Próxima atividade: nenhuma atividade técnica está autorizada ou é exigida. Qualquer proposta ou execução do Incremento 4 exige solicitação e autorização posteriores, separadas e explícitas de Bruno.
 - Aprovador: Bruno, 2026-07-19.
 
+## 2026-07-19 — Proposta documental do Incremento 4 Command Transport Safety E2E Sandbox
+
+- Estado anterior: `STATE-06 INTEGRATION`, Incrementos 1–3 concluídos e aceitos com as limitações registradas; Incremento 4 sem autorização de execução.
+- Estado resultante: sem transição; `STATE-06 INTEGRATION` mantido, com proposta documental do Incremento 4 pronta para revisão e nenhuma implementação autorizada.
+- Solicitação: Bruno declarou `proposta exclusivamente documental do Incremento 4`.
+- Baseline observada: contratos v1 e stores locais já cobrem seleção compatível, expiração, acknowledgement repetido e replay exato da inbox, mas não há outbox Agent nem journal Server duráveis que vinculem message ID, sequência, hash e resposta entre reinícios. O Worker normal permanece fail-closed e não existe executor autorizado.
+- Proposta: contratos correlacionáveis; um stream monotónico por Agent; outbox/cursor no Agent; journal/cursor e resposta estável no Server; HTTPS/mTLS e revogação somente de teste; fixtures sintéticas não executáveis; expiração terminal; limites antes da materialização; concorrência `1`; retry/cancelamento/fencing; fault injection e restart E2E local.
+- Separação de segurança: `Acknowledged` significa somente transporte/persistência. `Start`, `Stop`, `Restart`, `CommandAttempt`, `Running`, `Succeeded`, executor, provider, shell, processo/serviço/banco/infraestrutura afetados e runtime normal permanecem proibidos.
+- Autoridade: somente documentação. Código, configuração executável, migration, pacote, lockfile, build, teste de produto, API/Agent runtime, acesso externo, comando, promoção e transição não foram autorizados nem executados.
+- Shutdown preflight: `0` processo e `0` listener pertencente ao DB-Notifier antes da alteração documental; nenhum processo ou recurso alheio foi encerrado.
+- Gates documentais: documentação aprovada para `263` fontes comment-capable; `384` links Markdown locais em `91` arquivos aprovados; secret scan do worktree não ignorado e histórico disponível aprovado; `git diff --check` aprovado. Build, testes e runtime de produto foram `NÃO APLICÁVEIS` e não executados.
+- Gates futuros: Quality/Human Gate do Incremento 4, campanha consolidada e gate final do `STATE-06` não avaliados; esta proposta não os antecipa.
+- Evidência: [proposta documental](../../docs/STATE-06-Command-Transport-Safety-E2E-Sandbox-Proposal.md), [plano consolidado](../../docs/STATE-06-Consolidated-Closure-Plan.md), contratos/stores/Worker atuais inspecionados diretamente e decisão de Bruno nesta sessão.
+- Próxima decisão: Bruno pode revisar, ajustar, adiar ou rejeitar a proposta. Qualquer implementação exige autorização posterior, separada e explícita; o texto sugerido no documento não é autorização por si só.
+- Aprovador: não aplicável; esta entrada registra solicitação e proposta, não aprovação de execução.
+
 ## Template de nova entrada
 
 - Data:

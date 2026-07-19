@@ -207,6 +207,8 @@ Produzir uma notificação Windows local somente quando uma transição factual 
 
 ### Incremento 4 — Command Transport Safety E2E Sandbox
 
+**Status factual atual:** os Incrementos 1–3 foram concluídos e aceitos com as limitações registradas. Bruno solicitou exclusivamente a elaboração da [proposta detalhada do Incremento 4](STATE-06-Command-Transport-Safety-E2E-Sandbox-Proposal.md). A proposta está pronta para revisão, mas implementação, runtime, comando, executor, promoção e transição permanecem não autorizados.
+
 #### Objetivo
 
 Completar o protocolo durável de polling/acknowledgement do Agent e provar expiração, replay e incompatibilidade sem executar qualquer comando administrativo.
@@ -349,10 +351,10 @@ Qualquer necessidade de acesso externo, dependência não disponível, credencia
 
 ## Autorizações futuras e ordem para Bruno
 
-Nenhuma execução é autorizada pelo plano em si. Autorizações separadas posteriores concluíram tecnicamente os passos 1 e 2, e Bruno aceitou os respectivos Human Gates próprios com as limitações registradas. A ordem restante é:
+Nenhuma execução é autorizada pelo plano em si. Autorizações separadas posteriores concluíram tecnicamente os Incrementos 1–3, e Bruno aceitou os respectivos Human Gates próprios com as limitações registradas. A ordem restante é:
 
 1. Incrementos 1–3 concluídos e aceitos em seus escopos restritos;
-2. solicitar e autorizar separadamente o Incremento 4, se Bruno desejar continuar;
+2. revisar a [proposta detalhada do Incremento 4](STATE-06-Command-Transport-Safety-E2E-Sandbox-Proposal.md) e, somente se concordar, autorizar separadamente sua implementação;
 3. autorizar a campanha automática consolidada;
 4. revisar o relatório final e autorizar as amostras humanas;
 5. decidir o Human Gate do `STATE-06`;
