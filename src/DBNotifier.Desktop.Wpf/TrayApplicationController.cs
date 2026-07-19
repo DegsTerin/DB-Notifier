@@ -30,6 +30,8 @@ internal sealed class TrayApplicationController : IDisposable
     private readonly DispatcherTimer legacyNotificationAdvanceTimer;
     private readonly DispatcherTimer fleetRefreshTimer;
     private readonly WindowsAppNotificationPublisher? appNotificationPublisher;
+    private readonly ReconciledNotificationSandboxRuntime? reconciledNotificationRuntime;
+    private readonly bool suppressDemonstrationNotifications;
     private readonly TrayFlyoutWindow flyout;
     private readonly Queue<LegacyNotificationRequest> legacyNotificationQueue = new();
     private TrayFleetSummary fleetSummary;
@@ -50,6 +52,7 @@ internal sealed class TrayApplicationController : IDisposable
     /// <param name="evidence">Immutable locale-independent evidence shared with the full desktop shell.</param>
     /// <param name="initialSummary">Aggregate evaluated at the evidence creation instant.</param>
     /// <param name="notificationValidationMode">Explicit validation-only mode; invalid values fail safely to normal fixture behaviour.</param>
+    /// <param name="reconciledNotificationActivation">Validated opt-in sandbox activation, or null for the disabled default.</param>
     public TrayApplicationController(
         MainWindow window,
         System.Windows.Application application,
@@ -57,7 +60,8 @@ internal sealed class TrayApplicationController : IDisposable
         ProviderVisualIdentityPolicy providerVisualIdentityPolicy,
         DesktopDemonstrationEvidence evidence,
         TrayFleetSummary initialSummary,
-        TrayNotificationValidationMode notificationValidationMode)
+        TrayNotificationValidationMode notificationValidationMode,
+        ReconciledNotificationSandboxActivation? reconciledNotificationActivation)
     {
         this.window = window;
         this.application = application;
@@ -96,6 +100,14 @@ internal sealed class TrayApplicationController : IDisposable
         appNotificationPublisher = WindowsAppNotificationPublisher.TryCreate(
             application.Dispatcher,
             () => Apply(TrayWindowIntent.Show));
+        suppressDemonstrationNotifications = reconciledNotificationActivation is not null;
+        if (reconciledNotificationActivation is not null)
+        {
+            reconciledNotificationRuntime = new ReconciledNotificationSandboxRuntime(
+                reconciledNotificationActivation,
+                application.Dispatcher,
+                DeliverReconciledNotification);
+        }
         window.StateChanged += WindowStateChanged;
         window.Closing += WindowClosing;
         localisation.LanguageChanged += LanguageChanged;
@@ -121,6 +133,10 @@ internal sealed class TrayApplicationController : IDisposable
         legacyNotificationAdvanceTimer.Tick -= LegacyNotificationAdvanceTimerTick;
         legacyNotificationAdvanceTimer.Stop();
         legacyNotificationInFlight = false;
+        if (reconciledNotificationRuntime is not null)
+        {
+            reconciledNotificationRuntime.DisposeAsync().AsTask().GetAwaiter().GetResult();
+        }
         appNotificationPublisher?.Dispose();
         notifyIcon.Visible = false;
         flyout.CloseForApplicationExit();
@@ -211,7 +227,7 @@ internal sealed class TrayApplicationController : IDisposable
         RefreshText();
         flyout.RefreshPresentation(evaluatedAt, next);
         window.RefreshOperationalEvidence(evaluatedAt, next.State);
-        if (transitionValidationCases.Count == 0)
+        if (transitionValidationCases.Count == 0 && !suppressDemonstrationNotifications)
         {
             PublishDemonstrationStatusChanges(changes);
         }
@@ -458,19 +474,59 @@ internal sealed class TrayApplicationController : IDisposable
     /// <param name="title">Localised title displayed by the Windows notification surface.</param>
     /// <param name="message">Localised factual message containing no secret or external state.</param>
     /// <param name="meaning">Typed meaning used to select the temporary canonical semantic bell.</param>
-    private void QueueLegacyNotification(string title, string message, TrayNotificationMeaning meaning)
+    private bool QueueLegacyNotification(string title, string message, TrayNotificationMeaning meaning)
     {
-        if (disposing || exiting) return;
+        if (disposing || exiting) return false;
         int pendingNotifications = legacyNotificationQueue.Count + (legacyNotificationInFlight ? 1 : 0);
         if (pendingNotifications >= MaximumLegacyNotificationQueueLength)
         {
             Trace.TraceWarning("DB Notifier local fallback notification queue reached its bounded capacity.");
-            return;
+            return false;
         }
 
         legacyNotificationQueue.Enqueue(new(title, message, meaning));
         TryShowNextLegacyNotification();
+        return true;
     }
+
+    /// <summary>Localises and hands one validated committed synthetic transition to the existing Windows publisher or bounded fallback.</summary>
+    /// <param name="request">Validated event-specific delivery request from the sandbox coordinator.</param>
+    /// <returns>A factual local hand-off result; acceptance is not proof that Windows displayed the notification.</returns>
+    private ReconciledNotificationDeliveryResult DeliverReconciledNotification(
+        ReconciledNotificationDeliveryRequest request)
+    {
+        if (disposing || exiting ||
+            !Enum.TryParse(request.Transition.PreviousStatus, ignoreCase: false, out HealthStatus previous) ||
+            !Enum.TryParse(request.Transition.CurrentStatus, ignoreCase: false, out HealthStatus current))
+        {
+            return new(ReconciledNotificationDeliveryDisposition.FailedTerminal, "delivery.transition_invalid");
+        }
+
+        TrayNotificationMeaning meaning = TrayNotificationPresentationPolicy.ResolveMeaning(
+            new TrayInstanceEffectiveState(request.Transition.InstanceId, current, EvidenceFreshness.Current));
+        string title = localisation.Text("Tray.ReconciledStatusChangeTitle");
+        string message = localisation.Text(
+            "Tray.ReconciledStatusChangeMessage",
+            request.Transition.DisplayName,
+            localisation.Text($"Status.{previous}"),
+            localisation.Text($"Status.{current}"),
+            request.Transition.ObservedAt.ToLocalTime().ToString("g", localisation.Culture),
+            localisation.Text($"Freshness.{UppercaseFirst(request.Transition.Freshness)}"));
+        if (appNotificationPublisher?.TryPublishReconciledStatusChange(
+                request.WindowsTag,
+                title,
+                message,
+                meaning) == true ||
+            QueueLegacyNotification(title, message, meaning))
+        {
+            return new(ReconciledNotificationDeliveryDisposition.Accepted, "delivery.local_platform_accepted");
+        }
+        return new(ReconciledNotificationDeliveryDisposition.Retryable, "delivery.local_platform_unavailable");
+    }
+
+    private static string UppercaseFirst(string value) => string.IsNullOrEmpty(value)
+        ? value
+        : string.Concat(char.ToUpperInvariant(value[0]), value[1..]);
 
     /// <summary>Displays the next queued fallback only after the prior semantic-icon lease has completed.</summary>
     private void TryShowNextLegacyNotification()

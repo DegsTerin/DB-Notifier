@@ -274,4 +274,9 @@
   <message key="Tray.StatusChangeMessage">{0}: {1} → {2}. Demonstração local · sem dados externos.</message>
   <message key="Tray.TransitionValidationCase">Validação de transição {0}/{1}</message>
   <message key="Tray.TransitionValidationTitle">Validação local de transições de notificação</message>
+  <message key="Tray.ReconciledStatusChangeTitle">Status alterado no sandbox sintético</message>
+  <message key="Tray.ReconciledStatusChangeMessage">{0}: {1} → {2}. Observação do sandbox local sintético em {3}; atualização: {4}. Sem dados externos.</message>
+  <message key="Freshness.Current">atual</message>
+  <message key="Freshness.Stale">desatualizada</message>
+  <message key="Freshness.Unknown">desconhecida</message>
 </localisation>

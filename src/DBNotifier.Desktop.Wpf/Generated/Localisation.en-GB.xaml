@@ -1,4 +1,4 @@
-<!-- Generated from dbnotifier.localisation.v1; culture:en-GB; source sha256:06e0643610087b51ffc8f434bafe968ead44230a7195468934f6f7b97d86fcc0. Do not edit directly. -->
+<!-- Generated from dbnotifier.localisation.v1; culture:en-GB; source sha256:b51d289f36632aac6583ccd1af26f4d56adaaa4528df8df1e4eedfad7e0351f3. Do not edit directly. -->
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:sys="clr-namespace:System;assembly=System.Runtime">
@@ -57,6 +57,9 @@
   <sys:String x:Key="Dialog.ExecuteDisabled">Execute — disabled</sys:String>
   <sys:String x:Key="FilteredEmpty.Title">No results</sys:String>
   <sys:String x:Key="Footer.Disclaimer">This screen makes no external connection. Planned providers do not represent public support or homologation.</sys:String>
+  <sys:String x:Key="Freshness.Current">current</sys:String>
+  <sys:String x:Key="Freshness.Stale">stale</sys:String>
+  <sys:String x:Key="Freshness.Unknown">unknown</sys:String>
   <sys:String x:Key="History.AllSeverities">All</sys:String>
   <sys:String x:Key="History.Count">{0} of {1} events visible</sys:String>
   <sys:String x:Key="History.FilteredEmpty">Adjust the search or severity filter.</sys:String>
@@ -218,6 +221,8 @@
   <sys:String x:Key="Tray.OpenHistoryAlerts">Open logs</sys:String>
   <sys:String x:Key="Tray.OpenInventory">Open inventory</sys:String>
   <sys:String x:Key="Tray.OpenOverview">Open Dashboard</sys:String>
+  <sys:String x:Key="Tray.ReconciledStatusChangeMessage">{0}: {1} → {2}. Synthetic local sandbox observation at {3}; freshness: {4}. No external data.</sys:String>
+  <sys:String x:Key="Tray.ReconciledStatusChangeTitle">Synthetic sandbox status changed</sys:String>
   <sys:String x:Key="Tray.RestartUnavailable">Restart service · unavailable</sys:String>
   <sys:String x:Key="Tray.RestartUnavailableHelp">Requires a homologated capability, authorisation, confirmation and audit.</sys:String>
   <sys:String x:Key="Tray.SilentUnavailable">Silent mode · unavailable</sys:String>

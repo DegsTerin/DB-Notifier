@@ -1,4 +1,4 @@
-/** Generated from dbnotifier.localisation.v1; source sha256:06e0643610087b51ffc8f434bafe968ead44230a7195468934f6f7b97d86fcc0. Do not edit directly. */
+/** Generated from dbnotifier.localisation.v1; source sha256:b51d289f36632aac6583ccd1af26f4d56adaaa4528df8df1e4eedfad7e0351f3. Do not edit directly. */
 const ptBRMessages = {
   "Action.Restart": "Reiniciar",
   "Action.Start": "Iniciar",
@@ -55,6 +55,9 @@ const ptBRMessages = {
   "Dialog.ExecuteDisabled": "Executar — desabilitado",
   "FilteredEmpty.Title": "Nenhum resultado",
   "Footer.Disclaimer": "Nenhuma conexão externa é realizada nesta tela. Providers planejados não representam suporte público ou homologação.",
+  "Freshness.Current": "atual",
+  "Freshness.Stale": "desatualizada",
+  "Freshness.Unknown": "desconhecida",
   "History.AllSeverities": "Todas",
   "History.Count": "{0} de {1} eventos visíveis",
   "History.FilteredEmpty": "Ajuste a busca ou o filtro de severidade.",
@@ -216,6 +219,8 @@ const ptBRMessages = {
   "Tray.OpenHistoryAlerts": "Abrir logs",
   "Tray.OpenInventory": "Abrir inventário",
   "Tray.OpenOverview": "Abrir Dashboard",
+  "Tray.ReconciledStatusChangeMessage": "{0}: {1} → {2}. Observação do sandbox local sintético em {3}; atualização: {4}. Sem dados externos.",
+  "Tray.ReconciledStatusChangeTitle": "Status alterado no sandbox sintético",
   "Tray.RestartUnavailable": "Reiniciar serviço · indisponível",
   "Tray.RestartUnavailableHelp": "Requer capability homologada, autorização, confirmação e auditoria.",
   "Tray.SilentUnavailable": "Modo silencioso · indisponível",
@@ -331,6 +336,9 @@ const enGBMessages = {
   "Dialog.ExecuteDisabled": "Execute — disabled",
   "FilteredEmpty.Title": "No results",
   "Footer.Disclaimer": "This screen makes no external connection. Planned providers do not represent public support or homologation.",
+  "Freshness.Current": "current",
+  "Freshness.Stale": "stale",
+  "Freshness.Unknown": "unknown",
   "History.AllSeverities": "All",
   "History.Count": "{0} of {1} events visible",
   "History.FilteredEmpty": "Adjust the search or severity filter.",
@@ -492,6 +500,8 @@ const enGBMessages = {
   "Tray.OpenHistoryAlerts": "Open logs",
   "Tray.OpenInventory": "Open inventory",
   "Tray.OpenOverview": "Open Dashboard",
+  "Tray.ReconciledStatusChangeMessage": "{0}: {1} → {2}. Synthetic local sandbox observation at {3}; freshness: {4}. No external data.",
+  "Tray.ReconciledStatusChangeTitle": "Synthetic sandbox status changed",
   "Tray.RestartUnavailable": "Restart service · unavailable",
   "Tray.RestartUnavailableHelp": "Requires a homologated capability, authorisation, confirmation and audit.",
   "Tray.SilentUnavailable": "Silent mode · unavailable",

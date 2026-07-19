@@ -1083,6 +1083,8 @@ public sealed class SynchronizationTests
 
         Assert.Equal(eventType, candidate.EventType);
         Assert.Equal(severity, candidate.Severity);
+        Assert.Equal(previous, candidate.PreviousStatus);
+        Assert.Equal(current, candidate.CurrentStatus);
     }
 
     private static AgentOutboxMessageRow Outbox(long sequence)

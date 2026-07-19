@@ -303,10 +303,24 @@ public sealed class ObservationBatchIngestor(
         evidenceLevel is EvidenceLevel.ProviderAuthenticated or EvidenceLevel.ProviderReadiness;
 }
 
-public sealed record CanonicalEventCandidate(string EventType, string Severity);
+/// <summary>Captures one exact state transition before it is persisted as a canonical event.</summary>
+/// <param name="EventType">Canonical event classification.</param>
+/// <param name="Severity">Canonical event severity.</param>
+/// <param name="PreviousStatus">Status before reconciliation, or null for an initial observation.</param>
+/// <param name="CurrentStatus">Status after reconciliation.</param>
+public sealed record CanonicalEventCandidate(
+    string EventType,
+    string Severity,
+    HealthStatus? PreviousStatus,
+    HealthStatus CurrentStatus);
 
+/// <summary>Derives canonical event metadata from an exact provider-neutral state transition.</summary>
 public static class ObservationEventDeriver
 {
+    /// <summary>Returns the canonical event for a state change, or null when no event is warranted.</summary>
+    /// <param name="previous">Previously reconciled status, when one exists.</param>
+    /// <param name="current">New reconciled status.</param>
+    /// <returns>An exact transition candidate, or null for unchanged or non-notifiable states.</returns>
     public static CanonicalEventCandidate? Derive(HealthStatus? previous, HealthStatus current)
     {
         if (previous == current)
@@ -316,12 +330,12 @@ public static class ObservationEventDeriver
 
         return current switch
         {
-            HealthStatus.Healthy when previous is null => new("Connected", "Info"),
-            HealthStatus.Healthy => new("Recovered", "Info"),
-            HealthStatus.Unavailable => new("Disconnected", "Error"),
-            HealthStatus.Timeout => new("Timeout", "Error"),
-            HealthStatus.AuthFailed => new("AuthenticationFailed", "Error"),
-            HealthStatus.Degraded => new("Degraded", "Warning"),
+            HealthStatus.Healthy when previous is null => new("Connected", "Info", previous, current),
+            HealthStatus.Healthy => new("Recovered", "Info", previous, current),
+            HealthStatus.Unavailable => new("Disconnected", "Error", previous, current),
+            HealthStatus.Timeout => new("Timeout", "Error", previous, current),
+            HealthStatus.AuthFailed => new("AuthenticationFailed", "Error", previous, current),
+            HealthStatus.Degraded => new("Degraded", "Warning", previous, current),
             _ => null,
         };
     }

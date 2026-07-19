@@ -22,10 +22,12 @@ internal sealed class WindowsAppNotificationPublisher : IDisposable
     private const string AvailabilityTag = "window-hidden";
     private const string AvailabilityGroup = "local-avail";
     private const string DemonstrationStatusGroup = "local-demo";
+    private const string ReconciledStatusGroup = "local-reconcile";
     private const int WindowsNotificationIdentifierMaximumLength = 16;
     private static readonly PackageVersion MinimumWindowsAppSdkVersion = new(2, 2, 0, 0);
     private static readonly TimeSpan AvailabilityLifetime = TimeSpan.FromMinutes(5);
     private static readonly TimeSpan DemonstrationStatusLifetime = TimeSpan.FromMinutes(10);
+    private static readonly TimeSpan ReconciledStatusLifetime = TimeSpan.FromMinutes(10);
     private readonly AppNotificationManager manager;
     private readonly Dispatcher dispatcher;
     private readonly Action showDesktop;
@@ -197,6 +199,57 @@ internal sealed class WindowsAppNotificationPublisher : IDisposable
         catch (Exception exception)
         {
             WriteFallbackDiagnostic("status-publication-failed", exception);
+            return false;
+        }
+    }
+
+    /// <summary>Attempts one event-specific hand-off for a committed synthetic transition from the authorised sandbox.</summary>
+    /// <param name="windowsTag">Deterministic sixteen-character lowercase hexadecimal event tag.</param>
+    /// <param name="title">Localised title that identifies reconciled synthetic evidence.</param>
+    /// <param name="message">Localised factual transition, source and freshness text.</param>
+    /// <param name="meaning">Provider-neutral semantic mark selection.</param>
+    /// <returns>True when Windows accepted the request; acceptance does not prove visible display.</returns>
+    public bool TryPublishReconciledStatusChange(
+        string windowsTag,
+        string title,
+        string message,
+        TrayNotificationMeaning meaning)
+    {
+        if (windowsTag is null || windowsTag.Length != WindowsNotificationIdentifierMaximumLength ||
+            windowsTag.Any(character => !(character is >= '0' and <= '9' or >= 'a' and <= 'f')))
+        {
+            throw new ArgumentException("A reconciled notification requires an exact lowercase hexadecimal event tag.", nameof(windowsTag));
+        }
+        ArgumentException.ThrowIfNullOrWhiteSpace(title);
+        ArgumentException.ThrowIfNullOrWhiteSpace(message);
+        if (!registered) return false;
+
+        string iconPath = Path.Combine(notificationAssetsDirectory, StatusAssetName(meaning));
+        if (!File.Exists(iconPath))
+        {
+            WriteFallbackDiagnostic("reconciled-status-identity-asset-missing");
+            return false;
+        }
+        try
+        {
+            AppNotification notification = new AppNotificationBuilder()
+                .AddArgument("action", "show")
+                .SetAppLogoOverride(new Uri(iconPath), AppNotificationImageCrop.Default, title)
+                .AddText(title)
+                .AddText(message)
+                .MuteAudio()
+                .BuildNotification();
+            notification.Tag = windowsTag;
+            notification.Group = ReconciledStatusGroup;
+            notification.Expiration = DateTimeOffset.UtcNow.Add(ReconciledStatusLifetime);
+            notification.ExpiresOnReboot = true;
+            notification.SuppressDisplay = false;
+            manager.Show(notification);
+            return true;
+        }
+        catch (Exception exception)
+        {
+            WriteFallbackDiagnostic("reconciled-status-publication-failed", exception);
             return false;
         }
     }

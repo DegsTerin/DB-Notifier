@@ -1,4 +1,4 @@
-<!-- Generated from dbnotifier.localisation.v1; culture:pt-BR; source sha256:06e0643610087b51ffc8f434bafe968ead44230a7195468934f6f7b97d86fcc0. Do not edit directly. -->
+<!-- Generated from dbnotifier.localisation.v1; culture:pt-BR; source sha256:b51d289f36632aac6583ccd1af26f4d56adaaa4528df8df1e4eedfad7e0351f3. Do not edit directly. -->
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:sys="clr-namespace:System;assembly=System.Runtime">
@@ -57,6 +57,9 @@
   <sys:String x:Key="Dialog.ExecuteDisabled">Executar — desabilitado</sys:String>
   <sys:String x:Key="FilteredEmpty.Title">Nenhum resultado</sys:String>
   <sys:String x:Key="Footer.Disclaimer">Nenhuma conexão externa é realizada nesta tela. Providers planejados não representam suporte público ou homologação.</sys:String>
+  <sys:String x:Key="Freshness.Current">atual</sys:String>
+  <sys:String x:Key="Freshness.Stale">desatualizada</sys:String>
+  <sys:String x:Key="Freshness.Unknown">desconhecida</sys:String>
   <sys:String x:Key="History.AllSeverities">Todas</sys:String>
   <sys:String x:Key="History.Count">{0} de {1} eventos visíveis</sys:String>
   <sys:String x:Key="History.FilteredEmpty">Ajuste a busca ou o filtro de severidade.</sys:String>
@@ -218,6 +221,8 @@
   <sys:String x:Key="Tray.OpenHistoryAlerts">Abrir logs</sys:String>
   <sys:String x:Key="Tray.OpenInventory">Abrir inventário</sys:String>
   <sys:String x:Key="Tray.OpenOverview">Abrir Dashboard</sys:String>
+  <sys:String x:Key="Tray.ReconciledStatusChangeMessage">{0}: {1} → {2}. Observação do sandbox local sintético em {3}; atualização: {4}. Sem dados externos.</sys:String>
+  <sys:String x:Key="Tray.ReconciledStatusChangeTitle">Status alterado no sandbox sintético</sys:String>
   <sys:String x:Key="Tray.RestartUnavailable">Reiniciar serviço · indisponível</sys:String>
   <sys:String x:Key="Tray.RestartUnavailableHelp">Requer capability homologada, autorização, confirmação e auditoria.</sys:String>
   <sys:String x:Key="Tray.SilentUnavailable">Modo silencioso · indisponível</sys:String>

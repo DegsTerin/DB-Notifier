@@ -39,6 +39,8 @@ public partial class App : System.Windows.Application, IDisposable
             accessibilityReviewMode);
         MainWindow = window;
         TrayNotificationValidationMode notificationValidationMode = TrayNotificationValidationPolicy.Resolve(e.Args);
+        ReconciledNotificationSandboxActivation? reconciledNotificationActivation =
+            ReconciledNotificationSandboxActivationPolicy.Resolve(e.Args);
         trayController = new TrayApplicationController(
             window,
             this,
@@ -46,7 +48,8 @@ public partial class App : System.Windows.Application, IDisposable
             providerVisualIdentityPolicy,
             evidence,
             fleetSummary,
-            notificationValidationMode);
+            notificationValidationMode,
+            reconciledNotificationActivation);
         if (TrayStartupPolicy.Resolve(e.Args) == TrayStartupMode.ShowDesktop)
         {
             window.Show();

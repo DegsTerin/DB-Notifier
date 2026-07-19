@@ -272,7 +272,12 @@ public sealed class ServerObservationIngestionStore(
             ObservedAt = sample.ObservedAt,
             ReceivedAt = sample.ReceivedAt,
             DetailsJson = JsonSerializer.Serialize(
-                new { previousStateChanged = true, currentStatus = sample.Status },
+                new
+                {
+                    schemaVersion = "canonical-event-details.v1",
+                    previousStatus = candidate.PreviousStatus?.ToString(),
+                    currentStatus = candidate.CurrentStatus.ToString(),
+                },
                 SerializerOptions),
         };
         context.Events.Add(eventRow);
