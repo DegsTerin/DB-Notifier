@@ -1684,6 +1684,19 @@
 - Próxima atividade: nenhuma ação adicional é exigida de Bruno e nenhum novo trabalho está autorizado. Uma próxima atividade só poderá começar mediante solicitação e autorização explícitas separadas.
 - Aprovador: Bruno, exclusivamente para aceitar este incremento e registrar factualmente a decisão.
 
+## 2026-07-18 — Plano documental consolidado de fechamento do STATE-06
+
+- Estado anterior: `STATE-06 INTEGRATION`, incrementos restritos anteriores aceitos, mas Quality/Human Gate de saída do estado ainda não avaliados.
+- Estado resultante: sem transição; `STATE-06 INTEGRATION` mantido e nenhuma execução técnica liberada.
+- Autorização: Bruno autorizou exclusivamente a elaboração de um plano documental consolidado cobrindo SignalR autenticado, notificações locais baseadas em estado reconciliado, E2E Agent → API → interfaces, resolução do critério de transporte de comandos e Quality/Human Gate final. Implementação, runtime operacional, acesso externo, promoção e transição permaneceram proibidos.
+- Análise factual: contratos, identidade Agent de teste, heartbeat/assignments, resiliência offline e Dashboard TV periódico possuem evidências restritas aceitas. A cadeia E2E permanece separada, SignalR inexiste, notificações não consomem estado reconciliado e o command polling normal continua fail-closed. Expiração/idempotência de comando já possuem testes locais parciais, mas não transporte durável Agent/API ponta a ponta.
+- Plano: quatro incrementos futuros e independentes — cadeia autoritativa de observações, hint SignalR, notificação Windows local reconciliada e transporte seguro de comandos sem executor — seguidos por campanha automática consolidada e Human Gate único do estado.
+- Limites: a fonte futura é sintética/provider-neutral; SignalR é apenas hint; acknowledgement não significa execução; providers/bancos/identidades operacionais, canais externos, ações administrativas, LLM, deploy e estados posteriores ficam fora do fechamento.
+- Escopo desta ação: criação do [plano consolidado](../../docs/STATE-06-Consolidated-Closure-Plan.md) e atualização factual de estado, histórico e changelog. Nenhum código, projeto, pacote, lockfile, configuração executável, migration, build, teste de produto ou runtime foi alterado/executado.
+- Gates documentais: `APROVADOS`; documentação para `246` fontes comment-capable, `353` links Markdown locais em `85` arquivos, secret scan do worktree não ignorado e histórico disponível, `git diff --check` e escopo restrito a quatro arquivos Markdown passaram com exit code `0`. Isso não constitui Quality Gate de saída do `STATE-06`.
+- Próxima decisão: Bruno pode revisar o plano e, se concordar, autorizar separadamente somente o Incremento 1 com o texto delimitado no documento. Nenhum passo técnico é automático.
+- Aprovador: Bruno, exclusivamente para autorizar a elaboração documental; conteúdo do plano e qualquer execução futura permanecem sujeitos a decisão separada.
+
 ## Template de nova entrada
 
 - Data:

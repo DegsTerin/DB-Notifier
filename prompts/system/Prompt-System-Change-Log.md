@@ -2,7 +2,7 @@
 
 ## Versão atual
 
-- Versão: `3.56.3`
+- Versão: `3.56.4`
 - Data: 2026-07-18
 - Status: corpus DB-Notifier consolidado
 - Escopo: 13 arquivos ativos
@@ -16,6 +16,12 @@ A versão do corpus é independente da versão do software.
 - PATCH: clareza, correção ou referência sem mudança de autoridade.
 
 Toda alteração atualiza este arquivo e, quando necessário, `../Start-Here.md`.
+
+## 3.56.4 — 2026-07-18
+
+- Bruno autorizou exclusivamente um plano documental consolidado de fechamento do `STATE-06`, sem implementação, runtime, acesso externo, promoção ou transição.
+- O plano reconcilia o Lifecycle com as evidências aceitas e organiza quatro incrementos futuros: cadeia autoritativa Agent → API → interfaces, hint SignalR autenticado, notificação Windows local baseada em transição reconciliada e transporte durável de comandos sem executor.
+- Quality Gate consolidado, amostras humanas, Human Gate de saída e eventual `STATE-06 → STATE-07` permanecem decisões posteriores e independentes. Nenhum incremento executável foi autorizado.
 
 ## 3.56.3 — 2026-07-18
 
