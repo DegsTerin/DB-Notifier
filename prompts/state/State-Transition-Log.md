@@ -1725,6 +1725,23 @@
 - Próxima atividade: nenhuma atividade técnica está autorizada. Qualquer proposta ou execução do Incremento 2 exige decisão posterior, separada e explícita de Bruno.
 - Aprovador: Bruno, 2026-07-19.
 
+## 2026-07-19 — Proposta documental do Incremento 2 Authenticated SignalR Change Hint Sandbox
+
+- Estado anterior: `STATE-06 INTEGRATION`, Incremento 1 aceito com as limitações registradas e Incrementos 2–4 sem autorização de execução.
+- Estado resultante: sem transição; `STATE-06 INTEGRATION` mantido, com proposta documental do Incremento 2 pronta para revisão e nenhuma implementação autorizada.
+- Solicitação: Bruno declarou exatamente `Apresente uma proposta exclusivamente documental para o Incremento 2 do Plano Consolidado de Fechamento do STATE-06, sem implementação, runtime operacional, acesso externo, promoção ou transição de estado.`
+- Baseline observada: API/polling TV continuam autoritativos; leitura imediata, serialização, strong `ETag`, `304`, cancelamento e fencing já existem. Não há referência SignalR no código nem `@microsoft/signalr` no manifesto/lockfile; a consulta direcionada ao cache npm local não retornou entrada correspondente.
+- Proposta: hub read-only somente no sandbox, autenticação efêmera de teste sob mesma origem HTTPS loopback, contrato mínimo versionado, API obrigatória após cada hint, polling de 30 segundos independente, concorrência `1`, coalescência/budget, cancelamento, fencing e reconnect limitados.
+- Dependência: cliente artesanal, CDN e substituição por protocolo próprio são rejeitados. Implementação futura exige autorização explícita para aquisição controlada do cliente oficial `@microsoft/signalr` ou adiamento do incremento.
+- Autoridade: somente documentação. Código, configuração executável, pacote, lockfile, build, teste de produto, browser, runtime, acesso externo, notificação, comando, promoção e transição não foram autorizados nem executados.
+- Shutdown preflight: `0` processo e `0` listener pertencente ao DB-Notifier antes da alteração documental; nenhum processo ou recurso alheio foi encerrado.
+- Gates documentais: documentação aprovada para `250` fontes comment-capable; `363` links Markdown locais em `87` arquivos aprovados; secret scan do worktree não ignorado e histórico disponível aprovado; escopo e `git diff --check` aprovados.
+- Build, testes e runtime de produto: `NÃO APLICÁVEIS` e não executados neste escopo exclusivamente documental.
+- Gates futuros: Quality/Human Gate do Incremento 2 e gate final do `STATE-06` não avaliados; esta proposta não os antecipa.
+- Evidência: [proposta documental](../../docs/STATE-06-Authenticated-SignalR-Change-Hint-Sandbox-Proposal.md), [plano consolidado](../../docs/STATE-06-Consolidated-Closure-Plan.md), manifesto/lockfile Dashboard, consulta local do cache npm e decisão de Bruno nesta sessão.
+- Próxima decisão: Bruno pode ajustar, adiar ou rejeitar a proposta. Para implementação, deverá autorizar separadamente o incremento e decidir explicitamente entre aquisição controlada do cliente oficial e manutenção da proibição de acesso externo/pacote novo.
+- Aprovador: não aplicável; esta entrada registra solicitação e proposta, não aprovação de execução.
+
 ## Template de nova entrada
 
 - Data:

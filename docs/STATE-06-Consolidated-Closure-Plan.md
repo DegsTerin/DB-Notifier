@@ -131,6 +131,8 @@ Compor a fonte sintética, o Agent, sua persistência local, a ingestão da API 
 
 ### Incremento 2 — Authenticated SignalR Change Hint Sandbox
 
+**Status factual posterior:** Bruno solicitou em 2026-07-19 uma proposta exclusivamente documental, produzida no [documento próprio do Incremento 2](STATE-06-Authenticated-SignalR-Change-Hint-Sandbox-Proposal.md). Nenhuma implementação ou dependência foi autorizada. O cliente oficial `@microsoft/signalr` não aparece no manifesto ou lockfile, e a consulta direcionada ao cache npm local não retornou entrada correspondente; portanto, implementação futura depende de uma decisão explícita sobre aquisição controlada da dependência ou adiamento. SignalR, acesso externo, runtime, promoção e transição permanecem não autorizados.
+
 #### Objetivo
 
 Antecipar a reconciliação do Dashboard TV quando a projeção autoritativa mudar, mantendo a API e o polling de 30 segundos como fontes obrigatórias.

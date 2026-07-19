@@ -2,7 +2,7 @@
 
 ## Versão atual
 
-- Versão: `3.56.6`
+- Versão: `3.56.7`
 - Data: 2026-07-19
 - Status: corpus DB-Notifier consolidado
 - Escopo: 13 arquivos ativos
@@ -16,6 +16,13 @@ A versão do corpus é independente da versão do software.
 - PATCH: clareza, correção ou referência sem mudança de autoridade.
 
 Toda alteração atualiza este arquivo e, quando necessário, `../Start-Here.md`.
+
+## 3.56.7 — 2026-07-19
+
+- Bruno solicitou exclusivamente uma proposta documental para o `Incremento 2 — Authenticated SignalR Change Hint Sandbox`, sem implementação, runtime operacional, acesso externo, promoção ou transição.
+- A proposta preserva a API e a reconciliação de 30 segundos como fontes autoritativas, restringe SignalR a um hint mínimo autenticado no sandbox, separa o deadline periódico das leituras antecipadas e define coalescência, budget, fencing, cancelamento e reconnect limitados.
+- A inspeção factual encontrou zero implementação SignalR e ausência do cliente oficial `@microsoft/signalr` no manifesto/lockfile; a consulta direcionada ao cache npm local não retornou entrada correspondente. Nenhum pacote foi adquirido; uma implementação futura exige decisão explícita entre aquisição controlada da dependência oficial e adiamento, sem cliente artesanal ou CDN.
+- `STATE-06 INTEGRATION` permanece inalterado. Incrementos 2–4, runtime, acesso externo, notificações, comandos, promoção e transição continuam não autorizados.
 
 ## 3.56.6 — 2026-07-19
 
