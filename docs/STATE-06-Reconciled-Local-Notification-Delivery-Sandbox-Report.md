@@ -139,19 +139,13 @@ Não restou achado crítico, alto ou médio conhecido no diff final.
 ## Classificação dos gates
 
 - Quality Gate automático deste incremento restrito: **APROVADO** no escopo local documentado.
-- Human Gate próprio do Incremento 3: **PENDENTE**; nenhuma aceitação foi inferida.
+- Human Gate próprio do Incremento 3: **ACEITO COM AS LIMITAÇÕES REGISTRADAS** por Bruno em 2026-07-19.
 - Quality/Human Gate final do `STATE-06`, Incremento 4, runtime operacional, promoção `none → OBSERVER`, `STATE-07`, produção e release: **NÃO AVALIADOS E NÃO AUTORIZADOS**.
 
-## Próxima decisão humana
+## Decisão humana registrada
 
-Bruno deve ler principalmente `Resultado em linguagem simples`, `Sequência E2E observada`, `Limitações e condições residuais` e `Classificação dos gates`. Depois deve escolher somente uma opção:
-
-1. aceitar este Incremento 3 com as limitações registradas;
-2. solicitar uma remediação local claramente delimitada;
-3. rejeitar o incremento.
-
-Se concordar, o texto factual sugerido é:
+Depois de solicitar a leitura direta de `Resultado em linguagem simples`, `Sequência E2E observada`, `Limitações e condições residuais` e `Classificação dos gates`, Bruno declarou em 2026-07-19:
 
 > Incremento STATE-06 Reconciled Local Notification Delivery Sandbox, commit d43e49a: ACEITO COM AS LIMITAÇÕES REGISTRADAS. AUTORIZO exclusivamente o registro factual desta decisão. Não autorizo novo incremento, runtime operacional, promoção nem transição de estado.
 
-Essa decisão autorizaria somente o registro da aceitação. O Incremento 4, runtime operacional, promoção e transição continuariam separados e proibidos.
+Essa decisão encerra somente o Human Gate próprio do Incremento 3 e aceita as limitações documentadas. O `STATE-06 INTEGRATION` permanece inalterado; Incremento 4, runtime operacional, promoção e transição continuam não autorizados.

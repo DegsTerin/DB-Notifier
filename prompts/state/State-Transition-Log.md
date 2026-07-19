@@ -1803,6 +1803,20 @@
 - Próxima decisão: Bruno deve aceitar com as limitações, solicitar remediação delimitada ou rejeitar somente este Incremento 3. Nenhuma decisão libera automaticamente o Incremento 4, runtime operacional, promoção ou transição.
 - Aprovador: Bruno autorizou a execução delimitada; a decisão do Human Gate próprio do resultado não foi inferida.
 
+## 2026-07-19 — Aceitação do Incremento 3 Reconciled Local Notification Delivery Sandbox
+
+- Estado anterior: `STATE-06 INTEGRATION`, incremento do commit `d43e49a` tecnicamente concluído, Quality Gate automático restrito aprovado e Human Gate próprio pendente.
+- Estado resultante: sem transição; `STATE-06 INTEGRATION` mantido e Human Gate próprio do Incremento 3 aceito com as limitações registradas.
+- Decisão: Bruno declarou exatamente `Incremento STATE-06 Reconciled Local Notification Delivery Sandbox, commit d43e49a: ACEITO COM AS LIMITAÇÕES REGISTRADAS. AUTORIZO exclusivamente o registro factual desta decisão. Não autorizo novo incremento, runtime operacional, promoção nem transição de estado.`
+- Evidências revisadas: [relatório do incremento](../../docs/STATE-06-Reconciled-Local-Notification-Delivery-Sandbox-Report.md), especialmente resultado em linguagem simples, sequência E2E observada, limitações e condições residuais e classificação dos gates; commit `d43e49a`; decisão explícita de Bruno nesta sessão.
+- Limitações aceitas: ausência de exactly-once entre ledger/Windows; aceite local sem prova de apresentação; full-storage rollback não detectável pelo arquivo sozinho; `FileShare.None` sem defesa contra administrador/manipulação offline; SQLite em memória no Server E2E; possível contêiner `UserKeySet`; limites exclusivamente sandbox; silêncio booleano; publisher Windows sem amostra humana neste incremento.
+- Autoridade: exclusivamente o registro factual da decisão. Incremento 4, runtime operacional, promoção e transição permanecem não autorizados.
+- Shutdown preflight: zero processo e zero listener pertencente ao DB-Notifier antes desta alteração documental; nenhum processo alheio foi encerrado.
+- Escopo desta ação: somente cinco documentos Markdown factuais; nenhum código, projeto, pacote, lockfile, configuração executável, build, teste de produto ou runtime foi alterado ou executado.
+- Gates: Quality Gate automático restrito `APROVADO`; Human Gate próprio do Incremento 3 `ACEITO COM AS LIMITAÇÕES REGISTRADAS`; Quality/Human Gate final do `STATE-06` não inferido e ainda não executado.
+- Próxima atividade: nenhuma atividade técnica está autorizada ou é exigida. Qualquer proposta ou execução do Incremento 4 exige solicitação e autorização posteriores, separadas e explícitas de Bruno.
+- Aprovador: Bruno, 2026-07-19.
+
 ## Template de nova entrada
 
 - Data:

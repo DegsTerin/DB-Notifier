@@ -1,6 +1,6 @@
 # Proposta STATE-06 — Reconciled Local Notification Delivery Sandbox
 
-> **Status factual posterior (2026-07-19):** Bruno autorizou separadamente a implementação restrita. O incremento foi concluído no commit `d43e49a`; o [relatório factual](STATE-06-Reconciled-Local-Notification-Delivery-Sandbox-Report.md) registra o Quality Gate automático restrito aprovado e o Human Gate próprio pendente. O `STATE-06` permanece inalterado, sem runtime operacional, promoção ou transição.
+> **Status factual posterior (2026-07-19):** Bruno autorizou separadamente a implementação restrita. O incremento foi concluído no commit `d43e49a`; o [relatório factual](STATE-06-Reconciled-Local-Notification-Delivery-Sandbox-Report.md) registra o Quality Gate automático restrito aprovado e o Human Gate próprio aceito com as limitações registradas. O `STATE-06` permanece inalterado, sem runtime operacional, promoção ou transição.
 
 ## Status e autoridade
 

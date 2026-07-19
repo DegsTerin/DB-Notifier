@@ -17,7 +17,7 @@ Depois da publicação deste plano, Bruno emitiu uma autorização separada e ex
 
 O Incremento 1 foi concluído tecnicamente no sandbox local em 2026-07-19. A cadeia testada usa fonte provider-neutral sintética, processos Agent efêmeros, SQLite/outbox local, HTTPS/mTLS com material somente de teste, ingestão central efêmera e projeção read-only para o contrato TV existente. O relatório proprietário é o [Relatório STATE-06 — Authoritative Observation Pipeline E2E Sandbox](STATE-06-Authoritative-Observation-Pipeline-E2E-Sandbox-Report.md). O Quality Gate automático restrito está aprovado, e Bruno aceitou o Human Gate próprio do incremento com as limitações registradas. `STATE-06 INTEGRATION` não foi encerrado nem promovido.
 
-A aceitação autorizou exclusivamente seu registro factual. Posteriormente, Bruno autorizou separadamente o Incremento 2 e a aquisição controlada do cliente oficial; a implementação local foi concluída no commit `c945c1b`, e Bruno aceitou seu Human Gate próprio com as limitações registradas. Bruno autorizou depois separadamente o [Incremento 3](STATE-06-Reconciled-Local-Notification-Delivery-Sandbox-Report.md), concluído no commit `d43e49a` com Quality Gate automático restrito aprovado e Human Gate próprio pendente. O Incremento 4 e qualquer outra atividade técnica continuam dependentes de decisão posterior, separada e explícita de Bruno.
+A aceitação autorizou exclusivamente seu registro factual. Posteriormente, Bruno autorizou separadamente o Incremento 2 e a aquisição controlada do cliente oficial; a implementação local foi concluída no commit `c945c1b`, e Bruno aceitou seu Human Gate próprio com as limitações registradas. Bruno autorizou depois separadamente o [Incremento 3](STATE-06-Reconciled-Local-Notification-Delivery-Sandbox-Report.md), concluído no commit `d43e49a` com Quality Gate automático restrito aprovado e Human Gate próprio aceito com as limitações registradas. O Incremento 4 e qualquer outra atividade técnica continuam dependentes de decisão posterior, separada e explícita de Bruno.
 
 ## Resumo para não especialistas
 
@@ -169,7 +169,7 @@ Antecipar a reconciliação do Dashboard TV quando a projeção autoritativa mud
 
 ### Incremento 3 — Reconciled Local Notification Delivery Sandbox
 
-**Status factual atual:** Bruno autorizou separadamente a [proposta detalhada](STATE-06-Reconciled-Local-Notification-Delivery-Sandbox-Proposal.md). A implementação local foi concluída no commit `d43e49a`; o [relatório do Incremento 3](STATE-06-Reconciled-Local-Notification-Delivery-Sandbox-Report.md) registra contrato/projeção read-only, baseline silenciosa, ledger/cursor/deduplicação/fencing, consumidor WPF opt-in, testes locais e Quality Gate automático restrito aprovado. O Human Gate próprio está pendente. Runtime operacional, Incremento 4, promoção e transição permanecem não autorizados.
+**Status factual atual:** Bruno autorizou separadamente a [proposta detalhada](STATE-06-Reconciled-Local-Notification-Delivery-Sandbox-Proposal.md). A implementação local foi concluída no commit `d43e49a`; o [relatório do Incremento 3](STATE-06-Reconciled-Local-Notification-Delivery-Sandbox-Report.md) registra contrato/projeção read-only, baseline silenciosa, ledger/cursor/deduplicação/fencing, consumidor WPF opt-in, testes locais e Quality Gate automático restrito aprovado. Bruno aceitou o Human Gate próprio com as limitações registradas. Runtime operacional, Incremento 4, promoção e transição permanecem não autorizados.
 
 #### Objetivo
 
@@ -351,8 +351,8 @@ Qualquer necessidade de acesso externo, dependência não disponível, credencia
 
 Nenhuma execução é autorizada pelo plano em si. Autorizações separadas posteriores concluíram tecnicamente os passos 1 e 2, e Bruno aceitou os respectivos Human Gates próprios com as limitações registradas. A ordem restante é:
 
-1. solicitar e autorizar separadamente o Incremento 3, se Bruno desejar continuar;
-2. repetir o processo separadamente para o Incremento 4;
+1. Incrementos 1–3 concluídos e aceitos em seus escopos restritos;
+2. solicitar e autorizar separadamente o Incremento 4, se Bruno desejar continuar;
 3. autorizar a campanha automática consolidada;
 4. revisar o relatório final e autorizar as amostras humanas;
 5. decidir o Human Gate do `STATE-06`;
