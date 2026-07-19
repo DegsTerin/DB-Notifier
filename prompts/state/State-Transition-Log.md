@@ -1879,6 +1879,23 @@
 - Próxima decisão: Bruno pode revisar, solicitar alterações, adiar ou emitir separadamente o texto sugerido na proposta. O texto documental não é autorização por si só.
 - Aprovador: não aplicável; esta entrada registra solicitação e proposta, não aprovação da campanha.
 
+## 2026-07-19 — Campanha Consolidada de Quality Gate do STATE-06
+
+- Estado anterior: `STATE-06 INTEGRATION`, quatro incrementos aceitos com limitações e proposta da campanha pronta; Quality/Human Gate final ainda não executado.
+- Estado resultante: sem transição; `STATE-06 INTEGRATION` mantido, Quality Gate consolidado `BLOQUEADO` e Human Gate final não aberto.
+- Autorização: Bruno autorizou inspeção read-only, verificações offline, build/testes dos artefatos existentes, harnesses locais, Chrome dedicado/perfil efêmero, cleanup e relatório, proibindo código, remediação, download, recurso operacional, amostra humana, promoção e transição.
+- Baseline: branch `main`, commit `5a47aae7030a406ffbe8b3960599fc68b9825d1b`, worktree limpa, zero processo/listener, .NET `10.0.301`, EF `10.0.9`, Node/npm `24.18.0`/`11.16.0`, PowerShell `7.6.3` e Chrome `150.0.7871.125`.
+- Gates aprovados: build Release dos `16` projetos com zero erro/aviso; `332/332` unitários, `25/25` arquitetura, `14/14` integração, `60/60` Dashboard; cobertura `78,91%/49,51%`; Pester `23`/um skip previsto/`32,08%`; format, documentação `273`, links `397/93` antes do relatório, secrets, NuGet fixture offline `16`, npm audit offline, assets/tokens/localização, bundle, model drift e smoke fail-closed aprovados.
+- Browser: primeira invocação sob Windows PowerShell 5.1 falhou no cleanup pela sobrecarga `Contains`; seu diretório temporário foi verificado/removido. A repetição sob PowerShell 7 passou em Chrome dedicado: hint autenticado, releitura, ETag/304, cadências `30.018/30.011 ms`, concorrência máxima `1`, doze cenários, zero request externo e cleanup integral.
+- E2E proprietários: pipeline, SignalR/revogação, notificação com baseline silenciosa/deduplicação e comando não executável/replay/zero attempt passaram novamente, mas em sandboxes separados.
+- Bloqueio: browser usa `BrowserSignalRSnapshotSource` derivado de fixture própria; notificação cria `NotificationSandbox`/Server SQLite próprios; pipeline e comando criam `AgentFleetSandbox`/stores/identidades independentes. Não existe orquestrador compartilhado em `src/`, `tests/` ou `scripts/`; criá-lo exigiria alteração proibida.
+- Achados: `ALTA` lacuna de evidência da composição única; `BAIXA` dois warnings EF `10102` em queries limitadas de certificados/scopes sem impacto material demonstrado; `FERRAMENTA` dependência implícita do runner de browser em PowerShell moderno. O falso drift EF por assemblies Debug antigos foi resolvido por build Debug sem restore e não permaneceu como achado.
+- Cleanup: zero processo/listener e zero temporário pertencente à campanha; hashes de package-lock/global.json preservados; worktree limpa antes do relatório. Um diretório de cobertura criado antes da campanha foi preservado por não pertencer a ela.
+- Autoridade remanescente: exclusivamente registrar o relatório factual. Remediação, nova campanha, amostra humana, Human Gate final, runtime operacional, promoção e transição não estão autorizados.
+- Evidência: [relatório consolidado](../../docs/STATE-06-Consolidated-Quality-Gate-Campaign-Report.md), [proposta autorizada](../../docs/STATE-06-Consolidated-Quality-Gate-Campaign-Proposal.md), comandos/resultados desta sessão e inspeção read-only dos harnesses.
+- Próxima atividade: nenhuma atividade técnica está autorizada. Bruno pode solicitar uma proposta exclusivamente documental de remediação do harness consolidado e dos achados não bloqueantes.
+- Aprovador: Bruno autorizou a campanha; a classificação automática é `BLOQUEADO` e nenhuma decisão de Human Gate foi inferida.
+
 ## Template de nova entrada
 
 - Data:

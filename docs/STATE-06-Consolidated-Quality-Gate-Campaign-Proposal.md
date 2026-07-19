@@ -1,5 +1,7 @@
 # Proposta STATE-06 — Campanha Consolidada de Quality Gate
 
+> **Status factual posterior (2026-07-19):** Bruno autorizou separadamente a campanha automática sobre o commit `5a47aae`. Os checks e harnesses existentes passaram, mas o [relatório consolidado](STATE-06-Consolidated-Quality-Gate-Campaign-Report.md) classificou o Quality Gate como `BLOQUEADO` porque não existe uma composição única correlacionando os quatro incrementos sem criar novo harness. Nenhuma remediação, Human Gate final, promoção ou transição foi autorizada.
+
 ## Status e autoridade
 
 - Data: 2026-07-19.
