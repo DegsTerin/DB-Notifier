@@ -1863,6 +1863,22 @@
 - Próxima atividade: nenhuma atividade técnica está autorizada ou é exigida. Qualquer proposta ou execução da campanha consolidada exige solicitação e autorização posteriores, separadas e explícitas de Bruno.
 - Aprovador: Bruno, 2026-07-19.
 
+## 2026-07-19 — Proposta documental da Campanha Consolidada de Quality Gate do STATE-06
+
+- Estado anterior: `STATE-06 INTEGRATION`, quatro incrementos do plano de fechamento concluídos, com Quality Gates restritos aprovados e Human Gates próprios aceitos com as limitações registradas; campanha consolidada não autorizada.
+- Estado resultante: sem transição; `STATE-06 INTEGRATION` mantido, com proposta documental da campanha pronta para revisão e nenhuma execução autorizada.
+- Solicitação: Bruno declarou `desejo continuar, peço primeiro uma apresentação documental da campanha consolidada.`
+- Baseline observada: os commits `3449918`, `c945c1b`, `d43e49a` e `54a65f5` possuem relatórios e decisões próprias; a evidência está distribuída entre harnesses de pipeline, Dashboard/SignalR, notificação e transporte não executável de comando, sem relatório consolidado corrente.
+- Proposta: campanha de verificação, não novo incremento; preflight, auditoria offline, suítes completas, tentativa de composição E2E apenas com harnesses existentes, matriz de falhas, cleanup, relatório factual e classificação técnica sem correção silenciosa.
+- Regra de bloqueio: se a cadeia única exigir código, teste, harness, configuração executável, migration, pacote, download ou ampliação de autoridade, a campanha futura deverá parar e classificar a evidência como `BLOQUEADA` ou `REPROVADA`; remediação exigirá autorização separada.
+- Autoridade: somente documentação. Campanha, build, testes de produto, runtime, navegador, WPF, amostra humana, acesso externo, implementação, remediação, promoção e transição não foram autorizados nem executados.
+- Shutdown preflight: `0` processo e `0` listener pertencente ao DB-Notifier antes da alteração documental; nenhum processo ou recurso alheio foi encerrado.
+- Gates documentais: documentação aprovada para `273` fontes comment-capable; `397` links Markdown locais em `93` arquivos aprovados; secret scan do worktree não ignorado e histórico disponível aprovado; inspeção de escopo e `git diff --check` aprovadas. Build, testes e runtime de produto foram `NÃO APLICÁVEIS` e não executados.
+- Gates futuros: Quality Gate consolidado, Human Gate final do `STATE-06` e transição permanecem separados, pendentes e não inferidos.
+- Evidência: [proposta documental](../../docs/STATE-06-Consolidated-Quality-Gate-Campaign-Proposal.md), [plano consolidado](../../docs/STATE-06-Consolidated-Closure-Plan.md), [estado corrente](Current-State.md), quatro relatórios aceitos e inspeção read-only dos harnesses/testes existentes.
+- Próxima decisão: Bruno pode revisar, solicitar alterações, adiar ou emitir separadamente o texto sugerido na proposta. O texto documental não é autorização por si só.
+- Aprovador: não aplicável; esta entrada registra solicitação e proposta, não aprovação da campanha.
+
 ## Template de nova entrada
 
 - Data:

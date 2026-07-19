@@ -253,6 +253,8 @@ Completar o protocolo durável de polling/acknowledgement do Agent e provar expi
 
 ## Campanha final — Quality Gate consolidado do STATE-06
 
+**Status factual atual:** Bruno solicitou exclusivamente uma [apresentação documental detalhada da campanha consolidada](STATE-06-Consolidated-Quality-Gate-Campaign-Proposal.md). A proposta está pronta para revisão; campanha, build, testes de produto, runtimes, amostras humanas, promoção e transição permanecem não autorizados.
+
 O Human Gate próprio do Incremento 4 foi aceito, mas esta campanha somente poderá começar se Bruno a autorizar separadamente. Ela não deverá corrigir falhas silenciosamente; achados exigirão remediação autorizada e nova execução proporcional.
 
 ### E2E consolidado obrigatório
@@ -354,7 +356,7 @@ Qualquer necessidade de acesso externo, dependência não disponível, credencia
 Nenhuma execução é autorizada pelo plano em si. Autorizações separadas posteriores concluíram tecnicamente os quatro incrementos, e Bruno aceitou seus Human Gates próprios com as limitações registradas. A ordem restante é:
 
 1. Incrementos 1–4 concluídos e aceitos em seus escopos restritos;
-2. autorizar separadamente a campanha automática consolidada, somente se Bruno desejar continuar;
+2. revisar a [proposta detalhada da campanha consolidada](STATE-06-Consolidated-Quality-Gate-Campaign-Proposal.md) e autorizá-la separadamente somente se Bruno desejar continuar;
 3. revisar o relatório final e autorizar separadamente as amostras humanas;
 4. decidir o Human Gate do `STATE-06`;
 5. somente depois, decidir separadamente se autoriza a transição para `STATE-07`.
