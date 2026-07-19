@@ -1772,6 +1772,22 @@
 - Próxima atividade: nenhuma atividade técnica está autorizada ou é exigida. Qualquer proposta ou execução do Incremento 3 exige solicitação e autorização posteriores, separadas e explícitas de Bruno.
 - Aprovador: Bruno, 2026-07-19.
 
+## 2026-07-19 — Proposta documental do Incremento 3 Reconciled Local Notification Delivery Sandbox
+
+- Estado anterior: `STATE-06 INTEGRATION`, Incrementos 1 e 2 concluídos e aceitos com as limitações registradas; Incrementos 3 e 4 sem autorização de execução.
+- Estado resultante: sem transição; `STATE-06 INTEGRATION` mantido, com proposta documental do Incremento 3 pronta para revisão e nenhuma implementação autorizada.
+- Solicitação: Bruno declarou `proposta exclusivamente documental para o Incremento 3`.
+- Baseline observada: o WPF possui publicação Windows local e fallback Tray limitado para demonstrações, mas não consome transição reconciliada. Eventos canônicos centrais possuem `EventId` estável, porém não há endpoint read-only/cursor para o WPF nem contrato consumível com o par anterior/atual; a deduplicação demonstrativa não é durável entre reinícios.
+- Proposta: projeção/API read-only versionada somente em HTTPS loopback sandbox; autenticação exclusivamente de teste; consumidor WPF sob três guardas e opt-in desligado por padrão; baseline silenciosa; ledger local isolado com cursor monotónico, hash, deduplicação e fencing; fila serial limitada a `16`; budget, cancelamento, silêncio, freshness, localização e publicação pelo caminho Windows existente com fallback seguro.
+- Limitação central: ledger e API Windows não compartilham transação. Identidade estável, estado `attempting` e Tag determinística mitigam repetição, mas a proposta não promete exactly-once nem trata aceitação da API Windows como prova de apresentação visível.
+- Autoridade: somente documentação. Código, configuração executável, migration, pacote, lockfile, build, teste de produto, notificação, WPF/API/Agent runtime, acesso externo, promoção e transição não foram autorizados nem executados.
+- Shutdown preflight: `0` processo e `0` listener pertencente ao DB-Notifier antes da alteração documental; nenhum processo ou recurso alheio foi encerrado.
+- Gates documentais: documentação aprovada para `256` fontes comment-capable; `373` links Markdown locais em `89` arquivos aprovados; secret scan do worktree não ignorado e histórico disponível aprovado; `git diff --check` aprovado. Build, testes e runtime de produto foram `NÃO APLICÁVEIS` e não executados.
+- Gates futuros: Quality/Human Gate do Incremento 3 e gate final do `STATE-06` não avaliados; esta proposta não os antecipa.
+- Evidência: [proposta documental](../../docs/STATE-06-Reconciled-Local-Notification-Delivery-Sandbox-Proposal.md), [plano consolidado](../../docs/STATE-06-Consolidated-Closure-Plan.md), código do publicador Windows/Tray, contrato de snapshot e persistência de eventos canônicos inspecionados diretamente.
+- Próxima decisão: Bruno pode revisar, ajustar, adiar ou rejeitar a proposta. Qualquer implementação exige autorização posterior, separada e explícita; o texto sugerido no documento não é autorização por si só.
+- Aprovador: não aplicável; esta entrada registra solicitação e proposta, não aprovação de execução.
+
 ## Template de nova entrada
 
 - Data:
