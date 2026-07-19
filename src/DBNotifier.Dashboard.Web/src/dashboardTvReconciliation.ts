@@ -4,6 +4,7 @@ import { inventorySchemaVersion, type HealthStatus, type InventorySnapshot } fro
 export const dashboardTvSchemaVersion = "dashboard-tv.v1" as const;
 export const dashboardTvReconciliationMilliseconds = 30_000;
 export const dashboardTvRequestTimeoutMilliseconds = 10_000;
+export const dashboardTvMaximumHintsPerPeriodicWindow = 2;
 const maximumBodyBytes = 512 * 1024;
 const maximumItems = 500;
 const maximumTextLength = 200;
@@ -166,6 +167,9 @@ export class DashboardTvReconciliationCoordinator {
   private generation = 0;
   private active = false;
   private inFlight = false;
+  private pendingPeriodic = false;
+  private pendingHint = false;
+  private hintBudget = dashboardTvMaximumHintsPerPeriodicWindow;
   private timerHandle: number | undefined;
   private abortController: AbortController | undefined;
   private current: DashboardTvReconciliationView = { state: "loading" };
@@ -206,17 +210,30 @@ export class DashboardTvReconciliationCoordinator {
     if (this.timerHandle !== undefined) this.timer.cancel(this.timerHandle);
     this.timerHandle = undefined;
     this.inFlight = false;
+    this.pendingPeriodic = false;
+    this.pendingHint = false;
+    this.hintBudget = dashboardTvMaximumHintsPerPeriodicWindow;
   }
 
-  /** Requests an immediate retry while coalescing with any already active read. */
+  /** Requests a user-initiated immediate retry without postponing the independent periodic deadline. */
   public retry(): void {
     if (!this.active || this.inFlight) return;
-    if (this.timerHandle !== undefined) this.timer.cancel(this.timerHandle);
-    this.timerHandle = undefined;
-    void this.reconcile(this.generation);
+    void this.reconcile(this.generation, "manual");
   }
 
-  private async reconcile(generation: number): Promise<void> {
+  /** Coalesces a best-effort change hint into at most two authoritative reads per periodic window. */
+  public hint(): void {
+    if (!this.active || this.hintBudget < 1) return;
+    if (this.inFlight) {
+      this.pendingHint = true;
+      return;
+    }
+    this.hintBudget -= 1;
+    void this.reconcile(this.generation, "hint");
+  }
+
+  /** Performs one serial authoritative read and then drains bounded pending work by priority. */
+  private async reconcile(generation: number, reason: "initial" | "periodic" | "hint" | "manual" = "initial"): Promise<void> {
     if (!this.active || this.inFlight || generation !== this.generation) return;
     this.inFlight = true;
     const controller = new AbortController();
@@ -245,16 +262,39 @@ export class DashboardTvReconciliationCoordinator {
       if (generation === this.generation) {
         this.inFlight = false;
         this.abortController = undefined;
-        if (this.active) {
-          this.timerHandle = this.timer.schedule(
-            () => {
-              this.timerHandle = undefined;
-              void this.reconcile(generation);
-            },
-            dashboardTvReconciliationMilliseconds,
-          );
+        if (this.active && (reason === "initial" || reason === "periodic")) {
+          this.hintBudget = dashboardTvMaximumHintsPerPeriodicWindow;
+          this.schedulePeriodic(generation);
         }
+        this.drain(generation);
       }
+    }
+  }
+
+  /** Schedules exactly one periodic deadline; hint and manual reads never replace it. */
+  private schedulePeriodic(generation: number): void {
+    if (this.timerHandle !== undefined) this.timer.cancel(this.timerHandle);
+    this.timerHandle = this.timer.schedule(() => {
+      this.timerHandle = undefined;
+      this.pendingPeriodic = true;
+      this.drain(generation);
+    }, dashboardTvReconciliationMilliseconds);
+  }
+
+  /** Starts at most one pending read, preferring the authoritative periodic deadline over a coalesced hint. */
+  private drain(generation: number): void {
+    if (!this.active || this.inFlight || generation !== this.generation) return;
+    if (this.pendingPeriodic) {
+      this.pendingPeriodic = false;
+      void this.reconcile(generation, "periodic");
+      return;
+    }
+    if (this.pendingHint && this.hintBudget > 0) {
+      this.pendingHint = false;
+      this.hintBudget -= 1;
+      void this.reconcile(generation, "hint");
+    } else if (this.hintBudget < 1) {
+      this.pendingHint = false;
     }
   }
 }

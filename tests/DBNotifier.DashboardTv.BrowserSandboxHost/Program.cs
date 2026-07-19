@@ -4,9 +4,11 @@ using System.Net;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Text.Json;
+using DBNotifier.Application.Presentation;
 using DBNotifier.Server.Api;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.AspNetCore.Server.Kestrel.Https;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.FileProviders;
 
 namespace DBNotifier.DashboardTv.BrowserSandboxHost;
@@ -15,6 +17,8 @@ namespace DBNotifier.DashboardTv.BrowserSandboxHost;
 internal static class Program
 {
     private const string EvidenceRoute = "/__dbnotifier-browser-e2e/evidence";
+    private const string SignalREvidenceRoute = "/__dbnotifier-browser-e2e/signalr-evidence";
+    private const string PublishHintRoute = "/__dbnotifier-browser-e2e/publish-hint";
     private const string ScenarioHeader = "X-DBN-TV-Browser-Scenario";
     private const string EvidenceSubject = "dashboard-tv-local-test";
 
@@ -42,12 +46,18 @@ internal static class Program
         builder.Configuration.AddInMemoryCollection(new Dictionary<string, string?>
         {
             [$"{DashboardTvSandboxEndpointRouteBuilderExtensions.ConfigurationSection}:Enabled"] = bool.TrueString,
+            [$"{DashboardTvChangeHintSandboxEndpointRouteBuilderExtensions.ConfigurationSection}:Enabled"] = bool.TrueString,
         });
         builder.WebHost.ConfigureKestrel(kestrel =>
             kestrel.Listen(IPAddress.Loopback, 0, listener => listener.UseHttps(certificate.Certificate)));
         builder.Services.AddSingleton(TimeProvider.System);
         builder.Services.AddSingleton<BrowserScenarioEvidenceStore>();
         bool endpointEnabled = builder.Services.AddDashboardTvSandbox(builder.Environment, builder.Configuration);
+        bool hintsEnabled = builder.Services.AddDashboardTvChangeHintSandbox(builder.Environment, builder.Configuration);
+        builder.Services.RemoveAll<IDashboardTvSnapshotSource>();
+        builder.Services.AddSingleton<BrowserSignalRSnapshotSource>();
+        builder.Services.AddSingleton<IDashboardTvSnapshotSource>(services =>
+            services.GetRequiredService<BrowserSignalRSnapshotSource>());
         builder.Services.AddRateLimiter(rateLimiting =>
             rateLimiting.AddFixedWindowLimiter("HumanApiRateLimit", limiter =>
             {
@@ -65,7 +75,18 @@ internal static class Program
         application.UseAuthorization();
         application.Use((context, next) => HandleScenarioAsync(context, next, application.Services.GetRequiredService<BrowserScenarioEvidenceStore>()));
         application.MapDashboardTvSandboxEndpoint(endpointEnabled);
+        application.MapDashboardTvChangeHintSandbox(hintsEnabled);
         application.MapGet(EvidenceRoute, (HttpContext context, BrowserScenarioEvidenceStore evidence) => ReadEvidence(context, evidence));
+        application.MapGet(
+            SignalREvidenceRoute,
+            (HttpContext context, DashboardTvChangeHintSandboxEvidence hints, BrowserSignalRSnapshotSource snapshots) =>
+                ReadSignalREvidence(context, hints, snapshots));
+        application.MapPost(
+                PublishHintRoute,
+                (HttpContext context, BrowserSignalRSnapshotSource snapshots, CancellationToken cancellationToken) =>
+                    PublishHintAsync(context, snapshots, cancellationToken))
+            .RequireAuthorization(DashboardTvSandboxEndpointRouteBuilderExtensions.ReadPolicy)
+            .RequireRateLimiting("HumanApiRateLimit");
         application.UseDefaultFiles(new DefaultFilesOptions { FileProvider = dashboardFiles });
         application.UseStaticFiles(new StaticFileOptions { FileProvider = dashboardFiles });
         application.MapFallback(async context =>
@@ -201,6 +222,54 @@ internal static class Program
         }
 
         return Results.Json(evidence.Snapshot(scenario));
+    }
+
+    /// <summary>Returns aggregate hint and synthetic projection evidence without identity or transport material.</summary>
+    /// <param name="context">Current exact local evidence request.</param>
+    /// <param name="hints">Aggregate SignalR sandbox counters.</param>
+    /// <param name="snapshots">Synthetic projection source state.</param>
+    /// <returns>Sanitised evidence, or an unauthorised result outside the fixed test boundary.</returns>
+    private static IResult ReadSignalREvidence(
+        HttpContext context,
+        DashboardTvChangeHintSandboxEvidence hints,
+        BrowserSignalRSnapshotSource snapshots)
+    {
+        if (!IsEvidenceSubject(context))
+        {
+            return Results.Unauthorized();
+        }
+
+        return Results.Json(new { hints = hints.Snapshot(), projection = snapshots.Evidence() });
+    }
+
+    /// <summary>Advances one fixed synthetic projection and emits its opaque best-effort change hint.</summary>
+    /// <param name="context">Current authenticated same-origin browser request.</param>
+    /// <param name="snapshots">Synthetic projection source and publisher.</param>
+    /// <param name="cancellationToken">Request cancellation propagated to in-process publication.</param>
+    /// <returns>The new non-secret revision after publication, or a bad request for another scenario.</returns>
+    private static async Task<IResult> PublishHintAsync(
+        HttpContext context,
+        BrowserSignalRSnapshotSource snapshots,
+        CancellationToken cancellationToken)
+    {
+        string scenario = context.Request.Headers[ScenarioHeader].SingleOrDefault() ?? "";
+        if (!string.Equals(scenario, "signalr-authoritative", StringComparison.Ordinal))
+        {
+            return Results.BadRequest();
+        }
+
+        string revision = await snapshots.AdvanceAndPublishAsync(cancellationToken).ConfigureAwait(false);
+        return Results.Json(new { schemaVersion = DashboardTvChangeHintContract.CurrentSchemaVersion, projectionRevision = revision });
+    }
+
+    /// <summary>Checks the exact bounded evidence subject on HTTPS loopback without retaining its value.</summary>
+    /// <param name="context">Current request.</param>
+    /// <returns><see langword="true"/> only inside the dedicated test process.</returns>
+    private static bool IsEvidenceSubject(HttpContext context)
+    {
+        bool loopback = context.Connection.RemoteIpAddress is not null && IPAddress.IsLoopback(context.Connection.RemoteIpAddress);
+        string subject = context.Request.Headers[DashboardTvSandboxEndpointRouteBuilderExtensions.TestSubjectHeader].SingleOrDefault() ?? "";
+        return context.Request.IsHttps && loopback && string.Equals(subject, EvidenceSubject, StringComparison.Ordinal);
     }
 
     /// <summary>Adds valid protocol headers to one deliberately malformed or oversized local response.</summary>
@@ -352,12 +421,105 @@ internal sealed class LoopbackCertificateLease : IDisposable
     }
 }
 
+/// <summary>Owns one mutable but deterministic provider-neutral projection used only to prove local hint reconciliation.</summary>
+internal sealed class BrowserSignalRSnapshotSource : IDashboardTvSnapshotSource
+{
+    private readonly object gate = new();
+    private readonly TimeProvider timeProvider;
+    private readonly IDashboardTvChangeHintPublisher publisher;
+    private DashboardTvSnapshot snapshot;
+    private int advances;
+
+    /// <summary>Initialises the synthetic projection from the existing immutable sandbox fixture.</summary>
+    /// <param name="fixture">Canonical local fixture source.</param>
+    /// <param name="timeProvider">Clock used for valid UTC evidence ordering.</param>
+    /// <param name="publisher">In-process best-effort SignalR publisher.</param>
+    public BrowserSignalRSnapshotSource(
+        DashboardTvSandboxSnapshotSource fixture,
+        TimeProvider timeProvider,
+        IDashboardTvChangeHintPublisher publisher)
+    {
+        snapshot = fixture.Snapshot;
+        this.timeProvider = timeProvider;
+        this.publisher = publisher;
+    }
+
+    /// <inheritdoc />
+    public ValueTask<DashboardTvSnapshot> ReadAsync(CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        lock (gate)
+        {
+            return ValueTask.FromResult(snapshot);
+        }
+    }
+
+    /// <summary>Atomically advances the local fixture before publishing its opaque canonical revision.</summary>
+    /// <param name="cancellationToken">Cancellation propagated to SignalR publication.</param>
+    /// <returns>The lower-case SHA-256 revision of the new authoritative body.</returns>
+    public async ValueTask<string> AdvanceAndPublishAsync(CancellationToken cancellationToken)
+    {
+        string revision;
+        lock (gate)
+        {
+            DateTimeOffset generatedAt = timeProvider.GetUtcNow();
+            advances += 1;
+            DashboardTvInventoryItem first = snapshot.Items[0] with
+            {
+                DisplayName = advances % 2 == 1 ? "Finance sandbox updated" : "Finance sandbox",
+                Status = advances % 2 == 1 ? "degraded" : "healthy",
+                ObservedAt = FormatUtc(generatedAt.AddSeconds(-1)),
+                ReceivedAt = FormatUtc(generatedAt),
+            };
+            snapshot = new DashboardTvSnapshot(
+                DashboardTvSnapshotContract.CurrentSchemaVersion,
+                FormatUtc(generatedAt),
+                [first, .. snapshot.Items.Skip(1)]);
+            revision = Revision(snapshot);
+        }
+
+        await publisher.PublishAsync(revision, cancellationToken).ConfigureAwait(false);
+        return revision;
+    }
+
+    /// <summary>Returns only the current revision and advance count for sanitised browser assertions.</summary>
+    /// <returns>Immutable synthetic projection evidence.</returns>
+    public BrowserSignalRProjectionEvidence Evidence()
+    {
+        lock (gate)
+        {
+            return new BrowserSignalRProjectionEvidence(advances, Revision(snapshot));
+        }
+    }
+
+    /// <summary>Computes the same canonical body revision used by the authoritative snapshot endpoint.</summary>
+    /// <param name="value">Current synthetic snapshot.</param>
+    /// <returns>A lower-case SHA-256 revision without ETag quotes.</returns>
+    private static string Revision(DashboardTvSnapshot value)
+    {
+        byte[] body = JsonSerializer.SerializeToUtf8Bytes(value, JsonSerializerOptions.Web);
+        return $"sha256-{Convert.ToHexString(SHA256.HashData(body)).ToLowerInvariant()}";
+    }
+
+    /// <summary>Formats one UTC instant exactly as required by the versioned snapshot contract.</summary>
+    /// <param name="value">UTC-capable instant.</param>
+    /// <returns>Millisecond-precision UTC text.</returns>
+    private static string FormatUtc(DateTimeOffset value) =>
+        value.UtcDateTime.ToString("yyyy-MM-dd'T'HH:mm:ss.fff'Z'", System.Globalization.CultureInfo.InvariantCulture);
+}
+
+/// <summary>Contains sanitised synthetic projection evidence for browser assertions.</summary>
+/// <param name="Advances">Number of fixed local projection advances.</param>
+/// <param name="Revision">Current opaque canonical body revision.</param>
+internal sealed record BrowserSignalRProjectionEvidence(int Advances, string Revision);
+
 /// <summary>Records bounded, sanitised timing evidence for known browser scenarios in memory only.</summary>
 internal sealed class BrowserScenarioEvidenceStore
 {
     private static readonly HashSet<string> KnownScenarios = new(StringComparer.Ordinal)
     {
         "authoritative",
+        "signalr-authoritative",
         "preserve-denied",
         "preserve-incompatible",
         "preserve-malformed",

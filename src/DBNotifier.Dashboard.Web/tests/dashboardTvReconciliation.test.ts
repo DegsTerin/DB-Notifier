@@ -5,6 +5,7 @@ import {
   DashboardTvHttpSnapshotReader,
   DashboardTvReadError,
   DashboardTvReconciliationCoordinator,
+  dashboardTvMaximumHintsPerPeriodicWindow,
   dashboardTvReconciliationMilliseconds,
   dashboardTvRequestTimeoutMilliseconds,
   isDashboardTvSandboxEnabled,
@@ -173,6 +174,41 @@ test("coordinator reads immediately, never overlaps and preserves evidence acros
   await settle();
   assert.equal(views.at(-1)?.snapshot?.generatedAt, "2020-07-18T12:00:00.000Z");
   assert.equal(views.at(-1)?.lastSuccessfulAt, acceptedAt);
+  coordinator.stop();
+});
+
+test("coordinator bounds and coalesces hints without postponing its periodic deadline", async () => {
+  const initial = deferred<DashboardTvReadResult>();
+  const firstHint = deferred<DashboardTvReadResult>();
+  const coalescedHint = deferred<DashboardTvReadResult>();
+  const periodic = deferred<DashboardTvReadResult>();
+  const reader = new QueueReader([initial.promise, firstHint.promise, coalescedHint.promise, periodic.promise]);
+  const timer = new ManualTimer();
+  const coordinator = new DashboardTvReconciliationCoordinator(reader, () => {}, timer);
+
+  coordinator.start();
+  initial.resolve({ disposition: "modified", snapshot: inventorySnapshot(), entityTag });
+  await settle();
+  assert.equal(timer.pendingCount, 1);
+
+  coordinator.hint();
+  coordinator.hint();
+  coordinator.hint();
+  assert.equal(reader.callCount, 2);
+  assert.equal(timer.pendingCount, 1);
+  timer.runNext();
+  firstHint.resolve({ disposition: "notModified", entityTag });
+  await settle();
+  assert.equal(reader.callCount, 3);
+
+  coalescedHint.resolve({ disposition: "notModified", entityTag });
+  await settle();
+  assert.equal(reader.callCount, 4);
+  periodic.resolve({ disposition: "notModified", entityTag });
+  await settle();
+
+  assert.equal(timer.pendingCount, 1);
+  assert.equal(dashboardTvMaximumHintsPerPeriodicWindow, 2);
   coordinator.stop();
 });
 

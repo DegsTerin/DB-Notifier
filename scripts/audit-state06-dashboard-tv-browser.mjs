@@ -40,7 +40,7 @@ async function connectToPage() {
 
   const socket = new WebSocket(target.webSocketDebuggerUrl);
   const pending = new Map();
-  const networkEvidence = { observedHttpRequests: 0, externalOrigins: new Set() };
+  const networkEvidence = { observedHttpRequests: 0, observedWebSockets: 0, externalOrigins: new Set() };
   let nextId = 0;
   await new Promise((resolve, reject) => {
     socket.addEventListener("open", resolve, { once: true });
@@ -56,6 +56,12 @@ async function connectToPage() {
           if (!["127.0.0.1", "localhost", "[::1]"].includes(requestUrl.hostname)) {
             networkEvidence.externalOrigins.add(requestUrl.origin);
           }
+        }
+      } else if (message.method === "Network.webSocketCreated") {
+        const socketUrl = new URL(message.params.url);
+        networkEvidence.observedWebSockets += 1;
+        if (!['127.0.0.1', 'localhost', '[::1]'].includes(socketUrl.hostname)) {
+          networkEvidence.externalOrigins.add(socketUrl.origin);
         }
       }
       return;
@@ -119,6 +125,40 @@ async function readHostEvidence(call, scenario) {
   })`);
 }
 
+/** Reads sanitised aggregate SignalR and synthetic projection evidence from the temporary host. */
+async function readSignalREvidence(call) {
+  return evaluate(call, `fetch("/__dbnotifier-browser-e2e/signalr-evidence", {
+    headers: { ${JSON.stringify(evidenceSubjectHeader)}: ${JSON.stringify(evidenceSubject)} },
+    cache: "no-store",
+  }).then(async (response) => {
+    if (!response.ok) throw new Error("SignalR evidence endpoint returned " + response.status);
+    return response.json();
+  })`);
+}
+
+/** Waits for one aggregate SignalR evidence predicate without exposing connection identifiers. */
+async function waitForSignalREvidence(call, predicate, description, timeoutMilliseconds = 8_000) {
+  const deadline = Date.now() + timeoutMilliseconds;
+  while (Date.now() < deadline) {
+    const evidence = await readSignalREvidence(call);
+    if (predicate(evidence)) return evidence;
+    await new Promise((resolve) => setTimeout(resolve, 50));
+  }
+  throw new Error(`Timed out waiting for ${description}.`);
+}
+
+/** Publishes one fixed synthetic change after the authoritative local projection has committed it. */
+async function publishSyntheticHint(call) {
+  return evaluate(call, `fetch("/__dbnotifier-browser-e2e/publish-hint", {
+    method: "POST",
+    headers: { ${JSON.stringify(evidenceSubjectHeader)}: ${JSON.stringify(evidenceSubject)} },
+    cache: "no-store",
+  }).then(async (response) => {
+    if (!response.ok) throw new Error("Synthetic hint endpoint returned " + response.status);
+    return response.json();
+  })`);
+}
+
 /** Waits until the host has observed the requested number of scenario reads. */
 async function waitForRequestCount(call, scenario, expected, timeoutMilliseconds = 8_000) {
   const deadline = Date.now() + timeoutMilliseconds;
@@ -158,7 +198,7 @@ async function enterAndWaitForSnapshot(call, scenario) {
   }
   const view = await readView(call);
   assertEvidence(view.tvActive && view.control === "exit", "TV presentation did not remain active after the authoritative read.");
-  assertEvidence(view.instanceNames.join("|") === "Finance sandbox|Orders sandbox", "The browser did not render the two authoritative sandbox items.");
+  assertEvidence(view.instanceNames.length === 2 && view.instanceNames.includes("Orders sandbox"), "The browser did not render the two authoritative sandbox items.");
   return view;
 }
 
@@ -178,7 +218,7 @@ async function auditPreservedFailure(call, scenario, expectedBadge, expectedStat
   await waitFor(call, `document.querySelector(".demo-badge")?.textContent?.trim() === ${JSON.stringify(expectedBadge)}`, `${scenario} factual source state`);
   const view = await readView(call);
   const evidence = await waitForRequestCount(call, scenario, 2);
-  assertEvidence(view.instanceNames.join("|") === "Finance sandbox|Orders sandbox", `${scenario} discarded the last valid snapshot.`);
+  assertEvidence(view.instanceNames.length === 2 && view.instanceNames.includes("Orders sandbox"), `${scenario} discarded the last valid snapshot.`);
   assertEvidence(view.timerDelays.includes(30_000), `${scenario} did not request the canonical 30-second reconciliation delay.`);
   assertEvidence(evidence.maximumConcurrency === 1, `${scenario} overlapped snapshot reads.`);
   assertEvidence(evidence.requests[1].statusCode === expectedStatus, `${scenario} did not produce the expected local status.`);
@@ -216,6 +256,35 @@ try {
   let standardView = await readView(call);
   assertEvidence(!standardView.tvActive && standardView.instanceNames.length === 4, "The normal Dashboard did not preserve its four-item demonstration baseline.");
   assertEvidence((await readHostEvidence(call, "authoritative")).requestCount === 0, "The standard Dashboard contacted the sandbox before TV entry.");
+
+  reportStage("starting authenticated SignalR hint and independent real periodic deadline");
+  await prepareScenario(call, "signalr-authoritative", false);
+  await enterAndWaitForSnapshot(call, "signalr-authoritative");
+  const initialHintEvidence = await waitForRequestCount(call, "signalr-authoritative", 1);
+  await waitForSignalREvidence(call, (evidence) => evidence.hints.activeConnections === 1, "one authenticated local SignalR connection");
+  const firstSignalRCompletedAt = Date.parse(initialHintEvidence.requests[0].completedAt);
+  const published = await publishSyntheticHint(call);
+  assertEvidence(/^sha256-[0-9a-f]{64}$/.test(published.projectionRevision), "The synthetic control did not return one opaque canonical revision.");
+  let hintReadEvidence = await waitForRequestCount(call, "signalr-authoritative", 2);
+  await waitFor(call, `[...document.querySelectorAll(".overview-instance-name strong")].some((element) => element.textContent?.trim() === "Finance sandbox updated")`, "the authoritative re-read triggered by a hint");
+  assertEvidence(hintReadEvidence.requests[1].statusCode === 200 && hintReadEvidence.requests[1].hadConditionalTag, "The hint did not trigger a conditional authoritative HTTPS read.");
+  const signalRCadenceEvidence = await waitForRequestCount(call, "signalr-authoritative", 3, 38_000);
+  const signalRPeriodicStartedAt = Date.parse(signalRCadenceEvidence.requests[2].startedAt);
+  assertEvidence(signalRCadenceEvidence.requests[2].statusCode === 304 && signalRCadenceEvidence.requests[2].hadConditionalTag, "The independent periodic read did not retain ETag/304 semantics after a hint.");
+  assertEvidence(signalRPeriodicStartedAt - firstSignalRCompletedAt >= 29_500 && signalRPeriodicStartedAt - firstSignalRCompletedAt <= 32_000, "The SignalR hint postponed or advanced the independent 30-second authoritative deadline.");
+  assertEvidence(signalRCadenceEvidence.maximumConcurrency === 1, "SignalR-triggered and periodic authoritative reads overlapped.");
+  const activeSignalREvidence = await readSignalREvidence(call);
+  assertEvidence(activeSignalREvidence.hints.maximumConnections === 1 && activeSignalREvidence.hints.publishedHints >= 1, "The host did not retain bounded aggregate SignalR evidence.");
+  summaries.push({
+    scenario: "authenticated-signalr-hint",
+    requestCount: signalRCadenceEvidence.requestCount,
+    maximumConcurrency: signalRCadenceEvidence.maximumConcurrency,
+    periodicDelayMilliseconds: signalRPeriodicStartedAt - firstSignalRCompletedAt,
+    publishedHints: activeSignalREvidence.hints.publishedHints,
+  });
+  await exitTv(call);
+  await waitForSignalREvidence(call, (evidence) => evidence.hints.activeConnections === 0, "SignalR connection cleanup after TV exit");
+  reportStage("authenticated hint, authoritative re-read and independent cadence passed");
 
   reportStage("starting the real 30-second authoritative cadence");
   await prepareScenario(call, "authoritative", false);
@@ -270,14 +339,31 @@ try {
   reportStage("starting offline recovery");
   await prepareScenario(call, "offline-recovery", true);
   await enterAndWaitForSnapshot(call, "offline-recovery");
+  const beforeOfflineSignalR = await waitForSignalREvidence(
+    call,
+    (evidence) => evidence.hints.activeConnections === 1,
+    "the pre-offline SignalR connection",
+  );
   await call("Network.emulateNetworkConditions", { offline: true, latency: 0, downloadThroughput: -1, uploadThroughput: -1 });
   await waitFor(call, `document.querySelector(".demo-badge")?.textContent?.trim() === "Local sandbox offline"`, "the interrupted loopback connection");
   assertEvidence((await readView(call)).instanceNames.length === 2, "Offline state discarded the last valid snapshot.");
   await call("Network.emulateNetworkConditions", { offline: false, latency: 0, downloadThroughput: -1, uploadThroughput: -1 });
   await waitFor(call, `document.querySelector(".demo-badge")?.textContent?.trim() === "Local sandbox snapshot"`, "recovery after loopback interruption");
   let offlineEvidence = await waitForRequestCount(call, "offline-recovery", 2);
+  const afterOfflineSignalR = await waitForSignalREvidence(
+    call,
+    (evidence) => evidence.hints.activeConnections === 1 &&
+      evidence.hints.totalConnections > beforeOfflineSignalR.hints.totalConnections,
+    "bounded SignalR reconnection after loopback interruption",
+  );
   assertEvidence(offlineEvidence.maximumConcurrency === 1, "Offline recovery overlapped authoritative reads.");
-  summaries.push({ scenario: "offline-recovery", requestCount: offlineEvidence.requestCount, maximumConcurrency: offlineEvidence.maximumConcurrency });
+  assertEvidence(afterOfflineSignalR.hints.maximumConnections === 1, "SignalR reconnection overlapped authenticated connections.");
+  summaries.push({
+    scenario: "offline-recovery",
+    requestCount: offlineEvidence.requestCount,
+    maximumConcurrency: offlineEvidence.maximumConcurrency,
+    signalRReconnectsObserved: afterOfflineSignalR.hints.totalConnections - beforeOfflineSignalR.hints.totalConnections,
+  });
   await exitTv(call);
 
   reportStage("starting cancellation and late-session fencing");
@@ -319,6 +405,7 @@ try {
     browser: version.Browser,
     scenarios: summaries,
     observedHttpRequests: networkEvidence.observedHttpRequests,
+    observedWebSockets: networkEvidence.observedWebSockets,
     observedExternalHttpRequests: 0,
     operationalData: false,
   }));

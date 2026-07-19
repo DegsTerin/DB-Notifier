@@ -73,6 +73,32 @@ public sealed class DashboardTvSnapshotEndToEndTests
         Assert.Contains("dashboard_tv.etag_invalid", await response.Content.ReadAsStringAsync(), StringComparison.Ordinal);
     }
 
+    [Fact]
+    public async Task SignalRSandboxRequiresEphemeralSameOriginSessionAndHonoursRevocation()
+    {
+        await using DashboardTvSandbox sandbox = await DashboardTvSandbox.StartAsync();
+        using HttpClient client = sandbox.CreateClient(authenticated: true);
+
+        using HttpResponseMessage issued = await client.PostAsync(
+            DashboardTvChangeHintSandboxEndpointRouteBuilderExtensions.SessionRoute,
+            content: null);
+        Assert.Equal(HttpStatusCode.NoContent, issued.StatusCode);
+        Assert.Equal(
+            DashboardTvChangeHintContract.CurrentSchemaVersion,
+            issued.Headers.GetValues("DBN-Change-Hint-Schema").Single());
+
+        string negotiateRoute = $"{DashboardTvChangeHintSandboxEndpointRouteBuilderExtensions.HubRoute}/negotiate?negotiateVersion=1";
+        using HttpResponseMessage accepted = await client.PostAsync(negotiateRoute, content: null);
+        Assert.Equal(HttpStatusCode.OK, accepted.StatusCode);
+        Assert.Contains("connectionToken", await accepted.Content.ReadAsStringAsync(), StringComparison.Ordinal);
+
+        using HttpResponseMessage revoked = await client.DeleteAsync(
+            DashboardTvChangeHintSandboxEndpointRouteBuilderExtensions.SessionRoute);
+        Assert.Equal(HttpStatusCode.NoContent, revoked.StatusCode);
+        using HttpResponseMessage deniedAfterRevocation = await client.PostAsync(negotiateRoute, content: null);
+        Assert.Equal(HttpStatusCode.Unauthorized, deniedAfterRevocation.StatusCode);
+    }
+
     private sealed class DashboardTvSandbox : IAsyncDisposable
     {
         private readonly WebApplication application;
@@ -104,11 +130,13 @@ public sealed class DashboardTvSnapshotEndToEndTests
             builder.Configuration.AddInMemoryCollection(new Dictionary<string, string?>
             {
                 [$"{DashboardTvSandboxEndpointRouteBuilderExtensions.ConfigurationSection}:Enabled"] = bool.TrueString,
+                [$"{DashboardTvChangeHintSandboxEndpointRouteBuilderExtensions.ConfigurationSection}:Enabled"] = bool.TrueString,
             });
             builder.WebHost.ConfigureKestrel(options =>
                 options.Listen(IPAddress.Loopback, 0, listenOptions => listenOptions.UseHttps(certificate)));
             builder.Services.AddSingleton(TimeProvider.System);
             bool enabled = builder.Services.AddDashboardTvSandbox(builder.Environment, builder.Configuration);
+            bool hintsEnabled = builder.Services.AddDashboardTvChangeHintSandbox(builder.Environment, builder.Configuration);
             builder.Services.AddRateLimiter(options =>
                 options.AddFixedWindowLimiter("HumanApiRateLimit", limiter =>
                 {
@@ -123,6 +151,7 @@ public sealed class DashboardTvSnapshotEndToEndTests
             application.UseRateLimiter();
             application.UseAuthorization();
             application.MapDashboardTvSandboxEndpoint(enabled);
+            application.MapDashboardTvChangeHintSandbox(hintsEnabled);
             try
             {
                 await application.StartAsync();
@@ -149,6 +178,7 @@ public sealed class DashboardTvSnapshotEndToEndTests
                     string.Equals(presented?.Thumbprint, expectedThumbprint, StringComparison.OrdinalIgnoreCase),
             };
             HttpClient client = new(handler) { BaseAddress = BaseAddress };
+            client.DefaultRequestHeaders.Add("Origin", BaseAddress.GetLeftPart(UriPartial.Authority));
             if (authenticated)
             {
                 client.DefaultRequestHeaders.Add(

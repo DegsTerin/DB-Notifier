@@ -258,7 +258,18 @@ export function App() {
     );
     tvCoordinatorRef.current = coordinator;
     coordinator.start();
+    const hintAbortController = new AbortController();
+    void import("./dashboardTvChangeHints").then(async ({ DashboardTvSignalRChangeHintSource }) => {
+      if (hintAbortController.signal.aborted) return;
+      const hintSource = new DashboardTvSignalRChangeHintSource();
+      await hintSource.start(
+        () => coordinator.hint(),
+        () => { /* An incompatible optional hint channel leaves periodic authoritative polling unchanged. */ },
+        hintAbortController.signal,
+      );
+    });
     return () => {
+      hintAbortController.abort();
       coordinator.stop();
       if (tvCoordinatorRef.current === coordinator) tvCoordinatorRef.current = undefined;
     };
