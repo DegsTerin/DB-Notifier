@@ -1,4 +1,5 @@
 # Module purpose: Builds and runs the exact opt-in Dashboard TV browser E2E on HTTPS loopback with isolated temporary processes and no network restore.
+#Requires -Version 7.0
 [CmdletBinding()]
 param(
     [ValidateSet('Chrome', 'Edge')]

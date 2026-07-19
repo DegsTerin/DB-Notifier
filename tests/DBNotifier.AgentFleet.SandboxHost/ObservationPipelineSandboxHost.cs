@@ -252,7 +252,8 @@ internal static class ObservationPipelineSandboxHost
                 !Guid.TryParseExact(agentText, "D", out Guid agentId) || agentId == Guid.Empty ||
                 !Guid.TryParseExact(instanceText, "D", out Guid instanceId) || instanceId == Guid.Empty ||
                 !Directory.Exists(fullRoot) ||
-                !Path.GetFileName(fullRoot).StartsWith("dbnotifier-agent-fleet-sandbox-", StringComparison.Ordinal) ||
+                !(Path.GetFileName(fullRoot).StartsWith("dbnotifier-agent-fleet-sandbox-", StringComparison.Ordinal) ||
+                    Path.GetFileName(fullRoot).StartsWith("dbnotifier-state06-consolidated-sandbox-", StringComparison.Ordinal)) ||
                 baseAddress.Scheme != Uri.UriSchemeHttps ||
                 !IPAddress.TryParse(baseAddress.Host, out IPAddress? loopbackAddress) ||
                 !IPAddress.IsLoopback(loopbackAddress) ||

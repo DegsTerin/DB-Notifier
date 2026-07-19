@@ -156,7 +156,8 @@ internal static class CommandTransportSandboxHost
             string fault = Require(values, "--fault");
             string relativeDatabase = Path.GetRelativePath(root, database);
             if (values.Count != 0 || !Directory.Exists(root) || !File.Exists(database) ||
-                !Path.GetFileName(root).StartsWith("dbnotifier-command-transport-sandbox-", StringComparison.Ordinal) ||
+                !(Path.GetFileName(root).StartsWith("dbnotifier-command-transport-sandbox-", StringComparison.Ordinal) ||
+                    Path.GetFileName(root).StartsWith("dbnotifier-state06-consolidated-sandbox-", StringComparison.Ordinal)) ||
                 Path.IsPathRooted(relativeDatabase) || relativeDatabase == ".." ||
                 relativeDatabase.StartsWith($"..{Path.DirectorySeparatorChar}", StringComparison.Ordinal) ||
                 baseAddress.Scheme != Uri.UriSchemeHttps || !baseAddress.IsLoopback ||

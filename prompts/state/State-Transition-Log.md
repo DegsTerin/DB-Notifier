@@ -1912,6 +1912,20 @@
 - Próxima decisão: Bruno pode revisar, pedir alterações, adiar ou emitir separadamente o texto da seção `Decisão futura de Bruno`. O documento não autoriza sua própria implementação.
 - Aprovador: não aplicável; registro de solicitação e proposta, não aprovação da remediação.
 
+## 2026-07-19 — Remediação Consolidated E2E Evidence Harness and Deterministic Gate
+
+- Estado anterior: `STATE-06 INTEGRATION`, Quality Gate consolidado histórico `BLOQUEADO`, remediação documental autorizada e Human Gate final não aberto.
+- Estado resultante: sem transição; `STATE-06 INTEGRATION` mantido, remediação técnica concluída e Quality Gate automático restrito da remediação `APROVADO`. A campanha histórica continua `BLOQUEADA` até eventual repetição separadamente autorizada.
+- Autorização: Bruno autorizou um host/orquestrador exclusivamente de teste, execução local correlacionada, identidades Agent/humana de teste separadas, SQLite efêmero, pipeline até Dashboard/SignalR/notificação em sink de teste, comando não executável, revogação, replay, falhas, fencing, budgets, cleanup, ordenação EF, PowerShell 7, testes e documentação. Acesso externo, recurso operacional, comando/`CommandAttempt`/executor, canal externo, notificação Windows visível, nova campanha, amostra humana, promoção e transição permaneceram proibidos.
+- Implementação: novo `DBNotifier.State06.ConsolidatedSandboxHost` sob `tests/`, referência somente ao harness de integração existente, sem package novo; runner/auditor offline; inclusão mínima como 17º projeto da solução e da fixture NuGet positiva; duas consultas EF ordenadas por chaves estáveis antes de `Take`; runners modernos com `#Requires -Version 7.0`.
+- Evidência correlacionada: o mesmo Agent sintético e o mesmo Server SQLite produziram `2` observações, Dashboard imediato e reconciliado, hint SignalR, `1` entrega deduplicada no sink, `2` registros de journal e `0` `CommandAttempt`; heartbeat, assignments, observação e comando foram recusados após revogação. A execução Chrome observou concorrência máxima de snapshot `1`, zero request HTTP externo e nenhum dado operacional.
+- Isolamento e cleanup: host exigiu ativação exata; composição normal permaneceu sem o harness; processos locais foram encerrados, perfil efêmero removido e a contagem de roots Agent temporários permaneceu `0 → 0` após a execução final.
+- Gates: build Release da solução com `17` projetos e zero erro/aviso; `332/332` unitários, `29/29` arquitetura e `14/14` integração; E2E correlacionado em Chrome aprovado; recusa pré-recurso no Windows PowerShell 5.1 aprovada; demais verificações offline registradas no relatório factual.
+- Limitações: somente dados, certificados, identidades, SQLite e sink sintéticos; listeners loopback; nenhum PostgreSQL, provider, IdP/PKI/vault, canal, comando ou runtime operacional. A prova corrige a lacuna do harness, mas não reclassifica a campanha anterior nem abre o Human Gate final.
+- Evidências: [relatório da remediação](../../docs/STATE-06-Consolidated-E2E-Evidence-Harness-And-Deterministic-Gate-Remediation-Report.md), [proposta autorizada](../../docs/STATE-06-Consolidated-Quality-Gate-Remediation-Proposal.md), execução E2E e inspeção direta do diff.
+- Próxima decisão: Bruno deve revisar e aceitar com limitações, solicitar remediação delimitada ou rejeitar somente esta remediação. Uma nova Campanha Consolidada continuará exigindo autorização posterior, separada e explícita.
+- Aprovador: Bruno autorizou a execução; a revisão humana própria do resultado não foi inferida.
+
 ## Template de nova entrada
 
 - Data:

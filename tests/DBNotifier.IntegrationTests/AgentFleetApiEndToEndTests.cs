@@ -41,6 +41,8 @@ using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.FileProviders;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Xunit;
@@ -52,7 +54,7 @@ namespace DBNotifier.IntegrationTests;
 /// HTTPS host. The fixture creates no external connection, operational provider, command, worker or durable
 /// certificate file; its observation scenario uses only a private deterministic synthetic provider.
 /// </summary>
-public sealed class AgentFleetApiEndToEndTests
+public sealed partial class AgentFleetApiEndToEndTests
 {
     private const string AgentVersion = "1.0.0-sandbox";
     private const string EnvironmentName = "sandbox";
@@ -2028,6 +2030,13 @@ public sealed class AgentFleetApiEndToEndTests
             return await StartAsync("dbnotifier-command-transport-sandbox-");
         }
 
+        /// <summary>Creates the single file store shared by every phase of the consolidated STATE-06 harness.</summary>
+        /// <returns>Disposable file-backed Agent sandbox with an exact consolidated-test ownership prefix.</returns>
+        public static async Task<AgentFileSandbox> StartConsolidatedAsync()
+        {
+            return await StartAsync("dbnotifier-state06-consolidated-sandbox-");
+        }
+
         private static async Task<AgentFileSandbox> StartAsync(string prefix)
         {
             DirectoryInfo root = Directory.CreateTempSubdirectory(prefix);
@@ -2197,7 +2206,8 @@ public sealed class AgentFleetApiEndToEndTests
             string rootName = Path.GetFileName(fullRoot);
             if (Path.IsPathRooted(relative) || relative.StartsWith("..", StringComparison.Ordinal) ||
                 !(rootName.StartsWith("dbnotifier-agent-fleet-sandbox-", StringComparison.Ordinal) ||
-                    rootName.StartsWith("dbnotifier-command-transport-sandbox-", StringComparison.Ordinal)))
+                    rootName.StartsWith("dbnotifier-command-transport-sandbox-", StringComparison.Ordinal) ||
+                    rootName.StartsWith("dbnotifier-state06-consolidated-sandbox-", StringComparison.Ordinal)))
             {
                 throw new InvalidOperationException("The sandbox root cannot be safely removed.");
             }
@@ -2670,7 +2680,8 @@ public sealed class AgentFleetApiEndToEndTests
         /// <param name="rootCertificate">Ephemeral custom trust root.</param>
         /// <param name="serverCertificate">Ephemeral loopback server certificate.</param>
         /// <param name="application">Started local Web application.</param>
-        /// <param name="baseAddress">Bound loopback HTTPS address.</param>
+        /// <param name="baseAddress">Bound loopback HTTPS address that requests the ephemeral Agent certificate.</param>
+        /// <param name="browserBaseAddress">Bound loopback HTTPS address that never requests a browser-held certificate.</param>
         /// <param name="clock">Adjustable fixture clock that remains fixed unless the owning test advances it.</param>
         private AgentFleetSandbox(
             SqliteConnection databaseKeeper,
@@ -2680,6 +2691,7 @@ public sealed class AgentFleetApiEndToEndTests
             X509Certificate2 serverCertificate,
             WebApplication application,
             Uri baseAddress,
+            Uri browserBaseAddress,
             AdjustableTimeProvider clock)
         {
             this.databaseKeeper = databaseKeeper;
@@ -2690,28 +2702,62 @@ public sealed class AgentFleetApiEndToEndTests
             this.application = application;
             this.clock = clock;
             BaseAddress = baseAddress;
+            BrowserBaseAddress = browserBaseAddress;
         }
 
         /// <summary>Gets the exact HTTPS loopback address selected by Kestrel.</summary>
         public Uri BaseAddress { get; }
 
+        /// <summary>
+        /// Gets the dedicated human/browser HTTPS loopback address. It differs only in the consolidated sandbox so
+        /// Chromium is never prompted for an Agent certificate; endpoint policies still deny Agent routes without mTLS.
+        /// </summary>
+        public Uri BrowserBaseAddress { get; }
+
         /// <summary>Gets the current controlled UTC clock used by the Application service.</summary>
         public DateTimeOffset Now => clock.GetUtcNow();
 
+        /// <summary>Gets the same adjustable test clock consumed by correlated readers.</summary>
+        public TimeProvider SandboxTimeProvider => clock;
+
+        /// <summary>Gets the sandbox-only service provider for the consolidated evidence coordinator.</summary>
+        public IServiceProvider Services => application.Services;
+
         /// <summary>Gets the public loopback server thumbprint sent through bounded local IPC for exact pinning.</summary>
         public string ServerThumbprint => NormaliseThumbprint(serverCertificate.Thumbprint);
+
+        /// <summary>Gets the public SPKI pin used only by the dedicated Chromium process.</summary>
+        public string ServerSubjectPublicKeyInfoPin
+        {
+            get
+            {
+                using ECDsa publicKey = serverCertificate.GetECDsaPublicKey() ??
+                    throw new CryptographicException("The sandbox server certificate has no ECDSA public key.");
+                return Convert.ToBase64String(SHA256.HashData(publicKey.ExportSubjectPublicKeyInfo()));
+            }
+        }
+
+        /// <summary>Waits until the exact temporary host receives its authenticated shutdown request.</summary>
+        /// <param name="cancellationToken">Cancellation bounding the local harness lifetime.</param>
+        /// <returns>A task completing after the application begins shutdown.</returns>
+        public Task WaitForShutdownAsync(CancellationToken cancellationToken) =>
+            application.WaitForShutdownAsync(cancellationToken);
 
         /// <summary>Creates and starts the loopback-only sandbox.</summary>
         /// <param name="interceptor">Optional fixture-owned coordination interceptor; never registered operationally.</param>
         /// <param name="enableObservationPipeline">Whether to compose the explicitly guarded synthetic observation and TV routes.</param>
         /// <param name="observationPause">Optional E2E-only barrier before one selected observation enters persistence.</param>
         /// <param name="enableCommandTransport">Whether to compose the execution-ineligible command transport routes.</param>
+        /// <param name="consolidatedHarness">Optional owner of the explicitly gated consolidated test controls.</param>
+        /// <param name="dashboardRoot">Built Dashboard root served only by the consolidated loopback host.</param>
         /// <returns>Started disposable sandbox.</returns>
         public static async Task<AgentFleetSandbox> StartAsync(
             IInterceptor? interceptor = null,
             bool enableObservationPipeline = false,
             ObservationIngestionPause? observationPause = null,
-            bool enableCommandTransport = false)
+            bool enableCommandTransport = false,
+            ConsolidatedHarnessState? consolidatedHarness = null,
+            string? dashboardRoot = null)
         {
             if (observationPause is not null && !enableObservationPipeline)
             {
@@ -2720,7 +2766,20 @@ public sealed class AgentFleetApiEndToEndTests
                     nameof(observationPause));
             }
 
-            DateTimeOffset now = DateTimeOffset.UtcNow;
+            if (consolidatedHarness is not null &&
+                (!enableObservationPipeline || !enableCommandTransport ||
+                    string.IsNullOrWhiteSpace(dashboardRoot) ||
+                    !Directory.Exists(dashboardRoot) ||
+                    !File.Exists(Path.Combine(dashboardRoot, "index.html"))))
+            {
+                throw new ArgumentException(
+                    "The consolidated harness requires both protocol paths and one built Dashboard root.",
+                    nameof(consolidatedHarness));
+            }
+
+            DateTimeOffset now = consolidatedHarness is null
+                ? DateTimeOffset.UtcNow
+                : DateTimeOffset.UtcNow.AddMinutes(-1);
             AdjustableTimeProvider clock = new(now);
             ECDsa rootKey = ECDsa.Create(ECCurve.NamedCurves.nistP256);
             ECDsa serverKey = ECDsa.Create(ECCurve.NamedCurves.nistP256);
@@ -2759,6 +2818,10 @@ public sealed class AgentFleetApiEndToEndTests
                 builder.Configuration.AddInMemoryCollection(new Dictionary<string, string?>
                 {
                     [$"{DashboardTvSandboxEndpointRouteBuilderExtensions.ConfigurationSection}:Enabled"] = "true",
+                    [$"{DashboardTvChangeHintSandboxEndpointRouteBuilderExtensions.ConfigurationSection}:Enabled"] =
+                        consolidatedHarness is null ? "false" : "true",
+                    [$"{ReconciledLocalNotificationSandboxEndpointExtensions.ConfigurationSection}:Enabled"] =
+                        consolidatedHarness is null ? "false" : "true",
                 });
             }
             builder.Logging.AddFilter("Microsoft.AspNetCore.Server.Kestrel", LogLevel.Warning);
@@ -2774,6 +2837,15 @@ public sealed class AgentFleetApiEndToEndTests
                         ClientCertificateValidation = (certificate, _, _) =>
                             BuildCustomChain(certificate, rootCertificate, "1.3.6.1.5.5.7.3.2"),
                     }));
+                if (consolidatedHarness is not null)
+                {
+                    options.Listen(IPAddress.Loopback, 0, listenOptions => listenOptions.UseHttps(
+                        new HttpsConnectionAdapterOptions
+                        {
+                            ServerCertificate = serverCertificate,
+                            ClientCertificateMode = ClientCertificateMode.NoCertificate,
+                        }));
+                }
             });
             builder.Services.AddProblemDetails();
             builder.Services.AddDbContextFactory<ServerDbContext>(options =>
@@ -2798,6 +2870,8 @@ public sealed class AgentFleetApiEndToEndTests
             builder.Services.AddSingleton<HumanActorResolver>();
             builder.Services.AddSingleton<IAuthorizationHandler, AgentRouteAuthorizationHandler>();
             bool dashboardTvEnabled = false;
+            bool dashboardHintsEnabled = false;
+            bool notificationsEnabled = false;
             if (enableObservationPipeline)
             {
                 builder.Services.AddScoped<ServerObservationIngestionStore>();
@@ -2815,6 +2889,16 @@ public sealed class AgentFleetApiEndToEndTests
                     builder.Configuration);
                 builder.Services.RemoveAll<IDashboardTvSnapshotSource>();
                 builder.Services.AddSingleton<IDashboardTvSnapshotSource, DashboardTvSyntheticObservationSnapshotSource>();
+                if (consolidatedHarness is not null)
+                {
+                    dashboardHintsEnabled = builder.Services.AddDashboardTvChangeHintSandbox(
+                        builder.Environment,
+                        builder.Configuration);
+                    notificationsEnabled = builder.Services.AddReconciledLocalNotificationSandbox(
+                        builder.Environment,
+                        builder.Configuration);
+                    builder.Services.AddSingleton(consolidatedHarness);
+                }
             }
 
             AddAuthentication(builder.Services, rootCertificate);
@@ -2855,6 +2939,14 @@ public sealed class AgentFleetApiEndToEndTests
             application.UseAuthentication();
             application.UseRateLimiter();
             application.UseAuthorization();
+            if (consolidatedHarness is not null)
+            {
+                PhysicalFileProvider dashboardFiles = new(Path.GetFullPath(dashboardRoot!));
+                application.Lifetime.ApplicationStopped.Register(dashboardFiles.Dispose);
+                application.UseDefaultFiles(new DefaultFilesOptions { FileProvider = dashboardFiles });
+                application.UseStaticFiles(new StaticFileOptions { FileProvider = dashboardFiles });
+                application.Use((context, next) => consolidatedHarness.RecordSnapshotRequestAsync(context, next));
+            }
             application.MapAgentFleetEndpoints();
             if (enableCommandTransport)
             {
@@ -2865,6 +2957,26 @@ public sealed class AgentFleetApiEndToEndTests
             {
                 application.MapObservationIngestionEndpoint();
                 application.MapDashboardTvSandboxEndpoint(dashboardTvEnabled);
+                if (consolidatedHarness is not null)
+                {
+                    application.MapDashboardTvChangeHintSandbox(dashboardHintsEnabled);
+                    application.MapReconciledLocalNotificationSandbox(notificationsEnabled);
+                    MapConsolidatedHarnessEndpoints(application, consolidatedHarness);
+                    application.MapFallback(async context =>
+                    {
+                        if (!HttpMethods.IsGet(context.Request.Method) &&
+                            !HttpMethods.IsHead(context.Request.Method))
+                        {
+                            context.Response.StatusCode = StatusCodes.Status404NotFound;
+                            return;
+                        }
+
+                        context.Response.ContentType = "text/html; charset=utf-8";
+                        await context.Response.SendFileAsync(
+                            Path.Combine(Path.GetFullPath(dashboardRoot!), "index.html"),
+                            context.RequestAborted);
+                    });
+                }
             }
 
             try
@@ -2877,15 +2989,20 @@ public sealed class AgentFleetApiEndToEndTests
 
                 await application.StartAsync();
                 IServer server = application.Services.GetRequiredService<IServer>();
-                string address = server.Features.Get<IServerAddressesFeature>()?.Addresses.Single() ??
-                    throw new InvalidOperationException("Kestrel did not expose its bound loopback address.");
-                Uri baseAddress = new(address);
-                if (baseAddress.Scheme != Uri.UriSchemeHttps ||
-                    !IPAddress.TryParse(baseAddress.Host, out IPAddress? addressValue) ||
-                    !IPAddress.IsLoopback(addressValue))
+                Uri[] addresses = server.Features.Get<IServerAddressesFeature>()?.Addresses
+                    .Select(value => new Uri(value))
+                    .ToArray() ?? [];
+                int expectedAddressCount = consolidatedHarness is null ? 1 : 2;
+                if (addresses.Length != expectedAddressCount || addresses.Any(address =>
+                    address.Scheme != Uri.UriSchemeHttps ||
+                    !IPAddress.TryParse(address.Host, out IPAddress? addressValue) ||
+                    !IPAddress.IsLoopback(addressValue)))
                 {
                     throw new InvalidOperationException("The integration host was not bound exclusively to HTTPS loopback.");
                 }
+
+                Uri baseAddress = addresses[0];
+                Uri browserBaseAddress = consolidatedHarness is null ? baseAddress : addresses[1];
 
                 return new AgentFleetSandbox(
                     databaseKeeper,
@@ -2895,6 +3012,7 @@ public sealed class AgentFleetApiEndToEndTests
                     serverCertificate,
                     application,
                     baseAddress,
+                    browserBaseAddress,
                     clock);
             }
             catch

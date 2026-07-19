@@ -6,6 +6,7 @@
 - .NET 10 LTS SDK `10.0.301` selected without roll-forward through `global.json` and installed locally in the ignored `.dotnet/` directory for this workspace.
 - Windows is required to run the WPF Desktop and the renamed DB-Notifier compatibility application. The Desktop uses the versioned `net10.0-windows10.0.22621.0` TFM while retaining Windows 10 version 1809 (`10.0.17763.0`) as its declared minimum platform.
 - Node.js `24.18.0` with npm `11.16.0` is used for the Dashboard scaffold; both are declared in `package.json`, and dependencies are locked in `package-lock.json`.
+- PowerShell `7.0` or later (`pwsh`) is required by modern browser and consolidated STATE-06 sandbox runners.
 - Windows PowerShell 5.1 with Pester `3.4.0` is used for legacy characterisation.
 
 Installing an SDK or dependency changes the development environment and is not performed automatically by this repository.
@@ -29,6 +30,10 @@ src/
 tests/
   DBNotifier.UnitTests/
   DBNotifier.Architecture.Tests/
+  DBNotifier.IntegrationTests/
+  DBNotifier.AgentFleet.SandboxHost/
+  DBNotifier.DashboardTv.BrowserSandboxHost/
+  DBNotifier.State06.ConsolidatedSandboxHost/
   DBNotifier.Legacy.Tests.ps1
 ```
 
@@ -122,6 +127,17 @@ The separately authorised Dashboard TV browser composition gate uses only an alr
 ```
 
 It builds the exact local-test Dashboard, starts one temporary HTTPS loopback host, creates an isolated browser profile, observes the 30-second cadence plus the deterministic recovery matrix, rejects external HTTP origins and removes every owned process/profile at the end. This is local sandbox evidence, not browser homologation or an operational runtime command.
+
+Both modern browser runners declare `#Requires -Version 7.0` and must be started with `pwsh`. Windows PowerShell 5.1 rejects them before their parameter or process-creation body runs; it remains supported only for `scripts/run-legacy-tests.ps1` and the Pester legacy characterisation suite.
+
+The separately authorised consolidated remediation harness correlates the already accepted STATE-06 sandboxes in one test-only run:
+
+```powershell
+pwsh -NoProfile -NonInteractive -File .\scripts\run-state06-consolidated-e2e.ps1 `
+  -BrowserProduct Chrome
+```
+
+The runner builds only from already restored dependencies, creates one file-backed Agent SQLite root, one in-memory Server SQLite database, separate ephemeral Agent and human test identities, and a dedicated browser profile. It proves Agent replay, authoritative Dashboard reads, authenticated SignalR hints, one in-memory notification delivery, non-executable command journalling, revocation and cleanup. The normal Agent Worker and Server API do not compose this host. The command path cannot create `CommandAttempt`, and this runner is remediation evidence rather than a rerun or approval of the Consolidated Quality Gate campaign.
 
 The separately authorised observation-pipeline E2E reuses the existing Agent Fleet process harness. It starts only temporary .NET child processes and an HTTPS loopback test host, transfers P-256 test identity material through a current-user-only named pipe, reopens one fixture-owned Agent SQLite file across restarts and removes every owned process/database at the end. Run the focused scenario after a Release build with:
 

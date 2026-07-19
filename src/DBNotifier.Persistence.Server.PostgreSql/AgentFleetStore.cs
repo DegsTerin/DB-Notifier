@@ -666,6 +666,7 @@ public sealed class AgentFleetStore(IDbContextFactory<ServerDbContext> contextFa
         agent.ConcurrencyToken = Guid.NewGuid();
         AgentCertificateRow[] certificates = await context.AgentCertificates
             .Where(row => row.AgentId == agentId)
+            .OrderBy(row => row.AgentCertificateId)
             .Take(AgentFleetProtocol.MaximumCertificatesPerAgent + 1)
             .ToArrayAsync(cancellationToken)
             .ConfigureAwait(false);
@@ -830,6 +831,7 @@ public sealed class AgentFleetStore(IDbContextFactory<ServerDbContext> contextFa
             join permission in context.Permissions.AsNoTracking()
                 on rolePermission.PermissionId equals permission.PermissionId
             where assignment.UserId == userId && permission.Code == permissionCode
+            orderby assignment.RoleAssignmentId, rolePermission.RoleId, rolePermission.PermissionId
             select new AuthorizationScope(
                 assignment.ScopeType,
                 assignment.ScopeValue,

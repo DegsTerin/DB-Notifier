@@ -11,6 +11,10 @@
 
 Esta proposta não corrige o bloqueio. Ela delimita uma remediação futura que somente poderá começar depois de uma autorização separada e explícita de Bruno.
 
+## Atualização factual posterior
+
+Bruno autorizou separadamente a implementação restrita em 2026-07-19. A remediação foi concluída localmente no escopo autorizado e está descrita no [relatório factual da remediação](STATE-06-Consolidated-E2E-Evidence-Harness-And-Deterministic-Gate-Remediation-Report.md). Essa conclusão não repete nem aprova a Campanha Consolidada, não abre o Human Gate final e não promove nem transiciona o estado.
+
 ## Resultado em linguagem simples
 
 As quatro partes já construídas passaram isoladamente, mas seus testes não contam uma única história do começo ao fim. Cada laboratório cria seus próprios dados, identidade ou armazenamento. Por isso, a campanha anterior não pôde provar que a mesma observação criada pelo Agent chegou à API, apareceu no Dashboard, originou uma notificação e permaneceu protegida por revogação e por um transporte de comando incapaz de executar ações.
