@@ -127,7 +127,13 @@ O gate NuGet usou o relatório sintético positivo versionado para validar compl
 ## Classificação dos gates
 
 - Quality Gate automático deste incremento restrito: **APROVADO**.
-- Human Gate deste incremento: **PENDENTE**.
+- Human Gate deste incremento: **ACEITO COM AS LIMITAÇÕES REGISTRADAS** por Bruno em 2026-07-18.
 - Saída de `STATE-06`, promoção `none → OBSERVER`, produção e release: **NÃO AVALIADOS E NÃO AUTORIZADOS**.
 
-Uma eventual aceitação humana deste relatório encerra somente este incremento e suas limitações. Ela não concede autoridade para SignalR, runtime operacional, integração externa, novo desenvolvimento, promoção ou transição de estado.
+## Decisão humana
+
+Depois de declarar concordância com o conteúdo das seções indicadas, Bruno decidiu exatamente:
+
+> Incremento STATE-06 Dashboard TV Browser Composition and Recovery Evidence Sandbox, commit 588ffec: **ACEITO COM AS LIMITAÇÕES REGISTRADAS. AUTORIZO exclusivamente o registro factual desta decisão. Não autorizo novo incremento, runtime operacional, promoção nem transição de estado.**
+
+Essa decisão encerra somente o Human Gate deste incremento e aceita suas condições residuais. Ela não concede autoridade para SignalR, runtime operacional, integração externa, novo desenvolvimento, promoção ou transição de estado.

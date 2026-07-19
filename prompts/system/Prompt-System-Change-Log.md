@@ -2,7 +2,7 @@
 
 ## Versão atual
 
-- Versão: `3.56.2`
+- Versão: `3.56.3`
 - Data: 2026-07-18
 - Status: corpus DB-Notifier consolidado
 - Escopo: 13 arquivos ativos
@@ -16,6 +16,11 @@ A versão do corpus é independente da versão do software.
 - PATCH: clareza, correção ou referência sem mudança de autoridade.
 
 Toda alteração atualiza este arquivo e, quando necessário, `../Start-Here.md`.
+
+## 3.56.3 — 2026-07-18
+
+- Bruno aceitou explicitamente o Human Gate próprio de `Dashboard TV Browser Composition and Recovery Evidence Sandbox`, commit `588ffec`, com todas as limitações registradas depois de confirmar concordância com o relatório, a evidência E2E, as limitações e a classificação do gate apresentados.
+- A decisão autoriza exclusivamente seu registro factual e não autoriza novo incremento, runtime operacional, SignalR, integração externa, promoção ou transição. `STATE-06 INTEGRATION` permanece inalterado e nenhuma próxima atividade foi inferida.
 
 ## 3.56.2 — 2026-07-18
 

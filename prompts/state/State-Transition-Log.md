@@ -1670,6 +1670,20 @@
 - Próxima decisão: Bruno deve ler o relatório e aceitar com as limitações, solicitar remediação específica ou rejeitar somente este incremento. Nenhuma dessas opções autoriza automaticamente novo incremento, runtime operacional, promoção ou transição.
 - Aprovador: Bruno autorizou a execução delimitada; a aceitação humana do resultado não foi inferida.
 
+## 2026-07-18 — Aceitação humana de Dashboard TV Browser Composition and Recovery Evidence Sandbox
+
+- Estado anterior: `STATE-06 INTEGRATION`, incremento do commit `588ffec` tecnicamente concluído, Quality Gate automático restrito aprovado e Human Gate próprio pendente.
+- Estado resultante: sem transição; `STATE-06 INTEGRATION` mantido e Human Gate do incremento aceito com as limitações registradas.
+- Decisão: depois de declarar concordância com o conteúdo apresentado nas seções indicadas, Bruno declarou exatamente `Incremento STATE-06 Dashboard TV Browser Composition and Recovery Evidence Sandbox, commit 588ffec: ACEITO COM AS LIMITAÇÕES REGISTRADAS. AUTORIZO exclusivamente o registro factual desta decisão. Não autorizo novo incremento, runtime operacional, promoção nem transição de estado.`
+- Base informada: resultado em linguagem simples, achados diretos corrigidos, evidência E2E Chrome/HTTPS loopback, matriz de falhas/recuperação, limitações residuais e classificação dos gates registradas no relatório do commit `588ffec`.
+- Limitações aceitas: Chrome único não é homologação; fixture e identidade/TLS de teste não provam fonte viva ou PKI operacional; Edge/outros browsers, headed/Fullscreen humano, proxy/IdP, endurance, múltiplos clientes, carga, SignalR, provider/Agent/monitoramento, banco e produção permanecem não testados ou fora de escopo.
+- Escopo desta ação: registro Markdown factual somente; nenhum código, projeto, configuração, dependência, teste, runtime ou saída gerada foi alterado.
+- Evidências: [relatório do incremento](../../docs/STATE-06-Dashboard-TV-Browser-Composition-And-Recovery-Evidence-Report.md), commit `588ffec`, decisão explícita de Bruno nesta sessão e preflight sem componente/listener DB-Notifier ativo.
+- Gates documentais: `APROVADOS`; documentação para `246` fontes comment-capable, `348` links Markdown locais em `84` arquivos, secret scan do worktree não ignorado e histórico disponível, escopo restrito a cinco documentos e `git diff --check` passaram com exit code `0`. Código, projetos, dependências, testes e runtimes permaneceram sem diff.
+- Classificação: Human Gate do incremento `ACEITO COM AS LIMITAÇÕES REGISTRADAS`; saída de `STATE-06`, `OBSERVER`, SignalR, runtime operacional, integração externa, novo incremento, produção e release `NÃO AVALIADOS` e não autorizados.
+- Próxima atividade: nenhuma ação adicional é exigida de Bruno e nenhum novo trabalho está autorizado. Uma próxima atividade só poderá começar mediante solicitação e autorização explícitas separadas.
+- Aprovador: Bruno, exclusivamente para aceitar este incremento e registrar factualmente a decisão.
+
 ## Template de nova entrada
 
 - Data:
