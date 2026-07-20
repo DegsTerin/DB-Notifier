@@ -2173,6 +2173,21 @@
 - Próxima atividade: nenhuma correção está autorizada. Para continuar, Bruno deverá autorizar separadamente somente uma proposta documental de remediação test-only da cadência/recovery da página e de um runner humano visível versionado. Nova repetição e Human Gate final permanecem separados.
 - Aprovador: Bruno autorizou a repetição; nenhum passe humano foi inferido.
 
+## 2026-07-20 — Proposta documental da segunda remediação test-only das amostras finais
+
+- Estado anterior: `STATE-06 INTEGRATION`, campanha humana `BLOQUEADA`, `S06-HG-002` a `S06-HG-005` aprovadas e repetição pós-remediação de `S06-HG-001`/`006` bloqueada.
+- Estado resultante: sem transição; `STATE-06 INTEGRATION` mantido. A nova proposta documental está pronta e não autoriza implementação, runtime ou amostra humana.
+- Autorização: Bruno autorizou exclusivamente elaborar uma proposta para alinhamento da cadência ao rate limit, recuperação positiva de Browser → API, teste de duração humana e runner visível versionado com barriers persistentes.
+- Baseline: branch `main`, commit `9b86923d3c80cfbdade14464910e1197b57483b7`, worktree limpa e shutdown preflight com zero processo, listener ou root temporário pertencente ao DB-Notifier.
+- Inspeção factual: a página test-only tenta 240 leituras/minuto por `setInterval` de 250 ms contra uma política compartilhada de 100 permits/minuto; o catch trata toda falha como indisponibilidade e o sucesso não restaura o texto positivo. O runner versionado existente é headless e autoavança; não existe runner visível persistente no repositório.
+- Proposta: polling serial de no máximo 30 leituras/minuto, concorrência `1`, estados distintos para `200`, `429`, `401/403` e falha de transporte/`5xx`, recovery positivo, ensaio de 180 segundos, falha `429` controlada e uma sessão visível versionada por amostra com barriers stage-gated.
+- Fronteira: implementação futura exclusivamente sob `tests/`/`scripts/` e documentação. Necessidade de `src/`, solução, projetos, packages, lockfiles ou migrations exige parada `BLOQUEADA` e nova autorização.
+- Gates documentais: documentação aprovada para `282` arquivos comment-capable; links Markdown aprovados para `480` links locais em `109` arquivos; secret scan do worktree não ignorado, escopo documental e `git diff --check` aprovados.
+- Não executado: build, testes de produto, harness, runtime, browser, acesso externo, repetição humana, Human Gate final, promoção ou transição.
+- Evidência: [proposta da segunda remediação](../../docs/STATE-06-Final-Human-Samples-Second-Test-Only-Remediation-Proposal.md), [relatório da repetição bloqueada](../../docs/STATE-06-Final-Human-Samples-Post-Remediation-Repetition-Report.md) e inspeção read-only dos artefatos test-only.
+- Próxima decisão: Bruno pode solicitar alterações ou copiar a decisão futura da proposta para autorizar somente implementação test-only, Quality Gate automático e relatório. Repetição humana e Human Gate final permanecem decisões posteriores.
+- Aprovador: Bruno, exclusivamente para elaborar esta proposta documental.
+
 ## Template de nova entrada
 
 - Data:
