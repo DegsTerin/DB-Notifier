@@ -41,6 +41,39 @@ function reportStage(message) {
   console.error(`[state06-consolidated-e2e] ${message}`);
 }
 
+/** Reduces a failed loopback response to the explicit typed diagnostic allow-list. */
+function sanitiseProblem(status, body) {
+  let problem;
+  try {
+    problem = JSON.parse(body);
+  } catch {
+    return { status, code: "state06.invalid_problem_response" };
+  }
+  const failure = problem?.failure ?? {};
+  const safeText = (value) => typeof value === "string" && /^[A-Za-z0-9_.:-]{1,96}$/.test(value)
+    ? value
+    : null;
+  const safeInteger = (value) => Number.isSafeInteger(value) && value >= 0 ? value : null;
+  return {
+    status,
+    code: safeText(problem?.code),
+    stage: safeText(problem?.stage),
+    boundary: safeText(failure.boundary),
+    category: safeText(failure.category),
+    httpStatusCode: safeInteger(failure.httpStatusCode),
+    disposition: safeText(failure.disposition),
+    errorCode: safeText(failure.errorCode),
+    attempts: safeInteger(failure.attempts),
+    fenceToken: safeInteger(failure.fenceToken),
+    centralAgentState: safeText(failure.centralAgentState),
+    centralCertificateState: safeText(failure.centralCertificateState),
+    localIdentityState: safeText(failure.localIdentityState),
+    transportAttempted: typeof failure.transportAttempted === "boolean" ? failure.transportAttempted : null,
+    expectedCount: safeInteger(failure.expectedCount),
+    actualCount: safeInteger(failure.actualCount),
+  };
+}
+
 /** Connects to the single dedicated Dashboard page and records only transport aggregates. */
 async function connectToPage() {
   const targets = await fetch(`${cdpEndpoint}/json/list`).then((response) => response.json());
@@ -119,7 +152,7 @@ async function readView(call) {
 
 /** Performs one authenticated test-only harness control through the same HTTPS origin. */
 async function control(call, route, method = "GET") {
-  return evaluate(call, `fetch(${JSON.stringify(route)}, {
+  const result = await evaluate(call, `fetch(${JSON.stringify(route)}, {
     method: ${JSON.stringify(method)},
     headers: {
       ${JSON.stringify(humanHeader)}: ${JSON.stringify(humanSubject)},
@@ -128,9 +161,10 @@ async function control(call, route, method = "GET") {
     cache: "no-store",
   }).then(async (response) => {
     const body = await response.text();
-    if (!response.ok) throw new Error(${JSON.stringify(route)} + " returned " + response.status + " " + body.slice(0, 400));
-    return body.length === 0 ? null : JSON.parse(body);
+    return { ok: response.ok, status: response.status, body };
   })`);
+  if (!result.ok) throw new Error(`${route} failed ${JSON.stringify(sanitiseProblem(result.status, result.body))}`);
+  return result.body.length === 0 ? null : JSON.parse(result.body);
 }
 
 /** Waits for one host evidence predicate while the browser remains online. */
@@ -244,6 +278,12 @@ try {
   assertEvidence(evidence.commandJournalEntries === 2 && evidence.commandAttempts === 0, "Command transport did not remain deliberately non-executable.");
   assertEvidence(evidence.observationSamples === 2 && evidence.notificationDeliveries === 1, "Replay or restart duplicated correlated side effects.");
   assertEvidence(evidence.heartbeatDeniedAfterRevocation && evidence.assignmentsDeniedAfterRevocation && evidence.observationDeniedAfterRevocation && evidence.commandDeniedAfterRevocation, "Revocation did not fail closed across every Agent path.");
+  assertEvidence(evidence.centralRevocationCommitted && evidence.revokedCertificateCount >= 1, "Central Agent and certificate revocation were not proved atomically.");
+  assertEvidence(evidence.heartbeatServerDeniedAfterRevocation && evidence.assignmentsServerDeniedAfterRevocation, "Direct server denial was not proved separately from Agent quarantine.");
+  assertEvidence(evidence.heartbeatTransportAttemptedAfterRevocation && !evidence.assignmentsTransportAttemptedAfterRevocation, "The harness did not distinguish the first server denial from later local quarantine.");
+  assertEvidence(evidence.assignmentLastKnownGoodPreserved && evidence.commandProcessesExitedBeforeRevocation, "Local LKG or child-process ordering evidence was incomplete.");
+  assertEvidence(Number.isSafeInteger(evidence.heartbeatFenceAfterRevocation) && Number.isSafeInteger(evidence.assignmentsFenceAfterRevocation) && evidence.assignmentsFenceAfterRevocation > evidence.heartbeatFenceAfterRevocation, "Agent-local fencing did not advance monotonically.");
+  assertEvidence(evidence.failure === null, "A terminal diagnostic remained after successful finalisation.");
   assertEvidence(evidence.maximumSnapshotConcurrency === 1, "The final snapshot concurrency budget was exceeded.");
   await exitTv(call);
   evidence = await waitForEvidence(call, (value) => value.signalR.activeConnections === 0, "final SignalR cleanup");
@@ -259,6 +299,9 @@ try {
     notificationDeliveries: evidence.notificationDeliveries,
     commandJournalEntries: evidence.commandJournalEntries,
     commandAttempts: evidence.commandAttempts,
+    revokedCertificateCount: evidence.revokedCertificateCount,
+    heartbeatFenceAfterRevocation: evidence.heartbeatFenceAfterRevocation,
+    assignmentsFenceAfterRevocation: evidence.assignmentsFenceAfterRevocation,
     maximumSnapshotConcurrency: evidence.maximumSnapshotConcurrency,
     observedHttpRequests: network.requests,
     observedWebSockets: network.webSockets,

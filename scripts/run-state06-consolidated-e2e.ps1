@@ -19,6 +19,7 @@ $browserProcess = $null
 $profilePath = Join-Path $temporaryRoot 'browser-profile'
 $previousBuildFlag = [Environment]::GetEnvironmentVariable('VITE_DB_NOTIFIER_TV_SANDBOX', 'Process')
 $agentRootPrefix = 'dbnotifier-state06-consolidated-sandbox-'
+$hostReadinessBudget = [TimeSpan]::FromSeconds(90)
 $agentRootsBefore = @(Get-ChildItem -Path ([System.IO.Path]::GetTempPath()) -Directory -Filter ($agentRootPrefix + '*') -ErrorAction SilentlyContinue | ForEach-Object { $_.FullName })
 
 # Resolves only an already-installed browser and never downloads a substitute.
@@ -157,7 +158,8 @@ try {
     ) -WorkingDirectory $repositoryRoot -WindowStyle Hidden -PassThru -RedirectStandardOutput $hostStdOut -RedirectStandardError $hostStdErr
 
     $ready = $null
-    for ($attempt = 1; $attempt -le 120; $attempt++) {
+    $readiness = [System.Diagnostics.Stopwatch]::StartNew()
+    while ($readiness.Elapsed -lt $hostReadinessBudget) {
         if ($hostProcess.HasExited) {
             $detail = if (Test-Path -LiteralPath $hostStdErr) { Get-Content -LiteralPath $hostStdErr -Tail 30 } else { '' }
             throw "The consolidated host exited before readiness. $detail"
@@ -175,6 +177,7 @@ try {
         if ($null -ne $ready) { break }
         Start-Sleep -Milliseconds 250
     }
+    $readiness.Stop()
     if ($null -eq $ready) { throw 'The consolidated host did not publish its bounded readiness record.' }
 
     $hostUri = [Uri]$ready.baseAddress

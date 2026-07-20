@@ -1,5 +1,7 @@
 # Proposta STATE-06 — Diagnóstico e remediação determinística de `finalising-revocation`
 
+> Execução posterior: Bruno autorizou separadamente o incremento restrito em 2026-07-20. A implementação e o Quality Gate próprios estão registrados no [relatório factual da remediação](STATE-06-Consolidated-Revocation-Finalisation-Diagnostic-And-Harness-Remediation-Report.md). O texto abaixo permanece como delimitação histórica da proposta e não autoriza nova campanha, amostra humana, promoção ou transição.
+
 ## Status e autoridade
 
 - Data: 2026-07-20.

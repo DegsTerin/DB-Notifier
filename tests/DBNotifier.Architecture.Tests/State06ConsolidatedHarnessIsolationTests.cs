@@ -71,6 +71,32 @@ public sealed class State06ConsolidatedHarnessIsolationTests
         Assert.DoesNotContain("Start-BitsTransfer", runner, StringComparison.OrdinalIgnoreCase);
     }
 
+    /// <summary>Confirms terminal evidence is allow-listed and revocation scenarios do not use the wall clock as a gate.</summary>
+    [Fact]
+    public void ConsolidatedRevocationDiagnosticsAreSanitisedAndDeterministic()
+    {
+        string harness = Read(
+            "tests",
+            "DBNotifier.IntegrationTests",
+            "AgentFleetApiEndToEndTests.ConsolidatedHarness.cs");
+        string scenarios = Read(
+            "tests",
+            "DBNotifier.IntegrationTests",
+            "AgentFleetApiEndToEndTests.ConsolidatedRevocation.cs");
+        string auditor = Read("scripts", "audit-state06-consolidated-e2e.mjs");
+
+        Assert.Contains("ConsolidatedHarnessFailureEvidence", harness, StringComparison.Ordinal);
+        Assert.DoesNotContain("exception.Message", harness, StringComparison.Ordinal);
+        Assert.DoesNotContain("exception.StackTrace", harness, StringComparison.Ordinal);
+        Assert.DoesNotContain("DateTimeOffset.UtcNow - owner.Now", harness, StringComparison.Ordinal);
+        Assert.DoesNotContain("body.slice", auditor, StringComparison.Ordinal);
+        Assert.Contains("sanitiseProblem", auditor, StringComparison.Ordinal);
+        foreach (string scenario in new[] { "R1", "R2", "R3", "R4", "R5", "R6", "R7" })
+        {
+            Assert.Contains($"\"{scenario}\"", scenarios, StringComparison.Ordinal);
+        }
+    }
+
     /// <summary>Reads one repository-relative UTF-8 source file.</summary>
     /// <param name="path">Path segments beneath the repository root.</param>
     /// <returns>Complete source text.</returns>

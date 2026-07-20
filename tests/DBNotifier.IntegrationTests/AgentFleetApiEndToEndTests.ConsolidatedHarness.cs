@@ -148,6 +148,7 @@ public sealed partial class AgentFleetApiEndToEndTests
         }
         catch (Exception exception) when (exception is not OutOfMemoryException)
         {
+            ConsolidatedHarnessFailureEvidence failure = state.RecordFailure(exception);
             return Results.Problem(
                 statusCode: StatusCodes.Status503ServiceUnavailable,
                 title: "Consolidated sandbox operation failed",
@@ -155,6 +156,7 @@ public sealed partial class AgentFleetApiEndToEndTests
                 {
                     ["code"] = "state06.consolidated_operation_failed",
                     ["stage"] = state.Stage,
+                    ["failure"] = failure,
                 });
         }
     }
@@ -170,6 +172,7 @@ public sealed partial class AgentFleetApiEndToEndTests
         private AgentFleetSandbox? sandbox;
         private AgentFileSandbox? local;
         private SandboxAgentIdentityStore? identities;
+        private CountingAgentFleetClientTransport? fleetTransportEvidence;
         private AgentFleetClientCoordinator? fleetCoordinator;
         private AgentLocalRegistration? registration;
         private CommandTransportFixtureIds? commandFixtures;
@@ -190,11 +193,23 @@ public sealed partial class AgentFleetApiEndToEndTests
         private bool assignmentsDeniedAfterRevocation;
         private bool observationDeniedAfterRevocation;
         private bool commandDeniedAfterRevocation;
+        private bool centralRevocationCommitted;
+        private int revokedCertificateCount;
+        private bool heartbeatServerDeniedAfterRevocation;
+        private bool assignmentsServerDeniedAfterRevocation;
+        private bool heartbeatTransportAttemptedAfterRevocation;
+        private bool assignmentsTransportAttemptedAfterRevocation;
+        private bool assignmentLastKnownGoodPreserved;
+        private bool commandProcessesExitedBeforeRevocation;
+        private long? heartbeatFenceAfterRevocation;
+        private long? assignmentsFenceAfterRevocation;
         private bool initialised;
         private bool advanced;
         private bool finalised;
         private bool disposed;
         private string stage = "created";
+        private ConsolidatedOperationDiagnostic diagnostic = ConsolidatedOperationDiagnostic.Empty("created");
+        private ConsolidatedHarnessFailureEvidence? failure;
 
         /// <summary>Gets the public correlation identifier for this fixture run.</summary>
         public string RunId => runId.ToString("D");
@@ -251,11 +266,12 @@ public sealed partial class AgentFleetApiEndToEndTests
                     owner.BaseAddress,
                     AgentVersion,
                     identities.GetClient);
+                fleetTransportEvidence = new CountingAgentFleetClientTransport(fleetTransport);
                 fleetCoordinator = new AgentFleetClientCoordinator(
                     identities,
-                    fleetTransport,
+                    fleetTransportEvidence,
                     local.Store,
-                    new FixedTimeProvider(owner.Now),
+                    owner.SandboxTimeProvider,
                     TimeSpan.FromMinutes(5));
                 AgentFleetClientResult enrollment = await fleetCoordinator.EnrolForTestAsync(
                     new AgentEnrollmentBootstrap(
@@ -307,7 +323,9 @@ public sealed partial class AgentFleetApiEndToEndTests
                 observationSamples = 1;
 
                 using HttpClient dashboard = owner.CreateDashboardTvClient();
-                (DashboardTvSnapshot snapshot, _) = await ReadDashboardSnapshotAsync(dashboard);
+                (DashboardTvSnapshot snapshot, _) = await ReadDashboardSnapshotAsync(
+                    dashboard,
+                    cancellationToken);
                 DashboardTvInventoryItem item = Assert.Single(snapshot.Items);
                 Assert.Equal(instanceId, item.InstanceId);
                 Assert.Equal("degraded", item.Status);
@@ -421,11 +439,7 @@ public sealed partial class AgentFleetApiEndToEndTests
                 CommandTransportFixtureIds fixtures = Require(commandFixtures);
                 byte[] identityPackage = Require(pkcs12);
                 string password = Require(identityPassword);
-                TimeSpan wallClockCatchUp = DateTimeOffset.UtcNow - owner.Now;
-                if (wallClockCatchUp > TimeSpan.Zero)
-                {
-                    owner.Advance(wallClockCatchUp);
-                }
+                CountingAgentFleetClientTransport transportEvidence = Require(fleetTransportEvidence);
 
                 using X509Certificate2 identity = X509CertificateLoader.LoadPkcs12(
                     identityPackage,
@@ -436,17 +450,27 @@ public sealed partial class AgentFleetApiEndToEndTests
                 using HttpResponseMessage incompatible = await SendCommandTransportPollAsync(
                     directClient,
                     enrolled.AgentId,
+                    owner.Now,
                     1,
                     1,
-                    4);
+                    4,
+                    cancellationToken);
+                ObserveDiagnostic(
+                    httpStatusCode: (int)incompatible.StatusCode,
+                    transportAttempted: true);
                 Assert.Equal(HttpStatusCode.UpgradeRequired, incompatible.StatusCode);
                 SetStage("finalising-command-gap-negative");
                 using HttpResponseMessage gap = await SendCommandTransportPollAsync(
                     directClient,
                     enrolled.AgentId,
+                    owner.Now,
                     2,
                     CommandTransportProtocol.CurrentSchemaVersion,
-                    4);
+                    4,
+                    cancellationToken);
+                ObserveDiagnostic(
+                    httpStatusCode: (int)gap.StatusCode,
+                    transportAttempted: true);
                 Assert.Equal(HttpStatusCode.Conflict, gap.StatusCode);
 
                 SetStage("finalising-command-lost-poll");
@@ -482,17 +506,130 @@ public sealed partial class AgentFleetApiEndToEndTests
                     "none");
                 Assert.Equal(0, replay.ExitCode);
                 await agent.AssertCommandTransportCompletedAsync(enrolled.AgentId, fixtures);
+                commandProcessesExitedBeforeRevocation = true;
 
-                SetStage("finalising-revocation");
-                await owner.RevokeAgentAsync(enrolled.AgentId);
-                AgentFleetClientResult heartbeat = await RunHeartbeatOnceAsync(coordinator, agent.Store, owner.Now);
-                AgentFleetClientResult assignments = await RunAssignmentsOnceAsync(coordinator, agent.Store, owner.Now);
-                heartbeatDeniedAfterRevocation = !heartbeat.Succeeded;
-                assignmentsDeniedAfterRevocation = !assignments.Succeeded;
+                AgentAssignmentLocalState lastKnownGood = await agent.Store.GetAssignmentStateAsync(
+                    enrolled.AgentId,
+                    cancellationToken);
+                SetStage("finalising-revocation-request");
+                AgentRevocationHttpEvidence revocation = await owner.RevokeAgentForDiagnosticAsync(
+                    enrolled.AgentId,
+                    cancellationToken);
+                ObserveDiagnostic(
+                    httpStatusCode: (int)revocation.StatusCode,
+                    disposition: revocation.Outcome?.Disposition.ToString(),
+                    errorCode: revocation.Outcome?.ErrorCode);
+                Assert.Equal(HttpStatusCode.OK, revocation.StatusCode);
+                Assert.Equal(
+                    AgentRevocationDisposition.Revoked,
+                    Assert.IsType<AgentRevocationOutcome>(revocation.Outcome).Disposition);
+
+                SetStage("finalising-revocation-commit-verification");
+                ConsolidatedCentralRevocationEvidence central = await owner.ReadCentralRevocationEvidenceAsync(
+                    enrolled.AgentId,
+                    cancellationToken);
+                centralRevocationCommitted = central.AgentState == "Revoked" &&
+                    central.RevokedAt is not null &&
+                    central.CertificateCount > 0 &&
+                    central.RevokedCertificateCount == central.CertificateCount;
+                revokedCertificateCount = central.RevokedCertificateCount;
+                ObserveDiagnostic(
+                    centralAgentState: central.AgentState,
+                    centralCertificateState: central.AllCertificatesRevoked ? "Revoked" : "Mixed",
+                    expectedCount: central.CertificateCount,
+                    actualCount: central.RevokedCertificateCount);
+                Assert.True(centralRevocationCommitted);
+
+                SetStage("finalising-heartbeat-server-denial");
+                using HttpResponseMessage directHeartbeatResponse = await SendAgentJsonAsync(
+                    directClient,
+                    HttpMethod.Post,
+                    $"/api/v1/agents/{enrolled.AgentId:D}/heartbeats",
+                    CreateHeartbeat(enrolled.AgentId, 2, owner.Now),
+                    cancellationToken);
+                heartbeatServerDeniedAfterRevocation = directHeartbeatResponse.StatusCode is
+                    HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden;
+                ObserveDiagnostic(
+                    httpStatusCode: (int)directHeartbeatResponse.StatusCode,
+                    transportAttempted: true);
+                Assert.True(heartbeatServerDeniedAfterRevocation);
+
+                SetStage("finalising-assignments-server-denial");
+                using HttpRequestMessage directAssignmentsRequest = CreateAgentRequest(
+                    HttpMethod.Get,
+                    $"/api/v1/agents/{enrolled.AgentId:D}/assignments");
+                using HttpResponseMessage directAssignmentsResponse = await directClient.SendAsync(
+                    directAssignmentsRequest,
+                    cancellationToken);
+                assignmentsServerDeniedAfterRevocation = directAssignmentsResponse.StatusCode is
+                    HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden;
+                ObserveDiagnostic(
+                    httpStatusCode: (int)directAssignmentsResponse.StatusCode,
+                    transportAttempted: true);
+                Assert.True(assignmentsServerDeniedAfterRevocation);
+
+                SetStage("finalising-heartbeat-local-quarantine");
+                int heartbeatCallsBefore = transportEvidence.HeartbeatCalls;
+                AgentFleetSandboxResilienceResult heartbeat = await CreateOneShotResilience(
+                        coordinator,
+                        agent.Store,
+                        owner.Now)
+                    .SendHeartbeatAsync(
+                        $"sandbox:consolidated:heartbeat:{Guid.NewGuid():N}",
+                        AgentVersion,
+                        cancellationToken);
+                heartbeatTransportAttemptedAfterRevocation = transportEvidence.HeartbeatCalls > heartbeatCallsBefore;
+                heartbeatFenceAfterRevocation = heartbeat.FenceToken;
+                heartbeatDeniedAfterRevocation = !heartbeat.Result.Succeeded &&
+                    heartbeat.Result.State == AgentLocalIdentityState.RevokedOrDenied;
+                ObserveDiagnostic(
+                    disposition: heartbeat.Result.State.ToString(),
+                    errorCode: heartbeat.Result.Code,
+                    attempts: heartbeat.Attempts,
+                    fenceToken: heartbeat.FenceToken,
+                    localIdentityState: heartbeat.Result.State.ToString(),
+                    transportAttempted: heartbeatTransportAttemptedAfterRevocation);
+                Assert.True(heartbeatDeniedAfterRevocation);
+                Assert.True(heartbeatTransportAttemptedAfterRevocation);
+                Assert.Equal(1, heartbeat.Attempts);
+                Assert.NotNull(heartbeat.FenceToken);
+
+                SetStage("finalising-assignments-local-quarantine");
+                int assignmentCallsBefore = transportEvidence.AssignmentCalls;
+                AgentFleetSandboxResilienceResult assignments = await CreateOneShotResilience(
+                        coordinator,
+                        agent.Store,
+                        owner.Now)
+                    .ReconcileAssignmentsAsync(
+                        $"sandbox:consolidated:assignments:{Guid.NewGuid():N}",
+                        AgentVersion,
+                        cancellationToken);
+                assignmentsTransportAttemptedAfterRevocation = transportEvidence.AssignmentCalls > assignmentCallsBefore;
+                assignmentsFenceAfterRevocation = assignments.FenceToken;
+                assignmentsDeniedAfterRevocation = !assignments.Result.Succeeded &&
+                    assignments.Result.State == AgentLocalIdentityState.RevokedOrDenied;
+                AgentAssignmentLocalState preserved = await agent.Store.GetAssignmentStateAsync(
+                    enrolled.AgentId,
+                    cancellationToken);
+                assignmentLastKnownGoodPreserved = string.Equals(
+                    lastKnownGood.Version,
+                    preserved.Version,
+                    StringComparison.Ordinal);
+                ObserveDiagnostic(
+                    disposition: assignments.Result.State.ToString(),
+                    errorCode: assignments.Result.Code,
+                    attempts: assignments.Attempts,
+                    fenceToken: assignments.FenceToken,
+                    localIdentityState: assignments.Result.State.ToString(),
+                    transportAttempted: assignmentsTransportAttemptedAfterRevocation);
                 Assert.True(heartbeatDeniedAfterRevocation);
                 Assert.True(assignmentsDeniedAfterRevocation);
+                Assert.False(assignmentsTransportAttemptedAfterRevocation);
+                Assert.True(assignmentLastKnownGoodPreserved);
+                Assert.Equal(1, assignments.Attempts);
+                Assert.NotNull(assignments.FenceToken);
 
-                SetStage("finalising-revoked-observation");
+                SetStage("finalising-observation-denial");
                 using HttpRequestMessage deniedObservation = CreateObservationRequest(
                     enrolled.AgentId,
                     instanceId,
@@ -504,8 +641,27 @@ public sealed partial class AgentFleetApiEndToEndTests
                     cancellationToken);
                 observationDeniedAfterRevocation = deniedObservationResponse.StatusCode is
                     HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden;
+                ObserveDiagnostic(
+                    httpStatusCode: (int)deniedObservationResponse.StatusCode,
+                    transportAttempted: true);
                 Assert.True(observationDeniedAfterRevocation);
-                SetStage("finalising-revoked-command");
+                SetStage("finalising-command-server-denial");
+                using HttpResponseMessage deniedCommandResponse = await SendCommandTransportPollAsync(
+                    directClient,
+                    enrolled.AgentId,
+                    owner.Now,
+                    3,
+                    CommandTransportProtocol.CurrentSchemaVersion,
+                    4,
+                    cancellationToken);
+                bool commandServerDenied = deniedCommandResponse.StatusCode is
+                    HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden;
+                ObserveDiagnostic(
+                    httpStatusCode: (int)deniedCommandResponse.StatusCode,
+                    transportAttempted: true);
+                Assert.True(commandServerDenied);
+
+                SetStage("finalising-command-local-quarantine");
                 CommandTransportProcessResult deniedCommand = await RunCommandTransportHostAsync(
                     agent,
                     owner,
@@ -515,6 +671,10 @@ public sealed partial class AgentFleetApiEndToEndTests
                     owner.Now,
                     "none");
                 commandDeniedAfterRevocation = deniedCommand.ExitCode == 3;
+                ObserveDiagnostic(
+                    disposition: commandDeniedAfterRevocation ? "Denied" : "Unexpected",
+                    attempts: 1,
+                    transportAttempted: false);
                 Assert.True(commandDeniedAfterRevocation);
 
                 SetStage("finalising-durable-counts");
@@ -628,10 +788,34 @@ public sealed partial class AgentFleetApiEndToEndTests
                     assignmentsDeniedAfterRevocation,
                     observationDeniedAfterRevocation,
                     commandDeniedAfterRevocation,
+                    centralRevocationCommitted,
+                    revokedCertificateCount,
+                    heartbeatServerDeniedAfterRevocation,
+                    assignmentsServerDeniedAfterRevocation,
+                    heartbeatTransportAttemptedAfterRevocation,
+                    assignmentsTransportAttemptedAfterRevocation,
+                    assignmentLastKnownGoodPreserved,
+                    commandProcessesExitedBeforeRevocation,
+                    heartbeatFenceAfterRevocation,
+                    assignmentsFenceAfterRevocation,
                     Volatile.Read(ref activeSnapshotRequests),
                     Volatile.Read(ref maximumSnapshotConcurrency),
                     snapshotRequests.ToArray(),
-                    hints);
+                    hints,
+                    failure);
+            }
+        }
+
+        /// <summary>Freezes one sanitised failure envelope without retaining exception text or stack data.</summary>
+        /// <param name="exception">Failure whose type alone contributes to the closed category.</param>
+        /// <returns>Bounded failure evidence safe for the loopback response.</returns>
+        public ConsolidatedHarnessFailureEvidence RecordFailure(Exception exception)
+        {
+            ArgumentNullException.ThrowIfNull(exception);
+            lock (evidenceGate)
+            {
+                failure ??= ConsolidatedHarnessFailureEvidence.Create(stage, diagnostic, exception);
+                return failure;
             }
         }
 
@@ -709,11 +893,44 @@ public sealed partial class AgentFleetApiEndToEndTests
 
         /// <summary>Updates the textual stage under the evidence lock.</summary>
         /// <param name="value">Bounded non-secret stage identifier.</param>
-        private void SetStage(string value)
+        public void SetStage(string value)
         {
             lock (evidenceGate)
             {
                 stage = value;
+                diagnostic = ConsolidatedOperationDiagnostic.Empty(value);
+            }
+        }
+
+        /// <summary>Updates only the bounded typed facts associated with the current test boundary.</summary>
+        private void ObserveDiagnostic(
+            int? httpStatusCode = null,
+            string? disposition = null,
+            string? errorCode = null,
+            int? attempts = null,
+            long? fenceToken = null,
+            string? centralAgentState = null,
+            string? centralCertificateState = null,
+            string? localIdentityState = null,
+            bool? transportAttempted = null,
+            int? expectedCount = null,
+            int? actualCount = null)
+        {
+            lock (evidenceGate)
+            {
+                diagnostic = new ConsolidatedOperationDiagnostic(
+                    diagnostic.Boundary,
+                    httpStatusCode,
+                    disposition,
+                    errorCode,
+                    attempts,
+                    fenceToken,
+                    centralAgentState,
+                    centralCertificateState,
+                    localIdentityState,
+                    transportAttempted,
+                    expectedCount,
+                    actualCount);
             }
         }
 
@@ -826,8 +1043,160 @@ public sealed partial class AgentFleetApiEndToEndTests
         bool AssignmentsDeniedAfterRevocation,
         bool ObservationDeniedAfterRevocation,
         bool CommandDeniedAfterRevocation,
+        bool CentralRevocationCommitted,
+        int RevokedCertificateCount,
+        bool HeartbeatServerDeniedAfterRevocation,
+        bool AssignmentsServerDeniedAfterRevocation,
+        bool HeartbeatTransportAttemptedAfterRevocation,
+        bool AssignmentsTransportAttemptedAfterRevocation,
+        bool AssignmentLastKnownGoodPreserved,
+        bool CommandProcessesExitedBeforeRevocation,
+        long? HeartbeatFenceAfterRevocation,
+        long? AssignmentsFenceAfterRevocation,
         int ActiveSnapshotRequests,
         int MaximumSnapshotConcurrency,
         IReadOnlyList<ConsolidatedSnapshotRequestEvidence> SnapshotRequests,
-        DashboardTvChangeHintSandboxEvidenceSnapshot SignalR);
+        DashboardTvChangeHintSandboxEvidenceSnapshot SignalR,
+        ConsolidatedHarnessFailureEvidence? Failure);
+
+    /// <summary>Contains the current bounded diagnostic context before it becomes terminal failure evidence.</summary>
+    private sealed record ConsolidatedOperationDiagnostic(
+        string Boundary,
+        int? HttpStatusCode,
+        string? Disposition,
+        string? ErrorCode,
+        int? Attempts,
+        long? FenceToken,
+        string? CentralAgentState,
+        string? CentralCertificateState,
+        string? LocalIdentityState,
+        bool? TransportAttempted,
+        int? ExpectedCount,
+        int? ActualCount)
+    {
+        /// <summary>Creates an empty diagnostic for one stable non-secret boundary.</summary>
+        public static ConsolidatedOperationDiagnostic Empty(string boundary) => new(
+            boundary,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null);
+    }
+
+    /// <summary>Exposes only whitelisted failure facts and never exception messages, paths, headers or identity material.</summary>
+    private sealed record ConsolidatedHarnessFailureEvidence(
+        string Stage,
+        string Boundary,
+        string Category,
+        int? HttpStatusCode,
+        string? Disposition,
+        string? ErrorCode,
+        int? Attempts,
+        long? FenceToken,
+        string? CentralAgentState,
+        string? CentralCertificateState,
+        string? LocalIdentityState,
+        bool? TransportAttempted,
+        int? ExpectedCount,
+        int? ActualCount)
+    {
+        /// <summary>Maps one exception type and the current typed context to a closed sanitised category.</summary>
+        public static ConsolidatedHarnessFailureEvidence Create(
+            string stage,
+            ConsolidatedOperationDiagnostic diagnostic,
+            Exception exception)
+        {
+            Type exceptionType = exception.GetType();
+            string typeName = exceptionType.Name;
+            string category = exception is OperationCanceledException
+                ? "budget-exceeded"
+                : string.Equals(diagnostic.ErrorCode, "agent_fleet.operation_busy", StringComparison.Ordinal)
+                    ? "lease-busy"
+                    : typeName is "DbUpdateConcurrencyException" or "DbUpdateException" or "SqliteException"
+                        ? "persistence-conflict"
+                        : exceptionType.Namespace?.StartsWith("Xunit", StringComparison.Ordinal) == true
+                            ? "assertion-mismatch"
+                            : "unexpected";
+            return new ConsolidatedHarnessFailureEvidence(
+                stage,
+                diagnostic.Boundary,
+                category,
+                diagnostic.HttpStatusCode,
+                diagnostic.Disposition,
+                diagnostic.ErrorCode,
+                diagnostic.Attempts,
+                diagnostic.FenceToken,
+                diagnostic.CentralAgentState,
+                diagnostic.CentralCertificateState,
+                diagnostic.LocalIdentityState,
+                diagnostic.TransportAttempted,
+                diagnostic.ExpectedCount,
+                diagnostic.ActualCount);
+        }
+    }
+
+    /// <summary>Records whether each Agent Fleet transport boundary was actually called by the local coordinator.</summary>
+    private sealed class CountingAgentFleetClientTransport(IAgentFleetClientTransport inner)
+        : IAgentFleetClientTransport
+    {
+        private int heartbeatCalls;
+        private int assignmentCalls;
+
+        /// <summary>Gets the number of heartbeat calls delegated to HTTPS.</summary>
+        public int HeartbeatCalls => Volatile.Read(ref heartbeatCalls);
+
+        /// <summary>Gets the number of assignment calls delegated to HTTPS.</summary>
+        public int AssignmentCalls => Volatile.Read(ref assignmentCalls);
+
+        /// <inheritdoc />
+        public ValueTask<AgentFleetTransportResult<AgentEnrollmentOutcome>> EnrolAsync(
+            string enrollmentToken,
+            AgentEnrollmentRequest request,
+            CancellationToken cancellationToken) => inner.EnrolAsync(enrollmentToken, request, cancellationToken);
+
+        /// <inheritdoc />
+        public ValueTask<AgentFleetTransportResult<AgentHeartbeatOutcome>> SendHeartbeatAsync(
+            string identityReference,
+            AgentHeartbeatRequest request,
+            CancellationToken cancellationToken)
+        {
+            Interlocked.Increment(ref heartbeatCalls);
+            return inner.SendHeartbeatAsync(identityReference, request, cancellationToken);
+        }
+
+        /// <inheritdoc />
+        public ValueTask<AgentFleetTransportResult<AgentAssignmentSnapshot>> GetAssignmentsAsync(
+            string identityReference,
+            Guid agentId,
+            string agentVersion,
+            string? entityTag,
+            CancellationToken cancellationToken)
+        {
+            Interlocked.Increment(ref assignmentCalls);
+            return inner.GetAssignmentsAsync(identityReference, agentId, agentVersion, entityTag, cancellationToken);
+        }
+    }
+
+    /// <summary>Captures the typed revocation response without retaining body, headers or identity material.</summary>
+    private sealed record AgentRevocationHttpEvidence(
+        HttpStatusCode StatusCode,
+        AgentRevocationOutcome? Outcome);
+
+    /// <summary>Captures bounded durable central revocation facts for one synthetic Agent.</summary>
+    private sealed record ConsolidatedCentralRevocationEvidence(
+        string AgentState,
+        DateTimeOffset? RevokedAt,
+        int CertificateCount,
+        int RevokedCertificateCount)
+    {
+        /// <summary>Gets whether every bounded certificate row is durably revoked.</summary>
+        public bool AllCertificatesRevoked => CertificateCount > 0 && RevokedCertificateCount == CertificateCount;
+    }
 }

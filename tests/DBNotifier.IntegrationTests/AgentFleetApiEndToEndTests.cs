@@ -1125,6 +1125,7 @@ public sealed partial class AgentFleetApiEndToEndTests
             using HttpResponseMessage incompatible = await SendCommandTransportPollAsync(
                 directClient,
                 registration.AgentId,
+                sandbox.Now,
                 sequence: 1,
                 schemaVersion: 1,
                 maximumCount: 4);
@@ -1133,6 +1134,7 @@ public sealed partial class AgentFleetApiEndToEndTests
             using HttpResponseMessage gap = await SendCommandTransportPollAsync(
                 directClient,
                 registration.AgentId,
+                sandbox.Now,
                 sequence: 2,
                 schemaVersion: CommandTransportProtocol.CurrentSchemaVersion,
                 maximumCount: 4);
@@ -1149,6 +1151,7 @@ public sealed partial class AgentFleetApiEndToEndTests
             using HttpResponseMessage wrongRoute = await SendCommandTransportPollAsync(
                 directClient,
                 Guid.NewGuid(),
+                sandbox.Now,
                 sequence: 1,
                 schemaVersion: CommandTransportProtocol.CurrentSchemaVersion,
                 maximumCount: 4);
@@ -1212,6 +1215,7 @@ public sealed partial class AgentFleetApiEndToEndTests
             Task<HttpResponseMessage> committedPoll = SendCommandTransportPollAsync(
                 directClient,
                 registration.AgentId,
+                sandbox.Now,
                 sequence: 3,
                 schemaVersion: CommandTransportProtocol.CurrentSchemaVersion,
                 maximumCount: 4);
@@ -1253,11 +1257,12 @@ public sealed partial class AgentFleetApiEndToEndTests
     private static async Task<HttpResponseMessage> SendCommandTransportPollAsync(
         HttpClient client,
         Guid routeAgentId,
+        DateTimeOffset now,
         long sequence,
         int schemaVersion,
-        int maximumCount)
+        int maximumCount,
+        CancellationToken cancellationToken = default)
     {
-        DateTimeOffset now = DateTimeOffset.UtcNow;
         CommandTransportPollRequest body = new(
             Guid.NewGuid(),
             schemaVersion,
@@ -1278,7 +1283,7 @@ public sealed partial class AgentFleetApiEndToEndTests
             Content = JsonContent.Create(body, options: JsonOptions),
         };
         AddCommandTransportHeaders(request, schemaVersion);
-        return await client.SendAsync(request);
+        return await client.SendAsync(request, cancellationToken);
     }
 
     private static async Task<HttpResponseMessage> SendOversizedCommandTransportRequestAsync(
@@ -1407,11 +1412,16 @@ public sealed partial class AgentFleetApiEndToEndTests
     }
 
     /// <summary>Reads one authenticated snapshot and requires an exact strong ETag.</summary>
+    /// <param name="client">Authenticated Dashboard sandbox client.</param>
+    /// <param name="cancellationToken">Cancellation bounding the authoritative read.</param>
+    /// <returns>Validated snapshot and strong entity tag.</returns>
     private static async Task<(DashboardTvSnapshot Snapshot, string EntityTag)> ReadDashboardSnapshotAsync(
-        HttpClient client)
+        HttpClient client,
+        CancellationToken cancellationToken = default)
     {
         using HttpResponseMessage response = await client.GetAsync(
-            DashboardTvSandboxEndpointRouteBuilderExtensions.SnapshotRoute);
+            DashboardTvSandboxEndpointRouteBuilderExtensions.SnapshotRoute,
+            cancellationToken);
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         DashboardTvSnapshot snapshot = await ReadRequiredJsonAsync<DashboardTvSnapshot>(response);
         string entityTag = response.Headers.ETag?.Tag ??
@@ -1950,11 +1960,12 @@ public sealed partial class AgentFleetApiEndToEndTests
         HttpClient client,
         HttpMethod method,
         string path,
-        T body)
+        T body,
+        CancellationToken cancellationToken = default)
     {
         using HttpRequestMessage message = CreateAgentRequest(method, path);
         message.Content = JsonContent.Create(body, options: JsonOptions);
-        return await client.SendAsync(message);
+        return await client.SendAsync(message, cancellationToken);
     }
 
     /// <summary>Creates one Agent request with the exact protocol, schema and version headers.</summary>
@@ -2750,6 +2761,8 @@ public sealed partial class AgentFleetApiEndToEndTests
         /// <param name="enableCommandTransport">Whether to compose the execution-ineligible command transport routes.</param>
         /// <param name="consolidatedHarness">Optional owner of the explicitly gated consolidated test controls.</param>
         /// <param name="dashboardRoot">Built Dashboard root served only by the consolidated loopback host.</param>
+        /// <param name="enableRevocationMatrixHints">Whether the revocation matrix composes the in-process hint publisher.</param>
+        /// <param name="snapshotResponseBarrier">Optional test-only response barrier for deterministic snapshot overlap.</param>
         /// <returns>Started disposable sandbox.</returns>
         public static async Task<AgentFleetSandbox> StartAsync(
             IInterceptor? interceptor = null,
@@ -2757,7 +2770,9 @@ public sealed partial class AgentFleetApiEndToEndTests
             ObservationIngestionPause? observationPause = null,
             bool enableCommandTransport = false,
             ConsolidatedHarnessState? consolidatedHarness = null,
-            string? dashboardRoot = null)
+            string? dashboardRoot = null,
+            bool enableRevocationMatrixHints = false,
+            ConsolidatedSnapshotResponseBarrier? snapshotResponseBarrier = null)
         {
             if (observationPause is not null && !enableObservationPipeline)
             {
@@ -2775,6 +2790,13 @@ public sealed partial class AgentFleetApiEndToEndTests
                 throw new ArgumentException(
                     "The consolidated harness requires both protocol paths and one built Dashboard root.",
                     nameof(consolidatedHarness));
+            }
+
+            if ((enableRevocationMatrixHints || snapshotResponseBarrier is not null) && !enableObservationPipeline)
+            {
+                throw new ArgumentException(
+                    "Revocation-matrix Dashboard controls require the explicitly enabled observation pipeline.",
+                    nameof(enableObservationPipeline));
             }
 
             DateTimeOffset now = consolidatedHarness is null
@@ -2819,7 +2841,7 @@ public sealed partial class AgentFleetApiEndToEndTests
                 {
                     [$"{DashboardTvSandboxEndpointRouteBuilderExtensions.ConfigurationSection}:Enabled"] = "true",
                     [$"{DashboardTvChangeHintSandboxEndpointRouteBuilderExtensions.ConfigurationSection}:Enabled"] =
-                        consolidatedHarness is null ? "false" : "true",
+                        consolidatedHarness is not null || enableRevocationMatrixHints ? "true" : "false",
                     [$"{ReconciledLocalNotificationSandboxEndpointExtensions.ConfigurationSection}:Enabled"] =
                         consolidatedHarness is null ? "false" : "true",
                 });
@@ -2889,11 +2911,14 @@ public sealed partial class AgentFleetApiEndToEndTests
                     builder.Configuration);
                 builder.Services.RemoveAll<IDashboardTvSnapshotSource>();
                 builder.Services.AddSingleton<IDashboardTvSnapshotSource, DashboardTvSyntheticObservationSnapshotSource>();
-                if (consolidatedHarness is not null)
+                if (consolidatedHarness is not null || enableRevocationMatrixHints)
                 {
                     dashboardHintsEnabled = builder.Services.AddDashboardTvChangeHintSandbox(
                         builder.Environment,
                         builder.Configuration);
+                }
+                if (consolidatedHarness is not null)
+                {
                     notificationsEnabled = builder.Services.AddReconciledLocalNotificationSandbox(
                         builder.Environment,
                         builder.Configuration);
@@ -2939,6 +2964,10 @@ public sealed partial class AgentFleetApiEndToEndTests
             application.UseAuthentication();
             application.UseRateLimiter();
             application.UseAuthorization();
+            if (snapshotResponseBarrier is not null)
+            {
+                application.Use((context, next) => snapshotResponseBarrier.InvokeAsync(context, next));
+            }
             if (consolidatedHarness is not null)
             {
                 PhysicalFileProvider dashboardFiles = new(Path.GetFullPath(dashboardRoot!));
@@ -2957,9 +2986,12 @@ public sealed partial class AgentFleetApiEndToEndTests
             {
                 application.MapObservationIngestionEndpoint();
                 application.MapDashboardTvSandboxEndpoint(dashboardTvEnabled);
-                if (consolidatedHarness is not null)
+                if (consolidatedHarness is not null || enableRevocationMatrixHints)
                 {
                     application.MapDashboardTvChangeHintSandbox(dashboardHintsEnabled);
+                }
+                if (consolidatedHarness is not null)
+                {
                     application.MapReconciledLocalNotificationSandbox(notificationsEnabled);
                     MapConsolidatedHarnessEndpoints(application, consolidatedHarness);
                     application.MapFallback(async context =>
@@ -3361,18 +3393,66 @@ public sealed partial class AgentFleetApiEndToEndTests
             await context.SaveChangesAsync();
         }
 
-        /// <summary>Revokes one Agent through the real human-authorised endpoint.</summary>
+        /// <summary>Revokes one Agent through the real human-authorised endpoint and returns bounded HTTP evidence.</summary>
         /// <param name="agentId">Agent to revoke.</param>
-        public async Task RevokeAgentAsync(Guid agentId)
+        /// <param name="cancellationToken">Cancellation bounding the local HTTPS request.</param>
+        /// <returns>Typed status and revocation disposition without response headers or identity material.</returns>
+        public async Task<AgentRevocationHttpEvidence> RevokeAgentAsync(
+            Guid agentId,
+            CancellationToken cancellationToken = default)
+        {
+            AgentRevocationHttpEvidence evidence = await RevokeAgentForDiagnosticAsync(
+                agentId,
+                cancellationToken);
+            Assert.Equal(HttpStatusCode.OK, evidence.StatusCode);
+            Assert.Equal(
+                AgentRevocationDisposition.Revoked,
+                Assert.IsType<AgentRevocationOutcome>(evidence.Outcome).Disposition);
+            return evidence;
+        }
+
+        /// <summary>Attempts one revocation while preserving a non-success HTTP status for sanitised diagnosis.</summary>
+        /// <param name="agentId">Agent to revoke.</param>
+        /// <param name="cancellationToken">Cancellation bounding the local HTTPS request.</param>
+        /// <returns>Status plus an outcome only when the endpoint returned its successful typed contract.</returns>
+        public async Task<AgentRevocationHttpEvidence> RevokeAgentForDiagnosticAsync(
+            Guid agentId,
+            CancellationToken cancellationToken = default)
         {
             using HttpClient human = CreateHumanClient(HumanSubject);
             using HttpResponseMessage response = await human.PostAsJsonAsync(
                 $"/api/v1/agents/{agentId:D}:revoke",
                 new AgentRevocationRequest("sandbox-client-review-complete"),
-                JsonOptions);
-            AgentRevocationOutcome outcome = await ReadRequiredJsonAsync<AgentRevocationOutcome>(response);
-            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            Assert.Equal(AgentRevocationDisposition.Revoked, outcome.Disposition);
+                JsonOptions,
+                cancellationToken);
+            AgentRevocationOutcome? outcome = response.StatusCode == HttpStatusCode.OK
+                ? await ReadRequiredJsonAsync<AgentRevocationOutcome>(response)
+                : null;
+            return new AgentRevocationHttpEvidence(response.StatusCode, outcome);
+        }
+
+        /// <summary>Reads the atomically committed Agent and certificate revocation state from Server SQLite.</summary>
+        /// <param name="agentId">Synthetic Agent whose exact central state is required.</param>
+        /// <param name="cancellationToken">Cancellation bounding the durable inspection.</param>
+        /// <returns>Bounded canonical states and certificate counts.</returns>
+        public async Task<ConsolidatedCentralRevocationEvidence> ReadCentralRevocationEvidenceAsync(
+            Guid agentId,
+            CancellationToken cancellationToken)
+        {
+            await using AsyncServiceScope scope = application.Services.CreateAsyncScope();
+            ServerDbContext context = scope.ServiceProvider.GetRequiredService<ServerDbContext>();
+            RegisteredAgentRow agent = await context.Agents.AsNoTracking()
+                .SingleAsync(row => row.AgentId == agentId, cancellationToken);
+            string[] certificateStates = await context.AgentCertificates.AsNoTracking()
+                .Where(row => row.AgentId == agentId)
+                .OrderBy(row => row.AgentCertificateId)
+                .Select(row => row.State)
+                .ToArrayAsync(cancellationToken);
+            return new ConsolidatedCentralRevocationEvidence(
+                agent.State,
+                agent.RevokedAt,
+                certificateStates.Length,
+                certificateStates.Count(state => state == "Revoked"));
         }
 
         /// <summary>Confirms Agent-side E2E server evidence without requiring the direct-route test's gap sequence.</summary>

@@ -2003,6 +2003,22 @@
 - Próxima decisão: Bruno pode pedir ajustes, adiar ou enviar exatamente o texto da seção `Decisão futura de Bruno`. A proposta não autoriza sua própria implementação.
 - Aprovador: não aplicável; registro de solicitação e proposta, não Human Gate nem autorização de implementação.
 
+## 2026-07-20 — Remediação Consolidated Revocation Finalisation Diagnostic and Harness
+
+- Estado anterior: `STATE-06 INTEGRATION`, Quality Gate consolidado repetido `REPROVADO`, proposta de remediação concluída e implementação ainda não iniciada.
+- Estado resultante: sem transição; `STATE-06 INTEGRATION` mantido, Quality Gate próprio da remediação `APROVADO`, campanha anterior ainda `REPROVADA` e Human Gate próprio da remediação pendente.
+- Autorização: Bruno limitou a ação a granularidade test-only, evidência sanitizada, prova separada de revogação central/negação/quarentena, R1–R7, fencing, relógio, budgets, cancellation, testes e correção exclusivamente sob `tests/`/`scripts/`; qualquer necessidade de `src/`, solução, projeto, package, lockfile ou migration exigiria bloqueio.
+- Shutdown preflight: branch `main`, baseline `c03cba1`, worktree limpa, zero processo, listener ou navegador dedicado pertencente ao DB-Notifier; nenhum processo alheio foi encerrado.
+- Diagnóstico: duas reproduções sem alteração produziram uma expiração de readiness e um passe completo, sem reproduzir a falha histórica. A instrumentação granular posteriormente reproduziu HTTP `400` em `finalising-command-gap-negative` e provou divergência test-only entre `DateTimeOffset.UtcNow` no request e o relógio controlado do Server. A exceção histórica exata de `finalising-revocation` permanece irrecuperável do payload antigo e não foi inventada.
+- Implementação: envelope allow-listed de falha; estágios granulares; commit central, negação direta e quarentena local separados; transporte contado; LKG preservado; fences expostos; coordinator e command polls no mesmo relógio controlado; readiness com budget único de `90` segundos; matriz R1–R7 com barrier, clock e leases reais de SQLite sandbox.
+- Evidência: R1–R7 e teste negativo aprovados; harness completo Chrome aprovado com `2` observações, `1` entrega, `2` journals, `0` `CommandAttempt`, `1/1` certificado revogado, fences `3 → 4`, concorrência de snapshot `1` e zero origem HTTP externa.
+- Gates: build Release `17` projetos sem erro/warning; `332/332` unitários, `30/30` arquitetura, `16/16` integração, cobertura `78,9%/49,51%`, Dashboard `60/60`, TypeScript/build e formatação aprovados. Gates documentais, secrets, links, diff e cleanup final constam do relatório/commit da entrega.
+- Escopo: nenhum arquivo sob `src/`, solução, projeto, package, lockfile ou migration foi alterado; nenhum acesso externo, recurso operacional, comando real, executor, notificação visível, deploy, promoção ou transição ocorreu.
+- Limitações: SQLite e identidades exclusivamente sintéticos; R3 prova sobreposição no boundary HTTP, não locking de PostgreSQL; Chrome único; nenhum resultado operacional. O passe da remediação não reclassifica a campanha anterior.
+- Evidência documental: [relatório da remediação](../../docs/STATE-06-Consolidated-Revocation-Finalisation-Diagnostic-And-Harness-Remediation-Report.md), [proposta autorizada](../../docs/STATE-06-Consolidated-Revocation-Finalisation-Remediation-Proposal.md) e [relatório histórico reprovado](../../docs/STATE-06-Consolidated-Quality-Gate-Rerun-Report.md).
+- Próxima decisão: Bruno deve revisar e decidir somente o Human Gate próprio desta remediação. Nova Campanha Consolidada, amostra humana, Human Gate final, promoção e transição exigem decisões posteriores e separadas.
+- Aprovador: Bruno autorizou a implementação; a aceitação humana do resultado não foi inferida.
+
 ## Template de nova entrada
 
 - Data:
