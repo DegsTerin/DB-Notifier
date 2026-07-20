@@ -36,6 +36,7 @@ Current discovery and migration artifacts:
 - [`STATE-06-Final-Human-Samples-Post-Remediation-Repetition-Report.md`](STATE-06-Final-Human-Samples-Post-Remediation-Repetition-Report.md): factual record of the blocked post-remediation human repetition, including the evidence-page rate-limit contradiction, incomplete visual hand-off and complete cleanup.
 - [`STATE-06-Final-Human-Samples-Second-Test-Only-Remediation-Proposal.md`](STATE-06-Final-Human-Samples-Second-Test-Only-Remediation-Proposal.md): documentary proposal for rate-limit-safe evidence polling, positive Browser/API recovery, a human-duration gate and a versioned visible runner with persistent test-only barriers.
 - [`STATE-06-Final-Human-Samples-Second-Test-Only-Remediation-Report.md`](STATE-06-Final-Human-Samples-Second-Test-Only-Remediation-Report.md): factual implementation and Quality Gate evidence for serial polling, typed recovery, the 180-second duration gate and the versioned single-sample visible runner.
+- [`STATE-06-Final-Human-Samples-Second-Post-Remediation-Repetition-Report.md`](STATE-06-Final-Human-Samples-Second-Post-Remediation-Repetition-Report.md): final human repetition evidence for the approved Agent loss/recovery/replay and current `unknown` versus `stale` samples, including bounded terminal exits and complete cleanup.
 
 The governing instruction corpus starts at [`../prompts/Start-Here.md`](../prompts/Start-Here.md).
 

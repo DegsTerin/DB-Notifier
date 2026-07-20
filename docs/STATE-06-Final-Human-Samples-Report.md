@@ -223,3 +223,9 @@ Esse resultado técnico não reescreve a campanha acima: `S06-HG-001` e `S06-HG-
 A [repetição humana pós-remediação](STATE-06-Final-Human-Samples-Post-Remediation-Repetition-Report.md) foi autorizada separadamente no commit corrente. `S06-HG-001` voltou a ficar `BLOQUEADA`: a superfície auxiliar atingiu o rate limit com respostas `429` e passou a declarar `Browser → API indisponível` ainda no estágio Agent disponível. A perda/recovery não foi avançada nem apresentada.
 
 `S06-HG-006` também permaneceu `BLOQUEADA` porque nenhum hand-off visível válido foi concluído. Nenhuma decisão humana foi inferida de evidência automática. O cleanup integral passou, e Human Gate final, promoção e transição continuam não autorizados.
+
+## Adendo factual posterior — repetição final aprovada
+
+Depois da segunda remediação test-only aceita, Bruno autorizou uma [nova repetição exclusiva de `S06-HG-001` e `S06-HG-006`](STATE-06-Final-Human-Samples-Second-Post-Remediation-Repetition-Report.md). Ele observou e aprovou explicitamente as três etapas de disponibilidade/perda/recovery com replay único e a apresentação simultânea de `Desconhecido` corrente e `Desatualizado`.
+
+Com isso, `S06-HG-001` a `S06-HG-006` possuem decisões humanas `APROVADA`, e a campanha das amostras fica `CONCLUÍDA COM AS LIMITAÇÕES REGISTRADAS`. Os presenters terminaram por seus limites bounded depois das decisões, pois o controle final não foi acionado, mas o cleanup integral passou. Essa conclusão não abre o Human Gate final e não autoriza runtime operacional, promoção ou transição.

@@ -2221,6 +2221,24 @@
 - Próxima atividade: nenhuma ação técnica está autorizada por este registro. Se Bruno desejar continuar, deverá autorizar separadamente a repetição exclusiva de `S06-HG-001` e `S06-HG-006`; as quatro amostras já aprovadas não devem ser repetidas.
 - Aprovador: Bruno, 2026-07-20, exclusivamente para aceitar a remediação e registrar essa decisão.
 
+## 2026-07-20 — Repetição final pós-segunda-remediação de `S06-HG-001` e `S06-HG-006`
+
+- Estado anterior: `STATE-06 INTEGRATION`, segunda remediação `9d65426` aceita e registrada em `129b9fd`, `S06-HG-002` a `S06-HG-005` aprovadas, `S06-HG-001`/`006` bloqueadas e Human Gate final não aberto.
+- Estado resultante: sem transição; `STATE-06 INTEGRATION` mantido. `S06-HG-001` e `S06-HG-006` foram aprovadas explicitamente por Bruno; a campanha das seis amostras humanas fica `CONCLUÍDA COM AS LIMITAÇÕES REGISTRADAS`, com seis decisões individuais `APROVADA`. Human Gate final permanece pendente e não aberto.
+- Autorização: Bruno autorizou somente a repetição das duas amostras na baseline contendo `9d65426` e `129b9fd`, com runner visível versionado, uma amostra por sessão, barriers persistentes, runtimes locais temporários, Chrome dedicado efêmero e cleanup. Mudança técnica, acesso externo, recurso operacional, demais amostras, notificação, comando, executor, Human Gate, promoção e transição permaneceram proibidos.
+- Baseline: branch `main`, commit `129b9fd4f7fc774b8ac9616115524660d569ffc9`, worktree limpa, ancestralidade exigida e shutdown preflight com zero processo, listener ou root temporário próprio.
+- `S06-HG-001`: Bruno observou Agent disponível com zero pendência/uma amostra Server, Agent indisponível com uma pendência preservada/uma amostra Server e Agent recuperado com zero pendência/duas amostras/replay aceito exatamente uma vez, sempre com Browser → API disponível. Decisão exata: `S06-HG-001: APROVADA`.
+- `S06-HG-006`: Bruno observou duas instâncias depois da reconciliação, uma `Desconhecido` corrente e outra `Desatualizado`, prazo visível sem renovação silenciosa, suporte planejado e origem sintética local. Decisão exata: `S06-HG-006: APROVADA`.
+- Separação humana: os presenters registraram `humanDecisionRecorded=false`; as decisões vieram exclusivamente de Bruno na conversa e não foram inferidas das execuções automáticas.
+- Condição terminal: os controles finais não foram acionados antes dos limites. `S06-HG-001` terminou por timeout de conclusão explícita e `S06-HG-006` por expiração do `unknown`, ambos depois das decisões; os presenters saíram com erro tipado e o cleanup integral passou. O resumo terminal positivo e sua contagem final de origens não foram produzidos.
+- Evidência visível: quatro imagens da segunda sessão de `S06-HG-001` e duas imagens de `S06-HG-006` foram apresentadas na conversa e não copiadas ao repositório; os valores visíveis e as decisões estão no [relatório factual](../../docs/STATE-06-Final-Human-Samples-Second-Post-Remediation-Repetition-Report.md).
+- Cleanup: depois de cada sessão, zero host, presenter, Chrome/profile, listener ou root `DBNotifier-State06-HumanReview-*`; worktree permaneceu limpa. Nenhum navegador comum, IDE, banco, serviço ou processo alheio foi encerrado.
+- Escopo: nenhum código, configuração executável, solução, projeto, package, lockfile ou migration alterado; nenhum build, restore, download, notificação, comando ou recurso operacional executado.
+- Gates documentais: documentação aprovada para `284` arquivos comment-capable; `487` links Markdown locais em `111` arquivos aprovados; secret scan do worktree não ignorado, escopo documental e `git diff --check` aprovados.
+- Gates: Quality Gate consolidado automático permanece `APROVADO`; seis amostras humanas `APROVADAS`; campanha humana `CONCLUÍDA COM AS LIMITAÇÕES REGISTRADAS`; Human Gate final `PENDENTE` e não aberto; runtime operacional, promoção e transição não autorizados.
+- Próxima decisão: Bruno deverá revisar o relatório factual. Uma eventual aceitação poderá autorizar separadamente somente uma proposta documental para o Human Gate final; não abrirá o gate, promoção ou transição.
+- Aprovador: Bruno, exclusivamente para `S06-HG-001` e `S06-HG-006`; nenhuma decisão de Human Gate final foi inferida.
+
 ## Template de nova entrada
 
 - Data:
