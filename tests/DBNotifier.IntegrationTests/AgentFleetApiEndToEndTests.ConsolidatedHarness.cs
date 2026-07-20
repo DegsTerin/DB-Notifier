@@ -32,6 +32,9 @@ public sealed partial class AgentFleetApiEndToEndTests
     private const string HumanVisualTruthRoute = "/__dbnotifier-state06-human-remediation/visual-truth";
     private const string HumanCompleteRoute = "/__dbnotifier-state06-human-remediation/complete";
     private const string ConsolidatedRunHeader = "X-DBN-State06-Consolidated-Run";
+    private const string HumanQualityGateSample = "quality-gate";
+    private const string HumanSample001 = "S06-HG-001";
+    private const string HumanSample006 = "S06-HG-006";
 
     /// <summary>
     /// Starts one local-only consolidated host, prepares the first correlated observation and waits for the
@@ -46,6 +49,7 @@ public sealed partial class AgentFleetApiEndToEndTests
         await RunState06ConsolidatedSandboxHostCoreAsync(
             dashboardRoot,
             humanRemediationMode: false,
+            humanReviewSample: null,
             cancellationToken);
 
     /// <summary>
@@ -58,19 +62,38 @@ public sealed partial class AgentFleetApiEndToEndTests
     public static async Task<int> RunState06FinalHumanSamplesRemediationHostAsync(
         string dashboardRoot,
         CancellationToken cancellationToken) =>
+        await RunState06FinalHumanSamplesRemediationHostAsync(
+            dashboardRoot,
+            HumanQualityGateSample,
+            cancellationToken);
+
+    /// <summary>
+    /// Starts one exact automatic or single-sample test-only presentation mode without changing product composition.
+    /// </summary>
+    /// <param name="dashboardRoot">Absolute root of the already-built local Dashboard.</param>
+    /// <param name="humanReviewSample">Exact quality-gate or single-sample selector.</param>
+    /// <param name="cancellationToken">Cancellation bounding the temporary host lifetime.</param>
+    /// <returns>Zero after complete disposal, or an exception for the owning executable to sanitise.</returns>
+    public static async Task<int> RunState06FinalHumanSamplesRemediationHostAsync(
+        string dashboardRoot,
+        string humanReviewSample,
+        CancellationToken cancellationToken) =>
         await RunState06ConsolidatedSandboxHostCoreAsync(
             dashboardRoot,
             humanRemediationMode: true,
+            humanReviewSample,
             cancellationToken);
 
     /// <summary>Runs one exact consolidated host mode behind the shared local process boundary.</summary>
     /// <param name="dashboardRoot">Absolute root of the already-built local Dashboard.</param>
     /// <param name="humanRemediationMode">Whether only the final-human-sample evidence controls are exposed.</param>
+    /// <param name="humanReviewSample">Exact quality-gate or single-sample selector when remediation mode is enabled.</param>
     /// <param name="cancellationToken">Cancellation bounding the temporary host lifetime.</param>
     /// <returns>Zero after complete disposal.</returns>
     private static async Task<int> RunState06ConsolidatedSandboxHostCoreAsync(
         string dashboardRoot,
         bool humanRemediationMode,
+        string? humanReviewSample,
         CancellationToken cancellationToken)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(dashboardRoot);
@@ -81,7 +104,7 @@ public sealed partial class AgentFleetApiEndToEndTests
             throw new ArgumentException("The consolidated Dashboard root is unavailable.", nameof(dashboardRoot));
         }
 
-        ConsolidatedHarnessState state = new(Guid.NewGuid(), humanRemediationMode);
+        ConsolidatedHarnessState state = new(Guid.NewGuid(), humanRemediationMode, humanReviewSample);
         AgentFleetSandbox? sandbox = null;
         try
         {
@@ -98,6 +121,7 @@ public sealed partial class AgentFleetApiEndToEndTests
                 spkiPin = sandbox.ServerSubjectPublicKeyInfoPin,
                 runId = state.RunId,
                 mode = humanRemediationMode ? "final-human-samples-remediation" : "consolidated",
+                humanReviewSample = state.HumanReviewSample,
             }, JsonOptions));
             await sandbox.WaitForShutdownAsync(cancellationToken);
             return 0;
@@ -247,11 +271,15 @@ public sealed partial class AgentFleetApiEndToEndTests
     private sealed class ConsolidatedHarnessState : IAsyncDisposable
     {
         private const int MaximumSnapshotEvidence = 32;
+        private const int MaximumHumanEvidenceRequestHistory = 512;
+        private const int HumanEvidenceRefreshMilliseconds = 2100;
         private readonly Guid runId;
         private readonly bool humanRemediationMode;
+        private readonly string humanReviewSample;
         private readonly object evidenceGate = new();
         private readonly SemaphoreSlim operationGate = new(1, 1);
         private readonly List<ConsolidatedSnapshotRequestEvidence> snapshotRequests = [];
+        private readonly List<DateTimeOffset> humanEvidenceRequestStarts = [];
         private readonly ConsolidatedRecordingSink notificationSink = new();
         private AgentFleetSandbox? sandbox;
         private AgentFileSandbox? local;
@@ -273,6 +301,9 @@ public sealed partial class AgentFleetApiEndToEndTests
         private int commandAttempts;
         private int humanPendingObservations;
         private int humanServerObservationSamples;
+        private int activeHumanEvidenceRequests;
+        private int maximumHumanEvidenceConcurrency;
+        private int humanEvidenceRateLimitedResponses;
         private bool initialReplayObserved;
         private bool humanLossObserved;
         private bool humanReplayAcceptedOnce;
@@ -301,19 +332,34 @@ public sealed partial class AgentFleetApiEndToEndTests
         private ConsolidatedOperationDiagnostic diagnostic = ConsolidatedOperationDiagnostic.Empty("created");
         private ConsolidatedHarnessFailureEvidence? failure;
         private DashboardTvSnapshot? humanVisualTruthSnapshot;
+        private DateTimeOffset? humanVisualTruthExpiresAt;
 
         /// <summary>Creates one isolated evidence state with an optional final-human-sample control surface.</summary>
         /// <param name="runId">Public version-four correlation identifier.</param>
         /// <param name="humanRemediationMode">Whether command controls are replaced by test-only human evidence controls.</param>
-        public ConsolidatedHarnessState(Guid runId, bool humanRemediationMode = false)
+        /// <param name="humanReviewSample">Exact quality-gate or single-sample selector.</param>
+        public ConsolidatedHarnessState(
+            Guid runId,
+            bool humanRemediationMode = false,
+            string? humanReviewSample = null)
         {
             if (runId == Guid.Empty)
             {
                 throw new ArgumentException("The consolidated run identifier is required.", nameof(runId));
             }
 
+            if (!humanRemediationMode && humanReviewSample is not null)
+            {
+                throw new ArgumentException(
+                    "A human review sample requires the exact remediation mode.",
+                    nameof(humanReviewSample));
+            }
+
             this.runId = runId;
             this.humanRemediationMode = humanRemediationMode;
+            this.humanReviewSample = humanRemediationMode
+                ? ValidateHumanReviewSample(humanReviewSample ?? HumanQualityGateSample)
+                : "none";
         }
 
         /// <summary>Gets the public correlation identifier for this fixture run.</summary>
@@ -321,6 +367,9 @@ public sealed partial class AgentFleetApiEndToEndTests
 
         /// <summary>Gets whether this run exposes only the final-human-sample remediation controls.</summary>
         public bool HumanRemediationMode => humanRemediationMode;
+
+        /// <summary>Gets the exact automatic or single-sample presentation selector.</summary>
+        public string HumanReviewSample => humanReviewSample;
 
         /// <summary>Gets whether the terminal command and revocation checks completed.</summary>
         public bool IsFinalised => Volatile.Read(ref finalised);
@@ -497,7 +546,10 @@ public sealed partial class AgentFleetApiEndToEndTests
             try
             {
                 RequireState(
-                    humanRemediationMode && initialised && !finalised,
+                    humanRemediationMode &&
+                    humanReviewSample is HumanQualityGateSample or HumanSample001 &&
+                    initialised &&
+                    !finalised,
                     "The human Agent-loss stage is unavailable.");
                 if (humanLossObserved)
                 {
@@ -550,7 +602,11 @@ public sealed partial class AgentFleetApiEndToEndTests
             try
             {
                 RequireState(
-                    humanRemediationMode && initialised && humanLossObserved && !finalised,
+                    humanRemediationMode &&
+                    humanReviewSample is HumanQualityGateSample or HumanSample001 &&
+                    initialised &&
+                    humanLossObserved &&
+                    !finalised,
                     "The human Agent-recovery stage is unavailable.");
                 if (humanReplayAcceptedOnce)
                 {
@@ -612,7 +668,10 @@ public sealed partial class AgentFleetApiEndToEndTests
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 RequireState(
-                    humanRemediationMode && humanReplayAcceptedOnce && !finalised,
+                    humanRemediationMode &&
+                    !finalised &&
+                    ((humanReviewSample == HumanQualityGateSample && humanReplayAcceptedOnce) ||
+                     (humanReviewSample == HumanSample006 && initialised && !humanLossObserved)),
                     "The human visual-truth stage is unavailable.");
                 if (humanVisualTruthEnabled)
                 {
@@ -626,6 +685,7 @@ public sealed partial class AgentFleetApiEndToEndTests
                 {
                     humanVisualTruthSnapshot = snapshot;
                     humanVisualTruthEnabled = true;
+                    humanVisualTruthExpiresAt = owner.Now.AddMinutes(5);
                 }
                 SetStage("visual-truth-ready");
             }
@@ -644,8 +704,11 @@ public sealed partial class AgentFleetApiEndToEndTests
             try
             {
                 RequireState(
-                    humanRemediationMode && humanReplayAcceptedOnce && humanVisualTruthEnabled,
-                    "The human remediation cannot complete before both evidences are ready.");
+                    humanRemediationMode &&
+                    ((humanReviewSample == HumanQualityGateSample && humanReplayAcceptedOnce && humanVisualTruthEnabled) ||
+                     (humanReviewSample == HumanSample001 && humanReplayAcceptedOnce) ||
+                     (humanReviewSample == HumanSample006 && humanVisualTruthEnabled)),
+                    "The human remediation cannot complete before the selected evidence is ready.");
                 if (finalised)
                 {
                     return;
@@ -741,9 +804,13 @@ public sealed partial class AgentFleetApiEndToEndTests
                     header span { display: block; margin-top: 4px; }
                     main { display: grid; grid-template-columns: minmax(280px, 360px) 1fr; gap: 16px; padding: 16px; }
                     section { border: 1px solid GrayText; border-radius: 8px; padding: 16px; }
-                    dl { display: grid; gap: 12px; margin: 16px 0 0; }
+                    dl { display: grid; gap: 12px; margin: 16px 0; }
                     dt { font-weight: 700; }
                     dd { margin: 3px 0 0; overflow-wrap: anywhere; }
+                    .controls { display: grid; gap: 8px; margin-top: 20px; }
+                    button { min-height: 44px; padding: 8px 12px; font: inherit; }
+                    button:focus-visible { outline: 3px solid Highlight; outline-offset: 2px; }
+                    [hidden] { display: none !important; }
                     iframe { width: 100%; min-height: 720px; border: 1px solid GrayText; border-radius: 8px; background: Canvas; }
                     .truth { font-weight: 700; }
                     @media (max-width: 900px) { main { grid-template-columns: 1fr; } iframe { min-height: 640px; } }
@@ -765,9 +832,19 @@ public sealed partial class AgentFleetApiEndToEndTests
                         <div><dt>Amostras aceites pelo Server</dt><dd id="server-samples">A carregar</dd></div>
                         <div><dt>Replay único</dt><dd id="replay">A carregar</dd></div>
                         <div><dt>Verdade visual</dt><dd id="visual-truth">A carregar</dd></div>
+                        <div><dt>Última leitura válida</dt><dd id="last-success">Ainda não concluída</dd></div>
+                        <div><dt>Expiração de unknown</dt><dd id="visual-expiry">Não ativada</dd></div>
+                        <div><dt>Leituras de evidência</dt><dd id="evidence-requests">0</dd></div>
                         <div><dt>Suporte</dt><dd>Planejado — não implementado; sem homologação.</dd></div>
                         <div><dt>Origem</dt><dd>Sandbox local sintético; sem dados externos.</dd></div>
                       </dl>
+                      <div class="controls" aria-label="Controles do laboratório test-only">
+                        <button id="control-loss" type="button" hidden>Apresentar perda sintética do Agent</button>
+                        <button id="control-recovery" type="button" hidden>Apresentar recuperação sintética do Agent</button>
+                        <button id="control-visual" type="button" hidden>Apresentar unknown e stale</button>
+                        <button id="control-complete" type="button" hidden>Encerrar amostra e limpar laboratório</button>
+                        <p id="control-status" role="status">Nenhum controle executado.</p>
+                      </div>
                     </section>
                     <section aria-labelledby="dashboard-title">
                       <h2 id="dashboard-title">Dashboard TV sandbox</h2>
@@ -778,25 +855,172 @@ public sealed partial class AgentFleetApiEndToEndTests
                     (() => {
                       "use strict";
                       const evidenceRoute = {{JsonSerializer.Serialize(ConsolidatedEvidenceRoute)}};
+                      const refreshDelay = {{HumanEvidenceRefreshMilliseconds}};
+                      const requestDeadline = 5000;
+                      const controls = {
+                        "control-loss": {{JsonSerializer.Serialize(HumanAgentLossRoute)}},
+                        "control-recovery": {{JsonSerializer.Serialize(HumanAgentRecoveryRoute)}},
+                        "control-visual": {{JsonSerializer.Serialize(HumanVisualTruthRoute)}},
+                        "control-complete": {{JsonSerializer.Serialize(HumanCompleteRoute)}}
+                      };
+                      let timer = null;
+                      let inFlight = false;
+                      let requestFence = 0;
+                      let appliedFence = 0;
+                      let stopped = false;
                       const set = (id, value) => { document.getElementById(id).textContent = String(value); };
+                      const setHealth = (state, text) => {
+                        set("page-health", text);
+                        document.documentElement.dataset.browserApiState = state;
+                      };
+                      const schedule = (delay = refreshDelay) => {
+                        if (stopped) return;
+                        window.clearTimeout(timer);
+                        timer = window.setTimeout(refresh, delay);
+                      };
+                      const retryDelay = (response) => {
+                        const seconds = Number(response.headers.get("Retry-After"));
+                        return Number.isFinite(seconds) && seconds > 0
+                          ? Math.max(refreshDelay, seconds * 1000)
+                          : refreshDelay;
+                      };
+                      const expose = (name, value) => {
+                        document.documentElement.dataset[name] = String(value);
+                      };
+                      const showControl = (id, visible, enabled) => {
+                        const button = document.getElementById(id);
+                        button.hidden = !visible;
+                        button.disabled = !enabled;
+                      };
+                      const updateControls = (evidence) => {
+                        const sample001 = evidence.humanReviewSample === "S06-HG-001";
+                        const sample006 = evidence.humanReviewSample === "S06-HG-006";
+                        showControl("control-loss", sample001, evidence.stage === "agent-transport-ready");
+                        showControl("control-recovery", sample001, evidence.stage === "agent-observation-pending");
+                        showControl("control-visual", sample006, evidence.stage === "agent-transport-ready");
+                        showControl(
+                          "control-complete",
+                          sample001 || sample006,
+                          (sample001 && evidence.stage === "agent-replay-accepted-once") ||
+                          (sample006 && evidence.stage === "visual-truth-ready"));
+                      };
+                      const updateExpiry = (value) => {
+                        if (!value) {
+                          set("visual-expiry", "Não ativada");
+                          expose("sampleExpired", false);
+                          return;
+                        }
+                        const remaining = Date.parse(value) - Date.now();
+                        if (remaining <= 0) {
+                          set("visual-expiry", "EXPIRADA — reinicie a amostra");
+                          expose("sampleExpired", true);
+                          return;
+                        }
+                        set("visual-expiry", `${Math.ceil(remaining / 1000)} segundos restantes`);
+                        expose("sampleExpired", false);
+                      };
+                      const applyEvidence = (evidence) => {
+                        set("stage", evidence.stage);
+                        set("agent-transport", evidence.humanAgentTransportState);
+                        set("pending", evidence.humanPendingObservations);
+                        set("server-samples", evidence.humanServerObservationSamples);
+                        set("replay", evidence.humanReplayAcceptedOnce ? "Aceite exatamente uma vez" : "Ainda não concluído");
+                        set("visual-truth", evidence.humanVisualTruthEnabled ? "Unknown e stale disponíveis" : "Ainda não ativada");
+                        set("evidence-requests", evidence.humanEvidenceRequests);
+                        updateExpiry(evidence.humanVisualTruthExpiresAt);
+                        updateControls(evidence);
+                        expose("humanRemediationMode", evidence.humanRemediationMode);
+                        expose("evidenceStage", evidence.stage);
+                        expose("reviewSample", evidence.humanReviewSample);
+                        expose("agentTransport", evidence.humanAgentTransportState);
+                        expose("pendingObservations", evidence.humanPendingObservations);
+                        expose("serverSamples", evidence.humanServerObservationSamples);
+                        expose("lossObserved", evidence.humanLossObserved);
+                        expose("replayAcceptedOnce", evidence.humanReplayAcceptedOnce);
+                        expose("visualTruthEnabled", evidence.humanVisualTruthEnabled);
+                        expose("finalised", evidence.finalised);
+                        expose("evidenceRequests", evidence.humanEvidenceRequests);
+                        expose("rateLimitedResponses", evidence.humanEvidenceRateLimitedResponses);
+                        expose("activeEvidenceRequests", evidence.activeHumanEvidenceRequests);
+                        expose("maximumEvidenceConcurrency", evidence.maximumHumanEvidenceConcurrency);
+                        expose("maximumEvidenceRequestsPerMinute", evidence.maximumHumanEvidenceRequestsPerMinute);
+                        expose("activeSnapshotRequests", evidence.activeSnapshotRequests);
+                        expose("maximumSnapshotConcurrency", evidence.maximumSnapshotConcurrency);
+                        expose("commandAttempts", evidence.commandAttempts);
+                        expose("failurePresent", evidence.failure !== null);
+                      };
                       const refresh = async () => {
+                        if (inFlight || stopped) return;
+                        inFlight = true;
+                        const fence = ++requestFence;
+                        const controller = new AbortController();
+                        const deadline = window.setTimeout(() => controller.abort(), requestDeadline);
+                        let nextDelay = refreshDelay;
                         try {
-                          const response = await fetch(evidenceRoute, { cache: "no-store", credentials: "same-origin" });
-                          if (!response.ok) throw new Error("evidence_unavailable");
+                          const response = await fetch(evidenceRoute, {
+                            cache: "no-store",
+                            credentials: "same-origin",
+                            signal: controller.signal
+                          });
+                          if (fence < appliedFence) return;
+                          if (response.status === 429) {
+                            setHealth("limited", "Browser → API temporariamente limitada pelo sandbox");
+                            nextDelay = retryDelay(response);
+                            return;
+                          }
+                          if (response.status === 401 || response.status === 403) {
+                            setHealth("denied", "Browser → API: acesso de teste negado");
+                            return;
+                          }
+                          if (!response.ok) {
+                            setHealth("unavailable", "Browser → API indisponível");
+                            return;
+                          }
                           const evidence = await response.json();
-                          set("stage", evidence.stage);
-                          set("agent-transport", evidence.humanAgentTransportState);
-                          set("pending", evidence.humanPendingObservations);
-                          set("server-samples", evidence.humanServerObservationSamples);
-                          set("replay", evidence.humanReplayAcceptedOnce ? "Aceite exatamente uma vez" : "Ainda não concluído");
-                          set("visual-truth", evidence.humanVisualTruthEnabled ? "Unknown e stale disponíveis" : "Ainda não ativada");
-                          document.documentElement.dataset.evidenceStage = evidence.stage;
+                          if (fence < appliedFence) return;
+                          appliedFence = fence;
+                          applyEvidence(evidence);
+                          setHealth("available", "Browser → API disponível");
+                          set("last-success", new Date().toLocaleTimeString("pt-BR", { hour12: false }));
                         } catch {
-                          set("page-health", "Browser → API indisponível");
+                          if (fence >= appliedFence) {
+                            setHealth("unavailable", "Browser → API indisponível");
+                          }
+                        } finally {
+                          window.clearTimeout(deadline);
+                          inFlight = false;
+                          schedule(nextDelay);
                         }
                       };
+                      const invokeControl = async (button) => {
+                        const route = controls[button.id];
+                        if (!route || button.disabled) return;
+                        document.querySelectorAll("button").forEach((candidate) => { candidate.disabled = true; });
+                        set("control-status", "Transição test-only em andamento.");
+                        try {
+                          const response = await fetch(route, {
+                            method: "POST",
+                            cache: "no-store",
+                            credentials: "same-origin"
+                          });
+                          if (!response.ok) {
+                            set("control-status", `Transição recusada pelo laboratório (${response.status}).`);
+                            return;
+                          }
+                          set("control-status", "Transição test-only concluída; aguardando evidência atualizada.");
+                          schedule(0);
+                        } catch {
+                          set("control-status", "Transição test-only indisponível.");
+                        }
+                      };
+                      document.querySelectorAll("button").forEach((button) => {
+                        button.addEventListener("click", () => invokeControl(button));
+                      });
+                      window.addEventListener("pagehide", () => {
+                        stopped = true;
+                        window.clearTimeout(timer);
+                      }, { once: true });
                       refresh();
-                      window.setInterval(refresh, 250);
                     })();
                   </script>
                 </body>
@@ -1174,6 +1398,48 @@ public sealed partial class AgentFleetApiEndToEndTests
             }
         }
 
+        /// <summary>Records bounded request-rate and response evidence for the test-only human evidence endpoint.</summary>
+        /// <param name="context">Current loopback request.</param>
+        /// <param name="next">Rate limiter and endpoint pipeline.</param>
+        /// <returns>A task completing after counters observe the final response.</returns>
+        public async Task RecordHumanEvidenceRequestAsync(HttpContext context, RequestDelegate next)
+        {
+            if (!humanRemediationMode ||
+                !string.Equals(context.Request.Path.Value, ConsolidatedEvidenceRoute, StringComparison.Ordinal))
+            {
+                await next(context);
+                return;
+            }
+
+            DateTimeOffset startedAt = DateTimeOffset.UtcNow;
+            int active = Interlocked.Increment(ref activeHumanEvidenceRequests);
+            UpdateMaximum(ref maximumHumanEvidenceConcurrency, active);
+            lock (evidenceGate)
+            {
+                if (humanEvidenceRequestStarts.Count >= MaximumHumanEvidenceRequestHistory)
+                {
+                    stage = "human-evidence-request-budget-exceeded";
+                }
+                else
+                {
+                    humanEvidenceRequestStarts.Add(startedAt);
+                }
+            }
+
+            try
+            {
+                await next(context);
+            }
+            finally
+            {
+                if (context.Response.StatusCode == StatusCodes.Status429TooManyRequests)
+                {
+                    Interlocked.Increment(ref humanEvidenceRateLimitedResponses);
+                }
+                Interlocked.Decrement(ref activeHumanEvidenceRequests);
+            }
+        }
+
         /// <summary>Records one real snapshot request without retaining headers, bodies or subject identifiers.</summary>
         /// <param name="context">Current loopback request.</param>
         /// <param name="next">Remaining immutable endpoint pipeline.</param>
@@ -1277,14 +1543,40 @@ public sealed partial class AgentFleetApiEndToEndTests
                     snapshotRequests.ToArray(),
                     hints,
                     humanRemediationMode,
+                    humanReviewSample,
                     humanAgentTransportState,
                     humanPendingObservations,
                     humanServerObservationSamples,
                     humanLossObserved,
                     humanReplayAcceptedOnce,
                     humanVisualTruthEnabled,
+                    humanVisualTruthExpiresAt is null
+                        ? null
+                        : FormatHumanSnapshotInstant(humanVisualTruthExpiresAt.Value),
+                    humanEvidenceRequestStarts.Count,
+                    Volatile.Read(ref humanEvidenceRateLimitedResponses),
+                    Volatile.Read(ref activeHumanEvidenceRequests),
+                    Volatile.Read(ref maximumHumanEvidenceConcurrency),
+                    CalculateMaximumHumanEvidenceRequestsPerMinute(),
                     failure);
             }
+        }
+
+        /// <summary>Calculates the largest bounded half-open sixty-second request window.</summary>
+        /// <returns>Maximum evidence requests observed in any sixty-second interval.</returns>
+        private int CalculateMaximumHumanEvidenceRequestsPerMinute()
+        {
+            int maximum = 0;
+            int start = 0;
+            for (int end = 0; end < humanEvidenceRequestStarts.Count; end++)
+            {
+                while (humanEvidenceRequestStarts[end] - humanEvidenceRequestStarts[start] >= TimeSpan.FromMinutes(1))
+                {
+                    start++;
+                }
+                maximum = Math.Max(maximum, end - start + 1);
+            }
+            return maximum;
         }
 
         /// <summary>Freezes one sanitised failure envelope without retaining exception text or stack data.</summary>
@@ -1426,6 +1718,19 @@ public sealed partial class AgentFleetApiEndToEndTests
             }
         }
 
+        /// <summary>Accepts only the automatic gate or one of the two still-blocked human samples.</summary>
+        /// <param name="value">Untrusted sample selector from the local process boundary.</param>
+        /// <returns>The exact validated selector.</returns>
+        private static string ValidateHumanReviewSample(string value) => value switch
+        {
+            HumanQualityGateSample => HumanQualityGateSample,
+            HumanSample001 => HumanSample001,
+            HumanSample006 => HumanSample006,
+            _ => throw new ArgumentOutOfRangeException(
+                nameof(value),
+                "The human review sample selector is not authorised."),
+        };
+
         /// <summary>Returns a required harness reference without exposing its contents.</summary>
         /// <typeparam name="T">Required reference type.</typeparam>
         /// <param name="value">Potentially absent state.</param>
@@ -1552,12 +1857,19 @@ public sealed partial class AgentFleetApiEndToEndTests
         IReadOnlyList<ConsolidatedSnapshotRequestEvidence> SnapshotRequests,
         DashboardTvChangeHintSandboxEvidenceSnapshot SignalR,
         bool HumanRemediationMode,
+        string HumanReviewSample,
         string HumanAgentTransportState,
         int HumanPendingObservations,
         int HumanServerObservationSamples,
         bool HumanLossObserved,
         bool HumanReplayAcceptedOnce,
         bool HumanVisualTruthEnabled,
+        string? HumanVisualTruthExpiresAt,
+        int HumanEvidenceRequests,
+        int HumanEvidenceRateLimitedResponses,
+        int ActiveHumanEvidenceRequests,
+        int MaximumHumanEvidenceConcurrency,
+        int MaximumHumanEvidenceRequestsPerMinute,
         ConsolidatedHarnessFailureEvidence? Failure);
 
     /// <summary>Contains the current bounded diagnostic context before it becomes terminal failure evidence.</summary>

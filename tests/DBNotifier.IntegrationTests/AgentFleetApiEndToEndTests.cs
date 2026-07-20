@@ -2991,6 +2991,11 @@ public sealed partial class AgentFleetApiEndToEndTests
             application.UseRouting();
             application.UseMiddleware<ProtectedTransportMiddleware>();
             application.UseAuthentication();
+            if (consolidatedHarness?.HumanRemediationMode == true)
+            {
+                application.Use((context, next) =>
+                    consolidatedHarness.RecordHumanEvidenceRequestAsync(context, next));
+            }
             application.UseRateLimiter();
             application.UseAuthorization();
             if (snapshotResponseBarrier is not null)

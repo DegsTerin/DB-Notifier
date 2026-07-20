@@ -49,6 +49,7 @@ public sealed class State06ConsolidatedHarnessIsolationTests
         {
             "run-state06-dashboard-tv-browser-e2e.ps1",
             "run-state06-consolidated-e2e.ps1",
+            "run-state06-final-human-review.ps1",
         })
         {
             string contents = Read("scripts", runner);
@@ -109,6 +110,8 @@ public sealed class State06ConsolidatedHarnessIsolationTests
             "DBNotifier.IntegrationTests",
             "AgentFleetApiEndToEndTests.ConsolidatedHarness.cs");
         string auditor = Read("scripts", "audit-state06-final-human-samples-remediation.mjs");
+        string presenter = Read("scripts", "present-state06-final-human-review.mjs");
+        string reviewRunner = Read("scripts", "run-state06-final-human-review.ps1");
         string server = Read("src", "DBNotifier.Server.Api", "Program.cs");
         string dashboard = Read("src", "DBNotifier.Dashboard.Web", "src", "App.tsx");
 
@@ -117,11 +120,25 @@ public sealed class State06ConsolidatedHarnessIsolationTests
         Assert.Contains("Evidência do harness — não é estado operacional", harness, StringComparison.Ordinal);
         Assert.Contains("unknown", harness, StringComparison.Ordinal);
         Assert.Contains("fixture-stale", harness, StringComparison.Ordinal);
+        Assert.Contains("HumanEvidenceRefreshMilliseconds = 2100", harness, StringComparison.Ordinal);
+        Assert.Contains("Browser → API temporariamente limitada pelo sandbox", harness, StringComparison.Ordinal);
+        Assert.Contains("Browser → API: acesso de teste negado", harness, StringComparison.Ordinal);
+        Assert.DoesNotContain("setInterval", harness, StringComparison.Ordinal);
+        Assert.Contains("durationGateMilliseconds = 180_000", auditor, StringComparison.Ordinal);
         Assert.DoesNotContain("Network.emulateNetworkConditions", auditor, StringComparison.Ordinal);
+        Assert.Contains("S06-HG-001", reviewRunner, StringComparison.Ordinal);
+        Assert.Contains("S06-HG-006", reviewRunner, StringComparison.Ordinal);
+        Assert.Contains("--sample", reviewRunner, StringComparison.Ordinal);
+        Assert.DoesNotContain("--headless", reviewRunner, StringComparison.Ordinal);
+        Assert.Contains("humanDecisionRecorded: false", presenter, StringComparison.Ordinal);
+        Assert.Contains("qualityGateAutomation", presenter, StringComparison.Ordinal);
         Assert.DoesNotContain("state06-final-human-samples-remediation", server, StringComparison.Ordinal);
         Assert.DoesNotContain("state06-final-human-samples-remediation", dashboard, StringComparison.Ordinal);
         Assert.DoesNotContain("npm install", auditor, StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain("https://", auditor, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("npm install", presenter, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("https://", presenter, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("Start-BitsTransfer", reviewRunner, StringComparison.OrdinalIgnoreCase);
     }
 
     /// <summary>Reads one repository-relative UTF-8 source file.</summary>

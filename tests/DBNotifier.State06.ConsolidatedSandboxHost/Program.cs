@@ -8,13 +8,18 @@ internal static class Program
 {
     private const string ActivationMarker = "state06-consolidated-e2e-sandbox";
     private const string HumanRemediationActivationMarker = "state06-final-human-samples-remediation";
+    private const string HumanQualityGateSample = "quality-gate";
 
     /// <summary>Validates arguments, applies the fifteen-minute budget and runs the isolated test composition.</summary>
     /// <param name="args">Exact activation marker and already-built Dashboard root.</param>
     /// <returns>Zero after complete cleanup, two for invalid activation, or three for a sanitised harness failure.</returns>
     public static async Task<int> Main(string[] args)
     {
-        if (!TryReadOptions(args, out string? dashboardRoot, out bool humanRemediationMode))
+        if (!TryReadOptions(
+                args,
+                out string? dashboardRoot,
+                out bool humanRemediationMode,
+                out string? humanReviewSample))
         {
             Console.Error.WriteLine("state06_consolidated_host.failed:activation_invalid");
             return 2;
@@ -26,6 +31,7 @@ internal static class Program
             return humanRemediationMode
                 ? await AgentFleetApiEndToEndTests.RunState06FinalHumanSamplesRemediationHostAsync(
                     dashboardRoot!,
+                    humanReviewSample!,
                     budget.Token)
                 : await AgentFleetApiEndToEndTests.RunState06ConsolidatedSandboxHostAsync(
                     dashboardRoot!,
@@ -42,15 +48,18 @@ internal static class Program
     /// <param name="args">Untrusted process arguments.</param>
     /// <param name="dashboardRoot">Validated canonical Dashboard output root.</param>
     /// <param name="humanRemediationMode">Whether the final-human-sample evidence mode was selected.</param>
+    /// <param name="humanReviewSample">Exact quality-gate or single-sample selector.</param>
     /// <returns><see langword="true"/> only for the exact local activation contract.</returns>
     private static bool TryReadOptions(
         string[] args,
         out string? dashboardRoot,
-        out bool humanRemediationMode)
+        out bool humanRemediationMode,
+        out string? humanReviewSample)
     {
         dashboardRoot = null;
         humanRemediationMode = false;
-        if (args.Length != 4 ||
+        humanReviewSample = null;
+        if (args.Length is not (4 or 6) ||
             !string.Equals(args[0], "--activation", StringComparison.Ordinal) ||
             !string.Equals(args[2], "--dashboard-root", StringComparison.Ordinal) ||
             string.IsNullOrWhiteSpace(args[3]) ||
@@ -64,6 +73,20 @@ internal static class Program
             args[1],
             HumanRemediationActivationMarker,
             StringComparison.Ordinal);
+        if (args.Length == 6)
+        {
+            if (!humanRemediationMode ||
+                !string.Equals(args[4], "--sample", StringComparison.Ordinal) ||
+                args[5] is not ("S06-HG-001" or "S06-HG-006"))
+            {
+                return false;
+            }
+            humanReviewSample = args[5];
+        }
+        else if (humanRemediationMode)
+        {
+            humanReviewSample = HumanQualityGateSample;
+        }
 
         DirectoryInfo? repository = new(AppContext.BaseDirectory);
         while (repository is not null && !File.Exists(Path.Combine(repository.FullName, "DBNotifier.sln")))

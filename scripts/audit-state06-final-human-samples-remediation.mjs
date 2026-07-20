@@ -11,6 +11,7 @@ const humanSubject = "sandbox-tv-reviewer";
 const runHeader = "X-DBN-State06-Consolidated-Run";
 const evidenceRoute = "/__dbnotifier-state06-consolidated/evidence";
 const evidencePageRoute = "/__dbnotifier-state06-human-remediation/evidence-page";
+const durationGateMilliseconds = 180_000;
 
 /** Reads one required exact-loopback URL. */
 function requireLoopbackUrl(name, protocol) {
@@ -50,6 +51,7 @@ async function connectToPage() {
   const socket = new WebSocket(target.webSocketDebuggerUrl);
   const pending = new Map();
   const network = { requests: 0, webSockets: 0, externalOrigins: new Set() };
+  const injection = { pendingStatus: null, completedStatuses: new Set() };
   let nextId = 0;
   await new Promise((resolve, reject) => {
     socket.addEventListener("open", resolve, { once: true });
@@ -58,7 +60,38 @@ async function connectToPage() {
   socket.addEventListener("message", (event) => {
     const message = JSON.parse(event.data);
     if (!message.id) {
-      if (message.method === "Network.requestWillBeSent") {
+      if (message.method === "Fetch.requestPaused") {
+        const requestUrl = new URL(message.params.request.url);
+        const isEvidenceRequest = requestUrl.origin === new URL(dashboardUrl).origin && requestUrl.pathname === evidenceRoute;
+        const commandId = ++nextId;
+        if (injection.pendingStatus !== null && isEvidenceRequest) {
+          const status = injection.pendingStatus;
+          injection.pendingStatus = null;
+          injection.completedStatuses.add(status);
+          socket.send(JSON.stringify({
+            id: commandId,
+            method: "Fetch.fulfillRequest",
+            params: {
+              requestId: message.params.requestId,
+              responseCode: status,
+              responsePhrase: status === 429 ? "Too Many Requests" : status === 403 ? "Forbidden" : "Service Unavailable",
+              responseHeaders: status === 429
+                ? [
+                    { name: "Content-Type", value: "application/json" },
+                    { name: "Retry-After", value: "2" },
+                  ]
+                : [{ name: "Content-Type", value: "application/json" }],
+              body: "",
+            },
+          }));
+        } else {
+          socket.send(JSON.stringify({
+            id: commandId,
+            method: "Fetch.continueRequest",
+            params: { requestId: message.params.requestId },
+          }));
+        }
+      } else if (message.method === "Network.requestWillBeSent") {
         const url = new URL(message.params.request.url);
         if (url.protocol === "http:" || url.protocol === "https:") {
           network.requests += 1;
@@ -82,7 +115,19 @@ async function connectToPage() {
     pending.set(id, { resolve, reject });
     socket.send(JSON.stringify({ id, method, params }));
   });
-  return { call, network, close: () => socket.close() };
+  return {
+    call,
+    network,
+    injectSingleResponse: (status) => {
+      assertEvidence([403, 429, 503].includes(status), "The controlled response status is not allow-listed.");
+      assertEvidence(
+        injection.pendingStatus === null && !injection.completedStatuses.has(status),
+        `The controlled ${status} may be injected exactly once.`);
+      injection.pendingStatus = status;
+    },
+    responseWasInjected: (status) => injection.completedStatuses.has(status),
+    close: () => socket.close(),
+  };
 }
 
 /** Evaluates one serialisable expression in the dedicated page. */
@@ -121,15 +166,62 @@ async function control(call, route, method = "GET") {
   return result.body.length === 0 ? null : JSON.parse(result.body);
 }
 
-/** Waits for one sanitised evidence state. */
+/** Reads the sanitised evidence already rendered by the page without consuming another API permit. */
+async function readPageEvidence(call) {
+  return evaluate(call, `(() => {
+    const data = document.documentElement.dataset;
+    const number = (value) => Number.parseInt(value ?? "0", 10);
+    return {
+      humanRemediationMode: data.humanRemediationMode === "true",
+      humanReviewSample: data.reviewSample ?? null,
+      stage: data.evidenceStage ?? null,
+      humanAgentTransportState: data.agentTransport ?? null,
+      humanPendingObservations: number(data.pendingObservations),
+      humanServerObservationSamples: number(data.serverSamples),
+      humanLossObserved: data.lossObserved === "true",
+      humanReplayAcceptedOnce: data.replayAcceptedOnce === "true",
+      humanVisualTruthEnabled: data.visualTruthEnabled === "true",
+      finalised: data.finalised === "true",
+      humanEvidenceRequests: number(data.evidenceRequests),
+      humanEvidenceRateLimitedResponses: number(data.rateLimitedResponses),
+      activeHumanEvidenceRequests: number(data.activeEvidenceRequests),
+      maximumHumanEvidenceConcurrency: number(data.maximumEvidenceConcurrency),
+      maximumHumanEvidenceRequestsPerMinute: number(data.maximumEvidenceRequestsPerMinute),
+      activeSnapshotRequests: number(data.activeSnapshotRequests),
+      maximumSnapshotConcurrency: number(data.maximumSnapshotConcurrency),
+      commandAttempts: number(data.commandAttempts),
+      failure: data.failurePresent === "true" ? { present: true } : null,
+      browserApiState: data.browserApiState ?? null,
+      sampleExpired: data.sampleExpired === "true",
+    };
+  })()`);
+}
+
+/** Waits for one sanitised DOM evidence state without issuing a parallel HTTP poll. */
 async function waitForEvidence(call, predicate, description, timeoutMilliseconds = 20_000) {
   const deadline = Date.now() + timeoutMilliseconds;
   while (Date.now() < deadline) {
-    const evidence = await control(call, evidenceRoute);
+    const evidence = await readPageEvidence(call);
     if (predicate(evidence)) return evidence;
-    await new Promise((resolve) => setTimeout(resolve, 250));
+    await new Promise((resolve) => setTimeout(resolve, 100));
   }
   throw new Error(`Timed out waiting for ${description}.`);
+}
+
+/** Holds the human-facing page through real limiter windows while reading only its local DOM state. */
+async function proveHumanDurationGate(call) {
+  const startedAt = Date.now();
+  let latest = await readPageEvidence(call);
+  while (Date.now() - startedAt < durationGateMilliseconds) {
+    latest = await readPageEvidence(call);
+    assertEvidence(latest.stage === "agent-transport-ready", "A human barrier advanced during the duration gate.");
+    assertEvidence(latest.browserApiState === "available", "Browser/API availability degraded during the healthy duration gate.");
+    assertEvidence(latest.humanEvidenceRateLimitedResponses === 0, "The real limiter rejected a healthy evidence read.");
+    assertEvidence(latest.maximumHumanEvidenceConcurrency <= 1, "Evidence polling overlapped during the duration gate.");
+    assertEvidence(latest.maximumHumanEvidenceRequestsPerMinute <= 30, "Evidence polling exceeded thirty reads per minute.");
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+  }
+  return { elapsedMilliseconds: Date.now() - startedAt, evidence: latest };
 }
 
 /** Reads only visible factual text from the same-origin Dashboard iframe. */
@@ -172,11 +264,14 @@ async function exitTv(call) {
 }
 
 const connection = await connectToPage();
-const { call, network } = connection;
+const { call, network, injectSingleResponse, responseWasInjected } = connection;
 try {
   await call("Page.enable");
   await call("Runtime.enable");
   await call("Network.enable");
+  await call("Fetch.enable", {
+    patterns: [{ urlPattern: `${dashboardUrl}${evidenceRoute}`, requestStage: "Request" }],
+  });
   await call("Network.setExtraHTTPHeaders", {
     headers: { [humanHeader]: humanSubject, [runHeader]: runId },
   });
@@ -190,13 +285,41 @@ try {
     "the same-origin Dashboard frame");
   let evidence = await waitForEvidence(
     call,
-    (value) => value.humanRemediationMode && value.stage === "agent-transport-ready",
+    (value) => value.humanRemediationMode &&
+      value.humanReviewSample === "quality-gate" &&
+      value.stage === "agent-transport-ready",
     "the initial Agent transport stage");
   assertEvidence(evidence.humanAgentTransportState === "available", "The initial Agent transport was not explicitly available.");
   assertEvidence(evidence.humanPendingObservations === 0 && evidence.humanServerObservationSamples === 1, "The initial durable counts were not exact.");
   let view = await enterTv(call);
   assertEvidence(view.names.length === 1 && view.names[0] === "Sandbox Assignment", "The initial correlated assignment was not visible.");
   assertEvidence(view.statuses.some((value) => value?.includes("Degradado")), "The initial valid Degraded snapshot was not visible.");
+
+  reportStage("proving controlled typed failures and explicit positive recovery");
+  for (const controlled of [
+    { status: 429, state: "limited", description: "rate-limit" },
+    { status: 403, state: "denied", description: "access-denied" },
+    { status: 503, state: "unavailable", description: "unavailable" },
+  ]) {
+    injectSingleResponse(controlled.status);
+    await waitFor(
+      call,
+      `document.documentElement.dataset.browserApiState === ${JSON.stringify(controlled.state)}`,
+      `the typed ${controlled.description} state`,
+      10_000);
+    await waitFor(
+      call,
+      `document.documentElement.dataset.browserApiState === "available"`,
+      `positive recovery after ${controlled.description}`,
+      10_000);
+    assertEvidence(responseWasInjected(controlled.status), `The controlled ${controlled.status} was not injected exactly once.`);
+  }
+
+  reportStage("holding the visible evidence barrier for at least 180 seconds");
+  const durationGate = await proveHumanDurationGate(call);
+  evidence = durationGate.evidence;
+  assertEvidence(durationGate.elapsedMilliseconds >= durationGateMilliseconds, "The human-duration gate ended too early.");
+  assertEvidence(evidence.humanEvidenceRequests >= 80, "The duration gate observed too few real serial evidence reads.");
 
   reportStage("proving Agent-only transport loss with one preserved observation");
   await control(call, "/__dbnotifier-state06-human-remediation/agent-loss", "POST");
@@ -256,6 +379,14 @@ try {
     pendingObservations: evidence.humanPendingObservations,
     serverObservationSamples: evidence.humanServerObservationSamples,
     unknownAndStaleVisible: evidence.humanVisualTruthEnabled,
+    controlled429Recovered: responseWasInjected(429),
+    controlled403Recovered: responseWasInjected(403),
+    controlled503Recovered: responseWasInjected(503),
+    durationGateSeconds: Math.floor(durationGate.elapsedMilliseconds / 1000),
+    evidenceRequests: evidence.humanEvidenceRequests,
+    evidenceRateLimitedResponses: evidence.humanEvidenceRateLimitedResponses,
+    maximumEvidenceConcurrency: evidence.maximumHumanEvidenceConcurrency,
+    maximumEvidenceRequestsPerMinute: evidence.maximumHumanEvidenceRequestsPerMinute,
     commandAttempts: evidence.commandAttempts,
     maximumSnapshotConcurrency: evidence.maximumSnapshotConcurrency,
     observedHttpRequests: network.requests,
@@ -264,6 +395,11 @@ try {
     operationalData: false,
   }));
 } finally {
+  try {
+    await call("Fetch.disable");
+  } catch {
+    // The dedicated target may already be closing after shutdown.
+  }
   try {
     await exitTv(call);
   } catch {

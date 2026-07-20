@@ -2188,6 +2188,24 @@
 - Próxima decisão: Bruno pode solicitar alterações ou copiar a decisão futura da proposta para autorizar somente implementação test-only, Quality Gate automático e relatório. Repetição humana e Human Gate final permanecem decisões posteriores.
 - Aprovador: Bruno, exclusivamente para elaborar esta proposta documental.
 
+## 2026-07-20 — Segunda remediação test-only de estabilidade e runner persistente
+
+- Estado anterior: `STATE-06 INTEGRATION`, segunda proposta documental concluída, campanha humana `BLOQUEADA` e `S06-HG-001`/`006` ainda bloqueadas.
+- Estado resultante: sem transição; `STATE-06 INTEGRATION` mantido. A remediação passou seu Quality Gate próprio e aguarda aceitação humana do resultado; nenhuma amostra foi repetida.
+- Autorização: Bruno autorizou somente harness/runners/auditores sob `tests/` e `scripts/`, polling serial máximo 30/minuto, estados tipados, recovery positivo, gate mínimo de 180 segundos, falha `429` controlada, Chrome dedicado e documentação, com cleanup integral.
+- Baseline: branch `main`, commit `d3a61a9613192ad880d42d336313bd2baeb422f9`, worktree limpa e shutdown preflight com zero processo, listener ou root STATE-06 pertencente ao DB-Notifier.
+- Implementação: polling serial de 2,1 segundos; estados `available`/`limited`/`denied`/`unavailable`; restauração positiva; deadline, backoff e fencing; contadores bounded; selectors fechados `quality-gate`, `S06-HG-001` e `S06-HG-006`; runner/presenter visíveis versionados com uma amostra por sessão.
+- Gate de duração: Chrome `150.0.7871.125`, respostas controladas `429`/`403`/`503` recuperadas, 180 segundos, 96 leituras, zero `429` real, máximo 29/minuto, concorrência 1, zero HTTP externo e zero `CommandAttempt`.
+- Runner visível: smokes automáticos separados de `S06-HG-001` e `S06-HG-006` passaram com `humanDecisionRecorded=false`; nenhuma observação ou decisão de Bruno foi inferida.
+- Regressão consolidada: duas observações, uma entrega em sink, dois journals, zero `CommandAttempt`, revogação, fences `3/4`, concorrência 1 e zero HTTP externo.
+- Gates gerais: build Release de 17 projetos sem erro/warning; `332/332` unitários, `31/31` arquitetura, `19/19` integração, Dashboard `60/60`, cobertura `78,9%/49,51%`, formatação, documentação, links, segredos, assets, toolchain e npm offline aprovados.
+- Pester: `23` testes aprovados, um skip esperado e cobertura `32,08%` no Windows PowerShell 5.1 compatível. No PowerShell 7, três matchers legados `Should Throw` falharam apesar de a execução direta comprovar as exceções; nenhum artefato legado foi alterado.
+- Fronteira: alterações executáveis somente em `tests/`/`scripts/`; `src/`, solução, projetos, packages, lockfiles e migrations inalterados; nenhum acesso externo, recurso operacional, notificação, comando, executor, deploy, promoção ou transição.
+- Cleanup: zero host, presenter, Chrome/perfil, listener, store, certificado, log ou root STATE-06 da tarefa ao final; uma pasta de cobertura preexistente de 2026-07-19 foi preservada e não atribuída a esta execução.
+- Evidência: [relatório da segunda remediação](../../docs/STATE-06-Final-Human-Samples-Second-Test-Only-Remediation-Report.md), [proposta autorizada](../../docs/STATE-06-Final-Human-Samples-Second-Test-Only-Remediation-Proposal.md) e saídas sanitizadas dos gates.
+- Próxima decisão: Bruno deverá revisar e aceitar ou rejeitar somente esta remediação. Nova repetição de `S06-HG-001`/`006`, Human Gate final, promoção e transição exigem autorizações posteriores separadas.
+- Aprovador: Bruno autorizou a implementação; a aceitação humana do resultado não foi inferida.
+
 ## Template de nova entrada
 
 - Data:

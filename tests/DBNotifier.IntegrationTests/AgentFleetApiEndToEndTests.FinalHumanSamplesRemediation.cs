@@ -42,10 +42,18 @@ public sealed partial class AgentFleetApiEndToEndTests
         string page = ConsolidatedHarnessState.BuildHumanEvidencePage();
 
         Assert.True(state.HumanRemediationMode);
+        Assert.Equal("quality-gate", state.HumanReviewSample);
         Assert.Contains("Evidência do harness — não é estado operacional", page, StringComparison.Ordinal);
         Assert.Contains("Browser → API disponível", page, StringComparison.Ordinal);
+        Assert.Contains("Browser → API temporariamente limitada pelo sandbox", page, StringComparison.Ordinal);
+        Assert.Contains("Browser → API: acesso de teste negado", page, StringComparison.Ordinal);
         Assert.Contains("Dashboard TV sandbox test-only", page, StringComparison.Ordinal);
         Assert.Contains("Planejado — não implementado", page, StringComparison.Ordinal);
+        Assert.Contains("window.setTimeout(refresh", page, StringComparison.Ordinal);
+        Assert.Contains("const refreshDelay = 2100", page, StringComparison.Ordinal);
+        Assert.DoesNotContain("setInterval", page, StringComparison.Ordinal);
+        Assert.Contains("Apresentar perda sintética do Agent", page, StringComparison.Ordinal);
+        Assert.Contains("Apresentar unknown e stale", page, StringComparison.Ordinal);
         Assert.DoesNotContain("http://", page, StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain("https://", page, StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain("private key", page, StringComparison.OrdinalIgnoreCase);
@@ -53,5 +61,18 @@ public sealed partial class AgentFleetApiEndToEndTests
         Assert.DoesNotContain("X-DBN-", page, StringComparison.Ordinal);
         Assert.DoesNotContain(state.RunId, page, StringComparison.Ordinal);
         Assert.DoesNotContain("CommandAttempt", page, StringComparison.Ordinal);
+    }
+
+    /// <summary>Confirms only the automatic gate and the two blocked samples can select the test-only presentation.</summary>
+    [Fact]
+    public void FinalHumanReviewSelectorAcceptsOnlyTheBoundedModes()
+    {
+        ConsolidatedHarnessState sample001 = new(Guid.NewGuid(), true, "S06-HG-001");
+        ConsolidatedHarnessState sample006 = new(Guid.NewGuid(), true, "S06-HG-006");
+
+        Assert.Equal("S06-HG-001", sample001.HumanReviewSample);
+        Assert.Equal("S06-HG-006", sample006.HumanReviewSample);
+        Assert.Throws<ArgumentOutOfRangeException>(() => new ConsolidatedHarnessState(Guid.NewGuid(), true, "S06-HG-002"));
+        Assert.Throws<ArgumentException>(() => new ConsolidatedHarnessState(Guid.NewGuid(), false, "S06-HG-001"));
     }
 }
