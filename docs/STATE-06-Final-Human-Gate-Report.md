@@ -115,4 +115,6 @@ Uma eventual transição não homologa provider, banco, plataforma ou operação
 
 ## Próxima atividade
 
-Nenhuma transição está autorizada por esta decisão. A próxima atividade segura é elaborar uma proposta documental curta para a transição formal `STATE-06 → STATE-07`, incluindo handoff, ressalvas herdadas, pré-condições e proibições. Somente depois de revisar essa proposta Bruno poderá autorizar a transição em instrução separada.
+Nenhuma transição está autorizada por esta decisão. Bruno autorizou separadamente apenas a elaboração da [proposta documental para a transição formal `STATE-06 → STATE-07`](STATE-06-To-STATE-07-Transition-Proposal.md), incluindo handoff, ressalvas herdadas, pré-condições e proibições.
+
+A proposta está pronta para revisão, mas não muda o estado. Somente depois de aceitá-la Bruno poderá autorizar a transição em instrução separada.

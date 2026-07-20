@@ -367,7 +367,7 @@ Nenhuma execução é autorizada pelo plano em si. Autorizações separadas conc
 8. campanha inicial das amostras executada: quatro aprovadas e duas bloqueadas;
 9. remediações test-only, aceitações e repetição final concluídas; as seis amostras possuem decisões individuais `APROVADA` e a proposta documental do Human Gate final está pronta;
 10. abertura documental, resumo único e decisão do Human Gate concluídos: `APROVADO COM RESSALVAS` exclusivamente para `STATE-06`;
-11. decidir separadamente se autoriza uma proposta de transição e, depois, a transição formal para `STATE-07`.
+11. proposta documental da transição para `STATE-07` concluída; transição formal ainda depende de decisão posterior e separada.
 
 O texto abaixo é preservado como o texto histórico que autorizou o Incremento 1; ele já foi usado e não deve ser repetido como nova autorização:
 

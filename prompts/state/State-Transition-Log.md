@@ -2269,6 +2269,21 @@
 - Próxima decisão: Bruno poderá autorizar separadamente somente uma proposta documental de transição `STATE-06 → STATE-07`. A proposta não deverá executar nem inferir a transição.
 - Aprovador: Bruno, 2026-07-20, exclusivamente para o Human Gate final do `STATE-06`.
 
+## 2026-07-20 — Proposta documental da transição `STATE-06 → STATE-07`
+
+- Estado anterior: `STATE-06 INTEGRATION`, Quality Gate consolidado `APROVADO`, Human Gate final `APROVADO COM RESSALVAS` e transição ainda não autorizada.
+- Estado resultante: sem transição; `STATE-06 INTEGRATION` mantido. A proposta de handoff para `STATE-07 TESTING_HOMOLOGATION` foi concluída e não autoriza sua própria execução.
+- Autorização: Bruno autorizou exclusivamente uma proposta documental incorporando gates encerrados, ressalvas herdadas, critérios de entrada, handoff e proibições, sem transição, build, testes, runtime, browser, acesso externo, implementação, promoção ou ação operacional.
+- Baseline: branch `main`, commit `96cf2488679c2b8b2abcccf8d6473d07c8c8d823`, worktree limpa, ancestralidade de toda a cadeia `84217c6` → `96cf248` e shutdown preflight com zero processo, listener ou root STATE-06 próprio.
+- Handoff: contratos e E2E sandbox, Agent/identidade de teste, pipeline, TV/SignalR, notificação reconciliada, comando não executável, revogação, R1–R7, gates e histórico são transferidos como evidência de laboratório, não como homologação.
+- Ressalvas: nenhum provider/engine/plataforma/topologia operacional homologado; PostgreSQL/PKI/IdP/vault/escala/endurance/HA/DR pendentes; comando não executável; SignalR não autoritativo; presenters bounded; `ADR-0007` proposed; MOD-12 em `none`.
+- Proposta: [transição formal `STATE-06 → STATE-07`](../../docs/STATE-06-To-STATE-07-Transition-Proposal.md), com efeito documental limitado, critérios de entrada e parada, escopo futuro de homologação e autorização separada.
+- Autoridade: somente seis documentos; nenhum código, configuração executável, solução, projeto, package, lockfile, migration, build, teste, runtime, acesso externo ou recurso operacional alterado/executado.
+- Gates documentais: documentação aprovada para `284` arquivos comment-capable; `514` links Markdown locais em `114` arquivos aprovados; secret scan do worktree não ignorado, escopo exclusivo de seis documentos e `git diff --check` aprovados.
+- Gates: Quality Gate `STATE-06` `APROVADO`; Human Gate `STATE-06` `APROVADO COM RESSALVAS`; transição `PENDENTE`; `STATE-07` ainda não ativo.
+- Próxima decisão: Bruno deverá revisar a proposta e, se concordar, enviar exatamente a autorização futura nela contida. Qualquer campanha de `STATE-07` continuará dependendo de autoridade posterior própria.
+- Aprovador: Bruno, exclusivamente para elaborar esta proposta documental.
+
 ## Template de nova entrada
 
 - Data:
