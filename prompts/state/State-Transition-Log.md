@@ -2088,6 +2088,27 @@
 - Próxima decisão: Bruno pode pedir ajustes, adiar ou enviar exatamente o texto da seção `Decisão futura de Bruno` da proposta. Esse texto abrirá somente as seis amostras e não decidirá o Human Gate final.
 - Aprovador: Bruno, 2026-07-20, exclusivamente para aceitação da campanha automática e elaboração desta proposta.
 
+## 2026-07-20 — Campanha das amostras humanas finais do STATE-06
+
+- Estado anterior: `STATE-06 INTEGRATION`, Quality Gate consolidado `APROVADO`, campanha automática aceita, proposta das seis amostras concluída e Human Gate final pendente.
+- Estado resultante: sem transição; `STATE-06 INTEGRATION` mantido, `S06-HG-002` a `S06-HG-005` aprovadas por Bruno, `S06-HG-001` e `S06-HG-006` bloqueadas e campanha humana classificada `BLOQUEADA`. Human Gate final não aberto.
+- Autorização: Bruno autorizou somente as amostras `S06-HG-001` a `S06-HG-006` na baseline corrente contendo `84217c6` e `2c1e05f`, com artefatos existentes, HTTPS loopback, Chrome dedicado visível, WPF sandbox opt-in, cleanup e registro factual. Alteração técnica, acesso externo, recurso operacional, comando, executor, Human Gate, promoção e transição permaneceram proibidos.
+- Baseline: branch `main`, commit `279bc7007b33aa3ce555d406b3a1b4840f8832ff`, worktree limpa, ancestralidade requerida confirmada e zero mudança técnica depois de `84217c6`.
+- `S06-HG-001`: `BLOQUEADA`; o replay offline do Agent ocorre antes da apresentação e a UI disponível não distingue conexão do Agent de offline do navegador. A evidência automática não substituiu a amostra humana.
+- `S06-HG-002`: auditor existente executado em Chrome dedicado visível; leitura imediata, hint, releitura, reconciliação de 30 segundos, offline/recovery e concorrência máxima `1` passaram. Bruno decidiu `S06-HG-002: APROVADA`.
+- `S06-HG-003/004`: WPF sandbox produziu uma notificação sintética visível; ledger com uma entrada/uma tentativa e segundo ciclo sem nova publicação. A pedido de Bruno, a sessão foi repetida integralmente com o mesmo resultado. Bruno aprovou ambas explicitamente.
+- `S06-HG-005`: duas sessões produziram dois journals, zero `CommandAttempt`, recusa pós-revogação e zero efeito administrativo. Bruno aprovou explicitamente.
+- `S06-HG-006`: `BLOQUEADA`; origem sandbox, stale e suporte planejado ficaram visíveis, mas o único item interno `unknown` possui idade de `540.000 ms` e é corretamente apresentado como `Desatualizado`. Nenhuma fixture foi alterada.
+- Evidência visível: Bruno apresentou imagem do Dashboard e imagem da notificação na conversa. Elas não foram copiadas para o repositório. Decisões exatas: `S06-HG-002: APROVADA`, `S06-HG-003: APROVADA`, `S06-HG-004: APROVADA` e `S06-HG-005: APROVADA`.
+- Evidência sanitizada: visible audit com Chrome `150.0.7871.125`, duas observações, uma entrega, dois journals, zero attempt, concorrência `1`, `72` requests HTTP, `12` WebSockets, zero HTTP externo e `operationalData=false`; notificação/command foram repetidos uma vez.
+- Incidentes de ferramenta: filtro de preflight inválido descartado e repetido; hand-off inicial sem browser limpo; primeira apresentação manual sem SignalR rejeitada; self-match do PowerShell no cleanup corrigido. Nenhum incidente foi convertido em passe ou causou mudança técnica.
+- Cleanup: zero host, Chrome, WPF, profile, listener, ledger, SQLite, certificado, log ou root temporário pertencente às sessões; worktree final limpa. Nenhum navegador normal, IDE, banco, serviço ou processo alheio foi encerrado.
+- Verificação do registro: gate de documentação aprovado para `280` arquivos de fonte passíveis de comentários, gate Markdown aprovado para `462` links locais em `105` arquivos e secret scan aprovado. Build, testes de produto e harnesses não foram repetidos durante o registro documental.
+- Gates: Quality Gate automático permanece `APROVADO`; campanha humana `BLOQUEADA`; Human Gate final `PENDENTE` e não aberto; runtime operacional, promoção e transição não autorizados.
+- Evidências: [relatório das amostras](../../docs/STATE-06-Final-Human-Samples-Report.md), [proposta consumida](../../docs/STATE-06-Final-Human-Samples-Proposal.md), relatório automático aceito e decisões explícitas de Bruno nesta sessão.
+- Próxima decisão: Bruno poderá autorizar separadamente somente uma proposta documental de remediação de `S06-HG-001` e `S06-HG-006`. Implementação, repetição, Human Gate final, promoção e transição continuam fechados.
+- Aprovador: Bruno, exclusivamente para `S06-HG-002` a `S06-HG-005`; bloqueios `S06-HG-001`/`006` são classificações factuais de elegibilidade, não decisões humanas inferidas.
+
 ## Template de nova entrada
 
 - Data:

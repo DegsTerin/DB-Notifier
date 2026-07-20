@@ -1,5 +1,7 @@
 # Proposta STATE-06 — Amostras humanas finais
 
+> Execução posterior: Bruno autorizou separadamente as seis amostras no commit `279bc70`. `S06-HG-002` a `S06-HG-005` foram aprovadas por suas decisões explícitas; `S06-HG-001` e `S06-HG-006` ficaram bloqueadas pelos artefatos atuais. O resultado e o cleanup estão preservados no [relatório factual](STATE-06-Final-Human-Samples-Report.md). O texto abaixo permanece como delimitação histórica e não autoriza nova execução, remediação, Human Gate final, promoção ou transição.
+
 ## Status e autoridade
 
 - Data: 2026-07-20.
@@ -275,14 +277,8 @@ Se Bruno concordar e desejar abrir somente as amostras humanas, o texto sugerido
 
 > AUTORIZO exclusivamente a execução das amostras humanas finais `S06-HG-001` a `S06-HG-006` do STATE-06 no commit corrente informado no hand-off, cuja ancestralidade deverá conter a baseline automática `84217c6` e o relatório aceito `2c1e05f`, limitada a shutdown preflight, inspeção read-only de elegibilidade, cadeia sintética local já implementada, perda/recuperação controlada do transporte loopback, Dashboard TV visível, leitura imediata, hint SignalR, reconciliação de 30 segundos, uma notificação Windows local sintética e sua duplicata deliberadamente suprimida, revisão sanitizada de comando não executável, verdade visual de origem/freshness/suporte e registro factual das decisões de cada amostra. Autorizo runtimes temporários exclusivamente locais, um Chrome dedicado visível com perfil efêmero e o WPF somente na composição sandbox existente com opt-in explícito; todos deverão ser encerrados e removidos ao final. A sessão não poderá alterar ou corrigir código, configuração executável, solução, projetos, packages, lockfiles ou migrations; qualquer amostra que exija mudança deverá ser registrada como BLOQUEADA e voltar para autorização separada. Permanecem proibidos acesso externo, downloads, recursos ou credenciais operacionais, provider/banco real, navegador comum do utilizador, comando administrativo, CommandAttempt, executor, shell, serviço/infraestrutura afetados, canal externo, LLM, deploy, Human Gate final, promoção e transição de estado.
 
-Esse texto ainda não foi emitido como autorização. Ler, aceitar ou citar esta proposta não inicia runtime, browser, WPF ou amostra humana.
+Esse texto foi emitido posteriormente por Bruno e consumido exclusivamente pela campanha registrada no relatório factual. Ele não pode ser reutilizado como autorização para repetir, remediar ou abrir o Human Gate final.
 
 ## Próximo passo para Bruno
 
-1. Abra este documento e leia principalmente `Resultado em linguagem simples`, `Amostras propostas`, `Critérios de aceite da campanha de amostras`, `Fora de escopo absoluto` e `Riscos e limitações residuais`.
-2. Verifique se aceita que uma amostra incapaz de ser apresentada pelos artefatos atuais fique `BLOQUEADA`, sem correção durante a sessão.
-3. Se discordar, responda somente com os pontos que deseja alterar.
-4. Se concordar e desejar executar as seis amostras, envie exatamente o texto da seção `Decisão futura de Bruno`.
-5. Não autorize junto dessa decisão o Human Gate final, promoção ou transição. Essas decisões somente poderão ser apresentadas depois das seis amostras e do cleanup.
-
-Nenhuma ação técnica é necessária ou autorizada enquanto esta proposta estiver somente em revisão.
+Esta proposta já foi consumida. Bruno deve revisar o [relatório factual](STATE-06-Final-Human-Samples-Report.md), principalmente as duas amostras bloqueadas, as limitações, o cleanup e a classificação dos gates. Se desejar continuar, a próxima autoridade segura é somente uma proposta documental de remediação de `S06-HG-001` e `S06-HG-006`; não deve reutilizar o texto histórico desta proposta.

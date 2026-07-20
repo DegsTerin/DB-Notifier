@@ -304,7 +304,7 @@ Resultados possíveis:
 
 O Human Gate não será inferido a partir das aceitações dos incrementos. Bruno deverá receber um único resumo que identifique o relatório automático consolidado, as amostras repetidas, as limitações e a decisão exata solicitada.
 
-**Status factual atual:** a proposta detalhada das seis amostras está disponível em [Amostras humanas finais](STATE-06-Final-Human-Samples-Proposal.md). Sua elaboração foi autorizada, mas nenhuma amostra, runtime, browser, WPF ou decisão do Human Gate final foi aberta.
+**Status factual atual:** Bruno autorizou e executou separadamente a [campanha das seis amostras](STATE-06-Final-Human-Samples-Report.md) sobre o commit `279bc70`. `S06-HG-002` a `S06-HG-005` foram aprovadas por Bruno; `S06-HG-001` e `S06-HG-006` ficaram `BLOQUEADAS` porque os artefatos atuais não apresentam, respectivamente, a conexão interna do Agent separada do offline do browser e um exemplo visual `unknown` que não esteja stale. O cleanup passou. O Human Gate final permanece pendente e não pode ser aberto antes de remediação e repetição separadamente autorizadas dessas duas amostras.
 
 ### Amostras humanas propostas
 
@@ -364,8 +364,8 @@ Nenhuma execução é autorizada pelo plano em si. Autorizações separadas conc
 5. revisar o [relatório da repetição](STATE-06-Consolidated-Quality-Gate-Rerun-Report.md) sem inferir aprovação;
 6. proposta, implementação restrita e aceitação humana própria da remediação do achado `finalising-revocation` concluídas;
 7. proposta, autorização e execução da nova repetição integral concluídas; Quality Gate consolidado `APROVADO` na baseline `84217c6`;
-8. proposta documental das amostras humanas concluída; execução ainda depende de autorização separada;
-9. decidir o Human Gate do `STATE-06`;
+8. campanha das amostras executada: quatro aprovadas e duas bloqueadas; Human Gate final continua pendente;
+9. propor, autorizar, remediar e repetir separadamente `S06-HG-001` e `S06-HG-006`; somente depois decidir o Human Gate do `STATE-06`;
 10. somente depois, decidir separadamente se autoriza a transição para `STATE-07`.
 
 O texto abaixo é preservado como o texto histórico que autorizou o Incremento 1; ele já foi usado e não deve ser repetido como nova autorização:
