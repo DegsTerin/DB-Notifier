@@ -2,6 +2,8 @@
 
 ## Status e autoridade
 
+> Execução posterior: Bruno autorizou separadamente a repetição no commit `66d0a9f`. A campanha foi executada em 2026-07-19 e terminou `REPROVADA` por falha do harness correlacionado em `finalising-revocation`. Consulte o [relatório factual da repetição](STATE-06-Consolidated-Quality-Gate-Rerun-Report.md). O texto abaixo permanece como delimitação histórica da proposta; ele não autoriza remediação ou nova execução.
+
 - Data: 2026-07-19.
 - Estado mantido: `STATE-06 INTEGRATION`.
 - Tipo: proposta exclusivamente documental para uma futura repetição da campanha automática.

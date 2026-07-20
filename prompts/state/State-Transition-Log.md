@@ -1971,6 +1971,23 @@
 - Próxima decisão: Bruno pode responder `ACEITA COMO DIREÇÃO`, `ACEITA COM RESSALVAS`, `AJUSTES SOLICITADOS` ou `REJEITADA`. Aceitação da proposta não autoriza implementação; adoção/ajuste do `ADR-0007` e eventual O1 exigem decisões posteriores, separadas e explícitas.
 - Aprovador: não aplicável; esta entrada registra autorização e produção da proposta, não decisão sobre seu conteúdo nem Human Gate.
 
+## 2026-07-19 — Repetição da Campanha Consolidada de Quality Gate do STATE-06
+
+- Estado anterior: `STATE-06 INTEGRATION`, primeira campanha consolidada historicamente `BLOQUEADA`, remediação `ac12791` aceita, repetição proposta e Human Gate final não aberto.
+- Estado resultante: sem transição; `STATE-06 INTEGRATION` mantido e Quality Gate consolidado repetido `REPROVADO`.
+- Autorização: Bruno autorizou exclusivamente a repetição no commit `66d0a9f`, com shutdown, inspeção read-only, gates offline, build/testes/cobertura, harnesses locais seriais, Chrome dedicado efêmero, EF, PowerShell, cleanup e relatório. Correção, acesso externo, recurso operacional, comando/`CommandAttempt`/executor, notificação Windows visível, amostra humana, promoção e transição permaneceram proibidos.
+- Baseline: commit exato `66d0a9fa661f9ec05c365aececa7e10cf6903c8b`, contendo `ac12791`, sem mudança técnica posterior à remediação; .NET `10.0.301`, EF `10.0.9`, Node/npm `24.18.0`/`11.16.0`, PowerShell `7.6.3`, Windows PowerShell `5.1.26100.8875` e Chrome `150.0.7871.125`.
+- Gates gerais: build Release de `17` projetos com zero erro/warning; `332/332` unitários, `29/29` arquitetura, `14/14` integração, `60/60` Dashboard; cobertura `78,9%/49,51%`; Pester `23`/um skip esperado/`32,08%`; format, documentação, links, secrets, NuGet fixture `17`, npm audit offline, assets, tokens, localização, bundle, model drift e smoke fail-closed aprovados.
+- Evidência isolada: Agent Fleet/pipeline/comando `8/8`, Dashboard/SignalR `4/4`, notificação `2/2`; zero warning EF `10102`. O browser proprietário passou com cadências de `30.012/30.007 ms`, concorrência `1`, `1.230` requests HTTP locais, `27` WebSockets e zero request HTTP externo.
+- Falha: o harness correlacionado obrigatório respondeu HTTP `503`, código `state06.consolidated_operation_failed`, na etapa `finalising-revocation`, e terminou com exit code `1`. A resposta sanitizada não permitiu distinguir entre falha de revogação, heartbeat, assignments ou asserção fail-closed; nenhuma causa foi inventada e nenhum retry/correção foi executado.
+- Achado: `ALTA` — ausência de prova terminal de que a mesma revogação nega heartbeat, assignments, observação e comando na cadeia única. A aprovação dos testes isolados não substitui esse critério obrigatório.
+- PowerShell: os dois runners modernos recusaram Windows PowerShell 5.1 antes de criar recursos; exit code `1`, erro de versão esperado e zero novo root.
+- Cleanup: zero processo, listener, perfil, store, root ou metadado de worktree pertencente à campanha; worktree técnica limpa, hashes preservados e `node_modules` principal preservado. Conversão CRLF de uma primeira cópia inválida e retenção local de metadados reparse/ACL foram eventos de ferramenta resolvidos e documentados, sem alteração do commit.
+- Autoridade remanescente: exclusivamente registrar este resultado factual. Remediação, nova campanha, amostra humana, Human Gate final, runtime operacional, promoção e transição não estão autorizados.
+- Evidência: [relatório da repetição](../../docs/STATE-06-Consolidated-Quality-Gate-Rerun-Report.md), [proposta autorizada](../../docs/STATE-06-Consolidated-Quality-Gate-Rerun-Proposal.md), [relatório histórico bloqueado](../../docs/STATE-06-Consolidated-Quality-Gate-Campaign-Report.md) e comandos/resultados desta sessão.
+- Próxima atividade: Bruno deve revisar o relatório; se desejar continuar, poderá solicitar uma proposta exclusivamente documental de remediação do achado `finalising-revocation`. Human Gate final e amostras humanas não podem começar enquanto o Quality Gate estiver `REPROVADO`.
+- Aprovador: Bruno autorizou a campanha; a classificação `REPROVADO` é automática e nenhuma decisão humana sobre o resultado foi inferida.
+
 ## Template de nova entrada
 
 - Data:

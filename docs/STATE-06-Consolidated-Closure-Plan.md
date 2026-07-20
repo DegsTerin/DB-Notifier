@@ -353,16 +353,18 @@ Qualquer necessidade de acesso externo, dependência não disponível, credencia
 
 ## Autorizações futuras e ordem para Bruno
 
-Nenhuma execução é autorizada pelo plano em si. Autorizações separadas concluíram tecnicamente os quatro incrementos e a primeira campanha consolidada, cujo Quality Gate ficou bloqueado. A ordem restante é:
+Nenhuma execução é autorizada pelo plano em si. Autorizações separadas concluíram tecnicamente os quatro incrementos, a primeira campanha bloqueada, a remediação aceita e a repetição da campanha. A repetição no commit `66d0a9f` ficou `REPROVADA` por falha do harness correlacionado em `finalising-revocation`. A ordem restante é:
 
 1. Incrementos 1–4 concluídos e aceitos em seus escopos restritos;
 2. campanha consolidada executada e `BLOQUEADA` pela ausência de composição única;
 3. proposta documental, implementação restrita e aceitação humana própria da remediação concluídas;
-4. revisar a proposta documental da repetição e, somente se Bruno desejar, autorizar separadamente a nova campanha;
-5. registrar e revisar o novo relatório consolidado sem inferir aprovação;
-6. somente com Quality Gate aprovado, revisar o relatório final e autorizar separadamente as amostras humanas;
-7. decidir o Human Gate do `STATE-06`;
-8. somente depois, decidir separadamente se autoriza a transição para `STATE-07`.
+4. proposta documental da repetição, autorização e execução concluídas; Quality Gate repetido `REPROVADO`;
+5. revisar o [relatório da repetição](STATE-06-Consolidated-Quality-Gate-Rerun-Report.md) sem inferir aprovação;
+6. propor e autorizar separadamente a remediação do achado `finalising-revocation`, sem iniciar amostra humana;
+7. depois da remediação aceita, autorizar e repetir novamente a campanha automática;
+8. somente com Quality Gate aprovado, autorizar separadamente as amostras humanas;
+9. decidir o Human Gate do `STATE-06`;
+10. somente depois, decidir separadamente se autoriza a transição para `STATE-07`.
 
 O texto abaixo é preservado como o texto histórico que autorizou o Incremento 1; ele já foi usado e não deve ser repetido como nova autorização:
 
