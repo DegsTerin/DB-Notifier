@@ -253,7 +253,7 @@ Completar o protocolo durável de polling/acknowledgement do Agent e provar expi
 
 ## Campanha final — Quality Gate consolidado do STATE-06
 
-**Status factual atual:** Bruno autorizou separadamente a [campanha consolidada](STATE-06-Consolidated-Quality-Gate-Campaign-Proposal.md) sobre o commit `5a47aae`. Os checks e harnesses existentes passaram, mas o [relatório factual](STATE-06-Consolidated-Quality-Gate-Campaign-Report.md) classificou o Quality Gate consolidado como `BLOQUEADO`: pipeline, browser/SignalR, notificação e comando usavam sandboxes independentes. A [remediação autorizada](STATE-06-Consolidated-Quality-Gate-Remediation-Proposal.md) implementou um harness único correlacionado e corrigiu os dois achados menores no commit `ac12791`; Bruno aceitou seu [relatório factual](STATE-06-Consolidated-E2E-Evidence-Harness-And-Deterministic-Gate-Remediation-Report.md) com as limitações registradas. A [proposta documental da repetição](STATE-06-Consolidated-Quality-Gate-Rerun-Proposal.md) está pronta para revisão; nova campanha, amostra humana, Human Gate final, promoção e transição não estão autorizadas.
+**Status factual atual:** Bruno autorizou separadamente a [campanha consolidada](STATE-06-Consolidated-Quality-Gate-Campaign-Proposal.md) sobre o commit `5a47aae`. Os checks e harnesses existentes passaram, mas o [relatório factual](STATE-06-Consolidated-Quality-Gate-Campaign-Report.md) classificou o Quality Gate consolidado como `BLOQUEADO`: pipeline, browser/SignalR, notificação e comando usavam sandboxes independentes. A [remediação autorizada](STATE-06-Consolidated-Quality-Gate-Remediation-Proposal.md) implementou um harness único correlacionado e corrigiu os dois achados menores no commit `ac12791`; Bruno aceitou seu [relatório factual](STATE-06-Consolidated-E2E-Evidence-Harness-And-Deterministic-Gate-Remediation-Report.md) com as limitações registradas. A repetição seguinte ficou `REPROVADA`, a remediação `f9bb567` foi aceita e a [nova repetição pós-remediação](STATE-06-Consolidated-Quality-Gate-Post-Revocation-Remediation-Rerun-Report.md) terminou `APROVADA` na baseline `84217c6`. Bruno aceitou essa classificação com as limitações registradas e autorizou somente a [proposta documental das amostras humanas finais](STATE-06-Final-Human-Samples-Proposal.md). As amostras, o Human Gate final, a promoção e a transição ainda não estão autorizados.
 
 O Human Gate próprio do Incremento 4 e o Human Gate próprio da remediação foram aceitos. A primeira campanha permanece bloqueada; uma nova execução proporcional exige autorização separada e não poderá corrigir achados silenciosamente.
 
@@ -303,6 +303,8 @@ Resultados possíveis:
 ## Human Gate final do STATE-06
 
 O Human Gate não será inferido a partir das aceitações dos incrementos. Bruno deverá receber um único resumo que identifique o relatório automático consolidado, as amostras repetidas, as limitações e a decisão exata solicitada.
+
+**Status factual atual:** a proposta detalhada das seis amostras está disponível em [Amostras humanas finais](STATE-06-Final-Human-Samples-Proposal.md). Sua elaboração foi autorizada, mas nenhuma amostra, runtime, browser, WPF ou decisão do Human Gate final foi aberta.
 
 ### Amostras humanas propostas
 
@@ -362,7 +364,7 @@ Nenhuma execução é autorizada pelo plano em si. Autorizações separadas conc
 5. revisar o [relatório da repetição](STATE-06-Consolidated-Quality-Gate-Rerun-Report.md) sem inferir aprovação;
 6. proposta, implementação restrita e aceitação humana própria da remediação do achado `finalising-revocation` concluídas;
 7. proposta, autorização e execução da nova repetição integral concluídas; Quality Gate consolidado `APROVADO` na baseline `84217c6`;
-8. somente com Quality Gate aprovado, autorizar separadamente as amostras humanas;
+8. proposta documental das amostras humanas concluída; execução ainda depende de autorização separada;
 9. decidir o Human Gate do `STATE-06`;
 10. somente depois, decidir separadamente se autoriza a transição para `STATE-07`.
 

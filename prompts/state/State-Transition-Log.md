@@ -2071,6 +2071,23 @@
 - Próxima decisão: Bruno deve revisar o relatório. Se aceitar a classificação e desejar continuar, poderá autorizar separadamente somente uma proposta documental de amostras humanas finais; este registro não abre essas amostras.
 - Aprovador: classificação automática; decisão humana sobre este relatório ainda não inferida.
 
+## 2026-07-20 — Aceitação da nova repetição e proposta das amostras humanas finais
+
+- Estado anterior: `STATE-06 INTEGRATION`, Quality Gate consolidado da baseline `84217c6` classificado `APROVADO`, relatório commit `2c1e05f` aguardando revisão humana e amostras finais não abertas.
+- Estado resultante: sem transição; `STATE-06 INTEGRATION` mantido, campanha automática aceita com as limitações registradas e proposta documental das seis amostras humanas pronta para revisão. Amostras e Human Gate final permanecem pendentes.
+- Decisão: Bruno declarou exatamente `Nova repetição da Campanha Consolidada de Quality Gate do STATE-06 na baseline 84217c6, relatório commit 2c1e05f: ACEITA COM AS LIMITAÇÕES REGISTRADAS. AUTORIZO exclusivamente a elaboração de uma proposta documental para as amostras humanas finais do STATE-06, sem execução, runtime, browser, Human Gate final, promoção ou transição de estado.`
+- Efeito da aceitação: a classificação automática atual e suas limitações foram aceitas; a primeira campanha continua historicamente `BLOQUEADA` e a repetição no commit `66d0a9f` continua `REPROVADA`. A decisão não é o Human Gate final.
+- Proposta: seis amostras identificadas como `S06-HG-001` a `S06-HG-006`, cobrindo perda/recuperação local, leitura imediata/hint/reconciliação TV, notificação Windows sintética, supressão de duplicata, evidência de comando não executável e verdade visual de origem/freshness/suporte.
+- Elegibilidade: o runner consolidado corrente é headless e a campanha automática usa sink em memória. A futura sessão deverá compor somente artefatos já existentes; amostra que exija mudança técnica ficará `BLOQUEADA` e voltará para autorização separada.
+- Limites futuros propostos: cadeia exclusivamente sintética, HTTPS loopback, Chrome dedicado visível com perfil efêmero, WPF apenas no sandbox opt-in existente, budgets, ownership, decisão humana individual e cleanup integral. Recurso operacional, origem externa, comando, executor e navegador comum permanecem proibidos.
+- Autoridade desta atividade: somente documentação. Nenhum código, configuração executável, solução, projeto, package, lockfile, migration, build, teste de produto, runtime, browser, WPF, notificação ou acesso externo foi autorizado ou executado.
+- Shutdown preflight: branch `main`, commit `2c1e05f`, worktree limpa e zero processo, listener ou navegador dedicado pertencente ao DB-Notifier antes da alteração documental; nenhum processo ou recurso alheio foi encerrado.
+- Gates documentais: documentação aprovada para `280` fontes comment-capable; `459` links Markdown locais em `104` arquivos aprovados; secret scan do worktree não ignorado e histórico disponível aprovado; `git diff --check` aprovado. Build, testes de produto, runtime e browser são `NÃO APLICÁVEIS` e não foram executados.
+- Evidências: [proposta das amostras](../../docs/STATE-06-Final-Human-Samples-Proposal.md), [relatório aceito da campanha](../../docs/STATE-06-Consolidated-Quality-Gate-Post-Revocation-Remediation-Rerun-Report.md), [plano consolidado](../../docs/STATE-06-Consolidated-Closure-Plan.md), governança de Quality/Human Gates e inspeção read-only dos adapters/runners existentes.
+- Gates: Quality Gate consolidado atual `APROVADO` e aceito com limitações; amostras humanas `NÃO EXECUTADAS`; Human Gate final `PENDENTE` e não aberto; promoção e transição não autorizadas.
+- Próxima decisão: Bruno pode pedir ajustes, adiar ou enviar exatamente o texto da seção `Decisão futura de Bruno` da proposta. Esse texto abrirá somente as seis amostras e não decidirá o Human Gate final.
+- Aprovador: Bruno, 2026-07-20, exclusivamente para aceitação da campanha automática e elaboração desta proposta.
+
 ## Template de nova entrada
 
 - Data:

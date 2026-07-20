@@ -233,6 +233,14 @@ O cleanup final encontrou um root `DBNotifier-DotNet-Coverage-*` com última alt
 
 Depois da inclusão deste relatório e dos registros factuais, o gate documental passou para `280` fontes comment-capable e `451` links locais em `103` arquivos; secret scan, escopo exclusivo de cinco documentos e `git diff --check` também passaram. Build e testes de produto não foram repetidos depois da documentação porque a baseline técnica permaneceu inalterada.
 
+## Decisão humana sobre a campanha automática
+
+Depois de revisar o relatório, Bruno decidiu exatamente:
+
+> Nova repetição da Campanha Consolidada de Quality Gate do STATE-06 na baseline 84217c6, relatório commit 2c1e05f: ACEITA COM AS LIMITAÇÕES REGISTRADAS. AUTORIZO exclusivamente a elaboração de uma proposta documental para as amostras humanas finais do STATE-06, sem execução, runtime, browser, Human Gate final, promoção ou transição de estado.
+
+Essa decisão aceita a classificação e as limitações da campanha automática. Ela não é a decisão do Human Gate final e não declara que Bruno repetiu qualquer amostra humana. A única nova autoridade é a elaboração da [proposta documental das amostras humanas finais](STATE-06-Final-Human-Samples-Proposal.md).
+
 ## Próxima atividade
 
-Bruno deve revisar este relatório, principalmente `Resultado em linguagem simples`, `Sequência E2E correlacionada observada`, `Achados classificados`, `Limitações e condições residuais` e `Classificação dos gates`. Se aceitar a classificação automática e desejar continuar, a próxima autoridade segura é exclusivamente uma proposta documental para as amostras humanas finais. Nenhuma amostra, Human Gate, promoção ou transição deve ser autorizada junto com a aceitação deste relatório.
+Bruno deve revisar a proposta das amostras humanas finais. Se concordar, poderá autorizar separadamente somente a execução das seis amostras. Browser, WPF, runtimes locais, Human Gate final, promoção e transição permanecem fechados até nova decisão explícita.
