@@ -7,6 +7,10 @@ param(
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
+$requiredHost = "Windows PowerShell 5.1 Desktop"
+if ($PSVersionTable.PSEdition -ne "Desktop" -or $PSVersionTable.PSVersion.Major -ne 5 -or $PSVersionTable.PSVersion.Minor -lt 1) {
+    throw "$requiredHost is required for the pinned Pester 3.4.0 compatibility gate. Run this script with powershell.exe, not pwsh."
+}
 $root = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
 $testPath = Join-Path $root "tests\DBNotifier.Legacy.Tests.ps1"
 $modulePath = Join-Path $root "src\modules\DBNotifier\DBNotifier.psm1"
@@ -56,7 +60,8 @@ if ($conditionalSkips.Count -eq 1) {
     Write-Output "Conditional skip accepted: $expectedConditionalSkip"
 }
 
-Write-Output ("Legacy gate passed: tests={0}, skipped={1}, coverage={2}% ({3}/{4} commands)." -f `
+Write-Output ("Legacy gate passed on {0}: tests={1}, skipped={2}, coverage={3}% ({4}/{5} commands)." -f `
+    $requiredHost,
     $result.PassedCount,
     $result.SkippedCount,
     $coveragePercent,

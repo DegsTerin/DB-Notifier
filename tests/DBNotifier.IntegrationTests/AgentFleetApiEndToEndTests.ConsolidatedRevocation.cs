@@ -71,7 +71,7 @@ public sealed partial class AgentFleetApiEndToEndTests
             enableCommandTransport: scenario == "R5",
             enableRevocationMatrixHints: scenario == "R4",
             snapshotResponseBarrier: snapshotBarrier);
-        await using AgentFileSandbox local = await AgentFileSandbox.StartConsolidatedAsync();
+        await using AgentFileSandbox local = await AgentFileSandbox.StartConsolidatedAsync(Guid.NewGuid());
         await using SandboxAgentIdentityStore identities = new(sandbox);
         string installationId = $"installation:{Guid.NewGuid():N}";
         AgentEnrollmentRequest tokenBinding = new(

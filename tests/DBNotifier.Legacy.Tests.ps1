@@ -461,11 +461,11 @@ Describe "DB-Notifier legacy compatibility" {
         { & $gatePath -SolutionPath (Join-Path $PSScriptRoot "..\DBNotifier.sln") -ReportPath $invalidReportPath } | Should Throw
     }
 
-    It "rejects a NuGet report with complete project paths but no framework evidence" {
+    It "accepts the complete empty structure emitted by NuGet when framework findings are omitted" {
         $gatePath = Join-Path $PSScriptRoot "..\scripts\verify-nuget-vulnerabilities.ps1"
-        $invalidReportPath = Join-Path $PSScriptRoot "fixtures\nuget-vulnerability-report.no-frameworks.json"
+        $emptyReportPath = Join-Path $PSScriptRoot "fixtures\nuget-vulnerability-report.no-frameworks.json"
 
-        { & $gatePath -SolutionPath (Join-Path $PSScriptRoot "..\DBNotifier.sln") -ReportPath $invalidReportPath } | Should Throw
+        { & $gatePath -SolutionPath (Join-Path $PSScriptRoot "..\DBNotifier.sln") -ReportPath $emptyReportPath } | Should Not Throw
     }
 
     It "accepts complete NuGet structure and resolves relative report paths from the solution directory" {
@@ -479,5 +479,57 @@ Describe "DB-Notifier legacy compatibility" {
         finally {
             Pop-Location
         }
+    }
+
+    It "rejects NuGet reports that omit a solution project" {
+        $gatePath = Join-Path $PSScriptRoot "..\scripts\verify-nuget-vulnerabilities.ps1"
+        $report = Get-Content -LiteralPath (Join-Path $PSScriptRoot "fixtures\nuget-vulnerability-report.no-frameworks.json") -Raw | ConvertFrom-Json
+        $report.projects = @($report.projects | Select-Object -First 16)
+        $reportPath = Join-Path $TestDrive "nuget-project-omitted.json"
+        $report | ConvertTo-Json -Depth 12 | Set-Content -LiteralPath $reportPath -Encoding UTF8
+
+        { & $gatePath -SolutionPath (Join-Path $PSScriptRoot "..\DBNotifier.sln") -ReportPath $reportPath } | Should Throw
+    }
+
+    It "rejects NuGet reports from a source set that diverges from NuGet.config" {
+        $gatePath = Join-Path $PSScriptRoot "..\scripts\verify-nuget-vulnerabilities.ps1"
+        $report = Get-Content -LiteralPath (Join-Path $PSScriptRoot "fixtures\nuget-vulnerability-report.no-frameworks.json") -Raw | ConvertFrom-Json
+        $report.sources = @("https://packages.invalid/v3/index.json")
+        $reportPath = Join-Path $TestDrive "nuget-source-divergent.json"
+        $report | ConvertTo-Json -Depth 12 | Set-Content -LiteralPath $reportPath -Encoding UTF8
+
+        { & $gatePath -SolutionPath (Join-Path $PSScriptRoot "..\DBNotifier.sln") -ReportPath $reportPath } | Should Throw
+    }
+
+    It "rejects direct and transitive vulnerability findings" -TestCases @(
+        @{ Collection = "topLevelPackages" },
+        @{ Collection = "transitivePackages" }
+    ) {
+        param($Collection)
+        $gatePath = Join-Path $PSScriptRoot "..\scripts\verify-nuget-vulnerabilities.ps1"
+        $report = Get-Content -LiteralPath (Join-Path $PSScriptRoot "fixtures\nuget-vulnerability-report.complete-empty.json") -Raw | ConvertFrom-Json
+        $report.projects[0].frameworks[0] | Add-Member -MemberType NoteProperty -Name $Collection -Value @(
+            [pscustomobject]@{
+                id = "Example.Package"
+                resolvedVersion = "1.0.0"
+                vulnerabilities = @([pscustomobject]@{ severity = "high"; advisoryurl = "https://advisories.invalid/example" })
+            }
+        )
+        $reportPath = Join-Path $TestDrive ("nuget-{0}.json" -f $Collection)
+        $report | ConvertTo-Json -Depth 12 | Set-Content -LiteralPath $reportPath -Encoding UTF8
+
+        { & $gatePath -SolutionPath (Join-Path $PSScriptRoot "..\DBNotifier.sln") -ReportPath $reportPath } | Should Throw
+    }
+
+    It "rejects malformed and future-schema NuGet reports" -TestCases @(
+        @{ Name = "malformed"; Content = "{" },
+        @{ Name = "future"; Content = '{"version":2,"parameters":"--vulnerable --include-transitive","sources":[],"projects":[]}' }
+    ) {
+        param($Name, $Content)
+        $gatePath = Join-Path $PSScriptRoot "..\scripts\verify-nuget-vulnerabilities.ps1"
+        $reportPath = Join-Path $TestDrive ("nuget-{0}.json" -f $Name)
+        Set-Content -LiteralPath $reportPath -Value $Content -Encoding UTF8
+
+        { & $gatePath -SolutionPath (Join-Path $PSScriptRoot "..\DBNotifier.sln") -ReportPath $reportPath } | Should Throw
     }
 }

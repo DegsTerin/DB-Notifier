@@ -26,6 +26,9 @@ jobs:
         with:
           global-json-file: global.json
       - run: dotnet restore DBNotifier.sln --locked-mode
+      - name: Verify tracked .NET lockfiles and clean locked restore
+        shell: powershell
+        run: .\scripts\verify-dotnet-lockfiles.ps1 -DotNetPath dotnet
       - run: dotnet build DBNotifier.sln --configuration Release --no-restore
       - run: dotnet test DBNotifier.sln --configuration Release --no-build
       - name: Enforce proportional .NET coverage
@@ -102,9 +105,48 @@ jobs:
       - run: npm ci
       - run: npm run build
       - name: Run the bilingual Light and Dark headless browser matrix
-        shell: powershell
+        shell: pwsh
         working-directory: .
-        run: .\scripts\run-state05-dashboard-audit.ps1
+        run: .\scripts\run-state05-dashboard-audit.ps1 -DiagnosticDirectory "${{ runner.temp }}\dbnotifier-state05-diagnostic"
+      - name: Upload sanitised STATE-05 failure evidence
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: state05-dashboard-failure-${{ github.run_attempt }}
+          path: ${{ runner.temp }}\dbnotifier-state05-diagnostic\*.json
+          if-no-files-found: error
+          retention-days: 7
+
+  state06-consolidated-e2e:
+    needs: [dotnet, dashboard]
+    runs-on: windows-2025
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24.18.0
+          cache: npm
+          cache-dependency-path: src/DBNotifier.Dashboard.Web/package-lock.json
+      - run: dotnet restore DBNotifier.sln --locked-mode
+      - run: npm run toolchain:verify --prefix src/DBNotifier.Dashboard.Web
+      - run: npm ci --prefix src/DBNotifier.Dashboard.Web
+      - name: Run the bounded correlated STATE-06 sandbox
+        shell: pwsh
+        run: .\scripts\run-state06-consolidated-e2e.ps1 -DiagnosticDirectory "${{ runner.temp }}\dbnotifier-state06-diagnostic"
+      - name: Upload sanitised STATE-06 failure evidence
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: state06-consolidated-failure-${{ github.run_attempt }}
+          path: ${{ runner.temp }}\dbnotifier-state06-diagnostic\*.json
+          if-no-files-found: error
+          retention-days: 7
 
   secret-scan:
     runs-on: windows-2025

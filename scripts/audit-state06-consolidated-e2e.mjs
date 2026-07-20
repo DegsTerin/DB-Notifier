@@ -106,12 +106,24 @@ async function connectToPage() {
     const waiter = pending.get(message.id);
     if (!waiter) return;
     pending.delete(message.id);
+    clearTimeout(waiter.timer);
     if (message.error) waiter.reject(new Error(message.error.message));
     else waiter.resolve(message.result);
   });
+  socket.addEventListener("close", () => {
+    for (const waiter of pending.values()) {
+      clearTimeout(waiter.timer);
+      waiter.reject(new Error("The dedicated browser closed with a CDP command pending."));
+    }
+    pending.clear();
+  });
   const call = (method, params = {}) => new Promise((resolve, reject) => {
     const id = ++nextId;
-    pending.set(id, { resolve, reject });
+    const timer = setTimeout(() => {
+      pending.delete(id);
+      reject(new Error(`CDP command exceeded its deadline: ${method}`));
+    }, 15_000);
+    pending.set(id, { resolve, reject, timer });
     socket.send(JSON.stringify({ id, method, params }));
   });
   return { call, network, close: () => socket.close() };

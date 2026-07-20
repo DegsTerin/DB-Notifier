@@ -11,13 +11,14 @@ internal static class Program
     private const string HumanQualityGateSample = "quality-gate";
 
     /// <summary>Validates arguments, applies the fifteen-minute budget and runs the isolated test composition.</summary>
-    /// <param name="args">Exact activation marker and already-built Dashboard root.</param>
+    /// <param name="args">Exact activation marker, already-built Dashboard root and runner-owned correlation identifier.</param>
     /// <returns>Zero after complete cleanup, two for invalid activation, or three for a sanitised harness failure.</returns>
     public static async Task<int> Main(string[] args)
     {
         if (!TryReadOptions(
                 args,
                 out string? dashboardRoot,
+                out Guid runId,
                 out bool humanRemediationMode,
                 out string? humanReviewSample))
         {
@@ -32,9 +33,11 @@ internal static class Program
                 ? await AgentFleetApiEndToEndTests.RunState06FinalHumanSamplesRemediationHostAsync(
                     dashboardRoot!,
                     humanReviewSample!,
+                    runId,
                     budget.Token)
                 : await AgentFleetApiEndToEndTests.RunState06ConsolidatedSandboxHostAsync(
                     dashboardRoot!,
+                    runId,
                     budget.Token);
         }
         catch (Exception exception) when (exception is not OutOfMemoryException)
@@ -47,22 +50,29 @@ internal static class Program
     /// <summary>Accepts one of the two exact test-only markers and the canonical Dashboard output only.</summary>
     /// <param name="args">Untrusted process arguments.</param>
     /// <param name="dashboardRoot">Validated canonical Dashboard output root.</param>
+    /// <param name="runId">Validated version-four correlation identifier created by the owning runner.</param>
     /// <param name="humanRemediationMode">Whether the final-human-sample evidence mode was selected.</param>
     /// <param name="humanReviewSample">Exact quality-gate or single-sample selector.</param>
     /// <returns><see langword="true"/> only for the exact local activation contract.</returns>
     private static bool TryReadOptions(
         string[] args,
         out string? dashboardRoot,
+        out Guid runId,
         out bool humanRemediationMode,
         out string? humanReviewSample)
     {
         dashboardRoot = null;
+        runId = Guid.Empty;
         humanRemediationMode = false;
         humanReviewSample = null;
-        if (args.Length is not (4 or 6) ||
+        if (args.Length is not (6 or 8) ||
             !string.Equals(args[0], "--activation", StringComparison.Ordinal) ||
             !string.Equals(args[2], "--dashboard-root", StringComparison.Ordinal) ||
+            !string.Equals(args[4], "--run-id", StringComparison.Ordinal) ||
             string.IsNullOrWhiteSpace(args[3]) ||
+            !Guid.TryParseExact(args[5], "D", out runId) ||
+            args[5][14] != '4' ||
+            !"89abAB".Contains(args[5][19]) ||
             (!string.Equals(args[1], ActivationMarker, StringComparison.Ordinal) &&
              !string.Equals(args[1], HumanRemediationActivationMarker, StringComparison.Ordinal)))
         {
@@ -73,15 +83,15 @@ internal static class Program
             args[1],
             HumanRemediationActivationMarker,
             StringComparison.Ordinal);
-        if (args.Length == 6)
+        if (args.Length == 8)
         {
             if (!humanRemediationMode ||
-                !string.Equals(args[4], "--sample", StringComparison.Ordinal) ||
-                args[5] is not ("S06-HG-001" or "S06-HG-006"))
+                !string.Equals(args[6], "--sample", StringComparison.Ordinal) ||
+                args[7] is not ("S06-HG-001" or "S06-HG-006"))
             {
                 return false;
             }
-            humanReviewSample = args[5];
+            humanReviewSample = args[7];
         }
         else if (humanRemediationMode)
         {

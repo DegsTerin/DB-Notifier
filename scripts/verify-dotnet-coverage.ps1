@@ -7,7 +7,21 @@ param(
     [ValidateRange(0, 100)]
     [double]$MinimumLineCoveragePercent = 70,
     [ValidateRange(0, 100)]
-    [double]$MinimumBranchCoveragePercent = 45
+    [double]$MinimumBranchCoveragePercent = 45,
+    [ValidateRange(0, 100)]
+    [double]$MinimumComponentLineCoveragePercent = 1,
+    [string[]]$RequiredPackages = @(
+        'DBNotifier.Agent.Worker',
+        'DBNotifier.Application',
+        'DBNotifier.ConfigMigrator',
+        'DBNotifier.Domain',
+        'DBNotifier.Infrastructure',
+        'DBNotifier.Persistence.Agent.Sqlite',
+        'DBNotifier.Persistence.Server.PostgreSql',
+        'DBNotifier.Provider.Abstractions',
+        'DBNotifier.Providers.PostgreSql',
+        'DBNotifier.Server.Api'
+    )
 )
 
 Set-StrictMode -Version Latest
@@ -58,7 +72,29 @@ try {
         throw "Branch coverage is $branchCoverage%; the required floor is $MinimumBranchCoveragePercent%."
     }
 
-    Write-Output "Coverage gate passed: lines=$lineCoverage%, branches=$branchCoverage%."
+    # Aggregate rates can conceal an entirely unmeasured component, so verify the expected unit-test assembly inventory independently.
+    $packages = @($coverage.coverage.packages.package)
+    $packageNames = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::Ordinal)
+    foreach ($package in $packages) {
+        $packageName = [string]$package.name
+        if ([string]::IsNullOrWhiteSpace($packageName) -or -not $packageNames.Add($packageName)) {
+            throw 'The Cobertura report contains an unnamed or duplicate component package.'
+        }
+    }
+    foreach ($requiredPackage in $RequiredPackages) {
+        $package = @($packages | Where-Object { [string]$_.name -eq $requiredPackage })
+        if ($package.Count -ne 1) {
+            throw "The Cobertura report does not contain exactly one required component: $requiredPackage"
+        }
+        $componentLineCoverage = [Math]::Round(([double]::Parse(
+            [string]$package[0].'line-rate',
+            [Globalization.CultureInfo]::InvariantCulture) * 100), 2)
+        if ($componentLineCoverage -lt $MinimumComponentLineCoveragePercent) {
+            throw "Component $requiredPackage line coverage is $componentLineCoverage%; the required presence floor is $MinimumComponentLineCoveragePercent%."
+        }
+    }
+
+    Write-Output "Coverage gate passed: lines=$lineCoverage%, branches=$branchCoverage%, required-components=$($RequiredPackages.Count)."
 }
 finally {
     $resolvedTemporaryRoot = [System.IO.Path]::GetFullPath($temporaryRoot)

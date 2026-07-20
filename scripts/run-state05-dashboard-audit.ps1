@@ -1,4 +1,5 @@
 # Module purpose: Runs the complete bilingual Light/Dark Dashboard audit in one explicitly selected, isolated Chromium product.
+#Requires -Version 7.0
 [CmdletBinding()]
 param(
     [string]$DashboardDirectory,
@@ -7,7 +8,10 @@ param(
     [ValidateRange(1024, 65535)]
     [int]$DebugPort = 9224,
     [ValidateSet("Chrome", "Edge")]
-    [string]$BrowserProduct = "Chrome"
+    [string]$BrowserProduct = "Chrome",
+    [ValidateRange(60, 600)]
+    [int]$NodeTimeoutSeconds = 300,
+    [string]$DiagnosticDirectory
 )
 
 $ErrorActionPreference = 'Stop'
@@ -27,13 +31,77 @@ $expectedCriticalFavicon = "/dbnotifier-favicon.critical.ico?v=$($brandRevisionM
 $dashboardUri = "http://127.0.0.1:$PreviewPort/"
 $debugUri = "http://127.0.0.1:$DebugPort"
 $temporaryRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("DBNotifier-Dashboard-Runner-{0}" -f [Guid]::NewGuid().ToString('N'))
+$evidenceRoot = Join-Path $temporaryRoot 'evidence'
+$profile = Join-Path $temporaryRoot 'chrome-profile'
 $previewProcess = $null
+$previewListenerProcess = $null
 $chromeProcess = $null
+$nodeProcess = $null
+$stage = 'initialising-runner'
+$currentLocale = $null
+$currentTheme = $null
+$currentReport = $null
+$currentFailures = @()
+$currentNodeDiagnostics = @()
 
-# Stops only the process tree created by this runner and tolerates an already-exited process.
-function Stop-ProcessTree([System.Diagnostics.Process]$Process) {
-    if ($null -eq $Process -or $Process.HasExited) { return }
-    & taskkill.exe /PID $Process.Id /T /F 2>$null | Out-Null
+# Stops only the process tree created by this runner and waits for bounded quiescence.
+function Stop-ProcessTree([System.Diagnostics.Process]$Process, [int]$TimeoutMilliseconds = 15000) {
+    if ($null -eq $Process) { return }
+    if (-not $Process.HasExited) {
+        & taskkill.exe /PID $Process.Id /T /F 2>$null | Out-Null
+        if (-not $Process.WaitForExit($TimeoutMilliseconds)) {
+            throw "Owned process $($Process.Id) did not exit within the cleanup budget."
+        }
+    }
+}
+
+# Stops only browser processes carrying the unique profile owned by this run.
+function Stop-OwnedBrowserResidue([string]$OwnedProfilePath, [int]$TimeoutMilliseconds = 15000) {
+    $deadline = [DateTimeOffset]::UtcNow.AddMilliseconds($TimeoutMilliseconds)
+    do {
+        $residue = @(Get-CimInstance Win32_Process | Where-Object {
+            $_.CommandLine -and $_.CommandLine.Contains($OwnedProfilePath, [StringComparison]::OrdinalIgnoreCase)
+        })
+        foreach ($process in $residue) {
+            Stop-Process -Id $process.ProcessId -Force -ErrorAction SilentlyContinue
+        }
+        if ($residue.Count -eq 0) { return }
+        Start-Sleep -Milliseconds 200
+    } while ([DateTimeOffset]::UtcNow -lt $deadline)
+    throw 'The dedicated browser did not release its isolated profile within the cleanup budget.'
+}
+
+# Removes only this runner's GUID-named temporary root after bounded lock-release retries.
+function Remove-OwnedTemporaryRoot([string]$Path, [int]$TimeoutMilliseconds = 15000) {
+    $candidate = [System.IO.Path]::GetFullPath($Path)
+    $systemTemp = [System.IO.Path]::GetFullPath([System.IO.Path]::GetTempPath())
+    if (-not $candidate.StartsWith($systemTemp, [StringComparison]::OrdinalIgnoreCase) -or
+        -not (Split-Path -Leaf $candidate).StartsWith('DBNotifier-Dashboard-Runner-', [StringComparison]::Ordinal)) {
+        throw 'The STATE-05 temporary root failed its exact ownership check.'
+    }
+    if (-not (Test-Path -LiteralPath $candidate)) { return }
+    $deadline = [DateTimeOffset]::UtcNow.AddMilliseconds($TimeoutMilliseconds)
+    do {
+        try {
+            [System.IO.Directory]::Delete($candidate, $true)
+            return
+        }
+        catch [System.IO.IOException] { Start-Sleep -Milliseconds 250 }
+        catch [System.UnauthorizedAccessException] { Start-Sleep -Milliseconds 250 }
+    } while ([DateTimeOffset]::UtcNow -lt $deadline)
+    throw 'The STATE-05 temporary root remained locked after bounded cleanup retries.'
+}
+
+# Redacts repository, temporary paths and loopback endpoints from a bounded Node error tail.
+function Get-SanitisedNodeErrorTail([string]$Path) {
+    if (-not (Test-Path -LiteralPath $Path -PathType Leaf)) { return @() }
+    $repositoryPattern = [regex]::Escape($root)
+    $temporaryPattern = [regex]::Escape($temporaryRoot)
+    return @(Get-Content -LiteralPath $Path -Tail 20 | ForEach-Object {
+        $line = ([string]$_) -replace $repositoryPattern, '[repository]' -replace $temporaryPattern, '[temporary]'
+        $line = $line -replace 'https?://127\.0\.0\.1:\d+', '[loopback]'
+        if ($line.Length -gt 240) { $line.Substring(0, 240) } else { $line }
+    })
 }
 
 # Waits for an isolated loopback endpoint with bounded retries and no external fallback.
@@ -85,11 +153,15 @@ Assert-LoopbackPortAvailable $DebugPort
 New-Item -ItemType Directory -Path $temporaryRoot | Out-Null
 
 try {
+    $stage = 'starting-preview'
     $previewProcess = Start-Process -FilePath 'npm.cmd' -ArgumentList @('run', 'preview', '--', '--host', '127.0.0.1', '--port', $PreviewPort, '--strictPort') -WorkingDirectory $dashboard -WindowStyle Hidden -PassThru -RedirectStandardOutput (Join-Path $temporaryRoot 'preview.stdout.log') -RedirectStandardError (Join-Path $temporaryRoot 'preview.stderr.log')
     Wait-ForEndpoint $dashboardUri
+    $previewListener = @(Get-NetTCPConnection -State Listen -LocalPort $PreviewPort -ErrorAction Stop)
+    if ($previewListener.Count -ne 1) { throw 'The isolated Dashboard preview did not expose exactly one owned listener.' }
+    $previewListenerProcess = Get-Process -Id $previewListener[0].OwningProcess -ErrorAction Stop
 
     $chrome = Find-Browser $BrowserProduct
-    $profile = Join-Path $temporaryRoot 'chrome-profile'
+    $stage = 'starting-browser'
     $chromeProcess = Start-Process -FilePath $chrome -ArgumentList @('--headless=new', '--disable-gpu', '--no-first-run', '--no-default-browser-check', "--remote-debugging-port=$DebugPort", "--user-data-dir=$profile", $dashboardUri) -WindowStyle Hidden -PassThru
     Wait-ForEndpoint "$debugUri/json/version"
     $browserMetadata = Invoke-RestMethod -Uri "$debugUri/json/version" -TimeoutSec 5
@@ -103,17 +175,33 @@ try {
     $summaries = [System.Collections.Generic.List[object]]::new()
     foreach ($locale in @('pt-BR', 'en-GB')) {
         foreach ($theme in @('light', 'dark')) {
+            $currentLocale = $locale
+            $currentTheme = $theme
+            $currentReport = $null
+            $currentFailures = @()
+            $currentNodeDiagnostics = @()
+            $stage = "running-node-audit-$locale-$theme"
             $env:DBNOTIFIER_AUDIT_LOCALE = $locale
             $env:DBNOTIFIER_AUDIT_THEME = $theme
             $env:DBNOTIFIER_AUDIT_CDP_ENDPOINT = $debugUri
             $env:DBNOTIFIER_AUDIT_DASHBOARD_URL = $dashboardUri
             $env:DBNOTIFIER_AUDIT_BROWSER_PRODUCT = $BrowserProduct
             $env:DBNOTIFIER_AUDIT_BROWSER_VERSION = $browserVersion
-            & node (Join-Path $root 'scripts\audit-state05-dashboard.mjs') *> (Join-Path $temporaryRoot "$locale-$theme.node.log")
-            if ($LASTEXITCODE -ne 0) { throw "Dashboard audit execution failed for $locale/$theme." }
+            $env:DBNOTIFIER_AUDIT_EVIDENCE_ROOT = $evidenceRoot
+            $nodeHost = Get-Command node -CommandType Application -ErrorAction Stop | Select-Object -First 1
+            $nodeErrorLog = Join-Path $temporaryRoot "$locale-$theme.node.stderr.log"
+            $nodeProcess = Start-Process -FilePath $nodeHost.Source -ArgumentList @((Join-Path $root 'scripts\audit-state05-dashboard.mjs')) -WorkingDirectory $root -WindowStyle Hidden -PassThru -RedirectStandardOutput (Join-Path $temporaryRoot "$locale-$theme.node.stdout.log") -RedirectStandardError $nodeErrorLog
+            if (-not $nodeProcess.WaitForExit($NodeTimeoutSeconds * 1000)) {
+                throw "Dashboard Node/CDP audit exceeded its global deadline for $locale/$theme."
+            }
+            if ($nodeProcess.ExitCode -ne 0) {
+                $currentNodeDiagnostics = @(Get-SanitisedNodeErrorTail $nodeErrorLog)
+                throw "Dashboard audit execution failed for $locale/$theme."
+            }
 
-            $reportPath = Join-Path ([System.IO.Path]::GetTempPath()) "DBNotifier-State05-Audit\$locale\$theme\dashboard-audit.json"
+            $reportPath = Join-Path $evidenceRoot "$locale\$theme\dashboard-audit.json"
             $report = Get-Content -LiteralPath $reportPath -Raw | ConvertFrom-Json
+            $currentReport = $report
             $failures = [System.Collections.Generic.List[string]]::new()
             if (@($report.viewports).Count -ne 24) { $failures.Add('Expected 24 viewport samples.') }
             if (@($report.viewports | Where-Object { $_.layout.horizontalOverflow }).Count -gt 0) { $failures.Add('Horizontal overflow was detected.') }
@@ -154,20 +242,67 @@ try {
             if (@($tvLayouts | Where-Object { ($_.width -le 1100 -and $_.overviewColumns -ne 1) -or ($_.width -gt 1100 -and $_.overviewColumns -ne 2) }).Count -gt 0) { $failures.Add('TV mode overview did not reflow to the expected compact and wide column counts.') }
             if ($null -ne $report.tvMode.restored.tvMode -or $report.tvMode.restored.buttonState -ne 'enter') { $failures.Add('TV mode did not restore the standard layout.') }
             if ($report.tvMode.unavailableFullscreen.tvMode -ne 'true' -or $report.tvMode.unavailableFullscreen.nativeFullscreen) { $failures.Add('TV mode fullscreen fallback failed.') }
-            if ($failures.Count -gt 0) { throw "Dashboard audit failed for $locale/${theme}: $($failures -join ' ')" }
+            if ($failures.Count -gt 0) {
+                $currentFailures = @($failures)
+                throw "Dashboard audit failed for $locale/${theme}: $($failures -join ' ')"
+            }
             $summaries.Add([pscustomobject]@{ Locale = $locale; Theme = $theme; Viewports = @($report.viewports).Count; ForcedColours = $forcedColours.Count; AccessibleNodes = $report.accessibilityTree.exposedNodeCount; FaviconState = $report.semanticBrand.aggregateState; Browser = "$BrowserProduct $browserVersion" })
         }
     }
     $summaries | Format-Table -AutoSize
     Write-Output "STATE-05 Dashboard audit passed for 96 viewport samples and 32 forced-colour route samples across pt-BR/en-GB and Light/Dark on $BrowserProduct $browserVersion."
 }
+catch {
+    if (-not [string]::IsNullOrWhiteSpace($DiagnosticDirectory)) {
+        New-Item -ItemType Directory -Path $DiagnosticDirectory -Force | Out-Null
+        $compactOperational = if ($null -ne $currentReport) {
+            @($currentReport.viewports | Where-Object {
+                $_.width -le 390 -and ($null -ne $_.layout.alertCards -or $null -ne $_.layout.capabilityCards)
+            } | ForEach-Object { $_.name })
+        }
+        else { @() }
+        [pscustomobject]@{
+            schemaVersion = 1
+            result = 'failed'
+            stage = $stage
+            exceptionType = $_.Exception.GetType().Name
+            locale = $currentLocale
+            theme = $currentTheme
+            failures = @($currentFailures)
+            viewportCount = if ($null -ne $currentReport) { @($currentReport.viewports).Count } else { 0 }
+            compactOperationalSamples = @($compactOperational)
+            nodeErrorTail = @($currentNodeDiagnostics)
+        } | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath (Join-Path $DiagnosticDirectory 'state05-dashboard-failure.json') -Encoding utf8
+    }
+    throw
+}
 finally {
-    Remove-Item Env:DBNOTIFIER_AUDIT_LOCALE, Env:DBNOTIFIER_AUDIT_THEME, Env:DBNOTIFIER_AUDIT_CDP_ENDPOINT, Env:DBNOTIFIER_AUDIT_DASHBOARD_URL, Env:DBNOTIFIER_AUDIT_BROWSER_PRODUCT, Env:DBNOTIFIER_AUDIT_BROWSER_VERSION -ErrorAction SilentlyContinue
-    Stop-ProcessTree $chromeProcess
-    Stop-ProcessTree $previewProcess
-    $resolvedTemp = [System.IO.Path]::GetFullPath($temporaryRoot)
-    $systemTemp = [System.IO.Path]::GetFullPath([System.IO.Path]::GetTempPath())
-    if ($resolvedTemp.StartsWith($systemTemp, [StringComparison]::OrdinalIgnoreCase) -and (Test-Path -LiteralPath $resolvedTemp)) {
-        Remove-Item -LiteralPath $resolvedTemp -Recurse -Force
+    Remove-Item Env:DBNOTIFIER_AUDIT_LOCALE, Env:DBNOTIFIER_AUDIT_THEME, Env:DBNOTIFIER_AUDIT_CDP_ENDPOINT, Env:DBNOTIFIER_AUDIT_DASHBOARD_URL, Env:DBNOTIFIER_AUDIT_BROWSER_PRODUCT, Env:DBNOTIFIER_AUDIT_BROWSER_VERSION, Env:DBNOTIFIER_AUDIT_EVIDENCE_ROOT -ErrorAction SilentlyContinue
+    $cleanupFailures = [System.Collections.Generic.List[string]]::new()
+    foreach ($cleanup in @(
+        { Stop-ProcessTree $nodeProcess },
+        { Stop-ProcessTree $chromeProcess },
+        { Stop-OwnedBrowserResidue $profile },
+        { Stop-ProcessTree $previewListenerProcess },
+        { Stop-ProcessTree $previewProcess }
+    )) {
+        try { & $cleanup }
+        catch { $cleanupFailures.Add($_.Exception.Message) }
+    }
+    try { Remove-OwnedTemporaryRoot $temporaryRoot }
+    catch { $cleanupFailures.Add($_.Exception.Message) }
+    if ($cleanupFailures.Count -gt 0) {
+        if (-not [string]::IsNullOrWhiteSpace($DiagnosticDirectory)) {
+            New-Item -ItemType Directory -Path $DiagnosticDirectory -Force | Out-Null
+            [pscustomobject]@{
+                schemaVersion = 1
+                result = 'cleanup-failed'
+                stage = 'cleanup'
+                cleanupFailures = @($cleanupFailures | ForEach-Object {
+                    ([string]$_) -replace [regex]::Escape($temporaryRoot), '[temporary]'
+                })
+            } | ConvertTo-Json -Depth 4 | Set-Content -LiteralPath (Join-Path $DiagnosticDirectory 'state05-dashboard-cleanup-failure.json') -Encoding utf8
+        }
+        throw "STATE-05 cleanup failed: $($cleanupFailures -join ' ')"
     }
 }

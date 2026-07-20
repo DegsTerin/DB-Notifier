@@ -32,6 +32,7 @@ public sealed partial class AgentFleetApiEndToEndTests
     private const string HumanVisualTruthRoute = "/__dbnotifier-state06-human-remediation/visual-truth";
     private const string HumanCompleteRoute = "/__dbnotifier-state06-human-remediation/complete";
     private const string ConsolidatedRunHeader = "X-DBN-State06-Consolidated-Run";
+    private const string ConsolidatedHarnessRateLimitPolicy = "ConsolidatedHarnessRateLimit";
     private const string HumanQualityGateSample = "quality-gate";
     private const string HumanSample001 = "S06-HG-001";
     private const string HumanSample006 = "S06-HG-006";
@@ -41,15 +42,18 @@ public sealed partial class AgentFleetApiEndToEndTests
     /// authenticated browser auditor to advance, finalise and stop the run.
     /// </summary>
     /// <param name="dashboardRoot">Absolute root of the already-built local Dashboard.</param>
+    /// <param name="runId">Runner-owned version-four correlation identifier.</param>
     /// <param name="cancellationToken">Cancellation bounding the temporary host lifetime.</param>
     /// <returns>Zero after complete disposal, or an exception for the owning executable to sanitise.</returns>
     public static async Task<int> RunState06ConsolidatedSandboxHostAsync(
         string dashboardRoot,
+        Guid runId,
         CancellationToken cancellationToken) =>
         await RunState06ConsolidatedSandboxHostCoreAsync(
             dashboardRoot,
             humanRemediationMode: false,
             humanReviewSample: null,
+            runId,
             cancellationToken);
 
     /// <summary>
@@ -57,14 +61,17 @@ public sealed partial class AgentFleetApiEndToEndTests
     /// product composition or pre-filling a human decision.
     /// </summary>
     /// <param name="dashboardRoot">Absolute root of the already-built local Dashboard.</param>
+    /// <param name="runId">Runner-owned version-four correlation identifier.</param>
     /// <param name="cancellationToken">Cancellation bounding the temporary host lifetime.</param>
     /// <returns>Zero after complete disposal, or an exception for the owning executable to sanitise.</returns>
     public static async Task<int> RunState06FinalHumanSamplesRemediationHostAsync(
         string dashboardRoot,
+        Guid runId,
         CancellationToken cancellationToken) =>
         await RunState06FinalHumanSamplesRemediationHostAsync(
             dashboardRoot,
             HumanQualityGateSample,
+            runId,
             cancellationToken);
 
     /// <summary>
@@ -72,28 +79,33 @@ public sealed partial class AgentFleetApiEndToEndTests
     /// </summary>
     /// <param name="dashboardRoot">Absolute root of the already-built local Dashboard.</param>
     /// <param name="humanReviewSample">Exact quality-gate or single-sample selector.</param>
+    /// <param name="runId">Runner-owned version-four correlation identifier.</param>
     /// <param name="cancellationToken">Cancellation bounding the temporary host lifetime.</param>
     /// <returns>Zero after complete disposal, or an exception for the owning executable to sanitise.</returns>
     public static async Task<int> RunState06FinalHumanSamplesRemediationHostAsync(
         string dashboardRoot,
         string humanReviewSample,
+        Guid runId,
         CancellationToken cancellationToken) =>
         await RunState06ConsolidatedSandboxHostCoreAsync(
             dashboardRoot,
             humanRemediationMode: true,
             humanReviewSample,
+            runId,
             cancellationToken);
 
     /// <summary>Runs one exact consolidated host mode behind the shared local process boundary.</summary>
     /// <param name="dashboardRoot">Absolute root of the already-built local Dashboard.</param>
     /// <param name="humanRemediationMode">Whether only the final-human-sample evidence controls are exposed.</param>
     /// <param name="humanReviewSample">Exact quality-gate or single-sample selector when remediation mode is enabled.</param>
+    /// <param name="runId">Runner-owned version-four correlation identifier.</param>
     /// <param name="cancellationToken">Cancellation bounding the temporary host lifetime.</param>
     /// <returns>Zero after complete disposal.</returns>
     private static async Task<int> RunState06ConsolidatedSandboxHostCoreAsync(
         string dashboardRoot,
         bool humanRemediationMode,
         string? humanReviewSample,
+        Guid runId,
         CancellationToken cancellationToken)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(dashboardRoot);
@@ -104,7 +116,7 @@ public sealed partial class AgentFleetApiEndToEndTests
             throw new ArgumentException("The consolidated Dashboard root is unavailable.", nameof(dashboardRoot));
         }
 
-        ConsolidatedHarnessState state = new(Guid.NewGuid(), humanRemediationMode, humanReviewSample);
+        ConsolidatedHarnessState state = new(runId, humanRemediationMode, humanReviewSample);
         AgentFleetSandbox? sandbox = null;
         try
         {
@@ -149,7 +161,7 @@ public sealed partial class AgentFleetApiEndToEndTests
                     application.Services.GetRequiredService<DashboardTvChangeHintSandboxEvidence>().Snapshot()))
                 : Results.Unauthorized())
             .RequireAuthorization(DashboardTvSandboxEndpointRouteBuilderExtensions.ReadPolicy)
-            .RequireRateLimiting("HumanApiRateLimit");
+            .RequireRateLimiting(ConsolidatedHarnessRateLimitPolicy);
 
         if (state.HumanRemediationMode)
         {
@@ -170,7 +182,7 @@ public sealed partial class AgentFleetApiEndToEndTests
                     "text/html; charset=utf-8");
             })
                 .RequireAuthorization(DashboardTvSandboxEndpointRouteBuilderExtensions.ReadPolicy)
-                .RequireRateLimiting("HumanApiRateLimit");
+                .RequireRateLimiting(ConsolidatedHarnessRateLimitPolicy);
 
             MapHumanControl(application, HumanAgentLossRoute, state, state.BeginHumanAgentLossAsync);
             MapHumanControl(application, HumanAgentRecoveryRoute, state, state.RecoverHumanAgentAsync);
@@ -183,13 +195,13 @@ public sealed partial class AgentFleetApiEndToEndTests
                 ExecuteControlAsync(context, state, state.AdvanceAsync);
             application.MapPost(ConsolidatedAdvanceRoute, advance)
                 .RequireAuthorization(DashboardTvSandboxEndpointRouteBuilderExtensions.ReadPolicy)
-                .RequireRateLimiting("HumanApiRateLimit");
+                .RequireRateLimiting(ConsolidatedHarnessRateLimitPolicy);
 
             Func<HttpContext, Task<IResult>> finalise = context =>
                 ExecuteControlAsync(context, state, state.FinaliseAsync);
             application.MapPost(ConsolidatedFinaliseRoute, finalise)
                 .RequireAuthorization(DashboardTvSandboxEndpointRouteBuilderExtensions.ReadPolicy)
-                .RequireRateLimiting("HumanApiRateLimit");
+                .RequireRateLimiting(ConsolidatedHarnessRateLimitPolicy);
         }
 
         application.MapPost(ConsolidatedShutdownRoute, (HttpContext context) =>
@@ -207,7 +219,7 @@ public sealed partial class AgentFleetApiEndToEndTests
             return Results.NoContent();
         })
             .RequireAuthorization(DashboardTvSandboxEndpointRouteBuilderExtensions.ReadPolicy)
-            .RequireRateLimiting("HumanApiRateLimit");
+            .RequireRateLimiting(ConsolidatedHarnessRateLimitPolicy);
     }
 
     /// <summary>Maps one exact, authenticated and serial test-only remediation control.</summary>
@@ -225,7 +237,7 @@ public sealed partial class AgentFleetApiEndToEndTests
             ExecuteControlAsync(context, state, operation);
         application.MapPost(route, control)
             .RequireAuthorization(DashboardTvSandboxEndpointRouteBuilderExtensions.ReadPolicy)
-            .RequireRateLimiting("HumanApiRateLimit");
+            .RequireRateLimiting(ConsolidatedHarnessRateLimitPolicy);
     }
 
     /// <summary>Executes one serial state transition and returns only sanitised evidence or a typed failure.</summary>
@@ -403,7 +415,7 @@ public sealed partial class AgentFleetApiEndToEndTests
 
                 SetStage("initialising");
                 sandbox = owner;
-                local = await AgentFileSandbox.StartConsolidatedAsync();
+                local = await AgentFileSandbox.StartConsolidatedAsync(runId);
                 identities = new SandboxAgentIdentityStore(owner);
                 string installationId = $"installation:{Guid.NewGuid():N}";
                 AgentEnrollmentRequest tokenBinding = new(

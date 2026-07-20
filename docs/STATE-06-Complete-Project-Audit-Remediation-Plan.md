@@ -135,6 +135,8 @@ R0 + todos os lotes que vierem a ser autorizados/concluídos
 
 ## R0 — Integridade dos gates, dependências e runners
 
+**Execution record (2026-07-20):** the authorised local implementation is complete and its automatic local gate is `APROVADO`; the independent Human Gate remains `PENDENTE`. Evidence: [STATE-06 Audit Remediation R0 Report](STATE-06-Audit-Remediation-R0-Report.md). This record does not authorise R1 or any lifecycle/AIOps progression.
+
 ### Objetivo
 
 Tornar a evidência automática confiável antes de usar qualquer gate para aprovar remediações posteriores.

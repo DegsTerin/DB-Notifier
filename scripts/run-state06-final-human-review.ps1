@@ -15,9 +15,10 @@ $dashboardDist = Join-Path $repositoryRoot 'src\DBNotifier.Dashboard.Web\dist'
 $hostAssembly = Join-Path $repositoryRoot 'tests\DBNotifier.State06.ConsolidatedSandboxHost\bin\Release\net10.0\DBNotifier.State06.ConsolidatedSandboxHost.dll'
 $presenter = Join-Path $repositoryRoot 'scripts\present-state06-final-human-review.mjs'
 $temporaryRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("DBNotifier-State06-HumanReview-{0}" -f [Guid]::NewGuid().ToString('N'))
+$runId = [Guid]::NewGuid()
 $profilePath = Join-Path $temporaryRoot 'browser-profile'
 $agentRootPrefix = 'dbnotifier-state06-consolidated-sandbox-'
-$agentRootsBefore = @(Get-ChildItem -Path ([System.IO.Path]::GetTempPath()) -Directory -Filter ($agentRootPrefix + '*') -ErrorAction SilentlyContinue | ForEach-Object { $_.FullName })
+$ownedAgentRootPrefix = "$agentRootPrefix$($runId.ToString('N'))-"
 $hostProcess = $null
 $browserProcess = $null
 $hostReadinessBudget = [TimeSpan]::FromSeconds(90)
@@ -89,24 +90,20 @@ function Remove-OwnedTemporaryRoot([string]$Path) {
     }
 }
 
-# Removes only new Agent roots created after this runner captured its immutable baseline.
-function Remove-NewOwnedAgentRoots([string[]]$Baseline) {
+# Removes only Agent roots carrying this review runner's exact correlation identifier.
+function Remove-OwnedAgentRoots([string]$OwnedPrefix) {
     $systemTemp = [System.IO.Path]::GetFullPath([System.IO.Path]::GetTempPath())
-    $newRoots = @(Get-ChildItem -Path $systemTemp -Directory -Filter ($agentRootPrefix + '*') -ErrorAction SilentlyContinue | Where-Object {
-        $Baseline -notcontains $_.FullName
-    })
-    foreach ($root in $newRoots) {
+    $ownedRoots = @(Get-ChildItem -Path $systemTemp -Directory -Filter ($OwnedPrefix + '*') -ErrorAction SilentlyContinue)
+    foreach ($root in $ownedRoots) {
         $candidate = [System.IO.Path]::GetFullPath($root.FullName)
         if (-not $candidate.StartsWith($systemTemp, [StringComparison]::OrdinalIgnoreCase) -or
-            -not $root.Name.StartsWith($agentRootPrefix, [StringComparison]::Ordinal)) {
-            throw 'A new Agent sandbox root failed the exact cleanup ownership check.'
+            -not $root.Name.StartsWith($OwnedPrefix, [StringComparison]::Ordinal)) {
+            throw 'An Agent sandbox root failed the exact per-run cleanup ownership check.'
         }
         [System.IO.Directory]::Delete($candidate, $true)
     }
-    $remaining = @(Get-ChildItem -Path $systemTemp -Directory -Filter ($agentRootPrefix + '*') -ErrorAction SilentlyContinue | Where-Object {
-        $Baseline -notcontains $_.FullName
-    })
-    if ($remaining.Count -ne 0) { throw "The review runner left $($remaining.Count) new Agent sandbox root(s)." }
+    $remaining = @(Get-ChildItem -Path $systemTemp -Directory -Filter ($OwnedPrefix + '*') -ErrorAction SilentlyContinue)
+    if ($remaining.Count -ne 0) { throw "The review runner left $($remaining.Count) exact owned Agent sandbox root(s)." }
 }
 
 if (-not (Test-Path -LiteralPath $hostAssembly -PathType Leaf)) {
@@ -132,6 +129,7 @@ try {
         $hostAssembly,
         '--activation', 'state06-final-human-samples-remediation',
         '--dashboard-root', $dashboardDist,
+        '--run-id', $runId.ToString('D'),
         '--sample', $Sample
     ) -WorkingDirectory $repositoryRoot -WindowStyle Hidden -PassThru -RedirectStandardOutput $hostStdOut -RedirectStandardError $hostStdErr
 
@@ -162,6 +160,7 @@ try {
     if ([string]$ready.humanReviewSample -ne $Sample) { throw 'The host did not bind the requested single sample.' }
     if ([string]::IsNullOrWhiteSpace([string]$ready.spkiPin)) { throw 'The host exposed no ephemeral certificate pin.' }
     if (-not [Guid]::TryParseExact([string]$ready.runId, 'D', [ref]([Guid]::Empty))) { throw 'The host exposed no valid run identifier.' }
+    if ([string]$ready.runId -ne $runId.ToString('D')) { throw 'The review host did not preserve the runner-owned correlation identifier.' }
     $hostBaseAddress = $hostUri.GetLeftPart([UriPartial]::Authority)
 
     $browserProcess = Start-Process -FilePath $chrome -ArgumentList @(
@@ -208,6 +207,6 @@ finally {
         ($_.CommandLine -and $_.CommandLine.Contains($hostAssembly, [StringComparison]::OrdinalIgnoreCase))
     })
     if ($ownedResidue.Count -gt 0) { throw "The review runner left $($ownedResidue.Count) verified owned process(es)." }
-    Remove-NewOwnedAgentRoots $agentRootsBefore
+    Remove-OwnedAgentRoots $ownedAgentRootPrefix
     Remove-OwnedTemporaryRoot $temporaryRoot
 }

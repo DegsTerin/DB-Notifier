@@ -1,4 +1,5 @@
 // Module purpose: Guards the test-only activation, dependency and toolchain boundaries of the consolidated STATE-06 remediation harness.
+using System.Text.RegularExpressions;
 using System.Xml.Linq;
 
 namespace DBNotifier.Architecture.Tests;
@@ -47,6 +48,7 @@ public sealed class State06ConsolidatedHarnessIsolationTests
     {
         foreach (string runner in new[]
         {
+            "run-state05-dashboard-audit.ps1",
             "run-state06-dashboard-tv-browser-e2e.ps1",
             "run-state06-consolidated-e2e.ps1",
             "run-state06-final-human-review.ps1",
@@ -59,6 +61,79 @@ public sealed class State06ConsolidatedHarnessIsolationTests
                 StringComparison.Ordinal);
             Assert.Contains("#Requires -Version 7.0", contents, StringComparison.Ordinal);
         }
+    }
+
+    /// <summary>Confirms every solution project has the lockfile required by locked restore.</summary>
+    [Fact]
+    public void EverySolutionProjectHasALockfile()
+    {
+        string root = RepositoryRoot();
+        string solution = File.ReadAllText(Path.Combine(root, "DBNotifier.sln"));
+        Match[] projects = Regex.Matches(
+                solution,
+                "Project\\(\"[^\"]+\"\\)\\s*=\\s*\"[^\"]+\",\\s*\"([^\"]+\\.csproj)\"")
+            .Cast<Match>()
+            .ToArray();
+
+        Assert.NotEmpty(projects);
+        Assert.All(projects, project =>
+        {
+            string projectPath = Path.GetFullPath(
+                Path.Combine(root, project.Groups[1].Value.Replace('\\', Path.DirectorySeparatorChar)));
+            Assert.True(
+                File.Exists(Path.Combine(Path.GetDirectoryName(projectPath)!, "packages.lock.json")),
+                $"Missing lockfile for {project.Groups[1].Value}.");
+        });
+    }
+
+    /// <summary>Confirms test controls have a per-run limiter while normal production budgets remain active and unchanged.</summary>
+    [Fact]
+    public void ConsolidatedControlsDoNotCompeteWithOrReplaceProductionRateLimits()
+    {
+        string endpoints = Read(
+            "tests",
+            "DBNotifier.IntegrationTests",
+            "AgentFleetApiEndToEndTests.ConsolidatedHarness.cs");
+        string fixture = Read(
+            "tests",
+            "DBNotifier.IntegrationTests",
+            "AgentFleetApiEndToEndTests.cs");
+        string production = Read("src", "DBNotifier.Server.Api", "Program.cs");
+
+        Assert.DoesNotContain("RequireRateLimiting(\"HumanApiRateLimit\")", endpoints, StringComparison.Ordinal);
+        Assert.Contains("ConsolidatedHarnessRateLimitPolicy", endpoints, StringComparison.Ordinal);
+        Assert.Contains("AddConsolidatedHarnessRatePolicy(options, consolidatedHarness.RunId)", fixture, StringComparison.Ordinal);
+        Assert.Contains("Immutable owning run identifier", fixture, StringComparison.Ordinal);
+        Assert.Contains("PermitLimit = 300", fixture, StringComparison.Ordinal);
+        Assert.Contains("PermitLimit = 60", production, StringComparison.Ordinal);
+        Assert.Contains("PermitLimit = 120", production, StringComparison.Ordinal);
+        Assert.Contains("PermitLimit = 5", production, StringComparison.Ordinal);
+        Assert.DoesNotContain("ConsolidatedHarnessRateLimit", production, StringComparison.Ordinal);
+    }
+
+    /// <summary>Confirms browser runners use bounded Node/CDP work, exact profiles and per-run Agent-root ownership.</summary>
+    [Fact]
+    public void BrowserRunnersBoundWorkAndCleanupExactOwnedResources()
+    {
+        string state05 = Read("scripts", "run-state05-dashboard-audit.ps1");
+        string state06 = Read("scripts", "run-state06-consolidated-e2e.ps1");
+        string state05Auditor = Read("scripts", "audit-state05-dashboard.mjs");
+        string state06Auditor = Read("scripts", "audit-state06-consolidated-e2e.mjs");
+        string workflow = Read(".github", "workflows", "ci.yml");
+
+        Assert.Contains("NodeTimeoutSeconds", state05, StringComparison.Ordinal);
+        Assert.Contains("Stop-OwnedBrowserResidue", state05, StringComparison.Ordinal);
+        Assert.Contains("DBNOTIFIER_AUDIT_EVIDENCE_ROOT", state05, StringComparison.Ordinal);
+        Assert.Contains("NodeTimeoutSeconds", state06, StringComparison.Ordinal);
+        Assert.Contains("--run-id", state06, StringComparison.Ordinal);
+        Assert.Contains("ownedAgentRootPrefix", state06, StringComparison.Ordinal);
+        Assert.DoesNotContain("agentRootsBefore", state06, StringComparison.Ordinal);
+        Assert.Contains("CDP command exceeded its deadline", state05Auditor, StringComparison.Ordinal);
+        Assert.Contains("CDP command exceeded its deadline", state06Auditor, StringComparison.Ordinal);
+        Assert.Contains("state06-consolidated-e2e:", workflow, StringComparison.Ordinal);
+        Assert.Contains("timeout-minutes: 25", workflow, StringComparison.Ordinal);
+        Assert.Contains("state05-dashboard-failure.json", workflow, StringComparison.Ordinal);
+        Assert.Contains("state06-consolidated-failure.json", workflow, StringComparison.Ordinal);
     }
 
     /// <summary>Confirms the runner uses an exact opt-in and contains no installation or download command.</summary>

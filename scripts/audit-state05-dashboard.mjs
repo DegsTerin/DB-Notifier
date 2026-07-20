@@ -3,7 +3,7 @@
  * The script records viewport, semantic-brand, accessibility-tree, keyboard and modal-focus evidence without mutating product state.
  */
 import { mkdirSync, writeFileSync } from "node:fs";
-import { join } from "node:path";
+import { join, resolve, sep } from "node:path";
 import { tmpdir } from "node:os";
 
 const endpoint = process.env.DBNOTIFIER_AUDIT_CDP_ENDPOINT ?? "http://127.0.0.1:9224";
@@ -15,7 +15,13 @@ const theme = requestedTheme === "dark" ? "dark" : "light";
 const browserProduct = process.env.DBNOTIFIER_AUDIT_BROWSER_PRODUCT;
 const browserVersion = process.env.DBNOTIFIER_AUDIT_BROWSER_VERSION;
 if (!browserProduct || !browserVersion) throw new Error("Browser product and version provenance are required.");
-const evidenceDirectory = join(tmpdir(), "DBNotifier-State05-Audit", locale, theme);
+const configuredEvidenceRoot = process.env.DBNOTIFIER_AUDIT_EVIDENCE_ROOT;
+const systemTempRoot = resolve(tmpdir());
+const evidenceRoot = configuredEvidenceRoot ? resolve(configuredEvidenceRoot) : "";
+if (!evidenceRoot.startsWith(`${systemTempRoot}${sep}`) || !evidenceRoot.includes("DBNotifier-Dashboard-Runner-")) {
+  throw new Error("The runner-owned STATE-05 evidence root is required.");
+}
+const evidenceDirectory = join(evidenceRoot, locale, theme);
 mkdirSync(evidenceDirectory, { recursive: true });
 
 /** Opens the current Dashboard target and returns a minimal request-response CDP client. */
@@ -35,17 +41,32 @@ async function connect() {
   socket.addEventListener("message", (event) => {
     const message = JSON.parse(event.data);
     if (!message.id || !pending.has(message.id)) return;
-    const { resolve, reject } = pending.get(message.id);
+    const { resolve: complete, reject, timer } = pending.get(message.id);
     pending.delete(message.id);
+    clearTimeout(timer);
     if (message.error) reject(new Error(message.error.message));
-    else resolve(message.result);
+    else complete(message.result);
   });
 
-  /** Sends one protocol command and resolves only after Chrome returns its result. */
+  socket.addEventListener("close", () => {
+    for (const { reject, timer } of pending.values()) {
+      clearTimeout(timer);
+      reject(new Error("The dedicated browser closed with a CDP command pending."));
+    }
+    pending.clear();
+  });
+
+  /** Sends one protocol command and rejects it when Chrome exceeds the per-command deadline. */
   function call(method, params = {}) {
     const id = ++sequence;
     socket.send(JSON.stringify({ id, method, params }));
-    return new Promise((resolve, reject) => pending.set(id, { resolve, reject }));
+    return new Promise((resolveCommand, reject) => {
+      const timer = setTimeout(() => {
+        pending.delete(id);
+        reject(new Error(`CDP command exceeded its deadline: ${method}`));
+      }, 15_000);
+      pending.set(id, { resolve: resolveCommand, reject, timer });
+    });
   }
 
   return { socket, call };
@@ -54,6 +75,21 @@ async function connect() {
 /** Waits for React and layout work to settle after navigation or emulation changes. */
 function settle(milliseconds = 350) {
   return new Promise((resolve) => setTimeout(resolve, milliseconds));
+}
+
+/** Waits for one serialisable page condition without allowing navigation or layout work to hang the audit. */
+async function waitForPage(call, expression, description, timeoutMilliseconds = 8_000) {
+  const deadline = Date.now() + timeoutMilliseconds;
+  while (Date.now() < deadline) {
+    try {
+      const result = await call("Runtime.evaluate", { expression: `Boolean(${expression})`, returnByValue: true });
+      if (result.result.value) return;
+    } catch {
+      // A reload may transiently replace the execution context before the route becomes stable.
+    }
+    await settle(50);
+  }
+  throw new Error(`Timed out waiting for ${description}.`);
 }
 
 /** Evaluates a serialisable expression in the page and returns its value. */
@@ -81,9 +117,13 @@ async function captureViewport(call, name, width, height, hash = "inventory", pa
   await call("Emulation.setDeviceMetricsOverride", { width, height, deviceScaleFactor: 1, mobile: false });
   await call("Emulation.setPageScaleFactor", { pageScaleFactor });
   await call("Page.navigate", { url: `${dashboardUrl}#${hash}` });
-  await settle(80);
+  await waitForPage(call, `document.readyState === "complete" && location.hash === "#${hash}"`, `${hash} navigation`);
   await call("Page.reload", { ignoreCache: true });
-  await settle();
+  await waitForPage(
+    call,
+    `document.readyState === "complete" && location.hash === "#${hash}" && innerWidth === ${width} && document.querySelector("main h1") !== null`,
+    `${name} route and layout`);
+  await evaluate(call, "new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve(true))))");
   await evaluate(call, "window.scrollTo(0, 0); true");
 
   const layout = await evaluate(call, `(() => {

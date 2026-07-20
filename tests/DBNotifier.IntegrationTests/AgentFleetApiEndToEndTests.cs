@@ -2048,10 +2048,15 @@ public sealed partial class AgentFleetApiEndToEndTests
         }
 
         /// <summary>Creates the single file store shared by every phase of the consolidated STATE-06 harness.</summary>
+        /// <param name="runId">Correlation identifier used to give cleanup exact ownership.</param>
         /// <returns>Disposable file-backed Agent sandbox with an exact consolidated-test ownership prefix.</returns>
-        public static async Task<AgentFileSandbox> StartConsolidatedAsync()
+        public static async Task<AgentFileSandbox> StartConsolidatedAsync(Guid runId)
         {
-            return await StartAsync("dbnotifier-state06-consolidated-sandbox-");
+            if (runId == Guid.Empty)
+            {
+                throw new ArgumentException("The consolidated run identifier is required.", nameof(runId));
+            }
+            return await StartAsync($"dbnotifier-state06-consolidated-sandbox-{runId:N}-");
         }
 
         private static async Task<AgentFileSandbox> StartAsync(string prefix)
@@ -2985,6 +2990,10 @@ public sealed partial class AgentFleetApiEndToEndTests
                 AddRatePolicy(options, AgentFleetEndpointRouteBuilderExtensions.EnrollmentRateLimitPolicy);
                 AddRatePolicy(options, "AgentApiRateLimit");
                 AddRatePolicy(options, "HumanApiRateLimit");
+                if (consolidatedHarness is not null)
+                {
+                    AddConsolidatedHarnessRatePolicy(options, consolidatedHarness.RunId);
+                }
             });
 
             WebApplication application = builder.Build();
@@ -3778,6 +3787,21 @@ public sealed partial class AgentFleetApiEndToEndTests
                     QueueLimit = 0,
                     AutoReplenishment = true,
                 }));
+
+        /// <summary>Adds a test-only per-run budget so harness controls cannot consume the ordinary human API partition.</summary>
+        /// <param name="options">Rate limiter options owned by the isolated integration fixture.</param>
+        /// <param name="runId">Immutable owning run identifier; untrusted request headers cannot create extra partitions.</param>
+        private static void AddConsolidatedHarnessRatePolicy(RateLimiterOptions options, string runId) =>
+            options.AddPolicy(ConsolidatedHarnessRateLimitPolicy, _ =>
+                RateLimitPartition.GetFixedWindowLimiter(
+                    runId,
+                    _ => new FixedWindowRateLimiterOptions
+                    {
+                        PermitLimit = 300,
+                        Window = TimeSpan.FromMinutes(1),
+                        QueueLimit = 0,
+                        AutoReplenishment = true,
+                    }));
 
         /// <summary>Creates the ephemeral P-256 root used only by this sandbox instance.</summary>
         /// <param name="rootKey">Ephemeral root key.</param>
