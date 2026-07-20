@@ -10,7 +10,7 @@
 - Alterações sob `src/`, solução, projetos, packages, lockfiles e migrations: nenhuma.
 - Classificação automática deste incremento: `APROVADO` com as limitações abaixo.
 - Repetição da Campanha Consolidada no commit `66d0a9f`: continua historicamente `REPROVADA`.
-- Human Gate próprio desta remediação: pendente.
+- Human Gate próprio desta remediação: `ACEITO COM AS LIMITAÇÕES REGISTRADAS` por Bruno em 2026-07-20.
 - Nova campanha, amostra humana, Human Gate final, promoção e transição: não autorizados e não executados.
 
 ## Resultado em linguagem simples
@@ -151,10 +151,14 @@ R1–R7, harness correlacionado, isolamento e gates aplicáveis passaram. Isso n
 | cleanup e ausência de acesso externo | `APROVADO` |
 | **Quality Gate próprio da remediação** | **`APROVADO`** |
 | Campanha Consolidada repetida no commit `66d0a9f` | `REPROVADA` historicamente; não reclassificada |
-| Human Gate próprio da remediação | `PENDENTE` |
+| Human Gate próprio da remediação | `ACEITO COM AS LIMITAÇÕES REGISTRADAS` por Bruno em 2026-07-20 |
 | nova campanha, amostra humana e Human Gate final | `NÃO AUTORIZADOS` |
 | promoção/transição | `NÃO AUTORIZADAS` |
 
-## Próxima atividade
+## Decisão humana registrada
 
-Bruno deve revisar este relatório, principalmente `Resultado em linguagem simples`, `Sequência E2E observada`, `Limitações e condições residuais` e `Classificação dos gates`. Se concordar, poderá aceitar somente esta remediação com as limitações registradas e autorizar exclusivamente o registro factual da decisão. A nova Campanha Consolidada deverá continuar separada e não deve ser autorizada junto com essa aceitação.
+Depois de solicitar e receber a leitura direta deste relatório, principalmente de `Resultado em linguagem simples`, `Sequência E2E observada`, `Limitações e condições residuais` e `Classificação dos gates`, Bruno declarou em 2026-07-20:
+
+> Remediação STATE-06 Consolidated Revocation Finalisation Diagnostic and Harness, commit f9bb567: ACEITA COM AS LIMITAÇÕES REGISTRADAS. AUTORIZO exclusivamente o registro factual desta decisão. Não autorizo nova Campanha Consolidada, amostra humana, Human Gate final, runtime operacional, promoção nem transição de estado.
+
+Essa decisão encerra somente o Human Gate próprio da remediação e aceita suas limitações documentadas. O `STATE-06 INTEGRATION` permanece inalterado; a repetição da Campanha Consolidada continua `REPROVADA`, e nova campanha, amostra humana, Human Gate final, runtime operacional, promoção e transição continuam não autorizados.

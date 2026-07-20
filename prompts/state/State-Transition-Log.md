@@ -2019,6 +2019,21 @@
 - Próxima decisão: Bruno deve revisar e decidir somente o Human Gate próprio desta remediação. Nova Campanha Consolidada, amostra humana, Human Gate final, promoção e transição exigem decisões posteriores e separadas.
 - Aprovador: Bruno autorizou a implementação; a aceitação humana do resultado não foi inferida.
 
+## 2026-07-20 — Aceitação da remediação Consolidated Revocation Finalisation Diagnostic and Harness
+
+- Estado anterior: `STATE-06 INTEGRATION`, remediação do commit `f9bb567` tecnicamente concluída, Quality Gate próprio `APROVADO`, Human Gate próprio pendente e repetição da Campanha Consolidada `REPROVADA`.
+- Estado resultante: sem transição; `STATE-06 INTEGRATION` mantido e Human Gate próprio da remediação aceito com as limitações registradas. A campanha repetida continua `REPROVADA`.
+- Decisão: Bruno declarou exatamente `Remediação STATE-06 Consolidated Revocation Finalisation Diagnostic and Harness, commit f9bb567: ACEITA COM AS LIMITAÇÕES REGISTRADAS. AUTORIZO exclusivamente o registro factual desta decisão. Não autorizo nova Campanha Consolidada, amostra humana, Human Gate final, runtime operacional, promoção nem transição de estado.`
+- Evidências revisadas: [relatório da remediação](../../docs/STATE-06-Consolidated-Revocation-Finalisation-Diagnostic-And-Harness-Remediation-Report.md), principalmente resultado em linguagem simples, sequência E2E observada, limitações e condições residuais e classificação dos gates; commit `f9bb567`; decisão explícita de Bruno nesta sessão.
+- Limitações aceitas: exceção histórica irrecuperável; SQLite e identidades exclusivamente sintéticos; R3 prova sobreposição HTTP, não locking de PostgreSQL; Chrome único; sink sem apresentação Windows; SignalR apenas como hint; comando deliberadamente não executável; nenhuma evidência operacional.
+- Autoridade: exclusivamente o registro factual desta decisão. Nova Campanha Consolidada, amostra humana, Human Gate final, runtime operacional, promoção e transição permanecem não autorizados.
+- Shutdown preflight: zero processo, listener ou navegador dedicado pertencente ao DB-Notifier antes desta alteração documental; nenhum processo ou recurso alheio foi encerrado.
+- Escopo desta ação: somente cinco documentos Markdown factuais; nenhum código, configuração executável, solução, projeto, package, lockfile, migration, build, teste de produto, browser ou runtime foi alterado ou executado.
+- Gates documentais deste registro: documentação aprovada para `280` fontes comment-capable; `444` links Markdown locais em `101` arquivos aprovados; secret scan do worktree não ignorado e histórico disponível aprovado; inspeção de escopo e `git diff --check` aprovadas. Build, testes e runtime de produto são `NÃO APLICÁVEIS` e não foram executados.
+- Gates: Quality Gate próprio da remediação `APROVADO`; Human Gate próprio `ACEITO COM AS LIMITAÇÕES REGISTRADAS`; repetição da Campanha Consolidada `REPROVADA`; Human Gate final do `STATE-06` não aberto; promoção e transição não autorizadas.
+- Próxima atividade: nenhuma atividade técnica está autorizada ou é exigida. Se Bruno desejar continuar, deverá solicitar ou autorizar separadamente uma nova Campanha Consolidada no commit corrente; este registro não concede essa autoridade.
+- Aprovador: Bruno, 2026-07-20.
+
 ## Template de nova entrada
 
 - Data:
