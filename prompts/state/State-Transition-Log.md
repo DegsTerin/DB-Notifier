@@ -2109,6 +2109,20 @@
 - Próxima decisão: Bruno poderá autorizar separadamente somente uma proposta documental de remediação de `S06-HG-001` e `S06-HG-006`. Implementação, repetição, Human Gate final, promoção e transição continuam fechados.
 - Aprovador: Bruno, exclusivamente para `S06-HG-002` a `S06-HG-005`; bloqueios `S06-HG-001`/`006` são classificações factuais de elegibilidade, não decisões humanas inferidas.
 
+## 2026-07-20 — Proposta documental de remediação das amostras humanas bloqueadas do STATE-06
+
+- Estado anterior: `STATE-06 INTEGRATION`, Quality Gate consolidado `APROVADO`, campanha humana `BLOQUEADA`, `S06-HG-002` a `S06-HG-005` aprovadas, `S06-HG-001`/`S06-HG-006` bloqueadas e Human Gate final pendente.
+- Estado resultante: sem transição; `STATE-06 INTEGRATION` e todas as classificações anteriores mantidos. A proposta test-only está pronta para revisão e não autoriza sua própria implementação.
+- Autorização: Bruno autorizou exclusivamente uma proposta documental cobrindo apresentação distinguível da perda/recovery do Agent, exemplo visual factual de `unknown` separado de `stale`, inspeção da fronteira `tests/scripts` versus `src` e critérios de repetição humana. Implementação, runtime, browser, acesso externo, Human Gate, promoção e transição permaneceram proibidos.
+- Baseline: branch `main`, commit `b946c1f5d094d26292b3d70b364f2a6c1eb900a4`, worktree inicialmente limpa, ancestralidade de `84217c6` e `2c1e05f` confirmada e shutdown preflight com zero processo/listener pertencente ao DB-Notifier.
+- Inspeção `S06-HG-001`: o harness executa perda e replay antes de publicar readiness; a evidência agregada comprova o replay, mas não oferece barriers humanos. Offline do browser permanece uma fronteira diferente e não será reutilizado como prova do Agent.
+- Inspeção `S06-HG-006`: a fixture normal cria `demo-004` como `unknown` com idade de nove minutos, acima do limiar stale de cinco minutos; a UI corretamente prioriza `stale`. Contrato, child host e composição DI test-only já possuem as fronteiras necessárias para desenhar exemplos separados sem mudar essa regra.
+- Fronteira proposta: implementação futura inicialmente limitada a `tests/`/`scripts/`, com superfície auxiliar sanitizada do harness e fonte de snapshot test-only pela API/Dashboard TV sandbox. Qualquer necessidade de `src/`, solução, projeto, package, lockfile ou migration obriga parada `BLOQUEADA` e nova autorização.
+- Gates: documentação aprovada para `280` arquivos de fonte passíveis de comentários, links Markdown aprovados para `467` links locais em `106` arquivos e secret scan aprovado. Build, testes de produto, harness, runtime e browser não foram executados por estarem fora da autoridade documental.
+- Evidência: [proposta de remediação](../../docs/STATE-06-Final-Human-Samples-Blocked-Remediation-Proposal.md), [relatório das amostras](../../docs/STATE-06-Final-Human-Samples-Report.md) e inspeção read-only dos artefatos citados.
+- Próxima decisão: Bruno pode pedir alterações ou copiar exatamente a decisão futura da proposta para autorizar somente a implementação test-only e seu Quality Gate próprio. Repetição humana, Human Gate final, promoção e transição continuam separados.
+- Aprovador: Bruno, exclusivamente para elaborar esta proposta documental.
+
 ## Template de nova entrada
 
 - Data:
