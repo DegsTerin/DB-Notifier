@@ -6,7 +6,7 @@
 - Posição do workspace: `STATE-06 INTEGRATION`.
 - Baseline auditada: commit `1179ec88dea1df3f7a1806786f92dca15c29a0e1`.
 - Autoridade atual: Bruno declarou exatamente `AUTORIZO APENAS A ELABORAÇÃO DO PLANO DE REMEDIAÇÃO DA AUDITORIA, SEM IMPLEMENTAÇÃO.`
-- Disposição deste documento: plano elaborado; aceitação como direção ainda pendente.
+- Disposição deste documento: `ACEITO O PLANO COMO DIREÇÃO, SEM IMPLEMENTAÇÃO` por Bruno em 2026-07-20.
 - Estado do MOD-12: nenhum modo ativo; `none → OBSERVER` permanece pendente.
 - Estado do `ADR-0007`: aceito como decisão arquitetural, sem autorização de implementação.
 
@@ -501,7 +501,7 @@ Cada lote futuro deve:
 
 ## Modelo de autorização e decisões
 
-A autoridade usada para criar este plano se encerra com sua entrega e validação. Nenhum lote está liberado.
+A autoridade usada para criar este plano se encerrou com sua entrega e validação. Nenhum lote está liberado.
 
 As decisões válidas para revisar este documento são:
 
@@ -510,7 +510,9 @@ As decisões válidas para revisar este documento são:
 - `AJUSTES SOLICITADOS: <ajustes>`
 - `REJEITO O PLANO: <motivo>`
 
-Mesmo a primeira decisão apenas aceita a ordem e os critérios. Depois dela, a primeira eventual autorização executiva deverá nomear exatamente um lote — recomenda-se `R0` —, seus achados, arquivos/fronteiras, runtime local permitido, proibições e evidência esperada. Uma autorização de `R0` não libera `R1`, O1 ou qualquer outro lote.
+Bruno decidiu exatamente `ACEITO O PLANO COMO DIREÇÃO, SEM IMPLEMENTAÇÃO` em 2026-07-20. Essa decisão aceita somente a ordem, as disposições e os critérios documentais. Ela não é Human Gate de lifecycle ou modo e não autoriza código, configuração executável, runtime, banco/provider, R0, qualquer outro lote, R7-A0, O1, LLM, recomendação, plano executável, comando, automação, `OBSERVER` ou transição.
+
+Depois dessa aceitação, a primeira eventual autorização executiva deverá nomear exatamente um lote — recomenda-se `R0` —, seus achados, arquivos/fronteiras, runtime local permitido, proibições e evidência esperada. Uma autorização de `R0` não libera `R1`, O1 ou qualquer outro lote.
 
 ## Entregáveis desta autoridade documental
 
