@@ -2156,6 +2156,23 @@
 - Próxima atividade: nenhuma ação técnica está autorizada por este registro. Se Bruno desejar continuar, deverá autorizar separadamente a repetição exclusiva de `S06-HG-001` e `S06-HG-006`; as quatro amostras já aprovadas não devem ser repetidas.
 - Aprovador: Bruno, 2026-07-20, exclusivamente para aceitar a remediação e registrar essa decisão.
 
+## 2026-07-20 — Repetição pós-remediação das amostras humanas `S06-HG-001` e `S06-HG-006`
+
+- Estado anterior: `STATE-06 INTEGRATION`, remediação `dd420d1` aceita, `S06-HG-002` a `S06-HG-005` aprovadas, `S06-HG-001`/`006` bloqueadas e repetição ainda não aberta.
+- Estado resultante: sem transição; `STATE-06 INTEGRATION` mantido. `S06-HG-001` e `S06-HG-006` continuam `BLOQUEADAS`; campanha humana continua `BLOQUEADA` e Human Gate final não foi aberto.
+- Autorização: Bruno autorizou somente a repetição das duas amostras sobre baseline contendo `dd420d1` e `cfd620f`, com cadeia sintética existente, Chrome dedicado visível, perfil efêmero e cleanup, sem mudança técnica, acesso externo, demais amostras, notificação, comando, executor, Human Gate, promoção ou transição.
+- Baseline: branch `main`, commit `cfd620f9a4cdd6d5d6613d8d1498b82be36616a9`, worktree limpa, ancestralidade exigida e artefactos locais existentes confirmados.
+- `S06-HG-001`: a página abriu em `agent-transport-ready`, Agent `available`, pendências `0`, uma amostra Server e Dashboard `Degradado`, mas mostrou `Browser → API indisponível`. O host registou `233` respostas `429`; a perda do Agent não foi avançada nem submetida a decisão humana.
+- Causa: polling test-only a cada `250 ms`, endpoint sob `HumanApiRateLimit`, catch que fixa indisponibilidade e ausência de restauração positiva no caminho de sucesso.
+- `S06-HG-006`: o host preparou `visual-truth-ready` numa tentativa separada, mas o helper encerrou antes do hand-off; uma invocação final foi recusada pelo parser antes de iniciar runtime. Nenhuma decisão humana foi solicitada ou inferida.
+- Acesso externo: zero origem HTTP externa observada pelo helper CDP na apresentação válida inicial.
+- Cleanup: zero host, helper, Chrome/profile, listener, SQLite, certificado, log ou root temporário pertencente às tentativas; worktree limpa e nenhum processo alheio encerrado.
+- Escopo: nenhum código, configuração executável, solução, projeto, package, lockfile ou migration alterado; nenhum build, restore, download, recurso operacional, comando ou notificação executado.
+- Gates: preflight/ancestralidade `APROVADO`; isolamento/cleanup `APROVADO`; `S06-HG-001` e `S06-HG-006` `BLOQUEADAS`; campanha humana `BLOQUEADA`; Human Gate final pendente; promoção e transição não autorizadas.
+- Evidência: [relatório da repetição](../../docs/STATE-06-Final-Human-Samples-Post-Remediation-Repetition-Report.md), [relatório da remediação aceita](../../docs/STATE-06-Final-Human-Samples-Test-Only-Evidence-Remediation-Report.md), DOM sanitizado, contagem de `429` e decisões de parada desta sessão.
+- Próxima atividade: nenhuma correção está autorizada. Para continuar, Bruno deverá autorizar separadamente somente uma proposta documental de remediação test-only da cadência/recovery da página e de um runner humano visível versionado. Nova repetição e Human Gate final permanecem separados.
+- Aprovador: Bruno autorizou a repetição; nenhum passe humano foi inferido.
+
 ## Template de nova entrada
 
 - Data:

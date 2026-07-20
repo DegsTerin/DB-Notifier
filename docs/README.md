@@ -33,6 +33,7 @@ Current discovery and migration artifacts:
 - [`STATE-05-Human-Gate-Validation.md`](STATE-05-Human-Gate-Validation.md): authoritative pending human sample protocol, recorded visual findings and exact remaining `STATE-05` decision fields.
 - [`STATE-05-Request-Traceability-Audit.md`](STATE-05-Request-Traceability-Audit.md): consolidated requirement → documentation → implementation → test → pending matrix for the current user-request sequence.
 - [`STATE-06-Final-Human-Samples-Test-Only-Evidence-Remediation-Report.md`](STATE-06-Final-Human-Samples-Test-Only-Evidence-Remediation-Report.md): test-only remediation evidence for the two blocked final human samples, with Agent transport barriers, current `unknown` versus `stale`, isolation, verification and retained Human Gate boundaries.
+- [`STATE-06-Final-Human-Samples-Post-Remediation-Repetition-Report.md`](STATE-06-Final-Human-Samples-Post-Remediation-Repetition-Report.md): factual record of the blocked post-remediation human repetition, including the evidence-page rate-limit contradiction, incomplete visual hand-off and complete cleanup.
 
 The governing instruction corpus starts at [`../prompts/Start-Here.md`](../prompts/Start-Here.md).
 
