@@ -1,5 +1,7 @@
 # Proposta STATE-06 — Human Gate final
 
+> Resultado posterior: depois de autorizar separadamente a abertura documental, Bruno recebeu o resumo único e decidiu `APROVADO COM RESSALVAS` exclusivamente para o Human Gate final do `STATE-06`. A decisão e suas limitações estão no [relatório factual](STATE-06-Final-Human-Gate-Report.md). Esta proposta permanece como delimitação histórica e não autoriza transição para `STATE-07`.
+
 ## Status e autoridade
 
 - Data: 2026-07-20.

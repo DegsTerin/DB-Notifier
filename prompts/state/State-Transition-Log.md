@@ -2253,6 +2253,22 @@
 - Próxima decisão: Bruno deverá revisar a proposta. Se concordar, poderá copiar somente o texto de `Decisão futura de Bruno` para autorizar a abertura documental e apresentação do resumo; essa autorização ainda não decidirá o gate.
 - Aprovador: Bruno, exclusivamente para aceitar a repetição humana e elaborar a proposta documental.
 
+## 2026-07-20 — Human Gate final do `STATE-06`
+
+- Estado anterior: `STATE-06 INTEGRATION`, Quality Gate consolidado `APROVADO` e aceito com limitações, seis amostras humanas com decisões individuais `APROVADA`, proposta final concluída e Human Gate `PENDENTE`.
+- Estado resultante: sem transição; `STATE-06 INTEGRATION` mantido. Human Gate final encerrado como `APROVADO COM RESSALVAS`; transição para `STATE-07` continua pendente e não autorizada.
+- Autorização: Bruno autorizou somente shutdown preflight, inspeção read-only de elegibilidade, apresentação de um resumo único e solicitação inequívoca de decisão exclusivamente para `STATE-06`. Build, testes, runtime, browser, WPF, mudança executável, acesso externo, correção, promoção e transição permaneceram proibidos.
+- Baseline: branch `main`, commit `1a27dca393f00bc683235d7f8898dcc86f5841e0`, worktree limpa, ancestralidade de `84217c6`, `2c1e05f`, `9d65426`, `129b9fd`, `10a8249` e `1a27dca`, zero mudança técnica posterior a `9d65426` e zero runtime próprio.
+- Resumo apresentado: relatório automático `2c1e05f`, build/testes/cobertura, cadeia correlacionada, seis amostras humanas, cobertura pendente, limitações de sandbox/operação e separação entre gate e transição.
+- Decisão: Bruno declarou exatamente `Human Gate final do STATE-06: APROVADO COM RESSALVAS. Aceito expressamente que a evidência está limitada a sandbox local sintético; providers, PostgreSQL, PKI, escala, endurance e operação real não foram homologados; o transporte de comandos permaneceu não executável; e os presenters finais encerraram por condições bounded posteriores às decisões, embora o cleanup tenha passado. Confirmo a decisão acima exclusivamente para STATE-06.`
+- Ressalvas: sandbox sintético; nenhuma homologação de provider/PostgreSQL/PKI/escala/endurance/operação; comando não executável; presenters bounded depois das decisões; cleanup aprovado; limites complementares do relatório preservados.
+- Evidência: [relatório do Human Gate final](../../docs/STATE-06-Final-Human-Gate-Report.md), [proposta consumida](../../docs/STATE-06-Final-Human-Gate-Proposal.md), [campanha automática](../../docs/STATE-06-Consolidated-Quality-Gate-Post-Revocation-Remediation-Rerun-Report.md), [repetição humana](../../docs/STATE-06-Final-Human-Samples-Second-Post-Remediation-Repetition-Report.md) e decisão explícita de Bruno nesta sessão.
+- Escopo desta ação: somente documentação factual; nenhum build, teste, runtime, browser, WPF, acesso externo, correção, promoção ou transição executado.
+- Gates documentais: documentação aprovada para `284` arquivos comment-capable; `502` links Markdown locais em `113` arquivos aprovados; secret scan do worktree não ignorado, escopo exclusivo de seis documentos e `git diff --check` aprovados.
+- Gates: Quality Gate consolidado `APROVADO`; Human Gate final `APROVADO COM RESSALVAS`; `STATE-07`, runtime operacional, promoção e transição `NÃO AUTORIZADOS`.
+- Próxima decisão: Bruno poderá autorizar separadamente somente uma proposta documental de transição `STATE-06 → STATE-07`. A proposta não deverá executar nem inferir a transição.
+- Aprovador: Bruno, 2026-07-20, exclusivamente para o Human Gate final do `STATE-06`.
+
 ## Template de nova entrada
 
 - Data:
