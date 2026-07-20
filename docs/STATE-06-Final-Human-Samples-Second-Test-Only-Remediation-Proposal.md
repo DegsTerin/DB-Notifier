@@ -1,6 +1,6 @@
 # Proposta STATE-06 — Segunda remediação test-only das amostras humanas finais
 
-> Execução posterior: Bruno autorizou separadamente a implementação test-only proposta. O Quality Gate próprio foi concluído como `APROVADO` com limitações, sem repetir amostras humanas; o resultado está no [relatório factual](STATE-06-Final-Human-Samples-Second-Test-Only-Remediation-Report.md). O texto abaixo permanece como delimitação histórica e não autoriza nova execução, repetição humana, Human Gate, promoção ou transição.
+> Execução posterior: Bruno autorizou separadamente a implementação test-only proposta. O Quality Gate próprio foi concluído como `APROVADO` e posteriormente `ACEITO COM AS LIMITAÇÕES REGISTRADAS`, sem repetir amostras humanas; o resultado e a decisão estão no [relatório factual](STATE-06-Final-Human-Samples-Second-Test-Only-Remediation-Report.md). O texto abaixo permanece como delimitação histórica e não autoriza nova execução, repetição humana, Human Gate, promoção ou transição.
 
 ## Status e autoridade
 

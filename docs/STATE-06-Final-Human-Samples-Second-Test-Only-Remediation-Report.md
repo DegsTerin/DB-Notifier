@@ -6,6 +6,7 @@
 - Baseline inicial: commit `d3a61a9613192ad880d42d336313bd2baeb422f9`.
 - Estado mantido: `STATE-06 INTEGRATION`.
 - Classificação automática desta remediação: `APROVADO`, com as limitações registradas.
+- Decisão humana posterior: `ACEITA COM AS LIMITAÇÕES REGISTRADAS` por Bruno em 2026-07-20, exclusivamente para registrar o resultado técnico.
 - `S06-HG-001` e `S06-HG-006`: continuam `BLOQUEADAS`; não foram repetidas humanamente.
 - `S06-HG-002` a `S06-HG-005`: não foram repetidas e preservam as decisões anteriores.
 - Human Gate final, runtime operacional, promoção e transição: não autorizados e não executados.
@@ -239,8 +240,14 @@ Nenhum arquivo legado ou verificador foi alterado. O passe reportado pertence ao
 | Human Gate final | `PENDENTE` e não aberto |
 | runtime operacional, promoção e transição | `NÃO AUTORIZADOS` |
 
+## Decisão humana da remediação
+
+Depois de solicitar e receber a leitura direta deste relatório, principalmente de `Resultado em linguagem simples`, `Sequência E2E observada`, `Limitações e condições residuais` e `Classificação dos gates`, Bruno declarou em 2026-07-20:
+
+> Remediação STATE-06 Final Human Samples Test-only Presentation Stability and Persistent Review Runner, commit 9d65426: ACEITA COM AS LIMITAÇÕES REGISTRADAS. AUTORIZO exclusivamente o registro factual desta decisão. Não autorizo repetição das amostras humanas, Human Gate final, runtime operacional, promoção nem transição de estado.
+
+Essa decisão aceita somente o resultado técnico e as limitações desta segunda remediação. Ela não altera retroativamente a campanha humana, não aprova `S06-HG-001` ou `S06-HG-006` e não concede autoridade para abrir sua repetição.
+
 ## Próxima atividade
 
-Nenhuma nova execução está autorizada por este relatório. Bruno deverá primeiro revisar e aceitar ou rejeitar esta segunda remediação. Uma eventual aceitação permitirá somente registrar a decisão.
-
-Depois dessa aceitação, a repetição humana exclusiva de `S06-HG-001` e `S06-HG-006` ainda exigirá autorização separada. `S06-HG-002` a `S06-HG-005` não deverão ser repetidas, e o Human Gate final continuará posterior.
+A segunda remediação já foi aceita e nenhuma ação técnica adicional está autorizada por essa aceitação. Se Bruno desejar continuar, a próxima atividade será solicitar ou conceder separadamente autorização para repetir exclusivamente `S06-HG-001` e `S06-HG-006`. `S06-HG-002` a `S06-HG-005` não deverão ser repetidas, e o Human Gate final continuará sendo uma decisão posterior e independente.

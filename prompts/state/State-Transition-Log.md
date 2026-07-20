@@ -2206,6 +2206,21 @@
 - Próxima decisão: Bruno deverá revisar e aceitar ou rejeitar somente esta remediação. Nova repetição de `S06-HG-001`/`006`, Human Gate final, promoção e transição exigem autorizações posteriores separadas.
 - Aprovador: Bruno autorizou a implementação; a aceitação humana do resultado não foi inferida.
 
+## 2026-07-20 — Aceitação da segunda remediação test-only de estabilidade e runner persistente
+
+- Estado anterior: `STATE-06 INTEGRATION`, segunda remediação do commit `9d65426` tecnicamente concluída, Quality Gate próprio `APROVADO`, aceitação humana pendente e campanha humana `BLOQUEADA`.
+- Estado resultante: sem transição; `STATE-06 INTEGRATION` mantido. A remediação foi aceita com as limitações registradas; `S06-HG-001` e `S06-HG-006` continuam bloqueadas e não foram repetidas.
+- Decisão: Bruno declarou exatamente `Remediação STATE-06 Final Human Samples Test-only Presentation Stability and Persistent Review Runner, commit 9d65426: ACEITA COM AS LIMITAÇÕES REGISTRADAS. AUTORIZO exclusivamente o registro factual desta decisão. Não autorizo repetição das amostras humanas, Human Gate final, runtime operacional, promoção nem transição de estado.`
+- Evidências revisadas: [relatório da segunda remediação](../../docs/STATE-06-Final-Human-Samples-Second-Test-Only-Remediation-Report.md), principalmente resultado em linguagem simples, sequência E2E observada, limitações e condições residuais e classificação dos gates; commit `9d65426`; decisão explícita de Bruno nesta sessão.
+- Efeito: Quality Gate próprio e limitações aceitos; nenhuma reclassificação retroativa da campanha humana; `S06-HG-002` a `S06-HG-005` permanecem aprovadas e `S06-HG-001`/`006` permanecem bloqueadas.
+- Autoridade: exclusivamente o registro factual desta decisão. Repetição humana, Human Gate final, runtime operacional, promoção e transição permanecem não autorizados.
+- Shutdown preflight: branch `main`, commit `9d654262d7a451d82f049350c99b903f5da1d226`, worktree limpa e zero processo, listener ou root temporário pertencente ao DB-Notifier antes desta alteração documental; nenhum processo ou recurso alheio foi encerrado.
+- Escopo desta ação: somente quatro documentos Markdown factuais; nenhum código, configuração executável, solução, projeto, package, lockfile, migration, build, teste de produto, browser ou runtime foi alterado ou executado.
+- Gates documentais: documentação aprovada para `284` arquivos comment-capable; `485` links Markdown locais em `110` arquivos aprovados; secret scan do worktree não ignorado aprovado; escopo documental e `git diff --check` aprovados. Build, testes de produto, browser e runtime são `NÃO APLICÁVEIS` e não foram executados.
+- Gates: Quality Gate próprio da remediação `APROVADO` e aceito com limitações; campanha humana `BLOQUEADA`; Human Gate final não aberto; promoção e transição não autorizadas.
+- Próxima atividade: nenhuma ação técnica está autorizada por este registro. Se Bruno desejar continuar, deverá autorizar separadamente a repetição exclusiva de `S06-HG-001` e `S06-HG-006`; as quatro amostras já aprovadas não devem ser repetidas.
+- Aprovador: Bruno, 2026-07-20, exclusivamente para aceitar a remediação e registrar essa decisão.
+
 ## Template de nova entrada
 
 - Data:
