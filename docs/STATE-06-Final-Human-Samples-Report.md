@@ -216,4 +216,4 @@ Bruno autorizou posteriormente a [remediação test-only das duas amostras bloqu
 
 O harness consegue agora congelar transporte Agent disponível, indisponível com exatamente uma observação pendente e recuperado com replay único, mantendo browser → API disponível. Uma fonte test-only separada apresenta `unknown` corrente e `stale` como textos distintos pela API/Dashboard TV sandbox existente, com suporte planejado e origem sintética.
 
-Esse resultado técnico não reescreve a campanha acima: `S06-HG-001` e `S06-HG-006` continuam `BLOQUEADAS` até repetição humana separadamente autorizada e decidida. A remediação aguarda sua própria aceitação humana; repetição das amostras, Human Gate final, promoção e transição continuam não autorizados.
+Esse resultado técnico não reescreve a campanha acima: `S06-HG-001` e `S06-HG-006` continuam `BLOQUEADAS` até repetição humana separadamente autorizada e decidida. Bruno aceitou a remediação do commit `dd420d1` com as limitações registradas, autorizando exclusivamente o registro factual dessa decisão. Repetição das amostras, Human Gate final, promoção e transição continuam não autorizados.

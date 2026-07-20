@@ -191,8 +191,14 @@ A auditoria npm offline não prova advisories publicados depois do conteúdo exi
 | Human Gate final | `PENDENTE` e não aberto |
 | runtime operacional, promoção e transição | `NÃO AUTORIZADOS` |
 
+## Decisão humana da remediação
+
+Depois de solicitar e receber a leitura direta deste relatório, principalmente de `Resultado em linguagem simples`, `Sequência E2E observada`, `Limitações e condições residuais` e `Classificação dos gates`, Bruno declarou em 2026-07-20:
+
+> Remediação STATE-06 Final Human Samples Test-only Evidence, commit dd420d1: ACEITA COM AS LIMITAÇÕES REGISTRADAS. AUTORIZO exclusivamente o registro factual desta decisão. Não autorizo repetição das amostras humanas, Human Gate final, runtime operacional, promoção nem transição de estado.
+
+Essa decisão aceita somente o resultado e as limitações desta remediação. Ela não altera retroativamente a campanha humana, não aprova `S06-HG-001` ou `S06-HG-006` e não concede autoridade para abrir sua repetição.
+
 ## Próxima atividade
 
-A próxima atividade é a revisão humana deste relatório e do diff test-only. Essa decisão pode aceitar ou solicitar remediação deste incremento, mas não deve autorizar junto a repetição das amostras.
-
-Somente depois de uma aceitação explícita desta remediação poderá ser solicitada uma autorização separada para repetir exclusivamente `S06-HG-001` e `S06-HG-006`. As quatro amostras já aprovadas não devem ser repetidas. Mesmo que as duas repetições sejam aprovadas, o Human Gate final continuará sendo uma decisão posterior e independente.
+A remediação já foi aceita e nenhuma ação técnica está autorizada por essa aceitação. Se Bruno desejar continuar, a próxima atividade será solicitar ou conceder separadamente autorização para repetir exclusivamente `S06-HG-001` e `S06-HG-006`. As quatro amostras já aprovadas não devem ser repetidas. Mesmo que as duas repetições sejam aprovadas, o Human Gate final continuará sendo uma decisão posterior e independente.
