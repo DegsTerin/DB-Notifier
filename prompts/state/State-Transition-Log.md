@@ -2239,6 +2239,20 @@
 - Próxima decisão: Bruno deverá revisar o relatório factual. Uma eventual aceitação poderá autorizar separadamente somente uma proposta documental para o Human Gate final; não abrirá o gate, promoção ou transição.
 - Aprovador: Bruno, exclusivamente para `S06-HG-001` e `S06-HG-006`; nenhuma decisão de Human Gate final foi inferida.
 
+## 2026-07-20 — Aceitação da repetição final e proposta documental do Human Gate final
+
+- Estado anterior: `STATE-06 INTEGRATION`, Quality Gate consolidado aprovado e aceito, seis amostras com decisões individuais `APROVADA`, relatório da repetição final `10a8249` aguardando aceitação e Human Gate final pendente.
+- Estado resultante: sem transição; `STATE-06 INTEGRATION` mantido. O relatório humano foi aceito com as limitações registradas e a proposta documental do Human Gate final foi concluída; o gate continua `PENDENTE` e não aberto.
+- Decisão: Bruno declarou exatamente `Repetição final das amostras humanas S06-HG-001 e S06-HG-006 do STATE-06 na baseline 129b9fd, relatório commit 10a8249: ACEITA COM AS LIMITAÇÕES REGISTRADAS. AUTORIZO exclusivamente a elaboração de uma proposta documental para o Human Gate final do STATE-06, sem execução, runtime, browser, promoção ou transição de estado.`
+- Baseline: branch `main`, commit `10a82498d9c04a6eb7a61c08d20af4775bcd9f92`, worktree limpa e shutdown preflight com zero processo, listener ou root STATE-06 pertencente ao DB-Notifier.
+- Inspeção de governança: `Quality-Gates.md`, `Lifecycle.md`, `Governance.md`, template de Human Gate e plano consolidado confirmam que a decisão deve nomear um único estado, incluir relatório automático, amostras, cobertura pendente e ressalvas e permanecer separada da transição.
+- Proposta: [Human Gate final do STATE-06](../../docs/STATE-06-Final-Human-Gate-Proposal.md), com baseline, evidência automática, seis amostras, limitações obrigatórias, elegibilidade, formato das três decisões possíveis, condições de parada e autorização futura separada.
+- Autoridade: somente documentação. Nenhum build, teste, runtime, browser, WPF, acesso externo, correção, promoção ou transição foi autorizado ou executado.
+- Gates documentais: documentação aprovada para `284` arquivos comment-capable; `500` links Markdown locais em `112` arquivos aprovados; secret scan do worktree não ignorado, escopo exclusivo de seis documentos e `git diff --check` aprovados.
+- Gates: Human Gate final `PENDENTE` e não aberto; runtime operacional, MOD-12 `none → OBSERVER`, `STATE-07`, promoção e transição não autorizados.
+- Próxima decisão: Bruno deverá revisar a proposta. Se concordar, poderá copiar somente o texto de `Decisão futura de Bruno` para autorizar a abertura documental e apresentação do resumo; essa autorização ainda não decidirá o gate.
+- Aprovador: Bruno, exclusivamente para aceitar a repetição humana e elaborar a proposta documental.
+
 ## Template de nova entrada
 
 - Data:

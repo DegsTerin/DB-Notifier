@@ -147,6 +147,8 @@ Depois de cada sessão foram confirmados:
 
 ## Próxima atividade
 
-Nenhuma nova execução está autorizada por esta repetição. Bruno deverá primeiro revisar este relatório e decidir se aceita o resultado e as limitações registradas.
+Bruno revisou este relatório e declarou em 2026-07-20:
 
-Depois dessa aceitação, a próxima atividade segura será exclusivamente uma proposta documental para o Human Gate final do `STATE-06`. O próprio Human Gate, qualquer promoção e qualquer transição continuarão exigindo decisões posteriores e separadas.
+> Repetição final das amostras humanas S06-HG-001 e S06-HG-006 do STATE-06 na baseline 129b9fd, relatório commit 10a8249: ACEITA COM AS LIMITAÇÕES REGISTRADAS. AUTORIZO exclusivamente a elaboração de uma proposta documental para o Human Gate final do STATE-06, sem execução, runtime, browser, promoção ou transição de estado.
+
+A aceitação confirma somente o resultado e as limitações desta repetição. A autoridade adicional foi consumida exclusivamente pela [proposta documental do Human Gate final](STATE-06-Final-Human-Gate-Proposal.md). O próprio gate permanece `PENDENTE`; promoção e transição continuam decisões posteriores e separadas.
