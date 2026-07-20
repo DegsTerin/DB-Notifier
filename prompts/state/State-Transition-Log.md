@@ -1957,6 +1957,20 @@
 - Próxima decisão: Bruno pode revisar, pedir alterações, adiar ou emitir separadamente o texto da seção `Decisão futura de Bruno`. A proposta não inicia sua própria campanha.
 - Aprovador: não aplicável; registro de solicitação e proposta, não autorização de execução.
 
+## 2026-07-19 — Proposta executiva e técnica do programa MOD-12 AIOps operacional
+
+- Estado anterior: `STATE-06 INTEGRATION`, nenhum modo MOD-12 ativo, `none → OBSERVER` pendente, `ADR-0007` `proposed` e nenhum novo incremento MOD-12 autorizado.
+- Estado resultante: sem transição; `STATE-06 INTEGRATION`, modos e `ADR-0007` inalterados, com proposta do programa AIOps e do primeiro incremento restrito O1 pronta para revisão.
+- Autorização: Bruno declarou exatamente `Autorizo a elaboração da proposta executiva e técnica para tornar o MOD-12 uma AIOps operacional completa, começando pelo incremento restrito do OBSERVER, sem ativação automática, LLM, recomendações ou execução nesta primeira autorização.`
+- Proposta: definição verificável de AIOps completa, arquitetura-alvo, separação dos modos, programa `O1`–`O5`, trilhas futuras `ADVISOR`/`ASSISTANT`/`CONTROLLED_AUTOMATION`, estratégia provider-neutral, recomendação não vinculante de PostgreSQL como primeira homologação futura, segurança, métricas, riscos, decisões abertas e gates independentes.
+- Primeiro incremento proposto: `MOD-12 O1 — Durable Trust Continuity and Resource Admission Sandbox`, limitado a trust/checkpoint/resource coordinator host-side em sandbox local, sem telemetria, provider, runtime normal, LLM, recomendação, plano, comando, executor ou promoção.
+- Autoridade preservada: exclusivamente documentação. A proposta não adota `ADR-0007`, não autoriza O1, código/configuração executável, migration, package, build/teste de produto, runtime, browser, acesso externo, banco/provider real, UI, ativação, Human Gate, promoção ou transição.
+- Shutdown preflight: `Stopped=0`, `RemainingProjectOwned=0`, `OwnedListeners=0` e `DedicatedReviewBrowsers=0`; a janela do VS Code do usuário, PID `12932`, foi identificada e preservada.
+- Gates documentais: documentação aprovada para `279` fontes comment-capable; `430` links Markdown locais em `98` arquivos aprovados; secret scan do worktree não ignorado e histórico disponível aprovado; `git diff --check` aprovado. Build, testes, cobertura e runtime de produto são `NÃO APLICÁVEIS` e não foram executados.
+- Evidência: [proposta do programa MOD-12](../../docs/STATE-06-MOD-12-Operational-AIOps-Programme-And-Restricted-Observer-Proposal.md), [estado corrente](Current-State.md), [guardrails](../../docs/architecture/AIOps-Architecture-Guardrails.md), [ADR-0007 proposto](../../docs/architecture/ADR-0007-AIOps-Trust-Distribution-And-Resource-Admission.md) e [contrato documental de confiança/recursos](../../docs/architecture/AIOps-Trust-Governance-And-Resource-Envelope.md).
+- Próxima decisão: Bruno pode responder `ACEITA COMO DIREÇÃO`, `ACEITA COM RESSALVAS`, `AJUSTES SOLICITADOS` ou `REJEITADA`. Aceitação da proposta não autoriza implementação; adoção/ajuste do `ADR-0007` e eventual O1 exigem decisões posteriores, separadas e explícitas.
+- Aprovador: não aplicável; esta entrada registra autorização e produção da proposta, não decisão sobre seu conteúdo nem Human Gate.
+
 ## Template de nova entrada
 
 - Data:
