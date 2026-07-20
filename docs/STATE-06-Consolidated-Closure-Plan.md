@@ -360,7 +360,7 @@ Nenhuma execução é autorizada pelo plano em si. Autorizações separadas conc
 3. proposta documental, implementação restrita e aceitação humana própria da remediação concluídas;
 4. proposta documental da repetição, autorização e execução concluídas; Quality Gate repetido `REPROVADO`;
 5. revisar o [relatório da repetição](STATE-06-Consolidated-Quality-Gate-Rerun-Report.md) sem inferir aprovação;
-6. propor e autorizar separadamente a remediação do achado `finalising-revocation`, sem iniciar amostra humana;
+6. proposta documental de remediação do achado `finalising-revocation` concluída; revisar e, somente se Bruno concordar, autorizar separadamente o incremento restrito, sem iniciar amostra humana;
 7. depois da remediação aceita, autorizar e repetir novamente a campanha automática;
 8. somente com Quality Gate aprovado, autorizar separadamente as amostras humanas;
 9. decidir o Human Gate do `STATE-06`;

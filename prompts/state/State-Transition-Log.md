@@ -1988,6 +1988,21 @@
 - Próxima atividade: Bruno deve revisar o relatório; se desejar continuar, poderá solicitar uma proposta exclusivamente documental de remediação do achado `finalising-revocation`. Human Gate final e amostras humanas não podem começar enquanto o Quality Gate estiver `REPROVADO`.
 - Aprovador: Bruno autorizou a campanha; a classificação `REPROVADO` é automática e nenhuma decisão humana sobre o resultado foi inferida.
 
+## 2026-07-20 — Proposta documental de remediação de `finalising-revocation`
+
+- Estado anterior: `STATE-06 INTEGRATION`, Quality Gate consolidado repetido `REPROVADO`, achado alto em `finalising-revocation` e Human Gate final não aberto.
+- Estado resultante: sem transição; `STATE-06 INTEGRATION` e classificação `REPROVADO` mantidos, com proposta documental pronta para revisão.
+- Autorização: Bruno declarou ciência do relatório `c50eef5` e autorizou exclusivamente elaborar a proposta de remediação, proibindo implementação, runtime, acesso externo, nova campanha, amostra humana, promoção e transição.
+- Shutdown preflight: branch `main`, commit `c50eef5`, worktree limpa, zero processo, listener ou navegador dedicado pertencente ao DB-Notifier; nenhum processo alheio foi encerrado.
+- Inspeção read-only: os quatro artefatos técnicos relevantes possuem blobs idênticos em `66d0a9f` e no `HEAD`; o estágio agregado contém revogação, heartbeat, assignments e asserções, impedindo atribuir a causa a uma fronteira exata. A revogação central é transacional; autenticação consulta estado ativo; heartbeat negado persiste `RevokedOrDenied`; assignments posterior pode falhar localmente antes do transporte.
+- Proposta: granularidade de estágios, envelope de falha sanitizado, prova separada de commit central/negação server-side/quarentena local, matriz de barriers determinísticos `R1`–`R7`, fencing, relógio controlado e árvore de decisão que permite correção apenas em `tests/`/`scripts/`.
+- Condição de parada: qualquer causa que exija `src/`, solução, projeto, package, lockfile, migration, acesso externo ou recurso operacional deverá bloquear o incremento futuro e voltar para autorização separada.
+- Autoridade corrente: somente documentação. Nenhum código, configuração executável, build, teste, runtime, browser ou acesso externo foi executado ou alterado.
+- Gates: Quality Gate consolidado permanece `REPROVADO`; Human Gate final não aberto; implementação, nova campanha, amostra humana, promoção e transição não inferidas.
+- Evidência: [proposta de remediação](../../docs/STATE-06-Consolidated-Revocation-Finalisation-Remediation-Proposal.md), [relatório reprovado](../../docs/STATE-06-Consolidated-Quality-Gate-Rerun-Report.md), inspeção read-only do commit `66d0a9f` e autorização explícita de Bruno.
+- Próxima decisão: Bruno pode pedir ajustes, adiar ou enviar exatamente o texto da seção `Decisão futura de Bruno`. A proposta não autoriza sua própria implementação.
+- Aprovador: não aplicável; registro de solicitação e proposta, não Human Gate nem autorização de implementação.
+
 ## Template de nova entrada
 
 - Data:
