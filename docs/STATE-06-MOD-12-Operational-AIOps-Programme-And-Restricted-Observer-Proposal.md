@@ -7,7 +7,7 @@
 - Estado dos modos MOD-12: nenhum modo ativo; `none → OBSERVER` permanece pendente.
 - Estado do `ADR-0007`: `proposed`; esta proposta não o adota nem altera seu estado.
 - Autoridade: Bruno autorizou exclusivamente a elaboração da proposta executiva e técnica para tornar o MOD-12 uma AIOps operacional completa, começando por um incremento restrito do `OBSERVER`.
-- Disposição: `PROPOSTA PARA REVISÃO`; não é autorização de implementação nem decisão de Human Gate.
+- Disposição: `ACEITA COMO DIREÇÃO` por Bruno em 2026-07-20; não é autorização de implementação nem decisão de Human Gate.
 
 A autorização corrente permite produzir e validar este documento. Ela não permite alterar código, contratos executáveis, configuração, migrations, packages, lockfiles, runtime ou interfaces; criar ou persistir dados AIOps; conectar a banco/provider real; usar LLM; emitir recomendação ou plano; criar comando; executar ação; ativar `OBSERVER`; promover modo; homologar provider; avançar o ciclo de vida; instalar, publicar ou acessar serviço externo.
 
@@ -381,6 +381,20 @@ Bruno deverá revisar principalmente:
 5. as decisões ainda abertas e a separação dos gates.
 
 As decisões válidas para esta proposta são `ACEITA COMO DIREÇÃO`, `ACEITA COM RESSALVAS`, `AJUSTES SOLICITADOS` ou `REJEITADA`. Aceitar a proposta não autoriza implementação. Depois de uma aceitação, a decisão técnica seguinte será revisar/adotar o `ADR-0007` e, separadamente, autorizar ou não o O1 com seus limites exatos.
+
+## Decisão posterior de Bruno
+
+Depois da revisão da definição de conclusão, da sequência dos modos, do escopo do O1 e da recomendação não vinculante sobre PostgreSQL, Bruno respondeu exatamente `ACEITA COMO DIREÇÃO` em 2026-07-20.
+
+Essa decisão aceita como direção estratégica e técnica:
+
+- a definição verificável de AIOps operacional completa;
+- a sequência `OBSERVER → ADVISOR → ASSISTANT → CONTROLLED_AUTOMATION`;
+- o programa `O1`–`O5` e as fronteiras propostas para o primeiro incremento restrito;
+- a permanência da arquitetura provider-neutral; e
+- PostgreSQL somente como candidato recomendado para a primeira homologação futura, sem decisão de suporte ou execução.
+
+A decisão não adota o `ADR-0007`, não autoriza implementação do O1, não ativa `OBSERVER`, não homologa PostgreSQL/provider, não usa LLM, não cria recomendação/plano/executor e não promove estado ou modo. A próxima decisão técnica do MOD-12 é separada: adoção, ajuste ou rejeição formal do `ADR-0007`. Uma eventual implementação do O1 ainda dependerá de autorização posterior, explícita e limitada.
 
 ## Referências
 

@@ -2284,6 +2284,20 @@
 - Próxima decisão: Bruno deverá revisar a proposta e, se concordar, enviar exatamente a autorização futura nela contida. Qualquer campanha de `STATE-07` continuará dependendo de autoridade posterior própria.
 - Aprovador: Bruno, exclusivamente para elaborar esta proposta documental.
 
+## 2026-07-20 — Aceitação como direção da proposta MOD-12 AIOps operacional
+
+- Estado anterior: `STATE-06 INTEGRATION`, proposta executiva/técnica do programa MOD-12 pronta para revisão, nenhum modo AIOps ativo, `ADR-0007` `proposed` e O1 não autorizado.
+- Estado resultante: sem transição; `STATE-06 INTEGRATION` mantido. A proposta MOD-12 foi aceita como direção estratégica e técnica, sem efeito executivo.
+- Revisão: Bruno solicitou revisão da definição de conclusão, sequência dos modos, escopo do O1 e recomendação sobre PostgreSQL; em seguida respondeu exatamente `ACEITA COMO DIREÇÃO`.
+- Decisão aceita: definição verificável de AIOps completa; sequência `OBSERVER → ADVISOR → ASSISTANT → CONTROLLED_AUTOMATION`; programa `O1`–`O5`; arquitetura provider-neutral; e PostgreSQL apenas como candidato recomendado à primeira homologação futura.
+- Limites: a decisão não adota `ADR-0007`, não autoriza O1, código/configuração executável, migration, package, build/teste de produto, runtime, browser, acesso externo, telemetria/provider/banco real, LLM, recomendação, plano, executor, `none → OBSERVER`, promoção ou transição. A proposta de `STATE-06 → STATE-07` permanece separada e pendente.
+- Shutdown preflight: branch `main`, commit `45fb3d3`, worktree limpa, `Stopped=0`, `RemainingProjectOwned=0`, `OwnedListeners=0`, `BlockingProjectWindows=0` e `DedicatedReviewBrowsers=0`; nenhum processo ou recurso alheio foi encerrado.
+- Escopo desta ação: somente três documentos Markdown factuais; nenhum artefato executável ou runtime foi alterado ou executado.
+- Gates documentais: documentação aprovada para `284` arquivos comment-capable; `517` links Markdown locais em `114` arquivos aprovados; secret scan do worktree não ignorado e histórico disponível aprovado; escopo documental e `git diff --check` aprovados. Build, testes, cobertura e runtime de produto são `NÃO APLICÁVEIS` e não foram executados.
+- Evidência: [proposta MOD-12 aceita como direção](../../docs/STATE-06-MOD-12-Operational-AIOps-Programme-And-Restricted-Observer-Proposal.md), [estado corrente](Current-State.md) e [ADR-0007 ainda proposto](../../docs/architecture/ADR-0007-AIOps-Trust-Distribution-And-Resource-Admission.md).
+- Próxima decisão MOD-12: adoção, ajuste ou rejeição formal do `ADR-0007`, separada de qualquer autorização de implementação. A próxima decisão de ciclo de vida continua sendo a eventual transição formal `STATE-06 → STATE-07` por sua proposta própria.
+- Aprovador: Bruno, 2026-07-20, exclusivamente para aceitar a proposta como direção.
+
 ## Template de nova entrada
 
 - Data:
