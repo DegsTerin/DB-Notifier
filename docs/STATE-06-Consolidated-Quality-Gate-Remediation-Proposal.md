@@ -13,7 +13,7 @@ Esta proposta não corrige o bloqueio. Ela delimita uma remediação futura que 
 
 ## Atualização factual posterior
 
-Bruno autorizou separadamente a implementação restrita em 2026-07-19. A remediação foi concluída localmente no escopo autorizado e está descrita no [relatório factual da remediação](STATE-06-Consolidated-E2E-Evidence-Harness-And-Deterministic-Gate-Remediation-Report.md). Essa conclusão não repete nem aprova a Campanha Consolidada, não abre o Human Gate final e não promove nem transiciona o estado.
+Bruno autorizou separadamente a implementação restrita em 2026-07-19. A remediação foi concluída localmente no commit `ac12791`, está descrita no [relatório factual da remediação](STATE-06-Consolidated-E2E-Evidence-Harness-And-Deterministic-Gate-Remediation-Report.md) e foi aceita por Bruno com as limitações registradas. Essa aceitação não repete nem aprova a Campanha Consolidada, não autoriza amostra humana, não abre o Human Gate final e não promove nem transiciona o estado.
 
 ## Resultado em linguagem simples
 

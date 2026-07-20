@@ -1926,6 +1926,21 @@
 - Próxima decisão: Bruno deve revisar e aceitar com limitações, solicitar remediação delimitada ou rejeitar somente esta remediação. Uma nova Campanha Consolidada continuará exigindo autorização posterior, separada e explícita.
 - Aprovador: Bruno autorizou a execução; a revisão humana própria do resultado não foi inferida.
 
+## 2026-07-19 — Aceitação da remediação Consolidated E2E Evidence Harness and Deterministic Gate
+
+- Estado anterior: `STATE-06 INTEGRATION`, remediação do commit `ac12791` tecnicamente concluída, Quality Gate automático restrito aprovado, Human Gate próprio pendente e Campanha Consolidada histórica bloqueada.
+- Estado resultante: sem transição; `STATE-06 INTEGRATION` mantido e Human Gate próprio da remediação aceito com as limitações registradas. A campanha histórica continua `BLOQUEADA`.
+- Decisão: Bruno declarou exatamente `Remediação STATE-06 Consolidated E2E Evidence Harness and Deterministic Gate, commit ac12791: ACEITA COM AS LIMITAÇÕES REGISTRADAS. AUTORIZO exclusivamente o registro factual desta decisão. Não autorizo nova Campanha Consolidada, amostra humana, Human Gate final, runtime operacional, promoção nem transição de estado.`
+- Evidências revisadas: [relatório da remediação](../../docs/STATE-06-Consolidated-E2E-Evidence-Harness-And-Deterministic-Gate-Remediation-Report.md), especialmente resultado em linguagem simples, sequência E2E observada, limitações e condições residuais e classificação dos gates; commit `ac12791`; decisão explícita de Bruno nesta sessão.
+- Limitações aceitas: somente dados, certificados, identidades, SQLite e sink sintéticos; listeners HTTPS loopback; Chrome único; SignalR apenas como hint; transporte restrito a persistência/acknowledgement com zero `CommandAttempt`; ausência de sizing, fairness de frota, PostgreSQL/provider/IdP/PKI/vault e runtime operacionais; a remediação não reclassifica a campanha histórica.
+- Autoridade: exclusivamente o registro factual desta decisão. Nova Campanha Consolidada, amostra humana, Human Gate final, runtime operacional, promoção e transição permanecem não autorizados.
+- Shutdown preflight: zero processo e zero listener pertencente ao DB-Notifier antes desta alteração documental; nenhum processo ou recurso alheio foi encerrado.
+- Escopo desta ação: somente cinco documentos Markdown factuais; nenhum código, projeto, configuração executável, package, lockfile, migration, build, teste de produto, browser ou runtime foi alterado ou executado.
+- Gates documentais deste registro: documentação aprovada para `279` fontes comment-capable; `408` links Markdown locais em `96` arquivos aprovados; secret scan do worktree não ignorado e histórico disponível aprovado; inspeção de escopo, `git diff --check` e `git diff --cached --check` aprovados. Build, testes e runtime de produto são `NÃO APLICÁVEIS` e não foram executados.
+- Gates: Quality Gate automático restrito da remediação `APROVADO`; Human Gate próprio `ACEITO COM AS LIMITAÇÕES REGISTRADAS`; Campanha Consolidada histórica `BLOQUEADA`; Human Gate final do `STATE-06` não aberto; promoção e transição não autorizadas.
+- Próxima atividade: nenhuma atividade técnica está autorizada ou é exigida. Se Bruno desejar continuar, deverá solicitar ou autorizar separadamente uma nova Campanha Consolidada no commit corrente; o registro desta aceitação não concede essa autoridade.
+- Aprovador: Bruno, 2026-07-19.
+
 ## Template de nova entrada
 
 - Data:

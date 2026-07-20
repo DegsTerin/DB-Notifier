@@ -8,6 +8,7 @@
 - Entrega: commit local que contém este relatório.
 - Autoridade: remediação local e isolada autorizada textualmente por Bruno.
 - Classificação automática deste incremento: `APROVADO`.
+- Human Gate próprio desta remediação: `ACEITO COM AS LIMITAÇÕES REGISTRADAS` por Bruno em 2026-07-19.
 - Campanha Consolidada histórica: continua `BLOQUEADA`; não foi repetida.
 - Human Gate final, promoção e transição: não abertos, não autorizados e não inferidos.
 
@@ -104,18 +105,14 @@ Windows PowerShell `5.1.26100.8875` recusou o runner consolidado com `ScriptRequ
 - Contrato PowerShell e cleanup: `APROVADO`.
 - Quality Gate da remediação: `APROVADO`.
 - Campanha Consolidada histórica: `BLOQUEADO`, sem reclassificação automática.
-- Human Gate próprio desta remediação: `PENDENTE`.
+- Human Gate próprio desta remediação: `ACEITO COM AS LIMITAÇÕES REGISTRADAS` por Bruno em 2026-07-19.
 - Human Gate final do `STATE-06`: `NÃO ABERTO`.
 - Promoção/transição: `NÃO AUTORIZADAS`.
 
-## Próximo passo para Bruno
+## Decisão humana registrada
 
-1. Abra este relatório e leia principalmente `Resultado em linguagem simples`, `Sequência E2E observada`, `Limitações e condições residuais` e `Classificação dos gates`.
-2. Se encontrar algo que não aceita, responda indicando somente o ponto a corrigir. Uma correção técnica exigirá autorização delimitada se ultrapassar o registro factual.
-3. Se concordar, aceite somente esta remediação com as limitações registradas e autorize apenas o registro factual da decisão.
-4. Não autorize na mesma resposta a nova Campanha Consolidada, o Human Gate final, promoção ou transição. Essas atividades permanecem separadas.
-5. Depois da aceitação desta remediação, o próximo trabalho possível será uma proposta ou autorização separada para repetir a Campanha Consolidada no commit corrente.
+Depois de solicitar e receber a leitura direta deste relatório, principalmente de `Resultado em linguagem simples`, `Sequência E2E observada`, `Limitações e condições residuais` e `Classificação dos gates`, Bruno declarou em 2026-07-19:
 
-Texto sugerido para uma decisão de aceitação, se refletir a decisão real de Bruno:
+> Remediação STATE-06 Consolidated E2E Evidence Harness and Deterministic Gate, commit ac12791: ACEITA COM AS LIMITAÇÕES REGISTRADAS. AUTORIZO exclusivamente o registro factual desta decisão. Não autorizo nova Campanha Consolidada, amostra humana, Human Gate final, runtime operacional, promoção nem transição de estado.
 
-> Remediação STATE-06 Consolidated E2E Evidence Harness and Deterministic Gate, commit informado no hand-off: ACEITA COM AS LIMITAÇÕES REGISTRADAS. AUTORIZO exclusivamente o registro factual desta decisão. Não autorizo nova Campanha Consolidada, amostra humana, Human Gate final, runtime operacional, promoção nem transição de estado.
+Essa decisão encerra somente o Human Gate próprio da remediação e aceita suas limitações documentadas. O `STATE-06 INTEGRATION` permanece inalterado; a Campanha Consolidada histórica continua `BLOQUEADA`, e nova campanha, amostra humana, Human Gate final, runtime operacional, promoção e transição continuam não autorizados.
