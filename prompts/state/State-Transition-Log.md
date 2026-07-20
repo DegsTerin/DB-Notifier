@@ -2051,6 +2051,26 @@
 - Próxima decisão: Bruno pode solicitar ajustes, adiar ou enviar exatamente o texto da seção `Decisão futura de Bruno`. A proposta não inicia sua própria campanha.
 - Aprovador: não aplicável; registro de solicitação e proposta, não autorização de execução.
 
+## 2026-07-20 — Nova repetição da Campanha Consolidada pós-remediação de revogação
+
+- Estado anterior: `STATE-06 INTEGRATION`, repetição anterior `REPROVADA`, remediação `f9bb567` aceita, proposta `84217c6` pronta e campanha ainda não executada.
+- Estado resultante: sem transição; `STATE-06 INTEGRATION` mantido e Quality Gate consolidado da baseline `84217c6` classificado `APROVADO`. Amostra humana e Human Gate final continuam não autorizados.
+- Autorização: Bruno autorizou somente shutdown, baseline read-only, gates offline, build/testes/cobertura, R1–R7, harnesses sandbox seriais, Chrome dedicado, revogação granular, EF, PowerShell, cleanup e relatório factual, sem correção ou acesso externo.
+- Baseline: branch `main`, commit `84217c64312a024ec4f286adfe4872184a21849c`, worktree limpa, `f9bb567`/`67e0187` ancestrais e zero mudança técnica posterior a `f9bb567`.
+- Gates gerais: build Release de `17` projetos com zero erro/warning; `332/332` unitários, `30/30` arquitetura, `16/16` integração; cobertura `78,9%/49,51%`; Dashboard `60/60`; Pester `23` aprovados, `1` skip esperado e `32,08%`; formatação, bundle, NuGet sintético, assets, links, secrets e auditorias offline aprovados.
+- Persistência/runtime normal: ambos os contextos sem model drift; zero warning EF `10102`; smoke com live `200`, protegidos `426`, quatro workers desabilitados e nenhuma persistência Agent inicializada; zero referência do host consolidado sob `src/`.
+- Evidência correlacionada: `2` observações, `1` entrega, `2` journals, `0` `CommandAttempt`, `1/1` certificado revogado, fences `3 → 4`, snapshot concurrency `1`, zero HTTP externo e `operationalData=false`.
+- Regressões: Agent Fleet/pipeline/comando/R1–R7 `10/10`, Dashboard/SignalR `4/4`, notificação `2/2`; runner browser passou todos os cenários com `1.248` requests locais, `27` WebSockets e zero origem externa.
+- PowerShell: os dois runners modernos recusaram Windows PowerShell 5.1 com exit `1` e `ScriptRequiresUnmatchedPSVersion=true` antes de criar recursos; execução autorizada ocorreu em PowerShell 7.
+- Cleanup: zero processo, listener, profile, store ou root pertencente à campanha permaneceu; um root de cobertura datado de 2026-07-19 foi preservado como preexistente; worktree limpa antes do relatório.
+- Achados: nenhum crítico, alto ou médio aberto. O matcher inicial incluiu o próprio auditor e foi corrigido apenas na consulta; a auditoria offline e o root preexistente permanecem limitações factuais.
+- Escopo: nenhum código, configuração executável, solução, projeto, package, lockfile ou migration foi alterado; nenhum recurso operacional, comando, notificação Windows, acesso externo, deploy, amostra humana, promoção ou transição ocorreu.
+- Gates documentais da entrega: documentação aprovada para `280` fontes comment-capable; `451` links Markdown locais em `103` arquivos aprovados; secret scan, escopo exclusivo de cinco documentos e `git diff --check` aprovados.
+- Evidência: [relatório da nova repetição](../../docs/STATE-06-Consolidated-Quality-Gate-Post-Revocation-Remediation-Rerun-Report.md), [proposta autorizada](../../docs/STATE-06-Consolidated-Quality-Gate-Post-Revocation-Remediation-Rerun-Proposal.md), relatório anterior `REPROVADO` e outputs sanitizados da campanha.
+- Gates: Quality Gate consolidado atual `APROVADO`; repetição anterior `REPROVADA` historicamente; primeira campanha `BLOQUEADA` historicamente; amostra humana, Human Gate final, promoção e transição não autorizados.
+- Próxima decisão: Bruno deve revisar o relatório. Se aceitar a classificação e desejar continuar, poderá autorizar separadamente somente uma proposta documental de amostras humanas finais; este registro não abre essas amostras.
+- Aprovador: classificação automática; decisão humana sobre este relatório ainda não inferida.
+
 ## Template de nova entrada
 
 - Data:

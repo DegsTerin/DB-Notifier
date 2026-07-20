@@ -1,5 +1,7 @@
 # Proposta STATE-06 — Nova repetição da Campanha Consolidada após remediação de revogação
 
+> Execução posterior: Bruno autorizou separadamente a campanha no commit `84217c6`. A execução terminou `APROVADA` em 2026-07-20 e está preservada no [relatório factual pós-remediação](STATE-06-Consolidated-Quality-Gate-Post-Revocation-Remediation-Rerun-Report.md). O texto abaixo permanece como delimitação histórica da proposta e não autoriza nova execução, amostra humana, Human Gate, promoção ou transição.
+
 ## Status e autoridade
 
 - Data: 2026-07-20.
