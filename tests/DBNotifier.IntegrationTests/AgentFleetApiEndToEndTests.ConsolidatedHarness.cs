@@ -26,6 +26,11 @@ public sealed partial class AgentFleetApiEndToEndTests
     private const string ConsolidatedAdvanceRoute = "/__dbnotifier-state06-consolidated/advance";
     private const string ConsolidatedFinaliseRoute = "/__dbnotifier-state06-consolidated/finalise";
     private const string ConsolidatedShutdownRoute = "/__dbnotifier-state06-consolidated/shutdown";
+    private const string HumanEvidencePageRoute = "/__dbnotifier-state06-human-remediation/evidence-page";
+    private const string HumanAgentLossRoute = "/__dbnotifier-state06-human-remediation/agent-loss";
+    private const string HumanAgentRecoveryRoute = "/__dbnotifier-state06-human-remediation/agent-recovery";
+    private const string HumanVisualTruthRoute = "/__dbnotifier-state06-human-remediation/visual-truth";
+    private const string HumanCompleteRoute = "/__dbnotifier-state06-human-remediation/complete";
     private const string ConsolidatedRunHeader = "X-DBN-State06-Consolidated-Run";
 
     /// <summary>
@@ -37,6 +42,35 @@ public sealed partial class AgentFleetApiEndToEndTests
     /// <returns>Zero after complete disposal, or an exception for the owning executable to sanitise.</returns>
     public static async Task<int> RunState06ConsolidatedSandboxHostAsync(
         string dashboardRoot,
+        CancellationToken cancellationToken) =>
+        await RunState06ConsolidatedSandboxHostCoreAsync(
+            dashboardRoot,
+            humanRemediationMode: false,
+            cancellationToken);
+
+    /// <summary>
+    /// Starts the exact test-only mode that makes the two blocked final human samples observable without changing
+    /// product composition or pre-filling a human decision.
+    /// </summary>
+    /// <param name="dashboardRoot">Absolute root of the already-built local Dashboard.</param>
+    /// <param name="cancellationToken">Cancellation bounding the temporary host lifetime.</param>
+    /// <returns>Zero after complete disposal, or an exception for the owning executable to sanitise.</returns>
+    public static async Task<int> RunState06FinalHumanSamplesRemediationHostAsync(
+        string dashboardRoot,
+        CancellationToken cancellationToken) =>
+        await RunState06ConsolidatedSandboxHostCoreAsync(
+            dashboardRoot,
+            humanRemediationMode: true,
+            cancellationToken);
+
+    /// <summary>Runs one exact consolidated host mode behind the shared local process boundary.</summary>
+    /// <param name="dashboardRoot">Absolute root of the already-built local Dashboard.</param>
+    /// <param name="humanRemediationMode">Whether only the final-human-sample evidence controls are exposed.</param>
+    /// <param name="cancellationToken">Cancellation bounding the temporary host lifetime.</param>
+    /// <returns>Zero after complete disposal.</returns>
+    private static async Task<int> RunState06ConsolidatedSandboxHostCoreAsync(
+        string dashboardRoot,
+        bool humanRemediationMode,
         CancellationToken cancellationToken)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(dashboardRoot);
@@ -47,7 +81,7 @@ public sealed partial class AgentFleetApiEndToEndTests
             throw new ArgumentException("The consolidated Dashboard root is unavailable.", nameof(dashboardRoot));
         }
 
-        ConsolidatedHarnessState state = new(Guid.NewGuid());
+        ConsolidatedHarnessState state = new(Guid.NewGuid(), humanRemediationMode);
         AgentFleetSandbox? sandbox = null;
         try
         {
@@ -63,6 +97,7 @@ public sealed partial class AgentFleetApiEndToEndTests
                 baseAddress = sandbox.BrowserBaseAddress.AbsoluteUri,
                 spkiPin = sandbox.ServerSubjectPublicKeyInfoPin,
                 runId = state.RunId,
+                mode = humanRemediationMode ? "final-human-samples-remediation" : "consolidated",
             }, JsonOptions));
             await sandbox.WaitForShutdownAsync(cancellationToken);
             return 0;
@@ -92,17 +127,46 @@ public sealed partial class AgentFleetApiEndToEndTests
             .RequireAuthorization(DashboardTvSandboxEndpointRouteBuilderExtensions.ReadPolicy)
             .RequireRateLimiting("HumanApiRateLimit");
 
-        Func<HttpContext, Task<IResult>> advance = context =>
-            ExecuteControlAsync(context, state, state.AdvanceAsync);
-        application.MapPost(ConsolidatedAdvanceRoute, advance)
-            .RequireAuthorization(DashboardTvSandboxEndpointRouteBuilderExtensions.ReadPolicy)
-            .RequireRateLimiting("HumanApiRateLimit");
+        if (state.HumanRemediationMode)
+        {
+            application.MapGet(HumanEvidencePageRoute, (HttpContext context) =>
+            {
+                if (!state.IsExactRun(context))
+                {
+                    return Results.Unauthorized();
+                }
 
-        Func<HttpContext, Task<IResult>> finalise = context =>
-            ExecuteControlAsync(context, state, state.FinaliseAsync);
-        application.MapPost(ConsolidatedFinaliseRoute, finalise)
-            .RequireAuthorization(DashboardTvSandboxEndpointRouteBuilderExtensions.ReadPolicy)
-            .RequireRateLimiting("HumanApiRateLimit");
+                context.Response.Headers["Content-Security-Policy"] =
+                    "default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; " +
+                    "connect-src 'self'; frame-src 'self'; base-uri 'none'; form-action 'none'";
+                context.Response.Headers["X-Content-Type-Options"] = "nosniff";
+                context.Response.Headers["Referrer-Policy"] = "no-referrer";
+                return Results.Content(
+                    ConsolidatedHarnessState.BuildHumanEvidencePage(),
+                    "text/html; charset=utf-8");
+            })
+                .RequireAuthorization(DashboardTvSandboxEndpointRouteBuilderExtensions.ReadPolicy)
+                .RequireRateLimiting("HumanApiRateLimit");
+
+            MapHumanControl(application, HumanAgentLossRoute, state, state.BeginHumanAgentLossAsync);
+            MapHumanControl(application, HumanAgentRecoveryRoute, state, state.RecoverHumanAgentAsync);
+            MapHumanControl(application, HumanVisualTruthRoute, state, state.EnableHumanVisualTruthAsync);
+            MapHumanControl(application, HumanCompleteRoute, state, state.CompleteHumanRemediationAsync);
+        }
+        else
+        {
+            Func<HttpContext, Task<IResult>> advance = context =>
+                ExecuteControlAsync(context, state, state.AdvanceAsync);
+            application.MapPost(ConsolidatedAdvanceRoute, advance)
+                .RequireAuthorization(DashboardTvSandboxEndpointRouteBuilderExtensions.ReadPolicy)
+                .RequireRateLimiting("HumanApiRateLimit");
+
+            Func<HttpContext, Task<IResult>> finalise = context =>
+                ExecuteControlAsync(context, state, state.FinaliseAsync);
+            application.MapPost(ConsolidatedFinaliseRoute, finalise)
+                .RequireAuthorization(DashboardTvSandboxEndpointRouteBuilderExtensions.ReadPolicy)
+                .RequireRateLimiting("HumanApiRateLimit");
+        }
 
         application.MapPost(ConsolidatedShutdownRoute, (HttpContext context) =>
         {
@@ -118,6 +182,24 @@ public sealed partial class AgentFleetApiEndToEndTests
             });
             return Results.NoContent();
         })
+            .RequireAuthorization(DashboardTvSandboxEndpointRouteBuilderExtensions.ReadPolicy)
+            .RequireRateLimiting("HumanApiRateLimit");
+    }
+
+    /// <summary>Maps one exact, authenticated and serial test-only remediation control.</summary>
+    /// <param name="application">Loopback-only application owned by the fixture.</param>
+    /// <param name="route">Exact non-operational route.</param>
+    /// <param name="state">Owning correlated evidence state.</param>
+    /// <param name="operation">Bounded state transition.</param>
+    private static void MapHumanControl(
+        WebApplication application,
+        string route,
+        ConsolidatedHarnessState state,
+        Func<CancellationToken, Task> operation)
+    {
+        Func<HttpContext, Task<IResult>> control = context =>
+            ExecuteControlAsync(context, state, operation);
+        application.MapPost(route, control)
             .RequireAuthorization(DashboardTvSandboxEndpointRouteBuilderExtensions.ReadPolicy)
             .RequireRateLimiting("HumanApiRateLimit");
     }
@@ -162,9 +244,11 @@ public sealed partial class AgentFleetApiEndToEndTests
     }
 
     /// <summary>Owns one correlated identity, two temporary stores and every bounded transition of the harness.</summary>
-    private sealed class ConsolidatedHarnessState(Guid runId) : IAsyncDisposable
+    private sealed class ConsolidatedHarnessState : IAsyncDisposable
     {
         private const int MaximumSnapshotEvidence = 32;
+        private readonly Guid runId;
+        private readonly bool humanRemediationMode;
         private readonly object evidenceGate = new();
         private readonly SemaphoreSlim operationGate = new(1, 1);
         private readonly List<ConsolidatedSnapshotRequestEvidence> snapshotRequests = [];
@@ -187,7 +271,12 @@ public sealed partial class AgentFleetApiEndToEndTests
         private int observationSamples;
         private int commandJournalEntries;
         private int commandAttempts;
+        private int humanPendingObservations;
+        private int humanServerObservationSamples;
         private bool initialReplayObserved;
+        private bool humanLossObserved;
+        private bool humanReplayAcceptedOnce;
+        private bool humanVisualTruthEnabled;
         private bool notificationRestartDeduplicated;
         private bool heartbeatDeniedAfterRevocation;
         private bool assignmentsDeniedAfterRevocation;
@@ -208,11 +297,30 @@ public sealed partial class AgentFleetApiEndToEndTests
         private bool finalised;
         private bool disposed;
         private string stage = "created";
+        private string humanAgentTransportState = "not-started";
         private ConsolidatedOperationDiagnostic diagnostic = ConsolidatedOperationDiagnostic.Empty("created");
         private ConsolidatedHarnessFailureEvidence? failure;
+        private DashboardTvSnapshot? humanVisualTruthSnapshot;
+
+        /// <summary>Creates one isolated evidence state with an optional final-human-sample control surface.</summary>
+        /// <param name="runId">Public version-four correlation identifier.</param>
+        /// <param name="humanRemediationMode">Whether command controls are replaced by test-only human evidence controls.</param>
+        public ConsolidatedHarnessState(Guid runId, bool humanRemediationMode = false)
+        {
+            if (runId == Guid.Empty)
+            {
+                throw new ArgumentException("The consolidated run identifier is required.", nameof(runId));
+            }
+
+            this.runId = runId;
+            this.humanRemediationMode = humanRemediationMode;
+        }
 
         /// <summary>Gets the public correlation identifier for this fixture run.</summary>
         public string RunId => runId.ToString("D");
+
+        /// <summary>Gets whether this run exposes only the final-human-sample remediation controls.</summary>
+        public bool HumanRemediationMode => humanRemediationMode;
 
         /// <summary>Gets whether the terminal command and revocation checks completed.</summary>
         public bool IsFinalised => Volatile.Read(ref finalised);
@@ -293,6 +401,38 @@ public sealed partial class AgentFleetApiEndToEndTests
                 Assert.True((await RunHeartbeatOnceAsync(fleetCoordinator, local.Store, owner.Now)).Succeeded);
 
                 (pkcs12, identityPassword) = identities.ExportIdentityPackage(registration.IdentityReference);
+                if (humanRemediationMode)
+                {
+                    ObservationSandboxChildResult initial = await RunObservationSandboxHostAsync(
+                        local,
+                        owner,
+                        registration,
+                        instanceId,
+                        pkcs12,
+                        identityPassword,
+                        owner.BaseAddress,
+                        owner.Now,
+                        nameof(DBNotifier.Domain.HealthStatus.Degraded),
+                        "normal");
+                    Assert.Equal(new ObservationSandboxChildResult(1, 1, 1, 0), initial);
+                    observationSamples = await CountServerObservationSamplesAsync(cancellationToken);
+                    Assert.Equal(1, observationSamples);
+                    humanServerObservationSamples = observationSamples;
+
+                    using HttpClient initialDashboard = owner.CreateDashboardTvClient();
+                    (DashboardTvSnapshot initialSnapshot, _) = await ReadDashboardSnapshotAsync(
+                        initialDashboard,
+                        cancellationToken);
+                    DashboardTvInventoryItem initialItem = Assert.Single(initialSnapshot.Items);
+                    Assert.Equal(instanceId, initialItem.InstanceId);
+                    Assert.Equal("degraded", initialItem.Status);
+
+                    humanAgentTransportState = "available";
+                    initialised = true;
+                    SetStage("agent-transport-ready");
+                    return;
+                }
+
                 Uri unavailable = GetUnusedLoopbackHttpsAddress();
                 ObservationSandboxChildResult offline = await RunObservationSandboxHostAsync(
                     local,
@@ -347,6 +487,340 @@ public sealed partial class AgentFleetApiEndToEndTests
                 operationGate.Release();
             }
         }
+
+        /// <summary>Creates one pending synthetic observation while the browser/API path remains online.</summary>
+        /// <param name="cancellationToken">Cancellation bounding the child process and durable checks.</param>
+        /// <returns>A task completing only after one pending local observation and zero new Server sample are proved.</returns>
+        public async Task BeginHumanAgentLossAsync(CancellationToken cancellationToken)
+        {
+            await operationGate.WaitAsync(cancellationToken);
+            try
+            {
+                RequireState(
+                    humanRemediationMode && initialised && !finalised,
+                    "The human Agent-loss stage is unavailable.");
+                if (humanLossObserved)
+                {
+                    return;
+                }
+
+                SetStage("agent-transport-unavailable");
+                AgentFleetSandbox owner = Require(sandbox);
+                AgentFileSandbox agent = Require(local);
+                AgentLocalRegistration enrolled = Require(registration);
+                owner.Advance(TimeSpan.FromSeconds(31));
+                ObservationSandboxChildResult offline = await RunObservationSandboxHostAsync(
+                    agent,
+                    owner,
+                    enrolled,
+                    instanceId,
+                    Require(pkcs12),
+                    Require(identityPassword),
+                    GetUnusedLoopbackHttpsAddress(),
+                    owner.Now,
+                    nameof(DBNotifier.Domain.HealthStatus.Unavailable),
+                    "normal");
+                Assert.Equal(new ObservationSandboxChildResult(1, 1, 0, 1), offline);
+
+                HumanLocalObservationEvidence localEvidence = await agent.ReadHumanObservationEvidenceAsync();
+                Assert.Equal(2, localEvidence.ObservationCount);
+                Assert.Equal(1, localEvidence.PendingCount);
+                Assert.Equal(1, localEvidence.AcknowledgedCount);
+                int serverCount = await CountServerObservationSamplesAsync(cancellationToken);
+                Assert.Equal(1, serverCount);
+
+                humanPendingObservations = localEvidence.PendingCount;
+                humanServerObservationSamples = serverCount;
+                humanAgentTransportState = "unavailable";
+                humanLossObserved = true;
+                SetStage("agent-observation-pending");
+            }
+            finally
+            {
+                operationGate.Release();
+            }
+        }
+
+        /// <summary>Restores only Agent-to-API loopback transport and proves the pending observation is accepted once.</summary>
+        /// <param name="cancellationToken">Cancellation bounding replay and durable checks.</param>
+        /// <returns>A task completing after local acknowledgement and one new Server sample are proved.</returns>
+        public async Task RecoverHumanAgentAsync(CancellationToken cancellationToken)
+        {
+            await operationGate.WaitAsync(cancellationToken);
+            try
+            {
+                RequireState(
+                    humanRemediationMode && initialised && humanLossObserved && !finalised,
+                    "The human Agent-recovery stage is unavailable.");
+                if (humanReplayAcceptedOnce)
+                {
+                    return;
+                }
+
+                SetStage("agent-transport-recovered");
+                AgentFleetSandbox owner = Require(sandbox);
+                AgentFileSandbox agent = Require(local);
+                owner.Advance(TimeSpan.FromSeconds(3));
+                ObservationSandboxChildResult replay = await RunObservationSandboxHostAsync(
+                    agent,
+                    owner,
+                    Require(registration),
+                    instanceId,
+                    Require(pkcs12),
+                    Require(identityPassword),
+                    owner.BaseAddress,
+                    owner.Now,
+                    "none",
+                    "normal");
+                Assert.Equal(new ObservationSandboxChildResult(0, 1, 1, 0), replay);
+
+                HumanLocalObservationEvidence localEvidence = await agent.ReadHumanObservationEvidenceAsync();
+                Assert.Equal(2, localEvidence.ObservationCount);
+                Assert.Equal(0, localEvidence.PendingCount);
+                Assert.Equal(2, localEvidence.AcknowledgedCount);
+                int serverCount = await CountServerObservationSamplesAsync(cancellationToken);
+                Assert.Equal(2, serverCount);
+
+                using HttpClient dashboard = owner.CreateDashboardTvClient();
+                (DashboardTvSnapshot snapshot, _) = await ReadDashboardSnapshotAsync(
+                    dashboard,
+                    cancellationToken);
+                DashboardTvInventoryItem item = Assert.Single(snapshot.Items);
+                Assert.Equal("unavailable", item.Status);
+
+                humanPendingObservations = 0;
+                humanServerObservationSamples = serverCount;
+                observationSamples = serverCount;
+                humanAgentTransportState = "recovered";
+                humanReplayAcceptedOnce = true;
+                initialReplayObserved = true;
+                SetStage("agent-replay-accepted-once");
+            }
+            finally
+            {
+                operationGate.Release();
+            }
+        }
+
+        /// <summary>Activates the bounded `unknown`/stale visual fixture without changing normal Dashboard data.</summary>
+        /// <param name="cancellationToken">Cancellation checked before the immutable snapshot is published.</param>
+        /// <returns>A completed task after the fixture is validated and fenced.</returns>
+        public async Task EnableHumanVisualTruthAsync(CancellationToken cancellationToken)
+        {
+            await operationGate.WaitAsync(cancellationToken);
+            try
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                RequireState(
+                    humanRemediationMode && humanReplayAcceptedOnce && !finalised,
+                    "The human visual-truth stage is unavailable.");
+                if (humanVisualTruthEnabled)
+                {
+                    return;
+                }
+
+                AgentFleetSandbox owner = Require(sandbox);
+                DashboardTvSnapshot snapshot = CreateHumanVisualTruthSnapshot(owner.Now);
+                Assert.True(DashboardTvSnapshotValidator.TryValidate(snapshot, owner.Now, out string errorCode), errorCode);
+                lock (evidenceGate)
+                {
+                    humanVisualTruthSnapshot = snapshot;
+                    humanVisualTruthEnabled = true;
+                }
+                SetStage("visual-truth-ready");
+            }
+            finally
+            {
+                operationGate.Release();
+            }
+        }
+
+        /// <summary>Closes the remediation state only after both blocked-sample evidences are ready.</summary>
+        /// <param name="cancellationToken">Cancellation bounding the final zero-execution assertion.</param>
+        /// <returns>A task completing after the terminal state is fenced.</returns>
+        public async Task CompleteHumanRemediationAsync(CancellationToken cancellationToken)
+        {
+            await operationGate.WaitAsync(cancellationToken);
+            try
+            {
+                RequireState(
+                    humanRemediationMode && humanReplayAcceptedOnce && humanVisualTruthEnabled,
+                    "The human remediation cannot complete before both evidences are ready.");
+                if (finalised)
+                {
+                    return;
+                }
+
+                await using AsyncServiceScope scope = Require(sandbox).Services.CreateAsyncScope();
+                ServerDbContext context = scope.ServiceProvider.GetRequiredService<ServerDbContext>();
+                Assert.Equal(0, await context.CommandAttempts.CountAsync(cancellationToken));
+                commandAttempts = 0;
+                finalised = true;
+                SetStage("completed");
+            }
+            finally
+            {
+                operationGate.Release();
+            }
+        }
+
+        /// <summary>Returns the test-only visual snapshot only after its exact stage is enabled.</summary>
+        /// <param name="fallback">Existing synthetic observation source used before visual-truth activation.</param>
+        /// <param name="cancellationToken">Cancellation forwarded to the existing source.</param>
+        /// <returns>The immutable visual fixture or the ordinary correlated synthetic projection.</returns>
+        public ValueTask<DashboardTvSnapshot> ReadHumanSnapshotAsync(
+            DashboardTvSyntheticObservationSnapshotSource fallback,
+            CancellationToken cancellationToken)
+        {
+            lock (evidenceGate)
+            {
+                if (humanRemediationMode && humanVisualTruthEnabled && humanVisualTruthSnapshot is not null)
+                {
+                    return ValueTask.FromResult(humanVisualTruthSnapshot);
+                }
+            }
+
+            return fallback.ReadAsync(cancellationToken);
+        }
+
+        /// <summary>Builds one valid two-item fixture that keeps current Unknown separate from stale evidence.</summary>
+        /// <param name="now">Controlled Server instant anchoring the immutable snapshot.</param>
+        /// <returns>Versioned synthetic Dashboard TV snapshot.</returns>
+        public static DashboardTvSnapshot CreateHumanVisualTruthSnapshot(DateTimeOffset now)
+        {
+            DateTimeOffset current = now.ToUniversalTime();
+            DateTimeOffset stale = current.AddMinutes(-6);
+            const string support = "Planejado - não implementado / Planned - not implemented";
+            return new DashboardTvSnapshot(
+                DashboardTvSnapshotContract.CurrentSchemaVersion,
+                FormatHumanSnapshotInstant(current),
+                [
+                    new DashboardTvInventoryItem(
+                        Guid.Parse("06000000-0000-4000-8000-000000000001"),
+                        "Unknown atual - fixture sintética",
+                        "fixture-unknown",
+                        support,
+                        "test-only",
+                        "Sandbox local sintético",
+                        "unknown",
+                        FormatHumanSnapshotInstant(current),
+                        FormatHumanSnapshotInstant(current),
+                        null,
+                        true),
+                    new DashboardTvInventoryItem(
+                        Guid.Parse("06000000-0000-4000-8000-000000000002"),
+                        "Evidência desatualizada - fixture sintética",
+                        "fixture-stale",
+                        support,
+                        "test-only",
+                        "Sandbox local sintético",
+                        "degraded",
+                        FormatHumanSnapshotInstant(stale),
+                        FormatHumanSnapshotInstant(stale),
+                        25,
+                        true),
+                ]);
+        }
+
+        /// <summary>Builds the self-contained local evidence page without external resources or product controls.</summary>
+        /// <returns>Static HTML whose script updates only text content from the sanitised evidence endpoint.</returns>
+        public static string BuildHumanEvidencePage()
+        {
+            return $$"""
+                <!doctype html>
+                <html lang="pt-BR">
+                <head>
+                  <meta charset="utf-8">
+                  <meta name="viewport" content="width=device-width, initial-scale=1">
+                  <title>DB Notifier — evidência test-only do Agent</title>
+                  <style>
+                    :root { color-scheme: light dark; font-family: "Segoe UI", sans-serif; }
+                    body { margin: 0; background: Canvas; color: CanvasText; }
+                    header { padding: 16px 24px; border-bottom: 2px solid Highlight; }
+                    header strong { display: block; font-size: 1.1rem; }
+                    header span { display: block; margin-top: 4px; }
+                    main { display: grid; grid-template-columns: minmax(280px, 360px) 1fr; gap: 16px; padding: 16px; }
+                    section { border: 1px solid GrayText; border-radius: 8px; padding: 16px; }
+                    dl { display: grid; gap: 12px; margin: 16px 0 0; }
+                    dt { font-weight: 700; }
+                    dd { margin: 3px 0 0; overflow-wrap: anywhere; }
+                    iframe { width: 100%; min-height: 720px; border: 1px solid GrayText; border-radius: 8px; background: Canvas; }
+                    .truth { font-weight: 700; }
+                    @media (max-width: 900px) { main { grid-template-columns: 1fr; } iframe { min-height: 640px; } }
+                  </style>
+                </head>
+                <body>
+                  <header>
+                    <strong>Evidência do harness — não é estado operacional</strong>
+                    <span>Somente dados sintéticos locais; esta página não existe na composição normal.</span>
+                  </header>
+                  <main>
+                    <section aria-labelledby="agent-evidence-title">
+                      <h1 id="agent-evidence-title">Transporte do Agent — test-only</h1>
+                      <p id="page-health" class="truth">Browser → API disponível</p>
+                      <dl>
+                        <div><dt>Etapa</dt><dd id="stage">A carregar</dd></div>
+                        <div><dt>Agent → API</dt><dd id="agent-transport">A carregar</dd></div>
+                        <div><dt>Observações pendentes</dt><dd id="pending">A carregar</dd></div>
+                        <div><dt>Amostras aceites pelo Server</dt><dd id="server-samples">A carregar</dd></div>
+                        <div><dt>Replay único</dt><dd id="replay">A carregar</dd></div>
+                        <div><dt>Verdade visual</dt><dd id="visual-truth">A carregar</dd></div>
+                        <div><dt>Suporte</dt><dd>Planejado — não implementado; sem homologação.</dd></div>
+                        <div><dt>Origem</dt><dd>Sandbox local sintético; sem dados externos.</dd></div>
+                      </dl>
+                    </section>
+                    <section aria-labelledby="dashboard-title">
+                      <h2 id="dashboard-title">Dashboard TV sandbox</h2>
+                      <iframe title="Dashboard TV sandbox test-only" src="/#overview"></iframe>
+                    </section>
+                  </main>
+                  <script>
+                    (() => {
+                      "use strict";
+                      const evidenceRoute = {{JsonSerializer.Serialize(ConsolidatedEvidenceRoute)}};
+                      const set = (id, value) => { document.getElementById(id).textContent = String(value); };
+                      const refresh = async () => {
+                        try {
+                          const response = await fetch(evidenceRoute, { cache: "no-store", credentials: "same-origin" });
+                          if (!response.ok) throw new Error("evidence_unavailable");
+                          const evidence = await response.json();
+                          set("stage", evidence.stage);
+                          set("agent-transport", evidence.humanAgentTransportState);
+                          set("pending", evidence.humanPendingObservations);
+                          set("server-samples", evidence.humanServerObservationSamples);
+                          set("replay", evidence.humanReplayAcceptedOnce ? "Aceite exatamente uma vez" : "Ainda não concluído");
+                          set("visual-truth", evidence.humanVisualTruthEnabled ? "Unknown e stale disponíveis" : "Ainda não ativada");
+                          document.documentElement.dataset.evidenceStage = evidence.stage;
+                        } catch {
+                          set("page-health", "Browser → API indisponível");
+                        }
+                      };
+                      refresh();
+                      window.setInterval(refresh, 250);
+                    })();
+                  </script>
+                </body>
+                </html>
+                """;
+        }
+
+        /// <summary>Counts only the synthetic Server samples owned by this isolated run.</summary>
+        /// <param name="cancellationToken">Cancellation bounding the read.</param>
+        /// <returns>Exact sample count.</returns>
+        private async Task<int> CountServerObservationSamplesAsync(CancellationToken cancellationToken)
+        {
+            await using AsyncServiceScope scope = Require(sandbox).Services.CreateAsyncScope();
+            ServerDbContext context = scope.ServiceProvider.GetRequiredService<ServerDbContext>();
+            return await context.HealthSamples.CountAsync(cancellationToken);
+        }
+
+        /// <summary>Formats one controlled instant for the Dashboard TV wire contract.</summary>
+        /// <param name="value">UTC or offset-aware instant.</param>
+        /// <returns>Canonical UTC millisecond text.</returns>
+        private static string FormatHumanSnapshotInstant(DateTimeOffset value) =>
+            value.UtcDateTime.ToString(
+                "yyyy-MM-dd'T'HH:mm:ss.fff'Z'",
+                CultureInfo.InvariantCulture);
 
         /// <summary>Commits the second observation, notifies once and publishes only its opaque revision.</summary>
         /// <param name="cancellationToken">Cancellation bounding the local transition.</param>
@@ -802,6 +1276,13 @@ public sealed partial class AgentFleetApiEndToEndTests
                     Volatile.Read(ref maximumSnapshotConcurrency),
                     snapshotRequests.ToArray(),
                     hints,
+                    humanRemediationMode,
+                    humanAgentTransportState,
+                    humanPendingObservations,
+                    humanServerObservationSamples,
+                    humanLossObserved,
+                    humanReplayAcceptedOnce,
+                    humanVisualTruthEnabled,
                     failure);
             }
         }
@@ -970,6 +1451,19 @@ public sealed partial class AgentFleetApiEndToEndTests
         }
     }
 
+    /// <summary>
+    /// Delegates to the existing synthetic observation projection until the exact human visual-truth stage publishes
+    /// its immutable test-only snapshot.
+    /// </summary>
+    private sealed class ConsolidatedHumanSampleSnapshotSource(
+        DashboardTvSyntheticObservationSnapshotSource fallback,
+        ConsolidatedHarnessState state) : IDashboardTvSnapshotSource
+    {
+        /// <inheritdoc />
+        public ValueTask<DashboardTvSnapshot> ReadAsync(CancellationToken cancellationToken) =>
+            state.ReadHumanSnapshotAsync(fallback, cancellationToken);
+    }
+
     /// <summary>Accepts notification requests only into bounded in-memory test evidence.</summary>
     private sealed class ConsolidatedRecordingSink : IReconciledNotificationSink
     {
@@ -1057,6 +1551,13 @@ public sealed partial class AgentFleetApiEndToEndTests
         int MaximumSnapshotConcurrency,
         IReadOnlyList<ConsolidatedSnapshotRequestEvidence> SnapshotRequests,
         DashboardTvChangeHintSandboxEvidenceSnapshot SignalR,
+        bool HumanRemediationMode,
+        string HumanAgentTransportState,
+        int HumanPendingObservations,
+        int HumanServerObservationSamples,
+        bool HumanLossObserved,
+        bool HumanReplayAcceptedOnce,
+        bool HumanVisualTruthEnabled,
         ConsolidatedHarnessFailureEvidence? Failure);
 
     /// <summary>Contains the current bounded diagnostic context before it becomes terminal failure evidence.</summary>

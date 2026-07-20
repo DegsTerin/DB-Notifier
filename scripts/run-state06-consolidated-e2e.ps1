@@ -3,7 +3,10 @@
 [CmdletBinding()]
 param(
     [ValidateSet('Chrome', 'Edge')]
-    [string]$BrowserProduct = 'Chrome'
+    [string]$BrowserProduct = 'Chrome',
+
+    [ValidateSet('Consolidated', 'FinalHumanSamplesRemediation')]
+    [string]$EvidenceMode = 'Consolidated'
 )
 
 $ErrorActionPreference = 'Stop'
@@ -12,7 +15,14 @@ $dashboardRoot = Join-Path $repositoryRoot 'src\DBNotifier.Dashboard.Web'
 $dashboardDist = Join-Path $dashboardRoot 'dist'
 $hostProject = Join-Path $repositoryRoot 'tests\DBNotifier.State06.ConsolidatedSandboxHost\DBNotifier.State06.ConsolidatedSandboxHost.csproj'
 $hostAssembly = Join-Path $repositoryRoot 'tests\DBNotifier.State06.ConsolidatedSandboxHost\bin\Release\net10.0\DBNotifier.State06.ConsolidatedSandboxHost.dll'
-$auditScript = Join-Path $repositoryRoot 'scripts\audit-state06-consolidated-e2e.mjs'
+$humanRemediationMode = $EvidenceMode -eq 'FinalHumanSamplesRemediation'
+$activationMarker = if ($humanRemediationMode) { 'state06-final-human-samples-remediation' } else { 'state06-consolidated-e2e-sandbox' }
+$expectedReadyMode = if ($humanRemediationMode) { 'final-human-samples-remediation' } else { 'consolidated' }
+$auditScript = Join-Path $repositoryRoot $(if ($humanRemediationMode) {
+    'scripts\audit-state06-final-human-samples-remediation.mjs'
+} else {
+    'scripts\audit-state06-consolidated-e2e.mjs'
+})
 $temporaryRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("DBNotifier-State06-ConsolidatedE2E-{0}" -f [Guid]::NewGuid().ToString('N'))
 $hostProcess = $null
 $browserProcess = $null
@@ -153,7 +163,7 @@ try {
 
     $hostProcess = Start-Process -FilePath 'dotnet.exe' -ArgumentList @(
         $hostAssembly,
-        '--activation', 'state06-consolidated-e2e-sandbox',
+        '--activation', $activationMarker,
         '--dashboard-root', $dashboardDist
     ) -WorkingDirectory $repositoryRoot -WindowStyle Hidden -PassThru -RedirectStandardOutput $hostStdOut -RedirectStandardError $hostStdErr
 
@@ -186,6 +196,7 @@ try {
     }
     if ([string]::IsNullOrWhiteSpace([string]$ready.spkiPin)) { throw 'The host exposed no ephemeral certificate pin.' }
     if (-not [Guid]::TryParseExact([string]$ready.runId, 'D', [ref]([Guid]::Empty))) { throw 'The host exposed no valid run correlation identifier.' }
+    if ([string]$ready.mode -ne $expectedReadyMode) { throw 'The host readiness mode did not match the exact requested evidence mode.' }
     $hostBaseAddress = $hostUri.GetLeftPart([UriPartial]::Authority)
     Write-Output "Consolidated test host ready on exact HTTPS loopback: $hostBaseAddress"
 
@@ -219,7 +230,7 @@ try {
 
     if (-not $hostProcess.WaitForExit(20000)) { throw 'The consolidated host did not honour its authenticated shutdown control.' }
     if ($hostProcess.ExitCode -ne 0) { throw "The consolidated host exited with code $($hostProcess.ExitCode)." }
-    Write-Output 'STATE-06 correlated remediation harness passed with local test data only.'
+    Write-Output "STATE-06 $EvidenceMode harness passed with local test data only."
 }
 finally {
     Remove-Item Env:DBNOTIFIER_STATE06_CDP_ENDPOINT, Env:DBNOTIFIER_STATE06_URL, Env:DBNOTIFIER_STATE06_RUN_ID -ErrorAction SilentlyContinue

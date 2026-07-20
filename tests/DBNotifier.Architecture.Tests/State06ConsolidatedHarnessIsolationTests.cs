@@ -15,8 +15,10 @@ public sealed class State06ConsolidatedHarnessIsolationTests
 
         Assert.DoesNotContain("State06.ConsolidatedSandboxHost", server, StringComparison.Ordinal);
         Assert.DoesNotContain("state06-consolidated-e2e-sandbox", server, StringComparison.Ordinal);
+        Assert.DoesNotContain("state06-final-human-samples-remediation", server, StringComparison.Ordinal);
         Assert.DoesNotContain("State06.ConsolidatedSandboxHost", agent, StringComparison.Ordinal);
         Assert.DoesNotContain("state06-consolidated-e2e-sandbox", agent, StringComparison.Ordinal);
+        Assert.DoesNotContain("state06-final-human-samples-remediation", agent, StringComparison.Ordinal);
     }
 
     /// <summary>Confirms the dedicated executable is test-only and adds no package dependency.</summary>
@@ -65,6 +67,7 @@ public sealed class State06ConsolidatedHarnessIsolationTests
         string runner = Read("scripts", "run-state06-consolidated-e2e.ps1");
 
         Assert.Contains("state06-consolidated-e2e-sandbox", runner, StringComparison.Ordinal);
+        Assert.Contains("state06-final-human-samples-remediation", runner, StringComparison.Ordinal);
         Assert.Contains("--no-restore", runner, StringComparison.Ordinal);
         Assert.DoesNotContain("npm install", runner, StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain("npm ci", runner, StringComparison.OrdinalIgnoreCase);
@@ -95,6 +98,30 @@ public sealed class State06ConsolidatedHarnessIsolationTests
         {
             Assert.Contains($"\"{scenario}\"", scenarios, StringComparison.Ordinal);
         }
+    }
+
+    /// <summary>Confirms the blocked-sample evidence remains test-only, offline and distinct from browser offline.</summary>
+    [Fact]
+    public void FinalHumanSampleRemediationIsIsolatedSanitisedAndFactuallyDistinct()
+    {
+        string harness = Read(
+            "tests",
+            "DBNotifier.IntegrationTests",
+            "AgentFleetApiEndToEndTests.ConsolidatedHarness.cs");
+        string auditor = Read("scripts", "audit-state06-final-human-samples-remediation.mjs");
+        string server = Read("src", "DBNotifier.Server.Api", "Program.cs");
+        string dashboard = Read("src", "DBNotifier.Dashboard.Web", "src", "App.tsx");
+
+        Assert.Contains("ConsolidatedHumanSampleSnapshotSource", harness, StringComparison.Ordinal);
+        Assert.Contains("agent-observation-pending", harness, StringComparison.Ordinal);
+        Assert.Contains("Evidência do harness — não é estado operacional", harness, StringComparison.Ordinal);
+        Assert.Contains("unknown", harness, StringComparison.Ordinal);
+        Assert.Contains("fixture-stale", harness, StringComparison.Ordinal);
+        Assert.DoesNotContain("Network.emulateNetworkConditions", auditor, StringComparison.Ordinal);
+        Assert.DoesNotContain("state06-final-human-samples-remediation", server, StringComparison.Ordinal);
+        Assert.DoesNotContain("state06-final-human-samples-remediation", dashboard, StringComparison.Ordinal);
+        Assert.DoesNotContain("npm install", auditor, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("https://", auditor, StringComparison.OrdinalIgnoreCase);
     }
 
     /// <summary>Reads one repository-relative UTF-8 source file.</summary>

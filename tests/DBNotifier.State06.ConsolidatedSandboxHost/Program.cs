@@ -7,13 +7,14 @@ namespace DBNotifier.State06.ConsolidatedSandboxHost;
 internal static class Program
 {
     private const string ActivationMarker = "state06-consolidated-e2e-sandbox";
+    private const string HumanRemediationActivationMarker = "state06-final-human-samples-remediation";
 
     /// <summary>Validates arguments, applies the fifteen-minute budget and runs the isolated test composition.</summary>
     /// <param name="args">Exact activation marker and already-built Dashboard root.</param>
     /// <returns>Zero after complete cleanup, two for invalid activation, or three for a sanitised harness failure.</returns>
     public static async Task<int> Main(string[] args)
     {
-        if (!TryReadDashboardRoot(args, out string? dashboardRoot))
+        if (!TryReadOptions(args, out string? dashboardRoot, out bool humanRemediationMode))
         {
             Console.Error.WriteLine("state06_consolidated_host.failed:activation_invalid");
             return 2;
@@ -22,9 +23,13 @@ internal static class Program
         using CancellationTokenSource budget = new(TimeSpan.FromMinutes(15));
         try
         {
-            return await AgentFleetApiEndToEndTests.RunState06ConsolidatedSandboxHostAsync(
-                dashboardRoot!,
-                budget.Token);
+            return humanRemediationMode
+                ? await AgentFleetApiEndToEndTests.RunState06FinalHumanSamplesRemediationHostAsync(
+                    dashboardRoot!,
+                    budget.Token)
+                : await AgentFleetApiEndToEndTests.RunState06ConsolidatedSandboxHostAsync(
+                    dashboardRoot!,
+                    budget.Token);
         }
         catch (Exception exception) when (exception is not OutOfMemoryException)
         {
@@ -33,21 +38,32 @@ internal static class Program
         }
     }
 
-    /// <summary>Accepts one exact marker and the canonical repository Dashboard output only.</summary>
+    /// <summary>Accepts one of the two exact test-only markers and the canonical Dashboard output only.</summary>
     /// <param name="args">Untrusted process arguments.</param>
     /// <param name="dashboardRoot">Validated canonical Dashboard output root.</param>
+    /// <param name="humanRemediationMode">Whether the final-human-sample evidence mode was selected.</param>
     /// <returns><see langword="true"/> only for the exact local activation contract.</returns>
-    private static bool TryReadDashboardRoot(string[] args, out string? dashboardRoot)
+    private static bool TryReadOptions(
+        string[] args,
+        out string? dashboardRoot,
+        out bool humanRemediationMode)
     {
         dashboardRoot = null;
+        humanRemediationMode = false;
         if (args.Length != 4 ||
             !string.Equals(args[0], "--activation", StringComparison.Ordinal) ||
-            !string.Equals(args[1], ActivationMarker, StringComparison.Ordinal) ||
             !string.Equals(args[2], "--dashboard-root", StringComparison.Ordinal) ||
-            string.IsNullOrWhiteSpace(args[3]))
+            string.IsNullOrWhiteSpace(args[3]) ||
+            (!string.Equals(args[1], ActivationMarker, StringComparison.Ordinal) &&
+             !string.Equals(args[1], HumanRemediationActivationMarker, StringComparison.Ordinal)))
         {
             return false;
         }
+
+        humanRemediationMode = string.Equals(
+            args[1],
+            HumanRemediationActivationMarker,
+            StringComparison.Ordinal);
 
         DirectoryInfo? repository = new(AppContext.BaseDirectory);
         while (repository is not null && !File.Exists(Path.Combine(repository.FullName, "DBNotifier.sln")))

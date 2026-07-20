@@ -209,3 +209,11 @@ Build, testes de produto e harnesses não foram repetidos durante o registro: a 
 ## Próxima atividade
 
 Nenhuma implementação está autorizada. Para continuar, Bruno deverá autorizar separadamente somente uma proposta documental de remediação de `S06-HG-001` e `S06-HG-006`. Essa proposta deverá comparar uma apresentação test-only com qualquer mudança que alcance `src/`, preservar a verdade de Agent/offline/freshness e manter o Human Gate final fechado até a repetição das duas amostras.
+
+## Adendo factual posterior — remediação test-only
+
+Bruno autorizou posteriormente a [remediação test-only das duas amostras bloqueadas](STATE-06-Final-Human-Samples-Test-Only-Evidence-Remediation-Report.md). A implementação ficou exclusivamente sob `tests/` e `scripts/`, passou seu Quality Gate próprio e não precisou alterar `src/`, solução, projetos, packages, lockfiles ou migrations.
+
+O harness consegue agora congelar transporte Agent disponível, indisponível com exatamente uma observação pendente e recuperado com replay único, mantendo browser → API disponível. Uma fonte test-only separada apresenta `unknown` corrente e `stale` como textos distintos pela API/Dashboard TV sandbox existente, com suporte planejado e origem sintética.
+
+Esse resultado técnico não reescreve a campanha acima: `S06-HG-001` e `S06-HG-006` continuam `BLOQUEADAS` até repetição humana separadamente autorizada e decidida. A remediação aguarda sua própria aceitação humana; repetição das amostras, Human Gate final, promoção e transição continuam não autorizados.

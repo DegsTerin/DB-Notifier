@@ -1911,6 +1911,12 @@ public sealed partial class AgentFleetApiEndToEndTests
         int AcknowledgedCount,
         int RetryableCount);
 
+    /// <summary>Contains bounded durable counts for the final-human-sample Agent replay evidence.</summary>
+    private sealed record HumanLocalObservationEvidence(
+        int ObservationCount,
+        int PendingCount,
+        int AcknowledgedCount);
+
     private sealed record CommandTransportChildResult(
         bool Succeeded,
         int Delivered,
@@ -2200,6 +2206,17 @@ public sealed partial class AgentFleetApiEndToEndTests
                 Assert.Equal("fixture-provider", row.ProviderType);
             });
             Assert.Equal(0, await context.InboxCommands.CountAsync());
+        }
+
+        /// <summary>Reads only aggregate synthetic observation counts for the human-remediation evidence surface.</summary>
+        /// <returns>Total local observations and exact pending/acknowledged outbox counts.</returns>
+        public async Task<HumanLocalObservationEvidence> ReadHumanObservationEvidenceAsync()
+        {
+            await using AgentDbContext context = new(options);
+            int observations = await context.HealthObservations.CountAsync();
+            int pending = await context.OutboxMessages.CountAsync(row => row.AcknowledgedAt == null);
+            int acknowledged = await context.OutboxMessages.CountAsync(row => row.AcknowledgedAt != null);
+            return new HumanLocalObservationEvidence(observations, pending, acknowledged);
         }
 
         /// <inheritdoc />
@@ -2910,7 +2927,19 @@ public sealed partial class AgentFleetApiEndToEndTests
                     builder.Environment,
                     builder.Configuration);
                 builder.Services.RemoveAll<IDashboardTvSnapshotSource>();
-                builder.Services.AddSingleton<IDashboardTvSnapshotSource, DashboardTvSyntheticObservationSnapshotSource>();
+                builder.Services.AddSingleton<DashboardTvSyntheticObservationSnapshotSource>();
+                if (consolidatedHarness?.HumanRemediationMode == true)
+                {
+                    builder.Services.AddSingleton<IDashboardTvSnapshotSource>(services =>
+                        new ConsolidatedHumanSampleSnapshotSource(
+                            services.GetRequiredService<DashboardTvSyntheticObservationSnapshotSource>(),
+                            consolidatedHarness));
+                }
+                else
+                {
+                    builder.Services.AddSingleton<IDashboardTvSnapshotSource>(services =>
+                        services.GetRequiredService<DashboardTvSyntheticObservationSnapshotSource>());
+                }
                 if (consolidatedHarness is not null || enableRevocationMatrixHints)
                 {
                     dashboardHintsEnabled = builder.Services.AddDashboardTvChangeHintSandbox(

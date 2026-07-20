@@ -32,6 +32,7 @@ Current discovery and migration artifacts:
 - [`STATE-05-WPF-Accessibility-Audit.md`](STATE-05-WPF-Accessibility-Audit.md): historical WPF UI Automation, High Contrast and available Windows-scaling evidence, including the untested Narrator boundary; changed `3.0.0` surfaces require a new sample.
 - [`STATE-05-Human-Gate-Validation.md`](STATE-05-Human-Gate-Validation.md): authoritative pending human sample protocol, recorded visual findings and exact remaining `STATE-05` decision fields.
 - [`STATE-05-Request-Traceability-Audit.md`](STATE-05-Request-Traceability-Audit.md): consolidated requirement → documentation → implementation → test → pending matrix for the current user-request sequence.
+- [`STATE-06-Final-Human-Samples-Test-Only-Evidence-Remediation-Report.md`](STATE-06-Final-Human-Samples-Test-Only-Evidence-Remediation-Report.md): test-only remediation evidence for the two blocked final human samples, with Agent transport barriers, current `unknown` versus `stale`, isolation, verification and retained Human Gate boundaries.
 
 The governing instruction corpus starts at [`../prompts/Start-Here.md`](../prompts/Start-Here.md).
 

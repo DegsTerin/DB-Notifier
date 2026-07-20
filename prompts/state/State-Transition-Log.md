@@ -2123,6 +2123,24 @@
 - Próxima decisão: Bruno pode pedir alterações ou copiar exatamente a decisão futura da proposta para autorizar somente a implementação test-only e seu Quality Gate próprio. Repetição humana, Human Gate final, promoção e transição continuam separados.
 - Aprovador: Bruno, exclusivamente para elaborar esta proposta documental.
 
+## 2026-07-20 — Remediação test-only das amostras humanas finais bloqueadas
+
+- Estado anterior: `STATE-06 INTEGRATION`, Quality Gate consolidado `APROVADO`, campanha humana `BLOQUEADA`, `S06-HG-002` a `S06-HG-005` aprovadas, `S06-HG-001`/`006` bloqueadas e proposta test-only concluída.
+- Estado resultante: sem transição; `STATE-06 INTEGRATION` mantido. A remediação test-only passou seu Quality Gate próprio, mas aguarda aceitação humana e não reclassifica nenhuma amostra.
+- Autorização: Bruno autorizou somente harness/runners sob `tests/` e `scripts/`, barriers Agent, superfície auxiliar sanitizada, fonte test-only `unknown`/`stale`, fencing, budgets, cancelamento, testes locais, Chrome dedicado efêmero e documentação. Alteração sob `src/`, solução, projetos, packages, lockfiles ou migrations exigiria parada `BLOQUEADA`.
+- Baseline: branch `main`, commit inicial `e6b604bed7ba1e532d99b82f1cf944dff6ee8ed3`, com `84217c6` e `2c1e05f` na ancestralidade e shutdown preflight sem runtime pertencente ao DB-Notifier.
+- Implementação: marker exato `state06-final-human-samples-remediation`; barriers `ready → pending → replay accepted once → visual truth → completed`; página auxiliar inequivocamente test-only; fonte de snapshot de integração com um item `unknown` corrente e outro stale; auditor browser próprio; seletor de modo no runner consolidado com default anterior preservado.
+- Fronteira: mudanças executáveis somente em `tests/`/`scripts/`; nenhum arquivo sob `src/`, solução, projeto, package, lockfile ou migration foi alterado. Composição normal e runtime operacional permanecem inalterados.
+- E2E próprio: Agent loss observado com uma pendência e uma amostra Server preservada; browser/API disponível; recovery com pendência zero, duas amostras Server e replay único; `unknown`/`stale` visíveis; zero `CommandAttempt`; concorrência de snapshot `1`; `72` requests HTTP, `3` WebSockets, zero HTTP externo e `operationalData=false`.
+- Regressão consolidada: aprovada com duas observações, uma entrega em sink de teste, dois journals, zero `CommandAttempt`, revogação, fences `3/4`, concorrência `1`, zero HTTP externo e `operationalData=false`.
+- Gates gerais: build Release de `17` projetos com zero erro/warning; `332/332` unitários, `31/31` arquitetura, `18/18` integração; cobertura `78,9%/49,51%`; Dashboard `60/60`; Pester `23` aprovados, um skip condicional esperado e `32,08%`; formatação, typecheck/build, assets, documentação, links, segredos, npm offline, PowerShell 5.1 e integridade Git aprovados.
+- Achados test-only: cultura/tipo exigidos por analisadores, expectativa inicial de dispatch e UUID sem bits versionados foram corrigidos exclusivamente no escopo autorizado. Nenhum achado exigiu mudança de produto ou relaxamento de evidência.
+- Cleanup: zero processo, listener ou root temporário próprio depois dos E2E finais; roots órfãos atribuídos a tentativas anteriores do mesmo harness foram removidos antes da repetição.
+- Gates: Quality Gate próprio `APROVADO` com limitações; campanha humana ainda `BLOQUEADA`; `S06-HG-001`/`006` não repetidas; Human Gate final não aberto; runtime operacional, promoção e transição não autorizados.
+- Evidência: [relatório da remediação](../../docs/STATE-06-Final-Human-Samples-Test-Only-Evidence-Remediation-Report.md), [proposta autorizada](../../docs/STATE-06-Final-Human-Samples-Blocked-Remediation-Proposal.md), [relatório da campanha humana](../../docs/STATE-06-Final-Human-Samples-Report.md) e resultados sanitizados desta execução.
+- Próxima decisão: Bruno deve revisar e decidir somente a aceitação desta remediação. Repetição humana de `S06-HG-001` e `S06-HG-006` exigirá autorização posterior e separada; as quatro amostras aprovadas não devem ser repetidas.
+- Aprovador: Bruno autorizou a implementação; a aceitação humana do resultado não foi inferida.
+
 ## Template de nova entrada
 
 - Data:
