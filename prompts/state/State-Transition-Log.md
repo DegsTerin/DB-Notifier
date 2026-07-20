@@ -1941,6 +1941,22 @@
 - Próxima atividade: nenhuma atividade técnica está autorizada ou é exigida. Se Bruno desejar continuar, deverá solicitar ou autorizar separadamente uma nova Campanha Consolidada no commit corrente; o registro desta aceitação não concede essa autoridade.
 - Aprovador: Bruno, 2026-07-19.
 
+## 2026-07-19 — Proposta documental de repetição da Campanha Consolidada de Quality Gate
+
+- Estado anterior: `STATE-06 INTEGRATION`, remediação `ac12791` aceita com limitações, Campanha Consolidada histórica `BLOQUEADA`, Human Gate final não aberto e nenhuma repetição autorizada.
+- Estado resultante: sem transição; `STATE-06 INTEGRATION` e bloqueio histórico mantidos, com proposta documental separada da repetição pronta para revisão.
+- Solicitação: Bruno pediu exclusivamente uma proposta para repetir a Campanha Consolidada no commit corrente, incorporando a remediação aceita, sem implementação, runtime, browser, amostra humana, promoção ou transição.
+- Baseline documental: implementação técnica `ac12791`, registro humano `dd58b26` e worktree limpa antes desta alteração. A futura campanha deverá congelar o commit exato e impedir mudança técnica posterior não revisada.
+- Proposta: inspeção read-only, gates offline, build/testes/cobertura existentes, harness correlacionado como evidência principal, regressões proprietárias, ausência dos warnings EF, contrato PowerShell, cleanup e relatório novo que preserve o relatório histórico.
+- Critério central: a cadeia deverá usar o mesmo run, Agent, Agent SQLite, Server SQLite e projeção para Agent → API → Dashboard/SignalR → notificação e transporte não executável, terminando com zero `CommandAttempt` e revogação fail-closed.
+- Autoridade: exclusivamente documentação. Nenhum código, configuração executável, solução, projeto, package, lockfile, migration, build, teste de produto, runtime, browser ou acesso externo foi autorizado ou executado.
+- Shutdown preflight: zero processo e zero listener pertencente ao DB-Notifier antes da alteração documental; nenhum processo ou recurso alheio foi encerrado.
+- Gates documentais: documentação aprovada para `279` fontes comment-capable; `415` links Markdown locais em `97` arquivos aprovados; secret scan do worktree não ignorado e histórico disponível aprovado; inspeção de escopo, `git diff --check` e `git diff --cached --check` aprovados. Build, testes e runtime de produto são `NÃO APLICÁVEIS` e não foram executados.
+- Gates futuros: repetição da Campanha Consolidada, amostra humana, Human Gate final, promoção e transição continuam não autorizados e não inferidos.
+- Evidência: [proposta da repetição](../../docs/STATE-06-Consolidated-Quality-Gate-Rerun-Proposal.md), [relatório histórico bloqueado](../../docs/STATE-06-Consolidated-Quality-Gate-Campaign-Report.md), [relatório da remediação aceita](../../docs/STATE-06-Consolidated-E2E-Evidence-Harness-And-Deterministic-Gate-Remediation-Report.md), plano consolidado e estado corrente.
+- Próxima decisão: Bruno pode revisar, pedir alterações, adiar ou emitir separadamente o texto da seção `Decisão futura de Bruno`. A proposta não inicia sua própria campanha.
+- Aprovador: não aplicável; registro de solicitação e proposta, não autorização de execução.
+
 ## Template de nova entrada
 
 - Data:
