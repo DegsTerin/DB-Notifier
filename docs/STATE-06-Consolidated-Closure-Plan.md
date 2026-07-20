@@ -353,7 +353,7 @@ Qualquer necessidade de acesso externo, dependência não disponível, credencia
 
 ## Autorizações futuras e ordem para Bruno
 
-Nenhuma execução é autorizada pelo plano em si. Autorizações separadas concluíram tecnicamente os quatro incrementos, a primeira campanha bloqueada, a remediação aceita, a repetição da campanha e a remediação do achado `finalising-revocation`, cujo Human Gate próprio foi aceito com limitações. A repetição no commit `66d0a9f` continua historicamente `REPROVADA`; a aceitação da nova remediação não reclassifica a campanha. A ordem restante é:
+Nenhuma execução é autorizada pelo plano em si. Autorizações separadas concluíram tecnicamente os quatro incrementos, a primeira campanha bloqueada, a remediação aceita, a repetição da campanha e a remediação do achado `finalising-revocation`, cujo Human Gate próprio foi aceito com limitações. A [proposta documental da nova repetição pós-remediação](STATE-06-Consolidated-Quality-Gate-Post-Revocation-Remediation-Rerun-Proposal.md) está pronta, mas não autoriza sua própria execução. A repetição no commit `66d0a9f` continua historicamente `REPROVADA`; a aceitação da nova remediação não reclassifica a campanha. A ordem restante é:
 
 1. Incrementos 1–4 concluídos e aceitos em seus escopos restritos;
 2. campanha consolidada executada e `BLOQUEADA` pela ausência de composição única;
@@ -361,7 +361,7 @@ Nenhuma execução é autorizada pelo plano em si. Autorizações separadas conc
 4. proposta documental da repetição, autorização e execução concluídas; Quality Gate repetido `REPROVADO`;
 5. revisar o [relatório da repetição](STATE-06-Consolidated-Quality-Gate-Rerun-Report.md) sem inferir aprovação;
 6. proposta, implementação restrita e aceitação humana própria da remediação do achado `finalising-revocation` concluídas;
-7. somente depois da remediação aceita, propor ou autorizar separadamente uma nova repetição integral da campanha automática;
+7. proposta documental da nova repetição integral concluída; sua execução depende de autorização posterior, separada e explícita;
 8. somente com Quality Gate aprovado, autorizar separadamente as amostras humanas;
 9. decidir o Human Gate do `STATE-06`;
 10. somente depois, decidir separadamente se autoriza a transição para `STATE-07`.

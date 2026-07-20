@@ -2034,6 +2034,23 @@
 - Próxima atividade: nenhuma atividade técnica está autorizada ou é exigida. Se Bruno desejar continuar, deverá solicitar ou autorizar separadamente uma nova Campanha Consolidada no commit corrente; este registro não concede essa autoridade.
 - Aprovador: Bruno, 2026-07-20.
 
+## 2026-07-20 — Proposta documental de nova repetição da Campanha Consolidada pós-remediação
+
+- Estado anterior: `STATE-06 INTEGRATION`, repetição anterior da Campanha Consolidada `REPROVADA`, remediação `f9bb567` com Quality Gate próprio aprovado e Human Gate próprio aceito, registro factual `67e0187` e nenhuma nova campanha autorizada.
+- Estado resultante: sem transição; `STATE-06 INTEGRATION` mantido e proposta documental da nova repetição pronta para revisão, sem execução ou reclassificação de gate.
+- Solicitação: Bruno pediu exclusivamente a proposta documental para repetir a campanha sobre o commit `67e0187`, que contém a remediação aceita `f9bb567`, sem execução, runtime, browser, amostra humana, promoção ou transição.
+- Baseline proposta: o futuro commit executado deverá conter `f9bb567` e `67e0187` na ancestralidade e nenhuma mudança técnica posterior a `f9bb567`; qualquer commit documental acima deles deverá ser auditado antes do build.
+- Proposta: shutdown, congelamento, inspeção read-only, gates offline, build/testes/cobertura existentes, R1–R7, harness correlacionado completo com revogação granular, regressões proprietárias, warnings EF, contrato PowerShell, cleanup e relatório factual novo.
+- Critério central: a cadeia única deverá provar separadamente commit central da revogação, negação server-side, quarentena Agent local, preservação do LKG, fences monotónicos, observação/comando negados e zero `CommandAttempt`.
+- Autoridade: exclusivamente documentação. Nenhum build, teste de produto, runtime, browser, acesso externo, correção, nova campanha, amostra humana, Human Gate final, promoção ou transição foi autorizado ou executado.
+- Shutdown preflight: zero processo, listener ou navegador dedicado pertencente ao DB-Notifier antes da alteração documental; nenhum processo ou recurso alheio foi encerrado.
+- Escopo desta ação: somente proposta e registros Markdown; código, configuração executável, solução, projetos, packages, lockfiles e migrations permanecem inalterados.
+- Gates documentais: documentação aprovada para `280` fontes comment-capable; `450` links Markdown locais em `102` arquivos aprovados; secret scan do worktree não ignorado e histórico disponível aprovado; escopo de quatro documentos e `git diff --check` aprovados. Build, testes e runtime de produto são `NÃO APLICÁVEIS` e não foram executados.
+- Evidências: [proposta da nova repetição](../../docs/STATE-06-Consolidated-Quality-Gate-Post-Revocation-Remediation-Rerun-Proposal.md), [relatório da remediação aceita](../../docs/STATE-06-Consolidated-Revocation-Finalisation-Diagnostic-And-Harness-Remediation-Report.md), [relatório histórico reprovado](../../docs/STATE-06-Consolidated-Quality-Gate-Rerun-Report.md) e plano consolidado.
+- Gates futuros: a campanha, amostra humana, Human Gate final, promoção e transição continuam não autorizados e não inferidos.
+- Próxima decisão: Bruno pode solicitar ajustes, adiar ou enviar exatamente o texto da seção `Decisão futura de Bruno`. A proposta não inicia sua própria campanha.
+- Aprovador: não aplicável; registro de solicitação e proposta, não autorização de execução.
+
 ## Template de nova entrada
 
 - Data:
