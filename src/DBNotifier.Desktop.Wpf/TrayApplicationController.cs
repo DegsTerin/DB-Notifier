@@ -512,16 +512,30 @@ internal sealed class TrayApplicationController : IDisposable
             localisation.Text($"Status.{current}"),
             request.Transition.ObservedAt.ToLocalTime().ToString("g", localisation.Culture),
             localisation.Text($"Freshness.{UppercaseFirst(request.Transition.Freshness)}"));
-        if (appNotificationPublisher?.TryPublishReconciledStatusChange(
+        return ReconciledWindowsNotificationBoundary.Deliver(
+            () => appNotificationPublisher?.TryPublishReconciledStatusChange(
                 request.WindowsTag,
                 title,
                 message,
-                meaning) == true ||
-            QueueLegacyNotification(title, message, meaning))
+                meaning) == true,
+            () => TryPublishReconciledLegacyNotification(title, message, meaning));
+    }
+
+    /// <summary>Attempts the legacy Windows boundary immediately without placing reconciled work in the volatile Tray queue.</summary>
+    /// <param name="title">Localised title displayed by the Windows notification surface.</param>
+    /// <param name="message">Localised factual message containing no secret or external state.</param>
+    /// <param name="meaning">Typed meaning used to select the temporary canonical semantic bell.</param>
+    /// <returns>True only after <c>NotifyIcon.ShowBalloonTip</c> returns; false when the boundary is busy or fails.</returns>
+    private bool TryPublishReconciledLegacyNotification(
+        string title,
+        string message,
+        TrayNotificationMeaning meaning)
+    {
+        if (disposing || exiting || legacyNotificationInFlight || legacyNotificationQueue.Count != 0)
         {
-            return new(ReconciledNotificationDeliveryDisposition.Accepted, "delivery.local_platform_accepted");
+            return false;
         }
-        return new(ReconciledNotificationDeliveryDisposition.Retryable, "delivery.local_platform_unavailable");
+        return TryBeginLegacyNotification(new(title, message, meaning));
     }
 
     private static string UppercaseFirst(string value) => string.IsNullOrEmpty(value)
@@ -539,6 +553,18 @@ internal sealed class TrayApplicationController : IDisposable
         }
 
         LegacyNotificationRequest request = legacyNotificationQueue.Dequeue();
+        _ = TryBeginLegacyNotification(request);
+    }
+
+    /// <summary>Calls the sole legacy Windows notification boundary and starts its bounded completion lease.</summary>
+    /// <param name="request">Validated local presentation request.</param>
+    /// <returns>True only after the Windows Forms boundary accepted the synchronous call.</returns>
+    private bool TryBeginLegacyNotification(LegacyNotificationRequest request)
+    {
+        if (disposing || exiting || legacyNotificationInFlight)
+        {
+            return false;
+        }
         legacyNotificationInFlight = true;
         try
         {
@@ -562,10 +588,12 @@ internal sealed class TrayApplicationController : IDisposable
                 request.Title,
                 request.Message,
                 Forms.ToolTipIcon.None);
+            return true;
         }
         catch
         {
             CompleteLegacyNotification(TrayNotificationIconLeaseSignal.DeliveryFailed);
+            return false;
         }
     }
 

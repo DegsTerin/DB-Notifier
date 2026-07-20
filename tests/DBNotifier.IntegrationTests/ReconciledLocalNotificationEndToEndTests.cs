@@ -1,4 +1,5 @@
 // Module purpose: Proves committed synthetic transition reconciliation over temporary authenticated HTTPS and an isolated local ledger.
+using System.Diagnostics;
 using System.Net;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
@@ -80,6 +81,101 @@ public sealed class ReconciledLocalNotificationEndToEndTests
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
 
+    /// <summary>Proves the ledger ownership fence rejects a second operating-system process.</summary>
+    [Fact]
+    public async Task LedgerOwnershipIsExclusiveAcrossProcesses()
+    {
+        string directory = Path.Combine(Path.GetTempPath(), $"dbn-notification-multiprocess-{Guid.NewGuid():N}");
+        string readyPath = Path.Combine(directory, "holder.ready");
+        string releasePath = Path.Combine(directory, "holder.release");
+        Directory.CreateDirectory(directory);
+        Process? holder = null;
+        try
+        {
+            string projectPath = Path.Combine(
+                RepositoryRoot(),
+                "tests",
+                "DBNotifier.IntegrationTests",
+                "DBNotifier.IntegrationTests.csproj");
+            ProcessStartInfo startInfo = new("dotnet")
+            {
+                WorkingDirectory = RepositoryRoot(),
+                UseShellExecute = false,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                CreateNoWindow = true,
+            };
+            startInfo.ArgumentList.Add("test");
+            startInfo.ArgumentList.Add(projectPath);
+            startInfo.ArgumentList.Add("-c");
+            startInfo.ArgumentList.Add("Release");
+            startInfo.ArgumentList.Add("--no-build");
+            startInfo.ArgumentList.Add("--no-restore");
+            startInfo.ArgumentList.Add("--filter");
+            startInfo.ArgumentList.Add($"FullyQualifiedName={typeof(ReconciledLocalNotificationEndToEndTests).FullName}.LedgerLockHolder");
+            startInfo.Environment["DBN_NOTIFICATION_LEDGER_HOLDER_DIRECTORY"] = directory;
+            startInfo.Environment["DBN_NOTIFICATION_LEDGER_HOLDER_READY"] = readyPath;
+            startInfo.Environment["DBN_NOTIFICATION_LEDGER_HOLDER_RELEASE"] = releasePath;
+            holder = Process.Start(startInfo) ?? throw new InvalidOperationException("The ledger holder process did not start.");
+
+            using CancellationTokenSource timeout = new(TimeSpan.FromSeconds(20));
+            while (!File.Exists(readyPath))
+            {
+                if (holder.HasExited)
+                {
+                    string error = await holder.StandardError.ReadToEndAsync(timeout.Token);
+                    throw new InvalidOperationException($"The ledger holder exited before readiness: {error}");
+                }
+                await Task.Delay(TimeSpan.FromMilliseconds(50), timeout.Token);
+            }
+
+            Assert.Throws<IOException>(() => new FileReconciledNotificationLedger(directory));
+            await File.WriteAllTextAsync(releasePath, "release", timeout.Token);
+            await holder.WaitForExitAsync(timeout.Token);
+            Assert.Equal(0, holder.ExitCode);
+        }
+        finally
+        {
+            if (holder is { HasExited: false })
+            {
+                await File.WriteAllTextAsync(releasePath, "release");
+                using CancellationTokenSource shutdown = new(TimeSpan.FromSeconds(5));
+                try
+                {
+                    await holder.WaitForExitAsync(shutdown.Token);
+                }
+                catch (OperationCanceledException)
+                {
+                    holder.Kill(entireProcessTree: true);
+                    await holder.WaitForExitAsync();
+                }
+            }
+            holder?.Dispose();
+            if (Directory.Exists(directory)) Directory.Delete(directory, recursive: true);
+        }
+    }
+
+    /// <summary>Holds the file ledger only when invoked by the bounded multiprocess parent test.</summary>
+    [Fact]
+    public async Task LedgerLockHolder()
+    {
+        string? directory = Environment.GetEnvironmentVariable("DBN_NOTIFICATION_LEDGER_HOLDER_DIRECTORY");
+        string? readyPath = Environment.GetEnvironmentVariable("DBN_NOTIFICATION_LEDGER_HOLDER_READY");
+        string? releasePath = Environment.GetEnvironmentVariable("DBN_NOTIFICATION_LEDGER_HOLDER_RELEASE");
+        if (directory is null || readyPath is null || releasePath is null)
+        {
+            return;
+        }
+
+        await using FileReconciledNotificationLedger ledger = new(directory);
+        await File.WriteAllTextAsync(readyPath, "ready");
+        using CancellationTokenSource timeout = new(TimeSpan.FromSeconds(15));
+        while (!File.Exists(releasePath))
+        {
+            await Task.Delay(TimeSpan.FromMilliseconds(50), timeout.Token);
+        }
+    }
+
     private sealed class RecordingSink : IReconciledNotificationSink
     {
         public List<ReconciledNotificationDeliveryRequest> Requests { get; } = [];
@@ -93,6 +189,16 @@ public sealed class ReconciledLocalNotificationEndToEndTests
                 ReconciledNotificationDeliveryDisposition.Accepted,
                 "delivery.test_accepted"));
         }
+    }
+
+    private static string RepositoryRoot()
+    {
+        DirectoryInfo? directory = new(AppContext.BaseDirectory);
+        while (directory is not null && !File.Exists(Path.Combine(directory.FullName, "DBNotifier.sln")))
+        {
+            directory = directory.Parent;
+        }
+        return directory?.FullName ?? throw new DirectoryNotFoundException("The repository root could not be resolved.");
     }
 
     private sealed class NotificationSandbox : IAsyncDisposable

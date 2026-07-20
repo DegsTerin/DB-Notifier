@@ -177,19 +177,22 @@ public interface IReconciledNotificationSink
 public enum ReconciledNotificationLedgerDisposition
 {
     /// <summary>The intent was committed before calling the non-transactional Windows boundary.</summary>
-    Attempting,
+    Attempting = 0,
 
     /// <summary>The local platform boundary accepted the hand-off request.</summary>
-    Accepted,
+    Accepted = 1,
 
     /// <summary>Policy suppressed the event without a platform request.</summary>
-    Suppressed,
+    Suppressed = 2,
 
     /// <summary>A bounded later retry remains permitted.</summary>
-    Retryable,
+    Retryable = 3,
 
-    /// <summary>The event is terminally failed or uncertain and will not be repeated automatically.</summary>
-    FailedTerminal,
+    /// <summary>The event was rejected terminally or became uncertain and will not be repeated automatically.</summary>
+    Rejected = 4,
+
+    /// <summary>The validated transition is durably queued and has not reached the Windows boundary.</summary>
+    Queued = 5,
 }
 
 /// <summary>Represents one durable deduplication and delivery decision.</summary>
@@ -198,6 +201,7 @@ public enum ReconciledNotificationLedgerDisposition
 /// <param name="WindowsTag">Deterministic bounded Windows replacement tag.</param>
 /// <param name="Disposition">Current durable delivery decision.</param>
 /// <param name="AttemptCount">Number of platform hand-offs begun.</param>
+/// <param name="QueueSequence">Monotonic local order assigned before any delivery in the page begins.</param>
 /// <param name="FirstSeenAt">UTC instant when the transition first entered the ledger.</param>
 /// <param name="LastDecidedAt">UTC instant of the most recent durable decision.</param>
 /// <param name="ResultCode">Sanitised non-secret outcome code.</param>
@@ -207,6 +211,7 @@ public sealed record ReconciledNotificationLedgerEntry(
     string WindowsTag,
     ReconciledNotificationLedgerDisposition Disposition,
     int AttemptCount,
+    long QueueSequence,
     DateTimeOffset FirstSeenAt,
     DateTimeOffset LastDecidedAt,
     string ResultCode);
@@ -215,21 +220,24 @@ public sealed record ReconciledNotificationLedgerEntry(
 /// <param name="SchemaVersion">Exact local ledger schema identifier.</param>
 /// <param name="Revision">Optimistic revision advanced on every atomic replacement.</param>
 /// <param name="Cursor">Last fully classified server cursor, or null before the silent baseline.</param>
+/// <param name="NextQueueSequence">Next positive sequence reserved for a newly queued transition.</param>
 /// <param name="Entries">Bounded recent decisions used for deduplication and collision detection.</param>
 public sealed record ReconciledNotificationLedgerState(
     string SchemaVersion,
     long Revision,
     string? Cursor,
+    long NextQueueSequence,
     IReadOnlyList<ReconciledNotificationLedgerEntry> Entries)
 {
     /// <summary>Gets the exact local ledger schema version.</summary>
-    public const string CurrentSchemaVersion = "reconciled-local-notification-ledger.v1";
+    public const string CurrentSchemaVersion = "reconciled-local-notification-ledger.v2";
 
     /// <summary>Gets a new empty ledger that still requires a silent baseline.</summary>
     public static ReconciledNotificationLedgerState Empty { get; } = new(
         CurrentSchemaVersion,
         0,
         null,
+        1,
         []);
 }
 
@@ -551,6 +559,8 @@ public sealed class ReconciledNotificationCoordinator : IDisposable
 {
     private const int MaximumLedgerEntries = 256;
     private const int MaximumDeliveryAttempts = 2;
+    private static readonly TimeSpan DeliveryAttemptTimeout = TimeSpan.FromSeconds(5);
+    private static readonly TimeSpan RetryBackoff = TimeSpan.FromSeconds(5);
     private readonly IReconciledNotificationTransitionReader reader;
     private readonly IReconciledNotificationLedger ledger;
     private readonly IReconciledNotificationSink sink;
@@ -670,31 +680,101 @@ public sealed class ReconciledNotificationCoordinator : IDisposable
         int accepted = 0;
         int suppressed = 0;
         int failedTerminal = 0;
+        List<ReconciledNotificationLedgerEntry> stagedEntries = state.Entries.ToList();
+        long nextQueueSequence = state.NextQueueSequence;
         foreach (ReconciledNotificationTransition transition in page.Items)
         {
             string contentHash = ReconciledNotificationIdentity.CreateContentSha256(transition);
             string windowsTag = ReconciledNotificationIdentity.CreateWindowsTag(transition.EventId);
-            ReconciledNotificationLedgerEntry? existing = state.Entries.SingleOrDefault(
+            ReconciledNotificationLedgerEntry? existing = stagedEntries.SingleOrDefault(
                 entry => entry.EventId == transition.EventId);
             if (existing is not null && !string.Equals(existing.ContentSha256, contentHash, StringComparison.Ordinal))
             {
                 return new(ReconciledNotificationCycleDisposition.Conflict, accepted, suppressed, failedTerminal,
                     "reconciled_notification.event_content_conflict");
             }
-            if (state.Entries.Any(entry => entry.EventId != transition.EventId &&
+            if (stagedEntries.Any(entry => entry.EventId != transition.EventId &&
                 string.Equals(entry.WindowsTag, windowsTag, StringComparison.Ordinal)))
             {
                 return new(ReconciledNotificationCycleDisposition.Conflict, accepted, suppressed, failedTerminal,
                     "reconciled_notification.windows_tag_collision");
             }
+            if (existing is not null)
+            {
+                continue;
+            }
 
-            if (existing?.Disposition == ReconciledNotificationLedgerDisposition.Attempting)
+            DateTimeOffset now = timeProvider.GetUtcNow();
+            bool suppress = policy.Quiet || transition.Freshness is not "current";
+            stagedEntries.Add(new(
+                transition.EventId,
+                contentHash,
+                windowsTag,
+                suppress
+                    ? ReconciledNotificationLedgerDisposition.Suppressed
+                    : ReconciledNotificationLedgerDisposition.Queued,
+                0,
+                nextQueueSequence,
+                now,
+                now,
+                suppress ? (policy.Quiet ? "policy.quiet" : "policy.not_current") : "delivery.queued"));
+            nextQueueSequence = checked(nextQueueSequence + 1);
+            if (suppress)
+            {
+                suppressed++;
+            }
+        }
+
+        int pendingCount = stagedEntries.Count(entry => entry.Disposition is
+            ReconciledNotificationLedgerDisposition.Queued or
+            ReconciledNotificationLedgerDisposition.Attempting or
+            ReconciledNotificationLedgerDisposition.Retryable);
+        if (pendingCount > MaximumLedgerEntries)
+        {
+            return new(ReconciledNotificationCycleDisposition.Retryable, accepted, suppressed, failedTerminal,
+                "reconciled_notification.ledger_capacity_exceeded");
+        }
+        if (nextQueueSequence != state.NextQueueSequence)
+        {
+            ReconciledNotificationLedgerState staged = state with
+            {
+                Revision = checked(state.Revision + 1),
+                NextQueueSequence = nextQueueSequence,
+                Entries = Prune(stagedEntries),
+            };
+            if (!await ledger.TryReplaceAsync(state.Revision, staged, cancellationToken).ConfigureAwait(false))
+            {
+                return new(ReconciledNotificationCycleDisposition.Conflict, accepted, suppressed, failedTerminal,
+                    "reconciled_notification.ledger_conflict");
+            }
+            state = staged;
+        }
+
+        HashSet<Guid> pageEventIds = page.Items.Select(item => item.EventId).ToHashSet();
+        if (state.Entries.Any(entry =>
+            entry.Disposition is (
+                ReconciledNotificationLedgerDisposition.Queued or
+                ReconciledNotificationLedgerDisposition.Attempting or
+                ReconciledNotificationLedgerDisposition.Retryable) &&
+            !pageEventIds.Contains(entry.EventId)))
+        {
+            return new(ReconciledNotificationCycleDisposition.Conflict, accepted, suppressed, failedTerminal,
+                "reconciled_notification.pending_transition_missing");
+        }
+
+        ReconciledNotificationTransition[] orderedTransitions = page.Items
+            .OrderBy(transition => state.Entries.Single(entry => entry.EventId == transition.EventId).QueueSequence)
+            .ToArray();
+        foreach (ReconciledNotificationTransition transition in orderedTransitions)
+        {
+            ReconciledNotificationLedgerEntry existing = state.Entries.Single(entry => entry.EventId == transition.EventId);
+            if (existing.Disposition == ReconciledNotificationLedgerDisposition.Attempting)
             {
                 ReconciledNotificationLedgerState? recovered = await ReplaceEntryAsync(
                     state,
                     existing with
                     {
-                        Disposition = ReconciledNotificationLedgerDisposition.FailedTerminal,
+                        Disposition = ReconciledNotificationLedgerDisposition.Rejected,
                         LastDecidedAt = timeProvider.GetUtcNow(),
                         ResultCode = "delivery.uncertain_after_restart",
                     },
@@ -708,10 +788,10 @@ public sealed class ReconciledNotificationCoordinator : IDisposable
                 failedTerminal++;
                 continue;
             }
-            if (existing is not null && existing.Disposition is
+            if (existing.Disposition is
                 ReconciledNotificationLedgerDisposition.Accepted or
                 ReconciledNotificationLedgerDisposition.Suppressed or
-                ReconciledNotificationLedgerDisposition.FailedTerminal)
+                ReconciledNotificationLedgerDisposition.Rejected)
             {
                 continue;
             }
@@ -719,18 +799,14 @@ public sealed class ReconciledNotificationCoordinator : IDisposable
             DateTimeOffset now = timeProvider.GetUtcNow();
             if (policy.Quiet || transition.Freshness is not "current")
             {
-                ReconciledNotificationLedgerEntry suppressedEntry = new(
-                    transition.EventId,
-                    contentHash,
-                    windowsTag,
-                    ReconciledNotificationLedgerDisposition.Suppressed,
-                    existing?.AttemptCount ?? 0,
-                    existing?.FirstSeenAt ?? now,
-                    now,
-                    policy.Quiet ? "policy.quiet" : "policy.not_current");
                 ReconciledNotificationLedgerState? saved = await ReplaceEntryAsync(
                     state,
-                    suppressedEntry,
+                    existing with
+                    {
+                        Disposition = ReconciledNotificationLedgerDisposition.Suppressed,
+                        LastDecidedAt = now,
+                        ResultCode = policy.Quiet ? "policy.quiet" : "policy.not_current",
+                    },
                     cancellationToken).ConfigureAwait(false);
                 if (saved is null)
                 {
@@ -741,39 +817,42 @@ public sealed class ReconciledNotificationCoordinator : IDisposable
                 suppressed++;
                 continue;
             }
+            if (existing.Disposition == ReconciledNotificationLedgerDisposition.Retryable &&
+                now - existing.LastDecidedAt < RetryBackoff)
+            {
+                return new(ReconciledNotificationCycleDisposition.Retryable, accepted, suppressed, failedTerminal,
+                    "delivery.backoff_pending");
+            }
 
-            int attemptCount = checked((existing?.AttemptCount ?? 0) + 1);
+            int attemptCount = checked(existing.AttemptCount + 1);
             if (attemptCount > MaximumDeliveryAttempts)
             {
-                ReconciledNotificationLedgerEntry exhausted = existing! with
-                {
-                    Disposition = ReconciledNotificationLedgerDisposition.FailedTerminal,
-                    LastDecidedAt = now,
-                    ResultCode = "delivery.retry_budget_exhausted",
-                };
-                ReconciledNotificationLedgerState? exhaustedSaved = await ReplaceEntryAsync(
+                ReconciledNotificationLedgerState? exhausted = await ReplaceEntryAsync(
                     state,
-                    exhausted,
+                    existing with
+                    {
+                        Disposition = ReconciledNotificationLedgerDisposition.Rejected,
+                        LastDecidedAt = now,
+                        ResultCode = "delivery.retry_budget_exhausted",
+                    },
                     cancellationToken).ConfigureAwait(false);
-                if (exhaustedSaved is null)
+                if (exhausted is null)
                 {
                     return new(ReconciledNotificationCycleDisposition.Conflict, accepted, suppressed, failedTerminal,
                         "reconciled_notification.ledger_conflict");
                 }
-                state = exhaustedSaved;
+                state = exhausted;
                 failedTerminal++;
                 continue;
             }
 
-            ReconciledNotificationLedgerEntry attempting = new(
-                transition.EventId,
-                contentHash,
-                windowsTag,
-                ReconciledNotificationLedgerDisposition.Attempting,
-                attemptCount,
-                existing?.FirstSeenAt ?? now,
-                now,
-                "delivery.attempting");
+            ReconciledNotificationLedgerEntry attempting = existing with
+            {
+                Disposition = ReconciledNotificationLedgerDisposition.Attempting,
+                AttemptCount = attemptCount,
+                LastDecidedAt = now,
+                ResultCode = "delivery.attempting",
+            };
             ReconciledNotificationLedgerState? attemptSaved = await ReplaceEntryAsync(
                 state,
                 attempting,
@@ -785,15 +864,15 @@ public sealed class ReconciledNotificationCoordinator : IDisposable
             }
             state = attemptSaved;
 
-            ReconciledNotificationDeliveryResult delivery = await sink.DeliverAsync(
-                new ReconciledNotificationDeliveryRequest(transition.EventId, windowsTag, transition),
+            ReconciledNotificationDeliveryResult delivery = await DeliverWithDeadlineAsync(
+                new ReconciledNotificationDeliveryRequest(transition.EventId, existing.WindowsTag, transition),
                 cancellationToken).ConfigureAwait(false);
             ReconciledNotificationLedgerDisposition disposition = delivery.Disposition switch
             {
                 ReconciledNotificationDeliveryDisposition.Accepted => ReconciledNotificationLedgerDisposition.Accepted,
                 ReconciledNotificationDeliveryDisposition.Retryable when attemptCount < MaximumDeliveryAttempts =>
                     ReconciledNotificationLedgerDisposition.Retryable,
-                _ => ReconciledNotificationLedgerDisposition.FailedTerminal,
+                _ => ReconciledNotificationLedgerDisposition.Rejected,
             };
             ReconciledNotificationLedgerEntry decided = attempting with
             {
@@ -845,6 +924,33 @@ public sealed class ReconciledNotificationCoordinator : IDisposable
         return new(completed, accepted, suppressed, failedTerminal);
     }
 
+    private async ValueTask<ReconciledNotificationDeliveryResult> DeliverWithDeadlineAsync(
+        ReconciledNotificationDeliveryRequest request,
+        CancellationToken cancellationToken)
+    {
+        using CancellationTokenSource deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        deadline.CancelAfter(DeliveryAttemptTimeout);
+        try
+        {
+            return await sink
+                .DeliverAsync(request, deadline.Token)
+                .AsTask()
+                .WaitAsync(DeliveryAttemptTimeout, timeProvider, cancellationToken)
+                .ConfigureAwait(false);
+        }
+        catch (Exception exception) when (
+            !cancellationToken.IsCancellationRequested &&
+            exception is OperationCanceledException or TimeoutException)
+        {
+            deadline.Cancel();
+            return new(ReconciledNotificationDeliveryDisposition.FailedTerminal, "delivery.deadline_uncertain");
+        }
+        catch (Exception exception) when (exception is IOException or InvalidOperationException)
+        {
+            return new(ReconciledNotificationDeliveryDisposition.FailedTerminal, "delivery.boundary_uncertain");
+        }
+    }
+
     private async ValueTask<ReconciledNotificationLedgerState?> ReplaceEntryAsync(
         ReconciledNotificationLedgerState state,
         ReconciledNotificationLedgerEntry replacement,
@@ -867,15 +973,39 @@ public sealed class ReconciledNotificationCoordinator : IDisposable
     }
 
     private static ReconciledNotificationLedgerEntry[] Prune(
-        IReadOnlyList<ReconciledNotificationLedgerEntry> entries) => entries.Count <= MaximumLedgerEntries
-            ? entries.ToArray()
-            : entries
+        IReadOnlyList<ReconciledNotificationLedgerEntry> entries)
+    {
+        if (entries.Count <= MaximumLedgerEntries)
+        {
+            return entries.ToArray();
+        }
+
+        ReconciledNotificationLedgerEntry[] pending = entries
+            .Where(entry => entry.Disposition is
+                ReconciledNotificationLedgerDisposition.Queued or
+                ReconciledNotificationLedgerDisposition.Attempting or
+                ReconciledNotificationLedgerDisposition.Retryable)
+            .OrderBy(entry => entry.FirstSeenAt)
+            .ThenBy(entry => entry.EventId)
+            .ToArray();
+        if (pending.Length > MaximumLedgerEntries)
+        {
+            throw new InvalidDataException("The durable local notification queue reached its bounded capacity.");
+        }
+
+        return pending
+            .Concat(entries
+                .Where(entry => entry.Disposition is not (
+                    ReconciledNotificationLedgerDisposition.Queued or
+                    ReconciledNotificationLedgerDisposition.Attempting or
+                    ReconciledNotificationLedgerDisposition.Retryable))
                 .OrderByDescending(entry => entry.LastDecidedAt)
                 .ThenByDescending(entry => entry.EventId)
-                .Take(MaximumLedgerEntries)
-                .OrderBy(entry => entry.FirstSeenAt)
-                .ThenBy(entry => entry.EventId)
-                .ToArray();
+                .Take(MaximumLedgerEntries - pending.Length))
+            .OrderBy(entry => entry.FirstSeenAt)
+            .ThenBy(entry => entry.EventId)
+            .ToArray();
+    }
 
     private static ReconciledNotificationCycleResult? ClassifyReadFailure(
         ReconciledNotificationReadResult read) => read.Disposition switch

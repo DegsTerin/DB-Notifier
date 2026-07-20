@@ -36,6 +36,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DBNotifier.DashboardTv.Brow
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DBNotifier.State06.ConsolidatedSandboxHost", "tests\DBNotifier.State06.ConsolidatedSandboxHost\DBNotifier.State06.ConsolidatedSandboxHost.csproj", "{07E7D1E1-C74C-4041-8031-DD1B4BD39A80}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DBNotifier.Desktop.Wpf.Tests", "tests\DBNotifier.Desktop.Wpf.Tests\DBNotifier.Desktop.Wpf.Tests.csproj", "{5D106FE1-AD07-4B83-AE03-8EB496121F5A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -110,5 +112,9 @@ Global
 		{07E7D1E1-C74C-4041-8031-DD1B4BD39A80}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{07E7D1E1-C74C-4041-8031-DD1B4BD39A80}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{07E7D1E1-C74C-4041-8031-DD1B4BD39A80}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5D106FE1-AD07-4B83-AE03-8EB496121F5A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5D106FE1-AD07-4B83-AE03-8EB496121F5A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5D106FE1-AD07-4B83-AE03-8EB496121F5A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5D106FE1-AD07-4B83-AE03-8EB496121F5A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

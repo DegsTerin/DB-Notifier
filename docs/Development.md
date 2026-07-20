@@ -29,6 +29,7 @@ src/
   DBNotifier.Dashboard.Web/
 tests/
   DBNotifier.UnitTests/
+  DBNotifier.Desktop.Wpf.Tests/
   DBNotifier.Architecture.Tests/
   DBNotifier.IntegrationTests/
   DBNotifier.AgentFleet.SandboxHost/
@@ -56,6 +57,8 @@ Agent retention and Server retention are separately opt-in, with dry-run default
 The Desktop sets `WindowsAppSdkBootstrapInitialize` to `false` and owns dynamic-dependency initialisation explicitly. Its notification publisher calls the Windows App SDK bootstrap API before registering with `AppNotificationManager`, and it releases that bootstrap lease during disposal. A missing or damaged runtime, unsupported platform, missing identity asset, or registration/publication failure is handled fail-safe: normal notification-area startup remains available and an explicit Close request can use the bounded legacy `NotifyIcon` balloon fallback. Diagnostics record only a stable stage and exception type, never notification content, local paths or external state.
 
 During `STATE-05`, `AppNotificationManager` is used only for the local confirmation requested each time the user explicitly closes the secondary WPF shell to the notification area. Platform acceptance of that request is not proof that Windows displayed it, because Focus Assist, user policy and the Windows Shell remain authoritative. App-notification delivery from an elevated process is not treated as supported; the Desktop runs in the ordinary user session. Any observed presentation is also not evidence of provider integration, external delivery, administrative capability, homologation, public support or production readiness.
+
+The separately gated reconciled-notification sandbox uses ledger schema `reconciled-local-notification-ledger.v2`. It persists every validated page item as `Queued` or `Suppressed` before the first Windows hand-off, assigns a monotonic local queue sequence, records `Attempting` before the non-transactional call, and records `Accepted` only after the modern publisher or direct `NotifyIcon.ShowBalloonTip` boundary returns successfully. A busy legacy boundary remains `Retryable`; it is never accepted merely because work entered the ordinary volatile Tray queue. Restart resumes `Queued` work in ledger order, while an interrupted `Attempting` hand-off becomes terminal `Rejected` uncertainty to avoid an unprovable duplicate. The bounded two-attempt policy, five-second backoff/deadline, 256-entry ledger, exact sandbox opt-in and silent baseline remain test-only controls, not operational sizing or proof that the Windows Shell displayed a notification.
 
 ## Legacy configuration migration
 

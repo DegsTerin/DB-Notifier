@@ -148,6 +148,7 @@ public sealed class FileReconciledNotificationLedger : IReconciledNotificationLe
     private readonly string ledgerPath;
     private readonly string temporaryPath;
     private readonly FileStream ownershipLock;
+    private readonly FileStream? legacyOwnershipLock;
     private ReconciledNotificationLedgerState state;
     private bool disposed;
 
@@ -160,10 +161,11 @@ public sealed class FileReconciledNotificationLedger : IReconciledNotificationLe
         ArgumentException.ThrowIfNullOrWhiteSpace(directoryPath);
         string fullDirectory = Path.GetFullPath(directoryPath);
         Directory.CreateDirectory(fullDirectory);
-        ledgerPath = Path.Combine(fullDirectory, "reconciled-notification-ledger.v1.json");
-        temporaryPath = Path.Combine(fullDirectory, "reconciled-notification-ledger.v1.tmp");
+        ledgerPath = Path.Combine(fullDirectory, "reconciled-notification-ledger.v2.json");
+        temporaryPath = Path.Combine(fullDirectory, "reconciled-notification-ledger.v2.tmp");
+        string legacyLedgerPath = Path.Combine(fullDirectory, "reconciled-notification-ledger.v1.json");
         ownershipLock = new FileStream(
-            Path.Combine(fullDirectory, "reconciled-notification-ledger.v1.lock"),
+            Path.Combine(fullDirectory, "reconciled-notification-ledger.v2.lock"),
             FileMode.OpenOrCreate,
             FileAccess.ReadWrite,
             FileShare.None,
@@ -171,10 +173,25 @@ public sealed class FileReconciledNotificationLedger : IReconciledNotificationLe
             FileOptions.WriteThrough);
         try
         {
-            state = Load(ledgerPath);
+            legacyOwnershipLock = new FileStream(
+                Path.Combine(fullDirectory, "reconciled-notification-ledger.v1.lock"),
+                FileMode.OpenOrCreate,
+                FileAccess.ReadWrite,
+                FileShare.None,
+                1,
+                FileOptions.WriteThrough);
+            if (!File.Exists(ledgerPath) && File.Exists(legacyLedgerPath))
+            {
+                state = LoadLegacy(legacyLedgerPath);
+            }
+            else
+            {
+                state = Load(ledgerPath);
+            }
         }
         catch
         {
+            legacyOwnershipLock?.Dispose();
             ownershipLock.Dispose();
             throw;
         }
@@ -236,6 +253,7 @@ public sealed class FileReconciledNotificationLedger : IReconciledNotificationLe
         if (!disposed)
         {
             disposed = true;
+            legacyOwnershipLock?.Dispose();
             ownershipLock.Dispose();
         }
         GC.SuppressFinalize(this);
@@ -267,26 +285,95 @@ public sealed class FileReconciledNotificationLedger : IReconciledNotificationLe
         }
     }
 
+    /// <summary>Migrates the bounded pre-R1 ledger while conservatively rejecting every earlier ambiguous acceptance.</summary>
+    /// <param name="path">Exact legacy ledger path inside the already fenced sandbox directory.</param>
+    /// <returns>A validated in-memory v2 state that will be atomically persisted by the next replacement.</returns>
+    /// <exception cref="InvalidDataException">Thrown when legacy content is malformed, incompatible or unsafe.</exception>
+    private static ReconciledNotificationLedgerState LoadLegacy(string path)
+    {
+        FileInfo info = new(path);
+        if (info.Length <= 0 || info.Length > MaximumFileBytes)
+        {
+            throw new InvalidDataException("The legacy local notification ledger has an invalid size.");
+        }
+        try
+        {
+            LegacyLedgerState? legacy = JsonSerializer.Deserialize<LegacyLedgerState>(
+                File.ReadAllBytes(path),
+                SerializerOptions);
+            if (legacy is null ||
+                !string.Equals(legacy.SchemaVersion, "reconciled-local-notification-ledger.v1", StringComparison.Ordinal) ||
+                legacy.Revision < 0 || legacy.Entries is null || legacy.Entries.Count > MaximumEntries ||
+                (legacy.Cursor is not null && !ReconciledNotificationCursorCodec.TryDecode(legacy.Cursor, out _)))
+            {
+                throw new InvalidDataException("The legacy local notification ledger contract is invalid.");
+            }
+
+            ReconciledNotificationLedgerEntry[] migratedEntries = legacy.Entries
+                .OrderBy(entry => entry.FirstSeenAt)
+                .ThenBy(entry => entry.EventId)
+                .Select((entry, index) => new ReconciledNotificationLedgerEntry(
+                    entry.EventId,
+                    entry.ContentSha256,
+                    entry.WindowsTag,
+                    entry.Disposition is ReconciledNotificationLedgerDisposition.Accepted or
+                        ReconciledNotificationLedgerDisposition.Attempting
+                        ? ReconciledNotificationLedgerDisposition.Rejected
+                        : entry.Disposition,
+                    entry.AttemptCount,
+                    index + 1L,
+                    entry.FirstSeenAt,
+                    entry.LastDecidedAt,
+                    entry.Disposition is ReconciledNotificationLedgerDisposition.Accepted or
+                        ReconciledNotificationLedgerDisposition.Attempting
+                        ? "migration.pre_r1_acceptance_uncertain"
+                        : entry.ResultCode))
+                .ToArray();
+            ReconciledNotificationLedgerState migrated = new(
+                ReconciledNotificationLedgerState.CurrentSchemaVersion,
+                legacy.Revision,
+                legacy.Cursor,
+                migratedEntries.LongLength + 1,
+                migratedEntries);
+            Validate(migrated);
+            return migrated;
+        }
+        catch (JsonException exception)
+        {
+            throw new InvalidDataException("The legacy local notification ledger is malformed.", exception);
+        }
+    }
+
     private static void Validate(ReconciledNotificationLedgerState? candidate)
     {
         if (candidate is null ||
             !string.Equals(candidate.SchemaVersion, ReconciledNotificationLedgerState.CurrentSchemaVersion, StringComparison.Ordinal) ||
-            candidate.Revision < 0 || candidate.Entries is null || candidate.Entries.Count > MaximumEntries ||
+            candidate.Revision < 0 || candidate.NextQueueSequence < 1 ||
+            candidate.Entries is null || candidate.Entries.Count > MaximumEntries ||
             (candidate.Cursor is not null && !ReconciledNotificationCursorCodec.TryDecode(candidate.Cursor, out _)))
         {
             throw new InvalidDataException("The local notification ledger contract is invalid.");
         }
         HashSet<Guid> ids = [];
         HashSet<string> tags = new(StringComparer.Ordinal);
+        HashSet<long> queueSequences = [];
         foreach (ReconciledNotificationLedgerEntry entry in candidate.Entries)
         {
             if (entry.EventId == Guid.Empty || !ids.Add(entry.EventId) ||
                 entry.ContentSha256.Length != 64 || entry.ContentSha256.Any(character => !Uri.IsHexDigit(character)) ||
                 entry.WindowsTag.Length != 16 || !tags.Add(entry.WindowsTag) ||
                 entry.WindowsTag.Any(character => !(character is >= '0' and <= '9' or >= 'a' and <= 'f')) ||
-                entry.AttemptCount is < 0 or > 2 || entry.FirstSeenAt.Offset != TimeSpan.Zero ||
+                !Enum.IsDefined(entry.Disposition) ||
+                entry.AttemptCount is < 0 or > 2 || entry.QueueSequence < 1 ||
+                entry.QueueSequence >= candidate.NextQueueSequence || !queueSequences.Add(entry.QueueSequence) ||
+                entry.FirstSeenAt.Offset != TimeSpan.Zero ||
                 entry.LastDecidedAt.Offset != TimeSpan.Zero || entry.LastDecidedAt < entry.FirstSeenAt ||
-                string.IsNullOrWhiteSpace(entry.ResultCode) || entry.ResultCode.Length > 100)
+                string.IsNullOrWhiteSpace(entry.ResultCode) || entry.ResultCode.Length > 100 ||
+                entry.Disposition == ReconciledNotificationLedgerDisposition.Queued && entry.AttemptCount != 0 ||
+                (entry.Disposition is ReconciledNotificationLedgerDisposition.Attempting or
+                    ReconciledNotificationLedgerDisposition.Accepted or
+                    ReconciledNotificationLedgerDisposition.Retryable or
+                    ReconciledNotificationLedgerDisposition.Rejected) && entry.AttemptCount == 0)
             {
                 throw new InvalidDataException("A local notification ledger entry is invalid.");
             }
@@ -295,4 +382,22 @@ public sealed class FileReconciledNotificationLedger : IReconciledNotificationLe
 
     private static ReconciledNotificationLedgerState Clone(ReconciledNotificationLedgerState source) =>
         source with { Entries = source.Entries.ToArray() };
+
+    /// <summary>Deserialises only the exact bounded v1 container needed for conservative local migration.</summary>
+    private sealed record LegacyLedgerState(
+        string SchemaVersion,
+        long Revision,
+        string? Cursor,
+        IReadOnlyList<LegacyLedgerEntry> Entries);
+
+    /// <summary>Deserialises one v1 decision without granting its former acceptance stronger meaning.</summary>
+    private sealed record LegacyLedgerEntry(
+        Guid EventId,
+        string ContentSha256,
+        string WindowsTag,
+        ReconciledNotificationLedgerDisposition Disposition,
+        int AttemptCount,
+        DateTimeOffset FirstSeenAt,
+        DateTimeOffset LastDecidedAt,
+        string ResultCode);
 }

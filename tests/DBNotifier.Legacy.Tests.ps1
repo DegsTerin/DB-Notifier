@@ -484,7 +484,7 @@ Describe "DB-Notifier legacy compatibility" {
     It "rejects NuGet reports that omit a solution project" {
         $gatePath = Join-Path $PSScriptRoot "..\scripts\verify-nuget-vulnerabilities.ps1"
         $report = Get-Content -LiteralPath (Join-Path $PSScriptRoot "fixtures\nuget-vulnerability-report.no-frameworks.json") -Raw | ConvertFrom-Json
-        $report.projects = @($report.projects | Select-Object -First 16)
+        $report.projects = @($report.projects | Select-Object -First 17)
         $reportPath = Join-Path $TestDrive "nuget-project-omitted.json"
         $report | ConvertTo-Json -Depth 12 | Set-Content -LiteralPath $reportPath -Encoding UTF8
 

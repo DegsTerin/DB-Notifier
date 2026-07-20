@@ -173,6 +173,8 @@ Se a correção exigir acesso online, alteração de feed, instalação ou SHA n
 
 ## R1 — Verdade e durabilidade da notificação local
 
+**Execution record (2026-07-20):** the authorised local implementation and its R1-specific verification are complete on baseline `3ee505ec55cab84f1af3043491355fb9f00b5f43`. The R1 automatic scope is `APROVADO`; the independent human decision remains pending. The unfiltered solution test command is not green because one R0 architecture assertion already contradicted the workflow at the authorised baseline; that pre-existing out-of-scope inconsistency remains explicit and was neither altered nor counted as an R1 pass. Evidence: [STATE-06 Audit Remediation R1 Report](STATE-06-Audit-Remediation-R1-Report.md). This record does not authorise visible notification delivery, R2–R8, R7-A0/O1, AIOps mode promotion or lifecycle transition.
+
 ### Objetivo
 
 Garantir que `Accepted` signifique que a fronteira Windows recebeu a tentativa, sem perder itens já deduplicados durante rajada, shutdown ou crash.

@@ -25,6 +25,27 @@ public sealed class ReconciledNotificationIsolationTests
         Assert.Contains("suppressDemonstrationNotifications", controller, StringComparison.Ordinal);
     }
 
+    /// <summary>Ensures the reconciled WPF path bypasses volatile queue admission and accepts only a direct boundary call.</summary>
+    [Fact]
+    public void WpfReconciledFallbackUsesTheDirectTestedBoundary()
+    {
+        string controller = Read("src", "DBNotifier.Desktop.Wpf", "TrayApplicationController.cs");
+        string boundary = Read("src", "DBNotifier.Desktop.Wpf", "ReconciledWindowsNotificationBoundary.cs");
+        int deliveryStart = controller.IndexOf(
+            "private ReconciledNotificationDeliveryResult DeliverReconciledNotification",
+            StringComparison.Ordinal);
+        int deliveryEnd = controller.IndexOf(
+            "private bool TryPublishReconciledLegacyNotification",
+            deliveryStart,
+            StringComparison.Ordinal);
+        string delivery = controller[deliveryStart..deliveryEnd];
+
+        Assert.Contains("ReconciledWindowsNotificationBoundary.Deliver", delivery, StringComparison.Ordinal);
+        Assert.Contains("TryPublishReconciledLegacyNotification", delivery, StringComparison.Ordinal);
+        Assert.DoesNotContain("QueueLegacyNotification", delivery, StringComparison.Ordinal);
+        Assert.Contains("return tryModern() || tryLegacy()", boundary, StringComparison.Ordinal);
+    }
+
     [Fact]
     public void NotificationPipelineContainsNoSignalRCommandOrExternalChannelDependency()
     {
