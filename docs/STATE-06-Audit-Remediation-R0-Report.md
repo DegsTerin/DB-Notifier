@@ -6,7 +6,7 @@
 - Execution authority: the explicit local-only authorisation issued by Bruno on 2026-07-20.
 - Local implementation: completed.
 - Automatic result in the authorised local scope: `APROVADO`.
-- Human decision on the increment: `PENDENTE`.
+- Human decision on the increment: `ACEITO`, recorded from Bruno's exact decision `ACEITO O R0` on 2026-07-20.
 - Lifecycle: remains `STATE-06 INTEGRATION`; no transition was requested or performed.
 - MOD-12: unchanged and inactive; no `OBSERVER`, O1, LLM, recommendation, command or automation was enabled.
 
@@ -106,6 +106,6 @@ Final consecutive runner evidence:
 
 The increment can be reverted as one focused Git commit while retaining this report as historical evidence. Reverting would restore the known incompatible NuGet gate and weaker runner cleanup, so such a rollback must leave those gates explicitly blocked rather than treating them as trustworthy approval evidence.
 
-## Next gate
+## Human decision and next boundary
 
-The only next decision for this increment is a separate human review of this report and focused diff. Accepting R0 would close only R0; it would not authorise R1, any later remediation lot, R7-A0/O1, AIOps mode promotion or lifecycle transition.
+Bruno closed the independent human review of this increment on 2026-07-20 with the exact decision `ACEITO O R0`. R0 is therefore accepted and closed in its authorised local scope. This decision does not authorise R1, any later remediation lot, R7-A0/O1, AIOps mode promotion or lifecycle transition. Any subsequent technical increment requires a new, separate and explicit authorisation.
