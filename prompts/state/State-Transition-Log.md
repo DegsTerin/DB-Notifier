@@ -2298,6 +2298,21 @@
 - Próxima decisão MOD-12: adoção, ajuste ou rejeição formal do `ADR-0007`, separada de qualquer autorização de implementação. A próxima decisão de ciclo de vida continua sendo a eventual transição formal `STATE-06 → STATE-07` por sua proposta própria.
 - Aprovador: Bruno, 2026-07-20, exclusivamente para aceitar a proposta como direção.
 
+## 2026-07-20 — Adoção arquitetural do `ADR-0007`
+
+- Estado anterior: `STATE-06 INTEGRATION`, proposta MOD-12 aceita como direção, nenhum modo AIOps ativo, `ADR-0007` `proposed` e O1 não autorizado.
+- Estado resultante: sem transição e sem promoção; `STATE-06 INTEGRATION` e MOD-12 em `none` mantidos. `ADR-0007` passa a `accepted` exclusivamente como decisão arquitetural.
+- Decisão: Bruno declarou exatamente `ADR-0007: ADOTADO COMO DECISÃO ARQUITETURAL, SEM AUTORIZAÇÃO DE IMPLEMENTAÇÃO.`
+- Efeito: as fronteiras de confiança distribuída, checkpoint durável, admissão de recursos, quarentena, verificador puro e primeira prova serial passam a ser arquitetura obrigatória para uma eventual implementação.
+- Limites: a decisão não autoriza O1, código, configuração executável, migration, package, build/teste de produto, runtime, persistência, serviço, acesso externo, telemetria/provider/banco real, PostgreSQL, chave/credencial, LLM, recomendação, plano, executor, `none → OBSERVER`, promoção ou transição.
+- Shutdown preflight: branch `main`, commit `b99d033`, worktree limpa, `Stopped=0`, `RemainingProjectOwned=0`, `OwnedListeners=0`, `BlockingProjectWindows=0` e `DedicatedReviewBrowsers=0`; nenhum processo ou recurso alheio foi encerrado.
+- Escopo desta ação: somente sincronização factual do ADR, contratos e índices documentais correntes; relatórios e decisões anteriores que registravam o ADR como proposto foram preservados como evidência histórica.
+- Gates documentais: documentação aprovada para `284` arquivos comment-capable; `521` links Markdown locais em `114` arquivos aprovados; secret scan do worktree não ignorado e histórico Git disponível aprovado; escopo documental e `git diff --check` aprovados. Build, testes, cobertura e runtime de produto são `NÃO APLICÁVEIS` e não foram executados.
+- Gates: Quality Gate e Human Gate do `STATE-06` permanecem nos resultados já registrados. Implementação do ADR/O1 e promoção MOD-12 continuam `NÃO AUTORIZADAS`.
+- Evidência: [ADR-0007 adotado](../../docs/architecture/ADR-0007-AIOps-Trust-Distribution-And-Resource-Admission.md), [contrato de confiança e recursos](../../docs/architecture/AIOps-Trust-Governance-And-Resource-Envelope.md), [proposta MOD-12 aceita como direção](../../docs/STATE-06-MOD-12-Operational-AIOps-Programme-And-Restricted-Observer-Proposal.md) e [estado corrente](Current-State.md).
+- Próxima decisão MOD-12: Bruno poderá autorizar ou não, de forma separada e explícita, o O1 com limites exatos; até essa decisão, nenhuma implementação ou ativação de `OBSERVER` é permitida. A decisão de ciclo de vida `STATE-06 → STATE-07` continua independente e pendente.
+- Aprovador: Bruno, 2026-07-20, exclusivamente para adoção arquitetural do `ADR-0007`.
+
 ## Template de nova entrada
 
 - Data:

@@ -1,10 +1,11 @@
 # ADR-0007 — AIOps Trust Distribution and Resource Admission
 
-- Status: proposed
+- Status: accepted
 - Date: 2026-07-17
+- Adoption date: 2026-07-20
 - Owners: security, data and platform architecture
 - Lifecycle position: `STATE-06 INTEGRATION`
-- Implementation status: documentary design only; no runtime or MOD-12 mode is active
+- Implementation status: not authorised; no runtime or MOD-12 mode is active
 
 ## Context
 
@@ -14,11 +15,11 @@ That local implementation deliberately does not issue or distribute policy, rota
 
 Before a later implementation can be proposed, the architecture needs to separate legitimate policy authorisation from signature production, define how a future host could obtain and commit trust state without letting evidence choose its own root, and specify admission dimensions beyond declared item counts. The design must also remain provider-neutral, fail closed and preserve the independent `none → OBSERVER` gate.
 
-## Proposed decision
+## Decision
 
 Adopt a signed, scope-bound trust bundle coordinated by a future host-owned trust boundary, with a durable monotonic checkpoint and an explicit resource reservation envelope. The detailed conceptual contracts are defined in [AIOps Trust Governance and Resource Envelope](AIOps-Trust-Governance-And-Resource-Envelope.md).
 
-The proposed decision has these invariants:
+The accepted architectural decision has these invariants:
 
 1. The MOD-12 verifier remains a pure consumer of an immutable, already selected verification context. It owns no private key, network client, trust store, checkpoint store, queue or runtime lifecycle.
 2. A root trust anchor is provisioned through a boundary independent from the bundle and evidence it validates. A bundle may identify the expected root but cannot introduce or replace it.
@@ -37,7 +38,7 @@ The proposed decision has these invariants:
 15. A future corpus uses an independently approved, role-signed manifest and monotonic durable corpus head with exact case/partition membership, quantitative segment criteria and irreversible withdrawal. Replacing content, manifest and self-consistent digests together cannot establish authority.
 16. An interrupted, cancelled, superseded or over-budget evaluation publishes no passing or authorising partial result. Subset precision, recall, calibration and aggregates are absent rather than merely excluded from a gate; only bounded sanitised diagnostics may remain.
 17. The first future proof remains serial (`maximum parallelism = 1`) within one fenced coordinator and proves containment, not fleet-wide accounting, deterministic fairness or starvation freedom. Any contender registry/queue, cross-restart quota claim and operational numerical limit require separate authority and evidence; this ADR invents none.
-18. Completion or later acceptance of this ADR does not activate `OBSERVER`, authorise telemetry collection, create persistence or permit a runtime integration.
+18. Adoption of this ADR does not activate `OBSERVER`, authorise telemetry collection, create persistence or permit a runtime integration.
 
 ## Responsibility boundary
 
@@ -81,7 +82,7 @@ Distribute a canonical signed bundle through an untrusted transport, validate it
 
 - Advantages: separates evidence from trust configuration, permits bounded offline verification, supports deterministic rotation and confines persistence outside MOD-12.
 - Disadvantages: a local store cannot alone detect a complete malicious restore or prove that another consumer saw the same generation; recovery and reconciliation remain operational obligations.
-- Decision: proposed baseline, with quarantine and authenticated independent reconciliation required for restore, divergence or continuity loss.
+- Decision: accepted architectural baseline, with quarantine and authenticated independent reconciliation required for restore, divergence or continuity loss.
 
 ### C. Transparency log or multi-witness trust state
 
@@ -167,12 +168,14 @@ No automatic fallback, generation decrement, same-epoch series change, identifie
 
 ## Acceptance and implementation gate
 
-This ADR remains a proposed decision produced under documentation-only `STATE-06` authority. Bruno's 2026-07-17 decision explicitly accepted it **as proposed**, not as an adopted implementation decision. A separate, unambiguous architecture decision is required only if a future authorised implementation proposal seeks to adopt it. Such adoption would not itself authorise code or runtime; implementation would still need a new explicitly bounded increment and its own automatic Quality Gate and human authority. No review of the unchanged documentary package is currently pending.
+Bruno adopted this ADR as an architectural decision on 2026-07-20. Adoption establishes the architectural constraints only: it does not authorise implementation, source or configuration changes, runtime, persistence, services, telemetry collection, a provider or database connection, O1, or promotion to `OBSERVER`.
+
+Any implementation must still be proposed and authorised as a new explicitly bounded increment with named components, stores, resource limits, rollback, automatic Quality Gate and the applicable human authority. Architecture adoption does not advance the lifecycle or any MOD-12 mode.
 
 ## Documentary review record
 
-On 2026-07-17, Bruno accepted the commit `137c889` documentation increment and this ADR as a proposed documentary architecture decision. He explicitly stated that his review was based on the increment report and did not include direct independent access to this ADR, the conceptual contract or the threat model. This was human acceptance of a documentary increment, not a canonical lifecycle Human Gate. The ADR status remains `proposed` because that was the explicit decision, not because direct file inspection is a mandatory gate.
+On 2026-07-17, Bruno accepted the commit `137c889` documentation increment and this ADR as a proposed documentary architecture decision. He explicitly stated that his review was based on the increment report and did not include direct independent access to this ADR, the conceptual contract or the threat model. This was human acceptance of a documentary increment, not a canonical lifecycle Human Gate. At that time, the ADR status remained `proposed` because that was the explicit decision, not because direct file inspection is a mandatory gate.
 
-A later direct automatic re-audit of the linked local documents strengthened bootstrap/recovery/root continuity, cumulative revocation, control/data-plane separation, quiescence before lease reuse, resource-field composition, coordinator fencing and authenticated corpus heads. Those factual corrections do not expand authority, change the lifecycle or require Bruno to repeat the earlier review. Changing this ADR to `accepted` remains a new optional decision tied to a future proposal, not a current task.
+A later direct automatic re-audit of the linked local documents strengthened bootstrap/recovery/root continuity, cumulative revocation, control/data-plane separation, quiescence before lease reuse, resource-field composition, coordinator fencing and authenticated corpus heads. Those factual corrections did not expand authority or change the lifecycle.
 
-This review record does not authorise implementation, runtime, persistence, services, external action or promotion to `OBSERVER`.
+On 2026-07-20, after accepting the operational AIOps programme as direction, Bruno declared exactly `ADR-0007: ADOTADO COMO DECISÃO ARQUITETURAL, SEM AUTORIZAÇÃO DE IMPLEMENTAÇÃO.` This later decision changes the ADR status from `proposed` to `accepted` and nothing else. It is not a lifecycle Human Gate and does not authorise implementation, runtime, persistence, services, external action, O1 or promotion to `OBSERVER`.

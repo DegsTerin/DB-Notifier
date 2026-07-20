@@ -2,8 +2,8 @@
 
 ## Versão atual
 
-- Versão: `3.56.7`
-- Data: 2026-07-19
+- Versão: `3.56.8`
+- Data: 2026-07-20
 - Status: corpus DB-Notifier consolidado
 - Escopo: 13 arquivos ativos
 
@@ -16,6 +16,12 @@ A versão do corpus é independente da versão do software.
 - PATCH: clareza, correção ou referência sem mudança de autoridade.
 
 Toda alteração atualiza este arquivo e, quando necessário, `../Start-Here.md`.
+
+## 3.56.8 — 2026-07-20
+
+- Bruno adotou explicitamente o `ADR-0007` como decisão arquitetural, sem autorização de implementação.
+- O estado corrente e os contratos de arquitetura passam a distinguir a decisão `accepted` da implementação inexistente; os registros anteriores que o classificavam como `proposed` permanecem como evidência histórica datada.
+- O1, runtime, persistência, telemetria, provider ou banco real, PostgreSQL, LLM, recomendação, execução, `none → OBSERVER`, promoção e transição continuam não autorizados. `STATE-06 INTEGRATION` permanece inalterado.
 
 ## 3.56.7 — 2026-07-19
 

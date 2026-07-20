@@ -9,6 +9,7 @@
 - Human Gate final do `STATE-06`: `APROVADO COM RESSALVAS`.
 - Baseline do Human Gate: commit `1a27dca393f00bc683235d7f8898dcc86f5841e0`.
 - Registro factual do Human Gate: commit `96cf2488679c2b8b2abcccf8d6473d07c8c8d823`.
+- `ADR-0007`: adotado como decisão arquitetural em 2026-07-20, sem autorização de implementação.
 - Transição: `NÃO EXECUTADA` e não autorizada por este documento.
 - Build, testes, runtime, browser, acesso externo, implementação, promoção e ação operacional: não autorizados e não executados.
 
@@ -36,7 +37,7 @@ No `STATE-07`, o objetivo será provar, de forma incremental e controlada, quais
 | comando administrativo | não executável; zero `CommandAttempt` nas evidências |
 | provider operacional homologado | nenhum |
 | MOD-12 | sem promoção `none → OBSERVER` |
-| `ADR-0007` | `proposed` |
+| `ADR-0007` | `accepted` como arquitetura; implementação não autorizada |
 | worktree no início desta proposta | limpa no commit `96cf248` |
 | runtime próprio no preflight | zero processo, listener ou root STATE-06 |
 
@@ -81,7 +82,7 @@ O `STATE-07` deverá preservar, até evidência própria em contrário:
 9. carga, endurance, HA, disaster recovery e homologação multi-plataforma permanecem pendentes;
 10. auditorias offline não garantem advisories externos posteriores ao cache disponível;
 11. os presenters humanos finais terminaram por condições bounded depois das decisões, embora o cleanup tenha passado;
-12. `ADR-0007` continua `proposed`;
+12. `ADR-0007` está `accepted`, mas nenhuma parte da sua implementação foi autorizada ou comprovada;
 13. MOD-12 permanece em `none`, sem autorização de `OBSERVER`;
 14. produção, deploy, publicação e release pertencem a gates posteriores.
 
@@ -163,7 +164,7 @@ Esta proposta e a futura transição formal não autorizam:
 - carga, stress, endurance, HA, DR ou teste destrutivo;
 - deploy, publicação, instalação, produção ou release;
 - LLM, recomendação, automação ou MOD-12 `none → OBSERVER`;
-- aceitação de `ADR-0007`;
+- implementação de `ADR-0007` ou do O1;
 - `STATE-08` ou qualquer promoção automática.
 
 Cada item futuro exigirá autoridade específica e proporcional.

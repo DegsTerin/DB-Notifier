@@ -5,7 +5,7 @@
 - Data: 2026-07-19.
 - Posição do workspace: `STATE-06 INTEGRATION`.
 - Estado dos modos MOD-12: nenhum modo ativo; `none → OBSERVER` permanece pendente.
-- Estado do `ADR-0007`: `proposed`; esta proposta não o adota nem altera seu estado.
+- Estado corrente do `ADR-0007`: `accepted` como decisão arquitetural em 2026-07-20; implementação não autorizada.
 - Autoridade: Bruno autorizou exclusivamente a elaboração da proposta executiva e técnica para tornar o MOD-12 uma AIOps operacional completa, começando por um incremento restrito do `OBSERVER`.
 - Disposição: `ACEITA COMO DIREÇÃO` por Bruno em 2026-07-20; não é autorização de implementação nem decisão de Human Gate.
 
@@ -166,7 +166,7 @@ Implementar e provar localmente a fronteira host-side desenhada pelo pacote docu
 
 ### Pré-condições para futura autorização de implementação
 
-- decisão explícita sobre adoção ou ajustes do `ADR-0007`;
+- decisão explícita sobre adoção ou ajustes do `ADR-0007` — concluída com adoção arquitetural em 2026-07-20, sem autorização de implementação;
 - revisão do escopo desta proposta e de suas exclusões;
 - shutdown preflight antes de cada ação técnica;
 - worktree inspecionada e mudanças do usuário preservadas;
@@ -327,9 +327,9 @@ Esta proposta não inventa metas numéricas. Floors e SLOs serão definidos por 
 
 ## Decisões futuras obrigatórias
 
-Esta proposta deixa deliberadamente abertas decisões que exigem autoridade própria:
+Esta proposta separa decisões que exigem autoridade própria. A primeira já foi concluída; as demais permanecem abertas:
 
-1. adoção, ajuste ou rejeição formal do `ADR-0007`;
+1. adoção, ajuste ou rejeição formal do `ADR-0007` — concluída como `accepted` em 2026-07-20, sem implementação;
 2. autorização de implementação do O1;
 3. persistência operacional e topologia de alta disponibilidade;
 4. primeira vertical/provider de homologação real;
@@ -396,12 +396,18 @@ Essa decisão aceita como direção estratégica e técnica:
 
 A decisão não adota o `ADR-0007`, não autoriza implementação do O1, não ativa `OBSERVER`, não homologa PostgreSQL/provider, não usa LLM, não cria recomendação/plano/executor e não promove estado ou modo. A próxima decisão técnica do MOD-12 é separada: adoção, ajuste ou rejeição formal do `ADR-0007`. Uma eventual implementação do O1 ainda dependerá de autorização posterior, explícita e limitada.
 
+## Decisão arquitetural posterior de Bruno
+
+Depois da aceitação desta proposta como direção, Bruno declarou exatamente `ADR-0007: ADOTADO COMO DECISÃO ARQUITETURAL, SEM AUTORIZAÇÃO DE IMPLEMENTAÇÃO.` em 2026-07-20.
+
+Essa decisão posterior adota as fronteiras do ADR como arquitetura obrigatória para uma eventual implementação. Ela não autoriza O1, código, configuração executável, persistência, runtime, telemetria, provider ou banco real, PostgreSQL, LLM, recomendação, plano, executor, `none → OBSERVER`, promoção de modo ou transição de estado. O próximo passo do MOD-12 continua dependendo de uma proposta e autorização de implementação separadas e explicitamente limitadas.
+
 ## Referências
 
 - [MOD-12 AIOps e Inteligência Artificial](../prompts/foundation/AIOps-And-AI-Module.md)
 - [Estado factual atual](../prompts/state/Current-State.md)
 - [Guardrails de arquitetura AIOps](architecture/AIOps-Architecture-Guardrails.md)
-- [ADR-0007 proposto](architecture/ADR-0007-AIOps-Trust-Distribution-And-Resource-Admission.md)
+- [ADR-0007 adotado](architecture/ADR-0007-AIOps-Trust-Distribution-And-Resource-Admission.md)
 - [Contrato de confiança e envelope de recursos](architecture/AIOps-Trust-Governance-And-Resource-Envelope.md)
 - [Relatório da fundação Observer](MOD-12-Observer-Foundation-Report.md)
 - [Relatório de telemetria confiável e avaliação offline](STATE-06-MOD-12-Trusted-Telemetry-Report.md)

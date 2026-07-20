@@ -2,11 +2,11 @@
 
 ## Status and authority
 
-- Status: reviewed documentary contract supporting proposed `ADR-0007`
+- Status: reviewed documentary contract supporting accepted `ADR-0007`
 - Date: 2026-07-17
 - Lifecycle position: `STATE-06 INTEGRATION`
 - Authority: Bruno authorised a documentation-only MOD-12 increment covering responsibilities, an ADR, conceptual trust/checkpoint/resource contracts, threat modelling, traceability and future test planning
-- Review record: the documentary increment was humanly approved from its report; `ADR-0007` remains `proposed` because the decision explicitly accepted it as a proposal
+- Review record: the documentary increment was humanly approved from its report on 2026-07-17; Bruno later adopted `ADR-0007` as architecture on 2026-07-20 without authorising implementation
 - Explicit exclusions: implementation, source code, migrations, runtime, real keys, persistence, services, external actions and promotion to `OBSERVER`
 
 This document specifies a future-facing architecture contract. It does not assert that a trust distributor, durable checkpoint, resource coordinator, queue, witness or operational corpus exists. It gives no component permission to collect telemetry or activate MOD-12.
@@ -578,6 +578,6 @@ These campaigns are not deterministic contract vectors and cannot be satisfied b
 
 ## Implementation and promotion gate
 
-The documentary increment received human acceptance as recorded in the append-only state log. That acceptance was not a lifecycle Human Gate, did not accept `ADR-0007` as an implemented decision and authorised no code. This direct automatic re-audit corrects the package factually but does not convert the ADR from `proposed` to `accepted`.
+The documentary increment received human acceptance as recorded in the append-only state log. That acceptance was not a lifecycle Human Gate and authorised no code. Bruno's later 2026-07-20 decision adopted `ADR-0007` as architecture only; it did not adopt an implementation, activate MOD-12 or expand the documentary authority.
 
 A future implementation proposal must separately name components, owners, store, transaction/restore model, provisioning/reconciliation mechanism, measured limits, test environment and rollback. It must obtain explicit authority before changing an implementation source file or creating a runtime. `none → OBSERVER` remains a later independent decision requiring implementation evidence, security review, offline evaluation evidence, Quality Gate and dedicated Human Gate. No further review of this unchanged documentary package is a prerequisite; a new review is triggered only by a materially new proposal or lifecycle decision.
