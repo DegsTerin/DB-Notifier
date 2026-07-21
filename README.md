@@ -52,7 +52,7 @@ On Windows PowerShell, use the repository runner. It limits the execution-policy
 powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File .\scripts\run-legacy-tests.ps1
 ```
 
-Compatibility executable/installer creation is blocked until `build/compatibility-toolchain.json` contains an explicitly approved exact tool version/hash inventory. Build scripts never install or download those tools.
+Compatibility executable/installer creation remains unavailable in R5. The manifest contract now requires the complete executable and transitive dependency closure, with a version, SHA-256 digest and official provenance for every file; satisfying that contract still requires separate implementation authority before generation can be enabled. Build scripts never install or download tools.
 
 The bundle composition can be checked without packaging dependencies:
 

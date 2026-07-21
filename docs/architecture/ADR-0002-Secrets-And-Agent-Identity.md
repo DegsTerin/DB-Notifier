@@ -51,4 +51,4 @@ Agents need provider credentials without exposing secret material to the API, Da
 
 ## Implementation progress
 
-`STATE-04` now includes an exact-match composite vault, a read-only Windows Credential Manager adapter, and a read-only Linux Secret Service/`secret-tool` adapter. Monitoring is disabled by default and no real credential has been exercised. Cloud/workload identity, credential provisioning/rotation, live platform validation, and mTLS enrollment remain pending.
+`STATE-04` introduced an exact-match composite vault and a read-only Windows Credential Manager adapter. R5 removed the unhomologated Linux `secret-tool` PATH execution boundary: the reserved Linux Secret Service provider now returns `CredentialUnavailable` in normal composition until a typed client or separately approved absolute-path adapter exists. Monitoring remains disabled by default and no real credential has been exercised. Cloud/workload identity, credential provisioning/rotation and live platform validation remain pending.

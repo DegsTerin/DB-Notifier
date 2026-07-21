@@ -43,15 +43,19 @@ public sealed class CredentialVaultTests
     }
 
     [Fact]
-    public void LinuxSecretToolUsesSeparatedArgumentsWithoutShell()
+    public async Task LinuxSecretServiceRemainsUnavailableWithoutResolvingPath()
     {
-        const string locator = "database;not-a-shell-command";
+        LinuxSecretServiceVaultAdapter adapter = new();
 
-        System.Diagnostics.ProcessStartInfo startInfo = LinuxSecretServiceVaultAdapter.CreateStartInfo(locator);
+        CredentialUnavailableException exception = await Assert.ThrowsAsync<CredentialUnavailableException>(async () =>
+            await adapter.ResolveAsync("synthetic-locator", CancellationToken.None));
 
-        Assert.False(startInfo.UseShellExecute);
-        Assert.Equal("secret-tool", startInfo.FileName);
-        Assert.Equal(["lookup", "application", "db-notifier", "id", locator], startInfo.ArgumentList);
+        Assert.DoesNotContain("synthetic-locator", exception.Message, StringComparison.Ordinal);
+        Assert.Contains("unavailable", exception.Message, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain(
+            typeof(LinuxSecretServiceVaultAdapter).GetMethods(
+                System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic),
+            method => method.ReturnType == typeof(System.Diagnostics.ProcessStartInfo));
     }
 
     private sealed class StubAdapter(string providerId) : ICredentialVaultAdapter

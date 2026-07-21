@@ -2435,6 +2435,21 @@
 - Próxima decisão: Bruno poderá solicitar separadamente a proposta de autorização do lote seguinte; isso não autoriza implementação.
 - Aprovador: Bruno, 2026-07-21, exclusivamente para o R4-B com a ressalva registrada.
 
+## 2026-07-21 — Implementação local do lote de remediação `R5`
+
+- Estado anterior: `STATE-06 INTEGRATION`, R0/R1/R2-A/R3/R4-A/R4-B aceitos nos seus limites, R5 autorizado exclusivamente sobre a baseline `21dd72dbf5858001a2301f03adf4aa7a82d75798`.
+- Estado resultante: sem transição; `STATE-06 INTEGRATION` mantido. R5 está tecnicamente implementado e `APROVADO` automaticamente sob a conclusão pós-incidente; conformidade com a autoridade original permanece `REPROVADA` pelo incidente preservado e aceitação humana continua pendente.
+- Autorização: somente `AUD-H09`, `AUD-H10`, `AUD-M09`, `AUD-M22`, `AUD-M23` e `AUD-M24`, com filesystem/processos sintéticos, fault injection, builds/testes offline, consulta read-only de proveniência das Actions oficiais e um commit local. Downloads, dependência nova, segredo/vault/provider/loader/packaging/serviço/banco real, artefacto distribuível, CI remota, push/deploy, R6–R8, R7-A0/O1, comandos, AIOps e transição permaneceram proibidos.
+- Implementação: journal autenticado anterior ao replace e recuperação determinística do migrador; Linux Secret Service indisponível sem PATH; packages de árvore exata convertidos em snapshot imutável; toolchain v2 de closure completa com geração ainda recusada; Actions fixadas nos SHAs observados oficialmente; configuração canónica sem `pgIsReady`, notificação global respeitada e `RESTARTED` bounded.
+- Proveniência: `git ls-remote --refs` contra `github.com/actions/{checkout,setup-dotnet,setup-node,upload-artifact}` resolveu `refs/tags/v4` para `11d5960a326750d5838078e36cf38b85af677262`, `67a3573c9a986a3f9c594539f4ab511d57bb3ce9`, `49933ea5288caeca8642d1e84afbd3f7d6820020` e `ea165f8d65b6e75b540449e92b4886f43607fa02`; nenhum clone, download, mirror ou credencial foi usado.
+- Gates: build 18 projetos sem aviso/erro; 380 unitários, 22 integrações, 3 WPF e arquitetura 42/42 sem a única asserção R0 passaram; cobertura 81,88%/52,98%; Pester 32 aprovados/um skip previsto/32,38%; format, runtime fail-closed, documentação, links e secrets passaram. O agregado ficou 42/43 apenas pela falha R0 preexistente.
+- Incidente de fronteira: o verificador de lockfiles foi chamado indevidamente e executou internamente `dotnet restore --locked-mode`, proibido neste lote. Não houve alteração de package cache, lockfile ou árvore do repositório, mas o cache HTTP NuGet recebeu quatro atualizações de service index/vulnerability metadata de `api.nuget.org`. O evento foi preservado, o gate não foi repetido e o R5 não foi declarado concluído sob a autoridade original.
+- Continuação autorizada: depois de receber o relatório do incidente, Bruno declarou exatamente `AUTORIZO EXCLUSIVAMENTE A CONCLUSÃO LOCAL DO R5 APÓS O INCIDENTE DE METADADOS NUGET REGISTRADO, SEM NOVO RESTORE, DOWNLOAD OU ACESSO EXTERNO, LIMITADA À REVALIDAÇÃO OFFLINE, DOCUMENTAÇÃO FINAL E UM COMMIT FOCADO.` A decisão permite fechar tecnicamente e commitar, mas não torna a execução original retroativamente conforme nem aceita o R5 como Human Gate.
+- Revalidação pós-incidente: preflight zero, build 18 projetos `--no-restore`, R5 unitário 29/29, fault injection apply/rollback e cobertura focada, arquitetura 42/42 sem apenas R0, bundle nos dois hosts PowerShell, Pester 32/32 com um skip previsto/32,38%, format `--no-restore`, documentação, 559 links, secrets, diff e Git integrity passaram sem novo restore, rede, download ou pacote. A suíte integral não foi repetida para não reabrir as duas tabs visíveis do teste sintético preexistente de `ping.exe`; zero processo permaneceu.
+- Ressalvas: a asserção arquitetural global R0 preexistente permanece intocada e deve continuar explícita; loader, packaging e vault Linux normais permanecem indisponíveis.
+- Próxima decisão: Bruno deverá revisar o relatório e o commit focado e decidir separadamente se aceita R5 com o incidente e a ressalva R0 registrados. Isso não autorizará R6, packaging, loader, vault real, AIOps ou transição.
+- Aprovador: decisão humana pendente; nenhuma aprovação foi inferida da autorização de implementação.
+
 ## Template de nova entrada
 
 - Data:

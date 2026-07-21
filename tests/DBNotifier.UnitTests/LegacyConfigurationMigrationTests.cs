@@ -1,4 +1,5 @@
 // Module purpose: Verifies Legacy Configuration Migration Tests behaviour and protects the documented project contract.
+using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text.Json;
 using DBNotifier.ConfigMigrator;
@@ -31,7 +32,9 @@ public sealed class LegacyConfigurationMigrationTests
         Assert.True(instance.AdministrativeControl.Requested);
         Assert.Equal("ManualActionRequired", instance.AdministrativeControl.State);
         Assert.Equal("Degraded", target.MonitoringPolicy.TcpFallbackEvidence);
-        Assert.Equal("pg_isready.exe", target.MonitoringPolicy.PgIsReadyPath);
+        string generatedJson = JsonSerializer.Serialize(target);
+        Assert.DoesNotContain("pgIsReady", generatedJson, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains(result.Report.Items, item => item.Code == "migration.pg_isready_legacy_input_consumed");
     }
 
     [Fact]
@@ -125,6 +128,141 @@ public sealed class LegacyConfigurationMigrationTests
         Assert.Equal(previousTarget, await File.ReadAllTextAsync(fixture.TargetPath));
     }
 
+    [Theory]
+    [InlineData(0)]
+    [InlineData(1)]
+    [InlineData(2)]
+    [InlineData(3)]
+    public async Task NextStartRecoversEveryInjectedCommitInterruption(int pointValue)
+    {
+        MigrationFaultPoint point = (MigrationFaultPoint)pointValue;
+        using MigrationFixture fixture = await MigrationFixture.CreateAsync(ValidConfiguration());
+        LegacyConfigurationMigrator interrupted = new(
+            new FixedTimeProvider(Now),
+            observed =>
+            {
+                if (observed == point)
+                {
+                    throw new InjectedMigrationFaultException();
+                }
+            });
+
+        await Assert.ThrowsAsync<InjectedMigrationFaultException>(async () =>
+            await interrupted.MigrateAsync(new(fixture.SourcePath, fixture.TargetPath, ApplyChanges: true)));
+
+        LegacyConfigurationMigrator recovery = new(new FixedTimeProvider(Now.AddSeconds(1)));
+        LegacyConfigurationMigrationResult recovered = await recovery.MigrateAsync(
+            new(fixture.SourcePath, fixture.TargetPath, ApplyChanges: true));
+
+        Assert.True(recovered.Report.Status is "Applied" or "AlreadyCurrent");
+        Assert.True(File.Exists(fixture.TargetPath));
+        Assert.True(File.Exists(fixture.TargetPath + ".migration-manifest.json"));
+        Assert.True(File.Exists(fixture.TargetPath + ".migration-report.json"));
+        string journal = await File.ReadAllTextAsync(fixture.TargetPath + ".migration-journal.json");
+        Assert.Contains("\"state\": \"Completed\"", journal, StringComparison.Ordinal);
+        Assert.Empty(Directory.GetFiles(fixture.DirectoryPath, "*.pending-*"));
+    }
+
+    [Theory]
+    [InlineData(4)]
+    [InlineData(5)]
+    [InlineData(6)]
+    [InlineData(7)]
+    public async Task NextStartCompletesEveryInjectedRollbackInterruption(int pointValue)
+    {
+        MigrationFaultPoint point = (MigrationFaultPoint)pointValue;
+        using MigrationFixture fixture = await MigrationFixture.CreateAsync(ValidConfiguration());
+        LegacyConfigurationMigrator migrator = new(new FixedTimeProvider(Now));
+        LegacyConfigurationMigrationResult applied = await migrator.MigrateAsync(
+            new(fixture.SourcePath, fixture.TargetPath, ApplyChanges: true));
+
+        await Assert.ThrowsAsync<InjectedMigrationFaultException>(async () =>
+            await LegacyConfigurationMigrator.RollbackAsync(
+                applied.Report.ManifestPath!,
+                observed =>
+                {
+                    if (observed == point)
+                    {
+                        throw new InjectedMigrationFaultException();
+                    }
+                }));
+
+        LegacyConfigurationMigrator recovery = new(new FixedTimeProvider(Now.AddSeconds(1)));
+        LegacyConfigurationMigrationResult dryRun = await recovery.MigrateAsync(
+            new(fixture.SourcePath, fixture.TargetPath, ApplyChanges: false));
+
+        Assert.Equal("DryRun", dryRun.Report.Status);
+        Assert.False(File.Exists(fixture.TargetPath));
+        Assert.False(File.Exists(fixture.TargetPath + ".migration-manifest.json"));
+        Assert.False(File.Exists(fixture.TargetPath + ".migration-report.json"));
+        Assert.False(File.Exists(fixture.TargetPath + ".migration-journal.json"));
+        Assert.Empty(Directory.GetFiles(fixture.DirectoryPath, "*.pending-*"));
+    }
+
+    [Fact]
+    public async Task InterruptedRollbackRecoversTheAuthenticatedPreviousTarget()
+    {
+        using MigrationFixture fixture = await MigrationFixture.CreateAsync(ValidConfiguration());
+        const string previousTarget = "{\"schemaVersion\":0}";
+        await File.WriteAllTextAsync(fixture.TargetPath, previousTarget);
+        LegacyConfigurationMigrator migrator = new(new FixedTimeProvider(Now));
+        LegacyConfigurationMigrationResult applied = await migrator.MigrateAsync(
+            new(fixture.SourcePath, fixture.TargetPath, ApplyChanges: true));
+
+        await Assert.ThrowsAsync<InjectedMigrationFaultException>(async () =>
+            await LegacyConfigurationMigrator.RollbackAsync(
+                applied.Report.ManifestPath!,
+                point =>
+                {
+                    if (point == MigrationFaultPoint.AfterRollbackTargetCommitted)
+                    {
+                        throw new InjectedMigrationFaultException();
+                    }
+                }));
+
+        LegacyConfigurationMigrator recovery = new(new FixedTimeProvider(Now.AddSeconds(1)));
+        _ = await recovery.MigrateAsync(new(fixture.SourcePath, fixture.TargetPath, ApplyChanges: false));
+
+        Assert.Equal(previousTarget, await File.ReadAllTextAsync(fixture.TargetPath));
+        Assert.False(File.Exists(fixture.TargetPath + ".migration-journal.json"));
+    }
+
+    [Fact]
+    public async Task ConcurrentTargetReplacementIsRejectedBeforeCommit()
+    {
+        using MigrationFixture fixture = await MigrationFixture.CreateAsync(ValidConfiguration());
+        await File.WriteAllTextAsync(fixture.TargetPath, "{\"schemaVersion\":0}");
+        LegacyConfigurationMigrator migrator = new(
+            new FixedTimeProvider(Now),
+            point =>
+            {
+                if (point == MigrationFaultPoint.AfterJournalCreated)
+                {
+                    File.WriteAllText(fixture.TargetPath, "{\"concurrent\":true}");
+                }
+            });
+
+        await Assert.ThrowsAsync<InvalidDataException>(async () =>
+            await migrator.MigrateAsync(new(fixture.SourcePath, fixture.TargetPath, ApplyChanges: true)));
+        Assert.Equal("{\"concurrent\":true}", await File.ReadAllTextAsync(fixture.TargetPath));
+    }
+
+    [Fact]
+    public async Task HardLinkedSourceAndTargetAreRejectedOnWindows()
+    {
+        if (!OperatingSystem.IsWindows())
+        {
+            return;
+        }
+
+        using MigrationFixture fixture = await MigrationFixture.CreateAsync(ValidConfiguration());
+        Assert.True(CreateHardLink(fixture.TargetPath, fixture.SourcePath, IntPtr.Zero));
+        LegacyConfigurationMigrator migrator = new(new FixedTimeProvider(Now));
+
+        await Assert.ThrowsAsync<InvalidDataException>(async () =>
+            await migrator.MigrateAsync(new(fixture.SourcePath, fixture.TargetPath, ApplyChanges: true)));
+    }
+
     private static string ValidConfiguration() =>
         """
         {
@@ -153,6 +291,12 @@ public sealed class LegacyConfigurationMigrationTests
     {
         public override DateTimeOffset GetUtcNow() => now;
     }
+
+    private sealed class InjectedMigrationFaultException : Exception;
+
+    [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool CreateHardLink(string fileName, string existingFileName, IntPtr securityAttributes);
 
     private sealed class MigrationFixture(string directoryPath) : IDisposable
     {

@@ -21,9 +21,9 @@ Compatibility code must forward to the canonical implementation, emit a deprecat
 
 - The canonical default uses display name `DB-Notifier` and `%LocalAppData%\DB-Notifier\logs\dbnotifier.log`.
 - Existing PgNotifier JSON is still accepted when its path is passed explicitly through either entry point.
-- Legacy field names such as `pgIsReady` remain valid only as explicit input to the versioned configuration migrator; generated DB-Notifier configuration uses canonical typed fields.
+- Legacy field names such as `pgIsReady` remain validated compatibility input for the versioned migrator and existing explicitly supplied legacy files; canonical generated and sample DB-Notifier configuration omits them.
 - No shim moves, edits, or deletes a legacy configuration file.
-- `DBNotifier.ConfigMigrator` dry-runs by default, backs up before target writes, validates/reports, blocks secrets and writes only a new DB-Notifier configuration.
+- `DBNotifier.ConfigMigrator` dry-runs by default, creates a durable authenticated recovery journal before replacement, rejects path/link/concurrency ambiguity, blocks secrets and writes only a new DB-Notifier configuration.
 
 ## Packaging compatibility
 
@@ -32,7 +32,7 @@ Compatibility code must forward to the canonical implementation, emit a deprecat
 - The DB-Notifier installer has a distinct application ID and `%ProgramData%\DB-Notifier` configuration root, allowing side-by-side rollback.
 - The compatibility `.iss` path does not recreate PgNotifier output names; it only keeps automation from failing immediately while producing the canonical package.
 - The functional PowerShell compatibility client consumes the generated `DBNotifier.{Healthy,Warning,Critical,Unknown}.ico` family for its notification-area and popup marks. Packaging copies those assets into `Assets`; the compatibility path must fail safely to Unknown and must not draw or ship a separate legacy logo.
-- Compatibility packaging requires an explicitly approved manifest with exact ps2exe/Inno versions and hashes; the checked-in manifest remains blocked until those facts can be verified. Prototype packaging fails closed. No build script installs or downloads tooling.
+- Compatibility packaging remains unavailable in R5. Its manifest contract requires every executable and transitive dependency to carry an exact version, SHA-256 hash, role and official provenance; even a complete future manifest cannot enable generation without separate authority. Prototype packaging fails closed. No build script installs or downloads tooling.
 
 ## Removal gate
 

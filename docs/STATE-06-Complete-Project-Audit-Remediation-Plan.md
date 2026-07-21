@@ -372,6 +372,10 @@ Fechar riscos de filesystem/processo e preservar fail-closed das ferramentas que
 
 ConfigMigrator antigo só pode permanecer disponível quando não houver journal incompleto. Vault Linux e loader retornam `Unavailable`. Packaging continua bloqueado. Nenhum fallback grava segredo ou baixa ferramenta.
 
+### Estado factual da execução
+
+R5 foi autorizado e implementado localmente em 2026-07-21 sobre a baseline `21dd72dbf5858001a2301f03adf4aa7a82d75798`. O [relatório factual R5](STATE-06-Audit-Remediation-R5-Report.md) é o proprietário da matriz de evidências, proveniência oficial de Actions, limitações e resultado automático. Esta anotação não reescreve o plano original, não infere aceitação humana e não autoriza R6 ou qualquer ativação.
+
 ## R6 — Verdade visual, acessibilidade e contratos frontend
 
 ### Objetivo

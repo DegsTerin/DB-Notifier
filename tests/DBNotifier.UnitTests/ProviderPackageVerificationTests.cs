@@ -1,4 +1,5 @@
 // Module purpose: Verifies Provider Package Verification Tests behaviour and protects the documented project contract.
+using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text.Json;
 using DBNotifier.Infrastructure.Providers;
@@ -17,6 +18,8 @@ public sealed class ProviderPackageVerificationTests
         VerifiedProviderPackage result = await verifier.VerifyAsync(fixture.PackageRoot);
         Assert.Equal("postgresql", result.Manifest.ProviderId);
         Assert.Equal("net10.0", result.Manifest.TargetFramework);
+        Assert.Equal(64, result.ContentSha256.Length);
+        Assert.Equal(["provider.dll"], result.FilePaths);
     }
 
     [Fact]
@@ -42,11 +45,75 @@ public sealed class ProviderPackageVerificationTests
         Assert.Single(result.Diagnostics);
     }
 
-    private sealed class PackageFixture(string discoveryRoot, string packageRoot, string publicKey) : IDisposable
+    [Fact]
+    public async Task SnapshotDoesNotObserveMutationAfterVerification()
+    {
+        using PackageFixture fixture = await PackageFixture.CreateAsync();
+        ProviderPackageVerifier verifier = new(new Dictionary<string, string> { ["test-key"] = fixture.PublicKey });
+        VerifiedProviderPackage result = await verifier.VerifyAsync(fixture.PackageRoot);
+
+        await File.WriteAllTextAsync(Path.Combine(fixture.PackageRoot, "provider.dll"), "mutated-after-verification");
+
+        using Stream stream = result.OpenFile("provider.dll");
+        using StreamReader reader = new(stream);
+        Assert.Equal("not-an-assembly-and-never-loaded", await reader.ReadToEndAsync());
+        Assert.False(stream.CanWrite);
+    }
+
+    [Fact]
+    public async Task RejectsExtraFilesAndPortableCaseCollisions()
+    {
+        using PackageFixture extraFixture = await PackageFixture.CreateAsync();
+        await File.WriteAllTextAsync(Path.Combine(extraFixture.PackageRoot, "extra.txt"), "unsigned");
+        ProviderPackageVerifier extraVerifier = new(
+            new Dictionary<string, string> { ["test-key"] = extraFixture.PublicKey });
+        await Assert.ThrowsAsync<InvalidDataException>(async () =>
+            await extraVerifier.VerifyAsync(extraFixture.PackageRoot));
+
+        using PackageFixture caseFixture = await PackageFixture.CreateAsync();
+        ProviderPackageFile original = Assert.Single(caseFixture.Manifest.Files);
+        await caseFixture.RewriteManifestAsync(caseFixture.Manifest with
+        {
+            Files = [original, original with { Path = "Provider.dll" }],
+        });
+        ProviderPackageVerifier caseVerifier = new(
+            new Dictionary<string, string> { ["test-key"] = caseFixture.PublicKey });
+        await Assert.ThrowsAsync<InvalidDataException>(async () =>
+            await caseVerifier.VerifyAsync(caseFixture.PackageRoot));
+    }
+
+    [Fact]
+    public async Task RejectsHardLinkedSignedFilesOnWindows()
+    {
+        if (!OperatingSystem.IsWindows())
+        {
+            return;
+        }
+
+        using PackageFixture fixture = await PackageFixture.CreateAsync();
+        string linkedPath = Path.Combine(fixture.PackageRoot, "linked.dll");
+        Assert.True(CreateHardLink(linkedPath, Path.Combine(fixture.PackageRoot, "provider.dll"), IntPtr.Zero));
+        ProviderPackageFile original = Assert.Single(fixture.Manifest.Files);
+        await fixture.RewriteManifestAsync(fixture.Manifest with
+        {
+            Files = [original, original with { Path = "linked.dll" }],
+        });
+        ProviderPackageVerifier verifier = new(new Dictionary<string, string> { ["test-key"] = fixture.PublicKey });
+
+        await Assert.ThrowsAsync<InvalidDataException>(async () => await verifier.VerifyAsync(fixture.PackageRoot));
+    }
+
+    private sealed class PackageFixture(
+        string discoveryRoot,
+        string packageRoot,
+        string publicKey,
+        RSA signingKey,
+        ProviderPackageManifest manifest) : IDisposable
     {
         public string DiscoveryRoot { get; } = discoveryRoot;
         public string PackageRoot { get; } = packageRoot;
         public string PublicKey { get; } = publicKey;
+        public ProviderPackageManifest Manifest { get; private set; } = manifest;
 
         public static async Task<PackageFixture> CreateAsync()
         {
@@ -60,12 +127,33 @@ public sealed class ProviderPackageVerificationTests
                 "net10.0", "provider.dll", "Fixture.Provider", "test-key", [new("provider.dll", hash)]);
             byte[] bytes = JsonSerializer.SerializeToUtf8Bytes(manifest, SerializerOptions);
             await File.WriteAllBytesAsync(Path.Combine(package, "dbnotifier-provider.json"), bytes);
-            using RSA rsa = RSA.Create(2048);
+            RSA rsa = RSA.Create(2048);
             byte[] signature = rsa.SignData(bytes, HashAlgorithmName.SHA256, RSASignaturePadding.Pss);
             await File.WriteAllTextAsync(Path.Combine(package, "dbnotifier-provider.sig"), Convert.ToBase64String(signature));
-            return new(root, package, rsa.ExportSubjectPublicKeyInfoPem());
+            return new(root, package, rsa.ExportSubjectPublicKeyInfoPem(), rsa, manifest);
         }
 
-        public void Dispose() { if (Directory.Exists(DiscoveryRoot)) Directory.Delete(DiscoveryRoot, true); }
+        public async Task RewriteManifestAsync(ProviderPackageManifest manifest)
+        {
+            byte[] bytes = JsonSerializer.SerializeToUtf8Bytes(manifest, SerializerOptions);
+            await File.WriteAllBytesAsync(Path.Combine(PackageRoot, "dbnotifier-provider.json"), bytes);
+            byte[] signature = signingKey.SignData(bytes, HashAlgorithmName.SHA256, RSASignaturePadding.Pss);
+            await File.WriteAllTextAsync(
+                Path.Combine(PackageRoot, "dbnotifier-provider.sig"), Convert.ToBase64String(signature));
+            Manifest = manifest;
+        }
+
+        public void Dispose()
+        {
+            signingKey.Dispose();
+            if (Directory.Exists(DiscoveryRoot))
+            {
+                Directory.Delete(DiscoveryRoot, true);
+            }
+        }
     }
+
+    [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool CreateHardLink(string fileName, string existingFileName, IntPtr securityAttributes);
 }

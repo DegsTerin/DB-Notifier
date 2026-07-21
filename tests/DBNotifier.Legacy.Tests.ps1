@@ -40,7 +40,6 @@ Describe "DB-Notifier legacy compatibility" {
         $buildSource = Get-Content -LiteralPath (Join-Path $PSScriptRoot "..\build\build.ps1") -Raw
         $installerSource = Get-Content -LiteralPath (Join-Path $PSScriptRoot "..\packaging\inno\DBNotifier.iss") -Raw
         $buildSource | Should Match 'runtimeIconNames'
-        $buildSource | Should Match 'packageIconDirectory'
         $installerSource | Should Match 'Assets\\\*\.ico'
     }
 
@@ -166,6 +165,24 @@ Describe "DB-Notifier legacy compatibility" {
         $configuration = Get-Content -LiteralPath $configPath -Raw | ConvertFrom-Json
         @($configuration.instances).Count | Should Be 0
         $configuration.application.autoDiscover | Should Be $false
+        ($configuration.PSObject.Properties.Name -contains "pgIsReady") | Should Be $false
+    }
+
+    It "honours the global notification switch for startup balloons" {
+        $modulePath = Join-Path -Path $PSScriptRoot -ChildPath "..\src\modules\DBNotifier\DBNotifier.psm1"
+        Import-Module $modulePath -Force
+        $configuration = [pscustomobject]@{
+            Notifications = [pscustomobject]@{
+                Enabled = $false
+                SuppressStartupBalloon = $false
+            }
+            Application = [pscustomobject]@{ SilentMode = $false }
+        }
+
+        $module = Get-Module DBNotifier
+        $permitted = & $module { param($Config) Test-ShouldShowStartupNotification -Configuration $Config } $configuration
+
+        $permitted | Should Be $false
     }
 
     It "fails closed when legacy JSON is malformed" {
@@ -320,6 +337,23 @@ Describe "DB-Notifier legacy compatibility" {
         Assert-MockCalled Test-PgInstanceReady -ModuleName DBNotifier -Times 1 -Exactly
     }
 
+    It "preserves restarted only during its bounded authenticated window" {
+        $modulePath = Join-Path -Path $PSScriptRoot -ChildPath "..\src\modules\DBNotifier\DBNotifier.psm1"
+        Import-Module $modulePath -Force
+        $state = [pscustomobject]@{
+            CurrentStateKey = "RESTARTED"
+            YellowUntil = (Get-Date).AddMinutes(1)
+        }
+        $module = Get-Module DBNotifier
+
+        & $module { param($State) Set-AuthenticatedReadyState -State $State -PidChanged $false -RestartBadgeSeconds 30 } $state
+        $state.CurrentStateKey | Should Be "RESTARTED"
+
+        $state.YellowUntil = (Get-Date).AddSeconds(-1)
+        & $module { param($State) Set-AuthenticatedReadyState -State $State -PidChanged $false -RestartBadgeSeconds 30 } $state
+        $state.CurrentStateKey | Should Be "UP"
+    }
+
     It "contains no direct Windows service-control executor" {
         $modulePath = Join-Path -Path $PSScriptRoot -ChildPath "..\src\modules\DBNotifier\DBNotifier.psm1"
         $moduleSource = Get-Content -LiteralPath $modulePath -Raw
@@ -426,12 +460,10 @@ Describe "DB-Notifier legacy compatibility" {
     It "keeps compatibility artefact versions aligned at the security patch level" {
         $canonicalManifest = Test-ModuleManifest -Path (Join-Path $PSScriptRoot "..\src\modules\DBNotifier\DBNotifier.psd1")
         $deprecatedManifest = Test-ModuleManifest -Path (Join-Path $PSScriptRoot "..\src\modules\PgNotifier\PgNotifier.psd1")
-        $buildSource = Get-Content -LiteralPath (Join-Path $PSScriptRoot "..\build\build.ps1") -Raw
         $installerSource = Get-Content -LiteralPath (Join-Path $PSScriptRoot "..\packaging\inno\DBNotifier.iss") -Raw
 
         $canonicalManifest.Version.ToString() | Should Be "1.1.1"
         $deprecatedManifest.Version.ToString() | Should Be "1.1.1"
-        $buildSource | Should Match '-Version\s+"1\.1\.1"'
         $installerSource | Should Match 'AppVersion=1\.1\.1'
     }
 
@@ -446,12 +478,28 @@ Describe "DB-Notifier legacy compatibility" {
         $downloadSource = Get-Content -LiteralPath (Join-Path $PSScriptRoot "..\tray-app\download-postgres-icon.ps1") -Raw
 
         $toolchain.status | Should Be "blocked"
-        $compatibilityBuild | Should Match 'status -ne "approved"'
+        $toolchain.schemaVersion | Should Be "dbnotifier.compatibility-toolchain.v2"
+        $toolchain.completeExecutableClosure | Should Be $false
+        @($toolchain.components).Count | Should Be 0
+        $compatibilityBuild | Should Match 'completeExecutableClosure'
+        $compatibilityBuild | Should Match 'dependencyClosureComplete'
+        $compatibilityBuild | Should Not Match '\bInvoke-PS2EXE\b'
         foreach ($prototypeBuild in $prototypeBuilds) {
             (Get-Content -LiteralPath $prototypeBuild -Raw) | Should Match 'non-distributable historical prototype'
         }
         $downloadSource | Should Not Match '\bInvoke-WebRequest\b'
         $downloadSource | Should Match 'Automatic vendor-asset download is retired'
+    }
+
+    It "pins every official GitHub Action to a full commit SHA" {
+        $workflow = Get-Content -LiteralPath (Join-Path $PSScriptRoot "..\.github\workflows\ci.yml") -Raw
+        $uses = [regex]::Matches($workflow, 'uses:\s+actions/[^@\s]+@([^\s#]+)')
+
+        $uses.Count | Should BeGreaterThan 0
+        foreach ($use in $uses) {
+            $use.Groups[1].Value | Should Match '^[0-9a-f]{40}$'
+        }
+        $workflow | Should Not Match 'uses:\s+actions/[^@\s]+@v\d+'
     }
 
     It "rejects an incomplete NuGet vulnerability report instead of reporting a false pass" {

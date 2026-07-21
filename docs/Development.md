@@ -70,7 +70,7 @@ The .NET 10 configuration migrator is dry-run by default and requires absolute s
   --target "C:\path\to\DB-Notifier\appsettings.json"
 ```
 
-Add `--apply` only after reviewing the sanitized report. Apply preserves the source, creates timestamped source/previous-target backups, writes target/report/manifest atomically, and exact reruns return `AlreadyCurrent`. Rollback refuses a target whose hash changed:
+Add `--apply` only after reviewing the sanitised report. Apply captures the source and previous target, writes authenticated backups and pending artefacts, then durably creates a recovery journal before replacing the target. A later start deterministically restores the authenticated old state or completes the authenticated new state after interruption. Exact reruns return `AlreadyCurrent`; rollback revalidates the target, backups, manifest, report and journal immediately before mutation and refuses any changed identity or hash:
 
 ```powershell
 & $dotnet run --project .\src\DBNotifier.ConfigMigrator -c Release -- `
@@ -184,7 +184,7 @@ Run `.\scripts\verify-secrets.ps1` to scan non-ignored worktree files and availa
 
 `.github/workflows/ci.yml` defines bounded jobs for the .NET solution and coverage floor, legacy compatibility and coverage floor, Dashboard static/build/dependency gates, the isolated browser matrix, and history-aware secret scanning. Checkouts do not persist credentials, Node uses the exact supported patch, and concurrent runs for the same ref cancel older work.
 
-GitHub Action tag-to-commit mappings could not be independently verified without network access during the current maintenance increment. The remaining `actions/*@v4` tags are therefore an explicit supply-chain residual: they must be replaced by reviewed full commit SHAs before a remote CI run is treated as supply-chain attestation. This limitation does not justify inventing a SHA or disabling otherwise useful local gates.
+The R5 provenance check queried only `refs/tags/v4` from the official `github.com/actions/*` repositories with `git ls-remote --refs`, without credentials, clone or artefact download. The workflow pins the observed full commits for checkout, setup-dotnet, setup-node and upload-artifact. This local provenance check does not claim that remote CI ran or attest future upstream movement.
 
 ## Audit and packaging tool boundaries
 
@@ -192,7 +192,7 @@ The Dashboard CDP audit requires an explicit browser product and records its rea
 
 The WPF automation runner now fails on incorrect window bounds, unnamed or insufficient focus targets, off-screen Tab traversal, broken preference cycles, unsupported DPI awareness and missing screenshot evidence. It remains a bounded shell sample: eight-destination content correctness, live-region speech, Narrator usability, modal/flyout experience, real High Contrast and perceptual quality remain explicit Human Gate samples rather than claims inferred from UI Automation.
 
-`build/build.ps1 -ValidateOnly` remains dependency-free. Executable/installer packaging is blocked while `build/compatibility-toolchain.json` has status `blocked`; approval requires exact ps2exe and Inno Setup versions plus locally verified hashes. PowerShell/WPF, Pixel UI and Python Tray prototype executable builders are non-distributable and fail closed.
+`build/build.ps1 -ValidateOnly` remains dependency-free. Executable/installer packaging is unconditionally unavailable in R5; the versioned toolchain contract requires complete executable and transitive dependency closure, exact versions, SHA-256 hashes, roles and official repository/commit provenance before any later generation authority can even be considered. PowerShell/WPF, Pixel UI and Python Tray prototype executable builders remain non-distributable and fail closed.
 
 ## Dependency maintenance status
 

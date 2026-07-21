@@ -1403,6 +1403,71 @@ function Show-Popup {
     $Context.Popup.Activate()
 }
 
+<#
+.SYNOPSIS
+Determines whether the legacy startup notification is permitted.
+
+.DESCRIPTION
+Combines the global notification switch, startup suppression and silent-mode settings so
+the compatibility monitor cannot emit a startup balloon after notifications are disabled.
+
+.PARAMETER Configuration
+Normalised legacy configuration containing notification and application policy.
+
+.OUTPUTS
+System.Boolean indicating whether the local startup notification may be shown.
+#>
+function Test-ShouldShowStartupNotification {
+    [CmdletBinding()]
+    param([Parameter(Mandatory)][pscustomobject]$Configuration)
+
+    return $Configuration.Notifications.Enabled -and
+        -not $Configuration.Notifications.SuppressStartupBalloon -and
+        -not $Configuration.Application.SilentMode
+}
+
+<#
+.SYNOPSIS
+Applies the bounded authenticated restart indicator to one legacy instance state.
+
+.DESCRIPTION
+Starts a new factual restart window only after an observed PID change with authenticated
+readiness, preserves an existing window until its deadline, and otherwise returns to UP.
+
+.PARAMETER State
+Mutable compatibility state for the monitored instance.
+
+.PARAMETER PidChanged
+Whether the local service PID changed during the current observation.
+
+.PARAMETER RestartBadgeSeconds
+Positive duration of a newly observed restart indication.
+
+.OUTPUTS
+None. The state and deadline are updated in place.
+#>
+function Set-AuthenticatedReadyState {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)][pscustomobject]$State,
+        [Parameter(Mandatory)][bool]$PidChanged,
+        [Parameter(Mandatory)][int]$RestartBadgeSeconds
+    )
+
+    $previous = $State.CurrentStateKey
+    if ($PidChanged) {
+        $State.CurrentStateKey = "RESTARTED"
+        $State.YellowUntil = (Get-Date).AddSeconds([Math]::Max(1, $RestartBadgeSeconds))
+        return
+    }
+    if ($previous -eq "RESTARTED" -and (Get-Date) -le $State.YellowUntil) {
+        # Preserve only the bounded factual restart window established by an authenticated readiness probe.
+        $State.CurrentStateKey = "RESTARTED"
+        return
+    }
+    $State.CurrentStateKey = "UP"
+}
+
 function Test-AndUpdateInstanceState {
     [CmdletBinding()]
     param(
@@ -1449,12 +1514,10 @@ function Test-AndUpdateInstanceState {
 
     if ($ready.IsReady) {
         $State.CurrentStateKey = if ($ready.Method -eq "tcp") { "UP_TCP_ONLY" } else { "UP" }
-        if ($pidChanged -and $ready.Method -ne "tcp") {
-            $State.CurrentStateKey = "RESTARTED"
-            $State.YellowUntil = (Get-Date).AddSeconds($Context.Configuration.Application.RestartBadgeSeconds)
-        }
-        elseif ($State.CurrentStateKey -eq "RESTARTED" -and (Get-Date) -gt $State.YellowUntil) {
-            $State.CurrentStateKey = "UP"
+        if ($ready.Method -ne "tcp") {
+            $State.CurrentStateKey = $previous
+            Set-AuthenticatedReadyState -State $State -PidChanged ([bool]$pidChanged) `
+                -RestartBadgeSeconds $Context.Configuration.Application.RestartBadgeSeconds
         }
         $State.LastMessage = if ([string]::IsNullOrWhiteSpace($ready.Message)) { "Ready." } else { $ready.Message }
         return
@@ -1616,7 +1679,7 @@ function Start-DBNotifierApplication {
         Invoke-HealthCheckCycle -Context $context
         $context.Timer.Start()
 
-        if (-not $configuration.Notifications.SuppressStartupBalloon -and -not $configuration.Application.SilentMode) {
+        if (Test-ShouldShowStartupNotification -Configuration $configuration) {
             $summary = Get-Summary -Context $context
             $context.NotifyIcon.BalloonTipTitle = $configuration.Application.DisplayName
             $context.NotifyIcon.BalloonTipText = $summary.Header

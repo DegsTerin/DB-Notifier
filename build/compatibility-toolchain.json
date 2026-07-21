@@ -1,10 +1,7 @@
 {
-  "schemaVersion": "dbnotifier.compatibility-toolchain.v1",
+  "schemaVersion": "dbnotifier.compatibility-toolchain.v2",
   "status": "blocked",
-  "ps2exeVersion": null,
-  "ps2exeManifestSha256": null,
-  "ps2exeRootModuleSha256": null,
-  "innoSetupVersion": null,
-  "innoCompilerSha256": null,
-  "reason": "Packaging remains blocked until exact local tools and hashes are independently approved. Validation never downloads or installs them."
+  "completeExecutableClosure": false,
+  "components": [],
+  "reason": "R5 permits validation only. Packaging remains blocked until every executable and transitive dependency has an approved version, SHA-256 digest and official provenance, followed by separate implementation authority."
 }
