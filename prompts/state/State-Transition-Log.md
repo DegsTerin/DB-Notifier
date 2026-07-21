@@ -2366,6 +2366,18 @@
 - Próxima decisão: Bruno deverá revisar o relatório e decidir separadamente se aceita R3. Aceitação não autorizará R2-B, R4, normal Agent Fleet, integração real, AIOps ou transição.
 - Aprovador: decisão humana ainda pendente; nenhum aceite foi inferido da autorização de implementação.
 
+## 2026-07-20 — Aceitação do lote de remediação `R3`
+
+- Estado anterior: `STATE-06 INTEGRATION`, R3 implementado no commit `4752868988e1f4189d3ee61d77a4edc890b2c15f`, escopo automático R3 `APROVADO`, decisão humana pendente e gate .NET global bloqueado pela inconsistência R0 preexistente.
+- Estado resultante: sem transição; `STATE-06 INTEGRATION` mantido. R3 e `AUD-H05`, `AUD-H08`, `AUD-H11` e `AUD-M07` aceitos e fechados somente no escopo local bounded autorizado.
+- Decisão: Bruno declarou exatamente `ACEITO O R3 COM A RESSALVA DO GATE GLOBAL PREEXISTENTE, SEM AUTORIZAR CORREÇÃO FORA DO ESCOPO.`
+- Ressalva: a asserção `State06ConsolidatedHarnessIsolationTests.BrowserRunnersBoundWorkAndCleanupExactOwnedResources` continua esperando nomes fixos de artifacts que contradizem o workflow R0 aceito; permanece visível, bloqueante para o comando global e sem autorização de correção.
+- Evidência: [relatório R3](../../docs/STATE-06-Audit-Remediation-R3-Report.md), [plano de remediação](../../docs/STATE-06-Complete-Project-Audit-Remediation-Plan.md) e commit local `4752868988e1f4189d3ee61d77a4edc890b2c15f`.
+- Limites: a decisão não autoriza correção R0, R2-B, R4–R8, Agent Fleet normal, issuer/provider/PKI/vault/credenciais reais, banco/serviço real, R7-A0/O1, LLM, recomendação, comando, automação, promoção de modo ou transição de lifecycle.
+- Escopo desta ação: somente registro documental factual; nenhum código executável, build, teste, runtime, browser, acesso externo, banco/serviço real, push ou deploy.
+- Próxima decisão: Bruno poderá solicitar separadamente a proposta de autorização do R4; isso não autoriza sua implementação.
+- Aprovador: Bruno, 2026-07-20, exclusivamente para o R3 com a ressalva registrada.
+
 ## Template de nova entrada
 
 - Data:

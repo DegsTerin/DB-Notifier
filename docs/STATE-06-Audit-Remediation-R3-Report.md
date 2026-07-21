@@ -8,7 +8,7 @@
 - Execution authority: Bruno's explicit local-only authorisation issued on 2026-07-20.
 - Local implementation and R3-specific verification: completed.
 - Automatic result in the authorised R3 scope: `APROVADO`.
-- Independent human decision: `PENDENTE`.
+- Independent human decision: `ACEITO COM RESSALVA`, recorded from Bruno's exact decision `ACEITO O R3 COM A RESSALVA DO GATE GLOBAL PREEXISTENTE, SEM AUTORIZAR CORREÇÃO FORA DO ESCOPO.` on 2026-07-20.
 - Repository-wide qualification: the unfiltered .NET solution test command remains `BLOQUEADO` only by the exact pre-existing R0 architecture assertion reserved after R1 and R2-A; it was not changed under this authority.
 - Lifecycle: remains `STATE-06 INTEGRATION`; no transition was requested or performed.
 - MOD-12: unchanged and inactive; no `OBSERVER`, O1, LLM, recommendation, command or automation was enabled.
@@ -109,4 +109,4 @@ Safe rollback keeps Agent Fleet activation disabled, the issuer unavailable and 
 
 ## Human decision and next boundary
 
-R3-specific implementation and automatic evidence are complete; independent human acceptance remains pending. Acceptance would close only `AUD-H05`, `AUD-H08`, `AUD-H11` and `AUD-M07` in this bounded local scope and would not authorise R2-B, R4–R8, R7-A0/O1, normal Agent Fleet activation, real integration, AIOps promotion or lifecycle transition.
+Bruno accepted R3 on 2026-07-20 with the exact reservation `ACEITO O R3 COM A RESSALVA DO GATE GLOBAL PREEXISTENTE, SEM AUTORIZAR CORREÇÃO FORA DO ESCOPO.` R3 and `AUD-H05`, `AUD-H08`, `AUD-H11` and `AUD-M07` are therefore accepted and closed only in this bounded local scope. The repository-wide R0 assertion remains explicit, blocking for the aggregate command and unauthorised for correction. This acceptance does not authorise R2-B, R4–R8, R7-A0/O1, normal Agent Fleet activation, real integration, AIOps promotion or lifecycle transition.
