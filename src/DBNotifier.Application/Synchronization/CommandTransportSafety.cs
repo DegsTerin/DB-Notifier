@@ -373,6 +373,7 @@ public static class CommandTransportCodec
 {
     private static readonly JsonSerializerOptions Options = new(JsonSerializerDefaults.Web)
     {
+        MaxDepth = 16,
         UnmappedMemberHandling = JsonUnmappedMemberHandling.Disallow,
     };
 

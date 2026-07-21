@@ -4,6 +4,7 @@ using System.Net;
 using System.Text;
 using System.Text.Json;
 using DBNotifier.Application.Synchronization;
+using DBNotifier.Infrastructure.Http;
 
 namespace DBNotifier.Infrastructure.Synchronization;
 
@@ -13,6 +14,16 @@ public sealed class HttpCommandTransportSandboxClient(
     Uri serverBaseAddress,
     string agentVersion) : ICommandTransportSandboxClient
 {
+    private static readonly HashSet<string> JsonMediaTypes = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "application/json",
+    };
+    private static readonly HashSet<string> ProblemMediaTypes = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "application/problem+json",
+        "application/json",
+    };
+
     /// <inheritdoc />
     public ValueTask<CommandTransportPollResponse> PollAsync(
         CommandTransportPollRequest request,
@@ -61,8 +72,6 @@ public sealed class HttpCommandTransportSandboxClient(
             message,
             HttpCompletionOption.ResponseHeadersRead,
             cancellationToken).ConfigureAwait(false);
-        byte[] responseBytes = await ReadBoundedAsync(response, cancellationToken).ConfigureAwait(false);
-        string responseJson = Encoding.UTF8.GetString(responseBytes);
         if (!response.IsSuccessStatusCode)
         {
             if (response.StatusCode is HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden)
@@ -72,10 +81,16 @@ public sealed class HttpCommandTransportSandboxClient(
                     "agent.identity_inactive");
             }
 
+            byte[] problemBytes = await BoundedHttpJsonReader.ReadBytesAsync(
+                response.Content,
+                CommandTransportProtocol.MaximumHttpBodyBytes,
+                ProblemMediaTypes,
+                cancellationToken).ConfigureAwait(false);
+            string problemJson = Encoding.UTF8.GetString(problemBytes);
             CommandTransportProblem problem;
             try
             {
-                problem = CommandTransportCodec.Deserialize<CommandTransportProblem>(responseJson);
+                problem = CommandTransportCodec.Deserialize<CommandTransportProblem>(problemJson);
             }
             catch (Exception exception) when (exception is JsonException or InvalidDataException or ArgumentException)
             {
@@ -100,12 +115,17 @@ public sealed class HttpCommandTransportSandboxClient(
                 problem.ExpectedSequence);
         }
 
-        if (!HasVersion(response, "DBN-Protocol-Version") || !HasVersion(response, "DBN-Message-Schema") ||
-            response.Content.Headers.ContentType?.MediaType != "application/json")
+        if (!HasVersion(response, "DBN-Protocol-Version") || !HasVersion(response, "DBN-Message-Schema"))
         {
             throw new InvalidDataException("command.transport_response_headers_invalid");
         }
 
+        byte[] responseBytes = await BoundedHttpJsonReader.ReadBytesAsync(
+            response.Content,
+            CommandTransportProtocol.MaximumHttpBodyBytes,
+            JsonMediaTypes,
+            cancellationToken).ConfigureAwait(false);
+        string responseJson = Encoding.UTF8.GetString(responseBytes);
         try
         {
             return CommandTransportCodec.Deserialize<TResponse>(responseJson);
@@ -113,35 +133,6 @@ public sealed class HttpCommandTransportSandboxClient(
         catch (JsonException exception)
         {
             throw new InvalidDataException("command.transport_response_invalid", exception);
-        }
-    }
-
-    private static async ValueTask<byte[]> ReadBoundedAsync(
-        HttpResponseMessage response,
-        CancellationToken cancellationToken)
-    {
-        if (response.Content.Headers.ContentLength > CommandTransportProtocol.MaximumHttpBodyBytes)
-        {
-            throw new InvalidDataException("command.transport_response_too_large");
-        }
-
-        await using Stream stream = await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
-        using MemoryStream output = new(CommandTransportProtocol.MaximumHttpBodyBytes);
-        byte[] buffer = new byte[4096];
-        while (true)
-        {
-            int read = await stream.ReadAsync(buffer, cancellationToken).ConfigureAwait(false);
-            if (read == 0)
-            {
-                return output.ToArray();
-            }
-
-            if (output.Length + read > CommandTransportProtocol.MaximumHttpBodyBytes)
-            {
-                throw new InvalidDataException("command.transport_response_too_large");
-            }
-
-            output.Write(buffer, 0, read);
         }
     }
 

@@ -12,12 +12,15 @@ using Microsoft.EntityFrameworkCore.Storage;
 namespace DBNotifier.Persistence.Server.PostgreSql;
 
 /// <summary>
-/// Implements the Agent Fleet persistence port with atomic enrollment, monotonic revocation, durable heartbeat
+/// Implements the Agent Fleet persistence port with atomic enrollment, principal-first monotonic revocation, durable heartbeat
 /// anti-replay state and server-side human authorisation. It never stores token values, private keys or full
 /// certificates and never invokes providers, commands or external infrastructure.
 /// </summary>
 /// <param name="contextFactory">Factory for short-lived central persistence contexts.</param>
-public sealed class AgentFleetStore(IDbContextFactory<ServerDbContext> contextFactory) : IAgentFleetStore
+/// <param name="assignmentValidator">Canonical provider-backed non-secret validation boundary.</param>
+public sealed class AgentFleetStore(
+    IDbContextFactory<ServerDbContext> contextFactory,
+    IAgentAssignmentValidator assignmentValidator) : IAgentFleetStore
 {
     private static readonly JsonSerializerOptions SerializerOptions = new(JsonSerializerDefaults.Web);
     private static readonly JsonDocumentOptions DocumentOptions = new()
@@ -474,6 +477,10 @@ public sealed class AgentFleetStore(IDbContextFactory<ServerDbContext> contextFa
                     row.TimeoutSeconds,
                     row.RetryCount,
                     row.UpdatedAt));
+                if (!assignmentValidator.TryValidate(assignments[^1], agent.Environment, out _))
+                {
+                    return InvalidStoredAssignments();
+                }
             }
         }
         catch (JsonException)
@@ -612,28 +619,54 @@ public sealed class AgentFleetStore(IDbContextFactory<ServerDbContext> contextFa
         DateTimeOffset now,
         CancellationToken cancellationToken)
     {
+        AgentRevocationOutcome identityOutcome = await RevokeIdentityAsync(
+            subjectId,
+            agentId,
+            permissionCode,
+            reasonCode,
+            now,
+            cancellationToken).ConfigureAwait(false);
+        if (identityOutcome.Disposition is AgentRevocationDisposition.Denied or AgentRevocationDisposition.Conflict)
+        {
+            return identityOutcome;
+        }
+
+        bool certificatesComplete = await ReconcileRevokedCertificatesAsync(
+            agentId,
+            identityOutcome.RevokedAt!.Value,
+            reasonCode,
+            cancellationToken).ConfigureAwait(false);
+        return certificatesComplete
+            ? identityOutcome
+            : identityOutcome with
+            {
+                Disposition = AgentRevocationDisposition.CertificatesReconciling,
+                ErrorCode = "agent.certificate_reconciliation_pending",
+            };
+    }
+
+    /// <summary>Commits the principal identity revocation and its audit before any certificate batch is attempted.</summary>
+    private async ValueTask<AgentRevocationOutcome> RevokeIdentityAsync(
+        string subjectId,
+        Guid agentId,
+        string permissionCode,
+        string reasonCode,
+        DateTimeOffset now,
+        CancellationToken cancellationToken)
+    {
         await using ServerDbContext context = await contextFactory
-            .CreateDbContextAsync(cancellationToken)
-            .ConfigureAwait(false);
+            .CreateDbContextAsync(cancellationToken).ConfigureAwait(false);
         await using IDbContextTransaction transaction = await context.Database
-            .BeginTransactionAsync(IsolationLevel.Serializable, cancellationToken)
-            .ConfigureAwait(false);
-        PlatformUserRow? user = await context.Users
-            .SingleOrDefaultAsync(
-                row => row.SubjectId == subjectId && row.State == "Active",
-                cancellationToken)
-            .ConfigureAwait(false);
-        RegisteredAgentRow? agent = await context.Agents
-            .SingleOrDefaultAsync(row => row.AgentId == agentId, cancellationToken)
-            .ConfigureAwait(false);
+            .BeginTransactionAsync(IsolationLevel.Serializable, cancellationToken).ConfigureAwait(false);
+        PlatformUserRow? user = await context.Users.SingleOrDefaultAsync(
+            row => row.SubjectId == subjectId && row.State == "Active",
+            cancellationToken).ConfigureAwait(false);
+        RegisteredAgentRow? agent = await context.Agents.SingleOrDefaultAsync(
+            row => row.AgentId == agentId,
+            cancellationToken).ConfigureAwait(false);
         AuthorizationScope[] scopes = user is null
             ? []
-            : await GetScopesAsync(
-                context,
-                user.UserId,
-                permissionCode,
-                now,
-                cancellationToken).ConfigureAwait(false);
+            : await GetScopesAsync(context, user.UserId, permissionCode, now, cancellationToken).ConfigureAwait(false);
         bool authorised = agent is not null && scopes.Any(scope =>
             (scope.ScopeType == "Global" && scope.ScopeValue == "*") ||
             (scope.ScopeType == "Environment" && scope.ScopeValue == agent.Environment));
@@ -659,40 +692,11 @@ public sealed class AgentFleetStore(IDbContextFactory<ServerDbContext> contextFa
                 "authorization.denied");
         }
 
-        bool alreadyRevoked = agent!.State == "Revoked" || agent.RevokedAt is not null;
+        bool alreadyRevoked = agent!.State == "Revoked" && agent.RevokedAt is not null;
         DateTimeOffset effectiveRevokedAt = agent.RevokedAt ?? now;
         agent.State = "Revoked";
         agent.RevokedAt = effectiveRevokedAt;
         agent.ConcurrencyToken = Guid.NewGuid();
-        AgentCertificateRow[] certificates = await context.AgentCertificates
-            .Where(row => row.AgentId == agentId)
-            .OrderBy(row => row.AgentCertificateId)
-            .Take(AgentFleetProtocol.MaximumCertificatesPerAgent + 1)
-            .ToArrayAsync(cancellationToken)
-            .ConfigureAwait(false);
-        if (certificates.Length > AgentFleetProtocol.MaximumCertificatesPerAgent)
-        {
-            await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
-            return new AgentRevocationOutcome(
-                AgentRevocationDisposition.Conflict,
-                agentId,
-                null,
-                "agent.certificate_limit_exceeded");
-        }
-
-        foreach (AgentCertificateRow certificate in certificates)
-        {
-            if (certificate.State == "Revoked" && certificate.RevokedAt is not null)
-            {
-                continue;
-            }
-
-            certificate.State = "Revoked";
-            certificate.RevokedAt ??= effectiveRevokedAt;
-            certificate.RevocationReasonCode ??= reasonCode;
-            certificate.ConcurrencyToken = Guid.NewGuid();
-        }
-
         AddAudit(
             context,
             "Human",
@@ -709,9 +713,7 @@ public sealed class AgentFleetStore(IDbContextFactory<ServerDbContext> contextFa
             await context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
             await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
             return new AgentRevocationOutcome(
-                alreadyRevoked
-                    ? AgentRevocationDisposition.AlreadyRevoked
-                    : AgentRevocationDisposition.Revoked,
+                alreadyRevoked ? AgentRevocationDisposition.AlreadyRevoked : AgentRevocationDisposition.Revoked,
                 agentId,
                 effectiveRevokedAt,
                 null);
@@ -733,6 +735,60 @@ public sealed class AgentFleetStore(IDbContextFactory<ServerDbContext> contextFa
                 agentId,
                 null,
                 "agent.revocation_persistence_conflict");
+        }
+    }
+
+    /// <summary>Revokes outstanding certificate rows in independently committed, restart-safe batches.</summary>
+    private async ValueTask<bool> ReconcileRevokedCertificatesAsync(
+        Guid agentId,
+        DateTimeOffset revokedAt,
+        string reasonCode,
+        CancellationToken cancellationToken)
+    {
+        while (true)
+        {
+            await using ServerDbContext context = await contextFactory
+                .CreateDbContextAsync(cancellationToken).ConfigureAwait(false);
+            await using IDbContextTransaction transaction = await context.Database
+                .BeginTransactionAsync(IsolationLevel.Serializable, cancellationToken).ConfigureAwait(false);
+            bool identityRemainsRevoked = await context.Agents.AsNoTracking().AnyAsync(
+                row => row.AgentId == agentId && row.State == "Revoked" && row.RevokedAt == revokedAt,
+                cancellationToken).ConfigureAwait(false);
+            if (!identityRemainsRevoked)
+            {
+                await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
+                return false;
+            }
+
+            AgentCertificateRow[] certificates = await context.AgentCertificates
+                .Where(row => row.AgentId == agentId && (row.State != "Revoked" || row.RevokedAt == null))
+                .OrderBy(row => row.AgentCertificateId)
+                .Take(AgentFleetProtocol.MaximumCertificatesPerAgent)
+                .ToArrayAsync(cancellationToken).ConfigureAwait(false);
+            if (certificates.Length == 0)
+            {
+                await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
+                return true;
+            }
+
+            foreach (AgentCertificateRow certificate in certificates)
+            {
+                certificate.State = "Revoked";
+                certificate.RevokedAt ??= revokedAt;
+                certificate.RevocationReasonCode ??= reasonCode;
+                certificate.ConcurrencyToken = Guid.NewGuid();
+            }
+
+            try
+            {
+                await context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+                await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
+            }
+            catch (Exception exception) when (exception is DbUpdateConcurrencyException or DbUpdateException or DbException)
+            {
+                await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
+                return false;
+            }
         }
     }
 

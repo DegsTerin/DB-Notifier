@@ -7,6 +7,7 @@ using DBNotifier.Application.AgentFleet;
 using DBNotifier.Application.Operations;
 using DBNotifier.Application.Synchronization;
 using DBNotifier.Persistence.Server.PostgreSql;
+using DBNotifier.Provider.Abstractions;
 using DBNotifier.Server.Api;
 using DBNotifier.Server.Api.Security;
 using Microsoft.AspNetCore.Authentication;
@@ -70,6 +71,8 @@ builder.Services.AddRateLimiter(options =>
 builder.Services.AddDbContextFactory<ServerDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("ServerDatabase")));
 builder.Services.AddSingleton(TimeProvider.System);
+builder.Services.AddSingleton<IProviderRegistry>(_ => new ProviderRegistry([]));
+builder.Services.AddSingleton<IAgentAssignmentValidator, AgentAssignmentValidator>();
 builder.Services.AddScoped<IAgentFleetStore, AgentFleetStore>();
 builder.Services.AddScoped<AgentFleetService>();
 builder.Services.AddSingleton<IAgentCertificateIssuer, UnavailableAgentCertificateIssuer>();

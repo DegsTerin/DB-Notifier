@@ -2,6 +2,7 @@
 using System.Data;
 using System.Globalization;
 using System.Text.Json;
+using DBNotifier.Application.AgentFleet;
 using DBNotifier.Application.Monitoring;
 using DBNotifier.Domain;
 using DBNotifier.Provider.Abstractions;
@@ -227,29 +228,7 @@ public sealed partial class AgentMonitoringAssignmentSource(
     private static bool TryParseCredentialReference(string json, out CredentialReference? reference)
     {
         reference = null;
-        try
-        {
-            using JsonDocument document = JsonDocument.Parse(json);
-            JsonElement root = document.RootElement;
-            if (!root.TryGetProperty("referenceId", out JsonElement referenceIdElement) ||
-                !Guid.TryParse(referenceIdElement.GetString(), out Guid referenceId) ||
-                !root.TryGetProperty("vaultProvider", out JsonElement vaultProviderElement) ||
-                !root.TryGetProperty("locator", out JsonElement locatorElement))
-            {
-                return false;
-            }
-
-            reference = new CredentialReference(
-                referenceId,
-                vaultProviderElement.GetString() ?? string.Empty,
-                locatorElement.GetString() ?? string.Empty,
-                CredentialPurpose.Monitoring);
-            return true;
-        }
-        catch (Exception exception) when (exception is JsonException or ArgumentException or InvalidOperationException)
-        {
-            return false;
-        }
+        return AgentAssignmentValidator.TryParseMonitoringCredentialReference(json, out reference);
     }
 
     [LoggerMessage(

@@ -222,7 +222,7 @@ public sealed partial class AgentFleetService(
                 if (certificate.Disposition != AgentCertificateIssueDisposition.Issued ||
                     !ValidateIssuedCertificate(
                         certificate,
-                        validatedIssueRequest.CertificateSigningRequestSha256.Span,
+                        validatedIssueRequest,
                         now))
                 {
                     await store.AuditEnrollmentDenialAsync(
@@ -463,19 +463,19 @@ public sealed partial class AgentFleetService(
 
     /// <summary>Validates public certificate contents independently of issuer-provided metadata.</summary>
     /// <param name="result">Issuer result.</param>
-    /// <param name="expectedCsrDigest">Digest of the exact validated CSR.</param>
+    /// <param name="request">Exact validated CSR and its independently computed digest.</param>
     /// <param name="now">Trusted issuance instant.</param>
     /// <returns><see langword="true"/> only for a P-256 client certificate matching every reported value.</returns>
     private static bool ValidateIssuedCertificate(
         AgentCertificateIssueResult result,
-        ReadOnlySpan<byte> expectedCsrDigest,
+        AgentCertificateIssueRequest request,
         DateTimeOffset now)
     {
         if (result.CertificateDer.Length is < 128 or > MaximumCertificateBytes ||
             result.CertificateSigningRequestSha256.Length != SHA256.HashSizeInBytes ||
             !CryptographicOperations.FixedTimeEquals(
                 result.CertificateSigningRequestSha256.Span,
-                expectedCsrDigest) ||
+                request.CertificateSigningRequestSha256.Span) ||
             !IsUpperHex(result.CertificateThumbprint, 40, 160) ||
             !IsUpperHex(result.PublicKeySha256, 64) ||
             result.NotBefore is null || result.NotAfter is null ||
@@ -488,6 +488,10 @@ public sealed partial class AgentFleetService(
 
         try
         {
+            CertificateRequest signingRequest = CertificateRequest.LoadSigningRequest(
+                request.CertificateSigningRequestDer.ToArray(),
+                HashAlgorithmName.SHA256,
+                CertificateRequestLoadOptions.Default);
             using X509Certificate2 certificate = X509CertificateLoader.LoadCertificate(result.CertificateDer.Span);
             if (certificate.HasPrivateKey ||
                 !string.Equals(NormaliseThumbprint(certificate.Thumbprint), result.CertificateThumbprint, StringComparison.Ordinal) ||
@@ -506,9 +510,12 @@ public sealed partial class AgentFleetService(
             }
 
             string publicKeyDigest = Convert.ToHexString(SHA256.HashData(publicKey.ExportSubjectPublicKeyInfo()));
-            return string.Equals(publicKeyDigest, result.PublicKeySha256, StringComparison.Ordinal);
+            return string.Equals(publicKeyDigest, result.PublicKeySha256, StringComparison.Ordinal) &&
+                CryptographicOperations.FixedTimeEquals(
+                    signingRequest.PublicKey.ExportSubjectPublicKeyInfo(),
+                    publicKey.ExportSubjectPublicKeyInfo());
         }
-        catch (CryptographicException)
+        catch (Exception exception) when (exception is CryptographicException or ArgumentException)
         {
             return false;
         }

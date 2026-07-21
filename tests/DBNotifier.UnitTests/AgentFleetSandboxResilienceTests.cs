@@ -616,7 +616,7 @@ public sealed class AgentFleetSandboxResilienceTests
             "postgresql",
             "sandbox",
             endpoint.RootElement.Clone(),
-            "credential-ref:sandbox-monitor",
+            AgentAssignmentValidationFixture.MonitoringReference,
             tags.RootElement.Clone(),
             30,
             5,
@@ -682,7 +682,10 @@ public sealed class AgentFleetSandboxResilienceTests
                 await context.Database.MigrateAsync();
             }
 
-            AgentFleetLocalStore store = new(factory, faultInjector);
+            AgentFleetLocalStore store = new(
+                factory,
+                AgentAssignmentValidationFixture.Create(),
+                faultInjector);
             AgentLocalRegistration registration = new(
                 Guid.NewGuid(),
                 $"installation:{Guid.NewGuid():N}",

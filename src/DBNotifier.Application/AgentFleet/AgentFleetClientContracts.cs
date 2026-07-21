@@ -321,8 +321,10 @@ public interface IAgentFleetLocalStore
     /// <param name="snapshot">Complete validated assignment snapshot.</param>
     /// <param name="entityTag">Strong ETag matching the snapshot version.</param>
     /// <param name="appliedAt">Trusted UTC application instant.</param>
+    /// <param name="lease">Exact active assignment-reconciliation fence.</param>
     /// <param name="cancellationToken">Cancellation for the atomic replacement.</param>
-    ValueTask ApplyAssignmentsAsync(
+    /// <returns><see langword="true"/> when the complete validated snapshot committed; otherwise <see langword="false"/>.</returns>
+    ValueTask<bool> ApplyAssignmentsAsync(
         AgentAssignmentSnapshot snapshot,
         string entityTag,
         DateTimeOffset appliedAt,

@@ -4,6 +4,7 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using DBNotifier.Application.Presentation;
+using DBNotifier.Infrastructure.Http;
 
 namespace DBNotifier.Infrastructure.Presentation;
 
@@ -17,6 +18,10 @@ public sealed class HttpReconciledNotificationTransitionReader : IReconciledNoti
     {
         UnmappedMemberHandling = JsonUnmappedMemberHandling.Disallow,
         MaxDepth = 12,
+    };
+    private static readonly HashSet<string> JsonMediaTypes = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "application/json",
     };
     private readonly HttpClient client;
     private readonly TimeProvider timeProvider;
@@ -83,34 +88,16 @@ public sealed class HttpReconciledNotificationTransitionReader : IReconciledNoti
                 return new(ReconciledNotificationReadDisposition.Retryable, null, "reconciled_notification.read_unavailable");
             }
             if (!response.Headers.TryGetValues(SchemaHeader, out IEnumerable<string>? schemas) ||
-                !schemas.SequenceEqual([ReconciledNotificationTransitionContract.CurrentSchemaVersion], StringComparer.Ordinal) ||
-                !string.Equals(response.Content.Headers.ContentType?.MediaType, "application/json", StringComparison.OrdinalIgnoreCase) ||
-                !string.Equals(response.Content.Headers.ContentType?.CharSet, "utf-8", StringComparison.OrdinalIgnoreCase) ||
-                response.Content.Headers.ContentLength > MaximumResponseBytes)
+                !schemas.SequenceEqual([ReconciledNotificationTransitionContract.CurrentSchemaVersion], StringComparer.Ordinal))
             {
                 return new(ReconciledNotificationReadDisposition.Incompatible, null, "reconciled_notification.response_invalid");
             }
 
-            await using Stream stream = await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
-            using MemoryStream bounded = new();
-            byte[] buffer = new byte[8_192];
-            while (true)
-            {
-                int read = await stream.ReadAsync(buffer, cancellationToken).ConfigureAwait(false);
-                if (read == 0)
-                {
-                    break;
-                }
-                if (bounded.Length + read > MaximumResponseBytes)
-                {
-                    return new(ReconciledNotificationReadDisposition.Incompatible, null, "reconciled_notification.response_too_large");
-                }
-                await bounded.WriteAsync(buffer.AsMemory(0, read), cancellationToken).ConfigureAwait(false);
-            }
-            bounded.Position = 0;
-            ReconciledNotificationTransitionPage? page = await JsonSerializer.DeserializeAsync<ReconciledNotificationTransitionPage>(
-                bounded,
+            ReconciledNotificationTransitionPage page = await BoundedHttpJsonReader.ReadAsync<ReconciledNotificationTransitionPage>(
+                response.Content,
+                MaximumResponseBytes,
                 SerializerOptions,
+                JsonMediaTypes,
                 cancellationToken).ConfigureAwait(false);
             if (!ReconciledNotificationTransitionValidator.TryValidate(
                     page,
@@ -127,7 +114,11 @@ public sealed class HttpReconciledNotificationTransitionReader : IReconciledNoti
         {
             throw;
         }
-        catch (Exception exception) when (exception is HttpRequestException or IOException or JsonException)
+        catch (Exception exception) when (exception is BoundedHttpJsonException or JsonException)
+        {
+            return new(ReconciledNotificationReadDisposition.Incompatible, null, "reconciled_notification.response_invalid");
+        }
+        catch (Exception exception) when (exception is HttpRequestException or IOException)
         {
             return new(ReconciledNotificationReadDisposition.Retryable, null, "reconciled_notification.read_unavailable");
         }

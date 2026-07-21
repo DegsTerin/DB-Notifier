@@ -178,6 +178,7 @@ public sealed class AgentRuntimeTests
         referenceId = Guid.NewGuid(),
         vaultProvider = "windows-credential-manager",
         locator = "DB-Notifier/test",
+        purpose = "Monitoring",
     });
 
     private sealed class TestContextFactory(DbContextOptions<AgentDbContext> options) : IDbContextFactory<AgentDbContext>

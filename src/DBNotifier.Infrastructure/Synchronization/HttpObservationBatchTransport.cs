@@ -2,14 +2,25 @@
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using DBNotifier.Application.Synchronization;
+using DBNotifier.Infrastructure.Http;
 
 namespace DBNotifier.Infrastructure.Synchronization;
 
 /// <summary>Transfers bounded canonical observation batches to one configured HTTPS Server boundary.</summary>
 public sealed class HttpObservationBatchTransport : IObservationBatchTransport
 {
-    private static readonly JsonSerializerOptions SerializerOptions = new(JsonSerializerDefaults.Web);
+    private const int MaximumResponseBytes = 1024 * 1024;
+    private static readonly JsonSerializerOptions SerializerOptions = new(JsonSerializerDefaults.Web)
+    {
+        MaxDepth = 16,
+        UnmappedMemberHandling = JsonUnmappedMemberHandling.Disallow,
+    };
+    private static readonly HashSet<string> JsonMediaTypes = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "application/json",
+    };
     private readonly HttpClient httpClient;
     private readonly Uri serverBaseAddress;
     private readonly string agentVersion;
@@ -94,17 +105,21 @@ public sealed class HttpObservationBatchTransport : IObservationBatchTransport
             {
                 try
                 {
-                    ObservationBatchResult? result = await response.Content
-                        .ReadFromJsonAsync<ObservationBatchResult>(SerializerOptions, cancellationToken)
-                        .ConfigureAwait(false);
-                    if (result is not null && IsValidSuccessResponse(result, valid))
+                    ObservationBatchResult result = await BoundedHttpJsonReader.ReadAsync<ObservationBatchResult>(
+                        response.Content,
+                        MaximumResponseBytes,
+                        SerializerOptions,
+                        JsonMediaTypes,
+                        cancellationToken).ConfigureAwait(false);
+                    if (IsValidSuccessResponse(result, valid))
                     {
                         return new ObservationBatchResult(
                             [.. localResults, .. result.Items],
                             result.HighestContiguousSequence);
                     }
                 }
-                catch (Exception exception) when (exception is JsonException or NotSupportedException)
+                catch (Exception exception) when (
+                    exception is JsonException or NotSupportedException or BoundedHttpJsonException)
                 {
                     // A successful status with an invalid contract must never terminally acknowledge local data.
                 }

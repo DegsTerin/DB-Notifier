@@ -379,6 +379,7 @@ public static class AgentFleetEndpointRouteBuilderExtensions
         return outcome.Disposition switch
         {
             AgentRevocationDisposition.Revoked or AgentRevocationDisposition.AlreadyRevoked => Results.Ok(outcome),
+            AgentRevocationDisposition.CertificatesReconciling => Results.Accepted(value: outcome),
             AgentRevocationDisposition.Denied => Problem(
                 context,
                 StatusCodes.Status403Forbidden,

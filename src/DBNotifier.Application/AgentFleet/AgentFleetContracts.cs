@@ -25,7 +25,7 @@ public static class AgentFleetProtocol
     /// <summary>Maximum RBAC scope rows admitted for one server-side authorisation decision.</summary>
     public const int MaximumAuthorisationScopes = 1024;
 
-    /// <summary>Maximum certificate rows admitted for one bounded revocation transaction.</summary>
+    /// <summary>Maximum certificate rows admitted for one resumable revocation-reconciliation transaction.</summary>
     public const int MaximumCertificatesPerAgent = 128;
 
     /// <summary>Maximum accepted future skew for Agent-produced timestamps.</summary>
@@ -442,11 +442,14 @@ public sealed record AgentRevocationRequest(string ReasonCode);
 /// <summary>Identifies the result of an Agent revocation attempt.</summary>
 public enum AgentRevocationDisposition
 {
-    /// <summary>The Agent and every active certificate were revoked atomically.</summary>
+    /// <summary>The Agent identity and every active certificate are durably revoked.</summary>
     Revoked,
 
-    /// <summary>The Agent was already revoked; the original monotonic result was preserved.</summary>
+    /// <summary>The Agent was already revoked and certificate reconciliation is complete.</summary>
     AlreadyRevoked,
+
+    /// <summary>The Agent is durably revoked while certificate reconciliation remains safely resumable.</summary>
+    CertificatesReconciling,
 
     /// <summary>The Agent did not exist in the caller's authorised scope.</summary>
     Denied,
@@ -535,7 +538,7 @@ public interface IAgentFleetStore
         DateTimeOffset now,
         CancellationToken cancellationToken);
 
-    /// <summary>Revokes an Agent and every current certificate under server-side RBAC and one transaction.</summary>
+    /// <summary>Revokes an Agent under server-side RBAC, then reconciles certificate metadata in resumable batches.</summary>
     /// <param name="subjectId">Authenticated human subject.</param>
     /// <param name="agentId">Target Agent.</param>
     /// <param name="permissionCode">Required revocation permission.</param>

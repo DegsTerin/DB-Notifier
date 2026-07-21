@@ -1,15 +1,34 @@
 // Module purpose: Implements Http Command Delivery Transport as an outer adapter behind application or provider contracts.
 using System.Net.Http.Json;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using DBNotifier.Application.Synchronization;
+using DBNotifier.Infrastructure.Http;
 
 namespace DBNotifier.Infrastructure.Synchronization;
 
+/// <summary>
+/// Preserves the contained legacy command-delivery adapter while bounding every response; normal composition does
+/// not register this transport and R2-A continues to prohibit command polling.
+/// </summary>
+/// <param name="httpClient">Caller-owned authenticated HTTP client.</param>
+/// <param name="serverBaseAddress">Configured HTTPS Server boundary.</param>
+/// <param name="agentVersion">Bounded Agent protocol version.</param>
 public sealed class HttpCommandDeliveryTransport(HttpClient httpClient, Uri serverBaseAddress, string agentVersion)
     : ICommandDeliveryTransport
 {
-    private static readonly JsonSerializerOptions SerializerOptions = new(JsonSerializerDefaults.Web);
+    private const int MaximumResponseBytes = 1024 * 1024;
+    private static readonly JsonSerializerOptions SerializerOptions = new(JsonSerializerDefaults.Web)
+    {
+        MaxDepth = 16,
+        UnmappedMemberHandling = JsonUnmappedMemberHandling.Disallow,
+    };
+    private static readonly HashSet<string> JsonMediaTypes = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "application/json",
+    };
 
+    /// <inheritdoc />
     public async ValueTask<CommandPollResponse> PollAsync(
         CommandPollRequest request,
         CancellationToken cancellationToken)
@@ -18,10 +37,15 @@ public sealed class HttpCommandDeliveryTransport(HttpClient httpClient, Uri serv
         using HttpResponseMessage response = await httpClient.SendAsync(
             message, HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false);
         response.EnsureSuccessStatusCode();
-        return await response.Content.ReadFromJsonAsync<CommandPollResponse>(SerializerOptions, cancellationToken)
-            .ConfigureAwait(false) ?? throw new InvalidDataException("The command poll response is empty.");
+        return await BoundedHttpJsonReader.ReadAsync<CommandPollResponse>(
+            response.Content,
+            MaximumResponseBytes,
+            SerializerOptions,
+            JsonMediaTypes,
+            cancellationToken).ConfigureAwait(false);
     }
 
+    /// <inheritdoc />
     public async ValueTask<CommandAcknowledgementResponse> AcknowledgeAsync(
         CommandAcknowledgementRequest request,
         CancellationToken cancellationToken)
@@ -30,10 +54,15 @@ public sealed class HttpCommandDeliveryTransport(HttpClient httpClient, Uri serv
         using HttpResponseMessage response = await httpClient.SendAsync(
             message, HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false);
         response.EnsureSuccessStatusCode();
-        return await response.Content.ReadFromJsonAsync<CommandAcknowledgementResponse>(SerializerOptions, cancellationToken)
-            .ConfigureAwait(false) ?? throw new InvalidDataException("The command acknowledgement response is empty.");
+        return await BoundedHttpJsonReader.ReadAsync<CommandAcknowledgementResponse>(
+            response.Content,
+            MaximumResponseBytes,
+            SerializerOptions,
+            JsonMediaTypes,
+            cancellationToken).ConfigureAwait(false);
     }
 
+    /// <summary>Creates one contained v1 request without changing the transport's disabled composition status.</summary>
     private HttpRequestMessage Create<T>(Guid agentId, string operation, T payload)
     {
         if (!serverBaseAddress.IsAbsoluteUri || serverBaseAddress.Scheme != Uri.UriSchemeHttps ||

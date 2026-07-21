@@ -2351,6 +2351,21 @@
 - Próxima decisão: Bruno poderá solicitar separadamente a proposta de autorização do R3; isso não autoriza sua implementação.
 - Aprovador: Bruno, 2026-07-20, exclusivamente para o R2-A com a ressalva registrada.
 
+## 2026-07-20 — Implementação local do lote de remediação `R3`
+
+- Estado anterior: `STATE-06 INTEGRATION`, R0 aceito, R1 e R2-A aceitos com a ressalva global preexistente, R3 autorizado exclusivamente sobre a baseline `ede62bb3617e106803b4109daa5f9df73de2484e` e decisão humana do novo lote ainda inexistente.
+- Estado resultante: sem transição; `STATE-06 INTEGRATION` mantido. R3 está implementado e `APROVADO` automaticamente no escopo local autorizado; aceitação humana permanece `PENDENTE`.
+- Autorização: Bruno autorizou somente os achados `AUD-H05`, `AUD-H08`, `AUD-H11` e `AUD-M07`, alterações/builds/testes/runtimes locais, fixtures sintéticas, SQLite efêmero, loopback, documentação/evidência sanitizada e commit focado. Integrações reais, ativação normal, nova dependência, schema amplo, correção R0, R2-B, R4–R8, R7-A0/O1, comandos/modos/transições posteriores permaneceram proibidos.
+- Baseline e preflight: branch `main`, commit `ede62bb3617e106803b4109daa5f9df73de2484e`, worktree limpa e zero processo, listener ou janela de produto pertencente ao DB-Notifier antes da implementação; a IDE do utilizador permaneceu intocada.
+- Assignment boundary: Server valida provider/endpoint/referência/tags antes de construir resposta; Agent repete a validação antes de substituir SQLite e preserva LKG após recusa; a composição normal não registra provider distribuível.
+- Identidade: principal é revogada e auditada antes de lotes retomáveis de até 128 certificados; CSR e certificado exigem SPKI idêntico antes do commit; issuer normal permanece indisponível.
+- HTTP: leitores C# inventariados compartilham limite real por stream, content type, depth e schema; Dashboard TV aplica limite equivalente com UTF-8 fatal; arquitetura impede APIs de resposta não limitadas em `src/`.
+- Schema: nenhuma migration foi necessária ou criada; nenhum SQL PostgreSQL foi gerado ou aplicado e nenhum banco real foi tocado.
+- Gates: build Release sem aviso/erro; suítes R3, Agent Fleet, Dashboard, cobertura, arquitetura sem a contradição exata, format, Pester/PowerShell 5.1, runtime fail-closed, bundle, documentação, assets e secrets aprovados. O comando .NET global permanece não verde somente pela asserção R0 preexistente, inalterada e sem autorização de correção.
+- Evidência: [relatório factual R3](../../docs/STATE-06-Audit-Remediation-R3-Report.md), [protocolo Agent/API](../../docs/architecture/Agent-API-Protocol.md) e [plano de remediação](../../docs/STATE-06-Complete-Project-Audit-Remediation-Plan.md).
+- Próxima decisão: Bruno deverá revisar o relatório e decidir separadamente se aceita R3. Aceitação não autorizará R2-B, R4, normal Agent Fleet, integração real, AIOps ou transição.
+- Aprovador: decisão humana ainda pendente; nenhum aceite foi inferido da autorização de implementação.
+
 ## Template de nova entrada
 
 - Data:

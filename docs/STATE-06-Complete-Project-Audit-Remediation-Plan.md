@@ -251,6 +251,8 @@ Rollback seguro mantém as rotas desativadas. Nunca reativar v1 para restaurar c
 
 ## R3 — Agent Fleet, identidade e ingresso non-secret
 
+**Execution record (2026-07-20):** the authorised local implementation is complete on baseline `ede62bb3617e106803b4109daa5f9df73de2484e`. The R3-specific automatic scope is `APROVADO`; the unfiltered .NET solution test command remains non-green only because of the exact pre-existing R0 architecture assertion already reserved and left unchanged. Server and Agent now validate the same provider-backed non-secret assignment schema independently, Agent refusal preserves the last-known-valid set, principal revocation commits before resumable certificate batches, CSR and issued-certificate SPKIs must match, and all inventoried HTTP JSON readers enforce actual bytes, depth, content type and strict schema. Evidence: [STATE-06 Audit Remediation R3 Report](STATE-06-Audit-Remediation-R3-Report.md). Independent human acceptance remains `PENDENTE`; this record does not authorise R4–R8, R7-A0/O1, normal Agent Fleet activation, PKI/vault integration, AIOps mode promotion or lifecycle transition.
+
 ### Objetivo
 
 Fechar as fronteiras Server→Agent e issuer→Server antes de qualquer ativação do Fleet normal.

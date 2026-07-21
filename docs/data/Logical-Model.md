@@ -22,7 +22,7 @@ Stores the next heartbeat sequence, exact pending heartbeat envelope, last durab
 
 ### Instance assignments
 
-Stores the last-known-valid authorised assignment for each instance: provider, non-secret endpoint JSON, opaque monitoring credential reference, tags, interval, timeout, retries, policy/version, enabled state, and concurrency token. The broader historical row still has a separate administrative reference for pre-existing command contracts, but Agent Fleet reconciliation always writes that field as null and the transmitted contract cannot carry it.
+Stores the last-known-valid authorised assignment for each instance: provider, non-secret endpoint JSON, opaque monitoring credential reference, tags, interval, timeout, retries, policy/version, enabled state, and concurrency token. The broader historical row still has a separate administrative reference for pre-existing command contracts, but Agent Fleet reconciliation always writes that field as null and the transmitted contract cannot carry it. A complete replacement is validated independently against the Agent's exact Provider SDK registry and monitoring-reference schema before existing rows are deleted, so rejected snapshots preserve this set unchanged.
 
 Constraints enforce positive intervals/timeouts and non-negative retries. Assignment deletion does not cascade into observation history.
 
@@ -71,7 +71,7 @@ outbox_messages
 
 - `agent_enrollment_tokens`: public token ID, exact scope, random salt and SHA-256 proof, explicit issue/expiry instants and one-time consumption/revocation state; the original token is never stored. The schema requires expiry after issuance but does not currently impose a maximum lifetime.
 - `agents`: unique installation identity, environment/platform/version, enrollment/revocation/last-seen state and concurrency token. The legacy certificate-thumbprint pointer remains only as a compatibility bridge.
-- `agent_certificates`: authoritative normalised thumbprint, public-key/CSR digests, validity, lifecycle, monotonic revocation and concurrency metadata; it stores neither certificate bodies nor private keys.
+- `agent_certificates`: authoritative normalised thumbprint, public-key/CSR digests, validity, lifecycle, monotonic revocation and concurrency metadata; it stores neither certificate bodies nor private keys. After principal revocation commits, outstanding rows are reconciled in bounded transactions and their existing lifecycle state is the durable restart cursor.
 - `agent_capabilities`: versioned provider/platform claims, unique per Agent/capability combination.
 - `agent_heartbeats`: immutable process/connectivity evidence with unique message ID and per-Agent sequence, canonical payload digest, protocol range, queue state, Agent/server times and explicit gap evidence.
 - `agent_heartbeat_cursors`: highest accepted per-Agent heartbeat sequence and last message ID, retained independently of heartbeat-detail deletion for fail-closed replay protection.

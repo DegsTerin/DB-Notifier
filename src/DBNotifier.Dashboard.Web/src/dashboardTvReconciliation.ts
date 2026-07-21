@@ -132,10 +132,13 @@ export class DashboardTvHttpSnapshotReader implements DashboardTvSnapshotReader 
       }
 
       const returnedEntityTag = requireStrongEntityTag(response.headers.get("ETag"));
-      const contentLength = Number(response.headers.get("Content-Length"));
-      if (Number.isFinite(contentLength) && contentLength > maximumBodyBytes) throw new DashboardTvReadError("incompatible");
-      const body = await response.text();
-      if (new TextEncoder().encode(body).byteLength > maximumBodyBytes) throw new DashboardTvReadError("incompatible");
+      if (!isJsonContentType(response.headers.get("Content-Type"))) throw new DashboardTvReadError("incompatible");
+      const contentLengthHeader = response.headers.get("Content-Length");
+      if (contentLengthHeader !== null &&
+          (!/^\d+$/.test(contentLengthHeader) || Number(contentLengthHeader) > maximumBodyBytes)) {
+        throw new DashboardTvReadError("incompatible");
+      }
+      const body = await readBoundedUtf8Body(response, maximumBodyBytes);
 
       let value: unknown;
       try {
@@ -307,6 +310,48 @@ const browserTimer: DashboardTvTimer = {
 function requireStrongEntityTag(value: string | null): string {
   if (!value || !/^"sha256-[0-9a-f]{64}"$/.test(value)) throw new DashboardTvReadError("incompatible");
   return value;
+}
+
+/** Accepts only the JSON media type and an optional UTF-8 character set. */
+function isJsonContentType(value: string | null): boolean {
+  if (value === null) return false;
+  const parts = value.split(";").map((part) => part.trim().toLowerCase());
+  return parts[0] === "application/json" &&
+    parts.slice(1).every((parameter) => parameter === "charset=utf-8");
+}
+
+/** Streams a response under an exact byte ceiling before one bounded fatal UTF-8 decode. */
+async function readBoundedUtf8Body(response: Response, maximumBytes: number): Promise<string> {
+  if (response.body === null) throw new DashboardTvReadError("incompatible");
+  const reader = response.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let total = 0;
+  try {
+    while (true) {
+      const result = await reader.read();
+      if (result.done) break;
+      total += result.value.byteLength;
+      if (total > maximumBytes) {
+        await reader.cancel();
+        throw new DashboardTvReadError("incompatible");
+      }
+      chunks.push(result.value);
+    }
+  } finally {
+    reader.releaseLock();
+  }
+
+  const bytes = new Uint8Array(total);
+  let offset = 0;
+  for (const chunk of chunks) {
+    bytes.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+  try {
+    return new TextDecoder("utf-8", { fatal: true }).decode(bytes);
+  } catch {
+    throw new DashboardTvReadError("incompatible");
+  }
 }
 
 function validateDashboardTvSnapshot(value: unknown, now: Date): InventorySnapshot {

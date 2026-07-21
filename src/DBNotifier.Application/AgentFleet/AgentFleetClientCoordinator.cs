@@ -278,13 +278,18 @@ public sealed class AgentFleetClientCoordinator(
                 response.EntityTag,
                 out _))
         {
-            await localStore.ApplyAssignmentsAsync(
+            bool applied = await localStore.ApplyAssignmentsAsync(
                 snapshot,
                 response.EntityTag!,
                 now,
                 operationLease,
                 cancellationToken).ConfigureAwait(false);
-            return new AgentFleetClientResult(true, AgentLocalIdentityState.Active, "assignments.applied");
+            if (applied)
+            {
+                return new AgentFleetClientResult(true, AgentLocalIdentityState.Active, "assignments.applied");
+            }
+
+            response = response with { ErrorCode = "assignments.non_secret_validation_failed" };
         }
 
         AgentLocalIdentityState state = response.Disposition switch

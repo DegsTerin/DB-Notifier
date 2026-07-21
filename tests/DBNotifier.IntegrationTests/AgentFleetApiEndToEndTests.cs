@@ -249,7 +249,7 @@ public sealed partial class AgentFleetApiEndToEndTests
         AgentReadOnlyAssignment assignment = Assert.Single(assignments.Assignments);
         Assert.Equal(agentId, assignments.AgentId);
         Assert.Equal("fixture-provider", assignment.ProviderType);
-        Assert.Equal("fixture:monitoring-only", assignment.MonitoringCredentialReference);
+        Assert.Equal(AgentAssignmentValidationFixture.MonitoringReference, assignment.MonitoringCredentialReference);
 
         using (HttpRequestMessage weakEntityTagRequest = CreateAgentRequest(
             HttpMethod.Get,
@@ -2081,7 +2081,11 @@ public sealed partial class AgentFleetApiEndToEndTests
                 await context.Database.MigrateAsync();
             }
 
-            return new AgentFileSandbox(rootPath, databasePath, options, new AgentFleetLocalStore(factory));
+            return new AgentFileSandbox(
+                rootPath,
+                databasePath,
+                options,
+                new AgentFleetLocalStore(factory, AgentAssignmentValidationFixture.Create()));
         }
 
         /// <summary>Reads the exact durable pending heartbeat after the interrupted child exits.</summary>
@@ -2332,7 +2336,10 @@ public sealed partial class AgentFleetApiEndToEndTests
             AgentContextFactory factory = new(options);
             await using AgentDbContext context = new(options);
             await context.Database.MigrateAsync();
-            return new AgentLocalSandbox(keeper, options, new AgentFleetLocalStore(factory));
+            return new AgentLocalSandbox(
+                keeper,
+                options,
+                new AgentFleetLocalStore(factory, AgentAssignmentValidationFixture.Create()));
         }
 
         /// <summary>Reads the exact durable pending heartbeat for restart/replay assertions.</summary>
@@ -2931,6 +2938,7 @@ public sealed partial class AgentFleetApiEndToEndTests
             builder.Services.AddSingleton<TimeProvider>(clock);
             builder.Services.AddSingleton<IAgentCertificateIssuer>(
                 new EphemeralAgentCertificateIssuer(rootCertificate));
+            builder.Services.AddSingleton<IAgentAssignmentValidator>(_ => AgentAssignmentValidationFixture.Create());
             builder.Services.AddScoped<IAgentFleetStore, AgentFleetStore>();
             builder.Services.AddScoped<AgentFleetService>();
             builder.Services.AddScoped<AgentCertificateIdentityValidator>();
@@ -3206,7 +3214,7 @@ public sealed partial class AgentFleetApiEndToEndTests
                     EndpointJson = "{\"host\":\"sandbox.invalid\",\"port\":5432}",
                     MonitoringCredentialReference = omitMonitoringCredential
                         ? null
-                        : "fixture:monitoring-only",
+                        : AgentAssignmentValidationFixture.MonitoringReference,
                     AdministrativeCredentialReference = "fixture:administrative-omitted",
                     AssignedAgentId = agentId,
                     TagsJson = "{\"purpose\":\"integration-test\"}",
@@ -3428,7 +3436,7 @@ public sealed partial class AgentFleetApiEndToEndTests
                     ProviderType = "fixture-provider",
                     Environment = EnvironmentName,
                     EndpointJson = "{\"host\":\"replacement-a.invalid\",\"port\":5432}",
-                    MonitoringCredentialReference = "fixture:monitoring-only",
+                    MonitoringCredentialReference = AgentAssignmentValidationFixture.MonitoringReference,
                     AdministrativeCredentialReference = "fixture:administrative-never-sent",
                     AssignedAgentId = agentId,
                     TagsJson = "{\"revision\":2}",

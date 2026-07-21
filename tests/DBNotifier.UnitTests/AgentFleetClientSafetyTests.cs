@@ -88,7 +88,9 @@ public sealed class AgentFleetClientSafetyTests
             await context.Database.MigrateAsync();
         }
 
-        AgentFleetLocalStore store = new(new TestContextFactory(options));
+        AgentFleetLocalStore store = new(
+            new TestContextFactory(options),
+            AgentAssignmentValidationFixture.Create("fixture"));
         DateTimeOffset now = new(2026, 7, 18, 3, 0, 0, TimeSpan.Zero);
         AgentLocalRegistration registration = new(
             Guid.NewGuid(),
@@ -307,7 +309,9 @@ public sealed class AgentFleetClientSafetyTests
             await context.Database.MigrateAsync();
         }
 
-        AgentFleetLocalStore store = new(new TestContextFactory(options));
+        AgentFleetLocalStore store = new(
+            new TestContextFactory(options),
+            AgentAssignmentValidationFixture.Create("fixture"));
         DateTimeOffset now = new(2026, 7, 18, 7, 20, 0, TimeSpan.Zero);
         AgentLocalRegistration registration = new(
             Guid.NewGuid(),
@@ -386,7 +390,7 @@ public sealed class AgentFleetClientSafetyTests
             "fixture",
             "test",
             endpoint.RootElement.Clone(),
-            "fixture:monitoring-only",
+            AgentAssignmentValidationFixture.MonitoringReference,
             tags.RootElement.Clone(),
             30,
             5,

@@ -9,6 +9,7 @@ using System.Text.Json;
 using DBNotifier.Application.AgentFleet;
 using DBNotifier.Infrastructure.AgentFleet;
 using DBNotifier.Persistence.Agent.Sqlite;
+using DBNotifier.Provider.Abstractions;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 
@@ -145,7 +146,9 @@ namespace DBNotifier.AgentFleet.SandboxHost
             await new AgentFleetSandboxDatabaseGuard(factory)
                 .ValidateAsync(CancellationToken.None)
                 .ConfigureAwait(false);
-            return new AgentFleetLocalStore(factory);
+            return new AgentFleetLocalStore(
+                factory,
+                new AgentAssignmentValidator(new ProviderRegistry([])));
         }
 
         /// <summary>Creates one caller-owned mTLS client pinned to the exact public loopback Server thumbprint.</summary>

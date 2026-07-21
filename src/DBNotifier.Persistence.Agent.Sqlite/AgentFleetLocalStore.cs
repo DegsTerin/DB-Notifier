@@ -13,9 +13,11 @@ namespace DBNotifier.Persistence.Agent.Sqlite;
 /// resolved credentials or provider results.
 /// </summary>
 /// <param name="contextFactory">Factory for short-lived Agent SQLite contexts.</param>
+/// <param name="assignmentValidator">Independent Agent-side non-secret assignment validation boundary.</param>
 /// <param name="faultInjector">Optional deterministic test-only fault injector.</param>
 public sealed class AgentFleetLocalStore(
     IDbContextFactory<AgentDbContext> contextFactory,
+    IAgentAssignmentValidator assignmentValidator,
     IAgentFleetLocalStoreFaultInjector? faultInjector = null) : IAgentFleetLocalStore
 {
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web)
@@ -381,7 +383,7 @@ public sealed class AgentFleetLocalStore(
     }
 
     /// <inheritdoc />
-    public async ValueTask ApplyAssignmentsAsync(
+    public async ValueTask<bool> ApplyAssignmentsAsync(
         AgentAssignmentSnapshot snapshot,
         string entityTag,
         DateTimeOffset appliedAt,
@@ -410,7 +412,15 @@ public sealed class AgentFleetLocalStore(
                 entityTag,
                 out _))
         {
-            throw new InvalidOperationException("assignments.snapshot_invalid");
+            return false;
+        }
+
+        foreach (AgentReadOnlyAssignment assignment in snapshot.Assignments)
+        {
+            if (!assignmentValidator.TryValidate(assignment, registration.Environment, out _))
+            {
+                return false;
+            }
         }
 
         await context.InstanceAssignments.ExecuteDeleteAsync(cancellationToken).ConfigureAwait(false);
@@ -447,6 +457,7 @@ public sealed class AgentFleetLocalStore(
         await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
         await InjectAsync(AgentFleetLocalStoreFaultPoint.AfterAssignmentCommit, cancellationToken)
             .ConfigureAwait(false);
+        return true;
     }
 
     /// <inheritdoc />

@@ -5,6 +5,7 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using DBNotifier.Application.AgentFleet;
+using DBNotifier.Infrastructure.Http;
 
 namespace DBNotifier.Infrastructure.AgentFleet;
 
@@ -27,6 +28,15 @@ public sealed class HttpAgentFleetClientTransport(
     private const string ProtocolMaximumHeader = "DBN-Protocol-Maximum";
     private const string AgentVersionHeader = "DBN-Agent-Version";
     private const string MessageSchemaHeader = "DBN-Message-Schema";
+    private static readonly HashSet<string> JsonMediaTypes = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "application/json",
+    };
+    private static readonly HashSet<string> ProblemMediaTypes = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "application/problem+json",
+        "application/json",
+    };
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web)
     {
         UnmappedMemberHandling = JsonUnmappedMemberHandling.Disallow,
@@ -199,15 +209,18 @@ public sealed class HttpAgentFleetClientTransport(
 
             if (response.IsSuccessStatusCode)
             {
-                T? value = await ReadBoundedJsonAsync<T>(response.Content, maximumResponseBytes, cancellationToken)
+                T value = await BoundedHttpJsonReader.ReadAsync<T>(
+                    response.Content,
+                    maximumResponseBytes,
+                    JsonOptions,
+                    JsonMediaTypes,
+                    cancellationToken)
                     .ConfigureAwait(false);
-                return value is null
-                    ? Failure<T>(AgentFleetTransportDisposition.InvalidResponse, "protocol.response_invalid", entityTag)
-                    : new AgentFleetTransportResult<T>(
-                        AgentFleetTransportDisposition.Succeeded,
-                        value,
-                        entityTag,
-                        null);
+                return new AgentFleetTransportResult<T>(
+                    AgentFleetTransportDisposition.Succeeded,
+                    value,
+                    entityTag,
+                    null);
             }
 
             return Failure<T>(AgentFleetTransportDisposition.InvalidResponse, "protocol.response_invalid", entityTag);
@@ -224,44 +237,15 @@ public sealed class HttpAgentFleetClientTransport(
         {
             return Failure<T>(AgentFleetTransportDisposition.InvalidResponse, "protocol.response_invalid", null);
         }
-        catch (InvalidDataException)
+        catch (BoundedHttpJsonException exception)
         {
-            return Failure<T>(AgentFleetTransportDisposition.InvalidResponse, "protocol.response_too_large", null);
+            return Failure<T>(
+                AgentFleetTransportDisposition.InvalidResponse,
+                exception.Failure == BoundedHttpJsonFailure.TooLarge
+                    ? "protocol.response_too_large"
+                    : "protocol.response_invalid",
+                null);
         }
-    }
-
-    private static async ValueTask<T?> ReadBoundedJsonAsync<T>(
-        HttpContent content,
-        int maximumBytes,
-        CancellationToken cancellationToken)
-    {
-        if (content.Headers.ContentLength is long length && (length < 0 || length > maximumBytes))
-        {
-            throw new InvalidDataException("Agent Fleet response exceeds its admitted byte ceiling.");
-        }
-
-        await using Stream stream = await content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
-        using MemoryStream buffer = new(Math.Min(maximumBytes, 64 * 1024));
-        byte[] chunk = new byte[16 * 1024];
-        int total = 0;
-        while (true)
-        {
-            int read = await stream.ReadAsync(chunk.AsMemory(), cancellationToken).ConfigureAwait(false);
-            if (read == 0)
-            {
-                break;
-            }
-
-            total = checked(total + read);
-            if (total > maximumBytes)
-            {
-                throw new InvalidDataException("Agent Fleet response exceeds its admitted byte ceiling.");
-            }
-
-            await buffer.WriteAsync(chunk.AsMemory(0, read), cancellationToken).ConfigureAwait(false);
-        }
-
-        return JsonSerializer.Deserialize<T>(buffer.GetBuffer().AsSpan(0, total), JsonOptions);
     }
 
     /// <summary>Reads bounded machine code and retry authority from a Problem Details response.</summary>
@@ -274,22 +258,19 @@ public sealed class HttpAgentFleetClientTransport(
     {
         try
         {
-            using JsonDocument problem = await ReadBoundedJsonAsync<JsonDocument>(
+            ProblemEvidence problem = await BoundedHttpJsonReader.ReadAsync<ProblemEvidence>(
                 content,
                 MaximumSmallResponseBytes,
-                cancellationToken).ConfigureAwait(false) ?? throw new JsonException();
-            string? code = problem.RootElement.TryGetProperty("code", out JsonElement codeElement) &&
-                codeElement.ValueKind == JsonValueKind.String &&
-                codeElement.GetString() is { Length: > 0 and <= 100 } value
-                    ? value
-                    : null;
-            bool? retryable = problem.RootElement.TryGetProperty("retryable", out JsonElement retryableElement) &&
-                retryableElement.ValueKind is JsonValueKind.True or JsonValueKind.False
-                    ? retryableElement.GetBoolean()
-                    : null;
-            return code is null && retryable is null ? null : new ProblemEvidence(code, retryable);
+                JsonOptions,
+                ProblemMediaTypes,
+                cancellationToken).ConfigureAwait(false);
+            string? code = problem.Code is { Length: > 0 and <= 100 } ? problem.Code : null;
+            return code is null && problem.Retryable is null
+                ? null
+                : problem with { Code = code };
         }
-        catch (Exception exception) when (exception is JsonException or InvalidDataException)
+        catch (Exception exception) when (
+            exception is JsonException or BoundedHttpJsonException or NotSupportedException)
         {
             return null;
         }
@@ -298,7 +279,15 @@ public sealed class HttpAgentFleetClientTransport(
     /// <summary>Contains the only Problem Details fields allowed to influence retry classification.</summary>
     /// <param name="Code">Optional bounded machine-readable code.</param>
     /// <param name="Retryable">Optional explicit retry authority.</param>
-    private sealed record ProblemEvidence(string? Code, bool? Retryable);
+    private sealed record ProblemEvidence(
+        string? Type,
+        string? Title,
+        int? Status,
+        string? Detail,
+        string? Instance,
+        string? Code,
+        string? CorrelationId,
+        bool? Retryable);
 
     private static bool TryValidateVersionHeaders(HttpResponseMessage response)
     {

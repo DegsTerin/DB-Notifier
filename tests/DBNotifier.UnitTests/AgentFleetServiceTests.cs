@@ -251,6 +251,32 @@ public sealed class AgentFleetServiceTests
         }
     }
 
+    /// <summary>Verifies the Server rejects an issuer certificate whose key differs from the CSR despite coherent metadata.</summary>
+    [Fact]
+    public async Task EnrollmentRejectsCertificateWhoseSpkiDoesNotMatchTheCsr()
+    {
+        AgentEnrollmentRequest request = CreateEnrollmentRequest();
+        TokenMaterial material = CreateTokenMaterial(request);
+        try
+        {
+            RecordingAgentFleetStore store = new() { EnrollmentChallenge = material.Challenge };
+            EphemeralCertificateIssuer issuer = new(
+                ECCurve.NamedCurves.nistP256,
+                CertificateFixtureMode.MismatchedPublicKey);
+
+            AgentEnrollmentOutcome outcome = await Service(store, issuer).EnrollAsync(material.Token, request);
+
+            Assert.Equal(AgentEnrollmentDisposition.Invalid, outcome.Disposition);
+            Assert.Equal("enrollment.csr_invalid", outcome.ErrorCode);
+            Assert.Equal(0, store.CompleteEnrollmentCalls);
+            Assert.Contains("enrollment.csr_invalid", store.EnrollmentAuditCodes);
+        }
+        finally
+        {
+            material.Clear();
+        }
+    }
+
     /// <summary>Verifies canonical heartbeat digest stability and preservation of the store's replay result.</summary>
     [Fact]
     public async Task HeartbeatDelegatesCanonicalDigestAndReturnsDurableReplayOutcome()
@@ -518,6 +544,9 @@ public sealed class AgentFleetServiceTests
         /// <summary>Returns a digest which does not match the admitted CSR.</summary>
         MismatchedCsrDigest,
 
+        /// <summary>Returns a valid client certificate for a different P-256 public key.</summary>
+        MismatchedPublicKey,
+
         /// <summary>Reports that no certificate authority is available.</summary>
         Unavailable,
     }
@@ -555,10 +584,22 @@ public sealed class AgentFleetServiceTests
                     null));
             }
 
-            using ECDsa certificateKey = ECDsa.Create(curve);
+            CertificateRequest parsedRequest = CertificateRequest.LoadSigningRequest(
+                request.CertificateSigningRequestDer.ToArray(),
+                HashAlgorithmName.SHA256,
+                CertificateRequestLoadOptions.Default);
+            bool useCsrPublicKey = curve.Oid.Value == ECCurve.NamedCurves.nistP256.Oid.Value &&
+                mode != CertificateFixtureMode.MismatchedPublicKey;
+            using ECDsa? alternativeKey = useCsrPublicKey ? null : ECDsa.Create(curve);
+            CertificateRequest? alternativeRequest = alternativeKey is null
+                ? null
+                : new CertificateRequest(
+                    "CN=DB-Notifier Unit Test Alternative",
+                    alternativeKey,
+                    HashAlgorithmName.SHA256);
             CertificateRequest certificateRequest = new(
-                "CN=DB-Notifier Unit Test Agent",
-                certificateKey,
+                new X500DistinguishedName("CN=DB-Notifier Unit Test Agent"),
+                useCsrPublicKey ? parsedRequest.PublicKey : alternativeRequest!.PublicKey,
                 HashAlgorithmName.SHA256);
             certificateRequest.CertificateExtensions.Add(
                 new X509BasicConstraintsExtension(false, false, 0, true));
@@ -569,9 +610,23 @@ public sealed class AgentFleetServiceTests
             certificateRequest.CertificateExtensions.Add(
                 new X509EnhancedKeyUsageExtension(enhancedUsages, false));
 
-            using X509Certificate2 issuedCertificate = certificateRequest.CreateSelfSigned(
+            using ECDsa rootKey = ECDsa.Create(ECCurve.NamedCurves.nistP256);
+            CertificateRequest rootRequest = new(
+                "CN=DB-Notifier Unit Test Root",
+                rootKey,
+                HashAlgorithmName.SHA256);
+            rootRequest.CertificateExtensions.Add(new X509BasicConstraintsExtension(true, false, 0, true));
+            rootRequest.CertificateExtensions.Add(new X509KeyUsageExtension(
+                X509KeyUsageFlags.KeyCertSign | X509KeyUsageFlags.CrlSign,
+                true));
+            using X509Certificate2 rootCertificate = rootRequest.CreateSelfSigned(
+                issuedAt.AddMinutes(-2),
+                issuedAt.AddHours(2));
+            using X509Certificate2 issuedCertificate = certificateRequest.Create(
+                rootCertificate,
                 issuedAt.AddMinutes(-1),
-                issuedAt.AddHours(1));
+                issuedAt.AddHours(1),
+                RandomNumberGenerator.GetBytes(16));
             byte[] certificateDer = issuedCertificate.Export(X509ContentType.Cert);
             using X509Certificate2 publicCertificate = X509CertificateLoader.LoadCertificate(certificateDer);
             using ECDsa publicKey = publicCertificate.GetECDsaPublicKey()

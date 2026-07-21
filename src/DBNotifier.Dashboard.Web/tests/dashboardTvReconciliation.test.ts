@@ -59,7 +59,7 @@ test("HTTP reader accepts one bounded snapshot and sends its ETag on reconciliat
     requests.push(init ?? {});
     return new Response(JSON.stringify(snapshotBody), {
       status: 200,
-      headers: { ETag: entityTag, "DBN-Snapshot-Schema": "dashboard-tv.v1" },
+      headers: { ETag: entityTag, "DBN-Snapshot-Schema": "dashboard-tv.v1", "Content-Type": "application/json; charset=utf-8" },
     });
   });
 
@@ -78,7 +78,7 @@ test("HTTP reader preserves the browser-global receiver for a captured Fetch ope
     observedReceiver = this;
     return new Response(JSON.stringify(snapshotBody), {
       status: 200,
-      headers: { ETag: entityTag, "DBN-Snapshot-Schema": "dashboard-tv.v1" },
+      headers: { ETag: entityTag, "DBN-Snapshot-Schema": "dashboard-tv.v1", "Content-Type": "application/json" },
     });
   };
   const reader = new DashboardTvHttpSnapshotReader(receiverAwareFetch as typeof fetch);
@@ -92,7 +92,7 @@ test("HTTP reader rejects unknown fields, future evidence and weak ETags", async
   const incompatible = { ...snapshotBody, unexpected: true };
   const reader = new DashboardTvHttpSnapshotReader(async () => new Response(JSON.stringify(incompatible), {
     status: 200,
-    headers: { ETag: `W/${entityTag}`, "DBN-Snapshot-Schema": "dashboard-tv.v1" },
+    headers: { ETag: `W/${entityTag}`, "DBN-Snapshot-Schema": "dashboard-tv.v1", "Content-Type": "application/json" },
   }));
 
   await assert.rejects(
@@ -115,9 +115,43 @@ test("HTTP reader classifies denied, incompatible and oversized responses withou
     headers: {
       ETag: entityTag,
       "DBN-Snapshot-Schema": "dashboard-tv.v1",
+      "Content-Type": "application/json",
       "Content-Length": String(512 * 1024 + 1),
     },
   }));
+  await assert.rejects(
+    oversized.read(undefined, new AbortController().signal),
+    (error: unknown) => error instanceof DashboardTvReadError && error.state === "incompatible",
+  );
+});
+
+test("HTTP reader accepts exactly N streamed bytes and refuses N plus one without Content-Length", async () => {
+  const encoded = new TextEncoder().encode(JSON.stringify(snapshotBody));
+  const exactBody = new Uint8Array(512 * 1024);
+  exactBody.set(encoded);
+  exactBody.fill(0x20, encoded.length);
+  const createResponse = (body: Uint8Array) => new Response(new ReadableStream<Uint8Array>({
+    start(controller) {
+      controller.enqueue(body.subarray(0, 17));
+      controller.enqueue(body.subarray(17));
+      controller.close();
+    },
+  }), {
+    status: 200,
+    headers: {
+      ETag: entityTag,
+      "DBN-Snapshot-Schema": "dashboard-tv.v1",
+      "Content-Type": "application/json",
+    },
+  });
+
+  const exact = new DashboardTvHttpSnapshotReader(async () => createResponse(exactBody));
+  assert.equal((await exact.read(undefined, new AbortController().signal)).disposition, "modified");
+
+  const oversizedBody = new Uint8Array(exactBody.length + 1);
+  oversizedBody.set(exactBody);
+  oversizedBody[oversizedBody.length - 1] = 0x20;
+  const oversized = new DashboardTvHttpSnapshotReader(async () => createResponse(oversizedBody));
   await assert.rejects(
     oversized.read(undefined, new AbortController().signal),
     (error: unknown) => error instanceof DashboardTvReadError && error.state === "incompatible",
