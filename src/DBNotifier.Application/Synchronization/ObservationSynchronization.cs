@@ -197,8 +197,6 @@ public sealed class ObservationBatchIngestor(
     IObservationIngestionStore store,
     TimeProvider timeProvider)
 {
-    private static readonly TimeSpan MaximumFutureObservationSkew = TimeSpan.FromMinutes(5);
-
     /// <summary>
     /// Validates and ingests one ordered, bounded observation batch without normalising untrusted evidence timestamps.
     /// </summary>
@@ -268,7 +266,7 @@ public sealed class ObservationBatchIngestor(
         }
 
         if (message.ObservedAt.Offset == TimeSpan.Zero &&
-            message.ObservedAt - receivedAt > MaximumFutureObservationSkew)
+            message.ObservedAt - receivedAt > AgentFleet.AgentFleetProtocol.MaximumFutureClockSkew)
         {
             return "observation.observed_at_future";
         }

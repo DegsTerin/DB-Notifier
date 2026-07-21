@@ -251,13 +251,18 @@ public sealed class ServerObservationIngestionStore(
             PayloadHash = ComputePayloadHash(message),
         };
 
-    /// <summary>Derives one canonical event and bounded pending channel records from reconciled state change.</summary>
+    /// <summary>
+    /// Derives one canonical event and only those pending deliveries whose active rule, channel, environment and
+    /// instance scope are all proven by an explicit durable binding.
+    /// </summary>
     private static void AddEventAndAlertDeliveries(
         ServerDbContext context,
         HealthSampleRow sample,
         CanonicalEventCandidate candidate,
-        IReadOnlyList<AlertRuleRow> rules,
-        IReadOnlyList<Guid> channelIds)
+        string instanceEnvironment,
+        Dictionary<Guid, AlertRuleRow> rules,
+        IReadOnlyList<AlertRuleChannelBindingRow> bindings,
+        HashSet<Guid> enabledChannelIds)
     {
         Guid eventId = Guid.NewGuid();
         EventRecordRow eventRow = new()
@@ -304,16 +309,18 @@ public sealed class ServerObservationIngestionStore(
             AttemptCount = 0,
         });
 
-        if (!rules.Any(rule => Matches(rule, candidate.EventType, sample.InstanceId)))
-        {
-            return;
-        }
-
-        context.NotificationDeliveries.AddRange(channelIds.Select(channelId => new NotificationDeliveryRow
+        IEnumerable<AlertRuleChannelBindingRow> provenBindings = bindings.Where(binding =>
+            string.Equals(binding.Environment, instanceEnvironment, StringComparison.Ordinal) &&
+            enabledChannelIds.Contains(binding.NotificationChannelId) &&
+            rules.TryGetValue(binding.AlertRuleId, out AlertRuleRow? rule) &&
+            AlertRoutingPolicy.Matches(rule, candidate.EventType, sample.InstanceId));
+        context.NotificationDeliveries.AddRange(provenBindings.Select(binding => new NotificationDeliveryRow
         {
             NotificationDeliveryId = Guid.NewGuid(),
-            NotificationChannelId = channelId,
+            NotificationChannelId = binding.NotificationChannelId,
             EventId = eventId,
+            AlertRuleChannelBindingId = binding.AlertRuleChannelBindingId,
+            IdempotencyKey = DeliveryIdempotencyKey(eventId, binding.AlertRuleChannelBindingId),
             State = "Pending",
             AttemptCount = 0,
             CreatedAt = sample.ReceivedAt,
@@ -375,17 +382,23 @@ public sealed class ServerObservationIngestionStore(
         CancellationToken cancellationToken)
     {
         Dictionary<Guid, InstanceObservationStateRow> states = [];
-        AlertRuleRow[] rules = await context.AlertRules
+        Dictionary<Guid, AlertRuleRow> rules = await context.AlertRules
             .AsNoTracking()
             .Where(row => row.Enabled && row.ArchivedAt == null && row.RuleType == "CanonicalEvent")
+            .ToDictionaryAsync(row => row.AlertRuleId, cancellationToken)
+            .ConfigureAwait(false);
+        AlertRuleChannelBindingRow[] bindings = await context.AlertRuleChannelBindings
+            .AsNoTracking()
+            .Where(row => row.Enabled)
             .ToArrayAsync(cancellationToken)
             .ConfigureAwait(false);
-        Guid[] channelIds = await context.NotificationChannels
+        HashSet<Guid> enabledChannelIds = (await context.NotificationChannels
             .AsNoTracking()
             .Where(row => row.Enabled)
             .Select(row => row.NotificationChannelId)
             .ToArrayAsync(cancellationToken)
-            .ConfigureAwait(false);
+            .ConfigureAwait(false))
+            .ToHashSet();
 
         for (int batch = 0; batch < MaximumReconciliationBatches; batch++)
         {
@@ -417,18 +430,16 @@ public sealed class ServerObservationIngestionStore(
                 .Select(row => row.InstanceId)
                 .Distinct()
                 .ToArray();
-            HashSet<Guid> currentlyOwnedInstanceIds = (await context.Instances
+            Dictionary<Guid, string> currentlyOwnedInstances = await context.Instances
                 .AsNoTracking()
                 .Where(row =>
                     batchInstanceIds.Contains(row.InstanceId) &&
                     row.AssignedAgentId == cursor.AgentId &&
                     row.Enabled &&
                     row.ArchivedAt == null)
-                .Select(row => row.InstanceId)
-                .ToArrayAsync(cancellationToken)
-                .ConfigureAwait(false))
-                .ToHashSet();
-            Guid[] unknownInstanceIds = currentlyOwnedInstanceIds
+                .ToDictionaryAsync(row => row.InstanceId, row => row.Environment, cancellationToken)
+                .ConfigureAwait(false);
+            Guid[] unknownInstanceIds = currentlyOwnedInstances.Keys
                 .Where(instanceId => !states.ContainsKey(instanceId))
                 .ToArray();
             InstanceObservationStateRow[] loadedStates = await context.InstanceObservationStates
@@ -442,7 +453,7 @@ public sealed class ServerObservationIngestionStore(
 
             foreach (HealthSampleRow sample in contiguous)
             {
-                if (!currentlyOwnedInstanceIds.Contains(sample.InstanceId))
+                if (!currentlyOwnedInstances.TryGetValue(sample.InstanceId, out string? instanceEnvironment))
                 {
                     // Retain sequence continuity without allowing a former owner to mutate the
                     // current instance state or derive events after reassignment or archival.
@@ -458,7 +469,14 @@ public sealed class ServerObservationIngestionStore(
                 CanonicalEventCandidate? candidate = ObservationEventDeriver.Derive(previous, current);
                 if (candidate is not null)
                 {
-                    AddEventAndAlertDeliveries(context, sample, candidate, rules, channelIds);
+                    AddEventAndAlertDeliveries(
+                        context,
+                        sample,
+                        candidate,
+                        instanceEnvironment,
+                        rules,
+                        bindings,
+                        enabledChannelIds);
                 }
 
                 if (state is null)
@@ -527,36 +545,9 @@ public sealed class ServerObservationIngestionStore(
         return Convert.ToHexString(SHA256.HashData(payload));
     }
 
-    private static bool Matches(AlertRuleRow rule, string eventType, Guid instanceId)
-    {
-        try
-        {
-            using JsonDocument configuration = JsonDocument.Parse(rule.ConfigurationJson);
-            if (!configuration.RootElement.TryGetProperty("eventTypes", out JsonElement eventTypes) ||
-                eventTypes.ValueKind != JsonValueKind.Array ||
-                !eventTypes.EnumerateArray().Any(item => item.ValueKind == JsonValueKind.String &&
-                    string.Equals(item.GetString(), eventType, StringComparison.Ordinal)))
-            {
-                return false;
-            }
-
-            if (string.IsNullOrWhiteSpace(rule.InstanceScopeJson))
-            {
-                return true;
-            }
-
-            using JsonDocument scope = JsonDocument.Parse(rule.InstanceScopeJson);
-            return scope.RootElement.TryGetProperty("instanceIds", out JsonElement instanceIds) &&
-                instanceIds.ValueKind == JsonValueKind.Array &&
-                instanceIds.EnumerateArray().Any(item =>
-                    item.ValueKind == JsonValueKind.String && Guid.TryParse(item.GetString(), out Guid value) &&
-                    value == instanceId);
-        }
-        catch (JsonException)
-        {
-            return false;
-        }
-    }
+    /// <summary>Builds the bounded deterministic idempotency identity for one event and proven binding.</summary>
+    private static string DeliveryIdempotencyKey(Guid eventId, Guid bindingId) =>
+        $"notification:{eventId:N}:{bindingId:N}";
 
     private static ObservationItemResult Rejected(Guid messageId, string errorCode) =>
         new(messageId, ObservationIngestionDisposition.Rejected, errorCode);

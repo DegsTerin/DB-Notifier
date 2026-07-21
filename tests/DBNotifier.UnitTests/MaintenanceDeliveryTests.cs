@@ -178,14 +178,46 @@ public sealed class MaintenanceDeliveryTests
         DbContextOptions<ServerDbContext> options = new DbContextOptionsBuilder<ServerDbContext>()
             .UseSqlite(connection)
             .Options;
-        EventRecordRow eventRow = Event(null, null, null);
+        Guid agentId = Guid.NewGuid();
+        Guid instanceId = Guid.NewGuid();
+        Guid ruleId = Guid.NewGuid();
+        Guid bindingId = Guid.NewGuid();
+        EventRecordRow eventRow = Event(null, instanceId, agentId);
         NotificationChannelRow channel = Channel();
-        NotificationDeliveryRow delivery = Delivery(channel.NotificationChannelId, eventRow.EventId, null);
+        NotificationDeliveryRow delivery = Delivery(
+            channel.NotificationChannelId,
+            eventRow.EventId,
+            null,
+            bindingId);
         await using (ServerDbContext setup = new(options))
         {
             await setup.Database.EnsureCreatedAsync();
+            setup.Agents.Add(Agent(agentId));
+            setup.Instances.Add(Instance(instanceId, agentId));
             setup.Events.Add(eventRow);
             setup.NotificationChannels.Add(channel);
+            setup.AlertRules.Add(new AlertRuleRow
+            {
+                AlertRuleId = ruleId,
+                Name = "Fixture rule",
+                RuleType = "CanonicalEvent",
+                ConfigurationJson = "{\"eventTypes\":[\"Fixture\"]}",
+                Enabled = true,
+                CreatedAt = Now,
+                UpdatedAt = Now,
+                ConcurrencyToken = Guid.NewGuid(),
+            });
+            setup.AlertRuleChannelBindings.Add(new AlertRuleChannelBindingRow
+            {
+                AlertRuleChannelBindingId = bindingId,
+                AlertRuleId = ruleId,
+                NotificationChannelId = channel.NotificationChannelId,
+                Environment = "test",
+                Enabled = true,
+                CreatedAt = Now,
+                UpdatedAt = Now,
+                ConcurrencyToken = Guid.NewGuid(),
+            });
             setup.NotificationDeliveries.Add(delivery);
             await setup.SaveChangesAsync();
         }
@@ -346,11 +378,16 @@ public sealed class MaintenanceDeliveryTests
     private static NotificationDeliveryRow Delivery(
         Guid channelId,
         Guid eventId,
-        DateTimeOffset? deliveredAt) => new()
+        DateTimeOffset? deliveredAt,
+        Guid? bindingId = null) => new()
         {
             NotificationDeliveryId = Guid.NewGuid(),
             NotificationChannelId = channelId,
             EventId = eventId,
+            AlertRuleChannelBindingId = bindingId,
+            IdempotencyKey = bindingId is Guid provenBindingId
+                ? $"notification:{eventId:N}:{provenBindingId:N}"
+                : null,
             State = deliveredAt is null ? "Pending" : "Delivered",
             AttemptCount = deliveredAt is null ? 0 : 1,
             CreatedAt = deliveredAt ?? Now,

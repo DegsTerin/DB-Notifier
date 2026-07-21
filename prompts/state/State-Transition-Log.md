@@ -2378,6 +2378,22 @@
 - Próxima decisão: Bruno poderá solicitar separadamente a proposta de autorização do R4; isso não autoriza sua implementação.
 - Aprovador: Bruno, 2026-07-20, exclusivamente para o R3 com a ressalva registrada.
 
+## 2026-07-21 — Implementação local do lote de remediação `R4-A`
+
+- Estado anterior: `STATE-06 INTEGRATION`, R0 aceito, R1/R2-A/R3 aceitos com a ressalva global preexistente, R4-A autorizado exclusivamente sobre a baseline `5bb43974572290734e66e787f152b903d9a1e1cb` e decisão humana do novo lote ainda inexistente.
+- Estado resultante: sem transição; `STATE-06 INTEGRATION` mantido. R4-A está implementado e `APROVADO` automaticamente no escopo local autorizado; aceitação humana permanece `PENDENTE`. `AUD-H07` continua contido e aberto.
+- Autorização: Bruno autorizou somente `AUD-H06`, `AUD-M06`, `AUD-M08` e preservação de `AUD-H07`, com source/tests/docs, fixtures/processos sintéticos, SQLite efêmero, SQL PostgreSQL apenas gerado/inspecionado e commit focado. PostgreSQL/serviço/canal real, migration operacional, delivery, claim/lease/fence, nova dependência, acesso externo, R4-B, R5–R8, R7-A0/O1, comandos/modos/transições permaneceram proibidos.
+- Baseline e preflight: branch `main`, commit `5bb43974572290734e66e787f152b903d9a1e1cb`; as alterações R4-A preexistentes no worktree foram preservadas, auditadas e corrigidas. Zero processo, listener ou janela atribuível ao DB-Notifier foi encontrado antes da ação.
+- Roteamento: binding explícito regra/canal/ambiente com escopo de instância fail-closed; proveniência/idempotência evento-binding; FK composta impede canal divergente; pendência histórica sem prova é `Quarantined` sem inferência/envio/exclusão; downgrade recusa perda de evidência.
+- Readiness: `/health/live` permanece process-only; `/health/ready` valida shape PostgreSQL não secreto, Npgsql, conectividade e migrations exatas sob cinco segundos, inclusive fronteira não cooperativa, e expõe somente status/código sanitizado.
+- Deadline/processo: deadline começa antes de assignments e limita fonte não cooperativa; future skew usa uma constante canónica e não suspende probe; timeout/cancelamento encerram e observam a árvore sintética pai/filho antes de retornar.
+- Delivery: configuração é validada antes de Kestrel; publisher normal continua indisponível e nenhum adapter normal existe. Claim/lease/fence/reclaim/idempotência no adapter/concorrência PostgreSQL não foram implementados; `AUD-H07` e R4-B permanecem abertos.
+- Schema: uma migration Server mínima foi gerada com `dotnet-ef 10.0.9` cache-only; SQLite efêmero validou o modelo final; SQL PostgreSQL forward/reverse foi gerado e inspecionado sem conexão ou aplicação; zero model drift.
+- Gates: build Release 18 projetos sem aviso/erro; 121 testes focados, 370/370 unitários, 2/2 arquitetura R4-A e 39/39 arquitetura exceto a contradição R0 passaram; cobertura 81,46%/52,76% com 10/10 componentes; EF, format, documentação, links e secrets passaram. O agregado manteve a falha R0 preexistente e 15 testes HTTPS sandbox não relacionados ficaram ambientalmente bloqueados pela identidade gerenciada sem credenciais Schannel; nenhuma correção fora do escopo foi feita. O shutdown final deixou zero runtime/listener do projeto; o único `dotnet` remanescente foi comprovado como build host da extensão C# da IDE e preservado.
+- Evidência: [relatório factual R4-A](../../docs/STATE-06-Audit-Remediation-R4A-Report.md), [modelo lógico](../../docs/data/Logical-Model.md) e [plano de remediação](../../docs/STATE-06-Complete-Project-Audit-Remediation-Plan.md).
+- Próxima decisão: Bruno deverá revisar o relatório e o commit focado e decidir separadamente se aceita R4-A. Aceitação não autorizará R4-B, delivery, PostgreSQL real, R5, AIOps ou transição.
+- Aprovador: decisão humana ainda pendente; nenhum aceite foi inferido da autorização de implementação.
+
 ## Template de nova entrada
 
 - Data:

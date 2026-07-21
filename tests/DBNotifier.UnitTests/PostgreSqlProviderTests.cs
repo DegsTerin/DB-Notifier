@@ -1,4 +1,6 @@
 // Module purpose: Verifies PostgreSQL provider boundaries and protects the documented project contract.
+using System.Diagnostics;
+using System.Globalization;
 using DBNotifier.Application.Security;
 using DBNotifier.Domain;
 using DBNotifier.Provider.Abstractions;
@@ -285,6 +287,83 @@ public sealed class PostgreSqlProviderTests
 
         Assert.Equal(PostgreSqlReadinessState.InvalidConfiguration, result.State);
         Assert.Equal(0, transport.CallCount);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task TimeoutAndCancellationTerminateSyntheticReadinessProcessTree(bool callerCancels)
+    {
+        string systemDirectory = Environment.GetFolderPath(Environment.SpecialFolder.System);
+        string powershell = Path.Combine(systemDirectory, "WindowsPowerShell", "v1.0", "powershell.exe");
+        string ping = Path.Combine(systemDirectory, "ping.exe");
+        Assert.True(File.Exists(powershell));
+        Assert.True(File.Exists(ping));
+        ProcessStartInfo startInfo = new()
+        {
+            FileName = powershell,
+            UseShellExecute = false,
+            CreateNoWindow = true,
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+        };
+        startInfo.ArgumentList.Add("-NoProfile");
+        startInfo.ArgumentList.Add("-NonInteractive");
+        startInfo.ArgumentList.Add("-Command");
+        startInfo.ArgumentList.Add(
+            $"$child=Start-Process -FilePath '{ping}' -ArgumentList '127.0.0.1','-t' -PassThru; " +
+            "[Console]::Out.WriteLine($child.Id); [Console]::Out.Flush(); Wait-Process -Id $child.Id");
+        using Process root = Process.Start(startInfo)!;
+        Process? child = null;
+        try
+        {
+            string? childLine = await root.StandardOutput.ReadLineAsync().WaitAsync(TimeSpan.FromSeconds(5));
+            Assert.True(int.TryParse(childLine, NumberStyles.None, CultureInfo.InvariantCulture, out int childId));
+            child = Process.GetProcessById(childId);
+
+            using CancellationTokenSource caller = new();
+            if (callerCancels)
+            {
+                caller.Cancel();
+                await Assert.ThrowsAnyAsync<OperationCanceledException>(async () =>
+                    await PostgreSqlReadinessExecutor.WaitForExitOrTerminateAsync(
+                        root,
+                        TimeSpan.FromSeconds(5),
+                        caller.Token));
+            }
+            else
+            {
+                bool timedOut = await PostgreSqlReadinessExecutor.WaitForExitOrTerminateAsync(
+                    root,
+                    TimeSpan.FromMilliseconds(50),
+                    caller.Token);
+                Assert.True(timedOut);
+            }
+
+            using CancellationTokenSource exitDeadline = new(TimeSpan.FromSeconds(5));
+            await child.WaitForExitAsync(exitDeadline.Token);
+            Assert.True(root.HasExited);
+            Assert.True(child.HasExited);
+        }
+        finally
+        {
+            if (!root.HasExited)
+            {
+                root.Kill(entireProcessTree: true);
+                await root.WaitForExitAsync();
+            }
+
+            if (child is not null)
+            {
+                if (!child.HasExited)
+                {
+                    child.Kill();
+                    await child.WaitForExitAsync();
+                }
+
+                child.Dispose();
+            }
+        }
     }
 
     [Theory]

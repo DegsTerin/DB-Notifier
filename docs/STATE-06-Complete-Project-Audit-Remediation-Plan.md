@@ -316,6 +316,16 @@ Claim/lease só pode ser considerado provado com concorrência real no provider 
 
 Delivery permanece desligado. Leases expiram sem confirmar side effect ambíguo. Bindings e quarentena não são removidos para restaurar fanout global.
 
+**Execution record for R4-A (2026-07-21):** the authorised local-only first half is implemented on baseline
+`5bb43974572290734e66e787f152b903d9a1e1cb`. It adds exact rule/channel/environment binding, durable
+event-and-binding provenance and idempotency, fail-closed rule instance scope, and conservative quarantine of every
+historical unproven pending delivery. It separates process liveness from bounded sanitised configuration/PostgreSQL/
+schema readiness, starts the monitoring deadline before assignment retrieval, bounds future observation skew and
+confirms synthetic `pg_isready` process-tree exit after timeout or cancellation. External delivery remains disabled
+and startup-refused. `AUD-H06`, `AUD-M06` and `AUD-M08` are addressed in the bounded automatic scope; `AUD-H07`
+remains contained and explicitly open. Claim, lease, fence, reclaim, PostgreSQL concurrency evidence and all external
+channels remain exclusively R4-B and unauthorised. Evidence: [STATE-06 Audit Remediation R4-A Report](STATE-06-Audit-Remediation-R4A-Report.md).
+
 ## R5 — Migração, vault, packages, supply chain, packaging e legado
 
 ### Objetivo

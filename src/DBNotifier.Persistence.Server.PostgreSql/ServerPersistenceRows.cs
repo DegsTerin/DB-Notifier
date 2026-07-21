@@ -247,16 +247,74 @@ public sealed class NotificationChannelRow
     public Guid ConcurrencyToken { get; set; }
 }
 
+/// <summary>
+/// Persists the explicit provider-neutral route from one alert rule to one notification channel for one
+/// deployment environment. Instance scope remains owned by the referenced rule.
+/// </summary>
+public sealed class AlertRuleChannelBindingRow
+{
+    /// <summary>Gets or sets the durable binding identifier used as delivery provenance.</summary>
+    public Guid AlertRuleChannelBindingId { get; set; }
+
+    /// <summary>Gets or sets the alert rule selected by this route.</summary>
+    public Guid AlertRuleId { get; set; }
+
+    /// <summary>Gets or sets the notification channel selected by this route.</summary>
+    public Guid NotificationChannelId { get; set; }
+
+    /// <summary>Gets or sets the exact instance environment admitted by this route.</summary>
+    public required string Environment { get; set; }
+
+    /// <summary>Gets or sets whether the route may create a pending delivery.</summary>
+    public bool Enabled { get; set; }
+
+    /// <summary>Gets or sets the UTC creation instant.</summary>
+    public DateTimeOffset CreatedAt { get; set; }
+
+    /// <summary>Gets or sets the UTC update instant.</summary>
+    public DateTimeOffset UpdatedAt { get; set; }
+
+    /// <summary>Gets or sets the optimistic concurrency token.</summary>
+    public Guid ConcurrencyToken { get; set; }
+}
+
+/// <summary>
+/// Persists one notification delivery with exact event-and-binding provenance. Historical deliveries without
+/// provable provenance remain retained in the quarantined state and cannot become pending.
+/// </summary>
 public sealed class NotificationDeliveryRow
 {
+    /// <summary>Gets or sets the delivery identifier.</summary>
     public Guid NotificationDeliveryId { get; set; }
+
+    /// <summary>Gets or sets the channel copied from the proven binding.</summary>
     public Guid NotificationChannelId { get; set; }
+
+    /// <summary>Gets or sets the canonical event that triggered this delivery.</summary>
     public Guid EventId { get; set; }
+
+    /// <summary>Gets or sets the proven binding, or null only for retained historical rows.</summary>
+    public Guid? AlertRuleChannelBindingId { get; set; }
+
+    /// <summary>Gets or sets the deterministic event-and-binding idempotency key.</summary>
+    public string? IdempotencyKey { get; set; }
+
+    /// <summary>Gets or sets the durable delivery state.</summary>
     public required string State { get; set; }
+
+    /// <summary>Gets or sets the bounded delivery attempt count.</summary>
     public int AttemptCount { get; set; }
+
+    /// <summary>Gets or sets the UTC creation instant.</summary>
     public DateTimeOffset CreatedAt { get; set; }
+
+    /// <summary>Gets or sets the most recent UTC attempt instant.</summary>
     public DateTimeOffset? LastAttemptAt { get; set; }
+
+    /// <summary>Gets or sets the confirmed UTC delivery instant.</summary>
     public DateTimeOffset? DeliveredAt { get; set; }
+
+    /// <summary>Gets or sets a stable non-secret error or quarantine reason code.</summary>
     public string? ErrorCode { get; set; }
 }
 

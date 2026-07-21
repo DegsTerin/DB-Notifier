@@ -52,15 +52,8 @@ public sealed class PostgreSqlReadinessExecutor(
                 return await ProbeTransportAsync(endpoint, timeout, stopwatch, cancellationToken).ConfigureAwait(false);
             }
 
-            using CancellationTokenSource deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-            deadline.CancelAfter(timeout);
-            try
+            if (await WaitForExitOrTerminateAsync(process, timeout, cancellationToken).ConfigureAwait(false))
             {
-                await process.WaitForExitAsync(deadline.Token).ConfigureAwait(false);
-            }
-            catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
-            {
-                TryKill(process);
                 return new PostgreSqlReadinessResult(PostgreSqlReadinessState.TimedOut, "pg_isready", stopwatch.Elapsed);
             }
 
@@ -132,15 +125,71 @@ public sealed class PostgreSqlReadinessExecutor(
         }, "tcp", stopwatch.Elapsed);
     }
 
-    private static void TryKill(Process process)
+    /// <summary>Kills the complete synthetic or provider utility tree and waits independently for confirmed exit.</summary>
+    /// <param name="process">Started process whose complete tree is owned by the current readiness attempt.</param>
+    /// <returns><see langword="true"/> only when the root process exit is confirmed within the cleanup bound.</returns>
+    internal static async ValueTask<bool> TerminateProcessTreeAsync(Process process)
     {
+        ArgumentNullException.ThrowIfNull(process);
         try
         {
-            process.Kill(entireProcessTree: true);
+            if (!process.HasExited)
+            {
+                process.Kill(entireProcessTree: true);
+            }
         }
         catch (Exception exception) when (exception is InvalidOperationException or Win32Exception or NotSupportedException)
         {
             // The process exited between timeout observation and termination.
+        }
+
+        using CancellationTokenSource cleanupDeadline = new(TimeSpan.FromSeconds(5));
+        try
+        {
+            await process.WaitForExitAsync(cleanupDeadline.Token).ConfigureAwait(false);
+            return process.HasExited;
+        }
+        catch (OperationCanceledException) when (cleanupDeadline.IsCancellationRequested)
+        {
+            return process.HasExited;
+        }
+        catch (InvalidOperationException)
+        {
+            return process.HasExited;
+        }
+    }
+
+    /// <summary>Waits for normal exit or performs bounded tree termination on timeout or caller cancellation.</summary>
+    /// <param name="process">Started process owned by the current readiness attempt.</param>
+    /// <param name="timeout">Positive readiness deadline.</param>
+    /// <param name="cancellationToken">Caller cancellation propagated only after tree exit is confirmed.</param>
+    /// <returns><see langword="true"/> when the process timed out; otherwise <see langword="false"/>.</returns>
+    /// <exception cref="InvalidOperationException">Thrown when process-tree termination cannot be confirmed.</exception>
+    /// <exception cref="OperationCanceledException">Thrown after confirmed cleanup when the caller cancels.</exception>
+    internal static async ValueTask<bool> WaitForExitOrTerminateAsync(
+        Process process,
+        TimeSpan timeout,
+        CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(process);
+        ArgumentOutOfRangeException.ThrowIfLessThanOrEqual(timeout, TimeSpan.Zero);
+        using CancellationTokenSource deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        deadline.CancelAfter(timeout);
+        try
+        {
+            await process.WaitForExitAsync(deadline.Token).ConfigureAwait(false);
+            return false;
+        }
+        catch (OperationCanceledException)
+        {
+            bool terminated = await TerminateProcessTreeAsync(process).ConfigureAwait(false);
+            if (!terminated)
+            {
+                throw new InvalidOperationException("postgresql.pg_isready_termination_unconfirmed");
+            }
+
+            cancellationToken.ThrowIfCancellationRequested();
+            return true;
         }
     }
 }

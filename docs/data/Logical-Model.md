@@ -59,8 +59,8 @@ agent_enrollment_tokens >── agents ──< agent_certificates
                                           ├─< maintenance_windows
                                           └─< administrative_commands ──< command_attempts
 
-alert_rules
-notification_channels ──< notification_deliveries >── events
+alert_rules ──< alert_rule_channel_bindings >── notification_channels
+                         └─< notification_deliveries >── events
 
 users ──< role_assignments >── roles ──< role_permissions >── permissions
 audit_entries
@@ -92,7 +92,12 @@ Agent process health and instance health are separate rows/semantics.
 
 - `alert_rules`: versioned mutable definition using non-secret `jsonb` scope/config and archival time.
 - `notification_channels`: non-secret config JSON plus optional opaque credential reference.
-- `notification_deliveries`: unique channel/event delivery, attempt count, terminal state, and safe error code.
+- `alert_rule_channel_bindings`: explicit provider-neutral route from one rule to one channel for one exact
+  environment. Instance scope remains in the referenced rule. Disabled, cross-environment or out-of-scope bindings
+  cannot create pending work.
+- `notification_deliveries`: event-and-binding provenance, deterministic idempotency key, copied channel, attempt
+  count, state and safe error code. A `Pending` row requires both binding provenance and idempotency identity.
+  Historical pending rows without proof are retained as `Quarantined`; no channel is inferred and no row is deleted.
 
 ### Administrative commands
 
@@ -122,6 +127,9 @@ Stores durable integration events inside the same transaction as state changes. 
 - Optimistic concurrency is explicit on mutable configuration/aggregate rows.
 - Append-only tables do not expose soft delete.
 - Migrations are provider-specific and never run against a monitored database.
+- External Server outbox and notification delivery remain disabled and startup-refused until a separately authorised
+  PostgreSQL claim/lease/fence/reclaim implementation proves concurrent ownership. R4-A binding provenance does not
+  satisfy that future gate.
 - Agent Fleet assignment persistence is configuration evidence only; it does not activate a provider, probe, scheduler or command path.
 - Agent Fleet leases coordinate only temporary local sandbox processes. They are not a distributed lock, service lease or authority to enable the ordinary Worker.
 - A corrupt, future or incomplete Agent SQLite schema is refused by the sandbox guard without repair or silent recreation.

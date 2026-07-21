@@ -173,9 +173,30 @@ public sealed class ServerMaintenanceStore(
         int candidateLimit = maximumCount * 4;
         NotificationDeliveryRow[] deliveryCandidates = await context.NotificationDeliveries
             .FromSqlInterpolated($$"""
-                SELECT * FROM notification_deliveries
-                WHERE state = 'Pending'
-                ORDER BY created_at, notification_delivery_id
+                SELECT delivery.*
+                FROM notification_deliveries AS delivery
+                INNER JOIN alert_rule_channel_bindings AS binding
+                    ON binding.alert_rule_channel_binding_id = delivery.alert_rule_channel_binding_id
+                    AND binding.notification_channel_id = delivery.notification_channel_id
+                    AND binding.enabled = TRUE
+                INNER JOIN alert_rules AS rule
+                    ON rule.alert_rule_id = binding.alert_rule_id
+                    AND rule.enabled = TRUE
+                    AND rule.archived_at IS NULL
+                    AND rule.rule_type = 'CanonicalEvent'
+                INNER JOIN notification_channels AS channel
+                    ON channel.notification_channel_id = delivery.notification_channel_id
+                    AND channel.enabled = TRUE
+                INNER JOIN events AS event_record
+                    ON event_record.event_id = delivery.event_id
+                INNER JOIN database_instances AS instance
+                    ON instance.instance_id = event_record.instance_id
+                    AND instance.environment = binding.environment
+                    AND instance.enabled = TRUE
+                    AND instance.archived_at IS NULL
+                WHERE delivery.state = 'Pending'
+                    AND delivery.idempotency_key IS NOT NULL
+                ORDER BY delivery.created_at, delivery.notification_delivery_id
                 LIMIT {{candidateLimit}}
                 """)
             .AsNoTracking()
@@ -193,11 +214,32 @@ public sealed class ServerMaintenanceStore(
             .Where(row => eventIds.Contains(row.EventId))
             .ToDictionaryAsync(row => row.EventId, cancellationToken)
             .ConfigureAwait(false);
+        Guid[] bindingIds = deliveryCandidates
+            .Where(row => row.AlertRuleChannelBindingId.HasValue)
+            .Select(row => row.AlertRuleChannelBindingId!.Value)
+            .Distinct()
+            .ToArray();
+        Dictionary<Guid, AlertRuleChannelBindingRow> bindings = await context.AlertRuleChannelBindings
+            .AsNoTracking()
+            .Where(row => bindingIds.Contains(row.AlertRuleChannelBindingId) && row.Enabled)
+            .ToDictionaryAsync(row => row.AlertRuleChannelBindingId, cancellationToken)
+            .ConfigureAwait(false);
+        Guid[] ruleIds = bindings.Values.Select(row => row.AlertRuleId).Distinct().ToArray();
+        Dictionary<Guid, AlertRuleRow> rules = await context.AlertRules
+            .AsNoTracking()
+            .Where(row => ruleIds.Contains(row.AlertRuleId) && row.Enabled && row.ArchivedAt == null)
+            .ToDictionaryAsync(row => row.AlertRuleId, cancellationToken)
+            .ConfigureAwait(false);
         return deliveryCandidates
             .Where(delivery => delivery.LastAttemptAt is null ||
                 delivery.LastAttemptAt.Value.Add(RetryDelay(delivery.AttemptCount)) <= now)
             .Where(delivery => channels.ContainsKey(delivery.NotificationChannelId) &&
-                events.ContainsKey(delivery.EventId))
+                events.TryGetValue(delivery.EventId, out EventRecordRow? eventRow) &&
+                delivery.AlertRuleChannelBindingId is Guid bindingId &&
+                bindings.TryGetValue(bindingId, out AlertRuleChannelBindingRow? binding) &&
+                rules.TryGetValue(binding.AlertRuleId, out AlertRuleRow? rule) &&
+                eventRow.InstanceId is Guid instanceId &&
+                AlertRoutingPolicy.Matches(rule, eventRow.EventType, instanceId))
             .Take(maximumCount)
             .Select(delivery => new NotificationEnvelope(
                 delivery.NotificationDeliveryId,

@@ -1,6 +1,7 @@
 // Module purpose: Verifies Agent Runtime Tests behaviour and protects the documented project contract.
 using System.Text.Json;
 using DBNotifier.Agent.Worker;
+using DBNotifier.Application.AgentFleet;
 using DBNotifier.Domain;
 using DBNotifier.Persistence.Agent.Sqlite;
 using Microsoft.Data.Sqlite;
@@ -72,6 +73,38 @@ public sealed class AgentRuntimeTests
         Assert.Equal(2, second.Count);
         Assert.Equal(first[0].InstanceId, second[1].InstanceId);
         Assert.Equal(first[1].InstanceId, second[0].InstanceId);
+    }
+
+    [Fact]
+    public async Task AssignmentSourceBoundsFutureObservationSkew()
+    {
+        DateTimeOffset now = new(2026, 7, 20, 18, 0, 0, TimeSpan.Zero);
+        Guid excessiveSkewId = Guid.NewGuid();
+        Guid plausibleSkewId = Guid.NewGuid();
+        await using SqliteConnection connection = new("Data Source=:memory:");
+        await connection.OpenAsync();
+        DbContextOptions<AgentDbContext> options = new DbContextOptionsBuilder<AgentDbContext>()
+            .UseSqlite(connection)
+            .Options;
+        TestContextFactory factory = new(options);
+        await using (AgentDbContext context = new(options))
+        {
+            await context.Database.MigrateAsync();
+            context.InstanceAssignments.AddRange(
+                Assignment(excessiveSkewId, "{\"host\":\"localhost\",\"port\":5432}", null),
+                Assignment(plausibleSkewId, "{\"host\":\"localhost\",\"port\":5432}", null));
+            context.HealthObservations.AddRange(
+                Observation(excessiveSkewId, now + AgentFleetProtocol.MaximumFutureClockSkew + TimeSpan.FromTicks(1)),
+                Observation(plausibleSkewId, now + AgentFleetProtocol.MaximumFutureClockSkew));
+            await context.SaveChangesAsync();
+        }
+
+        AgentMonitoringAssignmentSource source = new(factory, NullLogger<AgentMonitoringAssignmentSource>.Instance);
+        IReadOnlyList<DBNotifier.Application.Monitoring.MonitoringAssignment> due =
+            await source.GetDueAsync(now, CancellationToken.None);
+
+        DBNotifier.Application.Monitoring.MonitoringAssignment assignment = Assert.Single(due);
+        Assert.Equal(excessiveSkewId, assignment.InstanceId);
     }
 
     [Fact]

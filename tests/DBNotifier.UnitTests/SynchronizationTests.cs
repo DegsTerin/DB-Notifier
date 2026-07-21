@@ -150,6 +150,12 @@ public sealed class SynchronizationTests
             .Options;
         Guid agentId = Guid.NewGuid();
         Guid instanceId = Guid.NewGuid();
+        Guid ruleId = Guid.NewGuid();
+        Guid boundChannelId = Guid.NewGuid();
+        Guid outOfScopeRuleId = Guid.NewGuid();
+        Guid outOfScopeChannelId = Guid.NewGuid();
+        Guid wrongEnvironmentChannelId = Guid.NewGuid();
+        Guid unboundChannelId = Guid.NewGuid();
         await using (ServerDbContext setup = new(options))
         {
             await setup.Database.EnsureCreatedAsync();
@@ -157,8 +163,9 @@ public sealed class SynchronizationTests
             setup.Instances.Add(Instance(instanceId, agentId));
             setup.AlertRules.Add(new AlertRuleRow
             {
-                AlertRuleId = Guid.NewGuid(),
+                AlertRuleId = ruleId,
                 Name = "Connectivity events",
+                InstanceScopeJson = $"{{\"instanceIds\":[\"{instanceId:D}\"]}}",
                 RuleType = "CanonicalEvent",
                 ConfigurationJson = "{\"eventTypes\":[\"Connected\",\"Timeout\"]}",
                 Enabled = true,
@@ -168,10 +175,89 @@ public sealed class SynchronizationTests
             });
             setup.NotificationChannels.Add(new NotificationChannelRow
             {
-                NotificationChannelId = Guid.NewGuid(),
+                NotificationChannelId = boundChannelId,
                 Name = "Fixture channel",
                 ChannelType = "test",
                 NonSecretConfigurationJson = "{}",
+                Enabled = true,
+                CreatedAt = Now,
+                UpdatedAt = Now,
+                ConcurrencyToken = Guid.NewGuid(),
+            });
+            setup.NotificationChannels.Add(new NotificationChannelRow
+            {
+                NotificationChannelId = outOfScopeChannelId,
+                Name = "Out-of-scope fixture channel",
+                ChannelType = "test",
+                NonSecretConfigurationJson = "{}",
+                Enabled = true,
+                CreatedAt = Now,
+                UpdatedAt = Now,
+                ConcurrencyToken = Guid.NewGuid(),
+            });
+            setup.NotificationChannels.AddRange(
+                new NotificationChannelRow
+                {
+                    NotificationChannelId = wrongEnvironmentChannelId,
+                    Name = "Wrong-environment fixture channel",
+                    ChannelType = "test",
+                    NonSecretConfigurationJson = "{}",
+                    Enabled = true,
+                    CreatedAt = Now,
+                    UpdatedAt = Now,
+                    ConcurrencyToken = Guid.NewGuid(),
+                },
+                new NotificationChannelRow
+                {
+                    NotificationChannelId = unboundChannelId,
+                    Name = "Unbound fixture channel",
+                    ChannelType = "test",
+                    NonSecretConfigurationJson = "{}",
+                    Enabled = true,
+                    CreatedAt = Now,
+                    UpdatedAt = Now,
+                    ConcurrencyToken = Guid.NewGuid(),
+                });
+            setup.AlertRules.Add(new AlertRuleRow
+            {
+                AlertRuleId = outOfScopeRuleId,
+                Name = "Other instance connectivity events",
+                InstanceScopeJson = $"{{\"instanceIds\":[\"{Guid.NewGuid():D}\"]}}",
+                RuleType = "CanonicalEvent",
+                ConfigurationJson = "{\"eventTypes\":[\"Connected\",\"Timeout\"]}",
+                Enabled = true,
+                CreatedAt = Now,
+                UpdatedAt = Now,
+                ConcurrencyToken = Guid.NewGuid(),
+            });
+            setup.AlertRuleChannelBindings.Add(new AlertRuleChannelBindingRow
+            {
+                AlertRuleChannelBindingId = Guid.NewGuid(),
+                AlertRuleId = ruleId,
+                NotificationChannelId = boundChannelId,
+                Environment = "test",
+                Enabled = true,
+                CreatedAt = Now,
+                UpdatedAt = Now,
+                ConcurrencyToken = Guid.NewGuid(),
+            });
+            setup.AlertRuleChannelBindings.Add(new AlertRuleChannelBindingRow
+            {
+                AlertRuleChannelBindingId = Guid.NewGuid(),
+                AlertRuleId = ruleId,
+                NotificationChannelId = wrongEnvironmentChannelId,
+                Environment = "production",
+                Enabled = true,
+                CreatedAt = Now,
+                UpdatedAt = Now,
+                ConcurrencyToken = Guid.NewGuid(),
+            });
+            setup.AlertRuleChannelBindings.Add(new AlertRuleChannelBindingRow
+            {
+                AlertRuleChannelBindingId = Guid.NewGuid(),
+                AlertRuleId = outOfScopeRuleId,
+                NotificationChannelId = outOfScopeChannelId,
+                Environment = "test",
                 Enabled = true,
                 CreatedAt = Now,
                 UpdatedAt = Now,
@@ -205,6 +291,14 @@ public sealed class SynchronizationTests
             .ToArray();
         Assert.Equal(["Connected", "Timeout"], eventTypes);
         Assert.Equal(2, await verification.NotificationDeliveries.CountAsync());
+        Assert.All(
+            await verification.NotificationDeliveries.ToArrayAsync(),
+            delivery =>
+            {
+                Assert.Equal(boundChannelId, delivery.NotificationChannelId);
+                Assert.NotNull(delivery.AlertRuleChannelBindingId);
+                Assert.StartsWith("notification:", delivery.IdempotencyKey, StringComparison.Ordinal);
+            });
         Assert.Equal(2, await verification.OutboxMessages.CountAsync());
     }
 

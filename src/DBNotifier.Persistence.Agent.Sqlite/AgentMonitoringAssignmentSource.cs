@@ -65,10 +65,24 @@ public sealed partial class AgentMonitoringAssignmentSource(
         List<MonitoringAssignment> due = [];
         foreach (AgentInstanceAssignmentRow row in configured)
         {
-            if (latestByInstance.TryGetValue(row.InstanceId, out DateTimeOffset latest) &&
-                latest.AddSeconds(row.IntervalSeconds) > now)
+            if (latestByInstance.TryGetValue(row.InstanceId, out DateTimeOffset latest))
             {
-                continue;
+                if (latest - now > AgentFleetProtocol.MaximumFutureClockSkew)
+                {
+                    LogFutureObservationIgnored(logger, row.InstanceId);
+                }
+
+                // A future timestamp cannot suspend probes indefinitely. Plausible skew is clamped to the
+                // current instant; excessive skew is ignored and therefore makes the assignment due now.
+                DateTimeOffset effectiveLatest = latest - now > AgentFleetProtocol.MaximumFutureClockSkew
+                    ? DateTimeOffset.MinValue
+                    : latest > now
+                        ? now
+                        : latest;
+                if (effectiveLatest.AddSeconds(row.IntervalSeconds) > now)
+                {
+                    continue;
+                }
             }
 
             if (TryCreateAssignment(row, out MonitoringAssignment? assignment, out string errorCode))
@@ -236,4 +250,10 @@ public sealed partial class AgentMonitoringAssignmentSource(
         Level = LogLevel.Warning,
         Message = "Skipping invalid monitoring assignment {InstanceId}: {ErrorCode}")]
     private static partial void LogInvalidAssignment(ILogger logger, Guid instanceId, string errorCode);
+
+    [LoggerMessage(
+        EventId = 2102,
+        Level = LogLevel.Warning,
+        Message = "Ignoring observation timestamp beyond the canonical future-skew limit: instanceId={InstanceId}")]
+    private static partial void LogFutureObservationIgnored(ILogger logger, Guid instanceId);
 }

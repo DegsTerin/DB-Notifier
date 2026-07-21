@@ -46,10 +46,12 @@ public sealed record MonitoringCycleFailure(Guid InstanceId, string Code);
 /// <param name="DueCount">Number of assignments selected for the cycle.</param>
 /// <param name="PersistedCount">Number of observations durably persisted.</param>
 /// <param name="Failures">Stable failure outcomes for unsuccessful assignments.</param>
+/// <param name="CycleFailureCode">Stable source-level failure when assignments could not be read in time.</param>
 public sealed record MonitoringCycleResult(
     int DueCount,
     int PersistedCount,
-    IReadOnlyList<MonitoringCycleFailure> Failures);
+    IReadOnlyList<MonitoringCycleFailure> Failures,
+    string? CycleFailureCode = null);
 
 /// <summary>
 /// Executes due provider-neutral probes with bounded worker concurrency, a global deadline and per-assignment
@@ -87,17 +89,35 @@ public sealed class MonitoringCycleRunner(
         ArgumentOutOfRangeException.ThrowIfLessThanOrEqual(effectiveDeadline, TimeSpan.Zero);
         ArgumentOutOfRangeException.ThrowIfGreaterThan(effectiveDeadline, TimeSpan.FromMinutes(30));
 
-        IReadOnlyList<MonitoringAssignment> assignments = await assignmentSource.GetDueAsync(
-            timeProvider.GetUtcNow(),
-            cancellationToken).ConfigureAwait(false);
+        using CancellationTokenSource deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        deadline.CancelAfter(effectiveDeadline);
+        IReadOnlyList<MonitoringAssignment> assignments;
+        try
+        {
+            assignments = await assignmentSource.GetDueAsync(
+                timeProvider.GetUtcNow(),
+                deadline.Token)
+                .AsTask()
+                .WaitAsync(deadline.Token)
+                .ConfigureAwait(false);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (OperationCanceledException) when (deadline.IsCancellationRequested)
+        {
+            return new MonitoringCycleResult(
+                0,
+                0,
+                [],
+                "monitoring.assignment_source_deadline_exceeded");
+        }
 
         string?[] failureCodes = new string?[assignments.Count];
         bool[] completed = new bool[assignments.Count];
         int persistedCount = 0;
         int nextIndex = -1;
-        using CancellationTokenSource deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-        deadline.CancelAfter(effectiveDeadline);
-
         async Task RunWorkerAsync()
         {
             while (!deadline.IsCancellationRequested)

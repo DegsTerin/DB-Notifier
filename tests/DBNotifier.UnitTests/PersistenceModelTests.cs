@@ -11,6 +11,115 @@ namespace DBNotifier.UnitTests;
 public sealed class PersistenceModelTests
 {
     [Fact]
+    public async Task ServerRoutingSchemaQuarantinesUnprovenWorkOnEphemeralSqlite()
+    {
+        await using SqliteConnection connection = new("Data Source=:memory:");
+        await connection.OpenAsync();
+        DbContextOptions<ServerDbContext> options = new DbContextOptionsBuilder<ServerDbContext>()
+            .UseSqlite(connection)
+            .Options;
+        Guid channelId = Guid.NewGuid();
+        Guid eventId = Guid.NewGuid();
+        await using ServerDbContext context = new(options);
+        await context.Database.EnsureCreatedAsync();
+        context.NotificationChannels.Add(new NotificationChannelRow
+        {
+            NotificationChannelId = channelId,
+            Name = "Fixture channel",
+            ChannelType = "fixture",
+            NonSecretConfigurationJson = "{}",
+            Enabled = true,
+            CreatedAt = DateTimeOffset.UtcNow,
+            UpdatedAt = DateTimeOffset.UtcNow,
+            ConcurrencyToken = Guid.NewGuid(),
+        });
+        context.Events.Add(new EventRecordRow
+        {
+            EventId = eventId,
+            CorrelationId = Guid.NewGuid(),
+            EventType = "Fixture",
+            Severity = "Info",
+            ObservedAt = DateTimeOffset.UtcNow,
+            ReceivedAt = DateTimeOffset.UtcNow,
+            DetailsJson = "{}",
+        });
+        await context.SaveChangesAsync();
+        context.NotificationDeliveries.Add(new NotificationDeliveryRow
+        {
+            NotificationDeliveryId = Guid.NewGuid(),
+            NotificationChannelId = channelId,
+            EventId = eventId,
+            State = "Pending",
+            CreatedAt = DateTimeOffset.UtcNow,
+        });
+
+        await Assert.ThrowsAsync<DbUpdateException>(() => context.SaveChangesAsync());
+        context.ChangeTracker.Clear();
+        context.NotificationDeliveries.Add(new NotificationDeliveryRow
+        {
+            NotificationDeliveryId = Guid.NewGuid(),
+            NotificationChannelId = channelId,
+            EventId = eventId,
+            State = "Quarantined",
+            ErrorCode = "notification.binding_unproven",
+            CreatedAt = DateTimeOffset.UtcNow,
+        });
+
+        await context.SaveChangesAsync();
+        Assert.Equal("Quarantined", (await context.NotificationDeliveries.SingleAsync()).State);
+
+        Guid ruleId = Guid.NewGuid();
+        Guid boundChannelId = Guid.NewGuid();
+        Guid bindingId = Guid.NewGuid();
+        context.AlertRules.Add(new AlertRuleRow
+        {
+            AlertRuleId = ruleId,
+            Name = "Fixture rule",
+            RuleType = "CanonicalEvent",
+            ConfigurationJson = "{\"eventTypes\":[\"Fixture\"]}",
+            Enabled = true,
+            CreatedAt = DateTimeOffset.UtcNow,
+            UpdatedAt = DateTimeOffset.UtcNow,
+            ConcurrencyToken = Guid.NewGuid(),
+        });
+        context.NotificationChannels.Add(new NotificationChannelRow
+        {
+            NotificationChannelId = boundChannelId,
+            Name = "Bound fixture channel",
+            ChannelType = "fixture",
+            NonSecretConfigurationJson = "{}",
+            Enabled = true,
+            CreatedAt = DateTimeOffset.UtcNow,
+            UpdatedAt = DateTimeOffset.UtcNow,
+            ConcurrencyToken = Guid.NewGuid(),
+        });
+        context.AlertRuleChannelBindings.Add(new AlertRuleChannelBindingRow
+        {
+            AlertRuleChannelBindingId = bindingId,
+            AlertRuleId = ruleId,
+            NotificationChannelId = boundChannelId,
+            Environment = "test",
+            Enabled = true,
+            CreatedAt = DateTimeOffset.UtcNow,
+            UpdatedAt = DateTimeOffset.UtcNow,
+            ConcurrencyToken = Guid.NewGuid(),
+        });
+        await context.SaveChangesAsync();
+        context.NotificationDeliveries.Add(new NotificationDeliveryRow
+        {
+            NotificationDeliveryId = Guid.NewGuid(),
+            NotificationChannelId = channelId,
+            EventId = eventId,
+            AlertRuleChannelBindingId = bindingId,
+            IdempotencyKey = $"notification:{eventId:N}:{bindingId:N}",
+            State = "Pending",
+            CreatedAt = DateTimeOffset.UtcNow,
+        });
+
+        await Assert.ThrowsAsync<DbUpdateException>(() => context.SaveChangesAsync());
+    }
+
+    [Fact]
     public async Task AgentMigrationCreatesConstraintsAndRollsBack()
     {
         SqliteConnectionStringBuilder connectionString = new() { DataSource = ":memory:" };
@@ -190,7 +299,16 @@ public sealed class PersistenceModelTests
             migrationScript);
 
         string[] migrations = context.Database.GetMigrations().ToArray();
-        Assert.Equal(6, migrations.Length);
+        Assert.Equal(7, migrations.Length);
+        Assert.Contains("alert_rule_channel_bindings", migrationScript, StringComparison.Ordinal);
+        Assert.Contains("notification.binding_unproven", migrationScript, StringComparison.Ordinal);
+        Assert.Contains("SET state = 'Quarantined'", migrationScript, StringComparison.Ordinal);
+        Assert.Contains("ck_delivery_pending_provenance", migrationScript, StringComparison.Ordinal);
+        Assert.Contains("AK_alert_rule_channel_bindings_alert_rule_channel_binding_id", migrationScript, StringComparison.Ordinal);
+        string explicitRoutingRollback = migrator.GenerateScript(migrations[6], migrations[5]);
+        Assert.Contains("notification.explicit_binding_downgrade_blocked", explicitRoutingRollback, StringComparison.Ordinal);
+        Assert.DoesNotContain("UPDATE notification_deliveries", explicitRoutingRollback, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("DROP TABLE", explicitRoutingRollback, StringComparison.OrdinalIgnoreCase);
         string commandTransportRollback = migrator.GenerateScript(migrations[5], migrations[4]);
         Assert.Contains("command_transport_journal", commandTransportRollback, StringComparison.Ordinal);
         Assert.Contains("agent_command_transport_cursors", commandTransportRollback, StringComparison.Ordinal);

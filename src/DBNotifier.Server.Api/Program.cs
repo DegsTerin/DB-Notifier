@@ -22,6 +22,7 @@ using Microsoft.IdentityModel.Tokens;
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 ServerOperationsOptions serverOperationsOptions = new();
 builder.Configuration.GetSection(ServerOperationsOptions.SectionName).Bind(serverOperationsOptions);
+serverOperationsOptions.ValidateForStartup();
 builder.WebHost.ConfigureKestrel(options =>
 {
     options.Limits.MaxRequestBodySize = 1_048_576;
@@ -70,6 +71,8 @@ builder.Services.AddRateLimiter(options =>
 });
 builder.Services.AddDbContextFactory<ServerDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("ServerDatabase")));
+builder.Services.AddSingleton<IServerReadinessDatabase, EfServerReadinessDatabase>();
+builder.Services.AddSingleton<ServerReadinessProbe>();
 builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddSingleton<IProviderRegistry>(_ => new ProviderRegistry([]));
 builder.Services.AddSingleton<IAgentAssignmentValidator, AgentAssignmentValidator>();
@@ -275,7 +278,7 @@ app.UseAuthentication();
 app.UseRateLimiter();
 app.UseAuthorization();
 
-app.MapGet("/health/live", () => Results.Ok(new { status = "Alive" }));
+app.MapServerHealthEndpoints();
 app.MapDashboardTvSandboxEndpoint(dashboardTvSandboxEnabled);
 app.MapGet(
         "/api/v1/catalog/instances",

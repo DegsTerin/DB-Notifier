@@ -51,6 +51,10 @@ public sealed partial class AgentMonitoringWorker(
             {
                 LogAssignmentFailure(logger, failure.InstanceId, failure.Code);
             }
+            if (result.CycleFailureCode is { } cycleFailureCode)
+            {
+                LogCycleFailure(logger, cycleFailureCode);
+            }
 
             await Task.Delay(cycleInterval, timeProvider, stoppingToken).ConfigureAwait(false);
         }
@@ -89,4 +93,10 @@ public sealed partial class AgentMonitoringWorker(
         Level = LogLevel.Warning,
         Message = "Monitoring assignment failed: instanceId={InstanceId}, code={ErrorCode}")]
     private static partial void LogAssignmentFailure(ILogger logger, Guid instanceId, string errorCode);
+
+    [LoggerMessage(
+        EventId = 1004,
+        Level = LogLevel.Warning,
+        Message = "Monitoring cycle source failed: code={ErrorCode}")]
+    private static partial void LogCycleFailure(ILogger logger, string errorCode);
 }

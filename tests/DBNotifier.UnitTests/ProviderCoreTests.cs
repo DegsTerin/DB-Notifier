@@ -200,6 +200,27 @@ public sealed class ProviderCoreTests
     }
 
     [Fact]
+    public async Task MonitoringCycleDeadlineStartsBeforeAssignmentRead()
+    {
+        StubProvider provider = new("source-deadline-provider");
+        ProbeInstanceHandler handler = new(new ProviderRegistry([provider]), new UnusedVault(), TimeProvider.System);
+        MonitoringCycleRunner runner = new(
+            Guid.NewGuid(),
+            new BlockingAssignmentSource(),
+            handler,
+            new SelectiveSink(Guid.Empty),
+            TimeProvider.System,
+            cycleDeadline: TimeSpan.FromMilliseconds(150));
+
+        MonitoringCycleResult result = await runner.RunOnceAsync();
+
+        Assert.Equal(0, result.DueCount);
+        Assert.Equal(0, result.PersistedCount);
+        Assert.Empty(result.Failures);
+        Assert.Equal("monitoring.assignment_source_deadline_exceeded", result.CycleFailureCode);
+    }
+
+    [Fact]
     public async Task VaultFailureBecomesUnknownWithoutCallingProvider()
     {
         CountingProvider provider = new();
@@ -348,6 +369,16 @@ public sealed class ProviderCoreTests
         public ValueTask<IReadOnlyList<MonitoringAssignment>> GetDueAsync(
             DateTimeOffset now,
             CancellationToken cancellationToken) => ValueTask.FromResult(assignments);
+    }
+
+    private sealed class BlockingAssignmentSource : IMonitoringAssignmentSource
+    {
+        private readonly TaskCompletionSource<IReadOnlyList<MonitoringAssignment>> completion =
+            new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        public ValueTask<IReadOnlyList<MonitoringAssignment>> GetDueAsync(
+            DateTimeOffset now,
+            CancellationToken cancellationToken) => new(completion.Task);
     }
 
     private sealed class SelectiveSink(Guid failingInstanceId) : IHealthObservationSink

@@ -35,6 +35,10 @@ public sealed class ServerDbContext(DbContextOptions<ServerDbContext> options) :
     public DbSet<MaintenanceWindowRow> MaintenanceWindows => Set<MaintenanceWindowRow>();
     public DbSet<AlertRuleRow> AlertRules => Set<AlertRuleRow>();
     public DbSet<NotificationChannelRow> NotificationChannels => Set<NotificationChannelRow>();
+
+    /// <summary>Gets explicit environment-scoped alert-rule to notification-channel routes.</summary>
+    public DbSet<AlertRuleChannelBindingRow> AlertRuleChannelBindings => Set<AlertRuleChannelBindingRow>();
+
     public DbSet<NotificationDeliveryRow> NotificationDeliveries => Set<NotificationDeliveryRow>();
     public DbSet<AdministrativeCommandRow> AdministrativeCommands => Set<AdministrativeCommandRow>();
     public DbSet<CommandAttemptRow> CommandAttempts => Set<CommandAttemptRow>();
@@ -347,20 +351,66 @@ public sealed class ServerDbContext(DbContextOptions<ServerDbContext> options) :
             entity.HasIndex(row => new { row.ChannelType, row.Enabled });
         });
 
+        modelBuilder.Entity<AlertRuleChannelBindingRow>(entity =>
+        {
+            entity.ToTable("alert_rule_channel_bindings");
+            entity.HasKey(row => row.AlertRuleChannelBindingId);
+            entity.Property(row => row.Environment).HasMaxLength(100).IsRequired();
+            entity.Property(row => row.ConcurrencyToken).IsConcurrencyToken();
+            entity.HasAlternateKey(row => new
+            {
+                row.AlertRuleChannelBindingId,
+                row.NotificationChannelId,
+            });
+            entity.HasIndex(row => new { row.AlertRuleId, row.NotificationChannelId, row.Environment }).IsUnique();
+            entity.HasIndex(row => new { row.Environment, row.Enabled });
+            entity.HasOne<AlertRuleRow>()
+                .WithMany()
+                .HasForeignKey(row => row.AlertRuleId)
+                .OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne<NotificationChannelRow>()
+                .WithMany()
+                .HasForeignKey(row => row.NotificationChannelId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
         modelBuilder.Entity<NotificationDeliveryRow>(entity =>
         {
             entity.ToTable("notification_deliveries", table =>
             {
                 table.HasCheckConstraint("ck_delivery_attempts", "attempt_count >= 0");
-                table.HasCheckConstraint("ck_delivery_state", "state IN ('Pending','Delivering','Delivered','Failed','Cancelled')");
+                table.HasCheckConstraint(
+                    "ck_delivery_state",
+                    "state IN ('Pending','Delivering','Delivered','Failed','Cancelled','Quarantined')");
+                table.HasCheckConstraint(
+                    "ck_delivery_pending_provenance",
+                    "state <> 'Pending' OR (alert_rule_channel_binding_id IS NOT NULL AND idempotency_key IS NOT NULL)");
+                table.HasCheckConstraint(
+                    "ck_delivery_quarantine_reason",
+                    "state <> 'Quarantined' OR error_code IS NOT NULL");
             });
             entity.HasKey(row => row.NotificationDeliveryId);
+            entity.Property(row => row.IdempotencyKey).HasMaxLength(200);
             entity.Property(row => row.State).HasMaxLength(32).IsRequired();
             entity.Property(row => row.ErrorCode).HasMaxLength(100);
             entity.HasIndex(row => new { row.State, row.CreatedAt });
-            entity.HasIndex(row => new { row.NotificationChannelId, row.EventId }).IsUnique();
+            entity.HasIndex(row => row.IdempotencyKey).IsUnique();
+            entity.HasIndex(row => new { row.AlertRuleChannelBindingId, row.EventId }).IsUnique();
             entity.HasOne<NotificationChannelRow>().WithMany().HasForeignKey(row => row.NotificationChannelId).OnDelete(DeleteBehavior.Restrict);
             entity.HasOne<EventRecordRow>().WithMany().HasForeignKey(row => row.EventId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne<AlertRuleChannelBindingRow>()
+                .WithMany()
+                .HasForeignKey(row => new
+                {
+                    row.AlertRuleChannelBindingId,
+                    row.NotificationChannelId,
+                })
+                .HasPrincipalKey(row => new
+                {
+                    row.AlertRuleChannelBindingId,
+                    row.NotificationChannelId,
+                })
+                .OnDelete(DeleteBehavior.Restrict);
         });
     }
 
