@@ -112,8 +112,22 @@ public static class DashboardTvSnapshotValidator
         return true;
     }
 
-    private static bool IsBoundedText(string? value) =>
-        !string.IsNullOrWhiteSpace(value) && value.Length <= DashboardTvSnapshotContract.MaximumTextLength;
+    /// <summary>Rejects invisible formatting, controls and peripheral whitespace before text crosses the API boundary.</summary>
+    /// <param name="value">Untrusted human-readable snapshot field.</param>
+    /// <returns><see langword="true"/> only for bounded, visibly stable text.</returns>
+    private static bool IsBoundedText(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value) ||
+            value.Length > DashboardTvSnapshotContract.MaximumTextLength ||
+            !string.Equals(value, value.Trim(), StringComparison.Ordinal))
+        {
+            return false;
+        }
+
+        return !value.Any(character =>
+            char.IsControl(character) ||
+            char.GetUnicodeCategory(character) == System.Globalization.UnicodeCategory.Format);
+    }
 
     private static bool TryParseUtc(string? value, out DateTimeOffset parsed) =>
         DateTimeOffset.TryParse(

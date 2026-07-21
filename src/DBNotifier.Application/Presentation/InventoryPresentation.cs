@@ -90,7 +90,7 @@ public sealed record InventorySnapshot(
 {
     public const string CurrentSchemaVersion = "inventory.v1";
 
-    /// <summary>Summarises only current evidence into health KPIs while retaining stale counts separately.</summary>
+    /// <summary>Summarises only enabled current evidence into health KPIs while retaining disabled and stale counts separately.</summary>
     /// <param name="now">Current UTC instant used only to evaluate evidence freshness.</param>
     /// <param name="staleAfter">Strictly positive maximum current-evidence age.</param>
     /// <returns>Coherent counts in which stale or invalid evidence cannot imply a current health outcome.</returns>
@@ -102,11 +102,12 @@ public sealed record InventorySnapshot(
         bool IsCurrent(InstanceInventoryItem item) => item.GetFreshness(now, staleAfter) == EvidenceFreshness.Current;
         return new InventoryStatusSummary(
             items.Count,
-            items.Count(item => item.Status == HealthStatus.Healthy && IsCurrent(item)),
-            items.Count(item => item.Status == HealthStatus.Degraded && IsCurrent(item)),
-            items.Count(item => (item.Status is HealthStatus.Degraded or HealthStatus.Maintenance) && IsCurrent(item)),
-            items.Count(item => (item.Status is HealthStatus.Unavailable or HealthStatus.AuthFailed or HealthStatus.Timeout) && IsCurrent(item)),
-            items.Count(item => item.IsStale(now, staleAfter)));
+            items.Count(item => item.Enabled && item.Status == HealthStatus.Healthy && IsCurrent(item)),
+            items.Count(item => item.Enabled && item.Status == HealthStatus.Degraded && IsCurrent(item)),
+            items.Count(item => item.Enabled && (item.Status is HealthStatus.Degraded or HealthStatus.Maintenance) && IsCurrent(item)),
+            items.Count(item => item.Enabled && (item.Status is HealthStatus.Unavailable or HealthStatus.AuthFailed or HealthStatus.Timeout) && IsCurrent(item)),
+            items.Count(item => item.Enabled && item.IsStale(now, staleAfter)),
+            items.Count(item => !item.Enabled));
     }
 }
 
@@ -117,13 +118,15 @@ public sealed record InventorySnapshot(
 /// <param name="Warning">Current degraded or maintenance evidence count.</param>
 /// <param name="AttentionRequired">Current unavailable, authentication-failed or timeout evidence count.</param>
 /// <param name="Stale">Valid evidence count older than the configured freshness threshold.</param>
+/// <param name="Disabled">Inventory items excluded from every current-health and freshness conclusion.</param>
 public sealed record InventoryStatusSummary(
     int Total,
     int Healthy,
     int Degraded,
     int Warning,
     int AttentionRequired,
-    int Stale);
+    int Stale,
+    int Disabled);
 
 public enum EventSeverity
 {

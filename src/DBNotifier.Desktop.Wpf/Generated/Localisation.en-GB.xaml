@@ -1,4 +1,4 @@
-<!-- Generated from dbnotifier.localisation.v1; culture:en-GB; source sha256:b51d289f36632aac6583ccd1af26f4d56adaaa4528df8df1e4eedfad7e0351f3. Do not edit directly. -->
+<!-- Generated from dbnotifier.localisation.v1; culture:en-GB; source sha256:6de5681f91571ee220ab66bdeeda3505298f1c527b7585036ea547106cc17aae. Do not edit directly. -->
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:sys="clr-namespace:System;assembly=System.Runtime">
@@ -20,6 +20,7 @@
   <sys:String x:Key="Brand.Subtitle">Operations console</sys:String>
   <sys:String x:Key="Common.Action">Action</sys:String>
   <sys:String x:Key="Common.All">All</sys:String>
+  <sys:String x:Key="Common.AuthoritativeSnapshot">Authoritative snapshot</sys:String>
   <sys:String x:Key="Common.Capability">Capability</sys:String>
   <sys:String x:Key="Common.Description">Description</sys:String>
   <sys:String x:Key="Common.Environment">Environment</sys:String>
@@ -29,6 +30,7 @@
   <sys:String x:Key="Common.Latency">Latency</sys:String>
   <sys:String x:Key="Common.NotPersisted">Not persisted</sys:String>
   <sys:String x:Key="Common.ObservedAt">Observed at</sys:String>
+  <sys:String x:Key="Common.ObservedAtUtc">Observed at (UTC)</sys:String>
   <sys:String x:Key="Common.Provider">Provider</sys:String>
   <sys:String x:Key="Common.ReadOnly">Read only</sys:String>
   <sys:String x:Key="Common.Reason">Reason</sys:String>
@@ -71,6 +73,8 @@
   <sys:String x:Key="Inventory.Caption">Demonstration inventory of database instances</sys:String>
   <sys:String x:Key="Inventory.Count">{0} of {1} items visible</sys:String>
   <sys:String x:Key="Inventory.Degraded">Degraded</sys:String>
+  <sys:String x:Key="Inventory.Disabled">Disabled</sys:String>
+  <sys:String x:Key="Inventory.DisabledCount">{0} disabled instance(s) excluded from current health</sys:String>
   <sys:String x:Key="Inventory.FilteredEmpty">Adjust the search or status filter.</sys:String>
   <sys:String x:Key="Inventory.Healthy">Healthy</sys:String>
   <sys:String x:Key="Inventory.Search">Search</sys:String>
@@ -112,6 +116,7 @@
   <sys:String x:Key="Operational.Retry">Try again</sys:String>
   <sys:String x:Key="Overview.ActiveAlertCount">{0} active alert</sys:String>
   <sys:String x:Key="Overview.AlertDescription">Local-fixture exceptions without external delivery.</sys:String>
+  <sys:String x:Key="Overview.AuthoritativeTrendUnavailable">No trend is shown because the authoritative snapshot contains no time series.</sys:String>
   <sys:String x:Key="Overview.Critical">Critical</sys:String>
   <sys:String x:Key="Overview.DemonstrationChart">Deterministic visual series; this is not external telemetry.</sys:String>
   <sys:String x:Key="Overview.FleetDescription">Health, latency and latest local evidence.</sys:String>
@@ -190,6 +195,7 @@
   <sys:String x:Key="Sidebar.State">STATE-05</sys:String>
   <sys:String x:Key="Status.AuthFailed">Authentication failed</sys:String>
   <sys:String x:Key="Status.Degraded">Degraded</sys:String>
+  <sys:String x:Key="Status.Disabled">Disabled · excluded from current health</sys:String>
   <sys:String x:Key="Status.Healthy">Healthy</sys:String>
   <sys:String x:Key="Status.Maintenance">Maintenance</sys:String>
   <sys:String x:Key="Status.Stale">Stale</sys:String>

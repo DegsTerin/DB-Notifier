@@ -41,7 +41,6 @@ export function LocalisationProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     document.documentElement.lang = locale;
     document.documentElement.dataset.languagePreference = locale;
-    document.title = translate(locale, "App.Title");
     document.querySelector<HTMLMetaElement>('meta[name="description"]')?.setAttribute(
       "content",
       translate(locale, "App.Description"),

@@ -84,6 +84,7 @@
   <message key="Common.Environment">Environment</message>
   <message key="Common.Support">Support</message>
   <message key="Common.ObservedAt">Observed at</message>
+  <message key="Common.ObservedAtUtc">Observed at (UTC)</message>
   <message key="Common.Latency">Latency</message>
   <message key="Common.TimeUtc">Time (UTC)</message>
   <message key="Common.Severity">Severity</message>
@@ -96,10 +97,12 @@
   <message key="Common.Description">Description</message>
   <message key="Common.Action">Action</message>
   <message key="Common.Capability">Capability</message>
+  <message key="Common.AuthoritativeSnapshot">Authoritative snapshot</message>
   <message key="Common.Reason">Reason</message>
   <message key="Common.All">All</message>
   <message key="Status.Healthy">Healthy</message>
   <message key="Status.Degraded">Degraded</message>
+  <message key="Status.Disabled">Disabled · excluded from current health</message>
   <message key="Status.Unavailable">Unavailable</message>
   <message key="Status.AuthFailed">Authentication failed</message>
   <message key="Status.Timeout">Timeout</message>
@@ -130,6 +133,7 @@
   <message key="Overview.ViewAlerts">View all alerts</message>
   <message key="Overview.SampleTrend">Performance</message>
   <message key="Overview.DemonstrationChart">Deterministic visual series; this is not external telemetry.</message>
+  <message key="Overview.AuthoritativeTrendUnavailable">No trend is shown because the authoritative snapshot contains no time series.</message>
   <message key="Overview.TrendAccessibleLabel">Demonstration chart containing two local latency series.</message>
   <message key="Overview.ProviderFixture">Providers</message>
   <message key="Overview.ProviderDescription">Distribution of demonstration identifiers, not support.</message>
@@ -175,6 +179,8 @@
   <message key="Inventory.Total">Total</message>
   <message key="Inventory.Healthy">Healthy</message>
   <message key="Inventory.Degraded">Degraded</message>
+  <message key="Inventory.Disabled">Disabled</message>
+  <message key="Inventory.DisabledCount">{0} disabled instance(s) excluded from current health</message>
   <message key="Inventory.Attention">Attention</message>
   <message key="Inventory.Stale">Stale</message>
   <message key="Inventory.TableRegion">Scrollable instance inventory</message>

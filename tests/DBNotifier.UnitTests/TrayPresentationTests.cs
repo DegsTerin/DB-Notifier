@@ -156,6 +156,23 @@ public sealed class TrayPresentationTests
         Assert.Equal(0, summary.TotalCount);
     }
 
+    /// <summary>Verifies that a disabled critical signal is visible in inventory counts but cannot make fleet health critical.</summary>
+    [Fact]
+    public void DisabledSignalsAreSeparatedFromTheFleetAggregate()
+    {
+        TrayFleetSummary summary = TrayFleetPresentationPolicy.Summarise(
+        [
+            new(HealthStatus.Timeout, IsStale: false, Enabled: false),
+            new(HealthStatus.Healthy, IsStale: false, Enabled: true),
+        ]);
+
+        Assert.Equal(TrayAggregateState.Healthy, summary.State);
+        Assert.Equal(2, summary.TotalCount);
+        Assert.Equal(1, summary.HealthyCount);
+        Assert.Equal(0, summary.CriticalCount);
+        Assert.Equal(1, summary.DisabledCount);
+    }
+
     /// <summary>Verifies that each notification meaning selects its corresponding semantic bell without inferring fleet health.</summary>
     /// <param name="meaning">The provider-neutral meaning conveyed by the notification.</param>
     /// <param name="expected">The shared icon state expected for that meaning.</param>

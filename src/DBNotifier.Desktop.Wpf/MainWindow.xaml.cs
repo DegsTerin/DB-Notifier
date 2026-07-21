@@ -5,6 +5,7 @@ using System.Windows;
 using System.Windows.Automation;
 using System.Windows.Automation.Peers;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Media;
 using System.Windows.Threading;
 using DBNotifier.Application.Presentation;
@@ -34,6 +35,7 @@ public partial class MainWindow : Window
 {
     private readonly DesktopLocalisationService localisation;
     private readonly DesktopThemeService theme;
+    private readonly DesktopMotionService motion;
     private readonly ProviderVisualIdentityPolicy providerVisualIdentityPolicy;
     private readonly DesktopDemonstrationEvidence evidence;
     private readonly ObservableCollection<InventoryRow> rows = [];
@@ -52,6 +54,7 @@ public partial class MainWindow : Window
     /// <summary>Initialises the local demonstration surface with loaded preferences and one factual aggregate icon state.</summary>
     /// <param name="localisation">Desktop localisation owner shared with the application and tray controller.</param>
     /// <param name="theme">Desktop theme owner shared with the application.</param>
+    /// <param name="motion">Read-only adapter for the current Windows reduced-motion preference.</param>
     /// <param name="providerVisualIdentityPolicy">Local resolver for decorative provider logos and neutral fallbacks.</param>
     /// <param name="evidence">Immutable locale-independent evidence shared with Tray presentation.</param>
     /// <param name="aggregateState">Initial provider-neutral fleet state shared by every product-mark surface.</param>
@@ -59,6 +62,7 @@ public partial class MainWindow : Window
     internal MainWindow(
         DesktopLocalisationService localisation,
         DesktopThemeService theme,
+        DesktopMotionService motion,
         ProviderVisualIdentityPolicy providerVisualIdentityPolicy,
         DesktopDemonstrationEvidence evidence,
         TrayAggregateState aggregateState,
@@ -66,6 +70,7 @@ public partial class MainWindow : Window
     {
         this.localisation = localisation;
         this.theme = theme;
+        this.motion = motion;
         this.providerVisualIdentityPolicy = providerVisualIdentityPolicy;
         this.evidence = evidence;
         this.aggregateState = aggregateState;
@@ -85,6 +90,7 @@ public partial class MainWindow : Window
         CapabilityGrid.ItemsSource = capabilityRows;
         localisation.LanguageChanged += LocalisationLanguageChanged;
         theme.ThemeChanged += ThemeChanged;
+        motion.MotionPreferenceChanged += MotionPreferenceChanged;
         providerVisualIdentityPolicy.VisualIdentityChanged += ProviderVisualIdentityChanged;
         Closed += (_, _) =>
         {
@@ -92,11 +98,28 @@ public partial class MainWindow : Window
             windowIconLease?.Dispose();
             localisation.LanguageChanged -= LocalisationLanguageChanged;
             theme.ThemeChanged -= ThemeChanged;
+            motion.MotionPreferenceChanged -= MotionPreferenceChanged;
             providerVisualIdentityPolicy.VisualIdentityChanged -= ProviderVisualIdentityChanged;
         };
         RebuildLocalisedData();
+        ApplyMotionPreference();
         PresentReadyState();
     }
+
+    /// <summary>Applies a static ComboBox transition when Windows requests reduced motion.</summary>
+    private void ApplyMotionPreference()
+    {
+        ScenarioSelector.ApplyTemplate();
+        if (ScenarioSelector.Template.FindName("PART_Popup", ScenarioSelector) is Popup popup)
+        {
+            popup.PopupAnimation = motion.ReducedMotionActive ? PopupAnimation.None : PopupAnimation.Fade;
+        }
+    }
+
+    /// <summary>Re-applies the existing operating-system motion preference without changing it.</summary>
+    /// <param name="sender">Shared Windows motion adapter.</param>
+    /// <param name="e">Preference-change event data.</param>
+    private void MotionPreferenceChanged(object? sender, EventArgs e) => ApplyMotionPreference();
 
     /// <summary>Applies bounded review-only geometry without replacing or extending the normal demonstration fixture.</summary>
     /// <param name="mode">Validated review mode resolved from an exact local command-line switch.</param>
@@ -405,6 +428,7 @@ public partial class MainWindow : Window
         DegradedCountText.Text = summary.Degraded.ToString(localisation.Culture);
         AttentionCountText.Text = summary.AttentionRequired.ToString(localisation.Culture);
         StaleCountText.Text = summary.Stale.ToString(localisation.Culture);
+        DisabledCountText.Text = summary.Disabled.ToString(localisation.Culture);
         ShowOnly(ReadySurface);
     }
 
@@ -428,6 +452,7 @@ public partial class MainWindow : Window
         OverviewHealthyCountText.Text = summary.Healthy.ToString(localisation.Culture);
         OverviewDegradedCountText.Text = summary.Warning.ToString(localisation.Culture);
         OverviewAttentionCountText.Text = summary.AttentionRequired.ToString(localisation.Culture);
+        OverviewDisabledCountText.Text = Text("Inventory.DisabledCount", summary.Disabled);
         ShowOnly(OverviewSurface);
     }
 
@@ -552,7 +577,7 @@ public partial class MainWindow : Window
     /// <summary>Refreshes detached DataGrid column headers that do not inherit WPF dynamic-resource invalidation.</summary>
     private void RefreshGridHeaders()
     {
-        SetHeaders(InventoryGrid, "Common.Instance", "Common.Provider", "Common.Support", "Common.Environment", "Common.Status", "Common.ObservedAt", "Common.Latency");
+        SetHeaders(InventoryGrid, "Common.Instance", "Common.Provider", "Common.Support", "Common.Environment", "Common.Status", "Common.ObservedAtUtc", "Common.Latency");
         SetHeaders(HistoryGrid, "Common.TimeUtc", "Common.Severity", "Common.Event", "Common.Instance", "Common.Provider", "Common.Summary");
         SetHeaders(AlertsGrid, "Common.Severity", "Common.State", "Common.Rule", "Common.Instance", "Common.Provider", "Common.Summary");
         SetHeaders(ConfigurationGrid, "Common.Field", "Common.SafeValue", "Common.Description");
@@ -624,6 +649,7 @@ public partial class MainWindow : Window
         double availableWidth = ActualWidth > 0 ? ActualWidth : Width;
         bool compact = availableWidth < 1000;
         OverviewSummaryGrid.Columns = compact ? 2 : 4;
+        InventorySummaryGrid.Columns = compact ? 3 : 6;
         SidebarStateCard.Visibility = ActualHeight > 0 && ActualHeight < 700 ? Visibility.Collapsed : Visibility.Visible;
         ArrangeAdaptivePair(OverviewFleetPanel, OverviewAlertsPanel, compact);
         ArrangeAdaptivePair(OverviewPerformancePanel, OverviewProvidersPanel, compact);
@@ -653,7 +679,7 @@ public partial class MainWindow : Window
     }
 
     /// <summary>Formats UTC timestamps in a stable sortable shape under the selected culture.</summary>
-    private string FormatUtc(DateTimeOffset value) => value.UtcDateTime.ToString("yyyy-MM-dd HH:mm:ss", localisation.Culture);
+    private string FormatUtc(DateTimeOffset value) => DesktopDateTimePresentation.FormatUtc(value, localisation.Culture);
 
     /// <summary>Resolves one canonical generated resource through the desktop localisation owner.</summary>
     private string Text(string key, params object[] values) => localisation.Text(key, values);
@@ -726,7 +752,9 @@ public partial class MainWindow : Window
             ProviderVisualIdentityPolicy providerVisualIdentityPolicy)
         {
             EvidenceFreshness freshness = item.GetFreshness(now, staleAfter);
-            string status = freshness == EvidenceFreshness.Stale
+            string status = !item.Enabled
+                ? $"○ {localisation.Text("Status.Disabled")}"
+                : freshness == EvidenceFreshness.Stale
                 ? $"◷ {localisation.Text("Status.Stale")}"
                 : freshness == EvidenceFreshness.Unknown
                     ? $"○ {localisation.Text("Status.Unknown")}"
@@ -780,7 +808,8 @@ public partial class MainWindow : Window
             {
                 EventSeverity.Critical => $"■ {localisation.Text("Severity.Critical")}",
                 EventSeverity.Warning => $"▲ {localisation.Text("Severity.Warning")}",
-                _ => $"● {localisation.Text("Severity.Information")}",
+                EventSeverity.Information => $"● {localisation.Text("Severity.Information")}",
+                _ => $"○ {localisation.Text("Status.Unknown")}",
             },
             item.EventType,
             item.InstanceName,
@@ -812,14 +841,16 @@ public partial class MainWindow : Window
             {
                 EventSeverity.Critical => $"■ {localisation.Text("Severity.Critical")}",
                 EventSeverity.Warning => $"▲ {localisation.Text("Severity.Warning")}",
-                _ => $"● {localisation.Text("Severity.Information")}",
+                EventSeverity.Information => $"● {localisation.Text("Severity.Information")}",
+                _ => $"○ {localisation.Text("Status.Unknown")}",
             },
             item.State switch
             {
                 AlertPresentationState.Active => localisation.Text("AlertState.Active"),
                 AlertPresentationState.Acknowledged => localisation.Text("AlertState.Acknowledged"),
                 AlertPresentationState.Silenced => localisation.Text("AlertState.Silenced"),
-                _ => localisation.Text("AlertState.Resolved"),
+                AlertPresentationState.Resolved => localisation.Text("AlertState.Resolved"),
+                _ => localisation.Text("Status.Unknown"),
             },
             item.RuleName,
             item.InstanceName,

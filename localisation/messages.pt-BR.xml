@@ -84,6 +84,7 @@
   <message key="Common.Environment">Ambiente</message>
   <message key="Common.Support">Suporte</message>
   <message key="Common.ObservedAt">Observado em</message>
+  <message key="Common.ObservedAtUtc">Observado em (UTC)</message>
   <message key="Common.Latency">Latência</message>
   <message key="Common.TimeUtc">Horário (UTC)</message>
   <message key="Common.Severity">Severidade</message>
@@ -96,10 +97,12 @@
   <message key="Common.Description">Descrição</message>
   <message key="Common.Action">Ação</message>
   <message key="Common.Capability">Capability</message>
+  <message key="Common.AuthoritativeSnapshot">Snapshot autoritativo</message>
   <message key="Common.Reason">Motivo</message>
   <message key="Common.All">Todos</message>
   <message key="Status.Healthy">Saudável</message>
   <message key="Status.Degraded">Degradado</message>
+  <message key="Status.Disabled">Desabilitada · excluída da saúde atual</message>
   <message key="Status.Unavailable">Indisponível</message>
   <message key="Status.AuthFailed">Falha de autenticação</message>
   <message key="Status.Timeout">Timeout</message>
@@ -130,6 +133,7 @@
   <message key="Overview.ViewAlerts">Ver todos os alertas</message>
   <message key="Overview.SampleTrend">Desempenho</message>
   <message key="Overview.DemonstrationChart">Série visual determinística; não representa telemetria externa.</message>
+  <message key="Overview.AuthoritativeTrendUnavailable">Nenhuma tendência é exibida porque o snapshot autoritativo não contém série temporal.</message>
   <message key="Overview.TrendAccessibleLabel">Gráfico demonstrativo com duas séries locais de latência.</message>
   <message key="Overview.ProviderFixture">Providers</message>
   <message key="Overview.ProviderDescription">Distribuição dos identificadores demonstrativos, não de suporte.</message>
@@ -175,6 +179,8 @@
   <message key="Inventory.Total">Total</message>
   <message key="Inventory.Healthy">Saudáveis</message>
   <message key="Inventory.Degraded">Degradadas</message>
+  <message key="Inventory.Disabled">Desabilitadas</message>
+  <message key="Inventory.DisabledCount">{0} instância(s) desabilitada(s), excluída(s) da saúde atual</message>
   <message key="Inventory.Attention">Atenção</message>
   <message key="Inventory.Stale">Desatualizadas</message>
   <message key="Inventory.TableRegion">Inventário rolável de instâncias</message>

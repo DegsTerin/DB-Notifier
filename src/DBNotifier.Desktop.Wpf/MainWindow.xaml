@@ -258,6 +258,16 @@
         </Setter.Value>
       </Setter>
     </Style>
+    <!-- Navigation geometry is code-native and independent of installed symbol fonts. -->
+    <Style x:Key="SidebarNavigationIcon" TargetType="Path">
+      <Setter Property="Width" Value="18" />
+      <Setter Property="Height" Value="18" />
+      <Setter Property="Margin" Value="0,0,8,0" />
+      <Setter Property="Stroke" Value="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" />
+      <Setter Property="StrokeThickness" Value="1.5" />
+      <Setter Property="StrokeLineJoin" Value="Round" />
+      <Setter Property="Stretch" Value="Uniform" />
+    </Style>
   </Window.Resources>
 
   <Grid>
@@ -330,14 +340,14 @@
           </Border>
           <StackPanel Margin="0,18,0,0" AutomationProperties.Name="{DynamicResource Navigation.Label}">
             <TextBlock Text="{DynamicResource Navigation.Label}" Foreground="{DynamicResource ComponentShellChromeMutedBrush}" FontSize="10" Margin="22,0,0,8" />
-            <Button x:Name="OverviewNavigationButton" Style="{StaticResource SidebarNavigationButton}" Tag="Overview" Click="NavigationButtonClick" AutomationProperties.Name="{DynamicResource Navigation.Overview}"><StackPanel Orientation="Horizontal"><TextBlock Text="⌂" FontSize="18" Width="26" /><TextBlock Text="{DynamicResource Navigation.Overview}" VerticalAlignment="Center" /></StackPanel></Button>
-            <Button x:Name="InventoryNavigationButton" Style="{StaticResource SidebarNavigationButton}" Tag="Inventory" Click="NavigationButtonClick" AutomationProperties.Name="{DynamicResource Navigation.Inventory}"><StackPanel Orientation="Horizontal"><TextBlock Text="▤" FontSize="16" Width="26" /><TextBlock Text="{DynamicResource Navigation.Inventory}" VerticalAlignment="Center" /></StackPanel></Button>
-            <Button x:Name="AlertsNavigationButton" Style="{StaticResource SidebarNavigationButton}" Tag="Alerts" Click="NavigationButtonClick" AutomationProperties.Name="{DynamicResource Navigation.Alerts}"><StackPanel Orientation="Horizontal"><TextBlock Text="△" FontSize="18" Width="26" /><TextBlock Text="{DynamicResource Navigation.Alerts}" VerticalAlignment="Center" /></StackPanel></Button>
-            <Button x:Name="PerformanceNavigationButton" Style="{StaticResource SidebarNavigationButton}" Tag="Performance" Click="NavigationButtonClick" AutomationProperties.Name="{DynamicResource Navigation.Performance}"><StackPanel Orientation="Horizontal"><TextBlock Text="⌁" FontSize="18" Width="26" /><TextBlock Text="{DynamicResource Navigation.Performance}" VerticalAlignment="Center" /></StackPanel></Button>
-            <Button x:Name="HistoryNavigationButton" Style="{StaticResource SidebarNavigationButton}" Tag="History" Click="NavigationButtonClick" AutomationProperties.Name="{DynamicResource Navigation.History}"><StackPanel Orientation="Horizontal"><TextBlock Text="◷" FontSize="17" Width="26" /><TextBlock Text="{DynamicResource Navigation.History}" VerticalAlignment="Center" /></StackPanel></Button>
-            <Button x:Name="ConfigurationNavigationButton" Style="{StaticResource SidebarNavigationButton}" Tag="Configuration" Click="NavigationButtonClick" AutomationProperties.Name="{DynamicResource Navigation.Configuration}"><StackPanel Orientation="Horizontal"><TextBlock Text="⚙" FontSize="15" Width="26" /><TextBlock Text="{DynamicResource Navigation.Configuration}" VerticalAlignment="Center" /></StackPanel></Button>
-            <Button x:Name="ProvidersNavigationButton" Style="{StaticResource SidebarNavigationButton}" Tag="Providers" Click="NavigationButtonClick" AutomationProperties.Name="{DynamicResource Navigation.Providers}"><StackPanel Orientation="Horizontal"><TextBlock Text="◫" FontSize="17" Width="26" /><TextBlock Text="{DynamicResource Navigation.Providers}" VerticalAlignment="Center" /></StackPanel></Button>
-            <Button x:Name="SettingsNavigationButton" Style="{StaticResource SidebarNavigationButton}" Tag="Settings" Click="NavigationButtonClick" AutomationProperties.Name="{DynamicResource Navigation.Settings}"><StackPanel Orientation="Horizontal"><TextBlock Text="⚙" FontSize="15" Width="26" /><TextBlock Text="{DynamicResource Navigation.Settings}" VerticalAlignment="Center" /></StackPanel></Button>
+            <Button x:Name="OverviewNavigationButton" Style="{StaticResource SidebarNavigationButton}" Tag="Overview" Click="NavigationButtonClick" AutomationProperties.Name="{DynamicResource Navigation.Overview}"><StackPanel Orientation="Horizontal"><Path Style="{StaticResource SidebarNavigationIcon}" Data="M3,10 L10,3 L17,10 M5,9 V18 H15 V9 M8,18 V13 H12 V18" /><TextBlock Text="{DynamicResource Navigation.Overview}" VerticalAlignment="Center" /></StackPanel></Button>
+            <Button x:Name="InventoryNavigationButton" Style="{StaticResource SidebarNavigationButton}" Tag="Inventory" Click="NavigationButtonClick" AutomationProperties.Name="{DynamicResource Navigation.Inventory}"><StackPanel Orientation="Horizontal"><Path Style="{StaticResource SidebarNavigationIcon}" Data="M3,3 H17 V17 H3 Z M6,7 H14 M6,10 H14 M6,13 H14" /><TextBlock Text="{DynamicResource Navigation.Inventory}" VerticalAlignment="Center" /></StackPanel></Button>
+            <Button x:Name="AlertsNavigationButton" Style="{StaticResource SidebarNavigationButton}" Tag="Alerts" Click="NavigationButtonClick" AutomationProperties.Name="{DynamicResource Navigation.Alerts}"><StackPanel Orientation="Horizontal"><Path Style="{StaticResource SidebarNavigationIcon}" Data="M10,3 L18,17 H2 Z M10,8 V12 M10,15 H10.01" /><TextBlock Text="{DynamicResource Navigation.Alerts}" VerticalAlignment="Center" /></StackPanel></Button>
+            <Button x:Name="PerformanceNavigationButton" Style="{StaticResource SidebarNavigationButton}" Tag="Performance" Click="NavigationButtonClick" AutomationProperties.Name="{DynamicResource Navigation.Performance}"><StackPanel Orientation="Horizontal"><Path Style="{StaticResource SidebarNavigationIcon}" Data="M3,17 V3 M3,17 H18 M6,14 L9,10 L12,12 L17,6" /><TextBlock Text="{DynamicResource Navigation.Performance}" VerticalAlignment="Center" /></StackPanel></Button>
+            <Button x:Name="HistoryNavigationButton" Style="{StaticResource SidebarNavigationButton}" Tag="History" Click="NavigationButtonClick" AutomationProperties.Name="{DynamicResource Navigation.History}"><StackPanel Orientation="Horizontal"><Path Style="{StaticResource SidebarNavigationIcon}" Data="M10,3 A7,7 0 1 1 3,10 M3,5 V10 H8 M10,6 V10 L13,12" /><TextBlock Text="{DynamicResource Navigation.History}" VerticalAlignment="Center" /></StackPanel></Button>
+            <Button x:Name="ConfigurationNavigationButton" Style="{StaticResource SidebarNavigationButton}" Tag="Configuration" Click="NavigationButtonClick" AutomationProperties.Name="{DynamicResource Navigation.Configuration}"><StackPanel Orientation="Horizontal"><Path Style="{StaticResource SidebarNavigationIcon}" Data="M3,6 H12 M15,6 H18 M3,14 H7 M10,14 H18 M13.5,3 V9 M8.5,11 V17" /><TextBlock Text="{DynamicResource Navigation.Configuration}" VerticalAlignment="Center" /></StackPanel></Button>
+            <Button x:Name="ProvidersNavigationButton" Style="{StaticResource SidebarNavigationButton}" Tag="Providers" Click="NavigationButtonClick" AutomationProperties.Name="{DynamicResource Navigation.Providers}"><StackPanel Orientation="Horizontal"><Path Style="{StaticResource SidebarNavigationIcon}" Data="M3,4 H9 V10 H3 Z M11,4 H17 V10 H11 Z M3,12 H9 V18 H3 Z M11,12 H17 V18 H11 Z" /><TextBlock Text="{DynamicResource Navigation.Providers}" VerticalAlignment="Center" /></StackPanel></Button>
+            <Button x:Name="SettingsNavigationButton" Style="{StaticResource SidebarNavigationButton}" Tag="Settings" Click="NavigationButtonClick" AutomationProperties.Name="{DynamicResource Navigation.Settings}"><StackPanel Orientation="Horizontal"><Path Style="{StaticResource SidebarNavigationIcon}" Data="M10,3 V5 M10,15 V17 M3,10 H5 M15,10 H17 M5,5 L6.5,6.5 M13.5,13.5 L15,15 M15,5 L13.5,6.5 M6.5,13.5 L5,15 M10,7 A3,3 0 1 1 10,13 A3,3 0 1 1 10,7" /><TextBlock Text="{DynamicResource Navigation.Settings}" VerticalAlignment="Center" /></StackPanel></Button>
           </StackPanel>
         </DockPanel>
       </Border>
@@ -383,7 +393,7 @@
         <Grid x:Name="OverviewSurface" Grid.Row="1" Margin="0,22,0,0">
           <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
           <UniformGrid x:Name="OverviewSummaryGrid" Columns="4">
-            <Border Style="{StaticResource SummaryCard}"><StackPanel><TextBlock Text="{DynamicResource Overview.TotalInstances}" Foreground="{DynamicResource ColourTextSecondaryBrush}" FontSize="11" FontWeight="SemiBold" /><TextBlock x:Name="OverviewTotalCountText" FontSize="26" FontWeight="SemiBold" Margin="0,5,0,0" /></StackPanel></Border>
+            <Border Style="{StaticResource SummaryCard}"><StackPanel><TextBlock Text="{DynamicResource Overview.TotalInstances}" Foreground="{DynamicResource ColourTextSecondaryBrush}" FontSize="11" FontWeight="SemiBold" /><TextBlock x:Name="OverviewTotalCountText" FontSize="26" FontWeight="SemiBold" Margin="0,5,0,0" /><TextBlock x:Name="OverviewDisabledCountText" Foreground="{DynamicResource ColourTextSecondaryBrush}" FontSize="10" Margin="0,4,0,0" TextWrapping="Wrap" /></StackPanel></Border>
             <Border Style="{StaticResource SummaryCard}"><StackPanel><TextBlock Text="{DynamicResource Inventory.Healthy}" Foreground="{DynamicResource ComponentStatusHealthyForegroundBrush}" FontSize="11" FontWeight="SemiBold" /><TextBlock x:Name="OverviewHealthyCountText" FontSize="26" FontWeight="SemiBold" Margin="0,5,0,0" /></StackPanel></Border>
             <Border Style="{StaticResource SummaryCard}"><StackPanel><TextBlock Text="{DynamicResource Overview.Warning}" Foreground="{DynamicResource ComponentStatusDegradedForegroundBrush}" FontSize="11" FontWeight="SemiBold" /><TextBlock x:Name="OverviewDegradedCountText" FontSize="26" FontWeight="SemiBold" Margin="0,5,0,0" /></StackPanel></Border>
             <Border Style="{StaticResource SummaryCard}" Margin="0"><StackPanel><TextBlock Text="{DynamicResource Overview.Critical}" Foreground="{DynamicResource ComponentStatusCriticalForegroundBrush}" FontSize="11" FontWeight="SemiBold" /><TextBlock x:Name="OverviewAttentionCountText" FontSize="26" FontWeight="SemiBold" Margin="0,5,0,0" /></StackPanel></Border>
@@ -427,7 +437,7 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
           </Grid.RowDefinitions>
-          <UniformGrid Columns="5">
+          <UniformGrid x:Name="InventorySummaryGrid" Columns="6">
             <Border Style="{StaticResource SummaryCard}">
               <StackPanel>
                 <TextBlock Text="{DynamicResource Inventory.Total}" Foreground="{DynamicResource ColourTextSecondaryBrush}" FontSize="11" FontWeight="SemiBold" />
@@ -456,6 +466,12 @@
               <StackPanel>
                 <TextBlock Text="{DynamicResource Inventory.Stale}" Foreground="{DynamicResource ComponentStatusNeutralForegroundBrush}" FontSize="11" FontWeight="SemiBold" />
                 <TextBlock x:Name="StaleCountText" FontSize="26" FontWeight="SemiBold" Margin="0,5,0,0" />
+              </StackPanel>
+            </Border>
+            <Border Style="{StaticResource SummaryCard}" Margin="0">
+              <StackPanel>
+                <TextBlock Text="{DynamicResource Inventory.Disabled}" Foreground="{DynamicResource ComponentStatusNeutralForegroundBrush}" FontSize="11" FontWeight="SemiBold" />
+                <TextBlock x:Name="DisabledCountText" FontSize="26" FontWeight="SemiBold" Margin="0,5,0,0" />
               </StackPanel>
             </Border>
           </UniformGrid>

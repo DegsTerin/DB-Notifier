@@ -39,7 +39,7 @@ internal sealed class DesktopDemonstrationEvidence
             new(Guid.Parse("00000000-0000-0000-0000-000000000001"), "Sample.Instance.Finance", "postgresql", "Sample.Support.Implemented", "Sample.Environment.Production", "Sample.Location.Datacentre", null, HealthStatus.Healthy, generatedAt.AddSeconds(-38), 24),
             new(Guid.Parse("00000000-0000-0000-0000-000000000002"), "Sample.Instance.Orders", "mysql", "Sample.Support.Planned", "Sample.Environment.Production", "Sample.Location.PrivateCloud", null, HealthStatus.Degraded, generatedAt.AddMinutes(-2), 86),
             new(Guid.Parse("00000000-0000-0000-0000-000000000003"), "Sample.Instance.Analytics", "sql-server", "Sample.Support.Planned", "Sample.Environment.Validation", null, "Azure", HealthStatus.Timeout, generatedAt.AddMinutes(-3), null),
-            new(Guid.Parse("00000000-0000-0000-0000-000000000004"), "Sample.Instance.Catalogue", "mongodb", "Sample.Support.Planned", "Sample.Environment.Development", "Sample.Location.LocalLinux", null, HealthStatus.Unknown, generatedAt.AddMinutes(-9), null),
+            new(Guid.Parse("00000000-0000-0000-0000-000000000004"), "Sample.Instance.Catalogue", "mongodb", "Sample.Support.Planned", "Sample.Environment.Development", "Sample.Location.LocalLinux", null, HealthStatus.Unknown, generatedAt.AddMinutes(-9), null, false),
         ]);
 
     /// <summary>Builds a localised inventory projection while preserving the immutable operational evidence.</summary>
@@ -89,6 +89,7 @@ internal sealed class DesktopDemonstrationEvidence
 /// <param name="Status">Provider-neutral health status.</param>
 /// <param name="ReceivedAt">Immutable receipt instant.</param>
 /// <param name="LatencyMilliseconds">Optional bounded demonstration latency.</param>
+/// <param name="Enabled">Whether this fixture participates in current-health conclusions.</param>
 internal sealed record DesktopDemonstrationItem(
     Guid InstanceId,
     string DisplayNameKey,
@@ -99,7 +100,8 @@ internal sealed record DesktopDemonstrationItem(
     string? LocationLiteral,
     HealthStatus Status,
     DateTimeOffset ReceivedAt,
-    double? LatencyMilliseconds)
+    double? LatencyMilliseconds,
+    bool Enabled = true)
 {
     /// <summary>Projects locale-independent evidence into one localised application presentation item.</summary>
     /// <param name="translate">Resolver for canonical visible-text message keys.</param>
@@ -119,6 +121,6 @@ internal sealed record DesktopDemonstrationItem(
             ReceivedAt.AddSeconds(-1),
             ReceivedAt,
             LatencyMilliseconds is null ? null : TimeSpan.FromMilliseconds(LatencyMilliseconds.Value),
-            true);
+            Enabled);
     }
 }

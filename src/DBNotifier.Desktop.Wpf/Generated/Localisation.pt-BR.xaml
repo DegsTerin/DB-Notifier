@@ -1,4 +1,4 @@
-<!-- Generated from dbnotifier.localisation.v1; culture:pt-BR; source sha256:b51d289f36632aac6583ccd1af26f4d56adaaa4528df8df1e4eedfad7e0351f3. Do not edit directly. -->
+<!-- Generated from dbnotifier.localisation.v1; culture:pt-BR; source sha256:6de5681f91571ee220ab66bdeeda3505298f1c527b7585036ea547106cc17aae. Do not edit directly. -->
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:sys="clr-namespace:System;assembly=System.Runtime">
@@ -20,6 +20,7 @@
   <sys:String x:Key="Brand.Subtitle">Console de operações</sys:String>
   <sys:String x:Key="Common.Action">Ação</sys:String>
   <sys:String x:Key="Common.All">Todos</sys:String>
+  <sys:String x:Key="Common.AuthoritativeSnapshot">Snapshot autoritativo</sys:String>
   <sys:String x:Key="Common.Capability">Capability</sys:String>
   <sys:String x:Key="Common.Description">Descrição</sys:String>
   <sys:String x:Key="Common.Environment">Ambiente</sys:String>
@@ -29,6 +30,7 @@
   <sys:String x:Key="Common.Latency">Latência</sys:String>
   <sys:String x:Key="Common.NotPersisted">Não persistido</sys:String>
   <sys:String x:Key="Common.ObservedAt">Observado em</sys:String>
+  <sys:String x:Key="Common.ObservedAtUtc">Observado em (UTC)</sys:String>
   <sys:String x:Key="Common.Provider">Provider</sys:String>
   <sys:String x:Key="Common.ReadOnly">Somente leitura</sys:String>
   <sys:String x:Key="Common.Reason">Motivo</sys:String>
@@ -71,6 +73,8 @@
   <sys:String x:Key="Inventory.Caption">Inventário demonstrativo de instâncias de banco de dados</sys:String>
   <sys:String x:Key="Inventory.Count">{0} de {1} itens visíveis</sys:String>
   <sys:String x:Key="Inventory.Degraded">Degradadas</sys:String>
+  <sys:String x:Key="Inventory.Disabled">Desabilitadas</sys:String>
+  <sys:String x:Key="Inventory.DisabledCount">{0} instância(s) desabilitada(s), excluída(s) da saúde atual</sys:String>
   <sys:String x:Key="Inventory.FilteredEmpty">Ajuste a busca ou o filtro de status.</sys:String>
   <sys:String x:Key="Inventory.Healthy">Saudáveis</sys:String>
   <sys:String x:Key="Inventory.Search">Buscar</sys:String>
@@ -112,6 +116,7 @@
   <sys:String x:Key="Operational.Retry">Tentar novamente</sys:String>
   <sys:String x:Key="Overview.ActiveAlertCount">{0} alerta ativo</sys:String>
   <sys:String x:Key="Overview.AlertDescription">Exceções do fixture local, sem entrega externa.</sys:String>
+  <sys:String x:Key="Overview.AuthoritativeTrendUnavailable">Nenhuma tendência é exibida porque o snapshot autoritativo não contém série temporal.</sys:String>
   <sys:String x:Key="Overview.Critical">Crítico</sys:String>
   <sys:String x:Key="Overview.DemonstrationChart">Série visual determinística; não representa telemetria externa.</sys:String>
   <sys:String x:Key="Overview.FleetDescription">Saúde, latência e evidência local mais recente.</sys:String>
@@ -190,6 +195,7 @@
   <sys:String x:Key="Sidebar.State">STATE-05</sys:String>
   <sys:String x:Key="Status.AuthFailed">Falha de autenticação</sys:String>
   <sys:String x:Key="Status.Degraded">Degradado</sys:String>
+  <sys:String x:Key="Status.Disabled">Desabilitada · excluída da saúde atual</sys:String>
   <sys:String x:Key="Status.Healthy">Saudável</sys:String>
   <sys:String x:Key="Status.Maintenance">Manutenção</sys:String>
   <sys:String x:Key="Status.Stale">Desatualizado</sys:String>

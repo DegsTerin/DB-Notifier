@@ -16,6 +16,7 @@ import {
 } from "../src/dashboardTvReconciliation.ts";
 
 const entityTag = `"sha256-${"a".repeat(64)}"`;
+const coordinatorAcceptedAt = new Date("2026-07-18T12:00:01.000Z");
 const snapshotBody = {
   schemaVersion: "dashboard-tv.v1",
   generatedAt: "2020-07-18T12:00:00.000Z",
@@ -68,6 +69,8 @@ test("HTTP reader accepts one bounded snapshot and sends its ETag on reconciliat
   assert.equal(result.disposition, "modified");
   assert.equal(result.snapshot?.schemaVersion, "inventory.v1");
   assert.equal(result.snapshot?.items[0].displayName, "Finance sandbox");
+  assert.ok(result.acceptedAt instanceof Date);
+  assert.ok((result.acceptedAt?.getTime() ?? 0) >= Date.parse(snapshotBody.generatedAt));
   assert.equal(new Headers(requests[0].headers).get("If-None-Match"), entityTag);
   assert.equal(new Headers(requests[0].headers).get("X-DBN-TV-Test-Human"), "dashboard-tv-local-test");
 });
@@ -99,6 +102,21 @@ test("HTTP reader rejects unknown fields, future evidence and weak ETags", async
     reader.read(undefined, new AbortController().signal),
     (error: unknown) => error instanceof DashboardTvReadError && error.state === "incompatible",
   );
+});
+
+test("HTTP reader rejects peripheral whitespace, controls and bidi formatting", async () => {
+  for (const displayName of [" leading", "trailing ", "line\nbreak", "bidi\u202Eoverride", "isolate\u2066value", "mark\u200Evalue"]) {
+    const invalid = { ...snapshotBody, items: [{ ...snapshotBody.items[0], displayName }] };
+    const reader = new DashboardTvHttpSnapshotReader(async () => new Response(JSON.stringify(invalid), {
+      status: 200,
+      headers: { ETag: entityTag, "DBN-Snapshot-Schema": "dashboard-tv.v1", "Content-Type": "application/json" },
+    }));
+
+    await assert.rejects(
+      reader.read(undefined, new AbortController().signal),
+      (error: unknown) => error instanceof DashboardTvReadError && error.state === "incompatible",
+    );
+  }
 });
 
 test("HTTP reader classifies denied, incompatible and oversized responses without parsing them", async () => {
@@ -195,7 +213,7 @@ test("coordinator reads immediately, never overlaps and preserves evidence acros
   coordinator.retry();
   assert.equal(reader.callCount, 1);
 
-  first.resolve({ disposition: "modified", snapshot: inventorySnapshot(), entityTag });
+  first.resolve({ disposition: "modified", snapshot: inventorySnapshot(), entityTag, acceptedAt });
   await settle();
   assert.equal(timer.lastDelay, dashboardTvReconciliationMilliseconds);
   assert.equal(timer.pendingCount, 1);
@@ -208,6 +226,7 @@ test("coordinator reads immediately, never overlaps and preserves evidence acros
   await settle();
   assert.equal(views.at(-1)?.snapshot?.generatedAt, "2020-07-18T12:00:00.000Z");
   assert.equal(views.at(-1)?.lastSuccessfulAt, acceptedAt);
+  assert.equal(views.at(-1)?.acceptedAt, acceptedAt);
   coordinator.stop();
 });
 
@@ -221,7 +240,7 @@ test("coordinator bounds and coalesces hints without postponing its periodic dea
   const coordinator = new DashboardTvReconciliationCoordinator(reader, () => {}, timer);
 
   coordinator.start();
-  initial.resolve({ disposition: "modified", snapshot: inventorySnapshot(), entityTag });
+  initial.resolve({ disposition: "modified", snapshot: inventorySnapshot(), entityTag, acceptedAt: coordinatorAcceptedAt });
   await settle();
   assert.equal(timer.pendingCount, 1);
 
@@ -249,7 +268,7 @@ test("coordinator bounds and coalesces hints without postponing its periodic dea
 test("coordinator preserves the last valid snapshot after an offline failure", async () => {
   const failure = deferred<DashboardTvReadResult>();
   const reader = new QueueReader([
-    Promise.resolve({ disposition: "modified", snapshot: inventorySnapshot(), entityTag }),
+    Promise.resolve({ disposition: "modified", snapshot: inventorySnapshot(), entityTag, acceptedAt: coordinatorAcceptedAt }),
     failure.promise,
   ]);
   const timer = new ManualTimer();
@@ -275,7 +294,7 @@ test("stopping a TV session aborts and ignores its late completion", async () =>
 
   coordinator.start();
   coordinator.stop();
-  pending.resolve({ disposition: "modified", snapshot: inventorySnapshot(), entityTag });
+  pending.resolve({ disposition: "modified", snapshot: inventorySnapshot(), entityTag, acceptedAt: coordinatorAcceptedAt });
   await settle();
 
   assert.equal(reader.lastSignal?.aborted, true);

@@ -12,6 +12,7 @@ export type CapabilityState = "supported" | "unsupported" | "unavailable" | "unk
 export type ActionPreview = "confirmationRequired" | "denied" | "unsupported" | "unavailable" | "unknown";
 export type FleetAggregateState = "healthy" | "warning" | "critical" | "unknown";
 export type EvidenceFreshness = "current" | "stale" | "unknown";
+export type InventoryFilterState = "all" | HealthStatus | "stale" | "disabled";
 export type HealthStatus =
   | "healthy"
   | "degraded"
@@ -48,6 +49,7 @@ export interface InventorySummary {
   warning: number;
   attentionRequired: number;
   stale: number;
+  disabled: number;
 }
 
 export interface TimelineEventItem {
@@ -112,6 +114,21 @@ export function normalizeHealthStatus(status: unknown): HealthStatus {
     : "unknown";
 }
 
+/** Returns a recognised event severity without allowing an unknown runtime value to imply Information. */
+export function normalizeEventSeverity(severity: unknown): EventSeverity | "unknown" {
+  return severity === "information" || severity === "warning" || severity === "critical" ? severity : "unknown";
+}
+
+/** Returns a recognised alert state without allowing an unknown runtime value to imply Resolved. */
+export function normalizeAlertState(state: unknown): AlertState | "unknown" {
+  return state === "active" || state === "acknowledged" || state === "silenced" || state === "resolved" ? state : "unknown";
+}
+
+/** Returns a recognised capability state without exposing an untrusted machine value as interface copy. */
+export function normalizeCapabilityState(state: unknown): CapabilityState {
+  return state === "supported" || state === "unsupported" || state === "unavailable" || state === "unknown" ? state : "unknown";
+}
+
 /**
  * Summarises only current evidence into health KPIs while retaining stale counts independently.
  * @param snapshot - Immutable inventory evidence to classify.
@@ -125,6 +142,10 @@ export function summarizeInventory(snapshot: InventorySnapshot, now: Date): Inve
       const current = freshness === "current";
       const status = normalizeHealthStatus(item.status);
       summary.total += 1;
+      if (!item.enabled) {
+        summary.disabled += 1;
+        return summary;
+      }
       summary.stale += freshness === "stale" ? 1 : 0;
       summary.healthy += status === "healthy" && current ? 1 : 0;
       summary.degraded += status === "degraded" && current ? 1 : 0;
@@ -132,7 +153,7 @@ export function summarizeInventory(snapshot: InventorySnapshot, now: Date): Inve
       summary.attentionRequired += ["unavailable", "authFailed", "timeout"].includes(status) && current ? 1 : 0;
       return summary;
     },
-    { total: 0, healthy: 0, degraded: 0, warning: 0, attentionRequired: 0, stale: 0 },
+    { total: 0, healthy: 0, degraded: 0, warning: 0, attentionRequired: 0, stale: 0, disabled: 0 },
   );
 }
 
@@ -145,9 +166,12 @@ export function summarizeInventory(snapshot: InventorySnapshot, now: Date): Inve
 export function summarizeFleetAggregate(snapshot: InventorySnapshot, now: Date): FleetAggregateState {
   let warning = false;
   let critical = false;
-  let unknown = snapshot.items.length === 0;
+  let unknown = false;
+  let enabledCount = 0;
 
   for (const item of snapshot.items) {
+    if (!item.enabled) continue;
+    enabledCount += 1;
     if (classifyEvidenceFreshness(item, now) !== "current") {
       unknown = true;
       continue;
@@ -160,14 +184,14 @@ export function summarizeFleetAggregate(snapshot: InventorySnapshot, now: Date):
 
   if (critical) return "critical";
   if (warning) return "warning";
-  if (unknown) return "unknown";
+  if (unknown || enabledCount === 0) return "unknown";
   return "healthy";
 }
 
 export function filterInventory(
   items: readonly InventoryItem[],
   query: string,
-  status: "all" | HealthStatus | "stale",
+  status: InventoryFilterState,
   now: Date,
   locale: SupportedLocale = "pt-BR",
 ): readonly InventoryItem[] {
@@ -186,7 +210,9 @@ export function filterInventory(
         ? normalizeHealthStatus(item.status)
         : null;
     const matchesStatus = status === "all" ||
-      (status === "stale" ? freshness === "stale" : effectiveStatus === status);
+      (status === "disabled"
+        ? !item.enabled
+        : item.enabled && (status === "stale" ? freshness === "stale" : effectiveStatus === status));
     return matchesQuery && matchesStatus;
   });
 }
@@ -203,6 +229,7 @@ export function buildDemonstrationSnapshot(now: Date, locale: SupportedLocale = 
     status: HealthStatus,
     ageMilliseconds: number,
     latencyMilliseconds: number | null,
+    enabled = true,
   ): InventoryItem => ({
     instanceId,
     displayName,
@@ -214,7 +241,7 @@ export function buildDemonstrationSnapshot(now: Date, locale: SupportedLocale = 
     observedAt: isoAt(ageMilliseconds + 1_000),
     receivedAt: isoAt(ageMilliseconds),
     latencyMilliseconds,
-    enabled: true,
+    enabled,
   });
 
   return {
@@ -224,7 +251,7 @@ export function buildDemonstrationSnapshot(now: Date, locale: SupportedLocale = 
       item("demo-001", translate(locale, "Sample.Instance.Finance"), "postgresql", translate(locale, "Sample.Support.Implemented"), translate(locale, "Sample.Environment.Production"), translate(locale, "Sample.Location.Datacentre"), "healthy", 38_000, 24),
       item("demo-002", translate(locale, "Sample.Instance.Orders"), "mysql", translate(locale, "Sample.Support.Planned"), translate(locale, "Sample.Environment.Production"), translate(locale, "Sample.Location.PrivateCloud"), "degraded", 120_000, 86),
       item("demo-003", translate(locale, "Sample.Instance.Analytics"), "sql-server", translate(locale, "Sample.Support.Planned"), translate(locale, "Sample.Environment.Validation"), "Azure", "timeout", 180_000, null),
-      item("demo-004", translate(locale, "Sample.Instance.Catalogue"), "mongodb", translate(locale, "Sample.Support.Planned"), translate(locale, "Sample.Environment.Development"), translate(locale, "Sample.Location.LocalLinux"), "unknown", 540_000, null),
+      item("demo-004", translate(locale, "Sample.Instance.Catalogue"), "mongodb", translate(locale, "Sample.Support.Planned"), translate(locale, "Sample.Environment.Development"), translate(locale, "Sample.Location.LocalLinux"), "unknown", 540_000, null, false),
     ],
   };
 }

@@ -13,6 +13,7 @@ public partial class App : System.Windows.Application, IDisposable
     private TrayApplicationController? trayController;
     private DesktopLocalisationService? localisation;
     private DesktopThemeService? theme;
+    private DesktopMotionService? motion;
     private ProviderVisualIdentityPolicy? providerVisualIdentityPolicy;
 
     /// <summary>Loads safe preferences and starts in the notification area with only explicitly requested local review modes enabled.</summary>
@@ -23,6 +24,7 @@ public partial class App : System.Windows.Application, IDisposable
         DesktopUiPreferenceStore preferences = new();
         localisation = new DesktopLocalisationService(this, preferences);
         theme = new DesktopThemeService(this, preferences);
+        motion = new DesktopMotionService();
         localisation.Initialise();
         theme.Initialise();
         providerVisualIdentityPolicy = new ProviderVisualIdentityPolicy(theme);
@@ -33,6 +35,7 @@ public partial class App : System.Windows.Application, IDisposable
         MainWindow window = new(
             localisation,
             theme,
+            motion,
             providerVisualIdentityPolicy,
             evidence,
             fleetSummary.State,
@@ -73,6 +76,8 @@ public partial class App : System.Windows.Application, IDisposable
         providerVisualIdentityPolicy = null;
         theme?.Dispose();
         theme = null;
+        motion?.Dispose();
+        motion = null;
         GC.SuppressFinalize(this);
     }
 }

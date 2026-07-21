@@ -53,6 +53,32 @@ public sealed class InventoryPresentationTests
         Assert.Equal(3, summary.Stale);
     }
 
+    /// <summary>Verifies that disabled evidence remains inventory truth without contributing to health or stale conclusions.</summary>
+    [Fact]
+    public void SummarySeparatesDisabledItemsFromCurrentHealthAndFreshness()
+    {
+        InventorySnapshot snapshot = new(
+            InventorySnapshot.CurrentSchemaVersion,
+            Now,
+            [
+                CreateItem(HealthStatus.Healthy, Now) with { Enabled = false },
+                CreateItem(HealthStatus.Timeout, Now.AddMinutes(-10)) with { Enabled = false },
+                CreateItem(HealthStatus.Healthy, Now),
+            ]);
+
+        InventoryStatusSummary summary = snapshot.Summarize(Now, TimeSpan.FromMinutes(5));
+        TrayFleetSummary tray = TrayFleetPresentationPolicy.Summarise(snapshot, Now, TimeSpan.FromMinutes(5));
+
+        Assert.Equal(3, summary.Total);
+        Assert.Equal(1, summary.Healthy);
+        Assert.Equal(0, summary.AttentionRequired);
+        Assert.Equal(0, summary.Stale);
+        Assert.Equal(2, summary.Disabled);
+        Assert.Equal(TrayAggregateState.Healthy, tray.State);
+        Assert.Equal(3, tray.TotalCount);
+        Assert.Equal(2, tray.DisabledCount);
+    }
+
     [Fact]
     public void StaleBoundaryIsNotPremature()
     {

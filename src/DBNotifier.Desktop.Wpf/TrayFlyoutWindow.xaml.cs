@@ -25,6 +25,7 @@ internal sealed partial class TrayFlyoutWindow : Window
     private readonly DispatcherTimer activationTimer;
     private bool allowClose;
     private bool dismissOnDeactivation;
+    private bool compactLayout;
     private TrayFleetSummary fleetSummary;
 
     /// <summary>Initialises the flyout with safe callbacks owned by the tray lifecycle controller.</summary>
@@ -65,17 +66,61 @@ internal sealed partial class TrayFlyoutWindow : Window
         dismissOnDeactivation = false;
         activationTimer.Stop();
         Show();
-        DpiScale dpi = VisualTreeHelper.GetDpi(this);
-        BrandStatusImage.Source = BrandStatusIconPolicy.LoadImageSource(fleetSummary.State, 32, dpi);
-        UpdateLayout();
-
-        System.Drawing.Rectangle workingArea = Forms.Screen.FromPoint(Forms.Cursor.Position).WorkingArea;
-        Left = (workingArea.Right / dpi.DpiScaleX) - ActualWidth - 12;
-        Top = (workingArea.Bottom / dpi.DpiScaleY) - ActualHeight - 12;
+        PositionWithinCurrentWorkArea();
         Activate();
         Focus();
         activationTimer.Start();
     }
+
+    /// <summary>Sizes, reflows and positions the flyout inside the monitor work area using its current per-monitor DPI.</summary>
+    private void PositionWithinCurrentWorkArea()
+    {
+        DpiScale dpi = VisualTreeHelper.GetDpi(this);
+        System.Drawing.Rectangle workingArea = Forms.Screen.FromPoint(Forms.Cursor.Position).WorkingArea;
+        double availableWidth = Math.Max(320, workingArea.Width / dpi.DpiScaleX - 24);
+        double availableHeight = Math.Max(320, workingArea.Height / dpi.DpiScaleY - 24);
+        Width = Math.Min(560, availableWidth);
+        MaxHeight = Math.Min(620, availableHeight);
+        ApplyResponsiveLayout(Width < 480);
+        RefreshBrandStatusImage(dpi);
+        UpdateLayout();
+
+        double workingLeft = workingArea.Left / dpi.DpiScaleX;
+        double workingTop = workingArea.Top / dpi.DpiScaleY;
+        double workingRight = workingArea.Right / dpi.DpiScaleX;
+        double workingBottom = workingArea.Bottom / dpi.DpiScaleY;
+        Left = Math.Max(workingLeft + 12, workingRight - ActualWidth - 12);
+        Top = Math.Max(workingTop + 12, workingBottom - ActualHeight - 12);
+    }
+
+    /// <summary>Switches between side-by-side and stacked panels without hiding evidence or navigation.</summary>
+    /// <param name="compact">Whether the available width requires a single-column body.</param>
+    private void ApplyResponsiveLayout(bool compact)
+    {
+        if (compactLayout == compact)
+        {
+            return;
+        }
+
+        compactLayout = compact;
+        FleetColumn.Width = new GridLength(1, GridUnitType.Star);
+        ActionsColumn.Width = compact ? new GridLength(0) : new GridLength(1, GridUnitType.Star);
+        System.Windows.Controls.Grid.SetRow(ActionsPanel, compact ? 1 : 0);
+        System.Windows.Controls.Grid.SetColumn(ActionsPanel, compact ? 0 : 1);
+        FleetPanel.BorderThickness = compact ? new Thickness(0, 1, 0, 0) : new Thickness(0, 1, 1, 1);
+        ActionsPanel.BorderThickness = new Thickness(0, compact ? 0 : 1, 0, 1);
+    }
+
+    /// <summary>Repositions after Windows moves the flyout between monitors with different DPI.</summary>
+    /// <param name="sender">Flyout window.</param>
+    /// <param name="e">Old and new per-monitor DPI values.</param>
+    private void WindowDpiChanged(object sender, System.Windows.DpiChangedEventArgs e) =>
+        Dispatcher.BeginInvoke(DispatcherPriority.Loaded, new Action(PositionWithinCurrentWorkArea));
+
+    /// <summary>Re-evaluates bounded panel reflow when the work-area-constrained width changes.</summary>
+    /// <param name="sender">Flyout window.</param>
+    /// <param name="e">Previous and current rendered dimensions.</param>
+    private void WindowSizeChanged(object sender, SizeChangedEventArgs e) => ApplyResponsiveLayout(e.NewSize.Width < 480);
 
     /// <summary>Refreshes localised fleet text and item states from one shared freshness evaluation.</summary>
     /// <param name="evaluatedAt">UTC instant used only to classify the immutable item evidence.</param>
@@ -84,8 +129,9 @@ internal sealed partial class TrayFlyoutWindow : Window
     {
         fleetSummary = summary;
         string aggregateLabel = localisation.Text($"Tray.Aggregate.{fleetSummary.State}");
-        AggregateText.Text = localisation.Text("Tray.AggregateSummary", aggregateLabel);
+        AggregateText.Text = $"{localisation.Text("Tray.AggregateSummary", aggregateLabel)} · {localisation.Text("Inventory.DisabledCount", fleetSummary.DisabledCount)}";
         SnapshotText.Text = localisation.Text("Tray.LocalSnapshot", FormatUtc(evidence.GeneratedAt));
+        RefreshBrandStatusImage(VisualTreeHelper.GetDpi(this));
         RefreshInstanceStates(evaluatedAt);
     }
 
@@ -103,24 +149,31 @@ internal sealed partial class TrayFlyoutWindow : Window
             InstanceInventoryItem item = items[index];
             providerIdentities[index].Identity = providerVisualIdentityPolicy.Resolve(item.ProviderType);
             EvidenceFreshness freshness = item.GetFreshness(evaluatedAt, DesktopDemonstrationEvidence.StaleAfter);
-            (string labelKey, string brushKey) = freshness switch
-            {
-                EvidenceFreshness.Stale => ("Status.Stale", "ComponentStatusNeutralForegroundBrush"),
-                EvidenceFreshness.Unknown => ("Status.Unknown", "ComponentStatusNeutralForegroundBrush"),
-                _ => item.Status switch
+            (string labelKey, string brushKey) = !item.Enabled
+                ? ("Status.Disabled", "ComponentStatusNeutralForegroundBrush")
+                : freshness switch
                 {
-                    HealthStatus.Healthy => ("Status.Healthy", "ComponentStatusHealthyForegroundBrush"),
-                    HealthStatus.Degraded or HealthStatus.Maintenance => ($"Status.{item.Status}", "ComponentStatusDegradedForegroundBrush"),
-                    HealthStatus.Unavailable or HealthStatus.AuthFailed or HealthStatus.Timeout => ($"Status.{item.Status}", "ComponentStatusCriticalForegroundBrush"),
-                    _ => ("Status.Unknown", "ComponentStatusNeutralForegroundBrush"),
-                },
-            };
+                    EvidenceFreshness.Stale => ("Status.Stale", "ComponentStatusNeutralForegroundBrush"),
+                    EvidenceFreshness.Unknown => ("Status.Unknown", "ComponentStatusNeutralForegroundBrush"),
+                    _ => item.Status switch
+                    {
+                        HealthStatus.Healthy => ("Status.Healthy", "ComponentStatusHealthyForegroundBrush"),
+                        HealthStatus.Degraded or HealthStatus.Maintenance => ($"Status.{item.Status}", "ComponentStatusDegradedForegroundBrush"),
+                        HealthStatus.Unavailable or HealthStatus.AuthFailed or HealthStatus.Timeout => ($"Status.{item.Status}", "ComponentStatusCriticalForegroundBrush"),
+                        _ => ("Status.Unknown", "ComponentStatusNeutralForegroundBrush"),
+                    },
+                };
             labels[index].Text = localisation.Text(labelKey);
             labels[index].SetResourceReference(System.Windows.Controls.TextBlock.ForegroundProperty, brushKey);
             glyphs[index].SetResourceReference(Shape.FillProperty, brushKey);
             glyphs[index].SetResourceReference(Shape.StrokeProperty, brushKey);
         }
     }
+
+    /// <summary>Synchronises the flyout mark with the latest aggregate without changing notification delivery state.</summary>
+    /// <param name="dpi">Effective DPI used to select the smallest non-upscaled canonical icon frame.</param>
+    private void RefreshBrandStatusImage(DpiScale dpi) =>
+        BrandStatusImage.Source = BrandStatusIconPolicy.LoadImageSource(fleetSummary.State, 32, dpi);
 
     /// <summary>Re-resolves decorative provider identities without re-evaluating immutable operational evidence.</summary>
     /// <param name="sender">Provider identity policy that observed an effective presentation change.</param>
@@ -168,7 +221,7 @@ internal sealed partial class TrayFlyoutWindow : Window
     }
 
     /// <summary>Formats an exact UTC timestamp without implying that an external source was read.</summary>
-    private string FormatUtc(DateTimeOffset value) => value.UtcDateTime.ToString("yyyy-MM-dd HH:mm:ss", localisation.Culture);
+    private string FormatUtc(DateTimeOffset value) => DesktopDateTimePresentation.FormatUtc(value, localisation.Culture);
 
     /// <summary>Opens the composed operational overview and hides the transient flyout.</summary>
     private void OpenOverviewClick(object sender, RoutedEventArgs e) => Open(DesktopView.Overview);

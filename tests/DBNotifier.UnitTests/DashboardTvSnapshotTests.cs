@@ -95,6 +95,28 @@ public sealed class DashboardTvSnapshotTests
         Assert.Equal("dashboard_tv.snapshot_invalid", errorCode);
     }
 
+    /// <summary>Verifies that visually unstable text fails closed before the TV transport boundary.</summary>
+    /// <param name="displayName">Untrusted text containing peripheral whitespace, controls or bidi formatting.</param>
+    [Theory]
+    [InlineData(" leading")]
+    [InlineData("trailing ")]
+    [InlineData("line\nbreak")]
+    [InlineData("bidi\u202Eoverride")]
+    [InlineData("isolate\u2066value")]
+    [InlineData("mark\u200Evalue")]
+    public void ValidationRejectsPeripheralWhitespaceControlsAndBidiFormatting(string displayName)
+    {
+        DateTimeOffset now = new(2026, 7, 18, 12, 0, 0, TimeSpan.Zero);
+        DashboardTvSandboxSnapshotSource source = new(new FixedTimeProvider(now));
+        DashboardTvInventoryItem invalidItem = source.Snapshot.Items[0] with { DisplayName = displayName };
+        DashboardTvSnapshot snapshot = source.Snapshot with { Items = [invalidItem] };
+
+        bool valid = DashboardTvSnapshotValidator.TryValidate(snapshot, now, out string errorCode);
+
+        Assert.False(valid);
+        Assert.Equal("dashboard_tv.item_invalid", errorCode);
+    }
+
     private sealed class FixedTimeProvider(DateTimeOffset now) : TimeProvider
     {
         public override DateTimeOffset GetUtcNow() => now;

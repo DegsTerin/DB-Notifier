@@ -11,6 +11,9 @@ import {
   filterInventory,
   filterTimeline,
   isStale,
+  normalizeAlertState,
+  normalizeCapabilityState,
+  normalizeEventSeverity,
   previewAction,
   staleAfterMilliseconds,
   summarizeFleetAggregate,
@@ -148,7 +151,7 @@ test("summary does not report stale data as freshly healthy", () => {
   const snapshot = buildDemonstrationSnapshot(now);
   const summary = summarizeInventory(snapshot, now);
 
-  assert.deepEqual(summary, { total: 4, healthy: 1, degraded: 1, warning: 1, attentionRequired: 1, stale: 1 });
+  assert.deepEqual(summary, { total: 4, healthy: 1, degraded: 1, warning: 1, attentionRequired: 1, stale: 0, disabled: 1 });
 });
 
 test("summary excludes stale status classes and counts current maintenance as warning", () => {
@@ -166,8 +169,26 @@ test("summary excludes stale status classes and counts current maintenance as wa
   };
 
   assert.deepEqual(summarizeInventory(snapshot, now), {
-    total: 4, healthy: 0, degraded: 0, warning: 1, attentionRequired: 0, stale: 3,
+    total: 4, healthy: 0, degraded: 0, warning: 1, attentionRequired: 0, stale: 3, disabled: 0,
   });
+});
+
+test("disabled inventory remains visible without contributing to current health", () => {
+  const template = buildDemonstrationSnapshot(now).items[0];
+  const snapshot = {
+    schemaVersion: "inventory.v1" as const,
+    generatedAt: now.toISOString(),
+    items: [
+      { ...template, instanceId: "disabled-critical", status: "timeout" as const, enabled: false },
+      { ...template, instanceId: "enabled-healthy", enabled: true },
+    ],
+  };
+
+  assert.deepEqual(summarizeInventory(snapshot, now), {
+    total: 2, healthy: 1, degraded: 0, warning: 0, attentionRequired: 0, stale: 0, disabled: 1,
+  });
+  assert.equal(summarizeFleetAggregate(snapshot, now), "healthy");
+  assert.equal(filterInventory(snapshot.items, "", "disabled", now).length, 1);
 });
 
 test("fleet aggregate drives every semantic product-mark state with Tray precedence", () => {
@@ -198,6 +219,9 @@ test("invalid, future and unrecognised evidence fails safely to unknown", () => 
   assert.equal(classifyEvidenceFreshness({ ...template, observedAt: future, receivedAt: future }, now), "unknown");
   assert.equal(aggregate({ ...template, observedAt: "invalid", receivedAt: "invalid" }), "unknown");
   assert.equal(aggregate({ ...template, status: "unrecognised" as typeof template.status }), "unknown");
+  assert.equal(normalizeEventSeverity("unrecognised"), "unknown");
+  assert.equal(normalizeAlertState("unrecognised"), "unknown");
+  assert.equal(normalizeCapabilityState("unrecognised"), "unknown");
 });
 
 test("semantic brand replacement keeps header and favicon on the same aggregate without reusing the old node", () => {
@@ -407,7 +431,7 @@ test("alert summary uses its full row without inheriting empty inventory columns
   const css = readFileSync(new URL("../src/styles.css", import.meta.url), "utf8");
 
   assert.match(css, /\.alert-summary \{ width: 100%; max-width: none; grid-template-columns: repeat\(3, minmax\(150px, 1fr\)\); \}/);
-  assert.match(css, /@media \(max-width: 1100px\)[\s\S]*?\.summary-grid \{ grid-template-columns: repeat\(5, minmax\(0, 1fr\)\); \}[\s\S]*?\.alert-summary \{ grid-template-columns: repeat\(3, minmax\(0, 1fr\)\); \}/);
+  assert.match(css, /@media \(max-width: 1100px\)[\s\S]*?\.summary-grid \{ grid-template-columns: repeat\(3, minmax\(0, 1fr\)\); \}[\s\S]*?\.alert-summary \{ grid-template-columns: repeat\(3, minmax\(0, 1fr\)\); \}/);
 });
 
 test("crawler policy explicitly blocks crawler access to the operational console", () => {
@@ -690,7 +714,7 @@ test("provider-neutral database mark is shared by active Web and Windows surface
   assert.doesNotMatch(brandGenerator, /includeMiddleSeam|databaseStrokeRadius = Math\.max/);
   assert.match(brandGenerator, /strokeWidth:\s*3\.5/);
   assert.match(html, /id="dbnotifier-favicon"[^>]+dbnotifier-favicon\.unknown\.ico\?v=2\.6\.13-unknown/);
-  assert.match(app, /summarizeFleetAggregate\(snapshot, now\)/);
+  assert.match(app, /summarizeFleetAggregate\(snapshot, presentationNow\)/);
   assert.match(app, /useLayoutEffect\(\(\) =>/);
   assert.match(app, /replaceSemanticFavicon\(document, brandAssets\.faviconPath, aggregateState\)/);
   assert.match(semanticBrand, /querySelector<HTMLLinkElement>\('link\[rel~="icon"\]'\)/);
@@ -714,7 +738,7 @@ test("provider-neutral database mark is shared by active Web and Windows surface
   assert.match(desktopCode, /BrandStatusIconPolicy\.ApplyNativeWindowIcons\(this, aggregateState\)/);
   assert.match(desktopApp, /DesktopDemonstrationEvidence\.Create\(generatedAt\)/);
   assert.match(desktopApp, /evidence\.Summarise\(generatedAt\)/);
-  assert.match(desktopApp, /new\(\s*localisation,\s*theme,\s*providerVisualIdentityPolicy,\s*evidence,\s*fleetSummary\.State,\s*accessibilityReviewMode\)/);
+  assert.match(desktopApp, /new\(\s*localisation,\s*theme,\s*motion,\s*providerVisualIdentityPolicy,\s*evidence,\s*fleetSummary\.State,\s*accessibilityReviewMode\)/);
   assert.match(desktopEvidence, /TrayFleetPresentationPolicy\.Summarise\(CreateInventorySnapshot/);
   assert.match(desktopEvidence, /GeneratedAt = generatedAt/);
   assert.match(flyoutXaml, /x:Name="BrandStatusImage"/);
@@ -794,7 +818,8 @@ test("provider-neutral database mark is shared by active Web and Windows surface
   assert.match(installer, /#define AppDisplayName "DB Notifier"/);
   assert.match(installer, /AppName=\{#AppDisplayName\}/);
   assert.match(installer, /DefaultDirName=\{autopf\}\\\{#AppName\}/);
-  assert.match(compatibilityBuild, /-IconFile \$iconPath/);
+  assert.match(compatibilityBuild, /Compatibility packaging remains unavailable in R5/);
+  assert.doesNotMatch(compatibilityBuild, /-IconFile \$iconPath/);
 });
 
 test("Tray flyout preserves operational scanning while administrative execution remains unavailable", () => {
@@ -852,7 +877,8 @@ test("filter searches provider-neutral fields and stale state", () => {
   const snapshot = buildDemonstrationSnapshot(now);
 
   assert.equal(filterInventory(snapshot.items, "azure", "all", now).length, 1);
-  assert.equal(filterInventory(snapshot.items, "", "stale", now).length, 1);
+  assert.equal(filterInventory(snapshot.items, "", "stale", now).length, 0);
+  assert.equal(filterInventory(snapshot.items, "", "disabled", now).length, 1);
   assert.equal(filterInventory(snapshot.items, "mysql", "healthy", now).length, 0);
 });
 
@@ -874,4 +900,19 @@ test("filter maps future and reversed evidence to Unknown instead of its raw hea
   assert.equal(filterInventory([future, reversed], "", "healthy", now).length, 0);
   assert.equal(filterInventory([future, reversed], "", "unknown", now).length, 2);
   assert.equal(filterInventory([future, reversed], "", "stale", now).length, 0);
+});
+
+test("route titles, complete identifiers and provider registries retain one canonical presentation contract", () => {
+  const app = readFileSync(new URL("../src/App.tsx", import.meta.url), "utf8");
+  const localisationProvider = readFileSync(new URL("../src/LocalisationProvider.tsx", import.meta.url), "utf8");
+  const providerRegistry = readFileSync(new URL("../src/providerIconRegistry.ts", import.meta.url), "utf8");
+  const providerGenerator = readFileSync(new URL("../../../scripts/generate-provider-icon-assets.mjs", import.meta.url), "utf8");
+
+  assert.match(app, /document\.title = `DB Notifier — \$\{t\(copy\.titleKey\)\}`/);
+  assert.doesNotMatch(localisationProvider, /document\.title/);
+  assert.equal((app.match(/className="machine-id"/g) ?? []).length, 2);
+  assert.match(providerRegistry, /from "\.\/generated\/providerIconRegistry\.ts"/);
+  assert.match(providerGenerator, /design-system["', ]+, "provider-icons"/);
+  assert.match(providerGenerator, /generateRegistries\(\)/);
+  assert.match(providerGenerator, /verifyRegistries\(\)/);
 });

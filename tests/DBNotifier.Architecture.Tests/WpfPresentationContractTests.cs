@@ -91,6 +91,7 @@ public sealed class WpfPresentationContractTests
     {
         string desktopDirectory = Path.Combine(RepositoryRoot(), "src", "DBNotifier.Desktop.Wpf");
         string policy = File.ReadAllText(Path.Combine(desktopDirectory, "ProviderVisualIdentityPolicy.cs"));
+        string generatedRegistry = File.ReadAllText(Path.Combine(desktopDirectory, "Generated", "ProviderIconRegistry.g.cs"));
         string identityMarkup = File.ReadAllText(Path.Combine(desktopDirectory, "ProviderIdentityView.xaml"));
         string identityView = File.ReadAllText(Path.Combine(desktopDirectory, "ProviderIdentityView.xaml.cs"));
         string mainWindowMarkup = File.ReadAllText(Path.Combine(desktopDirectory, "MainWindow.xaml"));
@@ -126,7 +127,7 @@ public sealed class WpfPresentationContractTests
         Assert.Contains("theme.EffectiveTheme == EffectiveTheme.Dark", policy, StringComparison.Ordinal);
         Assert.Contains("theme.IsHighContrastActive", policy, StringComparison.Ordinal);
         Assert.Contains("string visibleProviderType = providerType ?? \"unknown\"", policy, StringComparison.Ordinal);
-        Assert.Contains("Assets.TryGetValue(providerType", policy, StringComparison.Ordinal);
+        Assert.Contains("GeneratedProviderIconRegistry.Assets.TryGetValue(providerType", policy, StringComparison.Ordinal);
         Assert.DoesNotContain(".Trim()", policy, StringComparison.Ordinal);
         Assert.Contains("new ProviderVisualIdentity(visibleProviderType, null)", policy, StringComparison.Ordinal);
         Assert.DoesNotContain("http://", policy, StringComparison.OrdinalIgnoreCase);
@@ -137,7 +138,7 @@ public sealed class WpfPresentationContractTests
 
         foreach (string providerType in providerTypes)
         {
-            Assert.Contains($"[\"{providerType}\"] = ProviderVisualAsset.Create(\"{providerType}\")", policy, StringComparison.Ordinal);
+            Assert.Contains($"[\"{providerType}\"] = new(\"Assets/ProviderIcons/{providerType}-light.png\", \"Assets/ProviderIcons/{providerType}-dark.png\")", generatedRegistry, StringComparison.Ordinal);
             Assert.True(File.Exists(Path.Combine(iconDirectory, $"{providerType}-light.png")), $"Missing Light provider icon for '{providerType}'.");
             Assert.True(File.Exists(Path.Combine(iconDirectory, $"{providerType}-dark.png")), $"Missing Dark provider icon for '{providerType}'.");
         }
@@ -159,6 +160,35 @@ public sealed class WpfPresentationContractTests
         Assert.Contains("x:Name=\"BrandStatusImage\"", mainWindowMarkup, StringComparison.Ordinal);
         Assert.Contains("x:Name=\"BrandStatusImage\"", flyoutMarkup, StringComparison.Ordinal);
         Assert.Contains("x:Name=\"FinanceStatusGlyph\"", flyoutMarkup, StringComparison.Ordinal);
+    }
+
+    /// <summary>Ensures navigation, motion and flyout geometry use code-native and bounded presentation contracts.</summary>
+    [Fact]
+    public void WpfAutomaticAccessibilityContractsRemainNonVisualAndBounded()
+    {
+        string desktopDirectory = Path.Combine(RepositoryRoot(), "src", "DBNotifier.Desktop.Wpf");
+        string application = File.ReadAllText(Path.Combine(desktopDirectory, "App.xaml.cs"));
+        string mainWindow = File.ReadAllText(Path.Combine(desktopDirectory, "MainWindow.xaml.cs"));
+        string mainWindowMarkup = File.ReadAllText(Path.Combine(desktopDirectory, "MainWindow.xaml"));
+        string motion = File.ReadAllText(Path.Combine(desktopDirectory, "DesktopMotionService.cs"));
+        string flyout = File.ReadAllText(Path.Combine(desktopDirectory, "TrayFlyoutWindow.xaml.cs"));
+        string flyoutMarkup = File.ReadAllText(Path.Combine(desktopDirectory, "TrayFlyoutWindow.xaml"));
+
+        Assert.Contains("new DesktopMotionService()", application, StringComparison.Ordinal);
+        Assert.Contains("SystemParameters.ClientAreaAnimation", motion, StringComparison.Ordinal);
+        Assert.Contains("PopupAnimation.None", mainWindow, StringComparison.Ordinal);
+        Assert.Contains("PopupAnimation.Fade", mainWindow, StringComparison.Ordinal);
+        Assert.DoesNotContain("Text=\"⌂\"", mainWindowMarkup, StringComparison.Ordinal);
+        Assert.DoesNotContain("Text=\"⚙\"", mainWindowMarkup, StringComparison.Ordinal);
+        Assert.Equal(8, Regex.Count(mainWindowMarkup, "Style=\"\\{StaticResource SidebarNavigationIcon\\}\"", RegexOptions.CultureInvariant));
+        Assert.Contains("DpiChanged=\"WindowDpiChanged\"", flyoutMarkup, StringComparison.Ordinal);
+        Assert.Contains("x:Name=\"FlyoutBodyScrollViewer\"", flyoutMarkup, StringComparison.Ordinal);
+        Assert.Contains("VerticalScrollBarVisibility=\"Auto\"", flyoutMarkup, StringComparison.Ordinal);
+        Assert.Contains("Forms.Screen.FromPoint(Forms.Cursor.Position).WorkingArea", flyout, StringComparison.Ordinal);
+        Assert.Contains("ApplyResponsiveLayout(Width < 480)", flyout, StringComparison.Ordinal);
+        Assert.Contains("DesktopDateTimePresentation.FormatUtc", mainWindow, StringComparison.Ordinal);
+        Assert.Contains("DesktopDateTimePresentation.FormatUtc", flyout, StringComparison.Ordinal);
+        Assert.Contains("Common.ObservedAtUtc", mainWindow, StringComparison.Ordinal);
     }
 
     /// <summary>Ensures invalid future or reversed inventory evidence is not rendered as a factual desktop timestamp.</summary>

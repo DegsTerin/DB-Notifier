@@ -23,13 +23,18 @@ export interface DashboardTvReconciliationView {
   snapshot?: InventorySnapshot;
   entityTag?: string;
   lastSuccessfulAt?: Date;
+  acceptedAt?: Date;
 }
 
-export interface DashboardTvReadResult {
-  disposition: "modified" | "notModified";
-  snapshot?: InventorySnapshot;
-  entityTag: string;
-}
+export type DashboardTvReadResult = {
+  readonly disposition: "modified";
+  readonly snapshot: InventorySnapshot;
+  readonly entityTag: string;
+  readonly acceptedAt: Date;
+} | {
+  readonly disposition: "notModified";
+  readonly entityTag: string;
+};
 
 export interface DashboardTvSnapshotReader {
   read(entityTag: string | undefined, signal: AbortSignal): Promise<DashboardTvReadResult>;
@@ -146,10 +151,12 @@ export class DashboardTvHttpSnapshotReader implements DashboardTvSnapshotReader 
       } catch {
         throw new DashboardTvReadError("incompatible");
       }
+      const acceptedAt = new Date();
       return {
         disposition: "modified",
         entityTag: returnedEntityTag,
-        snapshot: validateDashboardTvSnapshot(value, new Date()),
+        snapshot: validateDashboardTvSnapshot(value, acceptedAt),
+        acceptedAt,
       };
     } catch (error) {
       if (signal.aborted) throw error;
@@ -249,9 +256,10 @@ export class DashboardTvReconciliationCoordinator {
       }
       this.current = {
         state: "ready",
-        snapshot: result.snapshot ?? this.current.snapshot,
+        snapshot: result.disposition === "modified" ? result.snapshot : this.current.snapshot,
         entityTag: result.entityTag,
         lastSuccessfulAt: result.disposition === "modified" ? this.now() : this.current.lastSuccessfulAt,
+        acceptedAt: result.disposition === "modified" ? result.acceptedAt : this.current.acceptedAt,
       };
       this.publish(this.current);
     } catch (error) {
@@ -407,7 +415,12 @@ function hasExactKeys(value: Record<string, unknown>, expected: readonly string[
 }
 
 function isBoundedText(value: unknown): value is string {
-  return typeof value === "string" && value.trim().length > 0 && value.length <= maximumTextLength;
+  return typeof value === "string" &&
+    value.length > 0 &&
+    value.length <= maximumTextLength &&
+    value === value.trim() &&
+    !/[\u0000-\u001f\u007f-\u009f]/u.test(value) &&
+    !/\p{Cf}/u.test(value);
 }
 
 function isUuid(value: string): boolean {

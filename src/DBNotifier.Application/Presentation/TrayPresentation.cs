@@ -374,6 +374,7 @@ public static class TrayInstanceStateChangePolicy
         ArgumentOutOfRangeException.ThrowIfLessThanOrEqual(staleAfter, TimeSpan.Zero);
 
         return (snapshot.Items ?? [])
+            .Where(item => item.Enabled)
             .Select(item => new TrayInstanceEffectiveState(
                 item.InstanceId,
                 item.Status,
@@ -424,7 +425,8 @@ public static class TrayInstanceStateChangePolicy
 /// <summary>Supplies the minimum factual evidence needed to classify one instance for the Tray.</summary>
 /// <param name="Status">The provider-neutral health status.</param>
 /// <param name="IsStale">Whether freshness policy prevents the status from being treated as current.</param>
-public sealed record TrayFleetSignal(HealthStatus Status, bool IsStale);
+/// <param name="Enabled">Whether the instance participates in current-health conclusions.</param>
+public sealed record TrayFleetSignal(HealthStatus Status, bool IsStale, bool Enabled = true);
 
 /// <summary>Contains provider-neutral fleet counts and their aggregate notification-area state.</summary>
 /// <param name="State">The aggregate state selected by severity precedence.</param>
@@ -433,13 +435,15 @@ public sealed record TrayFleetSignal(HealthStatus Status, bool IsStale);
 /// <param name="WarningCount">The number of current warning signals.</param>
 /// <param name="CriticalCount">The number of current critical signals.</param>
 /// <param name="UnknownCount">The number of stale or explicitly unknown signals.</param>
+/// <param name="DisabledCount">The number of signals explicitly excluded from current-health conclusions.</param>
 public sealed record TrayFleetSummary(
     TrayAggregateState State,
     int TotalCount,
     int HealthyCount,
     int WarningCount,
     int CriticalCount,
-    int UnknownCount);
+    int UnknownCount,
+    int DisabledCount = 0);
 
 /// <summary>Classifies fleet evidence for compact notification-area presentation without provider-specific branches.</summary>
 public static class TrayFleetPresentationPolicy
@@ -457,7 +461,8 @@ public static class TrayFleetPresentationPolicy
         ArgumentOutOfRangeException.ThrowIfLessThanOrEqual(staleAfter, TimeSpan.Zero);
         return Summarise((snapshot.Items ?? []).Select(item => new TrayFleetSignal(
             item.Status,
-            item.GetFreshness(now, staleAfter) != EvidenceFreshness.Current)));
+            item.GetFreshness(now, staleAfter) != EvidenceFreshness.Current,
+            item.Enabled)));
     }
 
     /// <summary>Creates a deterministic fleet summary while preventing stale evidence from being reported as healthy.</summary>
@@ -472,9 +477,16 @@ public static class TrayFleetPresentationPolicy
         int warning = 0;
         int critical = 0;
         int unknown = 0;
+        int disabled = 0;
 
         foreach (TrayFleetSignal signal in signals)
         {
+            if (!signal.Enabled)
+            {
+                disabled++;
+                continue;
+            }
+
             switch (Classify(signal))
             {
                 case TrayAggregateState.Healthy:
@@ -492,16 +504,17 @@ public static class TrayFleetPresentationPolicy
             }
         }
 
-        int total = healthy + warning + critical + unknown;
+        int enabledTotal = healthy + warning + critical + unknown;
+        int total = enabledTotal + disabled;
         TrayAggregateState state = critical > 0
             ? TrayAggregateState.Critical
             : warning > 0
                 ? TrayAggregateState.Warning
-                : unknown > 0 || total == 0
+                : unknown > 0 || enabledTotal == 0
                     ? TrayAggregateState.Unknown
                     : TrayAggregateState.Healthy;
 
-        return new(state, total, healthy, warning, critical, unknown);
+        return new(state, total, healthy, warning, critical, unknown, disabled);
     }
 
     /// <summary>Determines whether a later lifecycle phase should deliver a change notification.</summary>

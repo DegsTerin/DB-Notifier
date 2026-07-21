@@ -2462,6 +2462,18 @@
 - Próxima decisão: Bruno poderá solicitar separadamente a proposta de autorização do R6, sem implementação; isso não concede autoridade de execução.
 - Aprovador: Bruno, 2026-07-21, exclusivamente para o R5 com as duas ressalvas registradas.
 
+## 2026-07-21 — Implementação local da fase automática do lote de remediação `R6`
+
+- Estado anterior: `STATE-06 INTEGRATION`, R0/R1/R2-A/R3/R4-A/R4-B/R5 aceitos nos seus limites, incidente NuGet R5 e gate global R0 preservados, e R6 automático autorizado exclusivamente sobre a baseline `a8d67e35af0be55c9d01a6141677b52fb0f23ed4`.
+- Estado resultante: sem transição; `STATE-06 INTEGRATION` mantido. A fase automática R6 está implementada e `APROVADA` no escopo local autorizado; aceitação humana R6 permanece `PENDENTE`.
+- Autorização: somente `AUD-H12`, `AUD-M12`–`AUD-M21` e `AUD-L01`, camadas de apresentação/frontend, Design System, localização, geração determinística, processos sintéticos, browser headless dedicado, testes offline e commit focado. Restore, download, acesso externo, browser/perfil comum, amostra visível, Windows notification/configuration, fonte/provider/banco/credencial real, migration, CI/push/deploy, R2-B, R7–R8, R7-A0/O1, AIOps, comandos e transição permaneceram proibidos.
+- Implementação: instância desabilitada visível mas fora da saúde corrente; snapshot e instante de aceitação atómicos; validação hostil equivalente; SignalR apenas hint autenticado para nova leitura HTTP; marca do flyout sincronizada; reduced motion somente leitura; UTC/zona local explícitos; gráficos demonstrativos separados de fonte autoritativa; enums desconhecidos como `Unknown`; paths WPF; work area/DPI/reflow/scroll; título por rota, IDs completos e registries gerados de manifest único.
+- Gates: build Release de 18 projetos sem aviso/erro; 393/393 unitários, 63/63 focados, 3/3 WPF, 4/4 integrações TV e 11/11 contratos WPF; Dashboard type-check, 64/64 testes e build; coverage 81,92%/53,56%; matriz headless Chrome com 96 viewports e 32 rotas forced-colour em pt-BR/en-GB e Light/Dark; geração, documentação, links e secrets aprovados. O format encontrou somente indentação no switch alterado, corrigida antes da revalidação final.
+- Ressalvas: o comando global de arquitetura permanece 43/44 exclusivamente pela asserção R0 preexistente que espera `state05-dashboard-failure.json`; nenhuma correção foi feita. O incidente NuGet R5 permanece registrado e nenhum restore ou acesso externo ocorreu. Windows 200%, mixed-DPI físico, Narrator, High Contrast físico, reduced motion físico e flyout visível permanecem `NÃO TESTADOS`.
+- Evidência: [relatório factual R6](../../docs/STATE-06-Audit-Remediation-R6-Report.md) e [plano de remediação](../../docs/STATE-06-Complete-Project-Audit-Remediation-Plan.md).
+- Próxima decisão: Bruno poderá autorizar separadamente as amostras humanas visíveis bounded do R6. Isso não autoriza implementação adicional, R7/R8, R7-A0/O1, AIOps ou transição.
+- Aprovador: decisão humana R6 pendente; nenhuma aceitação foi inferida da autorização da fase automática.
+
 ## Template de nova entrada
 
 - Data:

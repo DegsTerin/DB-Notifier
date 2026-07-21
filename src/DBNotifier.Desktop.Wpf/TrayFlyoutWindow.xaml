@@ -6,6 +6,7 @@
         xmlns:local="clr-namespace:DBNotifier.Desktop.Wpf"
         Title="{DynamicResource Tray.FleetTitle}"
         Width="560"
+        MinWidth="320"
         SizeToContent="Height"
         MaxHeight="620"
         WindowStyle="None"
@@ -19,6 +20,8 @@
         KeyboardNavigation.TabNavigation="Cycle"
         AutomationProperties.Name="{DynamicResource Tray.FleetTitle}"
         Deactivated="WindowDeactivated"
+        DpiChanged="WindowDpiChanged"
+        SizeChanged="WindowSizeChanged"
         PreviewKeyDown="WindowPreviewKeyDown"
         Closing="WindowClosing">
   <Window.Resources>
@@ -77,10 +80,12 @@
         <Border Grid.Column="2" Padding="8,4" Background="{DynamicResource ColourStatusInformationBackgroundBrush}" CornerRadius="999" VerticalAlignment="Center"><TextBlock Text="{DynamicResource Demo.Badge}" Foreground="{DynamicResource ColourStatusInformationForegroundBrush}" FontSize="10" FontWeight="SemiBold" /></Border>
       </Grid>
 
-      <!-- The two-column body separates fleet evidence from safe application navigation. -->
-      <Grid Grid.Row="1">
-        <Grid.ColumnDefinitions><ColumnDefinition Width="1.12*" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
-        <Border BorderBrush="{DynamicResource ColourBorderDefaultBrush}" BorderThickness="0,1,1,1" Padding="16,10">
+      <!-- The bounded body reflows to one column when the monitor work area cannot safely contain both panels. -->
+      <ScrollViewer x:Name="FlyoutBodyScrollViewer" Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+      <Grid x:Name="FlyoutBodyGrid">
+        <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+        <Grid.ColumnDefinitions><ColumnDefinition x:Name="FleetColumn" Width="1.12*" /><ColumnDefinition x:Name="ActionsColumn" Width="*" /></Grid.ColumnDefinitions>
+        <Border x:Name="FleetPanel" BorderBrush="{DynamicResource ColourBorderDefaultBrush}" BorderThickness="0,1,1,1" Padding="16,10">
           <StackPanel AutomationProperties.Name="{DynamicResource Tray.Instances}">
             <TextBlock Text="{DynamicResource Overview.FleetStatus}" FontWeight="SemiBold" Margin="0,0,0,6" />
             <Grid Style="{StaticResource TrayInstanceRow}"><Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions><Ellipse x:Name="FinanceStatusGlyph" Width="9" Height="9" Fill="{DynamicResource ComponentStatusHealthyForegroundBrush}" Margin="0,0,10,0" /><StackPanel Grid.Column="1"><TextBlock Text="{DynamicResource Sample.Instance.Finance}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" /><local:ProviderIdentityView x:Name="FinanceProviderIdentity" IconSize="16" FontSize="10" Margin="0,3,0,0" /></StackPanel><TextBlock x:Name="FinanceStatusText" Grid.Column="2" Text="{DynamicResource Status.Healthy}" Foreground="{DynamicResource ComponentStatusHealthyForegroundBrush}" FontSize="11" VerticalAlignment="Center" /></Grid>
@@ -91,7 +96,7 @@
         </Border>
 
         <!-- Every enabled action navigates inside DB Notifier; service control remains explanatory and non-interactive. -->
-        <Border Grid.Column="1" BorderBrush="{DynamicResource ColourBorderDefaultBrush}" BorderThickness="0,1,0,1" Padding="10">
+        <Border x:Name="ActionsPanel" Grid.Column="1" BorderBrush="{DynamicResource ColourBorderDefaultBrush}" BorderThickness="0,1,0,1" Padding="10">
           <StackPanel>
             <Button Style="{StaticResource TrayActionButton}" Click="OpenOverviewClick" AutomationProperties.Name="{DynamicResource Tray.OpenOverview}"><StackPanel Orientation="Horizontal"><Path Width="17" Height="17" Data="M2,8 L8,2 L14,8 M4,7 V14 H12 V7 M7,14 V10 H9 V14" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="1.4" Stretch="Uniform" Margin="0,0,10,0" /><TextBlock Text="{DynamicResource Tray.OpenOverview}" FontWeight="SemiBold" /></StackPanel></Button>
             <Button Style="{StaticResource TrayActionButton}" Click="OpenConfigurationClick" AutomationProperties.Name="{DynamicResource Tray.OpenConfiguration}"><StackPanel Orientation="Horizontal"><Path Width="17" Height="17" Data="M2,4 H10 M13,4 H16 M2,12 H5 M8,12 H16 M11.5,2 V6 M6.5,10 V14" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="1.4" Stretch="Uniform" Margin="0,0,10,0" /><TextBlock Text="{DynamicResource Tray.OpenConfiguration}" FontWeight="SemiBold" /></StackPanel></Button>
@@ -103,9 +108,10 @@
           </StackPanel>
         </Border>
       </Grid>
+      </ScrollViewer>
 
       <!-- Aggregate state is textual and freshness remains explicit; the static icon does not claim live integration. -->
-      <Grid Grid.Row="2" Margin="16,10"><Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions><StackPanel><TextBlock Text="{DynamicResource Tray.FleetSummary}" FontSize="11" FontWeight="SemiBold" /><TextBlock x:Name="AggregateText" Foreground="{DynamicResource ColourTextSecondaryBrush}" FontSize="10" Margin="0,3,0,0" /><TextBlock x:Name="SnapshotText" Foreground="{DynamicResource ColourTextMutedBrush}" FontSize="10" Margin="0,3,0,0" /></StackPanel><TextBlock Grid.Column="1" Text="STATE-05" Foreground="{DynamicResource ColourActionPrimaryBackgroundBrush}" FontSize="10" FontWeight="SemiBold" VerticalAlignment="Center" /></Grid>
+      <Grid Grid.Row="2" Margin="16,10"><Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions><StackPanel><TextBlock Text="{DynamicResource Tray.FleetSummary}" FontSize="11" FontWeight="SemiBold" /><TextBlock x:Name="AggregateText" Foreground="{DynamicResource ColourTextSecondaryBrush}" FontSize="10" Margin="0,3,0,0" TextWrapping="Wrap" /><TextBlock x:Name="SnapshotText" Foreground="{DynamicResource ColourTextMutedBrush}" FontSize="10" Margin="0,3,0,0" TextWrapping="Wrap" /></StackPanel><TextBlock Grid.Column="1" Text="STATE-05" Foreground="{DynamicResource ColourActionPrimaryBackgroundBrush}" FontSize="10" FontWeight="SemiBold" VerticalAlignment="Center" /></Grid>
     </Grid>
   </Border>
 </Window>

@@ -10,11 +10,15 @@ import {
   type ActionPreview,
   type EventSeverity,
   type HealthStatus,
+  type InventoryFilterState,
   type InventoryItem,
   type InventoryState,
   type TimelineEventItem,
   classifyEvidenceFreshness,
   normalizeHealthStatus,
+  normalizeEventSeverity,
+  normalizeAlertState,
+  normalizeCapabilityState,
   previewAction,
   staleAfterMilliseconds,
   summarizeFleetAggregate,
@@ -145,6 +149,9 @@ const statusPresentation: Record<HealthStatus, { symbol: string; labelKey: Messa
 
 function StatusBadge({ item, now }: { item: InventoryItem; now: Date }) {
   const { t } = useLocalisation();
+  if (!item.enabled) {
+    return <span className="status-badge disabled"><span aria-hidden="true">○</span> {t("Status.Disabled")}</span>;
+  }
   const freshness = classifyEvidenceFreshness(item, now);
   if (freshness === "stale") {
     return <span className="status-badge stale"><span aria-hidden="true">◷</span> {t("Status.Stale")}</span>;
@@ -199,7 +206,7 @@ export function App() {
   const [view, setView] = useState<DashboardView>(() => parseDashboardView(window.location.hash));
   const [state, setState] = useState<InventoryState>("ready");
   const [query, setQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState<"all" | HealthStatus | "stale">("all");
+  const [statusFilter, setStatusFilter] = useState<InventoryFilterState>("all");
   const [tvMode, setTvMode] = useState(false);
   const [snapshotTime] = useState(() => new Date());
   const [now, setNow] = useState(snapshotTime);
@@ -219,14 +226,20 @@ export function App() {
       ? "ready"
       : tvReconciliation.state === "incompatible" ? "error" : tvReconciliation.state
     : state;
+  const presentationNow = useMemo(() => {
+    const acceptedMilliseconds = tvMode && authoritativeSandbox
+      ? tvReconciliation.acceptedAt?.getTime() ?? Number.NEGATIVE_INFINITY
+      : Number.NEGATIVE_INFINITY;
+    return new Date(Math.max(now.getTime(), acceptedMilliseconds));
+  }, [now, tvMode, authoritativeSandbox, tvReconciliation.acceptedAt]);
   const timelineSnapshot = useMemo(() => buildTimelineAlertSnapshot(snapshotTime, locale), [snapshotTime, locale]);
   const configurationSnapshot = useMemo(() => buildConfigurationSnapshot(locale), [locale]);
-  const summary = useMemo(() => summarizeInventory(snapshot, now), [snapshot, now]);
-  const aggregateState = useMemo(() => summarizeFleetAggregate(snapshot, now), [snapshot, now]);
+  const summary = useMemo(() => summarizeInventory(snapshot, presentationNow), [snapshot, presentationNow]);
+  const aggregateState = useMemo(() => summarizeFleetAggregate(snapshot, presentationNow), [snapshot, presentationNow]);
   const brandAssets = semanticBrandAssets(aggregateState);
   const filteredItems = useMemo(
-    () => filterInventory(snapshot.items, query, statusFilter, now, locale),
-    [snapshot.items, query, statusFilter, now, locale],
+    () => filterInventory(snapshot.items, query, statusFilter, presentationNow, locale),
+    [snapshot.items, query, statusFilter, presentationNow, locale],
   );
   const copy = viewCopy[view];
   const navigate = useCallback((nextView: DashboardView) => {
@@ -244,6 +257,10 @@ export function App() {
   useEffect(() => {
     return subscribeDashboardRoute(window, setView);
   }, []);
+
+  useEffect(() => {
+    document.title = `DB Notifier — ${t(copy.titleKey)}`;
+  }, [copy.titleKey, locale, t]);
 
   useEffect(() => {
     if (!tvMode || !authoritativeSandbox) {
@@ -357,15 +374,16 @@ export function App() {
             <OverviewView
               items={snapshot.items}
               alerts={timelineSnapshot.alerts}
-              now={now}
+              now={presentationNow}
               generatedAt={snapshot.generatedAt}
               summary={summary}
+              authoritativeSnapshot={tvMode && authoritativeSandbox && Boolean(tvReconciliation.snapshot)}
               onNavigate={navigate}
             />
           ) : effectiveState === "ready" && view === "inventory" ? (
             <ReadyInventory
               items={filteredItems}
-              now={now}
+              now={presentationNow}
               generatedAt={snapshot.generatedAt}
               summary={summary}
               query={query}
@@ -374,9 +392,9 @@ export function App() {
               onStatusChange={setStatusFilter}
             />
           ) : effectiveState === "ready" && view === "history" ? (
-            <HistoryView snapshot={timelineSnapshot} now={now} />
+            <HistoryView snapshot={timelineSnapshot} now={presentationNow} />
           ) : effectiveState === "ready" && view === "alerts" ? (
-            <AlertsView alerts={timelineSnapshot.alerts} generatedAt={timelineSnapshot.generatedAt} now={now} />
+            <AlertsView alerts={timelineSnapshot.alerts} generatedAt={timelineSnapshot.generatedAt} now={presentationNow} />
           ) : effectiveState === "ready" && view === "performance" ? (
             <PerformanceView />
           ) : effectiveState === "ready" && view === "configuration" ? (
@@ -412,6 +430,7 @@ function OverviewView({
   now,
   generatedAt,
   summary,
+  authoritativeSnapshot,
   onNavigate,
 }: {
   items: readonly InventoryItem[];
@@ -419,6 +438,7 @@ function OverviewView({
   now: Date;
   generatedAt: string;
   summary: ReturnType<typeof summarizeInventory>;
+  authoritativeSnapshot: boolean;
   onNavigate: (view: DashboardView) => void;
 }) {
   const { locale, t } = useLocalisation();
@@ -431,6 +451,7 @@ function OverviewView({
 
   return <section className="overview-layout" aria-label={t("View.Overview.Title")}>
     <p className="updated-at">{t("Inventory.UpdatedAt", formatSystemDateTime(generatedAt, locale), staleAfterMilliseconds / 60_000)}</p>
+    <p className="disabled-summary" role="status">{t("Inventory.DisabledCount", summary.disabled)}</p>
     <div className="summary-grid overview-summary overview-kpis">
       {metrics.map((metric) => <article className={`summary-card ${metric.className}`.trim()} key={metric.label}>
         <span className="summary-label"><span>{metric.label}</span></span>
@@ -442,12 +463,12 @@ function OverviewView({
       <section className="overview-panel overview-fleet" aria-labelledby="overview-fleet-title">
         <div className="overview-panel-heading"><div><h2 id="overview-fleet-title">{t("Overview.FleetStatus")}</h2><p>{t("Overview.FleetDescription")}</p></div><span className="overview-column-label">{t("Overview.ResponseTime")}</span></div>
         <div className="overview-instance-list">
-          {items.map((item, index) => <article className="overview-instance-row" key={item.instanceId}>
+          {items.map((item, index) => <article className={`overview-instance-row ${authoritativeSnapshot ? "no-sparkline" : ""}`.trim()} key={item.instanceId}>
             <ProviderIcon providerType={item.providerType} />
             <div className="overview-instance-name"><strong>{item.displayName}</strong><small>{item.providerType}</small></div>
             <StatusBadge item={item} now={now} />
             <span className="overview-latency">{item.latencyMilliseconds === null ? "—" : `${item.latencyMilliseconds} ms`}</span>
-            <svg className={`sparkline sparkline-${index + 1}`} viewBox="0 0 92 28" preserveAspectRatio="none" aria-hidden="true" focusable="false"><polyline points={index === 0 ? "0,20 10,18 20,21 30,12 40,15 50,7 60,13 70,9 80,17 92,8" : index === 1 ? "0,18 10,16 20,19 30,10 40,14 50,9 60,20 70,13 80,15 92,6" : index === 2 ? "0,9 10,14 20,8 30,20 40,12 50,22 60,17 70,24 80,18 92,25" : "0,18 12,18 24,18 36,18 48,18 60,18 72,18 84,18 92,18"} /></svg>
+            {!authoritativeSnapshot && <svg className={`sparkline sparkline-${index + 1}`} viewBox="0 0 92 28" preserveAspectRatio="none" aria-hidden="true" focusable="false"><polyline points={index === 0 ? "0,20 10,18 20,21 30,12 40,15 50,7 60,13 70,9 80,17 92,8" : index === 1 ? "0,18 10,16 20,19 30,10 40,14 50,9 60,20 70,13 80,15 92,6" : index === 2 ? "0,9 10,14 20,8 30,20 40,12 50,22 60,17 70,24 80,18 92,25" : "0,18 12,18 24,18 36,18 48,18 60,18 72,18 84,18 92,18"} /></svg>}
           </article>)}
         </div>
       </section>
@@ -455,18 +476,18 @@ function OverviewView({
       <section className="overview-panel overview-alerts" aria-labelledby="overview-alerts-title">
         <div className="overview-panel-heading"><div><h2 id="overview-alerts-title">{t("Overview.RecentAlerts")}</h2><p>{t("Overview.AlertDescription")}</p></div></div>
         <div className="overview-alert-list">
-          {alerts.map((alert) => <article key={alert.alertId}>
-            <span className={`alert-symbol ${alert.alertId === "alert-003" ? "restart" : severityPresentation[alert.severity].className}`}><AppIcon name={alert.alertId === "alert-003" ? "restart" : alert.severity === "critical" ? "critical" : alert.severity === "warning" ? "degraded" : "notifications"} /></span>
+          {alerts.map((alert) => { const alertSeverity = normalizeEventSeverity(alert.severity); return <article key={alert.alertId}>
+            <span className={`alert-symbol ${alert.alertId === "alert-003" ? "restart" : alertSeverity === "unknown" ? "unknown" : severityPresentation[alertSeverity].className}`}><AppIcon name={alert.alertId === "alert-003" ? "restart" : alertSeverity === "critical" ? "critical" : alertSeverity === "warning" ? "degraded" : "notifications"} /></span>
             <div><strong>{alert.instanceName}</strong><span>{alert.ruleName}</span></div>
             <EvidenceTimestamp value={alert.updatedAt} now={now} compact invalid={hasInvalidTimestampOrder(alert.openedAt, alert.updatedAt)} />
-          </article>)}
+          </article>; })}
         </div>
         <button className="overview-panel-action" type="button" onClick={() => onNavigate("alerts")}>{t("Overview.ViewAlerts")}</button>
       </section>
 
       <section className="overview-panel overview-trend" aria-labelledby="overview-trend-title">
-        <div className="overview-panel-heading"><div><h2 id="overview-trend-title">{t("Overview.SampleTrend")}</h2><p>{t("Overview.DemonstrationChart")}</p></div><span className="read-only-label">{t("Demo.Badge")}</span></div>
-        <PerformanceChart />
+        <div className="overview-panel-heading"><div><h2 id="overview-trend-title">{t("Overview.SampleTrend")}</h2><p>{t(authoritativeSnapshot ? "Overview.AuthoritativeTrendUnavailable" : "Overview.DemonstrationChart")}</p></div><span className="read-only-label">{t(authoritativeSnapshot ? "Common.AuthoritativeSnapshot" : "Demo.Badge")}</span></div>
+        {authoritativeSnapshot ? <p className="source-truth">{t("Overview.AuthoritativeTrendUnavailable")}</p> : <PerformanceChart />}
       </section>
 
       <section className="overview-panel overview-providers" aria-labelledby="overview-providers-title">
@@ -538,7 +559,10 @@ const severityPresentation: Record<EventSeverity, { symbol: string; labelKey: Me
 
 function SeverityBadge({ severity }: { severity: EventSeverity }) {
   const { t } = useLocalisation();
-  const item = severityPresentation[severity];
+  const normalized = normalizeEventSeverity(severity);
+  const item = normalized === "unknown"
+    ? { symbol: "○", labelKey: "Status.Unknown" as MessageKey, className: "unknown" }
+    : severityPresentation[normalized];
   return <span className={`status-badge ${item.className}`}><span aria-hidden="true">{item.symbol}</span> {t(item.labelKey)}</span>;
 }
 
@@ -573,9 +597,10 @@ function TimelineRow({ event, now }: { event: TimelineEventItem; now: Date }) {
  */
 function AlertsView({ alerts, generatedAt, now }: { alerts: readonly AlertItem[]; generatedAt: string; now: Date }) {
   const { locale, t } = useLocalisation();
-  const active = alerts.filter((alert) => alert.state === "active").length;
-  const critical = alerts.filter((alert) => alert.severity === "critical" && alert.state !== "resolved").length;
-  return <section aria-labelledby="alerts-title"><p className="updated-at">{t("Alerts.UpdatedAt", formatSystemDateTime(generatedAt, locale))}</p><div className="summary-grid alert-summary"><article className="summary-card critical"><span><i aria-hidden="true">■</i> {t("Alerts.CriticalOpen")}</span><strong>{critical}</strong></article><article className="summary-card degraded"><span><i aria-hidden="true">▲</i> {t("Alerts.Active")}</span><strong>{active}</strong></article><article className="summary-card"><span><i aria-hidden="true">✓</i> {t("Alerts.TotalVisible")}</span><strong>{alerts.length}</strong></article></div><div className="inventory-panel"><div className="panel-header"><div><h2 id="alerts-title">{t("Alerts.Title")}</h2><p>{t("Alerts.Description")}</p></div><span className="read-only-label">{t("Common.ReadOnly")}</span></div><div className="alert-list">{alerts.map((alert) => <article className="alert-card" key={alert.alertId}><div className="alert-card-heading"><SeverityBadge severity={alert.severity} /><span className="alert-state">{t(alert.state === "active" ? "AlertState.Active" : alert.state === "acknowledged" ? "AlertState.Acknowledged" : alert.state === "silenced" ? "AlertState.Silenced" : "AlertState.Resolved")}</span></div><h3>{alert.ruleName}</h3><p>{alert.summary}</p><dl><div><dt>{t("Common.Instance")}</dt><dd>{alert.instanceName}</dd></div><div><dt>{t("Common.Provider")}</dt><dd><ProviderIdentity providerType={alert.providerType} /></dd></div><div><dt>{t("Common.Updated")}</dt><dd><EvidenceTimestamp value={alert.updatedAt} now={now} invalid={hasInvalidTimestampOrder(alert.openedAt, alert.updatedAt)} /></dd></div></dl></article>)}</div></div></section>;
+  const active = alerts.filter((alert) => normalizeAlertState(alert.state) === "active").length;
+  const critical = alerts.filter((alert) =>
+    normalizeEventSeverity(alert.severity) === "critical" && normalizeAlertState(alert.state) !== "resolved").length;
+  return <section aria-labelledby="alerts-title"><p className="updated-at">{t("Alerts.UpdatedAt", formatSystemDateTime(generatedAt, locale))}</p><div className="summary-grid alert-summary"><article className="summary-card critical"><span><i aria-hidden="true">■</i> {t("Alerts.CriticalOpen")}</span><strong>{critical}</strong></article><article className="summary-card degraded"><span><i aria-hidden="true">▲</i> {t("Alerts.Active")}</span><strong>{active}</strong></article><article className="summary-card"><span><i aria-hidden="true">✓</i> {t("Alerts.TotalVisible")}</span><strong>{alerts.length}</strong></article></div><div className="inventory-panel"><div className="panel-header"><div><h2 id="alerts-title">{t("Alerts.Title")}</h2><p>{t("Alerts.Description")}</p></div><span className="read-only-label">{t("Common.ReadOnly")}</span></div><div className="alert-list">{alerts.map((alert) => { const alertState = normalizeAlertState(alert.state); return <article className="alert-card" key={alert.alertId}><div className="alert-card-heading"><SeverityBadge severity={alert.severity} /><span className="alert-state">{t(alertState === "unknown" ? "Status.Unknown" : alertState === "active" ? "AlertState.Active" : alertState === "acknowledged" ? "AlertState.Acknowledged" : alertState === "silenced" ? "AlertState.Silenced" : "AlertState.Resolved")}</span></div><h3>{alert.ruleName}</h3><p>{alert.summary}</p><dl><div><dt>{t("Common.Instance")}</dt><dd>{alert.instanceName}</dd></div><div><dt>{t("Common.Provider")}</dt><dd><ProviderIdentity providerType={alert.providerType} /></dd></div><div><dt>{t("Common.Updated")}</dt><dd><EvidenceTimestamp value={alert.updatedAt} now={now} invalid={hasInvalidTimestampOrder(alert.openedAt, alert.updatedAt)} /></dd></div></dl></article>; })}</div></div></section>;
 }
 
 const previewCopy: Record<ActionPreview, { symbol: string; titleKey: MessageKey; messageKey: MessageKey }> = {
@@ -658,7 +683,7 @@ function ConfigurationView({ snapshot }: { snapshot: ReturnType<typeof buildConf
 
   return <section className="configuration-layout" aria-labelledby="configuration-title">
     <div className="inventory-panel configuration-panel"><div className="panel-header"><div><h2 id="configuration-title">{snapshot.instanceName}</h2><p><ProviderIdentity providerType={snapshot.providerType} className="provider-identity-inline" />{" · configuration-capabilities.v1"}</p></div><span className="read-only-label">{t("Common.NotPersisted")}</span></div><div className="configuration-fields">{snapshot.fields.map((field) => <article key={field.key}><span>{field.label}</span><strong>{field.safeValue}</strong><p>{field.description}</p></article>)}</div></div>
-    <div className="inventory-panel capability-panel"><div className="panel-header"><div><h2>{t("Configuration.AdminTitle")}</h2><p>{t("Configuration.AdminDescription")}</p></div><label className="permission-toggle"><span>{t("Configuration.PermissionScenario")}</span><select value={authorized ? "authorized" : "denied"} onChange={(event) => setAuthorized(event.target.value === "authorized")}><option value="authorized">{t("Configuration.Authorized")}</option><option value="denied">{t("Configuration.Denied")}</option></select></label></div><div className="capability-list">{snapshot.capabilities.map((capability) => <article key={capability.capabilityId}><div><h3>{capability.displayName}</h3><code>{capability.capabilityId}</code></div><span className={`capability-state ${capability.state}`}>{capability.state === "unsupported" ? t("Configuration.Unsupported") : capability.state}</span><p>{capability.reasonCode}</p><button type="button" onClick={(event) => openPreview(capability.capabilityId, event.currentTarget)}>{t("Configuration.ReviewDecision")}</button></article>)}</div><div className="confirmation-example"><div><strong>{t("Configuration.ConfirmationTitle")}</strong><p>{t("Configuration.ConfirmationDescription")}</p></div><button type="button" onClick={(event) => openConfirmationExample(event.currentTarget)}>{t("Configuration.ViewConfirmation")}</button></div></div>
+    <div className="inventory-panel capability-panel"><div className="panel-header"><div><h2>{t("Configuration.AdminTitle")}</h2><p>{t("Configuration.AdminDescription")}</p></div><label className="permission-toggle"><span>{t("Configuration.PermissionScenario")}</span><select value={authorized ? "authorized" : "denied"} onChange={(event) => setAuthorized(event.target.value === "authorized")}><option value="authorized">{t("Configuration.Authorized")}</option><option value="denied">{t("Configuration.Denied")}</option></select></label></div><div className="capability-list">{snapshot.capabilities.map((capability) => { const capabilityState = normalizeCapabilityState(capability.state); return <article key={capability.capabilityId}><div><h3>{capability.displayName}</h3><code>{capability.capabilityId}</code></div><span className={`capability-state ${capabilityState}`}>{capabilityState === "unsupported" ? t("Configuration.Unsupported") : capabilityState === "unknown" ? t("Status.Unknown") : capabilityState === "unavailable" ? t("Status.Unavailable") : t("Common.Support")}</span><p>{capability.reasonCode}</p><button type="button" onClick={(event) => openPreview(capability.capabilityId, event.currentTarget)}>{t("Configuration.ReviewDecision")}</button></article>; })}</div><div className="confirmation-example"><div><strong>{t("Configuration.ConfirmationTitle")}</strong><p>{t("Configuration.ConfirmationDescription")}</p></div><button type="button" onClick={(event) => openConfirmationExample(event.currentTarget)}>{t("Configuration.ViewConfirmation")}</button></div></div>
     {preview && <dialog ref={dialogRef} className="confirmation-dialog" role="dialog" aria-modal="true" aria-labelledby="preview-title" onCancel={(event) => { event.preventDefault(); closePreview(); }}><span className="state-symbol" aria-hidden="true">{previewCopy[preview].symbol}</span><h2 id="preview-title">{t(previewCopy[preview].titleKey)}</h2><p>{t(previewCopy[preview].messageKey)}</p><div className="dialog-actions"><button ref={closeButtonRef} type="button" onClick={closePreview}>{t("Dialog.Close")}</button><button type="button" disabled>{t("Dialog.ExecuteDisabled")}</button></div></dialog>}
   </section>;
 }
@@ -683,9 +708,9 @@ function ReadyInventory({
   generatedAt: string;
   summary: ReturnType<typeof summarizeInventory>;
   query: string;
-  statusFilter: "all" | HealthStatus | "stale";
+  statusFilter: InventoryFilterState;
   onQueryChange: (value: string) => void;
-  onStatusChange: (value: "all" | HealthStatus | "stale") => void;
+  onStatusChange: (value: InventoryFilterState) => void;
 }) {
   const { locale, t } = useLocalisation();
   const cards: ReadonlyArray<{ label: string; value: number; icon: AppIconName; className: string }> = [
@@ -694,6 +719,7 @@ function ReadyInventory({
     { label: t("Inventory.Degraded"), value: summary.degraded, icon: "degraded", className: "degraded" },
     { label: t("Inventory.Attention"), value: summary.attentionRequired, icon: "critical", className: "critical" },
     { label: t("Inventory.Stale"), value: summary.stale, icon: "stale", className: "stale" },
+    { label: t("Inventory.Disabled"), value: summary.disabled, icon: "database", className: "disabled" },
   ];
 
   return (
@@ -715,8 +741,8 @@ function ReadyInventory({
         </div>
         <div className="filters" role="search">
           <label><span>{t("Inventory.Search")}</span><input type="search" value={query} onChange={(event) => onQueryChange(event.target.value)} placeholder={t("Inventory.SearchPlaceholder")} /></label>
-          <label><span>{t("Common.Status")}</span><select value={statusFilter} onChange={(event) => onStatusChange(event.target.value as "all" | HealthStatus | "stale")}>
-            <option value="all">{t("Common.All")}</option><option value="healthy">{t("Status.Healthy")}</option><option value="degraded">{t("Status.Degraded")}</option><option value="timeout">{t("Status.Timeout")}</option><option value="unknown">{t("Status.Unknown")}</option><option value="stale">{t("Status.Stale")}</option>
+          <label><span>{t("Common.Status")}</span><select value={statusFilter} onChange={(event) => onStatusChange(event.target.value as InventoryFilterState)}>
+            <option value="all">{t("Common.All")}</option><option value="healthy">{t("Status.Healthy")}</option><option value="degraded">{t("Status.Degraded")}</option><option value="timeout">{t("Status.Timeout")}</option><option value="unknown">{t("Status.Unknown")}</option><option value="stale">{t("Status.Stale")}</option><option value="disabled">{t("Status.Disabled")}</option>
           </select></label>
         </div>
         {items.length === 0 ? (
@@ -746,7 +772,7 @@ function ReadyInventory({
  * @returns One semantic table row that preserves every factual field.
  */
 function InventoryTableRow({ item, now }: { item: InventoryItem; now: Date }) {
-  return <tr><th scope="row"><strong>{item.displayName}</strong><small>{item.locationLabel}</small></th><td><ProviderIdentity providerType={item.providerType} /></td><td>{item.supportLabel}</td><td>{item.environment}</td><td><StatusBadge item={item} now={now} /></td><td><EvidenceTimestamp value={item.observedAt} now={now} invalid={classifyEvidenceFreshness(item, now) === "unknown"} /></td><td>{item.latencyMilliseconds === null ? "—" : `${item.latencyMilliseconds} ms`}</td></tr>;
+  return <tr><th scope="row"><strong>{item.displayName}</strong><small>{item.locationLabel}</small><code className="machine-id">{item.instanceId}</code></th><td><ProviderIdentity providerType={item.providerType} /></td><td>{item.supportLabel}</td><td>{item.environment}</td><td><StatusBadge item={item} now={now} /></td><td><EvidenceTimestamp value={item.observedAt} now={now} invalid={item.enabled && classifyEvidenceFreshness(item, now) === "unknown"} /></td><td>{item.latencyMilliseconds === null ? "—" : `${item.latencyMilliseconds} ms`}</td></tr>;
 }
 
 /**
@@ -757,7 +783,7 @@ function InventoryTableRow({ item, now }: { item: InventoryItem; now: Date }) {
  */
 function InventoryMobileCard({ item, now }: { item: InventoryItem; now: Date }) {
   const { t } = useLocalisation();
-  return <article className="instance-card"><div className="instance-card-heading"><div><h3>{item.displayName}</h3><p>{item.locationLabel}</p></div><StatusBadge item={item} now={now} /></div><dl><div><dt>{t("Common.Provider")}</dt><dd><ProviderIdentity providerType={item.providerType} /></dd></div><div><dt>{t("Common.Support")}</dt><dd>{item.supportLabel}</dd></div><div><dt>{t("Common.Environment")}</dt><dd>{item.environment}</dd></div><div><dt>{t("Common.ObservedAt")}</dt><dd><EvidenceTimestamp value={item.observedAt} now={now} invalid={classifyEvidenceFreshness(item, now) === "unknown"} /></dd></div><div><dt>{t("Common.Latency")}</dt><dd>{item.latencyMilliseconds === null ? "—" : `${item.latencyMilliseconds} ms`}</dd></div></dl></article>;
+  return <article className="instance-card"><div className="instance-card-heading"><div><h3>{item.displayName}</h3><p>{item.locationLabel}</p><code className="machine-id">{item.instanceId}</code></div><StatusBadge item={item} now={now} /></div><dl><div><dt>{t("Common.Provider")}</dt><dd><ProviderIdentity providerType={item.providerType} /></dd></div><div><dt>{t("Common.Support")}</dt><dd>{item.supportLabel}</dd></div><div><dt>{t("Common.Environment")}</dt><dd>{item.environment}</dd></div><div><dt>{t("Common.ObservedAt")}</dt><dd><EvidenceTimestamp value={item.observedAt} now={now} invalid={item.enabled && classifyEvidenceFreshness(item, now) === "unknown"} /></dd></div><div><dt>{t("Common.Latency")}</dt><dd>{item.latencyMilliseconds === null ? "—" : `${item.latencyMilliseconds} ms`}</dd></div></dl></article>;
 }
 
 function OperationalState({ state, onRetry }: { state: Exclude<InventoryState, "ready">; onRetry: () => void }) {
