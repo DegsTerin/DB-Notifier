@@ -2324,6 +2324,21 @@
 - Escopo desta ação: somente registro documental factual; nenhum código executável, build, teste, runtime, browser, acesso externo, banco/serviço real, push ou deploy.
 - Aprovador: Bruno, 2026-07-20, exclusivamente para o R1 com a ressalva registrada.
 
+## 2026-07-20 — Implementação local do lote de remediação `R2-A`
+
+- Estado anterior: `STATE-06 INTEGRATION`, R0 aceito, R1 aceito com a ressalva global preexistente, R2-A autorizado exclusivamente sobre a baseline `40daad7a27a60da2e2cbb99c60aaed417a9591a2` e decisão humana do novo lote ainda inexistente.
+- Estado resultante: sem transição; `STATE-06 INTEGRATION` mantido. R2-A está implementado e `APROVADO` automaticamente no escopo local autorizado; aceitação humana permanece `PENDENTE`.
+- Autorização: Bruno autorizou somente contenção local dos achados `AUD-H03`, `AUD-H04` e `AUD-M10`, alterações/builds/testes/runtimes locais/documentação/commit focado. R2-B, execução, comando administrativo, schema operacional, dados existentes, acesso externo e todos os lotes/modos/transições posteriores permaneceram proibidos.
+- Baseline e preflight: branch `main`, commit `40daad7a27a60da2e2cbb99c60aaed417a9591a2`, worktree limpa e zero processo, listener ou janela pertencente ao DB-Notifier antes da implementação.
+- Contenção normal: criação/poll/ack v1 retornam tombstone 503 tipado sem binding ou persistência; Server delivery store e Agent inbox/transport/worker não são registrados; `CommandPollingEnabled=true` falha em qualquer combinação.
+- Sandbox: marker exato preservado; fencing, pending replay e recibos ficam em `command-transport-receipts.sqlite`, separado do banco normal do Agent; states são exclusivamente `Receipt*`; `ExecutionPolicy.Never` é persistida, revalidada e protegida por constraint SQLite.
+- Dados e providers: nenhuma store operacional preexistente foi conectada e nenhuma row operacional foi consultada, alterada ou excluída; nenhuma migration operacional foi criada; PostgreSQL `Start`/`Stop`/`Restart` permanecem `Unsupported`; nenhum `CommandAttempt`, executor, post-probe ou credencial administrativa foi criado.
+- Gates: build Release 18 projetos sem aviso/erro; 53 testes focados, 3 provas focadas de arquitetura e 1 E2E multiprocess aprovados; suíte ampla com 403 passes e a única falha R0 preexistente; arquitetura válida 34/34; cobertura 79,39%/50,72% com 10/10 componentes; format, 18 lockfiles offline, Pester/PowerShell 5.1, runtime fail-closed, bundle e documentação aprovados; shutdown final sem processo, listener, janela ou root temporário próprio.
+- Ressalva: o gate global continua bloqueado exatamente pela asserção R0 que espera nomes fixos de artifacts, sem regressão nova e sem correção autorizada.
+- Evidência: [relatório factual R2-A](../../docs/STATE-06-Audit-Remediation-R2A-Report.md) e [plano de remediação](../../docs/STATE-06-Complete-Project-Audit-Remediation-Plan.md).
+- Próxima decisão: Bruno deverá revisar o relatório e o handoff e decidir separadamente se aceita R2-A. Aceitação não autorizará R2-B, R3, comando, execução, AIOps ou transição.
+- Aprovador: decisão humana ainda pendente; nenhum aceite foi inferido da autorização de implementação.
+
 ## Template de nova entrada
 
 - Data:

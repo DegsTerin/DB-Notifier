@@ -1,4 +1,4 @@
-# Module purpose: Verifies local API authentication boundaries and the Agent's disabled-by-default runtime without external connections.
+# Module purpose: Verifies local API authentication boundaries and the Agent's contained disabled-by-default runtime without external connections.
 [CmdletBinding()]
 param(
     [string]$Configuration = 'Release',
@@ -98,7 +98,6 @@ try {
         $expectedDisabledMessages = @(
             'Agent monitoring is disabled by configuration',
             'Agent synchronization is disabled by configuration',
-            'Administrative command polling is disabled',
             'Agent retention is disabled by configuration'
         )
         $agentLog = if (Test-Path -LiteralPath $agentLogPath) { Get-Content -LiteralPath $agentLogPath -Raw -ErrorAction SilentlyContinue } else { '' }
@@ -107,13 +106,16 @@ try {
                 throw "The fail-closed Agent did not log its expected disabled worker state: $expectedMessage"
             }
         }
+        if ($agentLog -like '*Administrative command polling*') {
+            throw 'The contained Agent unexpectedly composed the administrative command polling worker.'
+        }
         if (Test-Path -LiteralPath $databasePath) {
             throw "The disabled Agent initialised local persistence unexpectedly."
         }
     }
     finally { $env:DBNotifier__Agent__DatabasePath = $previousDatabasePath }
 
-    Write-Output 'Fail-closed runtime audit passed: live=200, all protected HTTP endpoints=426, all Agent workers logged disabled and local persistence was not initialised.'
+    Write-Output 'Fail-closed runtime audit passed: live=200, all protected HTTP endpoints=426, composed Agent workers logged disabled, command polling was absent and local persistence was not initialised.'
 }
 finally {
     Stop-ProcessTree $agentProcess

@@ -21,6 +21,7 @@ AgentWorkerOptions workerOptions = new();
 builder.Configuration.GetSection(AgentWorkerOptions.SectionName).Bind(workerOptions);
 AgentSynchronizationOptions synchronizationOptions = new();
 builder.Configuration.GetSection(AgentSynchronizationOptions.SectionName).Bind(synchronizationOptions);
+synchronizationOptions.ValidateCommandPollingForStartup();
 AgentFleetClientOptions agentFleetClientOptions = new();
 builder.Configuration.GetSection(AgentFleetClientOptions.SectionName).Bind(agentFleetClientOptions);
 agentFleetClientOptions.ValidateForStartup();
@@ -45,7 +46,6 @@ builder.Services.AddSingleton(services => new AgentStoreInitializer(
 builder.Services.AddSingleton<IMonitoringAssignmentSource, AgentMonitoringAssignmentSource>();
 builder.Services.AddSingleton<IHealthObservationSink, AgentObservationOutboxSink>();
 builder.Services.AddSingleton<IAgentOutboxStore, AgentOutboxStore>();
-builder.Services.AddSingleton<IAgentCommandInboxStore, AgentCommandInboxStore>();
 builder.Services.AddSingleton<IAgentRetentionStore, AgentRetentionStore>();
 builder.Services.AddSingleton<IPostgreSqlDiscoveryFileSystem, PostgreSqlDiscoveryFileSystem>();
 builder.Services.AddSingleton<IPostgreSqlExecutableDiscovery, PostgreSqlExecutableDiscovery>();
@@ -72,17 +72,9 @@ builder.Services.AddSingleton<IObservationBatchTransport>(services =>
             ? synchronizationOptions.ValidateAndGetServerBaseAddress()
             : new Uri("https://disabled.invalid/", UriKind.Absolute),
         synchronizationOptions.AgentVersion));
-builder.Services.AddSingleton<ICommandDeliveryTransport>(services =>
-    new HttpCommandDeliveryTransport(
-        services.GetRequiredService<HttpClient>(),
-        synchronizationOptions.Enabled
-            ? synchronizationOptions.ValidateAndGetServerBaseAddress()
-            : new Uri("https://disabled.invalid/", UriKind.Absolute),
-        synchronizationOptions.AgentVersion));
 builder.Services.AddSingleton<ProbeInstanceHandler>();
 builder.Services.AddHostedService<AgentMonitoringWorker>();
 builder.Services.AddHostedService<AgentOutboxDispatchWorker>();
-builder.Services.AddHostedService<AgentCommandPollingWorker>();
 builder.Services.AddHostedService<AgentRetentionWorker>();
 
 using IHost host = builder.Build();

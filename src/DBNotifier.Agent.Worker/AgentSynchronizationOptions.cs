@@ -46,7 +46,7 @@ public sealed class AgentSynchronizationOptions
     /// </exception>
     public void ValidateCommandPollingForStartup()
     {
-        if (Enabled && CommandPollingEnabled)
+        if (CommandPollingEnabled)
         {
             throw new InvalidOperationException("command.polling_durable_protocol_unavailable");
         }

@@ -64,7 +64,30 @@ internal static class CommandTransportSandboxHost
                 await new AgentFleetSandboxDatabaseGuard(factory)
                     .ValidateAsync(CancellationToken.None)
                     .ConfigureAwait(false);
-                AgentCommandTransportSandboxStore store = new(factory);
+                string sandboxDatabasePath = Path.Combine(
+                    options.SandboxRoot,
+                    "command-transport-receipts.sqlite");
+                string sandboxConnectionString = new SqliteConnectionStringBuilder
+                {
+                    DataSource = sandboxDatabasePath,
+                    Mode = SqliteOpenMode.ReadWriteCreate,
+                    Cache = SqliteCacheMode.Shared,
+                    ForeignKeys = true,
+                    Pooling = false,
+                    DefaultTimeout = 1,
+                }.ToString();
+                DbContextOptions<AgentCommandTransportSandboxDbContext> sandboxDatabaseOptions =
+                    new DbContextOptionsBuilder<AgentCommandTransportSandboxDbContext>()
+                        .UseSqlite(sandboxConnectionString)
+                        .Options;
+                CommandTransportContextFactory sandboxFactory = new(sandboxDatabaseOptions);
+                await using (AgentCommandTransportSandboxDbContext sandboxContext =
+                    sandboxFactory.CreateDbContext())
+                {
+                    await sandboxContext.Database.EnsureCreatedAsync().ConfigureAwait(false);
+                }
+
+                AgentCommandTransportSandboxStore store = new(sandboxFactory);
                 CommandTransportSandboxCoordinator coordinator = new(
                     options.AgentId,
                     options.OwnerId,
@@ -111,6 +134,7 @@ internal static class CommandTransportSandboxHost
         long Fence);
 
     private sealed record Arguments(
+        string SandboxRoot,
         string DatabasePath,
         Uri BaseAddress,
         string IdentityPipe,
@@ -179,6 +203,7 @@ internal static class CommandTransportSandboxHost
             }
 
             return new(
+                root,
                 database,
                 baseAddress,
                 pipe,
@@ -256,5 +281,15 @@ internal static class CommandTransportSandboxHost
     {
         /// <inheritdoc />
         public AgentDbContext CreateDbContext() => new(options);
+    }
+
+    /// <summary>Creates contexts only for the fixture-owned receipt database admitted by the exact sandbox marker.</summary>
+    /// <param name="options">Validated SQLite options for the dedicated sandbox database.</param>
+    private sealed class CommandTransportContextFactory(
+        DbContextOptions<AgentCommandTransportSandboxDbContext> options)
+        : IDbContextFactory<AgentCommandTransportSandboxDbContext>
+    {
+        /// <inheritdoc />
+        public AgentCommandTransportSandboxDbContext CreateDbContext() => new(options);
     }
 }

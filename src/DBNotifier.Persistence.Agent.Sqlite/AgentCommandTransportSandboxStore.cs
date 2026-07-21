@@ -27,9 +27,11 @@ public interface IAgentCommandTransportFaultInjector
     ValueTask InjectAsync(AgentCommandTransportFaultPoint point, CancellationToken cancellationToken);
 }
 
-/// <summary>Implements durable pending-message replay, inbox persistence and cross-process fencing for the sandbox.</summary>
-public sealed class AgentCommandTransportSandboxStore(
-    IDbContextFactory<AgentDbContext> contextFactory,
+/// <summary>Implements durable pending-message replay, isolated receipt persistence and cross-process fencing for the sandbox.</summary>
+/// <param name="contextFactory">Creates contexts for the dedicated sandbox receipt database only.</param>
+/// <param name="faultInjector">Optional deterministic local fault boundary used exclusively by tests.</param>
+internal sealed class AgentCommandTransportSandboxStore(
+    IDbContextFactory<AgentCommandTransportSandboxDbContext> contextFactory,
     IAgentCommandTransportFaultInjector? faultInjector = null) : ICommandTransportAgentStore
 {
     /// <inheritdoc />
@@ -46,16 +48,17 @@ public sealed class AgentCommandTransportSandboxStore(
             throw new ArgumentOutOfRangeException(nameof(duration));
         }
 
-        await using AgentDbContext context = await contextFactory.CreateDbContextAsync(cancellationToken)
+        await using AgentCommandTransportSandboxDbContext context = await contextFactory
+            .CreateDbContextAsync(cancellationToken)
             .ConfigureAwait(false);
         await using var transaction = await context.Database.BeginTransactionAsync(
             IsolationLevel.Serializable,
             cancellationToken).ConfigureAwait(false);
-        AgentCommandTransportStateRow? state = await context.CommandTransportStates
+        AgentCommandTransportSandboxStateRow? state = await context.TransportStates
             .SingleOrDefaultAsync(row => row.AgentId == agentId, cancellationToken).ConfigureAwait(false);
         if (state is null)
         {
-            state = new AgentCommandTransportStateRow
+            state = new AgentCommandTransportSandboxStateRow
             {
                 AgentId = agentId,
                 NextSequence = 1,
@@ -65,7 +68,7 @@ public sealed class AgentCommandTransportSandboxStore(
                 LeaseExpiresAt = now.Add(duration),
                 ConcurrencyToken = Guid.NewGuid(),
             };
-            context.CommandTransportStates.Add(state);
+            context.TransportStates.Add(state);
         }
         else
         {
@@ -106,12 +109,13 @@ public sealed class AgentCommandTransportSandboxStore(
         CancellationToken cancellationToken)
     {
         ValidatePollInputs(agentId, fenceToken, agentVersion, providerVersions, maximumCount, now);
-        await using AgentDbContext context = await contextFactory.CreateDbContextAsync(cancellationToken)
+        await using AgentCommandTransportSandboxDbContext context = await contextFactory
+            .CreateDbContextAsync(cancellationToken)
             .ConfigureAwait(false);
         await using var transaction = await context.Database.BeginTransactionAsync(
             IsolationLevel.Serializable,
             cancellationToken).ConfigureAwait(false);
-        AgentCommandTransportStateRow state = await GetFencedStateAsync(
+        AgentCommandTransportSandboxStateRow state = await GetFencedStateAsync(
             context,
             agentId,
             fenceToken,
@@ -162,9 +166,10 @@ public sealed class AgentCommandTransportSandboxStore(
             throw new ArgumentException("command.transport_attempt_invalid", nameof(messageId));
         }
 
-        await using AgentDbContext context = await contextFactory.CreateDbContextAsync(cancellationToken)
+        await using AgentCommandTransportSandboxDbContext context = await contextFactory
+            .CreateDbContextAsync(cancellationToken)
             .ConfigureAwait(false);
-        AgentCommandTransportStateRow state = await GetFencedStateAsync(
+        AgentCommandTransportSandboxStateRow state = await GetFencedStateAsync(
             context,
             agentId,
             fenceToken,
@@ -190,12 +195,13 @@ public sealed class AgentCommandTransportSandboxStore(
         CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(response);
-        await using AgentDbContext context = await contextFactory.CreateDbContextAsync(cancellationToken)
+        await using AgentCommandTransportSandboxDbContext context = await contextFactory
+            .CreateDbContextAsync(cancellationToken)
             .ConfigureAwait(false);
         await using var transaction = await context.Database.BeginTransactionAsync(
             IsolationLevel.Serializable,
             cancellationToken).ConfigureAwait(false);
-        AgentCommandTransportStateRow state = await GetFencedStateAsync(
+        AgentCommandTransportSandboxStateRow state = await GetFencedStateAsync(
             context,
             agentId,
             fenceToken,
@@ -210,7 +216,7 @@ public sealed class AgentCommandTransportSandboxStore(
         foreach (CommandTransportEnvelope command in response.Commands)
         {
             ValidateEnvelope(command, request, receivedAt);
-            AgentInboxCommandRow? existing = await context.InboxCommands
+            AgentCommandTransportSandboxReceiptRow? existing = await context.Receipts
                 .SingleOrDefaultAsync(row => row.CommandId == command.CommandId ||
                     row.IdempotencyKey == command.IdempotencyKey, cancellationToken).ConfigureAwait(false);
             CommandTransportDisposition disposition = Classify(command, receivedAt);
@@ -226,15 +232,15 @@ public sealed class AgentCommandTransportSandboxStore(
 
                 disposition = existing.State switch
                 {
-                    "Expired" => CommandTransportDisposition.Expired,
-                    "Unsupported" => CommandTransportDisposition.Unsupported,
-                    "Rejected" => CommandTransportDisposition.Rejected,
+                    "ReceiptExpired" => CommandTransportDisposition.Expired,
+                    "ReceiptUnsupported" => CommandTransportDisposition.Unsupported,
+                    "ReceiptRejected" => CommandTransportDisposition.Rejected,
                     _ => CommandTransportDisposition.Accepted,
                 };
             }
             else
             {
-                context.InboxCommands.Add(new AgentInboxCommandRow
+                context.Receipts.Add(new AgentCommandTransportSandboxReceiptRow
                 {
                     CommandId = command.CommandId,
                     IdempotencyKey = command.IdempotencyKey,
@@ -247,6 +253,7 @@ public sealed class AgentCommandTransportSandboxStore(
                     ExpiresAt = command.ExpiresAt,
                     ExpectedAgentVersion = command.ExpectedAgentVersion,
                     ExpectedProviderVersion = command.ExpectedProviderVersion,
+                    ExecutionPolicy = CommandExecutionPolicy.Never.ToString(),
                     ConcurrencyToken = Guid.NewGuid(),
                 });
             }
@@ -309,12 +316,13 @@ public sealed class AgentCommandTransportSandboxStore(
         CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(response);
-        await using AgentDbContext context = await contextFactory.CreateDbContextAsync(cancellationToken)
+        await using AgentCommandTransportSandboxDbContext context = await contextFactory
+            .CreateDbContextAsync(cancellationToken)
             .ConfigureAwait(false);
         await using var transaction = await context.Database.BeginTransactionAsync(
             IsolationLevel.Serializable,
             cancellationToken).ConfigureAwait(false);
-        AgentCommandTransportStateRow state = await GetFencedStateAsync(
+        AgentCommandTransportSandboxStateRow state = await GetFencedStateAsync(
             context,
             agentId,
             fenceToken,
@@ -342,17 +350,18 @@ public sealed class AgentCommandTransportSandboxStore(
                     "command.transport_ack_result_conflict");
             }
 
-            AgentInboxCommandRow command = await context.InboxCommands
+            AgentCommandTransportSandboxReceiptRow command = await context.Receipts
                 .SingleAsync(row => row.CommandId == result.CommandId, cancellationToken).ConfigureAwait(false);
+            EnsureNever(command);
             command.State = result.Disposition switch
             {
                 CommandTransportDisposition.Accepted or CommandTransportDisposition.Duplicate
-                    when sent.Disposition == CommandTransportDisposition.Accepted => "Acknowledged",
-                CommandTransportDisposition.Expired => "Expired",
-                CommandTransportDisposition.Unsupported => "Unsupported",
-                _ => "Rejected",
+                    when sent.Disposition == CommandTransportDisposition.Accepted => "ReceiptAcknowledged",
+                CommandTransportDisposition.Expired => "ReceiptExpired",
+                CommandTransportDisposition.Unsupported => "ReceiptUnsupported",
+                _ => "ReceiptRejected",
             };
-            if (command.State == "Acknowledged")
+            if (command.State == "ReceiptAcknowledged")
             {
                 command.AcknowledgedAt ??= receivedAt;
             }
@@ -378,9 +387,10 @@ public sealed class AgentCommandTransportSandboxStore(
         CancellationToken cancellationToken)
     {
         ValidateAgentAndOwner(agentId, ownerId);
-        await using AgentDbContext context = await contextFactory.CreateDbContextAsync(cancellationToken)
+        await using AgentCommandTransportSandboxDbContext context = await contextFactory
+            .CreateDbContextAsync(cancellationToken)
             .ConfigureAwait(false);
-        AgentCommandTransportStateRow? state = await context.CommandTransportStates
+        AgentCommandTransportSandboxStateRow? state = await context.TransportStates
             .SingleOrDefaultAsync(row => row.AgentId == agentId, cancellationToken).ConfigureAwait(false);
         if (state is null || state.LeaseFence != fenceToken ||
             !string.Equals(state.LeaseOwner, ownerId, StringComparison.Ordinal))
@@ -405,14 +415,14 @@ public sealed class AgentCommandTransportSandboxStore(
         }
     }
 
-    private static async ValueTask<AgentCommandTransportStateRow> GetFencedStateAsync(
-        AgentDbContext context,
+    private static async ValueTask<AgentCommandTransportSandboxStateRow> GetFencedStateAsync(
+        AgentCommandTransportSandboxDbContext context,
         Guid agentId,
         long fenceToken,
         DateTimeOffset now,
         CancellationToken cancellationToken)
     {
-        AgentCommandTransportStateRow? state = await context.CommandTransportStates
+        AgentCommandTransportSandboxStateRow? state = await context.TransportStates
             .SingleOrDefaultAsync(row => row.AgentId == agentId, cancellationToken).ConfigureAwait(false);
         if (state is null || fenceToken < 1 || state.LeaseFence != fenceToken || state.LeaseExpiresAt <= now)
         {
@@ -423,7 +433,7 @@ public sealed class AgentCommandTransportSandboxStore(
     }
 
     private static T RequirePending<T>(
-        AgentCommandTransportStateRow state,
+        AgentCommandTransportSandboxStateRow state,
         CommandTransportMessageKind expectedKind)
     {
         CommandTransportPendingMessage pending = ToPending(state);
@@ -436,7 +446,7 @@ public sealed class AgentCommandTransportSandboxStore(
         return CommandTransportCodec.Deserialize<T>(pending.PayloadJson);
     }
 
-    private static CommandTransportPendingMessage ToPending(AgentCommandTransportStateRow state)
+    private static CommandTransportPendingMessage ToPending(AgentCommandTransportSandboxStateRow state)
     {
         if (state.PendingMessageId is null || state.PendingSequence is null ||
             !Enum.TryParse(state.PendingMessageKind, out CommandTransportMessageKind kind) ||
@@ -456,7 +466,7 @@ public sealed class AgentCommandTransportSandboxStore(
     }
 
     private static void SetPending(
-        AgentCommandTransportStateRow state,
+        AgentCommandTransportSandboxStateRow state,
         Guid messageId,
         long sequence,
         CommandTransportMessageKind kind,
@@ -471,7 +481,7 @@ public sealed class AgentCommandTransportSandboxStore(
         state.PendingLastAttemptAt = null;
     }
 
-    private static void ClearPending(AgentCommandTransportStateRow state)
+    private static void ClearPending(AgentCommandTransportSandboxStateRow state)
     {
         state.PendingMessageId = null;
         state.PendingSequence = null;
@@ -505,10 +515,10 @@ public sealed class AgentCommandTransportSandboxStore(
 
     private static string ToLocalState(CommandTransportDisposition disposition) => disposition switch
     {
-        CommandTransportDisposition.Expired => "Expired",
-        CommandTransportDisposition.Unsupported => "Unsupported",
-        CommandTransportDisposition.Rejected => "Rejected",
-        _ => "Available",
+        CommandTransportDisposition.Expired => "ReceiptExpired",
+        CommandTransportDisposition.Unsupported => "ReceiptUnsupported",
+        CommandTransportDisposition.Rejected => "ReceiptRejected",
+        _ => "ReceiptPending",
     };
 
     private static void ValidatePollResponse(
@@ -579,7 +589,7 @@ public sealed class AgentCommandTransportSandboxStore(
         }
     }
 
-    private static bool Matches(AgentInboxCommandRow row, CommandTransportEnvelope command) =>
+    private static bool Matches(AgentCommandTransportSandboxReceiptRow row, CommandTransportEnvelope command) =>
         row.CommandId == command.CommandId &&
         string.Equals(row.IdempotencyKey, command.IdempotencyKey, StringComparison.Ordinal) &&
         row.InstanceId == command.InstanceId &&
@@ -588,7 +598,19 @@ public sealed class AgentCommandTransportSandboxStore(
         string.Equals(row.TypedParametersJson, command.TypedParametersJson, StringComparison.Ordinal) &&
         row.RequestedAt == command.RequestedAt && row.ExpiresAt == command.ExpiresAt &&
         string.Equals(row.ExpectedAgentVersion, command.ExpectedAgentVersion, StringComparison.Ordinal) &&
-        string.Equals(row.ExpectedProviderVersion, command.ExpectedProviderVersion, StringComparison.Ordinal);
+        string.Equals(row.ExpectedProviderVersion, command.ExpectedProviderVersion, StringComparison.Ordinal) &&
+        string.Equals(row.ExecutionPolicy, CommandExecutionPolicy.Never.ToString(), StringComparison.Ordinal);
+
+    /// <summary>Rejects rehydrated receipt data whose durable policy no longer proves execution ineligibility.</summary>
+    /// <param name="row">Receipt row loaded from the isolated sandbox database.</param>
+    /// <exception cref="InvalidDataException">Thrown when the immutable policy is not exactly <c>Never</c>.</exception>
+    private static void EnsureNever(AgentCommandTransportSandboxReceiptRow row)
+    {
+        if (!string.Equals(row.ExecutionPolicy, CommandExecutionPolicy.Never.ToString(), StringComparison.Ordinal))
+        {
+            throw new InvalidDataException("command.transport_execution_policy_invalid");
+        }
+    }
 
     private static bool IsJsonObject(string json)
     {

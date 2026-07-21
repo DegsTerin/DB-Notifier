@@ -2114,8 +2114,8 @@ public sealed partial class AgentFleetApiEndToEndTests
             int attemptCount,
             int expectedInboxCount)
         {
-            await using AgentDbContext context = new(options);
-            AgentCommandTransportStateRow state = await context.CommandTransportStates
+            await using AgentCommandTransportSandboxDbContext context = CreateCommandTransportContext();
+            AgentCommandTransportSandboxStateRow state = await context.TransportStates
                 .AsNoTracking()
                 .SingleAsync(row => row.AgentId == agentId);
             Assert.Equal(kind.ToString(), state.PendingMessageKind);
@@ -2129,12 +2129,10 @@ public sealed partial class AgentFleetApiEndToEndTests
             Assert.Null(state.LeaseOwner);
             Assert.Null(state.LeaseFence);
             Assert.Null(state.LeaseExpiresAt);
-            Assert.Equal(expectedInboxCount, await context.InboxCommands.CountAsync());
-            Assert.All(await context.InboxCommands.AsNoTracking().ToArrayAsync(), row =>
-            {
-                Assert.Null(row.CompletedAt);
-                Assert.Null(row.ResultJson);
-            });
+            Assert.Equal(expectedInboxCount, await context.Receipts.CountAsync());
+            Assert.All(await context.Receipts.AsNoTracking().ToArrayAsync(), row =>
+                Assert.Equal(CommandExecutionPolicy.Never.ToString(), row.ExecutionPolicy));
+            await AssertNormalCommandInboxEmptyAsync();
         }
 
         /// <summary>Confirms terminal receipt-only inbox state after the exact acknowledgement replay succeeds.</summary>
@@ -2142,8 +2140,8 @@ public sealed partial class AgentFleetApiEndToEndTests
             Guid agentId,
             CommandTransportFixtureIds fixtures)
         {
-            await using AgentDbContext context = new(options);
-            AgentCommandTransportStateRow state = await context.CommandTransportStates
+            await using AgentCommandTransportSandboxDbContext context = CreateCommandTransportContext();
+            AgentCommandTransportSandboxStateRow state = await context.TransportStates
                 .AsNoTracking()
                 .SingleAsync(row => row.AgentId == agentId);
             Assert.Equal(3, state.NextSequence);
@@ -2153,20 +2151,50 @@ public sealed partial class AgentFleetApiEndToEndTests
             Assert.Null(state.PendingPayloadJson);
             Assert.Null(state.PendingPayloadSha256);
             Assert.Equal(0, state.PendingAttemptCount);
-            AgentInboxCommandRow accepted = await context.InboxCommands.AsNoTracking()
+            AgentCommandTransportSandboxReceiptRow accepted = await context.Receipts.AsNoTracking()
                 .SingleAsync(row => row.CommandId == fixtures.AcceptedCommandId);
-            AgentInboxCommandRow unsupported = await context.InboxCommands.AsNoTracking()
+            AgentCommandTransportSandboxReceiptRow unsupported = await context.Receipts.AsNoTracking()
                 .SingleAsync(row => row.CommandId == fixtures.UnsupportedCommandId);
-            Assert.Equal("Acknowledged", accepted.State);
+            Assert.Equal("ReceiptAcknowledged", accepted.State);
             Assert.NotNull(accepted.AcknowledgedAt);
-            Assert.Equal("Unsupported", unsupported.State);
+            Assert.Equal("ReceiptUnsupported", unsupported.State);
             Assert.Null(unsupported.AcknowledgedAt);
             Assert.All(new[] { accepted, unsupported }, row =>
             {
                 Assert.StartsWith(CommandTransportProtocol.SyntheticCapabilityPrefix, row.CapabilityId);
-                Assert.Null(row.CompletedAt);
-                Assert.Null(row.ResultJson);
+                Assert.Equal(CommandExecutionPolicy.Never.ToString(), row.ExecutionPolicy);
             });
+            await AssertNormalCommandInboxEmptyAsync();
+        }
+
+        /// <summary>Opens the dedicated receipt-only SQLite store created by the exact command sandbox marker.</summary>
+        /// <returns>A caller-owned context that cannot address the normal Agent inbox.</returns>
+        private AgentCommandTransportSandboxDbContext CreateCommandTransportContext()
+        {
+            string path = Path.Combine(RootPath, "command-transport-receipts.sqlite");
+            string connectionString = new SqliteConnectionStringBuilder
+            {
+                DataSource = path,
+                Mode = SqliteOpenMode.ReadWrite,
+                Cache = SqliteCacheMode.Shared,
+                ForeignKeys = true,
+                Pooling = false,
+                DefaultTimeout = 1,
+            }.ToString();
+            DbContextOptions<AgentCommandTransportSandboxDbContext> sandboxOptions =
+                new DbContextOptionsBuilder<AgentCommandTransportSandboxDbContext>()
+                    .UseSqlite(connectionString)
+                    .Options;
+            return new AgentCommandTransportSandboxDbContext(sandboxOptions);
+        }
+
+        /// <summary>Proves the normal Agent database received neither command rows nor sandbox transport state.</summary>
+        /// <returns>A task that completes after both normal tables are confirmed empty.</returns>
+        private async Task AssertNormalCommandInboxEmptyAsync()
+        {
+            await using AgentDbContext context = new(options);
+            Assert.Empty(await context.InboxCommands.AsNoTracking().ToArrayAsync());
+            Assert.Empty(await context.CommandTransportStates.AsNoTracking().ToArrayAsync());
         }
 
         /// <summary>Proves that multiprocess heartbeat replay activated no operational data path.</summary>

@@ -1054,6 +1054,25 @@ public sealed class SynchronizationTests
         Assert.Equal("command.polling_durable_protocol_unavailable", exception.Message);
     }
 
+    /// <summary>Proves the command flag is rejected independently of observation synchronisation.</summary>
+    /// <param name="synchronisationEnabled">Whether observation dispatch is enabled.</param>
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void CommandPollingFlagCannotBeEnabledByAnySynchronisationCombination(bool synchronisationEnabled)
+    {
+        AgentSynchronizationOptions options = new()
+        {
+            Enabled = synchronisationEnabled,
+            CommandPollingEnabled = true,
+        };
+
+        InvalidOperationException exception = Assert.Throws<InvalidOperationException>(
+            options.ValidateCommandPollingForStartup);
+
+        Assert.Equal("command.polling_durable_protocol_unavailable", exception.Message);
+    }
+
     [Fact]
     public void HttpTransportRejectsNonHttpsBaseAddressEvenWhenConstructedDirectly()
     {

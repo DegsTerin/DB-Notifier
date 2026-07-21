@@ -195,16 +195,15 @@ public sealed class CommandTransportSafetyTests
             Now,
             CancellationToken.None));
 
-        await using AgentDbContext verification = fixture.CreateContext();
-        string[] states = await verification.InboxCommands.OrderBy(row => row.IdempotencyKey)
+        await using AgentCommandTransportSandboxDbContext verification = fixture.CreateContext();
+        string[] states = await verification.Receipts.OrderBy(row => row.IdempotencyKey)
             .Select(row => row.State).ToArrayAsync();
-        Assert.Equal(["Expired", "Acknowledged", "Unsupported"], states);
-        Assert.All(await verification.InboxCommands.ToArrayAsync(), row =>
-        {
-            Assert.Null(row.CompletedAt);
-            Assert.Null(row.ResultJson);
-        });
-        AgentCommandTransportStateRow transportState = await verification.CommandTransportStates.SingleAsync();
+        Assert.Equal(["ReceiptExpired", "ReceiptAcknowledged", "ReceiptUnsupported"], states);
+        AgentCommandTransportSandboxReceiptRow[] receipts = await verification.Receipts.ToArrayAsync();
+        Assert.All(receipts, row => Assert.Equal("Never", row.ExecutionPolicy));
+        receipts[0].ExecutionPolicy = "Always";
+        await Assert.ThrowsAsync<DbUpdateException>(async () => await verification.SaveChangesAsync());
+        AgentCommandTransportSandboxStateRow transportState = await verification.TransportStates.SingleAsync();
         Assert.Null(transportState.PendingMessageId);
         Assert.Equal(3, transportState.NextSequence);
     }
@@ -248,9 +247,9 @@ public sealed class CommandTransportSafetyTests
             response,
             Now,
             CancellationToken.None));
-        await using AgentDbContext verification = fixture.CreateContext();
-        Assert.Empty(await verification.InboxCommands.ToArrayAsync());
-        AgentCommandTransportStateRow state = await verification.CommandTransportStates.SingleAsync();
+        await using AgentCommandTransportSandboxDbContext verification = fixture.CreateContext();
+        Assert.Empty(await verification.Receipts.ToArrayAsync());
+        AgentCommandTransportSandboxStateRow state = await verification.TransportStates.SingleAsync();
         Assert.Equal(pending.MessageId, state.PendingMessageId);
         Assert.Equal("Poll", state.PendingMessageKind);
     }
@@ -295,8 +294,8 @@ public sealed class CommandTransportSafetyTests
         await Assert.ThrowsAnyAsync<OperationCanceledException>(async () =>
             await cancelled.RunOnceAsync(1, cancellation.Token));
         Assert.Single(cancellingClient.PollRequests);
-        await using AgentDbContext verification = fixture.CreateContext();
-        AgentCommandTransportStateRow pending = await verification.CommandTransportStates.SingleAsync();
+        await using AgentCommandTransportSandboxDbContext verification = fixture.CreateContext();
+        AgentCommandTransportSandboxStateRow pending = await verification.TransportStates.SingleAsync();
         Assert.Equal(2, pending.PendingSequence);
         Assert.Equal(cancellingClient.PollRequests[0].MessageId, pending.PendingMessageId);
         Assert.Equal("Poll", pending.PendingMessageKind);
@@ -460,7 +459,7 @@ public sealed class CommandTransportSafetyTests
 
     private sealed class AgentFixture(
         SqliteConnection keeper,
-        DbContextOptions<AgentDbContext> options,
+        DbContextOptions<AgentCommandTransportSandboxDbContext> options,
         Guid agentId) : IAsyncDisposable
     {
         public Guid AgentId { get; } = agentId;
@@ -478,29 +477,16 @@ public sealed class CommandTransportSafetyTests
             }.ToString();
             SqliteConnection keeper = new(connectionString);
             await keeper.OpenAsync();
-            DbContextOptions<AgentDbContext> options = new DbContextOptionsBuilder<AgentDbContext>()
+            DbContextOptions<AgentCommandTransportSandboxDbContext> options =
+                new DbContextOptionsBuilder<AgentCommandTransportSandboxDbContext>()
                 .UseSqlite(connectionString).Options;
             Guid agentId = Guid.NewGuid();
-            await using AgentDbContext setup = new(options);
+            await using AgentCommandTransportSandboxDbContext setup = new(options);
             await setup.Database.EnsureCreatedAsync();
-            setup.Registrations.Add(new AgentRegistrationRow
-            {
-                AgentId = agentId,
-                InstallationId = $"installation:{agentId:N}",
-                Environment = "sandbox",
-                IdentityCertificateReference = $"sandbox-identity:{agentId:N}",
-                CertificateThumbprint = new string('A', 64),
-                CertificateNotAfter = Now.AddHours(1),
-                IdentityState = "Active",
-                CreatedAt = Now,
-                UpdatedAt = Now,
-                ConcurrencyToken = Guid.NewGuid(),
-            });
-            await setup.SaveChangesAsync();
             return new AgentFixture(keeper, options, agentId);
         }
 
-        public AgentDbContext CreateContext() => new(options);
+        public AgentCommandTransportSandboxDbContext CreateContext() => new(options);
 
         public async ValueTask DisposeAsync() => await keeper.DisposeAsync();
     }
@@ -605,10 +591,10 @@ public sealed class CommandTransportSafetyTests
         public async ValueTask DisposeAsync() => await keeper.DisposeAsync();
     }
 
-    private sealed class AgentFactory(DbContextOptions<AgentDbContext> options)
-        : IDbContextFactory<AgentDbContext>
+    private sealed class AgentFactory(DbContextOptions<AgentCommandTransportSandboxDbContext> options)
+        : IDbContextFactory<AgentCommandTransportSandboxDbContext>
     {
-        public AgentDbContext CreateDbContext() => new(options);
+        public AgentCommandTransportSandboxDbContext CreateDbContext() => new(options);
     }
 
     private sealed class ServerFactory(DbContextOptions<ServerDbContext> options)

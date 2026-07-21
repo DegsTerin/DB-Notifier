@@ -9,10 +9,18 @@ public sealed class CommandTransportSafetyIsolationTests
     public void NormalApiDoesNotComposeCommandTransportSafetySandbox()
     {
         string program = Read("src", "DBNotifier.Server.Api", "Program.cs");
+        string containment = Read("src", "DBNotifier.Server.Api", "CommandSurfaceContainmentEndpoints.cs");
 
         Assert.DoesNotContain("ICommandTransportServerStore", program, StringComparison.Ordinal);
         Assert.DoesNotContain("MapCommandTransportSafetySandboxEndpoints", program, StringComparison.Ordinal);
         Assert.DoesNotContain("/api/v2/sandbox/", program, StringComparison.Ordinal);
+        Assert.DoesNotContain("IServerCommandDeliveryStore", program, StringComparison.Ordinal);
+        Assert.DoesNotContain("ServerCommandDeliveryStore", program, StringComparison.Ordinal);
+        Assert.DoesNotContain("CreateCommandAsync", program, StringComparison.Ordinal);
+        Assert.Contains("MapContainedCommandSurface", program, StringComparison.Ordinal);
+        Assert.DoesNotContain("IServerCommandDeliveryStore", containment, StringComparison.Ordinal);
+        Assert.DoesNotContain("IAuthorizedOperationsStore", containment, StringComparison.Ordinal);
+        Assert.DoesNotContain("AuthorizedOperationsService", containment, StringComparison.Ordinal);
     }
 
     /// <summary>Confirms ordinary command polling remains explicitly unavailable at Agent Worker startup.</summary>
@@ -21,10 +29,13 @@ public sealed class CommandTransportSafetyIsolationTests
     {
         string options = Read("src", "DBNotifier.Agent.Worker", "AgentSynchronizationOptions.cs");
         string program = Read("src", "DBNotifier.Agent.Worker", "Program.cs");
-        string pollingWorker = Read("src", "DBNotifier.Agent.Worker", "AgentCommandPollingWorker.cs");
 
         Assert.Contains("command.polling_durable_protocol_unavailable", options, StringComparison.Ordinal);
-        Assert.Contains("ValidateCommandPollingForStartup", pollingWorker, StringComparison.Ordinal);
+        Assert.Contains("ValidateCommandPollingForStartup", program, StringComparison.Ordinal);
+        Assert.DoesNotContain("AgentCommandPollingWorker", program, StringComparison.Ordinal);
+        Assert.DoesNotContain("IAgentCommandInboxStore", program, StringComparison.Ordinal);
+        Assert.DoesNotContain("ICommandDeliveryTransport", program, StringComparison.Ordinal);
+        Assert.DoesNotContain("HttpCommandDeliveryTransport", program, StringComparison.Ordinal);
         Assert.DoesNotContain("CommandTransportSandboxCoordinator", program, StringComparison.Ordinal);
         Assert.DoesNotContain("HttpCommandTransportSandboxClient", program, StringComparison.Ordinal);
     }
@@ -42,10 +53,19 @@ public sealed class CommandTransportSafetyIsolationTests
             "src",
             "DBNotifier.Persistence.Agent.Sqlite",
             "AgentCommandTransportSandboxStore.cs");
+        string sandboxContext = Read(
+            "src",
+            "DBNotifier.Persistence.Agent.Sqlite",
+            "AgentCommandTransportSandboxDbContext.cs");
 
         Assert.Contains("--sandbox-command-transport", program, StringComparison.Ordinal);
         Assert.Contains("--sandbox-command-transport", commandHost, StringComparison.Ordinal);
         Assert.Contains("CommandExecutionPolicy.Never", agentStore, StringComparison.Ordinal);
+        Assert.Contains("AgentCommandTransportSandboxDbContext", commandHost, StringComparison.Ordinal);
+        Assert.Contains("execution_policy = 'Never'", sandboxContext, StringComparison.Ordinal);
+        Assert.Contains("sandbox_command_receipts", sandboxContext, StringComparison.Ordinal);
+        Assert.DoesNotContain("AgentDbContext context", agentStore, StringComparison.Ordinal);
+        Assert.DoesNotContain("InboxCommands", agentStore, StringComparison.Ordinal);
         Assert.DoesNotContain("CommandAttempt", commandHost, StringComparison.Ordinal);
     }
 
