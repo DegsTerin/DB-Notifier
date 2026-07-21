@@ -203,7 +203,7 @@ try {
             $report = Get-Content -LiteralPath $reportPath -Raw | ConvertFrom-Json
             $currentReport = $report
             $failures = [System.Collections.Generic.List[string]]::new()
-            if (@($report.viewports).Count -ne 24) { $failures.Add('Expected 24 viewport samples.') }
+            if (@($report.viewports).Count -ne 30) { $failures.Add('Expected 30 viewport samples.') }
             if (@($report.viewports | Where-Object { $_.layout.horizontalOverflow }).Count -gt 0) { $failures.Add('Horizontal overflow was detected.') }
             $mobileSamples = @($report.viewports | Where-Object { $_.width -le 390 })
             if (@($mobileSamples | Where-Object { -not $_.layout.topbarSingleRow -or -not $_.layout.topbarControlsContained }).Count -gt 0) { $failures.Add('Compact topbar controls wrapped or escaped their header.') }
@@ -213,13 +213,16 @@ try {
             $narrowAlertSamples = @($report.viewports | Where-Object { $_.name -eq 'alerts-narrow-desktop-960x1040' })
             if ($narrowAlertSamples.Count -ne 1 -or $narrowAlertSamples[0].layout.alertSummary.columns -ne 3 -or $narrowAlertSamples[0].layout.alertSummary.cardCount -ne 3 -or $narrowAlertSamples[0].layout.alertSummary.parentRightGap -ne 0) { $failures.Add('Narrow-desktop alert summary did not fill its three-column row.') }
             $overviewSamples = @($report.viewports | Where-Object { $_.hash -eq 'overview' })
-            if ($overviewSamples.Count -ne 4 -or @($overviewSamples | Where-Object { $_.layout.overview.instanceRows -ne 4 -or $_.layout.overview.alertRows -ne 3 -or $_.layout.overview.contentOverflow }).Count -gt 0) { $failures.Add('Operational overview did not preserve its complete local fixture without overflow.') }
+            if ($overviewSamples.Count -ne 7 -or @($overviewSamples | Where-Object { $_.layout.overview.instanceRows -ne 4 -or $_.layout.overview.alertRows -ne 3 -or $_.layout.overview.contentOverflow }).Count -gt 0) { $failures.Add('Operational overview did not preserve its complete local fixture without overflow.') }
             if (@($overviewSamples | Where-Object { ($_.width -gt 767 -and $_.layout.overview.summaryColumns -ne 4) -or ($_.width -gt 350 -and $_.width -le 767 -and $_.layout.overview.summaryColumns -ne 2) -or ($_.width -le 350 -and $_.layout.overview.summaryColumns -ne 1) }).Count -gt 0) { $failures.Add('Operational overview summary retained empty or unexpected grid tracks.') }
+            $performanceChartSamples = @($report.viewports | Where-Object { $null -ne $_.layout.performanceChart })
+            if ($performanceChartSamples.Count -ne 12 -or @($performanceChartSamples | Where-Object { $_.layout.performanceChart.clipped }).Count -gt 0) { $failures.Add('A performance chart was clipped or overflowed its owning card in the 100/200/400-percent reflow matrix.') }
             if (@($report.accessibilityTree.unnamedInteractive).Count -gt 0) { $failures.Add('Unnamed interactive controls were detected.') }
             if ($report.accessibilityTree.exposedNodeCount -le 0) { $failures.Add('The accessibility tree contained no exposed nodes.') }
             $forcedColours = @($report.forcedColours)
             if ($forcedColours.Count -ne 8 -or ((@($forcedColours | ForEach-Object route) -join ',') -ne 'overview,inventory,alerts,performance,history,configuration,providers,settings')) { $failures.Add('Forced-colour coverage did not include all eight Dashboard destinations in canonical order.') }
             if (@($forcedColours | Where-Object { -not $_.active -or $_.horizontalOverflow -or -not $_.bodyUsesSystemCanvas -or -not $_.bodyUsesSystemText -or -not $_.activeNavigationUsesHighlight -or -not $_.focusVisible -or -not $_.statusBoundaryVisible -or [string]::IsNullOrWhiteSpace([string]$_.mainName) -or $_.currentNavigationCount -ne 1 -or $_.accessibilityTree.exposedNodeCount -le 0 -or @($_.accessibilityTree.unnamedInteractive).Count -gt 0 }).Count -gt 0) { $failures.Add('A forced-colour destination lost system colours, focus, status boundary, navigation semantics or an accessible control name.') }
+            if (@($forcedColours | Where-Object { $null -ne $_.performanceChart -and $_.performanceChart.clipped }).Count -gt 0) { $failures.Add('A forced-colour performance chart was clipped or overflowed its owning card.') }
             if ($report.semanticBrand.candidateCount -ne 1 -or $report.semanticBrand.aggregateState -ne 'critical' -or [string]$report.semanticBrand.href -ne $expectedCriticalFavicon) { $failures.Add("The runtime favicon did not expose the canonical brand revision $($brandRevisionMatch.Groups[1].Value) Critical candidate.") }
             if ($report.browser.product -ne $BrowserProduct -or $report.browser.version -ne $browserVersion) { $failures.Add('Browser product/version provenance was not preserved in the report.') }
             if (@($report.keyboard).Count -ne 12 -or @($report.keyboard | Where-Object { -not $_.visible }).Count -gt 0) { $failures.Add('Keyboard traversal did not preserve twelve visible focus targets.') }
@@ -240,6 +243,7 @@ try {
             if (@($tvLayouts | Where-Object { $_.documentScrollWidth -gt $_.documentClientWidth -or $_.appScrollWidth -gt $_.appClientWidth -or $_.horizontalOverflow -or $_.appOverflow -or $_.overviewOverflow }).Count -gt 0) { $failures.Add('TV mode overflowed horizontally at a required layout width.') }
             if (@($tvLayouts | Where-Object { -not $_.topbarControlsContained -or -not $_.topbarControlsWithinViewport }).Count -gt 0) { $failures.Add('TV mode topbar controls escaped their header or viewport.') }
             if (@($tvLayouts | Where-Object { ($_.width -le 1100 -and $_.overviewColumns -ne 1) -or ($_.width -gt 1100 -and $_.overviewColumns -ne 2) }).Count -gt 0) { $failures.Add('TV mode overview did not reflow to the expected compact and wide column counts.') }
+            if (@($tvLayouts | Where-Object { $null -eq $_.performanceChart -or $_.performanceChart.clipped }).Count -gt 0) { $failures.Add('TV mode clipped the performance chart at a required layout width.') }
             if ($null -ne $report.tvMode.restored.tvMode -or $report.tvMode.restored.buttonState -ne 'enter') { $failures.Add('TV mode did not restore the standard layout.') }
             if ($report.tvMode.unavailableFullscreen.tvMode -ne 'true' -or $report.tvMode.unavailableFullscreen.nativeFullscreen) { $failures.Add('TV mode fullscreen fallback failed.') }
             if ($failures.Count -gt 0) {
@@ -250,7 +254,7 @@ try {
         }
     }
     $summaries | Format-Table -AutoSize
-    Write-Output "STATE-05 Dashboard audit passed for 96 viewport samples and 32 forced-colour route samples across pt-BR/en-GB and Light/Dark on $BrowserProduct $browserVersion."
+    Write-Output "STATE-05 Dashboard audit passed for 120 viewport samples and 32 forced-colour route samples across pt-BR/en-GB and Light/Dark on $BrowserProduct $browserVersion."
 }
 catch {
     if (-not [string]::IsNullOrWhiteSpace($DiagnosticDirectory)) {

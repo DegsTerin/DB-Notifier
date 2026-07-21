@@ -110,6 +110,8 @@ async function readView(call) {
     control: document.querySelector(".tv-mode-button")?.dataset.tvModeControl ?? null,
     badge: document.querySelector(".demo-badge")?.textContent?.trim() ?? null,
     instanceNames: [...document.querySelectorAll(".overview-instance-name strong")].map((element) => element.textContent?.trim()),
+    performanceChartCount: document.querySelectorAll(".trend-chart").length,
+    sourceTruth: document.querySelector(".source-truth")?.textContent?.trim() ?? null,
     timerDelays: [...(window.__dbNotifierBrowserE2eTimerDelays ?? [])],
   }))()`);
 }
@@ -199,6 +201,7 @@ async function enterAndWaitForSnapshot(call, scenario) {
   const view = await readView(call);
   assertEvidence(view.tvActive && view.control === "exit", "TV presentation did not remain active after the authoritative read.");
   assertEvidence(view.instanceNames.length === 2 && view.instanceNames.includes("Orders sandbox"), "The browser did not render the two authoritative sandbox items.");
+  assertEvidence(view.performanceChartCount === 0 && Boolean(view.sourceTruth), "The authoritative TV surface retained a demonstration chart or lost its source-truth explanation.");
   return view;
 }
 
@@ -254,7 +257,7 @@ try {
   await call("Network.setExtraHTTPHeaders", { headers: { [scenarioHeader]: "authoritative" } });
   await waitFor(call, `document.querySelector(".tv-mode-button") !== null`, "the initial Dashboard shell");
   let standardView = await readView(call);
-  assertEvidence(!standardView.tvActive && standardView.instanceNames.length === 4, "The normal Dashboard did not preserve its four-item demonstration baseline.");
+  assertEvidence(!standardView.tvActive && standardView.instanceNames.length === 4 && standardView.performanceChartCount === 1, "The normal Dashboard did not preserve its four-item demonstration baseline and labelled performance chart.");
   assertEvidence((await readHostEvidence(call, "authoritative")).requestCount === 0, "The standard Dashboard contacted the sandbox before TV entry.");
 
   reportStage("starting authenticated SignalR hint and independent real periodic deadline");
@@ -395,7 +398,7 @@ try {
 
   await prepareScenario(call, "authoritative-after-fence", true);
   standardView = await readView(call);
-  assertEvidence(!standardView.tvActive && standardView.control === "enter" && standardView.instanceNames.length === 4, "The final standard Dashboard did not return to its demonstration baseline.");
+  assertEvidence(!standardView.tvActive && standardView.control === "enter" && standardView.instanceNames.length === 4 && standardView.performanceChartCount === 1, "The final standard Dashboard did not return to its demonstration baseline and labelled performance chart.");
 
   const version = await fetch(`${cdpEndpoint}/json/version`).then((response) => response.json());
   assertEvidence(networkEvidence.externalOrigins.size === 0, `The evidence browser contacted an external HTTP origin: ${[...networkEvidence.externalOrigins].join(", ")}`);

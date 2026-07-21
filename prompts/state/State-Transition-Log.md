@@ -2487,6 +2487,20 @@
 - Próxima decisão: requer proposta e autorização separadas para diagnóstico/remediação focal do gráfico e repetição da amostra; isso não autoriza aceitar R6 nem retomar automaticamente as demais amostras.
 - Aprovador: decisão humana limitada a `R6-HV-D01`; nenhuma aceitação R6 foi inferida.
 
+## 2026-07-21 — Remediação automática focal `R6-G1` do gráfico de desempenho
+
+- Estado anterior: `STATE-06 INTEGRATION`, R6 automático aprovado, `R6-HV-D01` reprovada por corte do gráfico no reflow, demais amostras visíveis interrompidas e R6-G1 autorizado exclusivamente sobre `c3c8ed10493084fd4155a439f5f9cd044b8db23e`.
+- Estado resultante: sem transição; `STATE-06 INTEGRATION` mantido. R6-G1 está automaticamente `APROVADO`; a decisão humana de `R6-HV-D01` não mudou e a aceitação R6 continua `PENDENTE`.
+- Causa: o grid interno preservava a altura mínima intrínseca do SVG e da linha de horários dentro de uma altura total que já incluía padding; o `overflow: hidden` deliberado do card cortava o excedente vertical.
+- Correção: `min-height: 0` somente no plot e SVG existentes; nenhuma série, eixo, ponto, rótulo ou source truth foi ocultado. WPF/Tray e contratos operacionais não mudaram.
+- Gate regressivo: o harness existente passou a medir card/chart/axis/plot/SVG/times, zoom 100%/200%/400%, equivalentes de reflow, forced colours e TV. Antes da correção, o gate novo falhou nas três superfícies esperadas; depois, 72 amostras de contenção passaram.
+- Autoritativo: o sandbox TV existente passou a exigir zero `.trend-chart` e source truth não vazio no snapshot autoritativo, além do retorno do gráfico demonstrativo rotulado fora desse modo; 12/12 cenários HTTPS loopback passaram, com zero request externo e zero dado operacional.
+- Gates: TypeScript, 65/65 testes Dashboard, build normal, 120 viewports bilingues Light/Dark, 32 rotas forced colours, toolchain, tokens, localização, marca e provider registries passaram. Arquitetura permaneceu 43/44 somente pela asserção R0 preexistente; a seleção sem ela passou 43/43.
+- Limites: nenhum restore, download, acesso externo, amostra visível, browser comum, Windows setting/notification, WPF/Tray, provider/banco/credencial real, R2-B, R7–R8, R7-A0/O1, AIOps, comando, automação, promoção ou transição foi executado.
+- Evidência: [relatório R6-G1](../../docs/STATE-06-Audit-Remediation-R6-G1-Report.md), [relatório da execução humana interrompida](../../docs/STATE-06-Audit-Remediation-R6-Human-Samples-Report.md) e [relatório automático R6](../../docs/STATE-06-Audit-Remediation-R6-Report.md).
+- Próxima decisão: requer proposta e autorização separadas para repetir visivelmente somente `R6-HV-D01`; R6 não está aceito e as demais amostras não são retomadas automaticamente.
+- Aprovador: decisão humana R6 pendente; nenhuma aprovação da amostra ou do R6 foi inferida.
+
 ## Template de nova entrada
 
 - Data:

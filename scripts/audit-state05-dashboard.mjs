@@ -112,6 +112,52 @@ async function auditSemanticBrand(call) {
   })()`);
 }
 
+/** Measures whether every visible performance-chart layer remains vertically contained by its owning card. */
+async function auditPerformanceChart(call) {
+  return evaluate(call, `(() => {
+    const chart = document.querySelector(".trend-chart");
+    if (!chart) return null;
+    const panel = chart.closest(".overview-panel");
+    const axis = chart.querySelector(".trend-axis");
+    const plot = chart.querySelector(".trend-plot");
+    const graphic = chart.querySelector("svg");
+    const times = chart.querySelector(".trend-times");
+    const rect = (element) => element?.getBoundingClientRect() ?? null;
+    const panelRect = rect(panel);
+    const chartRect = rect(chart);
+    const axisRect = rect(axis);
+    const plotRect = rect(plot);
+    const graphicRect = rect(graphic);
+    const timesRect = rect(times);
+    const containsVertically = (outer, inner) => Boolean(outer && inner && inner.top >= outer.top - 1 && inner.bottom <= outer.bottom + 1);
+    const panelContainsChart = containsVertically(panelRect, chartRect);
+    const chartContainsAxis = containsVertically(chartRect, axisRect);
+    const chartContainsPlot = containsVertically(chartRect, plotRect);
+    const plotContainsGraphic = containsVertically(plotRect, graphicRect);
+    const plotContainsTimes = containsVertically(plotRect, timesRect);
+    const panelContentOverflow = panel ? panel.scrollHeight > panel.clientHeight + 1 : true;
+    const chartContentOverflow = chart.scrollHeight > chart.clientHeight + 1;
+    const plotContentOverflow = plot ? plot.scrollHeight > plot.clientHeight + 1 : true;
+    return {
+      panelContainsChart,
+      chartContainsAxis,
+      chartContainsPlot,
+      plotContainsGraphic,
+      plotContainsTimes,
+      panelContentOverflow,
+      chartContentOverflow,
+      plotContentOverflow,
+      clipped: !panelContainsChart || !chartContainsAxis || !chartContainsPlot || !plotContainsGraphic || !plotContainsTimes || panelContentOverflow || chartContentOverflow || plotContentOverflow,
+      panelHeight: panel?.clientHeight ?? null,
+      panelScrollHeight: panel?.scrollHeight ?? null,
+      chartHeight: chart.clientHeight,
+      chartScrollHeight: chart.scrollHeight,
+      plotHeight: plot?.clientHeight ?? null,
+      plotScrollHeight: plot?.scrollHeight ?? null,
+    };
+  })()`);
+}
+
 /** Captures layout and screenshot evidence for one route and viewport. */
 async function captureViewport(call, name, width, height, hash = "inventory", pageScaleFactor = 1) {
   await call("Emulation.setDeviceMetricsOverride", { width, height, deviceScaleFactor: 1, mobile: false });
@@ -180,6 +226,7 @@ async function captureViewport(call, name, width, height, hash = "inventory", pa
       heading: document.querySelector("h1")?.textContent?.trim(),
     };
   })()`);
+  layout.performanceChart = await auditPerformanceChart(call);
   if (hash === "alerts") await evaluate(call, 'document.querySelector(".inventory-panel")?.scrollIntoView({ block: "start" }); true');
   if (hash === "configuration") await evaluate(call, 'document.querySelector(".capability-panel")?.scrollIntoView({ block: "start" }); true');
   await settle(80);
@@ -256,7 +303,7 @@ async function auditTvMode(call) {
     })()`);
     await clickElement(call, ".tv-mode-button");
     await settle(150);
-    layouts.push(await evaluate(call, `(() => {
+    const layout = await evaluate(call, `(() => {
       const root = document.documentElement;
       const app = document.querySelector(".app-shell");
       const topbar = document.querySelector(".topbar")?.getBoundingClientRect();
@@ -282,7 +329,9 @@ async function auditTvMode(call) {
           : null,
         overviewOverflow: overview ? overview.scrollWidth > overview.clientWidth : null,
       };
-    })()`));
+    })()`);
+    layout.performanceChart = await auditPerformanceChart(call);
+    layouts.push(layout);
     if (!unavailableFullscreen) {
       unavailableFullscreen = await evaluate(call, `(() => ({
         tvMode: document.documentElement.dataset.tvMode,
@@ -418,6 +467,7 @@ async function auditForcedColours(call) {
         currentNavigationCount: document.querySelectorAll('[aria-current="page"]').length,
       };
     })()`);
+    surface.performanceChart = await auditPerformanceChart(call);
     const tree = await auditAccessibilityTree(call);
     samples.push({ ...surface, accessibilityTree: tree });
     if (route === "overview") {
@@ -537,6 +587,9 @@ async function main() {
   for (const [name, width, height, hash = "inventory", pageScaleFactor = 1] of [
     ["overview-ultrawide-1920x1080", 1920, 1080, "overview"],
     ["overview-desktop-1440x1000", 1440, 1000, "overview"],
+    ["overview-200-percent-reflow-equivalent-640x800", 640, 800, "overview"],
+    ["overview-200-percent-browser-zoom-1280x900", 1280, 900, "overview", 2],
+    ["overview-400-percent-browser-zoom-1280x900", 1280, 900, "overview", 4],
     ["overview-mobile-390x844", 390, 844, "overview"],
     ["overview-minimum-320x568", 320, 568, "overview"],
     ["inventory-ultrawide-1920x1080", 1920, 1080],
@@ -552,6 +605,9 @@ async function main() {
     ["alerts-mobile-390x844", 390, 844, "alerts"],
     ["alerts-minimum-320x568", 320, 568, "alerts"],
     ["performance-desktop-1440x1000", 1440, 1000, "performance"],
+    ["performance-200-percent-reflow-equivalent-640x800", 640, 800, "performance"],
+    ["performance-200-percent-browser-zoom-1280x900", 1280, 900, "performance", 2],
+    ["performance-400-percent-browser-zoom-1280x900", 1280, 900, "performance", 4],
     ["performance-minimum-320x568", 320, 568, "performance"],
     ["configuration-mobile-390x844", 390, 844, "configuration"],
     ["configuration-minimum-320x568", 320, 568, "configuration"],

@@ -427,6 +427,23 @@ test("compact alert and capability cards keep a readable single-column flow", ()
   assert.match(css, /\.capability-list article > code, \.capability-list article > p \{[^}]*overflow-wrap: anywhere;[^}]*white-space: normal;/);
 });
 
+test("performance charts surrender intrinsic SVG height before their responsive card can clip", () => {
+  const css = readFileSync(new URL("../src/styles.css", import.meta.url), "utf8");
+  const browserAudit = readFileSync(new URL("../../../scripts/audit-state05-dashboard.mjs", import.meta.url), "utf8");
+  const browserGate = readFileSync(new URL("../../../scripts/run-state05-dashboard-audit.ps1", import.meta.url), "utf8");
+
+  assert.match(css, /\.trend-plot \{[^}]*min-width: 0;[^}]*min-height: 0;[^}]*grid-template-rows: minmax\(0, 1fr\) auto;/s);
+  assert.match(css, /\.trend-chart svg \{[^}]*width: 100%;[^}]*height: 100%;[^}]*min-height: 0;[^}]*overflow: visible;/s);
+  assert.match(browserAudit, /async function auditPerformanceChart\(call\)/);
+  assert.match(browserAudit, /overview-200-percent-browser-zoom-1280x900/);
+  assert.match(browserAudit, /performance-400-percent-browser-zoom-1280x900/);
+  assert.match(browserGate, /A performance chart was clipped or overflowed its owning card in the 100\/200\/400-percent reflow matrix\./);
+  assert.match(browserGate, /TV mode clipped the performance chart at a required layout width\./);
+  const authoritativeAudit = readFileSync(new URL("../../../scripts/audit-state06-dashboard-tv-browser.mjs", import.meta.url), "utf8");
+  assert.match(authoritativeAudit, /performanceChartCount: document\.querySelectorAll\("\.trend-chart"\)\.length/);
+  assert.match(authoritativeAudit, /view\.performanceChartCount === 0 && Boolean\(view\.sourceTruth\)/);
+});
+
 test("alert summary uses its full row without inheriting empty inventory columns", () => {
   const css = readFileSync(new URL("../src/styles.css", import.meta.url), "utf8");
 
