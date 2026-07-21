@@ -8,7 +8,7 @@
 - Execution authority: Bruno's explicit local-only authorisation issued on 2026-07-20.
 - Local implementation and R1-specific verification: completed.
 - Automatic result in the authorised R1 scope: `APROVADO`.
-- Independent human decision: pending.
+- Independent human decision: `ACEITO COM RESSALVA`, recorded from Bruno's exact decision `ACEITO O R1 COM A RESSALVA DO GATE GLOBAL PREEXISTENTE, SEM AUTORIZAR CORREÇÃO FORA DO ESCOPO.` on 2026-07-20.
 - Repository-wide qualification: the unfiltered .NET solution test command remains `BLOQUEADO` by one R0 architecture assertion that already contradicted the workflow in the authorised baseline; it is not an R1 regression and was not changed under this authority.
 - Lifecycle: remains `STATE-06 INTEGRATION`; no transition was requested or performed.
 - MOD-12: unchanged and inactive; no `OBSERVER`, O1, LLM, recommendation, command or automation was enabled.
@@ -98,4 +98,4 @@ Disable the exact reconciled sandbox consumer and preserve the v2 ledger for dia
 
 ## Human decision and next boundary
 
-The automatic R1-specific evidence is ready for independent review. No Human Gate decision is inferred by this report. Acceptance of R1 would close only `AUD-H02` in this bounded local sandbox scope; it would not authorise a visible sample, correction of the pre-existing R0 assertion, R2 or later lots, R7-A0/O1, AIOps activation or lifecycle transition.
+Bruno accepted R1 on 2026-07-20 with the exact reservation `ACEITO O R1 COM A RESSALVA DO GATE GLOBAL PREEXISTENTE, SEM AUTORIZAR CORREÇÃO FORA DO ESCOPO.` R1 and `AUD-H02` are therefore accepted and closed only in this bounded local sandbox scope. The repository-wide R0 assertion remains an explicit pre-existing blocker and may not be corrected under this decision. The acceptance does not authorise a visible sample, R2 or later lots, R7-A0/O1, AIOps activation or lifecycle transition.

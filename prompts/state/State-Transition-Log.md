@@ -2313,6 +2313,17 @@
 - Próxima decisão MOD-12: Bruno poderá autorizar ou não, de forma separada e explícita, o O1 com limites exatos; até essa decisão, nenhuma implementação ou ativação de `OBSERVER` é permitida. A decisão de ciclo de vida `STATE-06 → STATE-07` continua independente e pendente.
 - Aprovador: Bruno, 2026-07-20, exclusivamente para adoção arquitetural do `ADR-0007`.
 
+## 2026-07-20 — Aceitação do lote de remediação `R1`
+
+- Estado anterior: `STATE-06 INTEGRATION`, R1 implementado no commit `878103d`, escopo automático R1 `APROVADO`, decisão humana pendente e gate .NET global bloqueado por uma inconsistência R0 preexistente.
+- Estado resultante: sem transição; `STATE-06 INTEGRATION` mantido. R1 e `AUD-H02` aceitos e fechados somente no escopo local bounded autorizado.
+- Decisão: Bruno declarou exatamente `ACEITO O R1 COM A RESSALVA DO GATE GLOBAL PREEXISTENTE, SEM AUTORIZAR CORREÇÃO FORA DO ESCOPO.`
+- Ressalva: a asserção `State06ConsolidatedHarnessIsolationTests.BrowserRunnersBoundWorkAndCleanupExactOwnedResources` já contradizia o workflow na baseline `3ee505ec55cab84f1af3043491355fb9f00b5f43`; permanece visível, bloqueante para o comando global e sem autorização de correção.
+- Evidência: [relatório R1](../../docs/STATE-06-Audit-Remediation-R1-Report.md), [plano de remediação](../../docs/STATE-06-Complete-Project-Audit-Remediation-Plan.md) e commit local `878103d30bdb17c2d0bc36cc038e0f57b376c70f`.
+- Limites: a decisão não autoriza correção R0, notificação Windows visível, R2–R8, R7-A0/O1, LLM, recomendação, comando, automação, promoção de modo ou transição de lifecycle.
+- Escopo desta ação: somente registro documental factual; nenhum código executável, build, teste, runtime, browser, acesso externo, banco/serviço real, push ou deploy.
+- Aprovador: Bruno, 2026-07-20, exclusivamente para o R1 com a ressalva registrada.
+
 ## Template de nova entrada
 
 - Data:
