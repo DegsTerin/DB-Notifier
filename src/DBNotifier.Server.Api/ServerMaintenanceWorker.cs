@@ -100,8 +100,18 @@ public sealed partial class ServerMaintenanceWorker(
         }
 
         options.ValidateForStartup();
-        ServerOutboxDeliveryRunner outboxRunner = new(outboxStore, publisher, timeProvider);
-        NotificationDeliveryRunner notificationRunner = new(notificationStore, adapters, timeProvider);
+        Guid deliveryWorkerId = Guid.NewGuid();
+        TimeSpan deliveryLease = TimeSpan.FromSeconds(30);
+        ServerOutboxDeliveryRunner outboxRunner = new(
+            outboxStore,
+            publisher,
+            deliveryWorkerId,
+            deliveryLease);
+        NotificationDeliveryRunner notificationRunner = new(
+            notificationStore,
+            adapters,
+            deliveryWorkerId,
+            deliveryLease);
         TimeSpan interval = TimeSpan.FromSeconds(options.IntervalSeconds);
         while (!stoppingToken.IsCancellationRequested)
         {
@@ -129,7 +139,7 @@ public sealed partial class ServerMaintenanceWorker(
                     DeliveryCycleResult outbox = await outboxRunner
                         .RunOnceAsync(options.MaximumBatchSize, stoppingToken)
                         .ConfigureAwait(false);
-                    LogDelivery(logger, "server-outbox", outbox.Selected, outbox.Delivered, outbox.Retryable);
+                    LogDelivery(logger, "server-outbox", outbox);
                 }
 
                 if (options.NotificationDeliveryEnabled)
@@ -137,12 +147,7 @@ public sealed partial class ServerMaintenanceWorker(
                     DeliveryCycleResult notifications = await notificationRunner
                         .RunOnceAsync(options.MaximumBatchSize, stoppingToken)
                         .ConfigureAwait(false);
-                    LogDelivery(
-                        logger,
-                        "notifications",
-                        notifications.Selected,
-                        notifications.Delivered,
-                        notifications.Retryable);
+                    LogDelivery(logger, "notifications", notifications);
                 }
             }
             catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
@@ -176,13 +181,28 @@ public sealed partial class ServerMaintenanceWorker(
     [LoggerMessage(
         EventId = 3103,
         Level = LogLevel.Information,
-        Message = "Server delivery completed: stream={Stream}, selected={Selected}, delivered={Delivered}, retryable={Retryable}")]
+        Message = "Server delivery completed: stream={Stream}, selected={Selected}, delivered={Delivered}, retryable={Retryable}, deadLettered={DeadLettered}, ambiguous={Ambiguous}, lostOwnership={LostOwnership}")]
     private static partial void LogDelivery(
         ILogger logger,
         string stream,
         int selected,
         int delivered,
-        int retryable);
+        int retryable,
+        int deadLettered,
+        int ambiguous,
+        int lostOwnership);
+
+    /// <summary>Writes only bounded delivery counts and never payload, endpoint or credential material.</summary>
+    private static void LogDelivery(ILogger logger, string stream, DeliveryCycleResult result) =>
+        LogDelivery(
+            logger,
+            stream,
+            result.Selected,
+            result.Delivered,
+            result.Retryable,
+            result.DeadLettered,
+            result.Ambiguous,
+            result.LostOwnership);
 
     [LoggerMessage(
         EventId = 3104,

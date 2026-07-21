@@ -381,19 +381,30 @@ public sealed class ServerDbContext(DbContextOptions<ServerDbContext> options) :
                 table.HasCheckConstraint("ck_delivery_attempts", "attempt_count >= 0");
                 table.HasCheckConstraint(
                     "ck_delivery_state",
-                    "state IN ('Pending','Delivering','Delivered','Failed','Cancelled','Quarantined')");
+                    "state IN ('Pending','Delivering','Delivered','Failed','Cancelled','Quarantined','DeadLettered','Ambiguous')");
                 table.HasCheckConstraint(
                     "ck_delivery_pending_provenance",
                     "state <> 'Pending' OR (alert_rule_channel_binding_id IS NOT NULL AND idempotency_key IS NOT NULL)");
                 table.HasCheckConstraint(
                     "ck_delivery_quarantine_reason",
                     "state <> 'Quarantined' OR error_code IS NOT NULL");
+                table.HasCheckConstraint("ck_delivery_fence", "lease_fence >= 0");
+                table.HasCheckConstraint(
+                    "ck_delivery_lease_tuple",
+                    "(lease_owner_id IS NULL AND lease_expires_at IS NULL AND handoff_started_at IS NULL) OR " +
+                    "(lease_owner_id IS NOT NULL AND lease_expires_at IS NOT NULL)");
+                table.HasCheckConstraint(
+                    "ck_delivery_terminal_evidence",
+                    "(state = 'DeadLettered' AND dead_lettered_at IS NOT NULL AND ambiguous_at IS NULL) OR " +
+                    "(state = 'Ambiguous' AND ambiguous_at IS NOT NULL AND dead_lettered_at IS NULL) OR " +
+                    "(state NOT IN ('DeadLettered','Ambiguous') AND dead_lettered_at IS NULL AND ambiguous_at IS NULL)");
             });
             entity.HasKey(row => row.NotificationDeliveryId);
             entity.Property(row => row.IdempotencyKey).HasMaxLength(200);
             entity.Property(row => row.State).HasMaxLength(32).IsRequired();
             entity.Property(row => row.ErrorCode).HasMaxLength(100);
             entity.HasIndex(row => new { row.State, row.CreatedAt });
+            entity.HasIndex(row => new { row.State, row.AvailableAt, row.LeaseExpiresAt, row.CreatedAt });
             entity.HasIndex(row => row.IdempotencyKey).IsUnique();
             entity.HasIndex(row => new { row.AlertRuleChannelBindingId, row.EventId }).IsUnique();
             entity.HasOne<NotificationChannelRow>().WithMany().HasForeignKey(row => row.NotificationChannelId).OnDelete(DeleteBehavior.Restrict);
@@ -563,11 +574,30 @@ public sealed class ServerDbContext(DbContextOptions<ServerDbContext> options) :
             {
                 table.HasCheckConstraint("ck_server_outbox_schema", "schema_version >= 1");
                 table.HasCheckConstraint("ck_server_outbox_attempts", "attempt_count >= 0");
+                table.HasCheckConstraint("ck_server_outbox_fence", "lease_fence >= 0");
+                table.HasCheckConstraint(
+                    "ck_server_outbox_lease_tuple",
+                    "(lease_owner_id IS NULL AND lease_expires_at IS NULL AND handoff_started_at IS NULL) OR " +
+                    "(lease_owner_id IS NOT NULL AND lease_expires_at IS NOT NULL)");
+                table.HasCheckConstraint(
+                    "ck_server_outbox_terminal_evidence",
+                    "NOT ((published_at IS NOT NULL AND dead_lettered_at IS NOT NULL) OR " +
+                    "(published_at IS NOT NULL AND ambiguous_at IS NOT NULL) OR " +
+                    "(dead_lettered_at IS NOT NULL AND ambiguous_at IS NOT NULL))");
             });
             entity.HasKey(row => row.MessageId);
             entity.Property(row => row.MessageType).HasMaxLength(100).IsRequired();
             entity.Property(row => row.PayloadJson).HasColumnType("jsonb").IsRequired();
+            entity.Property(row => row.ErrorCode).HasMaxLength(100);
             entity.HasIndex(row => new { row.PublishedAt, row.AvailableAt });
+            entity.HasIndex(row => new
+            {
+                row.PublishedAt,
+                row.DeadLetteredAt,
+                row.AmbiguousAt,
+                row.AvailableAt,
+                row.LeaseExpiresAt,
+            });
         });
     }
 }

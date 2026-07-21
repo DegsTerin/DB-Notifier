@@ -2406,6 +2406,23 @@
 - Próxima decisão: Bruno poderá solicitar separadamente uma proposta de autorização para o lote seguinte; isso não autoriza implementação.
 - Aprovador: Bruno, 2026-07-21, exclusivamente para o R4-A com a ressalva registrada.
 
+## 2026-07-21 — Implementação local do lote de remediação `R4-B`
+
+- Estado anterior: `STATE-06 INTEGRATION`, R0/R1/R2-A/R3/R4-A aceitos nos seus limites, `AUD-H07` contido e aberto, e R4-B autorizado exclusivamente sobre a baseline `20323defa34fdb7b0b475400b6bb474217042baf`.
+- Estado resultante: sem transição; `STATE-06 INTEGRATION` mantido. R4-B está implementado e `APROVADO` automaticamente no escopo local autorizado; aceitação humana permanece `PENDENTE`, portanto `AUD-H07` ainda não está registrado como aceito/fechado.
+- Autorização: Bruno autorizou somente `AUD-H07`, ownership/fencing/retry/ambiguidade/dead-letter para as duas filas Server, uma migration mínima, laboratório PostgreSQL local descartável com imagem pinned já local, fixtures sintéticas, documentação, evidência sanitizada e commit focado. Download/pull, dependência nova, integração/canal/credencial real, PostgreSQL existente, migration operacional, push/deploy, R5–R8, R7-A0/O1, comandos/modos/transições permaneceram proibidos.
+- Baseline e preflight: branch `main`, commit `20323defa34fdb7b0b475400b6bb474217042baf`, worktree limpa e zero processo, listener ou janela atribuível ao DB-Notifier antes da implementação; IDE e serviços do utilizador permaneceram intocados.
+- Ownership: `FOR UPDATE SKIP LOCKED`, lease e retry pelo `clock_timestamp()` PostgreSQL, fence monotónico e owner/fence/expiry exatos protegem claim, hand-off, completion e reclaim; row lock no item mais antigo não bloqueia trabalho elegível posterior.
+- Outcome: marker durável antecede o side effect; exceção, mismatch, cancelamento/expiração depois do marker tornam a row `Ambiguous` sem replay; retry explícito é bounded e o quinto attempt fica `DeadLettered`; nenhum outcome é apagado.
+- Idempotência: outbox deriva chave estável do message ID e notification preserva a chave R4-A; publisher/adapter recebem a chave obrigatoriamente. O receptor sintético comprovou deduplicação, sem alegação de exactly-once externo.
+- Contenção: delivery normal continua desabilitado e recusado antes do bind; `UnavailableServerMessagePublisher`, zero adapter, R2-A/R3/R4-A, Fleet normal desabilitado e issuer indisponível permanecem intactos.
+- Schema: a oitava migration Server acrescenta somente ownership/fence/attempt availability/ambiguous/dead-letter e constraints/índices proprietários. EF não encontrou drift; SQL forward não faz data update e `Down` recusa downgrade destrutivo. Aplicação ocorreu somente no laboratório descartável, nunca em PostgreSQL existente ou operacional.
+- Laboratório: Docker Desktop usou a imagem local `postgres:16-alpine`/`sha256:e013e867e712fec275706a6c51c966f0bb0c93cfa8f51000f85a15f9865a28cb`, `--pull never`, bind `127.0.0.1`, credencial efémera não impressa, recursos bounded e container/rede/volume próprios. A matriz PostgreSQL passou 1/1 para outbox e notifications; a auditoria de encerramento confirmou zero processo, recurso Docker exact-labelled ou diretório temporário R4-B residual.
+- Gates: build Release 18 projetos sem aviso/erro; 371/371 unitários, 3/3 WPF, 22/22 integrações normais, laboratório 1/1 e arquitetura R4-B passaram; arquitetura sem a contradição R0 passou; cobertura 81,71%/52,22% com 10/10 componentes; EF, SQL, format, documentação, links e secrets passaram. O gate global permanece não verde exclusivamente pela asserção R0 preexistente, sem correção.
+- Evidência: [relatório factual R4-B](../../docs/STATE-06-Audit-Remediation-R4B-Report.md), [modelo lógico](../../docs/data/Logical-Model.md), [desenvolvimento](../../docs/Development.md) e [plano de remediação](../../docs/STATE-06-Complete-Project-Audit-Remediation-Plan.md).
+- Próxima decisão: Bruno deverá revisar o relatório e o commit focado e decidir separadamente se aceita R4-B. Aceitação não autorizará delivery operacional, migration, canal real, R5, correção R0, AIOps ou transição.
+- Aprovador: decisão humana ainda pendente; nenhum aceite foi inferido da autorização de implementação.
+
 ## Template de nova entrada
 
 - Data:

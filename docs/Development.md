@@ -97,6 +97,23 @@ All active projects target `net10.0` or an appropriate versioned .NET 10 Windows
 
 The unit-test coverage gate requires at least 70% line coverage and 45% branch coverage. The separate legacy Pester gate requires at least 25% command coverage; these are regression floors for the current bounded suites, not claims of complete behavioural coverage.
 
+## R4-B disposable PostgreSQL ownership laboratory
+
+The R4-B concurrency proof requires PowerShell 7, Docker Desktop and the exact PostgreSQL image already present
+locally. The runner validates image ID/digest, uses `--pull never`, publishes PostgreSQL only on an ephemeral
+`127.0.0.1` port, generates a temporary synthetic password and removes only its exact-labelled container, network,
+volume and temporary directory:
+
+```powershell
+pwsh -NoProfile -NonInteractive -File .\scripts\run-r4b-postgresql-delivery-lab.ps1
+```
+
+Do not pull the image to satisfy this gate. If the pinned image is absent, Docker is unavailable or cleanup cannot
+be proved, stop and report the boundary. A passing run proves only claim/lease/fence/reclaim, idempotency,
+dead-letter and ambiguous-side-effect behaviour for that disposable PostgreSQL 16 Alpine topology. It does not
+activate normal delivery, apply an operational migration or homologate PostgreSQL generally. See the
+[R4-B evidence report](STATE-06-Audit-Remediation-R4B-Report.md).
+
 ## Legacy checks
 
 ```powershell

@@ -299,7 +299,7 @@ public sealed class PersistenceModelTests
             migrationScript);
 
         string[] migrations = context.Database.GetMigrations().ToArray();
-        Assert.Equal(7, migrations.Length);
+        Assert.Equal(8, migrations.Length);
         Assert.Contains("alert_rule_channel_bindings", migrationScript, StringComparison.Ordinal);
         Assert.Contains("notification.binding_unproven", migrationScript, StringComparison.Ordinal);
         Assert.Contains("SET state = 'Quarantined'", migrationScript, StringComparison.Ordinal);
@@ -309,6 +309,15 @@ public sealed class PersistenceModelTests
         Assert.Contains("notification.explicit_binding_downgrade_blocked", explicitRoutingRollback, StringComparison.Ordinal);
         Assert.DoesNotContain("UPDATE notification_deliveries", explicitRoutingRollback, StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain("DROP TABLE", explicitRoutingRollback, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("lease_fence", migrationScript, StringComparison.Ordinal);
+        Assert.Contains("handoff_started_at", migrationScript, StringComparison.Ordinal);
+        Assert.Contains("dead_lettered_at", migrationScript, StringComparison.Ordinal);
+        Assert.Contains("ambiguous_at", migrationScript, StringComparison.Ordinal);
+        string deliveryOwnershipRollback = migrator.GenerateScript(migrations[7], migrations[6]);
+        Assert.Contains("delivery.durable_ownership_downgrade_blocked", deliveryOwnershipRollback, StringComparison.Ordinal);
+        Assert.DoesNotContain("DROP COLUMN", deliveryOwnershipRollback, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("UPDATE outbox_messages", deliveryOwnershipRollback, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("UPDATE notification_deliveries", deliveryOwnershipRollback, StringComparison.OrdinalIgnoreCase);
         string commandTransportRollback = migrator.GenerateScript(migrations[5], migrations[4]);
         Assert.Contains("command_transport_journal", commandTransportRollback, StringComparison.Ordinal);
         Assert.Contains("agent_command_transport_cursors", commandTransportRollback, StringComparison.Ordinal);

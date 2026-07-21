@@ -98,6 +98,9 @@ Agent process health and instance health are separate rows/semantics.
 - `notification_deliveries`: event-and-binding provenance, deterministic idempotency key, copied channel, attempt
   count, state and safe error code. A `Pending` row requires both binding provenance and idempotency identity.
   Historical pending rows without proof are retained as `Quarantined`; no channel is inferred and no row is deleted.
+  Due work gains one database-clock lease owner/expiry, a monotonic fence, pre-side-effect hand-off marker, retry
+  availability and mutually exclusive dead-letter/ambiguous evidence. Exact owner/fence checks prevent a reclaimed
+  worker from completing the row.
 
 ### Administrative commands
 
@@ -115,7 +118,10 @@ Database success is not inferred solely from adapter completion; the contract re
 
 ### Server outbox
 
-Stores durable integration events inside the same transaction as state changes. Unique message ID, schema version, payload, occurrence/availability/attempt/published times support idempotent delivery and recovery.
+Stores durable integration events inside the same transaction as state changes. Unique message ID, schema version,
+payload, occurrence/availability/attempt/published times support idempotent delivery and recovery. PostgreSQL owns
+the active lease and monotonic fence; hand-off, dead-letter, ambiguous outcome and bounded safe-error evidence are
+durable. The stable publisher idempotency key is derived from the immutable message ID.
 
 ## Cross-cutting invariants
 
@@ -127,9 +133,9 @@ Stores durable integration events inside the same transaction as state changes. 
 - Optimistic concurrency is explicit on mutable configuration/aggregate rows.
 - Append-only tables do not expose soft delete.
 - Migrations are provider-specific and never run against a monitored database.
-- External Server outbox and notification delivery remain disabled and startup-refused until a separately authorised
-  PostgreSQL claim/lease/fence/reclaim implementation proves concurrent ownership. R4-A binding provenance does not
-  satisfy that future gate.
+- External Server outbox and notification delivery remain disabled and startup-refused. R4-B implements and proves
+  PostgreSQL claim/lease/fence/reclaim locally, but normal composition still has only the unavailable publisher and
+  no channel adapter; the disposable laboratory is not activation or general provider homologation.
 - Agent Fleet assignment persistence is configuration evidence only; it does not activate a provider, probe, scheduler or command path.
 - Agent Fleet leases coordinate only temporary local sandbox processes. They are not a distributed lock, service lease or authority to enable the ordinary Worker.
 - A corrupt, future or incomplete Agent SQLite schema is refused by the sandbox guard without repair or silent recreation.

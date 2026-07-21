@@ -31,6 +31,23 @@ public sealed class MaintenanceDeliveryTests
     }
 
     [Fact]
+    public async Task PublisherFailureAfterHandoffBecomesAmbiguousInsteadOfRetryable()
+    {
+        Guid itemId = Guid.NewGuid();
+        FakeOutboxOwnershipStore store = new(itemId);
+        ServerOutboxDeliveryRunner runner = new(
+            store,
+            new ThrowingPublisher(),
+            Guid.NewGuid(),
+            TimeSpan.FromSeconds(30));
+
+        DeliveryCycleResult result = await runner.RunOnceAsync(1);
+
+        Assert.Equal(new DeliveryCycleResult(1, 0, 0, 0, 1, 0), result);
+        Assert.Single(store.Handoffs);
+    }
+
+    [Fact]
     public async Task AgentRetentionSupportsDryRunAndDeletesOnlyEligibleBoundedRows()
     {
         await using SqliteConnection connection = new("Data Source=:memory:");
@@ -138,107 +155,46 @@ public sealed class MaintenanceDeliveryTests
     [Fact]
     public async Task ServerOutboxDeliveryPersistsPublishedAndRetryableOutcomes()
     {
-        await using SqliteConnection connection = new("Data Source=:memory:");
-        await connection.OpenAsync();
-        DbContextOptions<ServerDbContext> options = new DbContextOptionsBuilder<ServerDbContext>()
-            .UseSqlite(connection)
-            .Options;
-        ServerOutboxMessageRow first = ServerOutbox(Now, null);
-        ServerOutboxMessageRow second = ServerOutbox(Now.AddSeconds(-1), null);
-        await using (ServerDbContext setup = new(options))
-        {
-            await setup.Database.EnsureCreatedAsync();
-            setup.OutboxMessages.AddRange(first, second);
-            await setup.SaveChangesAsync();
-        }
-
-        ServerMaintenanceStore store = new(new ServerContextFactory(options));
-        ServerOutboxDeliveryRunner runner = new(store, new SplitPublisher(first.MessageId), new FixedTimeProvider(Now));
+        Guid ownerId = Guid.NewGuid();
+        Guid deliveredId = Guid.NewGuid();
+        FakeOutboxOwnershipStore store = new(deliveredId, Guid.NewGuid());
+        ServerOutboxDeliveryRunner runner = new(
+            store,
+            new SplitPublisher(deliveredId),
+            ownerId,
+            TimeSpan.FromSeconds(30));
 
         DeliveryCycleResult result = await runner.RunOnceAsync(10);
 
         Assert.Equal(new DeliveryCycleResult(2, 1, 1), result);
-        await using ServerDbContext verification = new(options);
-        ServerOutboxMessageRow delivered = await verification.OutboxMessages.SingleAsync(
-            row => row.MessageId == first.MessageId);
-        ServerOutboxMessageRow retryable = await verification.OutboxMessages.SingleAsync(
-            row => row.MessageId == second.MessageId);
-        Assert.Equal(Now, delivered.PublishedAt);
-        Assert.Null(retryable.PublishedAt);
-        Assert.True(retryable.AvailableAt > Now);
-        ServerOutboxMessageRow[] rows = [delivered, retryable];
-        Assert.All(rows, row => Assert.Equal(1, row.AttemptCount));
+        Assert.Equal(2, store.Handoffs.Count);
+        Assert.All(store.Claimed, message =>
+            Assert.Equal($"server-outbox:{message.MessageId:N}", message.IdempotencyKey));
     }
 
     [Fact]
     public async Task NotificationDeliveryBacksOffWithoutAdapterThenDeliversOnce()
     {
-        await using SqliteConnection connection = new("Data Source=:memory:");
-        await connection.OpenAsync();
-        DbContextOptions<ServerDbContext> options = new DbContextOptionsBuilder<ServerDbContext>()
-            .UseSqlite(connection)
-            .Options;
-        Guid agentId = Guid.NewGuid();
-        Guid instanceId = Guid.NewGuid();
-        Guid ruleId = Guid.NewGuid();
-        Guid bindingId = Guid.NewGuid();
-        EventRecordRow eventRow = Event(null, instanceId, agentId);
-        NotificationChannelRow channel = Channel();
-        NotificationDeliveryRow delivery = Delivery(
-            channel.NotificationChannelId,
-            eventRow.EventId,
-            null,
-            bindingId);
-        await using (ServerDbContext setup = new(options))
-        {
-            await setup.Database.EnsureCreatedAsync();
-            setup.Agents.Add(Agent(agentId));
-            setup.Instances.Add(Instance(instanceId, agentId));
-            setup.Events.Add(eventRow);
-            setup.NotificationChannels.Add(channel);
-            setup.AlertRules.Add(new AlertRuleRow
-            {
-                AlertRuleId = ruleId,
-                Name = "Fixture rule",
-                RuleType = "CanonicalEvent",
-                ConfigurationJson = "{\"eventTypes\":[\"Fixture\"]}",
-                Enabled = true,
-                CreatedAt = Now,
-                UpdatedAt = Now,
-                ConcurrencyToken = Guid.NewGuid(),
-            });
-            setup.AlertRuleChannelBindings.Add(new AlertRuleChannelBindingRow
-            {
-                AlertRuleChannelBindingId = bindingId,
-                AlertRuleId = ruleId,
-                NotificationChannelId = channel.NotificationChannelId,
-                Environment = "test",
-                Enabled = true,
-                CreatedAt = Now,
-                UpdatedAt = Now,
-                ConcurrencyToken = Guid.NewGuid(),
-            });
-            setup.NotificationDeliveries.Add(delivery);
-            await setup.SaveChangesAsync();
-        }
-
-        ServerMaintenanceStore store = new(new ServerContextFactory(options));
-        NotificationDeliveryRunner unavailable = new(store, [], new FixedTimeProvider(Now));
+        Guid ownerId = Guid.NewGuid();
+        Guid deliveryId = Guid.NewGuid();
+        FakeNotificationOwnershipStore store = new(deliveryId, "fixture");
+        NotificationDeliveryRunner unavailable = new(
+            store,
+            [],
+            ownerId,
+            TimeSpan.FromSeconds(30));
         DeliveryCycleResult first = await unavailable.RunOnceAsync(10);
         NotificationDeliveryRunner available = new(
             store,
-            [new SuccessfulChannelAdapter(channel.ChannelType)],
-            new FixedTimeProvider(Now.AddSeconds(3)));
+            [new SuccessfulChannelAdapter("fixture")],
+            ownerId,
+            TimeSpan.FromSeconds(30));
         DeliveryCycleResult second = await available.RunOnceAsync(10);
 
         Assert.Equal(new DeliveryCycleResult(1, 0, 1), first);
         Assert.Equal(new DeliveryCycleResult(1, 1, 0), second);
-        await using ServerDbContext verification = new(options);
-        NotificationDeliveryRow stored = await verification.NotificationDeliveries.SingleAsync();
-        Assert.Equal("Delivered", stored.State);
-        Assert.Equal(2, stored.AttemptCount);
-        Assert.Equal(Now.AddSeconds(3), stored.DeliveredAt);
-        Assert.Null(stored.ErrorCode);
+        Assert.Single(store.Handoffs);
+        Assert.Equal("notification:fixture", store.LastIdempotencyKey);
     }
 
     private static AgentHealthObservationRow AgentObservation(DateTimeOffset createdAt) => new()
@@ -431,11 +387,6 @@ public sealed class MaintenanceDeliveryTests
         public ServerDbContext CreateDbContext() => new(options);
     }
 
-    private sealed class FixedTimeProvider(DateTimeOffset now) : TimeProvider
-    {
-        public override DateTimeOffset GetUtcNow() => now;
-    }
-
     private sealed class SplitPublisher(Guid deliveredId) : IServerMessagePublisher
     {
         public ValueTask<DeliveryResult> PublishAsync(
@@ -457,5 +408,117 @@ public sealed class MaintenanceDeliveryTests
             ValueTask.FromResult(new DeliveryResult(
                 notification.NotificationDeliveryId,
                 DeliveryDisposition.Delivered));
+    }
+
+    private sealed class FakeOutboxOwnershipStore(params Guid[] itemIds) : IServerOutboxStore
+    {
+        public List<ServerOutboxEnvelope> Claimed { get; } = [];
+
+        public List<DeliveryOwnership> Handoffs { get; } = [];
+
+        public ValueTask<IReadOnlyList<ServerOutboxEnvelope>> ClaimAsync(
+            DeliveryClaimRequest request,
+            CancellationToken cancellationToken)
+        {
+            Claimed.Clear();
+            Claimed.AddRange(itemIds.Select((itemId, index) => new ServerOutboxEnvelope(
+                itemId,
+                "fixture.v1",
+                1,
+                "{}",
+                Now,
+                $"server-outbox:{itemId:N}",
+                new DeliveryOwnership(
+                    itemId,
+                    request.OwnerId,
+                    index + 1,
+                    Now.Add(request.LeaseDuration),
+                    1))));
+            return ValueTask.FromResult<IReadOnlyList<ServerOutboxEnvelope>>(Claimed);
+        }
+
+        public ValueTask<bool> BeginHandoffAsync(
+            DeliveryOwnership ownership,
+            CancellationToken cancellationToken)
+        {
+            Handoffs.Add(ownership);
+            return ValueTask.FromResult(true);
+        }
+
+        public ValueTask<DeliveryCompletionSummary> CompleteAsync(
+            IReadOnlyList<DeliveryCompletion> completions,
+            CancellationToken cancellationToken)
+        {
+            int delivered = completions.Count(item => item.Disposition == DeliveryDisposition.Delivered);
+            int ambiguous = completions.Count(item => item.Disposition == DeliveryDisposition.Ambiguous);
+            return ValueTask.FromResult(new DeliveryCompletionSummary(
+                delivered,
+                completions.Count - delivered - ambiguous,
+                0,
+                ambiguous,
+                0));
+        }
+    }
+
+    private sealed class FakeNotificationOwnershipStore(Guid itemId, string channelType) : INotificationDeliveryStore
+    {
+        private int attemptNumber;
+
+        public List<DeliveryOwnership> Handoffs { get; } = [];
+
+        public string? LastIdempotencyKey { get; private set; }
+
+        public ValueTask<IReadOnlyList<NotificationEnvelope>> ClaimAsync(
+            DeliveryClaimRequest request,
+            CancellationToken cancellationToken)
+        {
+            DeliveryOwnership ownership = new(
+                itemId,
+                request.OwnerId,
+                ++attemptNumber,
+                Now.Add(request.LeaseDuration),
+                attemptNumber);
+            LastIdempotencyKey = "notification:fixture";
+            return ValueTask.FromResult<IReadOnlyList<NotificationEnvelope>>(
+            [
+                new NotificationEnvelope(
+                    itemId,
+                    Guid.NewGuid(),
+                    Guid.NewGuid(),
+                    channelType,
+                    "{}",
+                    "Fixture",
+                    "Info",
+                    "{}",
+                    LastIdempotencyKey,
+                    ownership),
+            ]);
+        }
+
+        public ValueTask<bool> BeginHandoffAsync(
+            DeliveryOwnership ownership,
+            CancellationToken cancellationToken)
+        {
+            Handoffs.Add(ownership);
+            return ValueTask.FromResult(true);
+        }
+
+        public ValueTask<DeliveryCompletionSummary> CompleteAsync(
+            IReadOnlyList<DeliveryCompletion> completions,
+            CancellationToken cancellationToken)
+        {
+            DeliveryCompletion completion = Assert.Single(completions);
+            return ValueTask.FromResult(completion.Disposition == DeliveryDisposition.Delivered
+                ? new DeliveryCompletionSummary(1, 0, 0, 0, 0)
+                : new DeliveryCompletionSummary(0, 1, 0, 0, 0));
+        }
+    }
+
+    private sealed class ThrowingPublisher : IServerMessagePublisher
+    {
+        public ValueTask<DeliveryResult> PublishAsync(
+            ServerOutboxEnvelope message,
+            CancellationToken cancellationToken) =>
+            throw new InvalidOperationException("Synthetic post-handoff failure.");
     }
 }

@@ -86,8 +86,11 @@ builder.Services.AddScoped<AuthorizedOperationsService>();
 builder.Services.AddSingleton(serverOperationsOptions);
 builder.Services.AddSingleton<ServerMaintenanceStore>();
 builder.Services.AddSingleton<IServerRetentionStore>(services => services.GetRequiredService<ServerMaintenanceStore>());
-builder.Services.AddSingleton<IServerOutboxStore>(services => services.GetRequiredService<ServerMaintenanceStore>());
-builder.Services.AddSingleton<INotificationDeliveryStore>(services => services.GetRequiredService<ServerMaintenanceStore>());
+builder.Services.AddSingleton<PostgreSqlDeliveryOwnershipStore>();
+builder.Services.AddSingleton<IServerOutboxStore>(
+    services => services.GetRequiredService<PostgreSqlDeliveryOwnershipStore>());
+builder.Services.AddSingleton<INotificationDeliveryStore>(
+    services => services.GetRequiredService<PostgreSqlDeliveryOwnershipStore>());
 builder.Services.AddSingleton<IServerMessagePublisher, UnavailableServerMessagePublisher>();
 builder.Services.AddHostedService<ServerMaintenanceWorker>();
 builder.Services.AddScoped<AgentCertificateIdentityValidator>();

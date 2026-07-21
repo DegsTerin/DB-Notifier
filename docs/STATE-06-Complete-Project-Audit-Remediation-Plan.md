@@ -326,6 +326,16 @@ and startup-refused. `AUD-H06`, `AUD-M06` and `AUD-M08` are addressed in the bou
 remains contained and explicitly open. Claim, lease, fence, reclaim, PostgreSQL concurrency evidence and all external
 channels remain exclusively R4-B and unauthorised. Evidence: [STATE-06 Audit Remediation R4-A Report](STATE-06-Audit-Remediation-R4A-Report.md).
 
+**Execution record for R4-B (2026-07-21):** the separately authorised local-only second half is implemented on
+baseline `20323defa34fdb7b0b475400b6bb474217042baf`. PostgreSQL now owns atomic skip-locked claims, database-clock
+leases, monotonic fences, reclaim, due/enabled/exact-binding selection, bounded retry, durable dead-letter and
+fail-closed ambiguous hand-off evidence for both Server queues. Publisher and adapter contracts carry stable
+idempotency keys. The pinned already-local PostgreSQL 16 Alpine laboratory passed the concurrency/crash matrix with
+`--pull never`, loopback-only host binding and zero owned Docker residue. Normal delivery remains disabled and
+startup-refused, with the unavailable publisher and zero channel adapters. The automatic R4-B scope is approved;
+independent human acceptance remains pending, so `AUD-H07` is not yet recorded as accepted/closed. Evidence:
+[STATE-06 Audit Remediation R4-B Report](STATE-06-Audit-Remediation-R4B-Report.md).
+
 ## R5 — Migração, vault, packages, supply chain, packaging e legado
 
 ### Objetivo

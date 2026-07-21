@@ -311,8 +311,29 @@ public sealed class NotificationDeliveryRow
     /// <summary>Gets or sets the most recent UTC attempt instant.</summary>
     public DateTimeOffset? LastAttemptAt { get; set; }
 
+    /// <summary>Gets or sets the next database-clock instant at which a known retry may be claimed.</summary>
+    public DateTimeOffset? AvailableAt { get; set; }
+
+    /// <summary>Gets or sets the unique worker that currently owns the delivery lease.</summary>
+    public Guid? LeaseOwnerId { get; set; }
+
+    /// <summary>Gets or sets the monotonic fence retained across lease release and reclaim.</summary>
+    public long LeaseFence { get; set; }
+
+    /// <summary>Gets or sets the database-clock expiry of the active lease.</summary>
+    public DateTimeOffset? LeaseExpiresAt { get; set; }
+
+    /// <summary>Gets or sets when a potentially side-effecting adapter hand-off began.</summary>
+    public DateTimeOffset? HandoffStartedAt { get; set; }
+
     /// <summary>Gets or sets the confirmed UTC delivery instant.</summary>
     public DateTimeOffset? DeliveredAt { get; set; }
+
+    /// <summary>Gets or sets when the bounded attempt budget was exhausted.</summary>
+    public DateTimeOffset? DeadLetteredAt { get; set; }
+
+    /// <summary>Gets or sets when an unconfirmed side effect was retained without replay.</summary>
+    public DateTimeOffset? AmbiguousAt { get; set; }
 
     /// <summary>Gets or sets a stable non-secret error or quarantine reason code.</summary>
     public string? ErrorCode { get; set; }
@@ -464,4 +485,25 @@ public sealed class ServerOutboxMessageRow
     public DateTimeOffset AvailableAt { get; set; }
     public int AttemptCount { get; set; }
     public DateTimeOffset? PublishedAt { get; set; }
+
+    /// <summary>Gets or sets the unique worker that currently owns the outbox lease.</summary>
+    public Guid? LeaseOwnerId { get; set; }
+
+    /// <summary>Gets or sets the monotonic fence retained across lease release and reclaim.</summary>
+    public long LeaseFence { get; set; }
+
+    /// <summary>Gets or sets the database-clock expiry of the active lease.</summary>
+    public DateTimeOffset? LeaseExpiresAt { get; set; }
+
+    /// <summary>Gets or sets when a potentially side-effecting publisher hand-off began.</summary>
+    public DateTimeOffset? HandoffStartedAt { get; set; }
+
+    /// <summary>Gets or sets when the bounded attempt budget was exhausted.</summary>
+    public DateTimeOffset? DeadLetteredAt { get; set; }
+
+    /// <summary>Gets or sets when an unconfirmed side effect was retained without replay.</summary>
+    public DateTimeOffset? AmbiguousAt { get; set; }
+
+    /// <summary>Gets or sets a stable non-secret delivery failure code.</summary>
+    public string? ErrorCode { get; set; }
 }
