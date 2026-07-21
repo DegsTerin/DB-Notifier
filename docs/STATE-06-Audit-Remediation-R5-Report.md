@@ -7,7 +7,7 @@
 - Technical automatic result: `APPROVED`
 - Original-authority compliance: `FAILED — RECORDED NUGET METADATA ACCESS INCIDENT`
 - Post-incident conclusion authority: `GRANTED`, exactly and separately on 2026-07-21
-- Human decision: `PENDING`
+- Human decision: `ACCEPTED WITH RECORDED RESERVATIONS`, exactly on 2026-07-21
 
 ## Authority and preflight
 
@@ -111,4 +111,6 @@ The earlier full unit run opened two visible Windows Terminal tabs while the pre
 
 ## Decision boundary
 
-The technical implementation and offline revalidation are complete under the separate post-incident authority. Creating the focused local commit does not constitute Human Gate acceptance, lifecycle progression, release, operational support or authorisation for R6–R8, R7-A0, O1, LLMs, recommendations, commands, automation or mode promotion. Bruno must review this report and the commit separately before R5 can be accepted as a human decision.
+The technical implementation and offline revalidation are complete under the separate post-incident authority. Bruno subsequently closed the independent human review with the exact decision `ACEITO O R5 COM AS RESSALVAS DO INCIDENTE DE METADADOS NUGET REGISTRADO E DO GATE GLOBAL R0 PREEXISTENTE, SEM AUTORIZAR CORREÇÃO FORA DO ESCOPO.` R5 and its six authorised findings are therefore accepted and closed only within the bounded local scope documented by this report.
+
+The acceptance preserves both reservations without reclassification: original-authority compliance remains failed because of the recorded NuGet metadata incident, and the pre-existing global R0 gate remains non-green and unaltered. This decision does not constitute lifecycle progression, release, operational support or authorisation for R6–R8, R7-A0, O1, LLMs, recommendations, commands, automation, packaging, loader activation, a real vault or mode promotion.

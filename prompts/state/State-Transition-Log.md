@@ -2450,6 +2450,18 @@
 - Próxima decisão: Bruno deverá revisar o relatório e o commit focado e decidir separadamente se aceita R5 com o incidente e a ressalva R0 registrados. Isso não autorizará R6, packaging, loader, vault real, AIOps ou transição.
 - Aprovador: decisão humana pendente; nenhuma aprovação foi inferida da autorização de implementação.
 
+## 2026-07-21 — Aceitação do lote de remediação `R5`
+
+- Estado anterior: `STATE-06 INTEGRATION`, R5 implementado no commit `004f9e51f02ad4a366eb3a019cc4f9633aefaa67`, resultado técnico automático `APROVADO`, conformidade com a autoridade original `REPROVADA` pelo incidente NuGet preservado, decisão humana pendente e gate global não verde pela inconsistência R0 preexistente.
+- Estado resultante: sem transição; `STATE-06 INTEGRATION` mantido. R5 e `AUD-H09`, `AUD-H10`, `AUD-M09`, `AUD-M22`, `AUD-M23` e `AUD-M24` aceitos e fechados somente no escopo local bounded autorizado.
+- Decisão: Bruno declarou exatamente `ACEITO O R5 COM AS RESSALVAS DO INCIDENTE DE METADADOS NUGET REGISTRADO E DO GATE GLOBAL R0 PREEXISTENTE, SEM AUTORIZAR CORREÇÃO FORA DO ESCOPO.`
+- Ressalvas: a aceitação não reclassifica a execução original como conforme, não apaga o acesso de metadados NuGet registrado e mantém intocada e não verde a asserção global R0 preexistente; nenhuma correção fora do R5 foi autorizada ou executada.
+- Evidência: [relatório R5](../../docs/STATE-06-Audit-Remediation-R5-Report.md), [plano de remediação](../../docs/STATE-06-Complete-Project-Audit-Remediation-Plan.md) e commit local `004f9e51f02ad4a366eb3a019cc4f9633aefaa67`.
+- Limites: a decisão não autoriza R6–R8, packaging, loader, vault/package/provider/canal/banco/serviço real, R7-A0/O1, AIOps, comando, LLM, recomendação, automação, promoção de modo ou transição de lifecycle.
+- Escopo desta ação: somente registro documental factual; nenhum código executável, build, teste, restore, runtime, acesso externo, banco/serviço real, push ou deploy.
+- Próxima decisão: Bruno poderá solicitar separadamente a proposta de autorização do R6, sem implementação; isso não concede autoridade de execução.
+- Aprovador: Bruno, 2026-07-21, exclusivamente para o R5 com as duas ressalvas registradas.
+
 ## Template de nova entrada
 
 - Data:
