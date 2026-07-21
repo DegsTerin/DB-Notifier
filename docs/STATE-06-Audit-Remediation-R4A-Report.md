@@ -7,9 +7,9 @@
 - Authorised baseline: `5bb43974572290734e66e787f152b903d9a1e1cb`.
 - Execution authority: Bruno's explicit local-only authorisation issued on 2026-07-21.
 - Local implementation and R4-A-specific verification: completed.
-- Focused local commit: included in this bounded delivery.
+- Focused local commit: `a054ef00fa01751693cf28bd8e1ce68eeb9f288b`.
 - Automatic result in the authorised R4-A scope: `APROVADO`.
-- Independent human decision: `PENDENTE`.
+- Independent human decision: `ACEITO O R4-A COM A RESSALVA DO GATE GLOBAL PREEXISTENTE, SEM AUTORIZAR CORREÇÃO FORA DO ESCOPO.`
 - Lifecycle: remains `STATE-06 INTEGRATION`; no transition was requested or performed.
 - MOD-12: unchanged and inactive; no `OBSERVER`, O1, LLM, recommendation, command or automation was enabled.
 
@@ -141,6 +141,12 @@ The R0 failure remains
 artifact filenames while the accepted R0 workflow uses bounded diagnostic directories and run-attempt-qualified
 names. It predates R4-A, is unchanged and remains unauthorised for correction.
 
+An independent post-implementation revalidation immediately before the human decision reproduced the Release
+build with zero warnings or errors, 370/370 unit tests, 3/3 WPF tests, 21/21 integration tests, 2/2 focused R4-A
+architecture tests and the same single pre-existing R0 failure in the global architecture suite. The later 21/21
+integration result shows that the earlier Schannel limitation did not recur under the revalidation identity; it
+does not rewrite the factual evidence from the original managed execution.
+
 ## Preserved containment and limitations
 
 - R2-A command tombstones, absent normal command transports/workers/stores and sandbox-only durable
@@ -166,7 +172,10 @@ stop and request separate authority.
 
 ## Human decision and next boundary
 
-Human acceptance of R4-A is pending. The automatic result does not accept the lot, close `AUD-H07`, authorise R4-B,
-activate delivery, permit PostgreSQL or external services, release R5–R8/R7-A0/O1, promote AIOps or transition the
-lifecycle. The next permissible action is independent review of this report and the focused local commit, followed
-by an explicit acceptance or rejection decision for R4-A only.
+On 2026-07-21, Bruno issued the exact decision `ACEITO O R4-A COM A RESSALVA DO GATE GLOBAL PREEXISTENTE, SEM
+AUTORIZAR CORREÇÃO FORA DO ESCOPO.` This closes the independent review of R4-A and accepts `AUD-H06`, `AUD-M06` and
+`AUD-M08` only within the bounded local scope evidenced by this report. `AUD-H07` remains contained and open.
+
+The decision does not authorise correction of R0, R4-B, delivery activation, real PostgreSQL or external services,
+R5–R8, R7-A0/O1, AIOps promotion, commands, automation or a lifecycle transition. A proposal for any later lot must
+be requested and reviewed separately before implementation authority can exist.

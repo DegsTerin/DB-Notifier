@@ -2394,6 +2394,18 @@
 - Próxima decisão: Bruno deverá revisar o relatório e o commit focado e decidir separadamente se aceita R4-A. Aceitação não autorizará R4-B, delivery, PostgreSQL real, R5, AIOps ou transição.
 - Aprovador: decisão humana ainda pendente; nenhum aceite foi inferido da autorização de implementação.
 
+## 2026-07-21 — Aceitação do lote de remediação `R4-A`
+
+- Estado anterior: `STATE-06 INTEGRATION`, R4-A implementado no commit `a054ef00fa01751693cf28bd8e1ce68eeb9f288b`, escopo automático R4-A `APROVADO`, decisão humana pendente e gate .NET global não verde pela inconsistência R0 preexistente.
+- Estado resultante: sem transição; `STATE-06 INTEGRATION` mantido. R4-A e `AUD-H06`, `AUD-M06` e `AUD-M08` aceitos e fechados somente no escopo local bounded autorizado. `AUD-H07` continua contido e aberto.
+- Decisão: Bruno declarou exatamente `ACEITO O R4-A COM A RESSALVA DO GATE GLOBAL PREEXISTENTE, SEM AUTORIZAR CORREÇÃO FORA DO ESCOPO.`
+- Revisão independente anterior à decisão: build Release de 18 projetos sem aviso/erro; 370/370 unitários, 3/3 WPF, 21/21 integrações e 2/2 testes de arquitetura R4-A aprovados; cobertura de 81,46%/52,76%; EF sem drift; SQL forward/reverse inspecionado sem conexão/aplicação; format, documentação, links e secrets aprovados. O agregado permaneceu não verde somente pela asserção R0 preexistente, com 39/40 testes de arquitetura.
+- Evidência histórica preservada: a limitação Schannel de 15 integrações na execução original permanece registrada; ela não se repetiu na revisão posterior e não foi reclassificada como defeito do R4-A.
+- Limites: a decisão não autoriza correção R0, R4-B, delivery, PostgreSQL ou serviço real, migration operacional, R5–R8, R7-A0/O1, comando, LLM, recomendação, automação, promoção de modo ou transição de lifecycle.
+- Escopo desta ação: somente registro documental factual; nenhum código executável, build, teste, runtime, browser, acesso externo, banco/serviço real, push ou deploy.
+- Próxima decisão: Bruno poderá solicitar separadamente uma proposta de autorização para o lote seguinte; isso não autoriza implementação.
+- Aprovador: Bruno, 2026-07-21, exclusivamente para o R4-A com a ressalva registrada.
+
 ## Template de nova entrada
 
 - Data:
