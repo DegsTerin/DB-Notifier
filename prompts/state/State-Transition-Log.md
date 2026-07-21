@@ -2474,6 +2474,19 @@
 - Próxima decisão: Bruno poderá autorizar separadamente as amostras humanas visíveis bounded do R6. Isso não autoriza implementação adicional, R7/R8, R7-A0/O1, AIOps ou transição.
 - Aprovador: decisão humana R6 pendente; nenhuma aceitação foi inferida da autorização da fase automática.
 
+## 2026-07-21 — Execução interrompida das amostras humanas visíveis R6
+
+- Estado anterior: `STATE-06 INTEGRATION`, fase automática R6 aprovada no commit `878a7ea285b332aa9eedc59f4f4a69d5ba001c27`, amostras humanas visíveis autorizadas sem implementação ou correção.
+- Estado resultante: sem transição; `STATE-06 INTEGRATION` mantido. Aceitação humana R6 continua `PENDENTE`.
+- Execução: Dashboard aberto somente em Chrome dedicado, perfil temporário isolado, preview loopback e fixtures demonstrativas. Nenhum browser/perfil comum, acesso externo, notificação, configuração Windows, fonte operacional ou código foi usado ou alterado.
+- Decisão da amostra: Bruno declarou exatamente `AMOSTRA R6-HV-D01 REPROVADA: gráfico de desempenho cortado durante o reflow`.
+- Stop condition: corrigir o corte exige alteração de código e validação, ambas fora da autoridade. A execução parou imediatamente; forced colours visível, TV autoritativa e WPF/Tray ficaram `BLOQUEADAS`. High Contrast, reduced motion, Narrator, escala Windows 200% e mixed-DPI físicos permaneceram `NÃO TESTADOS`.
+- Cleanup: árvore Chrome e preview exatos encerrados; listeners loopback `43450`/`43451` ausentes; diretório temporário exato removido; zero processo, listener ou perfil da revisão permaneceu. Browser comum, IDE e processos não relacionados ficaram intocados.
+- Evidência: [relatório das amostras humanas R6](../../docs/STATE-06-Audit-Remediation-R6-Human-Samples-Report.md) e [relatório automático R6](../../docs/STATE-06-Audit-Remediation-R6-Report.md).
+- Limites: nenhuma correção, diagnóstico mutante, novo harness, restore, download, acesso externo, R2-B, R7–R8, R7-A0/O1, AIOps, comando, automação, promoção ou transição foi executada.
+- Próxima decisão: requer proposta e autorização separadas para diagnóstico/remediação focal do gráfico e repetição da amostra; isso não autoriza aceitar R6 nem retomar automaticamente as demais amostras.
+- Aprovador: decisão humana limitada a `R6-HV-D01`; nenhuma aceitação R6 foi inferida.
+
 ## Template de nova entrada
 
 - Data:
