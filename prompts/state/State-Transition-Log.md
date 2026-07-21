@@ -2339,6 +2339,18 @@
 - Próxima decisão: Bruno deverá revisar o relatório e o handoff e decidir separadamente se aceita R2-A. Aceitação não autorizará R2-B, R3, comando, execução, AIOps ou transição.
 - Aprovador: decisão humana ainda pendente; nenhum aceite foi inferido da autorização de implementação.
 
+## 2026-07-20 — Aceitação do lote de remediação `R2-A`
+
+- Estado anterior: `STATE-06 INTEGRATION`, R2-A implementado no commit `f1881451fea83a69ffd9a8db50e5b681264f8519`, escopo automático R2-A `APROVADO`, decisão humana pendente e gate .NET global bloqueado pela inconsistência R0 preexistente.
+- Estado resultante: sem transição; `STATE-06 INTEGRATION` mantido. R2-A e `AUD-H03`, `AUD-H04` e `AUD-M10` aceitos e fechados somente por contenção no escopo local bounded autorizado.
+- Decisão: Bruno declarou exatamente `ACEITO O R2-A COM A RESSALVA DO GATE GLOBAL PREEXISTENTE, SEM AUTORIZAR CORREÇÃO FORA DO ESCOPO.`
+- Ressalva: a asserção `State06ConsolidatedHarnessIsolationTests.BrowserRunnersBoundWorkAndCleanupExactOwnedResources` continua esperando nomes fixos de artifacts que contradizem o workflow R0 já aceito; permanece visível, bloqueante para o comando global e sem autorização de correção.
+- Evidência: [relatório R2-A](../../docs/STATE-06-Audit-Remediation-R2A-Report.md), [plano de remediação](../../docs/STATE-06-Complete-Project-Audit-Remediation-Plan.md) e commit local `f1881451fea83a69ffd9a8db50e5b681264f8519`.
+- Limites: a decisão não autoriza R2-B, R3–R8, correção R0, comando, executor, provider control, banco/serviço real, R7-A0/O1, LLM, recomendação, automação, promoção de modo ou transição de lifecycle.
+- Escopo desta ação: somente registro documental factual; nenhum código executável, build, teste, runtime, browser, acesso externo, banco/serviço real, push ou deploy.
+- Próxima decisão: Bruno poderá solicitar separadamente a proposta de autorização do R3; isso não autoriza sua implementação.
+- Aprovador: Bruno, 2026-07-20, exclusivamente para o R2-A com a ressalva registrada.
+
 ## Template de nova entrada
 
 - Data:

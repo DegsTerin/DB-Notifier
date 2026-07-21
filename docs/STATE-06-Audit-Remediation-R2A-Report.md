@@ -8,7 +8,7 @@
 - Execution authority: Bruno's explicit local-only authorisation issued on 2026-07-20.
 - Local implementation and R2-A-specific verification: completed.
 - Automatic result in the authorised R2-A scope: `APROVADO`.
-- Independent human decision: `PENDENTE`.
+- Independent human decision: `ACEITO COM RESSALVA`, recorded from Bruno's exact decision `ACEITO O R2-A COM A RESSALVA DO GATE GLOBAL PREEXISTENTE, SEM AUTORIZAR CORREÇÃO FORA DO ESCOPO.` on 2026-07-20.
 - Repository-wide qualification: the unfiltered .NET solution test command remains `BLOQUEADO` only by the exact pre-existing R0 architecture assertion already reserved after R1; it was not changed under this authority.
 - Lifecycle: remains `STATE-06 INTEGRATION`; no transition was requested or performed.
 - MOD-12: unchanged and inactive; no `OBSERVER`, O1, LLM, recommendation, command or automation was enabled.
@@ -102,4 +102,4 @@ The safe rollback is to keep all three normal routes unavailable and leave comma
 
 ## Human decision and next boundary
 
-The automatic R2-A scope is ready for independent review. Human acceptance remains pending and cannot be inferred from this report. Acceptance would close only `AUD-H03`, `AUD-H04` and `AUD-M10` by containment; it would not authorise R2-B, R3, commands, execution, AIOps activation, lifecycle promotion or correction of the pre-existing global R0 gate.
+Bruno accepted R2-A on 2026-07-20 with the exact reservation `ACEITO O R2-A COM A RESSALVA DO GATE GLOBAL PREEXISTENTE, SEM AUTORIZAR CORREÇÃO FORA DO ESCOPO.` R2-A and `AUD-H03`, `AUD-H04` and `AUD-M10` are therefore accepted and closed only by containment in this bounded local scope. The repository-wide R0 assertion remains an explicit pre-existing blocker and may not be corrected under this decision. The acceptance does not authorise R2-B, R3, commands, execution, AIOps activation, lifecycle promotion or transition.
