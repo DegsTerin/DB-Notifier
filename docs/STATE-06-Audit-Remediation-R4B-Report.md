@@ -8,7 +8,7 @@
 - Execution authority: Bruno's explicit local-only authorisation issued on 2026-07-21.
 - Local implementation and R4-B-specific verification: completed.
 - Automatic result in the authorised R4-B scope: `APROVADO`.
-- Independent human decision: `PENDENTE`.
+- Independent human decision: `ACEITO O R4-B COM A RESSALVA DO GATE GLOBAL PREEXISTENTE, SEM AUTORIZAR CORREÇÃO FORA DO ESCOPO.`
 - Lifecycle: remains `STATE-06 INTEGRATION`; no transition was requested or performed.
 - Normal delivery: disabled and startup-refused; no external publisher or channel adapter is registered.
 - MOD-12: unchanged and inactive; no `OBSERVER`, O1, LLM, recommendation, command or automation was enabled.
@@ -165,8 +165,8 @@ names. It predates R4-B, is unchanged and remains unauthorised for correction.
 | Normal external delivery remains unavailable | Startup refusal, unavailable publisher and zero normal adapters remain under architecture tests |
 | Laboratory is disposable and local | Pinned local image, `--pull never`, loopback bind, bounded resources and zero labelled residue |
 
-The automatic R4-B scope is complete. Independent human acceptance is still required before `AUD-H07` may be
-recorded as accepted/closed in the remediation programme.
+The automatic R4-B scope is complete and the independent human decision accepts it with the pre-existing global
+gate reservation. `AUD-H07` is accepted and closed only within the bounded local scope evidenced by this report.
 
 ## Preserved limitations and next boundary
 
@@ -179,8 +179,7 @@ recorded as accepted/closed in the remediation programme.
 - R0 remains visibly non-green and unchanged. R2-A/R3/R4-A containment remains intact.
 - No lifecycle state or AIOps mode was promoted.
 
-The next permitted action is independent review of this report, the focused commit and the recorded gates. The exact
-human decision requested is either `ACEITO O R4-B COM A RESSALVA DO GATE GLOBAL PREEXISTENTE, SEM AUTORIZAR
-CORREÇÃO FORA DO ESCOPO.` or a precise request for adjustments. Acceptance would close only the bounded R4-B review;
-it would not activate delivery, apply a migration, authorise a channel, correct R0, release R5, enable AIOps or
-transition the lifecycle.
+On 2026-07-21, Bruno issued the exact decision `ACEITO O R4-B COM A RESSALVA DO GATE GLOBAL PREEXISTENTE, SEM
+AUTORIZAR CORREÇÃO FORA DO ESCOPO.` This closes only the bounded R4-B review and does not activate delivery, apply a
+migration, authorise a channel, correct R0, release R5, enable AIOps or transition the lifecycle. Any later lot
+requires a separate proposal and explicit authority before implementation.

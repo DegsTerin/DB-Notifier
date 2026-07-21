@@ -2423,6 +2423,18 @@
 - Próxima decisão: Bruno deverá revisar o relatório e o commit focado e decidir separadamente se aceita R4-B. Aceitação não autorizará delivery operacional, migration, canal real, R5, correção R0, AIOps ou transição.
 - Aprovador: decisão humana ainda pendente; nenhum aceite foi inferido da autorização de implementação.
 
+## 2026-07-21 — Aceitação do lote de remediação `R4-B`
+
+- Estado anterior: `STATE-06 INTEGRATION`, R4-B implementado no commit `0ff89c0bb511810c5d1fee42a5a7106cc1f70e6d`, escopo automático `APROVADO`, decisão humana pendente e gate global não verde pela inconsistência R0 preexistente.
+- Estado resultante: sem transição; `STATE-06 INTEGRATION` mantido. R4-B e `AUD-H07` aceitos e fechados somente no escopo local bounded autorizado.
+- Decisão: Bruno declarou exatamente `ACEITO O R4-B COM A RESSALVA DO GATE GLOBAL PREEXISTENTE, SEM AUTORIZAR CORREÇÃO FORA DO ESCOPO.`
+- Ressalva: a asserção `State06ConsolidatedHarnessIsolationTests.BrowserRunnersBoundWorkAndCleanupExactOwnedResources` permanece visível e não verde, esperando nomes fixos de artifacts que contradizem o workflow R0 aceito; nenhuma correção foi autorizada ou executada.
+- Evidência: [relatório R4-B](../../docs/STATE-06-Audit-Remediation-R4B-Report.md), [plano de remediação](../../docs/STATE-06-Complete-Project-Audit-Remediation-Plan.md) e commit local `0ff89c0bb511810c5d1fee42a5a7106cc1f70e6d`.
+- Limites: a decisão não autoriza delivery normal, migration operacional, publisher/adapter/canal/credencial real, PostgreSQL existente, correção R0, R2-B, R5–R8, R7-A0/O1, comando, LLM, recomendação, automação, promoção de modo ou transição de lifecycle.
+- Escopo desta ação: somente registro documental factual; nenhum código executável, build, teste, runtime, acesso externo, banco/serviço real, push ou deploy.
+- Próxima decisão: Bruno poderá solicitar separadamente a proposta de autorização do lote seguinte; isso não autoriza implementação.
+- Aprovador: Bruno, 2026-07-21, exclusivamente para o R4-B com a ressalva registrada.
+
 ## Template de nova entrada
 
 - Data:

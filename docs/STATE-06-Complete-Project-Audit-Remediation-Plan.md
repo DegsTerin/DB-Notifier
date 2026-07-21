@@ -333,7 +333,8 @@ fail-closed ambiguous hand-off evidence for both Server queues. Publisher and ad
 idempotency keys. The pinned already-local PostgreSQL 16 Alpine laboratory passed the concurrency/crash matrix with
 `--pull never`, loopback-only host binding and zero owned Docker residue. Normal delivery remains disabled and
 startup-refused, with the unavailable publisher and zero channel adapters. The automatic R4-B scope is approved;
-independent human acceptance remains pending, so `AUD-H07` is not yet recorded as accepted/closed. Evidence:
+Bruno subsequently accepted it with the pre-existing global-gate reservation, so `AUD-H07` is accepted and closed
+only within this bounded local scope. Evidence:
 [STATE-06 Audit Remediation R4-B Report](STATE-06-Audit-Remediation-R4B-Report.md).
 
 ## R5 — Migração, vault, packages, supply chain, packaging e legado
