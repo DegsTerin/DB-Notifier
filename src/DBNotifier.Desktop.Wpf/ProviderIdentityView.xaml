@@ -43,6 +43,7 @@
                MinWidth="0"
                Margin="7,0,0,0"
                VerticalAlignment="Center"
+               Visibility="{Binding TextVisibility, ElementName=Root}"
                Foreground="{Binding Foreground, ElementName=Root}"
                FontSize="{Binding FontSize, ElementName=Root}"
                FontWeight="{Binding FontWeight, ElementName=Root}"

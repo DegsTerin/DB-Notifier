@@ -1,0 +1,29 @@
+<!-- Module purpose: Presents a localised operational status with text, icon, boundary and shared semantic colours. -->
+<UserControl x:Class="DBNotifier.Desktop.Wpf.StatusPill"
+             x:ClassModifier="internal"
+             x:Name="Root"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:DBNotifier.Desktop.Wpf"
+             Focusable="False"
+             IsTabStop="False">
+  <Border x:Name="PillBorder"
+          Padding="8,3"
+          BorderThickness="1"
+          CornerRadius="999"
+          HorizontalAlignment="Left">
+    <StackPanel Orientation="Horizontal">
+      <local:SemanticIcon x:Name="StatusIcon"
+                          Width="13"
+                          Height="13"
+                          Margin="0,0,4,0"
+                          Foreground="{Binding Foreground, ElementName=Root}" />
+      <TextBlock x:Name="StatusText"
+                 Text="{Binding Text, ElementName=Root}"
+                 Foreground="{Binding Foreground, ElementName=Root}"
+                 FontSize="11"
+                 FontWeight="SemiBold"
+                 VerticalAlignment="Center" />
+    </StackPanel>
+  </Border>
+</UserControl>

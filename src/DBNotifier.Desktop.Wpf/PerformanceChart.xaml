@@ -1,0 +1,67 @@
+<!-- Module purpose: Renders the deterministic two-series WPF performance chart with complete axes, labels and grid. -->
+<UserControl x:Class="DBNotifier.Desktop.Wpf.PerformanceChart"
+             x:ClassModifier="internal"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Focusable="False"
+             IsTabStop="False"
+             MinHeight="138"
+             AutomationProperties.Name="{DynamicResource Overview.TrendAccessibleLabel}"
+             AutomationProperties.HelpText="{DynamicResource Overview.DemonstrationChart}">
+  <Grid MinWidth="0">
+    <Grid.ColumnDefinitions>
+      <ColumnDefinition Width="34" />
+      <ColumnDefinition Width="*" />
+    </Grid.ColumnDefinitions>
+    <Grid.RowDefinitions>
+      <RowDefinition Height="*" />
+      <RowDefinition Height="20" />
+    </Grid.RowDefinitions>
+
+    <!-- Axis labels remain outside the plot so no series or grid line can cover them during reflow. -->
+    <Grid Grid.Row="0" Margin="0,1,7,1">
+      <TextBlock Text="100%" Foreground="{DynamicResource ColourTextSecondaryBrush}" FontSize="10" VerticalAlignment="Top" />
+      <TextBlock Text="50%" Foreground="{DynamicResource ColourTextSecondaryBrush}" FontSize="10" VerticalAlignment="Center" />
+      <TextBlock Text="0%" Foreground="{DynamicResource ColourTextSecondaryBrush}" FontSize="10" VerticalAlignment="Bottom" />
+    </Grid>
+
+    <!-- The trusted fixture geometry mirrors the Web chart and stretches only inside its bounded plotting region. -->
+    <Border Grid.Row="0" Grid.Column="1" ClipToBounds="True">
+      <Viewbox Stretch="Fill" StretchDirection="Both">
+        <Canvas Width="640" Height="150" SnapsToDevicePixels="True">
+          <Path Data="M0,25 H640 M0,75 H640 M0,125 H640 M0,0 V150 M128,0 V150 M256,0 V150 M384,0 V150 M512,0 V150 M640,0 V150"
+                Stroke="{DynamicResource ColourBorderDefaultBrush}"
+                StrokeThickness="1"
+                Fill="Transparent" />
+          <Polyline Points="0,92 28,72 56,84 84,54 112,42 140,76 168,103 196,78 224,95 252,70 280,88 308,74 336,92 364,81 392,101 420,88 448,94 476,73 504,83 532,66 560,79 588,61 616,84 640,92"
+                    Stroke="{DynamicResource ColourActionPrimaryBackgroundBrush}"
+                    StrokeThickness="2"
+                    StrokeLineJoin="Round"
+                    Fill="Transparent" />
+          <Polyline Points="0,125 28,112 56,96 84,119 112,101 140,86 168,118 196,91 224,74 252,98 280,83 308,104 336,89 364,69 392,93 420,75 448,88 476,62 504,72 532,53 560,31 588,24 616,42 640,35"
+                    Stroke="{DynamicResource ComponentStatusHealthyForegroundBrush}"
+                    StrokeThickness="2"
+                    StrokeLineJoin="Round"
+                    Fill="Transparent" />
+        </Canvas>
+      </Viewbox>
+    </Border>
+
+    <Grid Grid.Row="1" Grid.Column="1" Margin="0,4,0,0">
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="*" />
+        <ColumnDefinition Width="*" />
+        <ColumnDefinition Width="*" />
+        <ColumnDefinition Width="*" />
+        <ColumnDefinition Width="*" />
+        <ColumnDefinition Width="*" />
+      </Grid.ColumnDefinitions>
+      <TextBlock Grid.Column="0" Text="09:50" Foreground="{DynamicResource ColourTextSecondaryBrush}" FontSize="9" HorizontalAlignment="Left" />
+      <TextBlock Grid.Column="1" Text="09:55" Foreground="{DynamicResource ColourTextSecondaryBrush}" FontSize="9" HorizontalAlignment="Center" />
+      <TextBlock Grid.Column="2" Text="10:00" Foreground="{DynamicResource ColourTextSecondaryBrush}" FontSize="9" HorizontalAlignment="Center" />
+      <TextBlock Grid.Column="3" Text="10:05" Foreground="{DynamicResource ColourTextSecondaryBrush}" FontSize="9" HorizontalAlignment="Center" />
+      <TextBlock Grid.Column="4" Text="10:10" Foreground="{DynamicResource ColourTextSecondaryBrush}" FontSize="9" HorizontalAlignment="Center" />
+      <TextBlock Grid.Column="5" Text="10:15" Foreground="{DynamicResource ColourTextSecondaryBrush}" FontSize="9" HorizontalAlignment="Right" />
+    </Grid>
+  </Grid>
+</UserControl>

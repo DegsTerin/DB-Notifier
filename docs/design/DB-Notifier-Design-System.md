@@ -5,7 +5,7 @@
 | Field | Value |
 |---|---|
 | Status | Official frontend specification |
-| Design System version | `3.1.3` |
+| Design System version | `3.2.0` |
 | Product phase | `STATE-06 INTEGRATION` |
 | Platforms | React Web Dashboard and .NET 10 WPF Desktop/Tray |
 | Themes | Light and Dark; Windows High Contrast is an accessibility override |
@@ -510,6 +510,24 @@ Summary bands MUST use the available width of their owning operational region an
 
 At standard desktop width, fleet status and recent alerts form the primary two-column row, with trend and provider distribution beneath it. At compact widths all panels reflow to one content column, instance status/latency remain textual and decorative sparklines MAY be reduced without removing evidence. TV mode uses this same Overview rather than creating an independent data contract.
 
+### 10.5.2 Shared operational parity components
+
+Design System `3.2.0` makes structural and informational parity explicit for components shared by the Web Dashboard and secondary WPF shell. The Web Dashboard implementation at the authorised R6-WPF2 baseline is the visual reference for component structure, information hierarchy and operational meaning. WPF MUST preserve equivalent information and recognisable organisation while retaining native caption, scrolling, DPI, work-area and window behaviour. This contract does not require pixel-identical rasterisation.
+
+The shared component set comprises:
+
+- `KpiCard`: visible label, value, semantic outlined icon and optional factual context; the four Overview meanings and the six Inventory meanings MUST remain aligned across platforms;
+- `StatusPill`: icon or shape, visible localised text, complete boundary and canonical status semantics, including fail-closed Unknown and Stale presentation;
+- `SemanticIconBadge`: code-native semantic icon inside a perceptible container, never the sole status evidence;
+- `InstanceStatusRow`: exact provider identity or neutral fallback, provider text, instance name, textual status pill, latency and optional decorative sparkline;
+- `AlertRow`: semantic event icon, instance, rule, exact timestamp with zone and textual state or severity;
+- `ProviderIdentityRow`: exact registered local asset or neutral fallback, visible provider identifier, count and support truth where the owning view requires it;
+- `ProviderDistributionChart`: code-native ordinal ring, visible provider legend, counts and provider identities; category colour MUST NOT imply status or support;
+- `PerformanceChart`: two complete series, horizontal and vertical grid, `100%`, `50%` and `0%` labels, visible time labels, an accessible name, contained plot margins and an explicit demonstration or authoritative-unavailable explanation;
+- `SectionHeader`: title, concise description and any read-only, demonstration or source badge belonging to the section.
+
+Overview and Performance MUST use the same chart contract rather than independent reduced variants. Provider catalogue and distribution views MUST use the same identity registry and fallback rules. A platform MAY choose a native `DataGrid`, list or card collection, but the adaptation MUST preserve the corresponding field set, reading order, semantic boundaries and safe read-only outcome. Removing information to obtain a closer visual silhouette is prohibited.
+
 ### 10.6 Status and support
 
 `StatusBadge`, `SeverityBadge`, `SupportBadge`, `FreshnessIndicator` and `CapabilityState` map only canonical domain/presentation states. Product code MUST NOT assemble arbitrary status colours.
@@ -657,6 +675,18 @@ Technical route identifiers and URLs remain stable even when their visible label
 
 Across all rows, the shared shell MUST preserve heading hierarchy, selected-route semantics, focus visibility, token purpose, restrained card treatment and truthful footer messaging. React retains browser reflow and forced-colours behaviour; WPF retains the native caption, application scrollbars, work-area positioning and Per-Monitor V2 DPI behaviour. These are deliberate platform adaptations, not visual inconsistencies.
 
+### 14.2 Structural and informational parity baseline
+
+Shared-route parity is assessed component by component using exactly these classifications:
+
+- **Required equivalent**: structure, information, icon meaning, state, hierarchy and accessible outcome MUST correspond on Web and WPF.
+- **Justified native adaptation**: the platform-native control or layout MAY differ, but it MUST preserve the required field set, reading order, truth and interaction outcome.
+- **Web-only**: browser or Dashboard presentation with no authorised Desktop counterpart, such as TV/Fullscreen, hash routing, tab synchronisation or forced-colours emulation.
+- **Desktop-only**: Windows or notification-area presentation with no authorised Web counterpart, such as the native caption, Tray/flyout and local preference-file details.
+- **Divergent and remediated**: a previously missing or materially reduced shared component has been brought into the required-equivalent contract and has passed the applicable automatic evidence. This classification MUST NOT be assigned while its verification remains pending.
+
+The Web reference does not authorise copying browser-specific behaviour into WPF or adding a new product capability. Conversely, native WPF behaviour does not justify omitting a shared icon, field, label, status boundary, chart axis, timestamp, provider identity or source-truth message. The owning R6-WPF2 evidence report MUST inventory all eight routes, record every classification and keep any unevidenced remediation explicitly pending.
+
 ## 15. Validation and re-audit criteria
 
 ### 15.1 Token and architecture gates
@@ -703,7 +733,7 @@ Overlays: confirmation-required, denied, unsupported, unavailable, unknown
 Preferences: reduced motion and 200% native browser zoom
 ```
 
-WPF samples MUST cover `pt-BR` and `en-GB` with Light, Dark and Windows High Contrast at the default and minimum window sizes, plus 100%, 125%, 150% and 200% Windows scaling where the environment permits.
+WPF samples MUST cover `pt-BR` and `en-GB` with Light, Dark and Windows High Contrast across all eight shared destinations at `820×620`, `1180×760` and `1920×1080` DIP where the available work area permits, plus 100%, 125%, 150% and 200% Windows scaling where the environment permits. Structural samples MUST identify the shared KPI, status, provider-identity, alert, distribution and performance-chart components and distinguish justified native adaptations from missing information.
 
 Acceptance requires no unintended page overflow, clipping, illegible truncation, overlapping focus ring, theme mismatch or state communicated only by colour. Provider identity samples MUST include an exact Light/Dark asset, a single-variant asset, an unmapped future provider and forced-colour/High Contrast fallback at 100% and 200% scaling.
 
@@ -722,6 +752,7 @@ Acceptance requires no unintended page overflow, clipping, illegible truncation,
 - Visual review for hierarchy, density, consistency and absence of neon/glow/exaggerated effects.
 - Explicit review that planned/unhomologated providers and unsupported actions remain truthful in both themes.
 - Side-by-side review that exact PostgreSQL, MySQL and MongoDB identities remain recognisable beside their names, while SQL Server, Firebird, OpenSearch and another unmapped identifier use the neutral fallback without suggesting a related vendor identity.
+- Side-by-side Web/WPF review across all eight shared destinations, confirming recognisable component organisation, equivalent KPI and provider icons, complete row information and a Performance chart with percentage labels, time labels, grid, two series and explicit source truth. Native caption, scrollbars, DPI and work-area behaviour are assessed as Windows adaptations rather than pixel differences.
 
 ## 16. Implementation sequence within STATE-05
 

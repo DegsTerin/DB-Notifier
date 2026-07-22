@@ -1,8 +1,11 @@
 // Module purpose: Loads local provider-logo resources for one WPF identity view and fails safely to a neutral database glyph.
+using System.Collections;
 using System.IO;
+using System.Resources;
 using System.Windows;
 using System.Windows.Automation.Peers;
 using System.Windows.Media.Imaging;
+using System.Windows.Resources;
 
 namespace DBNotifier.Desktop.Wpf;
 
@@ -38,6 +41,13 @@ internal sealed partial class ProviderIdentityView : System.Windows.Controls.Use
         new PropertyMetadata(20d),
         value => value is double size && double.IsFinite(size) && size > 0);
 
+    /// <summary>Identifies whether this composite also renders provider text beside its decorative artwork.</summary>
+    public static readonly DependencyProperty ShowTextProperty = DependencyProperty.Register(
+        nameof(ShowText),
+        typeof(bool),
+        typeof(ProviderIdentityView),
+        new PropertyMetadata(true, ShowTextChanged));
+
     /// <summary>Initialises the reusable provider identity presentation.</summary>
     public ProviderIdentityView()
     {
@@ -59,11 +69,31 @@ internal sealed partial class ProviderIdentityView : System.Windows.Controls.Use
         set => SetValue(IconSizeProperty, value);
     }
 
+    /// <summary>
+    /// Gets or sets whether this composite renders the provider identifier itself.
+    /// An owner may hide it only when the same authoritative identifier remains visibly adjacent.
+    /// </summary>
+    public bool ShowText
+    {
+        get => (bool)GetValue(ShowTextProperty);
+        set => SetValue(ShowTextProperty, value);
+    }
+
+    /// <summary>Gets the visibility used by the provider text binding.</summary>
+    public Visibility TextVisibility => ShowText ? Visibility.Visible : Visibility.Collapsed;
+
     /// <summary>Re-applies visible identity when WPF replaces the bound dependency-property value.</summary>
     /// <param name="dependencyObject">Provider identity view whose binding changed.</param>
     /// <param name="e">Old and new dependency-property values.</param>
     private static void IdentityChanged(DependencyObject dependencyObject, DependencyPropertyChangedEventArgs e) =>
         ((ProviderIdentityView)dependencyObject).ApplyIdentity();
+
+    /// <summary>Updates the text host when an owning row switches between composite and icon-only layout.</summary>
+    /// <param name="dependencyObject">Provider identity view whose text mode changed.</param>
+    /// <param name="e">Dependency-property event metadata.</param>
+    private static void ShowTextChanged(DependencyObject dependencyObject, DependencyPropertyChangedEventArgs e) =>
+        ((ProviderIdentityView)dependencyObject).ProviderText.Visibility =
+            ((ProviderIdentityView)dependencyObject).TextVisibility;
 
     /// <summary>Loads a local image eagerly so resource errors can return to the neutral fallback deterministically.</summary>
     private void ApplyIdentity()
@@ -78,20 +108,104 @@ internal sealed partial class ProviderIdentityView : System.Windows.Controls.Use
 
         try
         {
-            BitmapImage source = new();
-            source.BeginInit();
-            source.CacheOption = BitmapCacheOption.OnLoad;
-            source.UriSource = identity.AssetUri;
-            source.EndInit();
-            source.Freeze();
-            ProviderImage.Source = source;
-            ProviderImage.Visibility = Visibility.Visible;
-            FallbackGlyph.Visibility = Visibility.Collapsed;
+            Stream? stream = OpenApplicationResource(identity.AssetUri);
+            if (stream is null)
+            {
+                return;
+            }
+
+            using (stream)
+            {
+                BitmapImage source = new();
+                source.BeginInit();
+                source.CacheOption = BitmapCacheOption.OnLoad;
+                source.StreamSource = stream;
+                source.EndInit();
+                source.Freeze();
+                ProviderImage.Source = source;
+                ProviderImage.Visibility = Visibility.Visible;
+                FallbackGlyph.Visibility = Visibility.Collapsed;
+            }
         }
-        catch (Exception exception) when (exception is IOException or InvalidOperationException or NotSupportedException or ArgumentException)
+        catch (Exception exception) when (exception is IOException or InvalidOperationException or NotSupportedException or ArgumentException or FormatException)
         {
             UseNeutralFallback();
         }
+    }
+
+    /// <summary>
+    /// Resolves one generated, application-local resource path through the URI forms accepted by supported WPF hosts.
+    /// No candidate can address the file system or a network origin.
+    /// </summary>
+    /// <param name="assetUri">Relative generated resource path owned by the desktop assembly.</param>
+    /// <returns>The first matching compiled resource stream, or null when every local form is unavailable.</returns>
+    private static Stream? OpenApplicationResource(Uri assetUri)
+    {
+        string relativePath = assetUri.OriginalString.TrimStart('/');
+        Uri[] candidates =
+        [
+            assetUri,
+            new Uri($"pack://application:,,,/{relativePath}", UriKind.Absolute),
+            new Uri($"pack://application:,,,/DBNotifier.Desktop.Wpf;component/{relativePath}", UriKind.Absolute),
+        ];
+
+        foreach (Uri candidate in candidates)
+        {
+            try
+            {
+                StreamResourceInfo? resource = System.Windows.Application.GetResourceStream(candidate);
+                if (resource is not null)
+                {
+                    return resource.Stream;
+                }
+            }
+            catch (Exception exception) when (exception is IOException or InvalidOperationException or NotSupportedException or ArgumentException)
+            {
+                // A host-specific URI form may fail; the remaining application-local forms are still safe to try.
+            }
+        }
+
+        string? manifestName = Array.Find(
+            typeof(ProviderIdentityView).Assembly.GetManifestResourceNames(),
+            name => name.EndsWith(".g.resources", StringComparison.Ordinal));
+        if (manifestName is null)
+        {
+            return null;
+        }
+
+        using Stream? manifest = typeof(ProviderIdentityView).Assembly.GetManifestResourceStream(manifestName);
+        if (manifest is null)
+        {
+            return null;
+        }
+
+        using ResourceReader reader = new(manifest);
+        IDictionaryEnumerator entries = reader.GetEnumerator();
+        while (entries.MoveNext())
+        {
+            if (!string.Equals(entries.Key as string, relativePath, StringComparison.OrdinalIgnoreCase))
+            {
+                continue;
+            }
+
+            object? value = entries.Value;
+            if (value is byte[] bytes)
+            {
+                return new MemoryStream(bytes, writable: false);
+            }
+
+            if (value is Stream embeddedStream)
+            {
+                MemoryStream copy = new();
+                embeddedStream.CopyTo(copy);
+                copy.Position = 0;
+                return copy;
+            }
+
+            return null;
+        }
+
+        return null;
     }
 
     /// <summary>Restores neutral geometry if WPF reports a deferred decoder or resource failure.</summary>

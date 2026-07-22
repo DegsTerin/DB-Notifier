@@ -86,6 +86,7 @@ public sealed class WpfPresentationContractTests
         Assert.Contains("active ? \"ColourSelectionBackgroundBrush\" : \"ColourSurfaceSubtleBrush\"", behaviour, StringComparison.Ordinal);
         Assert.Contains("active ? \"ColourActionPrimaryBackgroundBrush\" : \"ColourSurfaceSubtleBrush\"", behaviour, StringComparison.Ordinal);
         Assert.Contains("bool compact = availableWidth < 1000", behaviour, StringComparison.Ordinal);
+        Assert.Contains("bool compactInventorySummary = availableWidth < 1240", behaviour, StringComparison.Ordinal);
         Assert.Contains("OverviewSummaryGrid.Columns = compact ? 2 : 4", behaviour, StringComparison.Ordinal);
         Assert.Contains("ArrangeAdaptivePair(SettingsPreferencePanel, SettingsNotificationsPanel, compact)", behaviour, StringComparison.Ordinal);
         Assert.Contains("### 14.1 Shared destination consistency matrix", designSystem, StringComparison.Ordinal);
@@ -165,7 +166,8 @@ public sealed class WpfPresentationContractTests
             .ToArray();
 
         Assert.Equal(providerTypes, manifestProviderTypes);
-        Assert.Contains("pack://application:,,,/DBNotifier.Desktop.Wpf;component/", policy, StringComparison.Ordinal);
+        Assert.Contains("new Uri(resourcePath, UriKind.Relative)", policy, StringComparison.Ordinal);
+        Assert.Contains("UriKind.Relative", policy, StringComparison.Ordinal);
         Assert.Contains("theme.EffectiveTheme == EffectiveTheme.Dark", policy, StringComparison.Ordinal);
         Assert.Contains("theme.IsHighContrastActive", policy, StringComparison.Ordinal);
         Assert.Contains("string visibleProviderType = providerType ?? \"unknown\"", policy, StringComparison.Ordinal);
@@ -194,6 +196,12 @@ public sealed class WpfPresentationContractTests
         Assert.Contains("x:Name=\"FallbackGlyph\"", identityMarkup, StringComparison.Ordinal);
         Assert.Contains("ImageFailed=\"ProviderImageFailed\"", identityMarkup, StringComparison.Ordinal);
         Assert.Contains("UseNeutralFallback()", identityView, StringComparison.Ordinal);
+        Assert.Contains("or FormatException", identityView, StringComparison.Ordinal);
+        Assert.Contains("Application.GetResourceStream(candidate)", identityView, StringComparison.Ordinal);
+        Assert.Contains("GetManifestResourceStream(manifestName)", identityView, StringComparison.Ordinal);
+        Assert.Contains("using ResourceReader reader", identityView, StringComparison.Ordinal);
+        Assert.Contains("source.StreamSource = stream", identityView, StringComparison.Ordinal);
+        Assert.Contains("nameof(ShowText)", identityView, StringComparison.Ordinal);
         Assert.Contains("OnCreateAutomationPeer() => null", identityView, StringComparison.Ordinal);
         Assert.DoesNotContain("AutomationProperties.AccessibilityView", identityMarkup, StringComparison.Ordinal);
         Assert.Contains("ProviderIdentityView", mainWindowMarkup, StringComparison.Ordinal);
@@ -245,7 +253,8 @@ public sealed class WpfPresentationContractTests
 
         Assert.Contains("string observedAt = freshness == EvidenceFreshness.Unknown", mainWindow, StringComparison.Ordinal);
         Assert.Contains("? localisation.Text(\"Status.Unknown\")", mainWindow, StringComparison.Ordinal);
-        Assert.Matches("observedAt,\\s*latency\\);", mainWindow);
+        Assert.Contains("DesktopDateTimePresentation.FormatUtc(item.ObservedAt, localisation.Culture)", mainWindow, StringComparison.Ordinal);
+        Assert.Matches("CreateSparkline\\(index, item.Enabled\\),\\s*observedAt,\\s*latency\\);", mainWindow);
     }
 
     /// <summary>Ensures native caption and scrolling chrome follow generated theme resources without replacing Windows accessibility ownership.</summary>
@@ -454,7 +463,9 @@ public sealed class WpfPresentationContractTests
 
         Assert.Contains("<Setter Property=\"Width\" Value=\"{DynamicResource ControlHeightCompact}\" />", mainWindowMarkup, StringComparison.Ordinal);
         Assert.Contains("<Setter Property=\"Height\" Value=\"{DynamicResource ControlHeightCompact}\" />", mainWindowMarkup, StringComparison.Ordinal);
-        Assert.Equal(2, Regex.Count(mainWindowMarkup, "AutomationProperties.Name=\"\\{DynamicResource Overview\\.TrendAccessibleLabel\\}\"", RegexOptions.CultureInvariant));
+        string performanceChartMarkup = File.ReadAllText(Path.Combine(desktopDirectory, "PerformanceChart.xaml"));
+        Assert.Equal(2, Regex.Count(mainWindowMarkup, "<local:PerformanceChart", RegexOptions.CultureInvariant));
+        Assert.Contains("AutomationProperties.Name=\"{DynamicResource Overview.TrendAccessibleLabel}\"", performanceChartMarkup, StringComparison.Ordinal);
         Assert.Contains("AutomationProperties.SetItemStatus(button, active ? Text(\"Navigation.Current\") : string.Empty)", mainWindow, StringComparison.Ordinal);
         Assert.Contains("AutomationEvents.LiveRegionChanged", mainWindow, StringComparison.Ordinal);
         Assert.Contains("x:Name=\"StateMessageText\"", mainWindowMarkup, StringComparison.Ordinal);
@@ -483,6 +494,94 @@ public sealed class WpfPresentationContractTests
         {
             Assert.Contains($"ColourDataCategory{category}Brush", themeService, StringComparison.Ordinal);
         }
+    }
+
+    /// <summary>Ensures the WPF shell uses reusable parity components and retains the complete Web chart information hierarchy.</summary>
+    [Fact]
+    public void WpfStructuralParityUsesSharedComponentsAndCompleteCharts()
+    {
+        string desktopDirectory = Path.Combine(RepositoryRoot(), "src", "DBNotifier.Desktop.Wpf");
+        string mainWindowMarkup = File.ReadAllText(Path.Combine(desktopDirectory, "MainWindow.xaml"));
+        string mainWindow = File.ReadAllText(Path.Combine(desktopDirectory, "MainWindow.xaml.cs"));
+        string chartMarkup = File.ReadAllText(Path.Combine(desktopDirectory, "PerformanceChart.xaml"));
+        string distributionMarkup = File.ReadAllText(Path.Combine(desktopDirectory, "ProviderDistributionChart.xaml"));
+        string distribution = File.ReadAllText(Path.Combine(desktopDirectory, "ProviderDistributionChart.xaml.cs"));
+        string metricMarkup = File.ReadAllText(Path.Combine(desktopDirectory, "KpiCard.xaml"));
+        string statusMarkup = File.ReadAllText(Path.Combine(desktopDirectory, "StatusPill.xaml"));
+        string semanticIcons = File.ReadAllText(Path.Combine(desktopDirectory, "SemanticIcon.xaml.cs"));
+
+        Assert.Equal(13, Regex.Count(mainWindowMarkup, "<local:KpiCard", RegexOptions.CultureInvariant));
+        Assert.Equal(2, Regex.Count(mainWindowMarkup, "<local:PerformanceChart", RegexOptions.CultureInvariant));
+        Assert.Equal(2, Regex.Count(mainWindowMarkup, "<local:ProviderDistributionChart", RegexOptions.CultureInvariant));
+        Assert.True(Regex.Count(mainWindowMarkup, "<local:StatusPill", RegexOptions.CultureInvariant) >= 3);
+        Assert.Contains("Icon=\"Database\" Tone=\"Neutral\"", mainWindowMarkup, StringComparison.Ordinal);
+        Assert.Contains("Icon=\"Healthy\" Tone=\"Healthy\"", mainWindowMarkup, StringComparison.Ordinal);
+        Assert.Contains("Icon=\"Degraded\" Tone=\"Degraded\"", mainWindowMarkup, StringComparison.Ordinal);
+        Assert.Contains("Icon=\"Critical\" Tone=\"Critical\"", mainWindowMarkup, StringComparison.Ordinal);
+        Assert.Contains("StatusTone", mainWindow, StringComparison.Ordinal);
+        Assert.Contains("SparklineTone", mainWindow, StringComparison.Ordinal);
+        Assert.Contains("UpdatedAtLabel", mainWindow, StringComparison.Ordinal);
+        Assert.Contains("ProviderDistributionItem", mainWindow, StringComparison.Ordinal);
+        Assert.Contains("RefreshProviderCharts()", mainWindow, StringComparison.Ordinal);
+
+        Assert.Contains("BorderThickness=\"1\"", metricMarkup, StringComparison.Ordinal);
+        Assert.Contains("<local:SemanticIcon", metricMarkup, StringComparison.Ordinal);
+        Assert.Equal(2, Regex.Count(metricMarkup, "Foreground=\"\\{Binding Foreground, ElementName=Root\\}\"", RegexOptions.CultureInvariant));
+        Assert.DoesNotContain("SemanticForeground", metricMarkup, StringComparison.Ordinal);
+        Assert.Contains("BorderThickness=\"1\"", statusMarkup, StringComparison.Ordinal);
+        Assert.Contains("SemanticIconKind.Database", semanticIcons, StringComparison.Ordinal);
+        Assert.Contains("SemanticIconKind.Disabled", semanticIcons, StringComparison.Ordinal);
+        Assert.Contains("SemanticIconKind.Unknown", semanticIcons, StringComparison.Ordinal);
+        Assert.Contains("SemanticIconKind.Performance", semanticIcons, StringComparison.Ordinal);
+        Assert.Equal(2, Regex.Count(mainWindowMarkup, "Icon=\"\\{Binding StatusIcon\\}\"", RegexOptions.CultureInvariant));
+        Assert.Equal(2, Regex.Count(mainWindowMarkup, "Icon=\"\\{Binding IconKind\\}\"", RegexOptions.CultureInvariant));
+        Assert.Contains("x:Name=\"AlertTotalCard\"", mainWindowMarkup, StringComparison.Ordinal);
+        Assert.Contains("Icon=\"Healthy\" Tone=\"Neutral\"", mainWindowMarkup, StringComparison.Ordinal);
+        Assert.Contains("Property=\"BorderThickness\" Value=\"3,2,2,2\"", mainWindowMarkup, StringComparison.Ordinal);
+        Assert.Contains("<Ellipse", distributionMarkup, StringComparison.Ordinal);
+        Assert.Contains("CreateSegment", distribution, StringComparison.Ordinal);
+        Assert.Contains("ColourDataCategory", distribution, StringComparison.Ordinal);
+
+        Assert.Equal(2, Regex.Count(chartMarkup, "<Polyline", RegexOptions.CultureInvariant));
+        foreach (string label in new[] { "100%", "50%", "0%", "09:50", "09:55", "10:00", "10:05", "10:10", "10:15" })
+        {
+            Assert.Contains($"Text=\"{label}\"", chartMarkup, StringComparison.Ordinal);
+        }
+        Assert.Contains("M0,25 H640 M0,75 H640 M0,125 H640", chartMarkup, StringComparison.Ordinal);
+        Assert.Contains("ClipToBounds=\"True\"", chartMarkup, StringComparison.Ordinal);
+        Assert.Contains("AutomationProperties.HelpText=\"{DynamicResource Overview.DemonstrationChart}\"", chartMarkup, StringComparison.Ordinal);
+    }
+
+    /// <summary>Ensures the existing WPF runner covers the authorised matrix, restores preferences and never enters the notification-producing close path.</summary>
+    [Fact]
+    public void WpfParityAuditorOwnsRoutesPreferencesAndExactCleanup()
+    {
+        string script = File.ReadAllText(Path.Combine(RepositoryRoot(), "scripts", "audit-state05-wpf.ps1"));
+        string[] routes = ["Overview", "Inventory", "Alerts", "Performance", "History", "Configuration", "Providers", "Settings"];
+
+        Assert.Contains("[switch]$ParityMatrix", script, StringComparison.Ordinal);
+        foreach (string route in routes)
+        {
+            Assert.Contains($"id = \"{route}\"", script, StringComparison.Ordinal);
+        }
+        Assert.Contains("($route.id + \"NavigationButton\")", script, StringComparison.Ordinal);
+        Assert.Contains("@(\"pt-BR\", \"en-GB\")", script, StringComparison.Ordinal);
+        Assert.Contains("@(\"light\", \"dark\")", script, StringComparison.Ordinal);
+        Assert.Contains("width = 820; height = 620", script, StringComparison.Ordinal);
+        Assert.Contains("width = 1180; height = 760", script, StringComparison.Ordinal);
+        Assert.Contains("width = 1920; height = 1080", script, StringComparison.Ordinal);
+        Assert.Contains("ABC049CBB37CC998FF86E018E6853D811E58ED166B2B6B4A5CF0FBA4B171868F", script, StringComparison.Ordinal);
+        Assert.Contains("[System.IO.File]::WriteAllBytes($PreferencePath, $PreferenceBytes)", script, StringComparison.Ordinal);
+        Assert.Contains("preferenceHashAfter", script, StringComparison.Ordinal);
+        Assert.Contains("--reconciled-notification-sandbox", script, StringComparison.Ordinal);
+        Assert.Contains("--notifications-quiet", script, StringComparison.Ordinal);
+        Assert.Contains("Stop-ExactAuditProcess", script, StringComparison.Ordinal);
+        Assert.Contains("Stop-Process -Id $candidate.Id -Force", script, StringComparison.Ordinal);
+        Assert.DoesNotContain("CloseMainWindow", script, StringComparison.Ordinal);
+        Assert.Contains("Remove-OwnedAuditDirectory", script, StringComparison.Ordinal);
+        Assert.Contains("NOT_TESTED", script, StringComparison.Ordinal);
+        Assert.Contains("top-$($windowDpi)dpi.png", script, StringComparison.Ordinal);
+        Assert.Contains("bottom-$($windowDpi)dpi.png", script, StringComparison.Ordinal);
     }
 
     /// <summary>Ensures language, navigation and bounded refreshes age one immutable desktop evidence snapshot across shell and Tray.</summary>

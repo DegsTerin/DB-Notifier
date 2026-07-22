@@ -41,7 +41,7 @@ public partial class MainWindow : Window
     private readonly ObservableCollection<InventoryRow> rows = [];
     private readonly ObservableCollection<TimelineRow> timelineRows = [];
     private readonly ObservableCollection<AlertRow> alertRows = [];
-    private readonly ObservableCollection<ProviderDistributionRow> providerRows = [];
+    private readonly ObservableCollection<ProviderDistributionItem> providerRows = [];
     private readonly ObservableCollection<CapabilityRow> capabilityRows = [];
     private InventorySnapshot snapshot = null!;
     private TimelineAlertSnapshot timelineSnapshot = null!;
@@ -85,7 +85,6 @@ public partial class MainWindow : Window
         InventoryGrid.ItemsSource = rows;
         HistoryGrid.ItemsSource = timelineRows;
         AlertsGrid.ItemsSource = alertRows;
-        OverviewProviderList.ItemsSource = providerRows;
         ProviderCatalogueList.ItemsSource = providerRows;
         CapabilityGrid.ItemsSource = capabilityRows;
         localisation.LanguageChanged += LocalisationLanguageChanged;
@@ -153,6 +152,7 @@ public partial class MainWindow : Window
     {
         currentView = Enum.IsDefined(view) ? view : throw new ArgumentOutOfRangeException(nameof(view));
         ScenarioSelector.SelectedIndex = 0;
+        DesktopContentScrollViewer.ScrollToTop();
         UpdateNavigationState();
         PresentReadyState();
     }
@@ -240,6 +240,11 @@ public partial class MainWindow : Window
     /// <param name="sender">The notification button in the desktop TopBar.</param>
     /// <param name="e">Button activation event data.</param>
     private void NotificationButtonClick(object sender, RoutedEventArgs e) => ShowView(DesktopView.Alerts);
+
+    /// <summary>Opens the detailed local alert route from the Overview without acknowledging or delivering anything.</summary>
+    /// <param name="sender">Overview navigation affordance.</param>
+    /// <param name="e">Button activation event data.</param>
+    private void OverviewViewAlertsClick(object sender, RoutedEventArgs e) => ShowView(DesktopView.Alerts);
 
     /// <summary>Opens the local interface preferences surface without changing operational configuration.</summary>
     /// <param name="sender">The preferences button in the desktop TopBar.</param>
@@ -416,8 +421,9 @@ public partial class MainWindow : Window
         }
 
         InventoryStatusSummary summary = snapshot.Summarize(now, DesktopDemonstrationEvidence.StaleAfter);
-        Replace(rows, snapshot.Items.Select(item => InventoryRow.From(
+        Replace(rows, snapshot.Items.Select((item, index) => InventoryRow.From(
             item,
+            index,
             now,
             DesktopDemonstrationEvidence.StaleAfter,
             localisation,
@@ -437,8 +443,9 @@ public partial class MainWindow : Window
     private void PresentOverview(DateTimeOffset now)
     {
         InventoryStatusSummary summary = snapshot.Summarize(now, DesktopDemonstrationEvidence.StaleAfter);
-        Replace(rows, snapshot.Items.Select(item => InventoryRow.From(
+        Replace(rows, snapshot.Items.Select((item, index) => InventoryRow.From(
             item,
+            index,
             now,
             DesktopDemonstrationEvidence.StaleAfter,
             localisation,
@@ -469,6 +476,10 @@ public partial class MainWindow : Window
             providerVisualIdentityPolicy)));
         AlertStatusSummary summary = timelineSnapshot.Summarize();
         AlertSummaryText.Text = Text("Wpf.AlertSummary", summary.Active, summary.UnresolvedCritical);
+        HistorySummaryText.Text = Text("History.Count", timelineRows.Count, timelineRows.Count);
+        AlertCriticalCountText.Text = summary.UnresolvedCritical.ToString(localisation.Culture);
+        AlertActiveCountText.Text = summary.Active.ToString(localisation.Culture);
+        AlertTotalCountText.Text = alertRows.Count.ToString(localisation.Culture);
         HistoryPanel.Visibility = view == DesktopView.History ? Visibility.Visible : Visibility.Collapsed;
         AlertsPanel.Visibility = view == DesktopView.Alerts ? Visibility.Visible : Visibility.Collapsed;
         AlertsPanel.Margin = view == DesktopView.Alerts ? new Thickness(0) : new Thickness(0, 18, 0, 0);
@@ -539,9 +550,11 @@ public partial class MainWindow : Window
         configurationSnapshot = CreateConfigurationSnapshot();
         Replace(providerRows, snapshot.Items
             .GroupBy(item => item.ProviderType, StringComparer.Ordinal)
-            .Select(group => new ProviderDistributionRow(
+            .Select(group => new ProviderDistributionItem(
                 providerVisualIdentityPolicy.Resolve(group.Key),
-                group.Count())));
+                group.Count(),
+                group.First().SupportLabel)));
+        RefreshProviderCharts();
         ConfigurationGrid.ItemsSource = configurationSnapshot.Fields;
         RefreshGridHeaders();
     }
@@ -567,6 +580,7 @@ public partial class MainWindow : Window
         {
             ProviderIdentity = providerVisualIdentityPolicy.Resolve(row.ProviderIdentity.ProviderType),
         }).ToArray());
+        RefreshProviderCharts();
 
         if (configurationSnapshot is not null)
         {
@@ -574,12 +588,20 @@ public partial class MainWindow : Window
         }
     }
 
+    /// <summary>Atomically supplies both provider charts with the current visible count and identity snapshot.</summary>
+    private void RefreshProviderCharts()
+    {
+        ProviderDistributionItem[] items = providerRows.ToArray();
+        OverviewProviderDistribution.Items = items;
+        ProvidersDistribution.Items = items;
+    }
+
     /// <summary>Refreshes detached DataGrid column headers that do not inherit WPF dynamic-resource invalidation.</summary>
     private void RefreshGridHeaders()
     {
         SetHeaders(InventoryGrid, "Common.Instance", "Common.Provider", "Common.Support", "Common.Environment", "Common.Status", "Common.ObservedAtUtc", "Common.Latency");
         SetHeaders(HistoryGrid, "Common.TimeUtc", "Common.Severity", "Common.Event", "Common.Instance", "Common.Provider", "Common.Summary");
-        SetHeaders(AlertsGrid, "Common.Severity", "Common.State", "Common.Rule", "Common.Instance", "Common.Provider", "Common.Summary");
+        SetHeaders(AlertsGrid, "Common.Severity", "Common.State", "Common.Rule", "Common.Instance", "Common.Provider", "Common.Summary", "Common.Updated");
         SetHeaders(ConfigurationGrid, "Common.Field", "Common.SafeValue", "Common.Description");
         SetHeaders(CapabilityGrid, "Common.Action", "Common.Capability", "Common.State", "Common.Reason");
     }
@@ -648,10 +670,17 @@ public partial class MainWindow : Window
     private void UpdateResponsiveLayout()
     {
         double availableWidth = ActualWidth > 0 ? ActualWidth : Width;
+        // The fixed native navigation rail leaves materially less room than the outer window width suggests.
         bool compact = availableWidth < 1000;
+        bool compactInventorySummary = availableWidth < 1240;
         OverviewSummaryGrid.Columns = compact ? 2 : 4;
-        InventorySummaryGrid.Columns = compact ? 3 : 6;
+        InventorySummaryGrid.Columns = compactInventorySummary ? 3 : 6;
+        AlertSummaryGrid.Columns = compact ? 2 : 3;
         SidebarStateCard.Visibility = ActualHeight > 0 && ActualHeight < 700 ? Visibility.Collapsed : Visibility.Visible;
+        Grid.SetRow(DesktopScenarioPanel, compact ? 1 : 0);
+        Grid.SetColumn(DesktopScenarioPanel, compact ? 0 : 1);
+        Grid.SetColumnSpan(DesktopScenarioPanel, compact ? 2 : 1);
+        DesktopScenarioPanel.Margin = compact ? new Thickness(0, 16, 0, 0) : new Thickness(24, 0, 0, 0);
         ArrangeAdaptivePair(OverviewFleetPanel, OverviewAlertsPanel, compact);
         ArrangeAdaptivePair(OverviewPerformancePanel, OverviewProvidersPanel, compact);
         ArrangeAdaptivePair(SettingsPreferencePanel, SettingsNotificationsPanel, compact);
@@ -729,17 +758,23 @@ public partial class MainWindow : Window
 
     /// <summary>Represents one localised inventory grid row.</summary>
     private sealed record InventoryRow(
+        string InstanceId,
         string DisplayName,
         string ProviderType,
         ProviderVisualIdentity ProviderIdentity,
         string SupportLabel,
         string Environment,
         string StatusLabel,
+        OperationalTone StatusTone,
+        SemanticIconKind StatusIcon,
+        OperationalTone SparklineTone,
+        PointCollection SparklinePoints,
         string ObservedAtLabel,
         string LatencyLabel)
     {
         /// <summary>Maps a canonical inventory item to non-colour-only localised presentation.</summary>
         /// <param name="item">Canonical provider-neutral inventory evidence.</param>
+        /// <param name="index">Stable fixture position used only to select deterministic visual sparkline geometry.</param>
         /// <param name="now">UTC evaluation instant used for freshness classification.</param>
         /// <param name="staleAfter">Maximum evidence age before the row is explicitly stale.</param>
         /// <param name="localisation">Desktop localisation owner for visible labels.</param>
@@ -747,6 +782,7 @@ public partial class MainWindow : Window
         /// <returns>A localised row that keeps provider identity separate from operational health.</returns>
         public static InventoryRow From(
             InstanceInventoryItem item,
+            int index,
             DateTimeOffset now,
             TimeSpan staleAfter,
             DesktopLocalisationService localisation,
@@ -754,34 +790,83 @@ public partial class MainWindow : Window
         {
             EvidenceFreshness freshness = item.GetFreshness(now, staleAfter);
             string status = !item.Enabled
-                ? $"○ {localisation.Text("Status.Disabled")}"
+                ? localisation.Text("Status.Disabled")
                 : freshness == EvidenceFreshness.Stale
-                ? $"◷ {localisation.Text("Status.Stale")}"
+                ? localisation.Text("Status.Stale")
                 : freshness == EvidenceFreshness.Unknown
-                    ? $"○ {localisation.Text("Status.Unknown")}"
+                    ? localisation.Text("Status.Unknown")
                     : item.Status switch
                     {
-                        HealthStatus.Healthy => $"● {localisation.Text("Status.Healthy")}",
-                        HealthStatus.Degraded => $"▲ {localisation.Text("Status.Degraded")}",
-                        HealthStatus.Unavailable => $"■ {localisation.Text("Status.Unavailable")}",
-                        HealthStatus.AuthFailed => $"■ {localisation.Text("Status.AuthFailed")}",
-                        HealthStatus.Timeout => $"■ {localisation.Text("Status.Timeout")}",
-                        HealthStatus.Maintenance => $"◆ {localisation.Text("Status.Maintenance")}",
-                        _ => $"○ {localisation.Text("Status.Unknown")}",
+                        HealthStatus.Healthy => localisation.Text("Status.Healthy"),
+                        HealthStatus.Degraded => localisation.Text("Status.Degraded"),
+                        HealthStatus.Unavailable => localisation.Text("Status.Unavailable"),
+                        HealthStatus.AuthFailed => localisation.Text("Status.AuthFailed"),
+                        HealthStatus.Timeout => localisation.Text("Status.Timeout"),
+                        HealthStatus.Maintenance => localisation.Text("Status.Maintenance"),
+                        _ => localisation.Text("Status.Unknown"),
                     };
+            OperationalTone healthTone = item.Status switch
+            {
+                HealthStatus.Healthy => OperationalTone.Healthy,
+                HealthStatus.Degraded => OperationalTone.Degraded,
+                HealthStatus.Unavailable or HealthStatus.AuthFailed or HealthStatus.Timeout => OperationalTone.Critical,
+                HealthStatus.Maintenance => OperationalTone.Maintenance,
+                _ => OperationalTone.Neutral,
+            };
+            OperationalTone statusTone = !item.Enabled || freshness is EvidenceFreshness.Stale or EvidenceFreshness.Unknown
+                ? OperationalTone.Neutral
+                : healthTone;
+            SemanticIconKind statusIcon = !item.Enabled
+                ? SemanticIconKind.Disabled
+                : freshness == EvidenceFreshness.Stale
+                    ? SemanticIconKind.Stale
+                    : freshness == EvidenceFreshness.Unknown
+                        ? SemanticIconKind.Unknown
+                        : item.Status switch
+                        {
+                            HealthStatus.Healthy => SemanticIconKind.Healthy,
+                            HealthStatus.Degraded => SemanticIconKind.Degraded,
+                            HealthStatus.Unavailable or HealthStatus.AuthFailed or HealthStatus.Timeout => SemanticIconKind.Critical,
+                            HealthStatus.Maintenance => SemanticIconKind.Settings,
+                            _ => SemanticIconKind.Unknown,
+                        };
             string latency = item.Latency is null ? "—" : string.Create(CultureInfo.InvariantCulture, $"{item.Latency.Value.TotalMilliseconds:0} ms");
             string observedAt = freshness == EvidenceFreshness.Unknown
                 ? localisation.Text("Status.Unknown")
-                : item.ObservedAt.UtcDateTime.ToString("yyyy-MM-dd HH:mm:ss", localisation.Culture);
+                : DesktopDateTimePresentation.FormatUtc(item.ObservedAt, localisation.Culture);
             return new(
+                item.InstanceId.ToString("D", CultureInfo.InvariantCulture),
                 item.DisplayName,
                 item.ProviderType,
                 providerVisualIdentityPolicy.Resolve(item.ProviderType),
                 item.SupportLabel,
                 item.Environment,
                 status,
+                statusTone,
+                statusIcon,
+                item.Enabled ? healthTone : OperationalTone.Neutral,
+                CreateSparkline(index, item.Enabled),
                 observedAt,
                 latency);
+        }
+
+        /// <summary>Creates one bounded deterministic sparkline without introducing a telemetry or data contract.</summary>
+        /// <param name="index">Stable fixture position used to select an existing visual-series shape.</param>
+        /// <param name="enabled">Whether the instance may display variation or must remain a flat disabled line.</param>
+        /// <returns>A frozen 92-by-28 point collection safe for reuse by the read-only row template.</returns>
+        private static PointCollection CreateSparkline(int index, bool enabled)
+        {
+            string points = !enabled
+                ? "0,15 92,15"
+                : (index % 3) switch
+                {
+                    0 => "0,20 12,18 24,21 36,14 48,16 60,10 72,14 82,11 92,16",
+                    1 => "0,17 12,15 24,18 36,11 48,14 60,9 72,18 82,13 92,15",
+                    _ => "0,10 12,14 24,9 36,17 48,12 60,19 72,15 82,20 92,16",
+                };
+            PointCollection collection = PointCollection.Parse(points);
+            collection.Freeze();
+            return collection;
         }
     }
 
@@ -789,6 +874,8 @@ public partial class MainWindow : Window
     private sealed record TimelineRow(
         string OccurredAtLabel,
         string SeverityLabel,
+        OperationalTone Tone,
+        SemanticIconKind IconKind,
         string EventType,
         string InstanceName,
         string ProviderType,
@@ -807,10 +894,24 @@ public partial class MainWindow : Window
             item.OccurredAt.UtcDateTime.ToString("yyyy-MM-dd HH:mm:ss", localisation.Culture),
             item.Severity switch
             {
-                EventSeverity.Critical => $"■ {localisation.Text("Severity.Critical")}",
-                EventSeverity.Warning => $"▲ {localisation.Text("Severity.Warning")}",
-                EventSeverity.Information => $"● {localisation.Text("Severity.Information")}",
-                _ => $"○ {localisation.Text("Status.Unknown")}",
+                EventSeverity.Critical => localisation.Text("Severity.Critical"),
+                EventSeverity.Warning => localisation.Text("Severity.Warning"),
+                EventSeverity.Information => localisation.Text("Severity.Information"),
+                _ => localisation.Text("Status.Unknown"),
+            },
+            item.Severity switch
+            {
+                EventSeverity.Critical => OperationalTone.Critical,
+                EventSeverity.Warning => OperationalTone.Degraded,
+                EventSeverity.Information => OperationalTone.Information,
+                _ => OperationalTone.Neutral,
+            },
+            item.Severity switch
+            {
+                EventSeverity.Critical => SemanticIconKind.Critical,
+                EventSeverity.Warning => SemanticIconKind.Degraded,
+                EventSeverity.Information => SemanticIconKind.Notification,
+                _ => SemanticIconKind.Unknown,
             },
             item.EventType,
             item.InstanceName,
@@ -822,12 +923,15 @@ public partial class MainWindow : Window
     /// <summary>Represents one localised alert grid row.</summary>
     private sealed record AlertRow(
         string SeverityLabel,
+        OperationalTone Tone,
+        SemanticIconKind IconKind,
         string StateLabel,
         string RuleName,
         string InstanceName,
         string ProviderType,
         ProviderVisualIdentity ProviderIdentity,
-        string Summary)
+        string Summary,
+        string UpdatedAtLabel)
     {
         /// <summary>Maps canonical alert state and severity to localised display labels.</summary>
         /// <param name="item">Canonical provider-neutral alert evidence.</param>
@@ -840,10 +944,24 @@ public partial class MainWindow : Window
             ProviderVisualIdentityPolicy providerVisualIdentityPolicy) => new(
             item.Severity switch
             {
-                EventSeverity.Critical => $"■ {localisation.Text("Severity.Critical")}",
-                EventSeverity.Warning => $"▲ {localisation.Text("Severity.Warning")}",
-                EventSeverity.Information => $"● {localisation.Text("Severity.Information")}",
-                _ => $"○ {localisation.Text("Status.Unknown")}",
+                EventSeverity.Critical => localisation.Text("Severity.Critical"),
+                EventSeverity.Warning => localisation.Text("Severity.Warning"),
+                EventSeverity.Information => localisation.Text("Severity.Information"),
+                _ => localisation.Text("Status.Unknown"),
+            },
+            item.Severity switch
+            {
+                EventSeverity.Critical => OperationalTone.Critical,
+                EventSeverity.Warning => OperationalTone.Degraded,
+                EventSeverity.Information => OperationalTone.Information,
+                _ => OperationalTone.Neutral,
+            },
+            item.Severity switch
+            {
+                EventSeverity.Critical => SemanticIconKind.Critical,
+                EventSeverity.Warning => SemanticIconKind.Degraded,
+                EventSeverity.Information => SemanticIconKind.Notification,
+                _ => SemanticIconKind.Unknown,
             },
             item.State switch
             {
@@ -857,11 +975,9 @@ public partial class MainWindow : Window
             item.InstanceName,
             item.ProviderType,
             providerVisualIdentityPolicy.Resolve(item.ProviderType),
-            item.Summary);
+            item.Summary,
+            $"{DesktopDateTimePresentation.FormatUtc(item.UpdatedAt, localisation.Culture)} UTC");
     }
-
-    /// <summary>Represents one provider count without implying implementation, health or homologation.</summary>
-    private sealed record ProviderDistributionRow(ProviderVisualIdentity ProviderIdentity, int Count);
 
     /// <summary>Represents one fail-closed capability decision row.</summary>
     private sealed record CapabilityRow(string CapabilityId, string DisplayName, string StateLabel, string ReasonCode)

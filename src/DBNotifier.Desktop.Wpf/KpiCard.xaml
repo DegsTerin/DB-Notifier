@@ -1,0 +1,60 @@
+<!-- Module purpose: Presents one dashboard KPI with equivalent WPF hierarchy, semantic icon and factual supporting text. -->
+<UserControl x:Class="DBNotifier.Desktop.Wpf.KpiCard"
+             x:ClassModifier="internal"
+             x:Name="Root"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:DBNotifier.Desktop.Wpf"
+             Focusable="False"
+             IsTabStop="False"
+             MinHeight="96">
+  <Border x:Name="CardBorder"
+          Padding="18,14"
+          Background="{DynamicResource ComponentCardBackgroundBrush}"
+          BorderBrush="{DynamicResource ComponentCardBorderBrush}"
+          BorderThickness="1"
+          CornerRadius="10">
+    <Grid>
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="*" />
+        <ColumnDefinition Width="Auto" />
+      </Grid.ColumnDefinitions>
+      <StackPanel VerticalAlignment="Center">
+        <TextBlock x:Name="LabelText"
+                   Text="{Binding Label, ElementName=Root}"
+                   Foreground="{Binding Foreground, ElementName=Root}"
+                   FontSize="11"
+                   FontWeight="SemiBold"
+                   TextWrapping="Wrap" />
+        <TextBlock x:Name="ValueText"
+                   Text="{Binding Value, ElementName=Root}"
+                   Foreground="{DynamicResource ColourTextPrimaryBrush}"
+                   FontSize="26"
+                   FontWeight="SemiBold"
+                   Margin="0,5,0,0" />
+        <TextBlock x:Name="DetailText"
+                   Text="{Binding Detail, ElementName=Root}"
+                   Foreground="{DynamicResource ColourTextSecondaryBrush}"
+                   FontSize="10"
+                   Margin="0,4,0,0"
+                   TextWrapping="Wrap"
+                   Visibility="{Binding DetailVisibility, ElementName=Root}" />
+      </StackPanel>
+      <Border x:Name="IconBadge"
+              Grid.Column="1"
+              Width="42"
+              Height="42"
+              Margin="14,0,0,0"
+              HorizontalAlignment="Right"
+              VerticalAlignment="Center"
+              CornerRadius="21">
+        <local:SemanticIcon x:Name="MetricIcon"
+                            Width="20"
+                            Height="20"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            Foreground="{Binding Foreground, ElementName=Root}" />
+      </Border>
+    </Grid>
+  </Border>
+</UserControl>

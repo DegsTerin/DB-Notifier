@@ -2,8 +2,8 @@
 
 ## Versão atual
 
-- Versão: `3.56.8`
-- Data: 2026-07-20
+- Versão: `3.56.9`
+- Data: 2026-07-22
 - Status: corpus DB-Notifier consolidado
 - Escopo: 13 arquivos ativos
 
@@ -16,6 +16,13 @@ A versão do corpus é independente da versão do software.
 - PATCH: clareza, correção ou referência sem mudança de autoridade.
 
 Toda alteração atualiza este arquivo e, quando necessário, `../Start-Here.md`.
+
+## 3.56.9 — 2026-07-22
+
+- Registra a conclusão automática restrita do R6-WPF2, sem transição de lifecycle e sem substituir a reprovação humana vigente de `R6-HV-W01`.
+- O Design System `3.2.0` passa a explicitar paridade estrutural e informacional Web/WPF para KPIs, estados, identidades de provider, alertas, distribuição e gráfico de desempenho, preservando adaptações nativas do Windows.
+- `Current-State.md` e o log append-only registram 64/64 amostras executáveis aprovadas, 32 combinações físicas `1920×1080` não testadas, restauração exata da preferência, Web/dependências imutáveis e a falha global R0 e o incidente NuGet R5 sem correção.
+- A próxima decisão permanece uma proposta separada para repetir visivelmente somente W01; W02, P01, aceitação R6, R7–R8, R7-A0/O1, AIOps e transição continuam não autorizados.
 
 ## 3.56.8 — 2026-07-20
 

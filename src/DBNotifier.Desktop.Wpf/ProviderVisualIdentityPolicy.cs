@@ -17,7 +17,6 @@ internal sealed record ProviderVisualIdentity(string ProviderType, Uri? AssetUri
 /// </summary>
 internal sealed class ProviderVisualIdentityPolicy : IDisposable
 {
-    private const string PackRoot = "pack://application:,,,/DBNotifier.Desktop.Wpf;component/";
     private readonly DesktopThemeService theme;
     private bool disposed;
 
@@ -49,7 +48,7 @@ internal sealed class ProviderVisualIdentityPolicy : IDisposable
         string resourcePath = theme.EffectiveTheme == EffectiveTheme.Dark
             ? asset.DarkResourcePath
             : asset.LightResourcePath;
-        return new ProviderVisualIdentity(visibleProviderType, new Uri(PackRoot + resourcePath, UriKind.Absolute));
+        return new ProviderVisualIdentity(visibleProviderType, new Uri(resourcePath, UriKind.Relative));
     }
 
     /// <summary>Stops theme observation; no image, provider or external resource is disposed by this policy.</summary>

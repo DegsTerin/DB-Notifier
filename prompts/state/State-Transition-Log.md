@@ -2600,6 +2600,21 @@
 - Próxima decisão: requer proposta e autorização separadas para inventariar e implementar paridade visual WPF/Web de ícones, componentes, organização e gráfico, seguida por nova repetição humana também separada.
 - Aprovador: Bruno, 2026-07-22, exclusivamente para a decisão da repetição `R6-HV-W01`.
 
+## 2026-07-22 — Remediação automática focal `R6-WPF2`
+
+- Estado anterior: `STATE-06 INTEGRATION`, R6-WPF1 aprovado automaticamente no seu escopo de nomenclatura, `R6-HV-W01` reprovada por paridade visual incompleta, W02 bloqueada e P01 não testada; R6-WPF2 autorizado exclusivamente sobre `8e595de369a77aa0f534356ab618d0222e71d583`.
+- Estado resultante: sem transição; `STATE-06 INTEGRATION` mantido. R6-WPF2 está automaticamente `APROVADO` no seu escopo estrutural e informacional; a decisão humana W01 permanece `REPROVADA`, e a aceitação humana R6 continua `PENDENTE`.
+- Correção: WPF passou a usar componentes code-native reutilizáveis para KPIs, ícones semânticos, pills de estado, distribuição de providers e desempenho; Overview, Instâncias, Alertas, Desempenho, Histórico, Configuração operacional, Providers e Preferências preservam o conjunto informacional partilhado do Web. O gráfico contém grade, eixo `100%`/`50%`/`0%`, horários `09:50`–`10:15`, duas séries, badge e nome acessível; provider assets gerados são consumidos com fallback neutro.
+- Matriz automática: 64/64 amostras executáveis passaram nas oito rotas, pt-BR/en-GB, Light/Dark e `820×620`/`1180×760`. As 32 combinações `1920×1080` estão `NÃO TESTADAS` porque a área útil ativa mede `1920×1032` e nenhuma configuração do Windows foi alterada.
+- Gates: solução Release offline com 0 avisos/erros; WPF 3/3, Presentation focal 66/66, arquitetura WPF 14/14, Dashboard 66/66, type-check e build; coverage 393/393 com 81,92% linhas/53,56% branches e dez componentes; toolchain Node.js 24.18.0/npm 11.16.0, tokens, marca, 11 identidades/22 variantes de providers, localização, 326 arquivos documentáveis, 607 links, secrets, formatação e diffs passaram.
+- Gate global: 46/47 arquitetura; a única falha continua sendo a asserção R0 preexistente `State06ConsolidatedHarnessIsolationTests.BrowserRunnersBoundWorkAndCleanupExactOwnedResources`, que espera o literal `state05-dashboard-failure.json`. Nenhuma correção, exclusão ou bypass foi feito. O incidente NuGet R5 permaneceu registrado e nenhum restore, download ou acesso a metadados ocorreu.
+- Imutabilidade: Dashboard Web, `.csproj`, `Directory.Packages.props`, lockfiles, `package.json` e `package-lock.json` têm zero diff contra a baseline. Nenhuma nova dependência, harness, rota, contrato, dado ou capacidade operacional foi introduzida.
+- Preferência e cleanup: SHA-256 anterior/final exatamente `ABC049CBB37CC998FF86E018E6853D811E58ED166B2B6B4A5CF0FBA4B171868F`; auditor registrou zero processo e estado residual, e os oito roots temporários exatos da campanha foram removidos.
+- Evidência: [relatório R6-WPF2](../../docs/STATE-06-Audit-Remediation-R6-WPF2-Report.md) e [Design System 3.2.0](../../docs/design/DB-Notifier-Design-System.md). O identificador do commit focal está no hand-off final do incremento.
+- Limites: nenhuma amostra humana, W02/P01, notificação, configuração do Windows, fonte/provider/banco real, restore/download/acesso externo, CI remota, push/deploy, correção R0, alteração do incidente R5, R2-B, R7–R8, R7-A0/O1, AIOps, comando, LLM, recomendação, automação, promoção ou transição foi executada.
+- Próxima decisão: requer proposta e autorização separadas para repetir visivelmente somente `R6-HV-W01` após R6-WPF2. W02/P01 não retomam automaticamente.
+- Aprovador: autorização de implementação R6-WPF2 por Bruno em 2026-07-22; nenhuma aprovação humana de W01 ou R6 foi inferida.
+
 ## Template de nova entrada
 
 - Data:
