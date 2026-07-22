@@ -2587,6 +2587,19 @@
 - Próxima decisão: requer proposta e autorização separadas para repetir visivelmente somente `R6-HV-W01` sobre o commit focal. W02/P01 não retomam automaticamente.
 - Aprovador: autorização de implementação R6-WPF1 por Bruno em 2026-07-22; nenhuma aprovação humana de W01 ou R6 foi inferida.
 
+## 2026-07-22 — Repetição visível `R6-HV-W01` reprovada após R6-WPF1
+
+- Estado anterior: `STATE-06 INTEGRATION`, R6-WPF1 automaticamente aprovado no commit `288500de9e14212eca29b9b91b3de930fcb0ecb6`, W01 pendente de repetição, W02 bloqueada e P01 não testada.
+- Estado resultante: sem transição; `STATE-06 INTEGRATION` mantido. `R6-HV-W01` permanece `REPROVADA`, agora por paridade visual incompleta após a correção da nomenclatura. A aceitação humana R6 continua `PENDENTE`.
+- Execução: build Release existente reutilizado; processo dedicado com `--notifications-quiet`, endpoint HTTPS loopback sem listener, ledger temporário e sujeito sintético. Nenhuma fonte operacional, conexão externa, notificação ou alteração de código foi executada.
+- Observação: `Configuração operacional` e `Preferências` ficaram inequívocas, mas KPIs e providers não apresentaram os ícones equivalentes, regiões de instâncias/alertas/providers mantiveram organização diferente e o gráfico WPF mostrou essencialmente linhas sem eixos percentuais, horários, badge e estrutura informativa equivalentes ao Web.
+- Decisão: Bruno declarou exatamente `AMOSTRA R6-HV-W01 REPETIDA — REPROVADA: o WPF ainda não reproduz a organização visual do Web; faltam ícones e componentes equivalentes e o gráfico apresenta apenas linhas sem eixos, rótulos e estrutura informativa`.
+- Cleanup: PID dedicado `48132` encerrado por identidade sem Close; porta sem listener, root temporário removido, zero processo/listener/resíduo e preferência restaurada byte a byte ao SHA-256 `ABC049CBB37CC998FF86E018E6853D811E58ED166B2B6B4A5CF0FBA4B171868F`.
+- Evidência: [relatório da repetição W01](../../docs/STATE-06-Audit-Remediation-R6-HV-W01-Repetition-Report.md) e [relatório automático R6-WPF1](../../docs/STATE-06-Audit-Remediation-R6-WPF1-Report.md).
+- Limites: W02 permanece bloqueada; P01 e as cinco condições físicas permanecem não testadas. Nenhuma correção, R6 acceptance, R0, incidente R5, R2-B, R7–R8, R7-A0/O1, AIOps, comando, LLM, automação, promoção ou transição foi autorizada ou inferida.
+- Próxima decisão: requer proposta e autorização separadas para inventariar e implementar paridade visual WPF/Web de ícones, componentes, organização e gráfico, seguida por nova repetição humana também separada.
+- Aprovador: Bruno, 2026-07-22, exclusivamente para a decisão da repetição `R6-HV-W01`.
+
 ## Template de nova entrada
 
 - Data:
