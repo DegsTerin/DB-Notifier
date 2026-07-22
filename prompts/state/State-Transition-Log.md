@@ -2573,6 +2573,20 @@
 - Próxima decisão: requer proposta e autorização separadas para diagnóstico/remediação focal dos defeitos W01; repetição e retomada posterior também exigem autoridade separada.
 - Aprovador: Bruno, 2026-07-22, exclusivamente para as decisões individuais D03/W01 e para a restauração focal da preferência.
 
+## 2026-07-22 — Remediação automática focal `R6-WPF1`
+
+- Estado anterior: `STATE-06 INTEGRATION`, D01/D02 repetidas e D03 aprovadas, `R6-HV-W01` reprovada, W02 bloqueada e P01 não testada; R6-WPF1 autorizado exclusivamente sobre `2cafd5d0df874833a2041a44ffd66e110163c8c6`.
+- Estado resultante: sem transição; `STATE-06 INTEGRATION` mantido. R6-WPF1 está automaticamente `APROVADO`; a decisão humana W01 permanece `REPROVADA` até repetição visível separadamente autorizada, e a aceitação humana R6 continua `PENDENTE`.
+- Causas: o catálogo partilhado distinguia destinos adjacentes por `Configuração`/`Configurações` em pt-BR e por `Configuration`/`Settings` em en-GB; a rail WPF reutilizava chrome escuro/muted reservado à identidade, divergindo da hierarquia neutra do Web e comprimindo rótulos em 190 DIP.
+- Correção: rótulos canónicos `Configuração operacional`/`Operational configuration` e `Preferências`/`Preferences` propagados deterministicamente a menu, títulos, TopBar, acessibilidade e atalho Tray, sem alterar IDs/URLs/contratos. A rail WPF passou a superfícies/textos/bordas semânticos neutros, 230 DIP, seleção por texto/fundo/trilho e foco independente; Design System `3.1.3` recebeu matriz explícita para oito destinos, adaptações nativas e exclusividades.
+- Gates: localização verificada; Dashboard 66/66, type-check e build; auditor headless 120 viewports e 96 forced-colours pt-BR/en-GB Light/Dark; WPF Release zero avisos/erros, arquitetura focal 12/12, WPF 3/3 e unitários 393/393; coverage proporcional 81,92% linhas/53,56% branches com dez componentes; tokens, marca, providers, documentação, 599 links, secrets e diff passaram.
+- Gate global: 44/45 arquitetura; a única falha continuou sendo a asserção R0 preexistente que espera `state05-dashboard-failure.json`. Nenhuma correção, exclusão do resultado global ou bypass foi feito. O incidente NuGet R5 permaneceu registrado e nenhum restore/acesso NuGet ocorreu.
+- Preferência e cleanup: SHA-256 local anterior/final `ABC049CBB37CC998FF86E018E6853D811E58ED166B2B6B4A5CF0FBA4B171868F`; zero processo, listener ou root temporário do lote. O auditor WPF que expõe janela não foi executado pela proibição de amostra visível; nenhum resultado humano foi inferido.
+- Evidência: [relatório R6-WPF1](../../docs/STATE-06-Audit-Remediation-R6-WPF1-Report.md), [reprovação W01](../../docs/STATE-06-Audit-Remediation-R6-Remaining-Human-Samples-Resumption-Report.md) e [Design System 3.1.3](../../docs/design/DB-Notifier-Design-System.md).
+- Limites: nenhuma amostra humana, W02/P01, notificação, configuração do Windows, rota/contrato/dado persistido, fonte/provider/banco real, restore/download/acesso externo, CI remota, push/deploy, correção R0, alteração do incidente R5, R2-B, R7–R8, R7-A0/O1, AIOps, comando, LLM, recomendação, automação, promoção ou transição foi executada.
+- Próxima decisão: requer proposta e autorização separadas para repetir visivelmente somente `R6-HV-W01` sobre o commit focal. W02/P01 não retomam automaticamente.
+- Aprovador: autorização de implementação R6-WPF1 por Bruno em 2026-07-22; nenhuma aprovação humana de W01 ou R6 foi inferida.
+
 ## Template de nova entrada
 
 - Data:

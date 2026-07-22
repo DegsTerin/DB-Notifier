@@ -32,12 +32,12 @@
   <message key="Navigation.Alerts">Alertas</message>
   <message key="Navigation.Performance">Desempenho</message>
   <message key="Navigation.History">Histórico</message>
-  <message key="Navigation.Configuration">Configuração</message>
+  <message key="Navigation.Configuration">Configuração operacional</message>
   <message key="Navigation.Providers">Providers</message>
-  <message key="Navigation.Settings">Configurações</message>
+  <message key="Navigation.Settings">Preferências</message>
   <message key="TopBar.Notifications">Abrir alertas; {0} ativo</message>
   <message key="TopBar.NotificationsSimple">Abrir alertas</message>
-  <message key="TopBar.Settings">Abrir configurações</message>
+  <message key="TopBar.Settings">Abrir preferências</message>
   <message key="Navigation.Skip">Pular para o conteúdo</message>
   <message key="Navigation.Current">Destino atual</message>
   <message key="Sidebar.State">STATE-05</message>
@@ -63,7 +63,7 @@
   <message key="View.Alerts.Title">Alertas</message>
   <message key="View.Alerts.Description">Estado de alertas e regras demonstrativas sem entrega externa ou alteração.</message>
   <message key="View.Configuration.Eyebrow">Política e capabilities</message>
-  <message key="View.Configuration.Title">Configuração</message>
+  <message key="View.Configuration.Title">Configuração operacional</message>
   <message key="View.Configuration.Description">Valores não secretos e decisões administrativas sem persistência ou execução.</message>
   <message key="View.Performance.Eyebrow">Telemetria demonstrativa</message>
   <message key="View.Performance.Title">Desempenho</message>
@@ -72,7 +72,7 @@
   <message key="View.Providers.Title">Providers</message>
   <message key="View.Providers.Description">Identificadores demonstrativos e estado de implementação declarado; presença não representa suporte público.</message>
   <message key="View.Settings.Eyebrow">Preferências da interface</message>
-  <message key="View.Settings.Title">Configurações</message>
+  <message key="View.Settings.Title">Preferências</message>
   <message key="View.Settings.Description">Idioma, tema e estado da integração de notificações locais, sem alterar segredos ou infraestrutura.</message>
   <message key="Footer.Disclaimer">Nenhuma conexão externa é realizada nesta tela. Providers planejados não representam suporte público ou homologação.</message>
   <message key="Common.ReadOnly">Somente leitura</message>
@@ -249,7 +249,7 @@
   <message key="Wpf.AlertSummary">{0} ativo(s) · {1} crítico(s) aberto(s)</message>
   <message key="Wpf.LocalPreview">Prévia local em {0} UTC · nenhuma alteração</message>
   <message key="Wpf.DemonstrationState">Estado demonstrativo · nenhuma conexão externa</message>
-  <message key="Wpf.ConfigurationTitle">Configuração não secreta</message>
+  <message key="Wpf.ConfigurationTitle">Configuração operacional não secreta</message>
   <message key="Wpf.NoAction">Nenhuma ação pode ser executada nesta tela.</message>
   <message key="Wpf.ReviewSelected">Revisar decisão selecionada</message>
   <message key="Tray.Open">Abrir DB Notifier</message>
@@ -261,7 +261,7 @@
   <message key="Tray.OpenOverview">Abrir Dashboard</message>
   <message key="Tray.OpenInventory">Abrir inventário</message>
   <message key="Tray.OpenHistoryAlerts">Abrir logs</message>
-  <message key="Tray.OpenConfiguration">Abrir configuração</message>
+  <message key="Tray.OpenConfiguration">Abrir configuração operacional</message>
   <message key="Tray.RestartUnavailable">Reiniciar serviço · indisponível</message>
   <message key="Tray.RestartUnavailableHelp">Requer capability homologada, autorização, confirmação e auditoria.</message>
   <message key="Tray.SilentUnavailable">Modo silencioso · indisponível</message>

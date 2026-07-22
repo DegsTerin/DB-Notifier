@@ -241,8 +241,8 @@ public partial class MainWindow : Window
     /// <param name="e">Button activation event data.</param>
     private void NotificationButtonClick(object sender, RoutedEventArgs e) => ShowView(DesktopView.Alerts);
 
-    /// <summary>Opens the non-secret configuration surface used for current desktop settings.</summary>
-    /// <param name="sender">The settings button in the desktop TopBar.</param>
+    /// <summary>Opens the local interface preferences surface without changing operational configuration.</summary>
+    /// <param name="sender">The preferences button in the desktop TopBar.</param>
     /// <param name="e">Button activation event data.</param>
     private void SettingsButtonClick(object sender, RoutedEventArgs e) => ShowView(DesktopView.Settings);
 
@@ -625,20 +625,21 @@ public partial class MainWindow : Window
         Title = $"DB Notifier — {ViewTitleText.Text}";
     }
 
-    /// <summary>Synchronises the eight navigation buttons with the current route and active theme resources.</summary>
+    /// <summary>Synchronises the eight navigation buttons with the current route and neutral cross-platform navigation semantics.</summary>
     private void UpdateNavigationState()
     {
         System.Windows.Controls.Button[] buttons = [OverviewNavigationButton, InventoryNavigationButton, AlertsNavigationButton, PerformanceNavigationButton, HistoryNavigationButton, ConfigurationNavigationButton, ProvidersNavigationButton, SettingsNavigationButton];
         foreach (System.Windows.Controls.Button button in buttons)
         {
             bool active = Enum.TryParse(button.Tag?.ToString(), false, out DesktopView view) && view == currentView;
-            button.SetResourceReference(BackgroundProperty, active ? "ColourSelectionBackgroundBrush" : "ComponentShellChromeBackgroundBrush");
-            button.SetResourceReference(ForegroundProperty, active ? "ColourSelectionForegroundBrush" : "ComponentShellChromeMutedBrush");
+            button.SetResourceReference(BackgroundProperty, active ? "ColourSelectionBackgroundBrush" : "ColourSurfaceSubtleBrush");
+            button.SetResourceReference(ForegroundProperty, active ? "ColourSelectionForegroundBrush" : "ColourTextPrimaryBrush");
+            button.SetResourceReference(BorderBrushProperty, active ? "ColourActionPrimaryBackgroundBrush" : "ColourSurfaceSubtleBrush");
             AutomationProperties.SetItemStatus(button, active ? Text("Navigation.Current") : string.Empty);
         }
     }
 
-    /// <summary>Reflows dense overview and settings panels when the native window enters or leaves its compact width.</summary>
+    /// <summary>Reflows dense overview and preference panels when the native window enters or leaves its compact width.</summary>
     /// <param name="sender">The resized desktop window.</param>
     /// <param name="e">The new and previous native layout sizes.</param>
     private void WindowSizeChanged(object sender, SizeChangedEventArgs e) => UpdateResponsiveLayout();

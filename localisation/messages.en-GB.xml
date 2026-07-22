@@ -32,12 +32,12 @@
   <message key="Navigation.Alerts">Alerts</message>
   <message key="Navigation.Performance">Performance</message>
   <message key="Navigation.History">History</message>
-  <message key="Navigation.Configuration">Configuration</message>
+  <message key="Navigation.Configuration">Operational configuration</message>
   <message key="Navigation.Providers">Providers</message>
-  <message key="Navigation.Settings">Settings</message>
+  <message key="Navigation.Settings">Preferences</message>
   <message key="TopBar.Notifications">Open alerts; {0} active</message>
   <message key="TopBar.NotificationsSimple">Open alerts</message>
-  <message key="TopBar.Settings">Open settings</message>
+  <message key="TopBar.Settings">Open preferences</message>
   <message key="Navigation.Skip">Skip to content</message>
   <message key="Navigation.Current">Current destination</message>
   <message key="Sidebar.State">STATE-05</message>
@@ -63,7 +63,7 @@
   <message key="View.Alerts.Title">Alerts</message>
   <message key="View.Alerts.Description">Demonstration alert and rule states without external delivery or mutation.</message>
   <message key="View.Configuration.Eyebrow">Policy and capabilities</message>
-  <message key="View.Configuration.Title">Configuration</message>
+  <message key="View.Configuration.Title">Operational configuration</message>
   <message key="View.Configuration.Description">Non-secret values and administrative decisions without persistence or execution.</message>
   <message key="View.Performance.Eyebrow">Demonstration telemetry</message>
   <message key="View.Performance.Title">Performance</message>
@@ -72,7 +72,7 @@
   <message key="View.Providers.Title">Providers</message>
   <message key="View.Providers.Description">Demonstration identifiers and declared implementation state; presence is not public support.</message>
   <message key="View.Settings.Eyebrow">Interface preferences</message>
-  <message key="View.Settings.Title">Settings</message>
+  <message key="View.Settings.Title">Preferences</message>
   <message key="View.Settings.Description">Local language, theme and notification-integration status without secret or infrastructure changes.</message>
   <message key="Footer.Disclaimer">This screen makes no external connection. Planned providers do not represent public support or homologation.</message>
   <message key="Common.ReadOnly">Read only</message>
@@ -249,7 +249,7 @@
   <message key="Wpf.AlertSummary">{0} active · {1} open critical</message>
   <message key="Wpf.LocalPreview">Local preview at {0} UTC · no mutation</message>
   <message key="Wpf.DemonstrationState">Demonstration state · no external connection</message>
-  <message key="Wpf.ConfigurationTitle">Non-secret configuration</message>
+  <message key="Wpf.ConfigurationTitle">Non-secret operational configuration</message>
   <message key="Wpf.NoAction">No action can be executed from this screen.</message>
   <message key="Wpf.ReviewSelected">Review selected decision</message>
   <message key="Tray.Open">Open DB Notifier</message>
@@ -261,7 +261,7 @@
   <message key="Tray.OpenOverview">Open Dashboard</message>
   <message key="Tray.OpenInventory">Open inventory</message>
   <message key="Tray.OpenHistoryAlerts">Open logs</message>
-  <message key="Tray.OpenConfiguration">Open configuration</message>
+  <message key="Tray.OpenConfiguration">Open operational configuration</message>
   <message key="Tray.RestartUnavailable">Restart service · unavailable</message>
   <message key="Tray.RestartUnavailableHelp">Requires a homologated capability, authorisation, confirmation and audit.</message>
   <message key="Tray.SilentUnavailable">Silent mode · unavailable</message>

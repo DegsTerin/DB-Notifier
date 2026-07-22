@@ -50,6 +50,21 @@ test("translated messages preserve placeholders and British operational terminol
   assert.match(translate("en-GB", "Preview.Unknown.Message"), /fails closed/);
 });
 
+test("operational configuration and interface preferences remain unambiguous in both locales", () => {
+  assert.equal(translate("pt-BR", "Navigation.Configuration"), "Configuração operacional");
+  assert.equal(translate("pt-BR", "Navigation.Settings"), "Preferências");
+  assert.equal(translate("pt-BR", "View.Configuration.Title"), "Configuração operacional");
+  assert.equal(translate("pt-BR", "View.Settings.Title"), "Preferências");
+  assert.equal(translate("pt-BR", "TopBar.Settings"), "Abrir preferências");
+  assert.equal(translate("pt-BR", "Tray.OpenConfiguration"), "Abrir configuração operacional");
+  assert.equal(translate("en-GB", "Navigation.Configuration"), "Operational configuration");
+  assert.equal(translate("en-GB", "Navigation.Settings"), "Preferences");
+  assert.equal(translate("en-GB", "View.Configuration.Title"), "Operational configuration");
+  assert.equal(translate("en-GB", "View.Settings.Title"), "Preferences");
+  assert.equal(translate("en-GB", "TopBar.Settings"), "Open preferences");
+  assert.equal(translate("en-GB", "Tray.OpenConfiguration"), "Open operational configuration");
+});
+
 test("demonstration fixtures localise visible copy without changing provider identifiers", () => {
   const now = new Date("2026-07-13T12:00:00.000Z");
   const inventory = buildDemonstrationSnapshot(now, "en-GB");

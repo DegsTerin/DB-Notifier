@@ -5,7 +5,7 @@
 | Field | Value |
 |---|---|
 | Status | Official frontend specification |
-| Design System version | `3.1.2` |
+| Design System version | `3.1.3` |
 | Product phase | `STATE-06 INTEGRATION` |
 | Platforms | React Web Dashboard and .NET 10 WPF Desktop/Tray |
 | Themes | Light and Dark; Windows High Contrast is an accessibility override |
@@ -433,7 +433,7 @@ Breakpoints respond to content, not device names. Every component MUST tolerate 
 ### 9.2 Shell
 
 - Header: product identity, environment/demonstration context and user/theme controls.
-- Navigation: the stable order is Overview, Instances, Alerts, Performance, History, Configuration, Providers and Settings, with a clear selected state and accessible current item.
+- Navigation: the stable order is Overview, Instances, Alerts, Performance, History, Operational configuration, Providers and Preferences, with a clear selected state and accessible current item.
 - Main: one page title, optional description/actions, then operational content.
 - Footer/status area: connectivity/data-source truth without competing with primary tasks.
 - Maximum readable prose line length: approximately 75 characters.
@@ -446,9 +446,9 @@ Breakpoints respond to content, not device names. Every component MUST tolerate 
 
 ### 9.3 WPF adaptation
 
-The WPF minimum window remains usable at `820×620` DIP. Below `1000` DIP window width, the Overview KPI band reflows from four to two columns and paired operational/insight/Settings panels stack in reading order; the redundant sidebar state card may collapse below `700` DIP height so all eight destinations remain visible. Below the comfortable table width, content SHOULD use controlled scrolling or a compact item template; columns MUST NOT silently truncate critical support/status text. Windows scaling at 100%, 125%, 150% and 200% MUST be sampled before release.
+The WPF minimum window remains usable at `820×620` DIP. Below `1000` DIP window width, the Overview KPI band reflows from four to two columns and paired operational/insight/Preferences panels stack in reading order; the redundant sidebar state card may collapse below `700` DIP height so all eight destinations remain visible. Below the comfortable table width, content SHOULD use controlled scrolling or a compact item template; columns MUST NOT silently truncate critical support/status text. Windows scaling at 100%, 125%, 150% and 200% MUST be sampled before release.
 
-The Desktop shell preserves the same primary information architecture as the Dashboard in this order: Overview, Instances, Alerts, Performance, History, Configuration, Providers and Settings. Native WPF presentation MAY differ in control details, but every destination has its own selected navigation state, localised heading and read-only content outcome; the shell MUST NOT collapse those destinations into a four-item view selector.
+The Desktop shell preserves the same primary information architecture as the Dashboard in this order: Overview, Instances, Alerts, Performance, History, Operational configuration, Providers and Preferences. Native WPF presentation MAY differ in control details, but every destination has its own selected navigation state, localised heading and read-only content outcome; the shell MUST NOT collapse those destinations into a four-item view selector.
 
 ### 9.4 TV and wallboard scope
 
@@ -466,7 +466,7 @@ All components define default, hover, pressed, focus-visible, selected, disabled
 
 `AppShell`, `TopBar`, `SideNavigation`, `PageHeader`, `ContentRegion` and `FooterStatus` establish the common hierarchy. The shell owns theme application and responsive navigation; feature views MUST NOT recreate it. TopBar chrome remains cohesive across Light and Dark, while surface hierarchy and content colours communicate the effective theme.
 
-Outside TV presentation, TopBar includes a notification bell that opens Alerts and exposes the active demonstration count, plus a gear that opens Settings. These are internal navigation controls during `STATE-05`; they MUST NOT imply Windows delivery, acknowledgement, persistence or external integration. TV preserves only identity, language, theme and its exit control to protect viewing distance.
+Outside TV presentation, TopBar includes a notification bell that opens Alerts and exposes the active demonstration count, plus a gear that opens Preferences. These are internal navigation controls during `STATE-05`; they MUST NOT imply Windows delivery, acknowledgement, persistence or external integration. TV preserves only identity, language, theme and its exit control to protect viewing distance.
 
 ### 10.2 Theme selector
 
@@ -554,7 +554,7 @@ Modal dialogue requirements include initial focus, forward/reverse containment, 
 
 The Windows client is notification-area-first, conceptually inspired by the taskbar interaction model documented for Oracle MySQL Notifier. Its implementation MUST remain clean-room: public behavioural documentation may inform requirements, but Oracle/MySQL source, binaries, artwork, logos, trade dress, product copy and vendor-specific architecture MUST NOT be imported, translated or adapted. DB Notifier preserves its MIT licence, provider-neutral architecture and independent identity. Normal startup MUST create the notification icon without showing the full WPF shell or adding an ordinary taskbar window. The compact flyout is the primary Windows surface; the full WPF shell is a secondary drill-down destination for richer local inspection and preference management. This difference from the Web Dashboard is intentional product-role separation, while status semantics, language, theme and accessibility remain aligned.
 
-The Tray uses the canonical database-and-bell mark and Windows notification-area conventions. A complete primary or secondary icon click opens the compact WPF flyout directly, without an empty native context menu competing for activation. The implementation MUST use the stable `NotifyIcon.MouseClick` event rather than a raw mouse-release event because Windows 11 overflow-host activation does not reliably forward the latter. Its two columns show provider-neutral fleet status and safe shortcuts to Dashboard, Configuration and local History/Alerts logs; Restart Service and Silent Mode remain visibly unavailable with explanations, and Exit remains separated. Escape, focus loss or a repeated notification-area activation dismisses the flyout. Development and accessibility audits MAY request the secondary shell through the explicit `--show-desktop` process argument; unknown arguments MUST preserve notification-area-first startup.
+The Tray uses the canonical database-and-bell mark and Windows notification-area conventions. A complete primary or secondary icon click opens the compact WPF flyout directly, without an empty native context menu competing for activation. The implementation MUST use the stable `NotifyIcon.MouseClick` event rather than a raw mouse-release event because Windows 11 overflow-host activation does not reliably forward the latter. Its two columns show provider-neutral fleet status and safe shortcuts to Dashboard, Operational configuration and local History/Alerts logs; Restart Service and Silent Mode remain visibly unavailable with explanations, and Exit remains separated. Escape, focus loss or a repeated notification-area activation dismisses the flyout. Development and accessibility audits MAY request the secondary shell through the explicit `--show-desktop` process argument; unknown arguments MUST preserve notification-area-first startup.
 
 During `STATE-05`, the flyout MUST identify its deterministic local demonstration, MUST NOT present its display timestamp as an external observation, and MAY show a non-interactive explanation that administrative Restart is unavailable. Design System `3.0.1` permits the explicitly authorised demonstration to request one local Windows notification for every individual effective-state transition in that immutable fixture. The first capture is a silent in-memory baseline; every later message names the instance and previous/current state, states that it is a local demonstration with no external data, uses the semantic mark of that event, and cannot call an Agent, API, database, provider or external channel. Modern status messages are muted; the legacy fallback is bounded and serialised so simultaneous changes are not deliberately collapsed. Windows and Focus Assist remain authoritative over visible presentation. `STATE-06` still owns binding the same surface to authorised API/Agent state, persisted preferences, factual delivery, acknowledgement, audit and integrated event/log navigation. Service Restart MUST remain unavailable until its exact provider/topology capability, privilege, confirmation, idempotency, audit and post-probe path is implemented and then homologated in `STATE-07`. Vendor artwork, native service identifiers, credentials and unsupported actions MUST NOT be copied from legacy references into this provider-neutral surface.
 
@@ -640,6 +640,23 @@ Interactive and meaningful data elements require appropriate `AutomationProperti
 
 Parity means semantic equivalence, not identical pixels. Native platform behaviour wins when it improves accessibility or expected interaction without changing meaning.
 
+### 14.1 Shared destination consistency matrix
+
+Technical route identifiers and URLs remain stable even when their visible labels are clarified. Every shared destination uses the same localised title, operational meaning, source truth and current-item semantics in React and WPF. The table classifies the required equivalence and the permitted native adaptation; anything listed as exclusive MUST NOT be presented as missing parity in the other platform.
+
+| Stable route ID | Canonical label (`pt-BR` / `en-GB`) | Mandatory Web/WPF equivalence | Justified native adaptation | Platform-exclusive presentation |
+|---|---|---|---|---|
+| `overview` / `Overview` | Visão geral / Overview | Fleet summary, disabled-instance separation, freshness, states and demonstration/source truth | Responsive Web grid versus WPF DIP-aware cards and controlled native scrolling | Web TV entry; WPF notification-area drill-down |
+| `inventory` / `Inventory` | Instâncias / Instances | Provider identity, support declaration, environment, status and observation time | Responsive Web cards versus WPF `DataGrid` with one task-order stop | None |
+| `alerts` / `Alerts` | Alertas / Alerts | Severity, state, rule, instance, provider and read-only delivery truth | DOM collection versus WPF `DataGrid` and native table navigation | Web notification-count badge; WPF notification-area entry point |
+| `performance` / `Performance` | Desempenho / Performance | Demonstration labelling, source truth and accessible series meaning | Responsive SVG chart versus code-native WPF drawing | Web authoritative-TV trend suppression |
+| `history` / `History` | Histórico / History | UTC-labelled event time, severity, event, instance, provider and summary | Responsive Web table/cards versus WPF `DataGrid` | Tray shortcut to the local combined history/alerts surface |
+| `configuration` / `Configuration` | Configuração operacional / Operational configuration | Non-secret monitoring parameters, policy/capability truth and read-only or unsupported outcomes | Web form/table semantics versus WPF native selectors, grid and owned preview dialogue | None; neither platform gains operational authority |
+| `providers` / `Providers` | Providers / Providers | Provider-neutral identifiers, generated identity registry and explicit support truth | Responsive Web catalogue versus WPF native list layout | None |
+| `settings` / `Settings` | Preferências / Preferences | Language, Light/Dark theme and factual local-notification integration status | Browser-safe preference storage versus versioned WPF local preference service and native controls | WPF Windows-notification integration status; Web tab synchronisation |
+
+Across all rows, the shared shell MUST preserve heading hierarchy, selected-route semantics, focus visibility, token purpose, restrained card treatment and truthful footer messaging. React retains browser reflow and forced-colours behaviour; WPF retains the native caption, application scrollbars, work-area positioning and Per-Monitor V2 DPI behaviour. These are deliberate platform adaptations, not visual inconsistencies.
+
 ## 15. Validation and re-audit criteria
 
 ### 15.1 Token and architecture gates
@@ -680,7 +697,7 @@ Dashboard visual regression samples MUST cover:
 Themes: Light and Dark
 Locales: pt-BR and en-GB
 Viewports: 320×568, 390×844, 768×1024, 1024×768, 1440×1000, 1920×1080; TV presentation at 1920×1080
-Views: Overview, Instances, Alerts, Performance, History, Configuration, Providers, Settings
+Views: Overview, Instances, Alerts, Performance, History, Operational configuration, Providers, Preferences
 States: ready, loading, empty, offline, error, denied, maintenance, stale, filtered-empty
 Overlays: confirmation-required, denied, unsupported, unavailable, unknown
 Preferences: reduced motion and 200% native browser zoom

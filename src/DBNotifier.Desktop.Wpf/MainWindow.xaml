@@ -192,7 +192,7 @@
       <Setter Property="Background" Value="{DynamicResource ComponentCardBackgroundBrush}" />
       <Setter Property="BorderBrush" Value="{DynamicResource ComponentCardBorderBrush}" />
       <Setter Property="BorderThickness" Value="1" />
-      <Setter Property="CornerRadius" Value="12" />
+      <Setter Property="CornerRadius" Value="10" />
       <Setter Property="Padding" Value="18" />
       <Setter Property="Margin" Value="0,0,12,0" />
     </Style>
@@ -235,19 +235,27 @@
       <Setter Property="MinHeight" Value="44" />
       <Setter Property="Margin" Value="10,2" />
       <Setter Property="Padding" Value="12,9" />
-      <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="Background" Value="{DynamicResource ColourSurfaceSubtleBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource ColourTextPrimaryBrush}" />
+      <Setter Property="BorderBrush" Value="Transparent" />
+      <Setter Property="BorderThickness" Value="3,0,0,0" />
       <Setter Property="HorizontalContentAlignment" Value="Left" />
       <Setter Property="FontWeight" Value="SemiBold" />
       <Setter Property="Template">
         <Setter.Value>
           <ControlTemplate TargetType="Button">
-            <Border x:Name="NavigationBorder" Padding="{TemplateBinding Padding}" Background="{TemplateBinding Background}" CornerRadius="6">
+            <Border x:Name="NavigationBorder"
+                    Padding="{TemplateBinding Padding}"
+                    Background="{TemplateBinding Background}"
+                    BorderBrush="{TemplateBinding BorderBrush}"
+                    BorderThickness="{TemplateBinding BorderThickness}"
+                    CornerRadius="6">
               <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="Center" />
             </Border>
             <ControlTemplate.Triggers>
               <Trigger Property="IsMouseOver" Value="True">
-                <Setter TargetName="NavigationBorder" Property="Background" Value="{DynamicResource ComponentShellChromeSurfaceBrush}" />
-                <Setter Property="Foreground" Value="{DynamicResource ComponentShellChromeForegroundBrush}" />
+                <Setter TargetName="NavigationBorder" Property="Background" Value="{DynamicResource ColourSurfaceDefaultBrush}" />
+                <Setter Property="Foreground" Value="{DynamicResource ColourTextPrimaryBrush}" />
               </Trigger>
               <Trigger Property="IsKeyboardFocused" Value="True">
                 <Setter TargetName="NavigationBorder" Property="BorderBrush" Value="{DynamicResource ComponentFocusRingBrush}" />
@@ -330,16 +338,17 @@
     <!-- Desktop navigation mirrors the Web information architecture while retaining native WPF behaviour. -->
     <Grid Grid.Row="1">
       <Grid.ColumnDefinitions>
-        <ColumnDefinition Width="190" />
+        <ColumnDefinition Width="230" />
         <ColumnDefinition Width="*" />
       </Grid.ColumnDefinitions>
-      <Border Grid.Column="0" Background="{DynamicResource ComponentShellChromeBackgroundBrush}" BorderBrush="{DynamicResource ComponentShellChromeBorderBrush}" BorderThickness="0,0,1,0">
+      <!-- The neutral navigation rail matches the Web information hierarchy while reserving chrome for product identity. -->
+      <Border x:Name="DesktopNavigationRail" Grid.Column="0" Background="{DynamicResource ColourSurfaceSubtleBrush}" BorderBrush="{DynamicResource ColourBorderDefaultBrush}" BorderThickness="0,0,1,0">
         <DockPanel LastChildFill="True">
-          <Border x:Name="SidebarStateCard" DockPanel.Dock="Bottom" Margin="14" Padding="12" BorderBrush="{DynamicResource ComponentShellChromeBorderBrush}" BorderThickness="1" CornerRadius="7">
-            <StackPanel><TextBlock Text="STATE-05" Foreground="{DynamicResource ColourActionPrimaryBackgroundBrush}" FontWeight="SemiBold" /><TextBlock Text="{DynamicResource Common.ReadOnly}" Foreground="{DynamicResource ComponentShellChromeMutedBrush}" FontSize="11" Margin="0,4,0,0" /></StackPanel>
+          <Border x:Name="SidebarStateCard" DockPanel.Dock="Bottom" Margin="14" Padding="12" Background="{DynamicResource ComponentCardBackgroundBrush}" BorderBrush="{DynamicResource ComponentCardBorderBrush}" BorderThickness="1" CornerRadius="7">
+            <StackPanel><TextBlock Text="STATE-05" Foreground="{DynamicResource ColourActionPrimaryBackgroundBrush}" FontWeight="SemiBold" /><TextBlock Text="{DynamicResource Common.ReadOnly}" Foreground="{DynamicResource ColourTextSecondaryBrush}" FontSize="11" Margin="0,4,0,0" /></StackPanel>
           </Border>
           <StackPanel Margin="0,18,0,0" AutomationProperties.Name="{DynamicResource Navigation.Label}">
-            <TextBlock Text="{DynamicResource Navigation.Label}" Foreground="{DynamicResource ComponentShellChromeMutedBrush}" FontSize="10" Margin="22,0,0,8" />
+            <TextBlock Text="{DynamicResource Navigation.Label}" Foreground="{DynamicResource ColourTextSecondaryBrush}" FontSize="10" Margin="22,0,0,8" />
             <Button x:Name="OverviewNavigationButton" Style="{StaticResource SidebarNavigationButton}" Tag="Overview" Click="NavigationButtonClick" AutomationProperties.Name="{DynamicResource Navigation.Overview}"><StackPanel Orientation="Horizontal"><Path Style="{StaticResource SidebarNavigationIcon}" Data="M3,10 L10,3 L17,10 M5,9 V18 H15 V9 M8,18 V13 H12 V18" /><TextBlock Text="{DynamicResource Navigation.Overview}" VerticalAlignment="Center" /></StackPanel></Button>
             <Button x:Name="InventoryNavigationButton" Style="{StaticResource SidebarNavigationButton}" Tag="Inventory" Click="NavigationButtonClick" AutomationProperties.Name="{DynamicResource Navigation.Inventory}"><StackPanel Orientation="Horizontal"><Path Style="{StaticResource SidebarNavigationIcon}" Data="M3,3 H17 V17 H3 Z M6,7 H14 M6,10 H14 M6,13 H14" /><TextBlock Text="{DynamicResource Navigation.Inventory}" VerticalAlignment="Center" /></StackPanel></Button>
             <Button x:Name="AlertsNavigationButton" Style="{StaticResource SidebarNavigationButton}" Tag="Alerts" Click="NavigationButtonClick" AutomationProperties.Name="{DynamicResource Navigation.Alerts}"><StackPanel Orientation="Horizontal"><Path Style="{StaticResource SidebarNavigationIcon}" Data="M10,3 L18,17 H2 Z M10,8 V12 M10,15 H10.01" /><TextBlock Text="{DynamicResource Navigation.Alerts}" VerticalAlignment="Center" /></StackPanel></Button>

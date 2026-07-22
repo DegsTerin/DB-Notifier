@@ -51,6 +51,48 @@ public sealed class WpfPresentationContractTests
         }
     }
 
+    /// <summary>Ensures shared labels are unambiguous while the WPF rail uses neutral surfaces and an explicit current-route accent.</summary>
+    [Fact]
+    public void WpfAndWebNavigationShareCanonicalLabelsAndSemanticRail()
+    {
+        string root = RepositoryRoot();
+        string portuguese = File.ReadAllText(Path.Combine(root, "localisation", "messages.pt-BR.xml"));
+        string english = File.ReadAllText(Path.Combine(root, "localisation", "messages.en-GB.xml"));
+        string markup = File.ReadAllText(Path.Combine(root, "src", "DBNotifier.Desktop.Wpf", "MainWindow.xaml"));
+        string behaviour = File.ReadAllText(Path.Combine(root, "src", "DBNotifier.Desktop.Wpf", "MainWindow.xaml.cs"));
+        string portugueseAdapter = File.ReadAllText(Path.Combine(root, "src", "DBNotifier.Desktop.Wpf", "Generated", "Localisation.pt-BR.xaml"));
+        string englishAdapter = File.ReadAllText(Path.Combine(root, "src", "DBNotifier.Desktop.Wpf", "Generated", "Localisation.en-GB.xaml"));
+        string designSystem = File.ReadAllText(Path.Combine(root, "docs", "design", "DB-Notifier-Design-System.md"));
+
+        Assert.Contains("<message key=\"Navigation.Configuration\">Configuração operacional</message>", portuguese, StringComparison.Ordinal);
+        Assert.Contains("<message key=\"Navigation.Settings\">Preferências</message>", portuguese, StringComparison.Ordinal);
+        Assert.Contains("<message key=\"Navigation.Configuration\">Operational configuration</message>", english, StringComparison.Ordinal);
+        Assert.Contains("<message key=\"Navigation.Settings\">Preferences</message>", english, StringComparison.Ordinal);
+        Assert.Contains("x:Key=\"Navigation.Configuration\">Configuração operacional</sys:String>", portugueseAdapter, StringComparison.Ordinal);
+        Assert.Contains("x:Key=\"Navigation.Settings\">Preferências</sys:String>", portugueseAdapter, StringComparison.Ordinal);
+        Assert.Contains("x:Key=\"Navigation.Configuration\">Operational configuration</sys:String>", englishAdapter, StringComparison.Ordinal);
+        Assert.Contains("x:Key=\"Navigation.Settings\">Preferences</sys:String>", englishAdapter, StringComparison.Ordinal);
+        Assert.Contains("AutomationProperties.Name=\"{DynamicResource Navigation.Configuration}\"", markup, StringComparison.Ordinal);
+        Assert.Contains("AutomationProperties.Name=\"{DynamicResource Navigation.Settings}\"", markup, StringComparison.Ordinal);
+        Assert.Contains("x:Name=\"DesktopNavigationRail\"", markup, StringComparison.Ordinal);
+        Assert.Contains("Background=\"{DynamicResource ColourSurfaceSubtleBrush}\"", markup, StringComparison.Ordinal);
+        Assert.Contains("BorderBrush=\"{DynamicResource ColourBorderDefaultBrush}\"", markup, StringComparison.Ordinal);
+        Assert.DoesNotMatch("x:Name=\"DesktopNavigationRail\"[^>]*ComponentShellChrome", markup);
+        Assert.Contains("<ColumnDefinition Width=\"230\" />", markup, StringComparison.Ordinal);
+        Assert.Contains("Width=\"1180\"", markup, StringComparison.Ordinal);
+        Assert.Contains("Height=\"760\"", markup, StringComparison.Ordinal);
+        Assert.Contains("MinWidth=\"820\"", markup, StringComparison.Ordinal);
+        Assert.Contains("MinHeight=\"620\"", markup, StringComparison.Ordinal);
+        Assert.Contains("active ? \"ColourSelectionBackgroundBrush\" : \"ColourSurfaceSubtleBrush\"", behaviour, StringComparison.Ordinal);
+        Assert.Contains("active ? \"ColourActionPrimaryBackgroundBrush\" : \"ColourSurfaceSubtleBrush\"", behaviour, StringComparison.Ordinal);
+        Assert.Contains("bool compact = availableWidth < 1000", behaviour, StringComparison.Ordinal);
+        Assert.Contains("OverviewSummaryGrid.Columns = compact ? 2 : 4", behaviour, StringComparison.Ordinal);
+        Assert.Contains("ArrangeAdaptivePair(SettingsPreferencePanel, SettingsNotificationsPanel, compact)", behaviour, StringComparison.Ordinal);
+        Assert.Contains("### 14.1 Shared destination consistency matrix", designSystem, StringComparison.Ordinal);
+        Assert.Contains("Configuração operacional / Operational configuration", designSystem, StringComparison.Ordinal);
+        Assert.Contains("Preferências / Preferences", designSystem, StringComparison.Ordinal);
+    }
+
     /// <summary>Ensures read-only WPF tables remain one task-order stop without placing virtualised cells in the Tab sequence.</summary>
     [Fact]
     public void WpfReadOnlyDataGridsPreserveSingleTabStopContract()
