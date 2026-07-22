@@ -2501,6 +2501,19 @@
 - Próxima decisão: requer proposta e autorização separadas para repetir visivelmente somente `R6-HV-D01`; R6 não está aceito e as demais amostras não são retomadas automaticamente.
 - Aprovador: decisão humana R6 pendente; nenhuma aprovação da amostra ou do R6 foi inferida.
 
+## 2026-07-21 — Repetição visível aprovada da amostra `R6-HV-D01`
+
+- Estado anterior: `STATE-06 INTEGRATION`, R6 e R6-G1 aprovados automaticamente, `R6-HV-D01` inicialmente reprovada, repetição focal autorizada exclusivamente sobre `13418ee3be1929655737fe7f086337605358e7ba` e demais amostras ainda bloqueadas.
+- Estado resultante: sem transição; `STATE-06 INTEGRATION` mantido. A repetição remediada de `R6-HV-D01` está `APROVADA`; a aceitação humana R6 continua `PENDENTE`.
+- Preparação: baseline e worktree limpas; build normal offline aprovado. Um primeiro Chrome preparatório criou abas extras por divisão do argumento DNS, foi descartado antes do hand-off e teve oito processos e perfil exatos removidos. A segunda janela usou perfil vazio, uma página DB Notifier visível, preview loopback e proxy fechado para destinos não loopback.
+- Inspeção: checklist pt-BR/en-GB, Light/Dark, Overview, Inventory, Performance, TV demonstrativa, Enabled=false, source truth, IDs, fuso, teclado/foco, scroll/reflow e gráfico em 100%/200%/400%. Bruno respondeu exatamente `INSPEÇÃO R6-HV-D01 CONCLUÍDA: Sem observações`.
+- Decisão: depois do cleanup e do resumo factual, Bruno declarou exatamente `AMOSTRA R6-HV-D01 REPETIDA — APROVADA`.
+- Cleanup: browser dedicado ausente, árvore preview exata encerrada, listeners `2970`/`2971` ausentes, root temporário e ambos os perfis removidos, zero processo/ping/resíduo; browser comum, IDE e processos não relacionados intocados.
+- Evidência: [relatório da repetição R6-HV-D01](../../docs/STATE-06-Audit-Remediation-R6-HV-D01-Repetition-Report.md), [relatório R6-G1](../../docs/STATE-06-Audit-Remediation-R6-G1-Report.md) e [relatório da reprovação inicial](../../docs/STATE-06-Audit-Remediation-R6-Human-Samples-Report.md).
+- Limites: a decisão não aprova R6 completo, não retoma `R6-HV-D02`, `R6-HV-D03`, `R6-HV-W01`, `R6-HV-W02` ou `R6-HV-P01` e não autoriza correção R0, R2-B, R7–R8, R7-A0/O1, AIOps, comando, automação, promoção ou transição.
+- Próxima decisão: Bruno poderá solicitar uma proposta separada para retomar as amostras visíveis R6 restantes, sem execução automática.
+- Aprovador: Bruno, 2026-07-21, exclusivamente para a repetição remediada `R6-HV-D01`.
+
 ## Template de nova entrada
 
 - Data:
