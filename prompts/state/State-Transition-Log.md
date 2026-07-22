@@ -2615,6 +2615,20 @@
 - Próxima decisão: requer proposta e autorização separadas para repetir visivelmente somente `R6-HV-W01` após R6-WPF2. W02/P01 não retomam automaticamente.
 - Aprovador: autorização de implementação R6-WPF2 por Bruno em 2026-07-22; nenhuma aprovação humana de W01 ou R6 foi inferida.
 
+## 2026-07-22 — Repetição visível `R6-HV-W01` reprovada após R6-WPF2
+
+- Estado anterior: `STATE-06 INTEGRATION`, R6-WPF2 automaticamente aprovado no commit `cf605f7fc775e22d7537ad39e27488e193feac8a`, W01 pendente de repetição, W02 bloqueada e P01 não testada.
+- Estado resultante: sem transição; `STATE-06 INTEGRATION` mantido. `R6-HV-W01` permanece `REPROVADA`; a aceitação humana R6 continua `PENDENTE`.
+- Execução: outputs Release existentes reutilizados; Web de referência em preview loopback e Chrome com perfil temporário/host resolution bloqueada; WPF com `--notifications-quiet`, endpoint HTTPS loopback sem listener, estado temporário e sujeito sintético. O audit de conexões encontrou zero tráfego não loopback. Nenhum build, restore, download, fonte operacional, notificação, código ou configuração permanente foi executado.
+- Observações: status pills WPF com geometria divergente; texto de instância desabilitada fora do campo; gráfico circular de Providers cortado; reflow compacto inadequado; primeira coluna e densidade da tabela de instâncias insuficientes; truncamento e scroll horizontal em Alertas/Histórico; Configuração operacional e outras rotas ainda sem acabamento e uniformidade visual equivalentes ao Web.
+- Decisão: Bruno declarou exatamente `AMOSTRA R6-HV-W01 REPETIDA — REPROVADA: persistem defeitos de acabamento e uniformidade entre WPF e Web, incluindo status pills divergentes, texto fora do campo, gráfico de Providers cortado, reflow inadequado e tabelas com espaçamento, colunas e conteúdo mal ajustados.`
+- Limitação física: `1920×1080` permaneceu `NÃO TESTADA` porque a área útil ativa mede `1920×1032`; nenhuma configuração do Windows foi alterada. Nenhum resultado positivo foi inferido para variantes não mencionadas ou para o Tray/flyout.
+- Cleanup: a primeira comparação de identidade recusou fail-closed um timestamp deserializado em formato dependente de cultura antes de qualquer mutação; a comparação UTC normalizada comprovou o mesmo PID/caminho/instante. WPF, Chrome e preview foram então encerrados por identidade exata, com zero processo/listener/janela/root residual e preferência restaurada byte a byte ao SHA-256 `ABC049CBB37CC998FF86E018E6853D811E58ED166B2B6B4A5CF0FBA4B171868F`.
+- Evidência: [relatório da repetição W01 pós-R6-WPF2](../../docs/STATE-06-Audit-Remediation-R6-HV-W01-Post-WPF2-Repetition-Report.md) e capturas sanitizadas fornecidas por Bruno na inspeção humana, sem binários adicionados ao repositório.
+- Limites: W02 permanece bloqueada; P01 e suas cinco condições permanecem não testadas. Nenhuma correção, R6 acceptance, R0, incidente R5, R2-B, R7–R8, R7-A0/O1, AIOps, comando, LLM, automação, promoção ou transição foi autorizada ou inferida.
+- Próxima decisão: requer proposta e autorização separadas para remediar acabamento/uniformidade, pills e contenção de texto, gráfico de Providers, reflow e tabelas, seguida por nova repetição humana também separadamente autorizada.
+- Aprovador: Bruno, 2026-07-22, exclusivamente para a decisão da repetição `R6-HV-W01`.
+
 ## Template de nova entrada
 
 - Data:

@@ -2,7 +2,7 @@
 
 ## Versão atual
 
-- Versão: `3.56.9`
+- Versão: `3.56.10`
 - Data: 2026-07-22
 - Status: corpus DB-Notifier consolidado
 - Escopo: 13 arquivos ativos
@@ -16,6 +16,12 @@ A versão do corpus é independente da versão do software.
 - PATCH: clareza, correção ou referência sem mudança de autoridade.
 
 Toda alteração atualiza este arquivo e, quando necessário, `../Start-Here.md`.
+
+## 3.56.10 — 2026-07-22
+
+- Registra a decisão humana que manteve `R6-HV-W01` reprovada depois do R6-WPF2 por defeitos de acabamento, status containment, gráfico de Providers, reflow e tabelas.
+- Preserva o resultado automático R6-WPF2 no seu escopo sem convertê-lo em aprovação humana e mantém `1920×1080` não testado pela área útil física.
+- A próxima decisão passa a ser uma proposta separada de remediação; W02, P01, aceitação R6, R7–R8, R7-A0/O1, AIOps e transição continuam não autorizados.
 
 ## 3.56.9 — 2026-07-22
 
