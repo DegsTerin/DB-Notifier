@@ -2514,6 +2514,21 @@
 - Próxima decisão: Bruno poderá solicitar uma proposta separada para retomar as amostras visíveis R6 restantes, sem execução automática.
 - Aprovador: Bruno, 2026-07-21, exclusivamente para a repetição remediada `R6-HV-D01`.
 
+## 2026-07-21 — Retomada interrompida das amostras visíveis R6 restantes
+
+- Estado anterior: `STATE-06 INTEGRATION`, fase automática R6 e R6-G1 aprovadas, repetição remediada de `R6-HV-D01` aprovada, amostras `R6-HV-D02`, `R6-HV-D03`, `R6-HV-W01`, `R6-HV-W02` e `R6-HV-P01` autorizadas para retomada sequencial visível sobre `2e3b93b4333d22947d21a0baa46b1b05adcaea9d`.
+- Estado resultante: sem transição; `STATE-06 INTEGRATION` mantido. `R6-HV-D02` está `REPROVADA`; `R6-HV-D03`, `R6-HV-W01` e `R6-HV-W02` estão `BLOQUEADAS`; `R6-HV-P01` e suas cinco condições físicas estão `NÃO TESTADAS`. A aceitação humana R6 continua `PENDENTE`.
+- Preparação D02: preflight com baseline exata, worktree limpa e zero runtime; build normal já disponível, sem nova geração; Chrome dedicado com perfil temporário, uma página DB Notifier, preview e debugging somente em loopback, destinos não loopback dirigidos a proxy local fechado e forced colours limitado ao navegador.
+- Inspeção parcial: o pt-BR Overview foi suficiente para observar que o texto da rota selecionada ficava invisível e que a borda lateral do cartão Crítico desaparecia. A campanha não alega cobertura das demais rotas, idiomas, temas ou interações.
+- Resposta preliminar: Bruno declarou exatamente `INSPEÇÃO R6-HV-D02 CONCLUÍDA: REPROVADA — o texto da rota selecionada fica invisível; a borda lateral do cartão Crítico desaparece em forced colours;`.
+- Decisão: depois do cleanup e do resumo factual, Bruno declarou exatamente `AMOSTRA R6-HV-D02 REPROVADA: o texto da rota selecionada fica invisível e a borda lateral do cartão Crítico desaparece em forced colours`.
+- Stop condition: os achados exigem diagnóstico, código/CSS e validação fora da autoridade. D03, W01 e W02 não foram abertos; P01 não foi observada; nenhuma correção, harness, fixture, configuração do Windows ou notificação foi tentada.
+- Cleanup: árvore Chrome e preview identificadas por perfil, parentage e listener foram encerradas; listeners `53483`/`53484` ausentes; root temporário D02 removido; auditoria independente confirmou zero processo, listener ou diretório de amostra e baseline limpa antes da documentação.
+- Evidência: [relatório das amostras restantes R6](../../docs/STATE-06-Audit-Remediation-R6-Remaining-Human-Samples-Report.md), [repetição aprovada de R6-HV-D01](../../docs/STATE-06-Audit-Remediation-R6-HV-D01-Repetition-Report.md), [R6-G1](../../docs/STATE-06-Audit-Remediation-R6-G1-Report.md) e [relatório automático R6](../../docs/STATE-06-Audit-Remediation-R6-Report.md).
+- Limites: a decisão não aceita R6, não autoriza remediação ou repetição, não retoma as amostras posteriores e não autoriza correção R0, alteração do incidente NuGet R5, R2-B, R7–R8, R7-A0/O1, AIOps, comando, LLM, recomendação, automação, promoção ou transição.
+- Próxima decisão: requer proposta e autorização separadas para diagnóstico e remediação focal dos dois defeitos forced-colours D02. Qualquer repetição ou retomada posterior também exigirá autoridade separada.
+- Aprovador: Bruno, 2026-07-21, exclusivamente para a decisão de `R6-HV-D02`.
+
 ## Template de nova entrada
 
 - Data:
