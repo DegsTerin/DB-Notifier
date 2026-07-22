@@ -2559,6 +2559,20 @@
 - Próxima decisão: Bruno poderá solicitar uma proposta separada para retomar as amostras visíveis R6 restantes, sem execução automática.
 - Aprovador: Bruno, 2026-07-22, exclusivamente para a repetição remediada `R6-HV-D02`.
 
+## 2026-07-22 — Retomada interrompida após aprovação D03 e reprovação W01
+
+- Estado anterior: `STATE-06 INTEGRATION`, R6/R6-G1/R6-FC1 aprovados automaticamente, repetições remediadas D01/D02 aprovadas e D03/W01/W02/P01 autorizadas sequencialmente sobre `4d79c7fd42d00703793259f33cc991e3af1dcb7f`.
+- Estado resultante: sem transição; `STATE-06 INTEGRATION` mantido. `R6-HV-D03` está `APROVADA`, `R6-HV-W01` está `REPROVADA`, `R6-HV-W02` permanece `BLOQUEADA`, `R6-HV-P01` e suas cinco condições permanecem `NÃO TESTADAS`, e a aceitação humana R6 continua `PENDENTE`.
+- D03: build local-test offline, host HTTPS e Chrome dedicado somente em loopback; fonte sintética autoritativa identificada, zero gráfico/sparkline demonstrativo, explicação de tendência indisponível, 56 snapshots/54 condicionais, concorrência máxima um, uma conexão SignalR sandbox e zero hint publicado. Bruno respondeu `INSPEÇÃO R6-HV-D03 CONCLUÍDA: Sem observações` e decidiu exatamente `AMOSTRA R6-HV-D03 APROVADA`.
+- W01: build WPF Release `--no-restore` passou sem aviso/erro; processo dedicado em composição test-only quiet, sem listener e sem notificação Windows reportada. As imagens e inspeção parcial expuseram a ambiguidade de `Configuração`/`Configurações` e diferença visual perante o Web Dashboard prejudicial à consistência e compreensão inicial.
+- Decisão W01: Bruno declarou exatamente `AMOSTRA R6-HV-W01 REPROVADA: as opções Configuração e Configurações são ambíguas e a diferença visual em relação ao Dashboard Web prejudica a consistência e a compreensão inicial`.
+- Stop condition: W02 não foi aberta nem inferida; P01 não foi executada e cada condição física permaneceu não testada. Nenhuma correção de código, CSS, harness, Design System, nomenclatura ou Windows foi tentada.
+- Preferência: o cleanup detectou mudança temporária de `pt-BR/light` para `pt-BR/dark`. Depois de parar o PID exato e remover runtime/listener/root, Bruno autorizou separadamente somente restaurar `dark → light`; o hash final coincidiu byte a byte com o valor pré-amostra.
+- Evidência: [relatório desta retomada](../../docs/STATE-06-Audit-Remediation-R6-Remaining-Human-Samples-Resumption-Report.md), [repetição D02](../../docs/STATE-06-Audit-Remediation-R6-HV-D02-Repetition-Report.md), [R6-FC1](../../docs/STATE-06-Audit-Remediation-R6-FC1-Report.md) e [relatório automático R6](../../docs/STATE-06-Audit-Remediation-R6-Report.md).
+- Limites: a decisão não aceita R6, não autoriza remediação ou repetição W01, não retoma W02/P01 e não autoriza correção R0, alteração do incidente NuGet R5, R2-B, R7–R8, R7-A0/O1, AIOps, comando, LLM, recomendação, automação, promoção ou transição.
+- Próxima decisão: requer proposta e autorização separadas para diagnóstico/remediação focal dos defeitos W01; repetição e retomada posterior também exigem autoridade separada.
+- Aprovador: Bruno, 2026-07-22, exclusivamente para as decisões individuais D03/W01 e para a restauração focal da preferência.
+
 ## Template de nova entrada
 
 - Data:
