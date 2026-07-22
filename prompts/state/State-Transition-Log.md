@@ -2529,6 +2529,21 @@
 - Próxima decisão: requer proposta e autorização separadas para diagnóstico e remediação focal dos dois defeitos forced-colours D02. Qualquer repetição ou retomada posterior também exigirá autoridade separada.
 - Aprovador: Bruno, 2026-07-21, exclusivamente para a decisão de `R6-HV-D02`.
 
+## 2026-07-21 — Remediação automática focal `R6-FC1` de forced colours
+
+- Estado anterior: `STATE-06 INTEGRATION`, R6/R6-G1 aprovados automaticamente, repetição remediada D01 aprovada e `R6-HV-D02` reprovada por texto da rota invisível e borda lateral Crítico ausente; R6-FC1 autorizado exclusivamente sobre `639b67251771fce708f99092bc5baf5b45a9f53a`.
+- Estado resultante: sem transição; `STATE-06 INTEGRATION` mantido. R6-FC1 está automaticamente `APROVADO`; a decisão humana D02 permanece `REPROVADA` e a aceitação humana R6 continua `PENDENTE`.
+- Causas: o item selecionado escolhia `Highlight`/`HighlightText`, mas permitia novo remapeamento automático do navegador; a regra genérica do último cartão removia a borda inline-end do quarto KPI independente, lacuna exposta quando forced colours removia a elevação.
+- Correção: `forced-color-adjust: none` somente depois do mapeamento explícito a cores do sistema, foco `CanvasText`, contador Alerts também system-colour e override Overview-only que restaura a borda existente do último KPI. Nenhum conteúdo ou significado foi ocultado.
+- Regressão pré-correção: teste focado `64/65`; browser pt-BR/Light falhou exatamente em selected-route/system/focus e em borda KPI; portas `7396`/`7397`, perfil, diagnóstico e runner foram removidos sem resíduo.
+- Harness existente: forced colours ampliado de oito para 24 amostras por locale/theme — oito rotas × zoom 100%/200%/400% — medindo label, foco, `aria-current`, contador, quatro bordas de quatro KPIs, árvore acessível, overflow e gráfico. O Chrome dedicado agora bloqueia destinos não loopback por proxy local fechado e suprime rede em background.
+- Gates finais: type-check, `65/65` Dashboard, build de 60 módulos, 120 viewports, 96 combinações forced-colours, toolchain, tokens, localização, 11 identidades/22 variantes, marca e 316 arquivos de documentação passaram. Arquitetura sem somente a asserção R0 passou `43/43`; o teste proprietário alcançou as novas asserções e falhou depois apenas no nome preexistente `state05-dashboard-failure.json`.
+- Cleanup: portas finais `23907`/`23908` ausentes; zero processo, listener, perfil, evidência, diagnóstico ou root temporário do runner. Browser comum, WPF/Tray, Windows, serviços e dados não relacionados permaneceram intocados.
+- Evidência: [relatório R6-FC1](../../docs/STATE-06-Audit-Remediation-R6-FC1-Report.md), [decisão humana D02](../../docs/STATE-06-Audit-Remediation-R6-Remaining-Human-Samples-Report.md), [R6-G1](../../docs/STATE-06-Audit-Remediation-R6-G1-Report.md) e [relatório automático R6](../../docs/STATE-06-Audit-Remediation-R6-Report.md).
+- Limites: nenhuma amostra humana, WPF/Tray, marca/nomenclatura, restore, download, acesso externo, provider/banco/credencial real, correção R0, alteração do incidente NuGet R5, R2-B, R7–R8, R7-A0/O1, AIOps, comando, LLM, recomendação, automação, promoção ou transição foi executada.
+- Próxima decisão: requer proposta e autorização separadas para repetir visivelmente somente `R6-HV-D02` sobre o commit focal; D03/W01/W02/P01 não são retomadas automaticamente.
+- Aprovador: decisão humana D02 permanece a reprovação anterior; nenhuma aprovação de D02 ou R6 foi inferida do resultado automático.
+
 ## Template de nova entrada
 
 - Data:

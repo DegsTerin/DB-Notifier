@@ -162,7 +162,26 @@ try {
 
     $chrome = Find-Browser $BrowserProduct
     $stage = 'starting-browser'
-    $chromeProcess = Start-Process -FilePath $chrome -ArgumentList @('--headless=new', '--disable-gpu', '--no-first-run', '--no-default-browser-check', "--remote-debugging-port=$DebugPort", "--user-data-dir=$profile", $dashboardUri) -WindowStyle Hidden -PassThru
+    # The disposable browser can reach the loopback audit only; background traffic is suppressed and every other destination uses a closed local proxy.
+    $browserArguments = @(
+        '--headless=new',
+        '--disable-gpu',
+        '--disable-background-networking',
+        '--disable-component-update',
+        '--disable-default-apps',
+        '--disable-extensions',
+        '--disable-sync',
+        '--metrics-recording-only',
+        '--no-pings',
+        '--no-first-run',
+        '--no-default-browser-check',
+        '--proxy-server=127.0.0.1:9',
+        '--proxy-bypass-list=127.0.0.1',
+        "--remote-debugging-port=$DebugPort",
+        "--user-data-dir=$profile",
+        $dashboardUri
+    )
+    $chromeProcess = Start-Process -FilePath $chrome -ArgumentList $browserArguments -WindowStyle Hidden -PassThru
     Wait-ForEndpoint "$debugUri/json/version"
     $browserMetadata = Invoke-RestMethod -Uri "$debugUri/json/version" -TimeoutSec 5
     $expectedBrowserPrefix = if ($BrowserProduct -eq "Chrome") { "Chrome/" } else { "Edg/" }
@@ -220,8 +239,14 @@ try {
             if (@($report.accessibilityTree.unnamedInteractive).Count -gt 0) { $failures.Add('Unnamed interactive controls were detected.') }
             if ($report.accessibilityTree.exposedNodeCount -le 0) { $failures.Add('The accessibility tree contained no exposed nodes.') }
             $forcedColours = @($report.forcedColours)
-            if ($forcedColours.Count -ne 8 -or ((@($forcedColours | ForEach-Object route) -join ',') -ne 'overview,inventory,alerts,performance,history,configuration,providers,settings')) { $failures.Add('Forced-colour coverage did not include all eight Dashboard destinations in canonical order.') }
-            if (@($forcedColours | Where-Object { -not $_.active -or $_.horizontalOverflow -or -not $_.bodyUsesSystemCanvas -or -not $_.bodyUsesSystemText -or -not $_.activeNavigationUsesHighlight -or -not $_.focusVisible -or -not $_.statusBoundaryVisible -or [string]::IsNullOrWhiteSpace([string]$_.mainName) -or $_.currentNavigationCount -ne 1 -or $_.accessibilityTree.exposedNodeCount -le 0 -or @($_.accessibilityTree.unnamedInteractive).Count -gt 0 }).Count -gt 0) { $failures.Add('A forced-colour destination lost system colours, focus, status boundary, navigation semantics or an accessible control name.') }
+            if ($forcedColours.Count -ne 24) { $failures.Add('Forced-colour coverage did not include all 24 route/zoom samples.') }
+            foreach ($zoomPercent in @(100, 200, 400)) {
+                $zoomSamples = @($forcedColours | Where-Object { $_.zoomPercent -eq $zoomPercent })
+                if ($zoomSamples.Count -ne 8 -or ((@($zoomSamples | ForEach-Object route) -join ',') -ne 'overview,inventory,alerts,performance,history,configuration,providers,settings')) { $failures.Add("Forced-colour coverage at $zoomPercent percent did not include all eight Dashboard destinations in canonical order.") }
+            }
+            if (@($forcedColours | Where-Object { -not $_.active -or $_.horizontalOverflow -or -not $_.bodyUsesSystemCanvas -or -not $_.bodyUsesSystemText -or -not $_.activeNavigationUsesHighlight -or -not $_.activeNavigationTextUsesHighlightText -or -not $_.activeNavigationResistsRemapping -or -not $_.activeNavigationLabelVisible -or -not $_.activeNavigationCountUsesSystemColours -or -not $_.activeNavigationFocusVisible -or -not $_.focusVisible -or -not $_.statusBoundaryVisible -or [string]::IsNullOrWhiteSpace([string]$_.mainName) -or $_.currentNavigationCount -ne 1 -or $_.accessibilityTree.exposedNodeCount -le 0 -or @($_.accessibilityTree.unnamedInteractive).Count -gt 0 }).Count -gt 0) { $failures.Add('A forced-colour destination lost system colours, visible selected-route text, distinct focus, status boundary, navigation semantics or an accessible control name.') }
+            $forcedColourOverview = @($forcedColours | Where-Object { $_.route -eq 'overview' })
+            if ($forcedColourOverview.Count -ne 3 -or @($forcedColourOverview | Where-Object { @($_.metricCards).Count -ne 4 -or @($_.metricCards | Where-Object { -not $_.allBoundariesVisible }).Count -gt 0 }).Count -gt 0) { $failures.Add('An Overview metric card lost one or more boundaries in the forced-colour 100/200/400-percent matrix.') }
             if (@($forcedColours | Where-Object { $null -ne $_.performanceChart -and $_.performanceChart.clipped }).Count -gt 0) { $failures.Add('A forced-colour performance chart was clipped or overflowed its owning card.') }
             if ($report.semanticBrand.candidateCount -ne 1 -or $report.semanticBrand.aggregateState -ne 'critical' -or [string]$report.semanticBrand.href -ne $expectedCriticalFavicon) { $failures.Add("The runtime favicon did not expose the canonical brand revision $($brandRevisionMatch.Groups[1].Value) Critical candidate.") }
             if ($report.browser.product -ne $BrowserProduct -or $report.browser.version -ne $browserVersion) { $failures.Add('Browser product/version provenance was not preserved in the report.') }
@@ -254,7 +279,7 @@ try {
         }
     }
     $summaries | Format-Table -AutoSize
-    Write-Output "STATE-05 Dashboard audit passed for 120 viewport samples and 32 forced-colour route samples across pt-BR/en-GB and Light/Dark on $BrowserProduct $browserVersion."
+    Write-Output "STATE-05 Dashboard audit passed for 120 viewport samples and 96 forced-colour route/zoom samples across pt-BR/en-GB and Light/Dark on $BrowserProduct $browserVersion."
 }
 catch {
     if (-not [string]::IsNullOrWhiteSpace($DiagnosticDirectory)) {

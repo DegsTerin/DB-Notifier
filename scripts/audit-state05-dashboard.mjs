@@ -417,9 +417,10 @@ async function auditAccessibilityTree(call) {
   };
 }
 
-/** Exercises every Dashboard destination under browser forced colours and records system-colour, focus and accessibility-tree evidence. */
+/** Exercises every Dashboard destination and authorised zoom under browser forced colours, including navigation and KPI boundary evidence. */
 async function auditForcedColours(call) {
   const routes = ["overview", "inventory", "alerts", "performance", "history", "configuration", "providers", "settings"];
+  const zoomPercentages = [100, 200, 400];
   const samples = [];
   await call("Emulation.setEmulatedMedia", {
     features: [
@@ -428,53 +429,100 @@ async function auditForcedColours(call) {
     ],
   });
   await call("Emulation.setDeviceMetricsOverride", { width: 1440, height: 1000, deviceScaleFactor: 1, mobile: false });
-  for (const route of routes) {
-    await call("Page.navigate", { url: `${dashboardUrl}#${route}` });
-    await settle(80);
-    await call("Page.reload", { ignoreCache: true });
-    await settle();
-    const surface = await evaluate(call, `(() => {
-      const probe = document.createElement("div");
-      probe.style.cssText = "position:fixed;left:-10000px;color:CanvasText;background:Canvas;border:1px solid Highlight";
-      document.body.append(probe);
-      const probeStyle = getComputedStyle(probe);
-      const system = {
-        canvasText: probeStyle.color,
-        canvas: probeStyle.backgroundColor,
-        highlight: probeStyle.borderTopColor,
-      };
-      probe.remove();
-      const focusTarget = document.querySelector("button:not(:disabled), a[href], input:not(:disabled), select:not(:disabled)");
-      focusTarget?.focus();
-      const focusStyle = focusTarget ? getComputedStyle(focusTarget) : null;
-      const activeNav = document.querySelector(".nav-item.active");
-      const activeNavStyle = activeNav ? getComputedStyle(activeNav) : null;
-      const status = document.querySelector(".status-badge");
-      const statusStyle = status ? getComputedStyle(status) : null;
-      const root = document.documentElement;
-      return {
-        route: location.hash.slice(1),
-        active: matchMedia("(forced-colors: active)").matches,
-        horizontalOverflow: root.scrollWidth > root.clientWidth + 1,
-        system,
-        bodyUsesSystemCanvas: getComputedStyle(document.body).backgroundColor === system.canvas,
-        bodyUsesSystemText: getComputedStyle(document.body).color === system.canvasText,
-        activeNavigationUsesHighlight: activeNavStyle?.backgroundColor === system.highlight,
-        activeNavigationText: activeNavStyle?.color ?? null,
-        focusVisible: Boolean(focusStyle && focusStyle.outlineStyle !== "none" && parseFloat(focusStyle.outlineWidth) >= 2),
-        statusBoundaryVisible: statusStyle ? statusStyle.borderTopStyle !== "none" && parseFloat(statusStyle.borderTopWidth) >= 1 : true,
-        mainName: document.querySelector("main")?.getAttribute("aria-label") ?? document.querySelector("h1")?.textContent?.trim() ?? null,
-        currentNavigationCount: document.querySelectorAll('[aria-current="page"]').length,
-      };
-    })()`);
-    surface.performanceChart = await auditPerformanceChart(call);
-    const tree = await auditAccessibilityTree(call);
-    samples.push({ ...surface, accessibilityTree: tree });
-    if (route === "overview") {
-      const screenshot = await call("Page.captureScreenshot", { format: "png", captureBeyondViewport: false });
-      writeFileSync(join(evidenceDirectory, "forced-colours-overview-1440x1000.png"), Buffer.from(screenshot.data, "base64"));
+  for (const zoomPercent of zoomPercentages) {
+    await call("Emulation.setPageScaleFactor", { pageScaleFactor: zoomPercent / 100 });
+    for (const route of routes) {
+      await call("Page.navigate", { url: `${dashboardUrl}#${route}` });
+      await settle(80);
+      await call("Page.reload", { ignoreCache: true });
+      await settle();
+      const surface = await evaluate(call, `(() => {
+        const probe = document.createElement("div");
+        const selectedProbe = document.createElement("div");
+        probe.style.cssText = "position:fixed;left:-10000px;color:CanvasText;background:Canvas;border:1px solid Highlight";
+        selectedProbe.style.cssText = "position:fixed;left:-10000px;color:HighlightText;background:Highlight";
+        document.body.append(probe, selectedProbe);
+        const probeStyle = getComputedStyle(probe);
+        const selectedProbeStyle = getComputedStyle(selectedProbe);
+        const system = {
+          canvasText: probeStyle.color,
+          canvas: probeStyle.backgroundColor,
+          highlight: selectedProbeStyle.backgroundColor,
+          highlightText: selectedProbeStyle.color,
+        };
+        probe.remove();
+        selectedProbe.remove();
+        const focusTarget = document.querySelector("button:not(:disabled), a[href], input:not(:disabled), select:not(:disabled)");
+        focusTarget?.focus();
+        const focusStyle = focusTarget ? getComputedStyle(focusTarget) : null;
+        const focusVisible = Boolean(focusStyle && focusStyle.outlineStyle !== "none" && parseFloat(focusStyle.outlineWidth) >= 2);
+        const activeNav = document.querySelector(".nav-item.active");
+        activeNav?.focus();
+        const activeNavStyle = activeNav ? getComputedStyle(activeNav) : null;
+        const activeNavLabel = activeNav?.querySelector(".nav-label");
+        const activeNavLabelStyle = activeNavLabel ? getComputedStyle(activeNavLabel) : null;
+        const activeNavLabelRect = activeNavLabel?.getBoundingClientRect();
+        const activeNavCount = activeNav?.querySelector(".nav-count");
+        const activeNavCountStyle = activeNavCount ? getComputedStyle(activeNavCount) : null;
+        const metricCards = [...document.querySelectorAll(".overview-kpis .summary-card")].map((card) => {
+          const style = getComputedStyle(card);
+          const boundaryVisible = (width, lineStyle) => parseFloat(width) >= 1 && lineStyle !== "none";
+          const boundaries = {
+            top: boundaryVisible(style.borderTopWidth, style.borderTopStyle),
+            right: boundaryVisible(style.borderRightWidth, style.borderRightStyle),
+            bottom: boundaryVisible(style.borderBottomWidth, style.borderBottomStyle),
+            left: boundaryVisible(style.borderLeftWidth, style.borderLeftStyle),
+          };
+          return {
+            label: card.querySelector(".summary-label")?.textContent?.trim() ?? null,
+            boundaries,
+            allBoundariesVisible: Object.values(boundaries).every(Boolean),
+          };
+        });
+        const status = document.querySelector(".status-badge");
+        const statusStyle = status ? getComputedStyle(status) : null;
+        const root = document.documentElement;
+        return {
+          route: location.hash.slice(1),
+          zoomPercent: ${zoomPercent},
+          active: matchMedia("(forced-colors: active)").matches,
+          horizontalOverflow: root.scrollWidth > root.clientWidth + 1,
+          system,
+          bodyUsesSystemCanvas: getComputedStyle(document.body).backgroundColor === system.canvas,
+          bodyUsesSystemText: getComputedStyle(document.body).color === system.canvasText,
+          activeNavigationUsesHighlight: activeNavStyle?.backgroundColor === system.highlight,
+          activeNavigationTextUsesHighlightText: activeNavStyle?.color === system.highlightText,
+          activeNavigationResistsRemapping: activeNavStyle?.forcedColorAdjust === "none",
+          activeNavigationLabelVisible: Boolean(
+            activeNavLabel?.textContent?.trim() &&
+            activeNavLabelRect && activeNavLabelRect.width > 0 && activeNavLabelRect.height > 0 &&
+            activeNavLabelStyle?.display !== "none" && activeNavLabelStyle?.visibility !== "hidden" &&
+            Number(activeNavLabelStyle?.opacity ?? 0) > 0 && activeNavLabelStyle?.color === system.highlightText
+          ),
+          activeNavigationCountUsesSystemColours: !activeNavCountStyle || (
+            activeNavCountStyle.color === system.highlight &&
+            activeNavCountStyle.backgroundColor === system.highlightText &&
+            activeNavCountStyle.borderTopStyle !== "none" && parseFloat(activeNavCountStyle.borderTopWidth) >= 1
+          ),
+          activeNavigationText: activeNavStyle?.color ?? null,
+          activeNavigationFocusVisible: Boolean(activeNavStyle && activeNavStyle.outlineStyle !== "none" && parseFloat(activeNavStyle.outlineWidth) >= 2),
+          focusVisible,
+          metricCards,
+          statusBoundaryVisible: statusStyle ? statusStyle.borderTopStyle !== "none" && parseFloat(statusStyle.borderTopWidth) >= 1 : true,
+          mainName: document.querySelector("main")?.getAttribute("aria-label") ?? document.querySelector("h1")?.textContent?.trim() ?? null,
+          currentNavigationCount: document.querySelectorAll('[aria-current="page"]').length,
+        };
+      })()`);
+      surface.performanceChart = await auditPerformanceChart(call);
+      const tree = await auditAccessibilityTree(call);
+      samples.push({ ...surface, accessibilityTree: tree });
+      if (route === "overview" && zoomPercent === 100) {
+        const screenshot = await call("Page.captureScreenshot", { format: "png", captureBeyondViewport: false });
+        writeFileSync(join(evidenceDirectory, "forced-colours-overview-1440x1000.png"), Buffer.from(screenshot.data, "base64"));
+      }
     }
   }
+  await call("Emulation.setPageScaleFactor", { pageScaleFactor: 1 });
   await call("Emulation.setEmulatedMedia", { features: [] });
   return samples;
 }

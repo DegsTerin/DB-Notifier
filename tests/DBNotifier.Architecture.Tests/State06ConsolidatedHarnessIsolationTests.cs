@@ -111,7 +111,7 @@ public sealed class State06ConsolidatedHarnessIsolationTests
         Assert.DoesNotContain("ConsolidatedHarnessRateLimit", production, StringComparison.Ordinal);
     }
 
-    /// <summary>Confirms browser runners use bounded Node/CDP work, exact profiles and per-run Agent-root ownership.</summary>
+    /// <summary>Confirms browser runners use bounded Node/CDP work, exact profiles, closed non-loopback routing and per-run Agent-root ownership.</summary>
     [Fact]
     public void BrowserRunnersBoundWorkAndCleanupExactOwnedResources()
     {
@@ -124,6 +124,9 @@ public sealed class State06ConsolidatedHarnessIsolationTests
         Assert.Contains("NodeTimeoutSeconds", state05, StringComparison.Ordinal);
         Assert.Contains("Stop-OwnedBrowserResidue", state05, StringComparison.Ordinal);
         Assert.Contains("DBNOTIFIER_AUDIT_EVIDENCE_ROOT", state05, StringComparison.Ordinal);
+        Assert.Contains("--disable-background-networking", state05, StringComparison.Ordinal);
+        Assert.Contains("--proxy-server=127.0.0.1:9", state05, StringComparison.Ordinal);
+        Assert.Contains("--proxy-bypass-list=127.0.0.1", state05, StringComparison.Ordinal);
         Assert.Contains("NodeTimeoutSeconds", state06, StringComparison.Ordinal);
         Assert.Contains("--run-id", state06, StringComparison.Ordinal);
         Assert.Contains("ownedAgentRootPrefix", state06, StringComparison.Ordinal);

@@ -336,7 +336,10 @@ test("semantic and motion accessibility guards remain in source", () => {
   assert.match(app, /aria-modal="true"/);
   assert.match(css, /prefers-reduced-motion: reduce/);
   assert.match(css, /forced-colors: active/);
-  assert.match(css, /\.nav-item\.active \{ color: HighlightText; background: Highlight; \}/);
+  assert.match(css, /\.nav-item\.active \{ color: HighlightText; background: Highlight; forced-color-adjust: none; \}/);
+  assert.match(css, /\.nav-item\.active:focus-visible \{ outline-color: CanvasText; \}/);
+  assert.match(css, /\.nav-item\.active \.nav-count \{ color: Highlight; background: HighlightText; border: 1px solid HighlightText; \}/);
+  assert.match(css, /\.overview-kpis \.summary-card:last-child \{ border-inline-end: 1px solid var\(--db-component-card-border\); \}/);
   assert.match(css, /\.status-badge, \.metric-icon, \.demo-badge, \.read-only-label \{/);
   assert.match(css, /border: 1px solid CanvasText/);
   assert.match(css, /\.loading-line::after \{ background: Highlight; \}/);
