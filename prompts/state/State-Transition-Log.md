@@ -2544,6 +2544,21 @@
 - Próxima decisão: requer proposta e autorização separadas para repetir visivelmente somente `R6-HV-D02` sobre o commit focal; D03/W01/W02/P01 não são retomadas automaticamente.
 - Aprovador: decisão humana D02 permanece a reprovação anterior; nenhuma aprovação de D02 ou R6 foi inferida do resultado automático.
 
+## 2026-07-22 — Repetição visível aprovada da amostra `R6-HV-D02`
+
+- Estado anterior: `STATE-06 INTEGRATION`, R6/R6-G1/R6-FC1 aprovados automaticamente, repetição remediada D01 aprovada, `R6-HV-D02` inicialmente reprovada e sua repetição focal autorizada exclusivamente sobre `da58418eaf6668e07c73299617d6f7d3a731ca66`.
+- Estado resultante: sem transição; `STATE-06 INTEGRATION` mantido. A repetição remediada de `R6-HV-D02` está `APROVADA`; a reprovação original permanece preservada e a aceitação humana R6 continua `PENDENTE`.
+- Preparação: baseline e worktree limpas; build normal já existente, portanto nenhuma geração foi executada. A janela dedicada usou perfil descartável, uma página DB Notifier visível, preview/debugging somente em loopback, proxy local fechado para destinos não loopback e forced colours limitado ao Chrome.
+- Inspeção: checklist pt-BR/en-GB, Light/Dark, oito rotas, zoom 100%/200%/400%, rota selecionada, foco, contador Alerts, quatro limites dos KPIs, cores do sistema, gráficos, teclado, acessibilidade, provider fallback e estados textuais. Bruno respondeu exatamente `INSPEÇÃO R6-HV-D02 REPETIDA CONCLUÍDA: Sem observações`.
+- Evidência visual: a captura sanitizada fornecida na conversa corroborou o Overview pt-BR com rota selecionada legível, quatro cartões KPI integralmente delimitados — inclusive a borda direita de Crítico —, estados textuais e gráfico contido. Nenhum binário de screenshot foi copiado ao repositório e uma única captura não foi apresentada como prova independente de toda a matriz.
+- Decisão: depois do cleanup e do resumo factual, Bruno declarou exatamente `AMOSTRA R6-HV-D02 REPETIDA — APROVADA`.
+- Cleanup: árvores dedicadas Chrome/preview encerradas por identidade; listeners `3978`/`3979` ausentes; root temporário exato removido; duas verificações confirmaram zero runtime, listener ou diretório da repetição. Browser comum, IDE, serviços, bancos e processos não relacionados permaneceram intocados.
+- Gates documentais: `590` links Markdown locais em `129` arquivos, secret scan do worktree não ignorado e histórico disponível, classificação factual e `git diff --check` aprovados. Build, teste e runtime de produto foram `NÃO APLICÁVEIS` depois da amostra porque somente evidência Markdown foi alterada.
+- Evidência: [relatório da repetição R6-HV-D02](../../docs/STATE-06-Audit-Remediation-R6-HV-D02-Repetition-Report.md), [relatório R6-FC1](../../docs/STATE-06-Audit-Remediation-R6-FC1-Report.md) e [relatório da reprovação inicial D02](../../docs/STATE-06-Audit-Remediation-R6-Remaining-Human-Samples-Report.md).
+- Limites: a decisão não aprova R6 completo, não retoma `R6-HV-D03`, `R6-HV-W01`, `R6-HV-W02` ou `R6-HV-P01` e não autoriza correção R0, alteração do incidente NuGet R5, R2-B, R7–R8, R7-A0/O1, AIOps, comando, LLM, recomendação, automação, promoção ou transição.
+- Próxima decisão: Bruno poderá solicitar uma proposta separada para retomar as amostras visíveis R6 restantes, sem execução automática.
+- Aprovador: Bruno, 2026-07-22, exclusivamente para a repetição remediada `R6-HV-D02`.
+
 ## Template de nova entrada
 
 - Data:
