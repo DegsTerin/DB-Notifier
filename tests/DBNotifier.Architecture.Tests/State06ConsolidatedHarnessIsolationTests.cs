@@ -111,7 +111,7 @@ public sealed class State06ConsolidatedHarnessIsolationTests
         Assert.DoesNotContain("ConsolidatedHarnessRateLimit", production, StringComparison.Ordinal);
     }
 
-    /// <summary>Confirms browser runners use bounded Node/CDP work, exact profiles, closed non-loopback routing and per-run Agent-root ownership.</summary>
+    /// <summary>Confirms browser runners bound Node/CDP work and own exact diagnostics while CI publishes only their sanitised directories.</summary>
     [Fact]
     public void BrowserRunnersBoundWorkAndCleanupExactOwnedResources()
     {
@@ -133,10 +133,20 @@ public sealed class State06ConsolidatedHarnessIsolationTests
         Assert.DoesNotContain("agentRootsBefore", state06, StringComparison.Ordinal);
         Assert.Contains("CDP command exceeded its deadline", state05Auditor, StringComparison.Ordinal);
         Assert.Contains("CDP command exceeded its deadline", state06Auditor, StringComparison.Ordinal);
+        Assert.Contains("state05-dashboard-failure.json", state05, StringComparison.Ordinal);
+        Assert.Contains("state06-consolidated-failure.json", state06, StringComparison.Ordinal);
         Assert.Contains("state06-consolidated-e2e:", workflow, StringComparison.Ordinal);
         Assert.Contains("timeout-minutes: 25", workflow, StringComparison.Ordinal);
-        Assert.Contains("state05-dashboard-failure.json", workflow, StringComparison.Ordinal);
-        Assert.Contains("state06-consolidated-failure.json", workflow, StringComparison.Ordinal);
+        Assert.Contains(
+            @"path: ${{ runner.temp }}\dbnotifier-state05-diagnostic\*.json",
+            workflow,
+            StringComparison.Ordinal);
+        Assert.Contains(
+            @"path: ${{ runner.temp }}\dbnotifier-state06-diagnostic\*.json",
+            workflow,
+            StringComparison.Ordinal);
+        Assert.Equal(2, Regex.Count(workflow, @"if-no-files-found:\s+error"));
+        Assert.Equal(2, Regex.Count(workflow, @"retention-days:\s+7"));
     }
 
     /// <summary>Confirms the runner uses an exact opt-in and contains no installation or download command.</summary>

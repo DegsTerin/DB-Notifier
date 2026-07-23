@@ -2,7 +2,7 @@
 
 ## Versão atual
 
-- Versão: `3.56.17`
+- Versão: `3.56.18`
 - Data: 2026-07-23
 - Status: corpus DB-Notifier consolidado
 - Escopo: 13 arquivos ativos
@@ -16,6 +16,13 @@ A versão do corpus é independente da versão do software.
 - PATCH: clareza, correção ou referência sem mudança de autoridade.
 
 Toda alteração atualiza este arquivo e, quando necessário, `../Start-Here.md`.
+
+## 3.56.18 — 2026-07-23
+
+- Registra a correção focal R0-F1 da asserção arquitetural que atribuía ao workflow nomes de diagnósticos pertencentes aos runners.
+- O gate local corrente passa `52/52` testes de arquitetura e `477/477` testes da solução, preservando workflow, runners, dependências e lockfiles.
+- Mantém os resultados R0 anteriores como evidência histórica e preserva o incidente NuGet R5.
+- Não autoriza R7-A0, R8, O1, AIOps, execução operacional ou transição de lifecycle.
 
 ## 3.56.17 — 2026-07-23
 

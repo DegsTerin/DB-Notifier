@@ -2729,6 +2729,19 @@
 - Próxima decisão: correção R0, R7-A0, R8, eventual P01 ou progressão exigem propostas e autorizações separadas.
 - Aprovador: Bruno, 2026-07-23, exclusivamente para o Human Gate do lote R6.
 
+## 2026-07-23 — R0-F1 corrige a asserção global preexistente
+
+- Estado anterior: `STATE-06 INTEGRATION`, lote R6 humanamente aprovado com ressalvas, gate global local não verde somente pela asserção R0 que procurava nomes de diagnósticos no workflow em vez dos runners.
+- Estado resultante: sem transição; `STATE-06 INTEGRATION` mantido. R0-F1 está automaticamente `APROVADO`, a asserção bloqueante está resolvida e o gate .NET local corrente está verde.
+- Causa: os runners escrevem `state05-dashboard-failure.json` e `state06-consolidated-failure.json`, enquanto o workflow publica corretamente os diretórios sanitizados por `*.json`; o teste atribuía os nomes exatos ao arquivo de responsabilidade errado.
+- Correção: nomes exatos verificados nos runners; paths sanitizados, `if-no-files-found: error`, retenção de sete dias, job e timeout verificados no workflow. Nenhuma verificação foi removida ou enfraquecida.
+- Gates: primeira compilação focal bloqueada por CA1875 e corrigida para `Regex.Count`; repetição focal `1/1`, arquitetura `52/52`, WPF `10/10`, unitários `393/393`, integração `22/22`, solução `477/477`, build Release com zero avisos/erros e format aprovados, sempre offline e sem restore.
+- Imutabilidade: workflow e runners STATE-05/06 permaneceram nos SHA-256 `E777E3EC83A6E9DC5EF7A8257045A84CA81C471EB0B1EA6BBB33243CB7C16DD5`, `CB628EF5FC2CB76374130245DD468425834A55856C4F6A58C9B612D5D4FA92FA` e `96EA2DC780038ACB3D1FB6DC739AD006BBBFAE69B573BF5E730F2F4CB08A6A33`; nenhuma dependência ou lockfile mudou.
+- Evidência: [relatório R0-F1](../../docs/STATE-06-Audit-Remediation-R0-F1-Report.md). Relatórios históricos que registraram a falha permanecem factuais nas suas baselines e não foram reescritos.
+- Limites: incidente NuGet R5 preservado; nenhuma CI remota, runtime de produto, acesso externo, push/deploy, R7-A0, R8, O1, AIOps, promoção ou transição.
+- Próxima decisão: R7-A0 continua exigindo proposta e autorização separadas; R8 permanece posterior e igualmente não autorizado.
+- Aprovador: autorização técnica R0-F1 por Bruno em 2026-07-23; nenhuma aceitação humana adicional ou lifecycle foi inferido.
+
 ## Template de nova entrada
 
 - Data:
