@@ -2703,6 +2703,20 @@
 - Próxima decisão: requer autorização separada e explícita para executar visivelmente apenas `R6-HV-W02`, seguida de cleanup e decisão humana própria. P01 e aceitação R6 não retomam automaticamente.
 - Aprovador: autorização de implementação automática W02 por Bruno em 2026-07-23; nenhuma aprovação humana da amostra ou do R6 foi inferida.
 
+## 2026-07-23 — Amostra visível `R6-HV-W02` aprovada
+
+- Estado anterior: `STATE-06 INTEGRATION`, mecanismo automático W02 aprovado no commit `40bf9f57d65479b8d5f8f55ff5e5b1a36791c84b`, W02 bloqueada até autorização visível, P01 não testada e aceitação humana R6 pendente.
+- Estado resultante: sem transição; `STATE-06 INTEGRATION` mantido. `R6-HV-W02` está `APROVADA`; a aceitação humana R6 continua `PENDENTE`.
+- Execução: somente o WPF existente com marker exato `--review-flyout-live-update`, PID `28584` e início `2026-07-23T05:47:18.1360319Z`; flyout `Visão rápida da frota` aberto por UI Automation no ícone exato do DB Notifier. Nenhum build, restore, download, acesso externo, persistência, integração operacional, comando ou notificação Windows foi executado.
+- Observação: Bruno concluiu a inspeção com a resposta exata `INSPEÇÃO R6-HV-W02 CONCLUÍDA: Sem observações`.
+- Decisão: Bruno declarou exatamente `AMOSTRA R6-HV-W02 APROVADA`.
+- Cleanup: o PID dedicado foi encerrado por identidade exata sem usar o Close normal; zero processo, listener, janela, elemento Tray ou root temporário; preferência preservada byte a byte no SHA-256 `ABC049CBB37CC998FF86E018E6853D811E58ED166B2B6B4A5CF0FBA4B171868F`.
+- Evidência: [relatório da amostra W02](../../docs/STATE-06-Audit-Remediation-R6-HV-W02-Report.md). A captura sanitizada fornecida por Bruno permaneceu na conversa; nenhum binário foi adicionado ao repositório.
+- Histórico: o bloqueio W02 anterior permanece preservado e não foi reescrito.
+- Limites: P01 e suas cinco condições permanecem não testadas. A decisão não aceita R6 completo nem autoriza correção R0, alteração do incidente R5, R2-B, R7–R8, R7-A0/O1, AIOps, comando, automação, promoção ou transição.
+- Próxima decisão: qualquer aceitação R6, execução P01 ou progressão exige proposta e autoridade separadas.
+- Aprovador: Bruno, 2026-07-23, exclusivamente para a amostra `R6-HV-W02`.
+
 ## Template de nova entrada
 
 - Data:
