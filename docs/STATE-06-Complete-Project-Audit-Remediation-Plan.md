@@ -494,6 +494,16 @@ LLM, knowledge retrieval, recomendação, plano, executor, `ADVISOR`, `ASSISTANT
 
 Reexecutar uma auditoria proporcional depois dos lotes efetivamente autorizados, sem reescrever evidência histórica e sem inferir progressão.
 
+**Execution record (2026-07-23):** the authorised local R8 consolidated re-audit is complete on baseline
+`6e529810aee82446c9f2863363201ac2ef25d151`. The
+[R8 report](STATE-06-Audit-Remediation-R8-Report.md) classifies all 39 original findings exactly once: 35
+`ENCERRADO`, four `CONTIDO`, zero `ABERTO`, zero `BLOQUEADO` and zero finding-level `NÃO TESTADO`. Proportional
+offline build, test, coverage, architecture, Dashboard, WPF, Pester, E2E, security, supply-chain, fail-closed and
+cleanup gates passed. The R5 NuGet incident, five R6 physical conditions, locked restore, remote CI, live advisory
+freshness and current PostgreSQL-laboratory repetition remain explicit limitations. The automatic result is
+`APPROVED`; Human acceptance is `PENDING`. `STATE-06 INTEGRATION`, `ActivationState=None`, normal operational
+containments and the prohibition on O1, `OBSERVER`, AIOps operation and lifecycle transition remain unchanged.
+
 ### Evidência mínima
 
 - shutdown preflight e baseline Git limpa;

@@ -2,7 +2,7 @@
 
 ## Versão atual
 
-- Versão: `3.56.21`
+- Versão: `3.56.22`
 - Data: 2026-07-23
 - Status: corpus DB-Notifier consolidado
 - Escopo: 13 arquivos ativos
@@ -16,6 +16,13 @@ A versão do corpus é independente da versão do software.
 - PATCH: clareza, correção ou referência sem mudança de autoridade.
 
 Toda alteração atualiza este arquivo e, quando necessário, `../Start-Here.md`.
+
+## 3.56.22 — 2026-07-23
+
+- Registra a reauditoria consolidada R8 sobre `6e529810aee82446c9f2863363201ac2ef25d151`, sem implementação ou correção.
+- Classifica os 39 achados originais como 35 `ENCERRADO`, quatro `CONTIDO`, zero `ABERTO`, zero `BLOQUEADO` e zero achado `NÃO TESTADO`.
+- Registra os gates locais proporcionais aprovados e preserva o incidente NuGet R5, as limitações físicas R6 e as demais evidências não testadas.
+- Mantém aceitação humana R8 pendente, `STATE-06 INTEGRATION`, `ActivationState=None` e a proibição de R2-B, O1, `OBSERVER`, AIOps operacional ou transição.
 
 ## 3.56.21 — 2026-07-23
 

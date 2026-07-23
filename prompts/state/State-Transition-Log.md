@@ -2777,6 +2777,18 @@
 - Próxima decisão: qualquer R8, O1, ativação `OBSERVER`, AIOps operacional ou progressão exige proposta e autorização separadas.
 - Aprovador: Bruno, 2026-07-23, exclusivamente para R7-A0.
 
+## 2026-07-23 — R8 reauditoria consolidada concluída automaticamente
+
+- Estado anterior: `STATE-06 INTEGRATION`, R0-F1 e R7-A0 aceitos, R6 encerrado com ressalvas, R8 autorizado exclusivamente sobre `6e529810aee82446c9f2863363201ac2ef25d151`.
+- Estado resultante: sem transição; `STATE-06 INTEGRATION` mantido. R8 está automaticamente `APROVADO`; aceitação humana permanece `PENDENTE`.
+- Matriz: 39 achados originais classificados exatamente uma vez — 35 `ENCERRADO`, quatro `CONTIDO`, zero `ABERTO`, zero `BLOQUEADO` e zero achado `NÃO TESTADO`.
+- Gates: build Release sem avisos/erros; solução `483/483`; coverage `81,98%` linhas/`53,85%` branches; Dashboard `67/67`; E2E e browser audit aprovados; matriz WPF `64/64` executável; Pester, segurança, supply chain, normal composition fail-closed, packaging bloqueado e cleanup aprovados.
+- Limitações: incidente NuGet R5 preservado; locked restore, advisory freshness online, CI remota, repetição atual do laboratório PostgreSQL e cinco condições físicas R6 permanecem `NÃO TESTADOS`.
+- Evidência: [relatório R8](../../docs/STATE-06-Audit-Remediation-R8-Report.md) e [plano de remediação](../../docs/STATE-06-Complete-Project-Audit-Remediation-Plan.md).
+- Limites: nenhum código/configuração/dependência foi corrigido; nenhum runtime operacional, provider/banco real, R2-B, O1, `OBSERVER`, LLM, recomendação, comando, automação, push, deploy ou lifecycle foi executado.
+- Próxima decisão: Human Gate separado poderá aceitar ou rejeitar somente o R8 com suas limitações; nenhuma decisão está pré-preenchida.
+- Aprovador: resultado automático local; decisão humana R8 pendente.
+
 ## Template de nova entrada
 
 - Data:
