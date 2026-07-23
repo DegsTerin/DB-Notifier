@@ -2,7 +2,7 @@
 
 ## Versão atual
 
-- Versão: `3.56.25`
+- Versão: `3.56.26`
 - Data: 2026-07-23
 - Status: corpus DB-Notifier consolidado
 - Escopo: 13 arquivos ativos
@@ -16,6 +16,13 @@ A versão do corpus é independente da versão do software.
 - PATCH: clareza, correção ou referência sem mudança de autoridade.
 
 Toda alteração atualiza este arquivo e, quando necessário, `../Start-Here.md`.
+
+## 3.56.26 — 2026-07-23
+
+- Registra a decisão humana exata `HUMAN GATE DO O1: APROVADO`.
+- Aceita somente o sandbox O1 test-only opt-in e preserva as limitações da evidência sintética local.
+- Mantém `STATE-06 INTEGRATION`, `ActivationState=None`, zero referência na composição normal e nenhuma ativação de `OBSERVER`.
+- Não autoriza LLM, recomendação, comando, automação, execução operacional, push, deploy ou transição de lifecycle.
 
 ## 3.56.25 — 2026-07-23
 

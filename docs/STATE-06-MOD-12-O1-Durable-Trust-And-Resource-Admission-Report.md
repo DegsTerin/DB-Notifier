@@ -4,7 +4,7 @@
 
 - Authorised baseline: `c38c494413d16ce1090d31f30d7b2efa87c589dd`
 - Automatic result: `APPROVED`
-- Human acceptance: `PENDING`
+- Human acceptance: `APPROVED` in the separate [O1 Human Gate](STATE-06-MOD-12-O1-Human-Gate-Report.md)
 - Runtime boundary: exact test-only opt-in sandbox
 - Durable store: synthetic temporary filesystem only
 - MOD-12 activation: `ActivationState=None`
@@ -129,8 +129,8 @@ The O1-specific suite covers cryptographic/property/fuzz/integration behaviour, 
 - No network access, CI, push, deploy or lifecycle transition occurred.
 - The R5 NuGet metadata incident and the R6 physical-accessibility limitations remain historical facts and are unchanged.
 
-## Automatic conclusion and next gate
+## Automatic conclusion and subsequent Human Gate
 
 The authorised automatic O1 increment is `APPROVED`: its trust, resource and corpus vectors are traceable; the required fail-closed crash, restart, rollback, gap, divergence, crossed-key, deadline, cancellation, limit and fence evidence passed; normal composition has zero references; and `ActivationState=None` remains unchanged.
 
-This result does not accept O1 on Bruno's behalf. The next step is a separate Human Gate for O1. Any `none → OBSERVER` transition is a later, independent gate and remains unauthorised.
+Bruno subsequently decided exactly `HUMAN GATE DO O1: APROVADO`. The separate [O1 Human Gate report](STATE-06-MOD-12-O1-Human-Gate-Report.md) records that acceptance and its authority boundary. Any `none → OBSERVER` preparation or transition remains a later, independent gate and is unauthorised.

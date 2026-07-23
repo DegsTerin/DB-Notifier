@@ -2825,6 +2825,18 @@
 - Próxima decisão: Human Gate O1 separado poderá aceitar ou rejeitar somente este sandbox. Qualquer `none → OBSERVER` continua sendo decisão posterior e independente.
 - Aprovador: resultado automático local; decisão humana O1 pendente.
 
+## 2026-07-23 — Human Gate O1 aprovado
+
+- Estado anterior: `STATE-06 INTEGRATION`, O1 automaticamente aprovado no commit `ab60f4375af8e466a72077ecfa771ce5a7d07477`, com Human Gate próprio pendente.
+- Estado resultante: sem transição; `STATE-06 INTEGRATION` e `ActivationState=None` mantidos. O1 está humanamente aceito somente como sandbox test-only opt-in.
+- Decisão: Bruno declarou exatamente `HUMAN GATE DO O1: APROVADO`.
+- Escopo aceito: continuidade de confiança durável, dual control one-use, recuperação/quarentena fail-closed, admissão bounded de recursos, fencing e rastreabilidade sintética conforme o relatório automático O1.
+- Evidência: [relatório automático O1](../../docs/STATE-06-MOD-12-O1-Durable-Trust-And-Resource-Admission-Report.md) e [Human Gate O1](../../docs/STATE-06-MOD-12-O1-Human-Gate-Report.md).
+- Atividade documental: baseline `ab60f4375af8e466a72077ecfa771ce5a7d07477`, worktree limpa e shutdown preflight com zero processo ou janela DB-Notifier; nenhum código, teste, runtime, push, deploy ou transição.
+- Limites: a aceitação não autoriza `none → OBSERVER`, composição normal, dado/corpus/provider/banco/credencial real, LLM, recomendação, comando, automação, execução operacional, promoção ou lifecycle.
+- Próxima decisão: qualquer preparação, verificação ou execução de `none → OBSERVER` exige proposta, autorização, Quality Gate e Human Gate posteriores e separados.
+- Aprovador: Bruno, 2026-07-23, exclusivamente para o Human Gate O1.
+
 ## Template de nova entrada
 
 - Data:
