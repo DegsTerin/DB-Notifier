@@ -2800,6 +2800,18 @@
 - Próxima decisão: Human Gate separado do R8, baseado no relatório corrigido e nas limitações já registradas.
 - Aprovador: revalidação automática local; decisão humana R8 pendente.
 
+## 2026-07-23 — Human Gate R8 aprovado com ressalvas
+
+- Estado anterior: `STATE-06 INTEGRATION`, R8 automaticamente aprovado depois da correção documental e revalidação de cleanup do commit `cd5534188897f18504e9411349793e96636b1a61`.
+- Estado resultante: sem transição; `STATE-06 INTEGRATION` mantido. A remediação da auditoria está humanamente encerrada com ressalvas.
+- Decisão: Bruno declarou exatamente `HUMAN GATE DO R8: APROVADO COM RESSALVAS — aceito as limitações e contenções registradas no relatório R8. Esta decisão encerra somente a remediação e não autoriza O1, OBSERVER, AIOps operacional ou transição de lifecycle.`
+- Escopo aceito: 35 achados `ENCERRADO`, quatro `CONTIDO`, nenhum `ABERTO` ou `BLOQUEADO`, com a prova corrigida de cleanup.
+- Ressalvas preservadas: incidente NuGet R5; locked restore, advisory online, CI remota e laboratório PostgreSQL atual não repetidos; cinco condições físicas R6 `NÃO TESTADAS`; contenções futuras obrigatórias.
+- Evidência: [relatório automático R8](../../docs/STATE-06-Audit-Remediation-R8-Report.md) e [Human Gate R8](../../docs/STATE-06-Audit-Remediation-R8-Human-Gate-Report.md).
+- Limites: nenhum código, runtime, push, deploy, R2-B, O1, `OBSERVER`, AIOps operacional ou lifecycle foi autorizado.
+- Próxima decisão: qualquer O1, ativação `OBSERVER`, AIOps incremental ou transição exige proposta e autorização separadas.
+- Aprovador: Bruno, 2026-07-23, exclusivamente para o Human Gate R8.
+
 ## Template de nova entrada
 
 - Data:

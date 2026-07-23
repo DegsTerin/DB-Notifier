@@ -2,7 +2,7 @@
 
 ## Versão atual
 
-- Versão: `3.56.23`
+- Versão: `3.56.24`
 - Data: 2026-07-23
 - Status: corpus DB-Notifier consolidado
 - Escopo: 13 arquivos ativos
@@ -16,6 +16,13 @@ A versão do corpus é independente da versão do software.
 - PATCH: clareza, correção ou referência sem mudança de autoridade.
 
 Toda alteração atualiza este arquivo e, quando necessário, `../Start-Here.md`.
+
+## 3.56.24 — 2026-07-23
+
+- Registra a decisão humana exata `HUMAN GATE DO R8: APROVADO COM RESSALVAS`.
+- Encerra humanamente somente a remediação da auditoria, preservando 35 achados encerrados, quatro contidos e todas as limitações registradas.
+- Mantém `STATE-06 INTEGRATION`, `ActivationState=None` e a ausência de autorização para R2-B, O1, `OBSERVER`, AIOps operacional ou transição.
+- Registra somente documentação e o Human Gate próprio do R8, sem código, runtime, push ou deploy.
 
 ## 3.56.23 — 2026-07-23
 

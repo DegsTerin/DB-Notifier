@@ -501,8 +501,11 @@ Reexecutar uma auditoria proporcional depois dos lotes efetivamente autorizados,
 offline build, test, coverage, architecture, Dashboard, WPF, Pester, E2E, security, supply-chain, fail-closed and
 cleanup gates passed. The R5 NuGet incident, five R6 physical conditions, locked restore, remote CI, live advisory
 freshness and current PostgreSQL-laboratory repetition remain explicit limitations. The automatic result is
-`APPROVED`; Human acceptance is `PENDING`. `STATE-06 INTEGRATION`, `ActivationState=None`, normal operational
-containments and the prohibition on O1, `OBSERVER`, AIOps operation and lifecycle transition remain unchanged.
+`APPROVED`. Bruno subsequently closed the
+[R8 Human Gate](STATE-06-Audit-Remediation-R8-Human-Gate-Report.md) as `APPROVED WITH RESERVATIONS`, accepting
+the recorded limitations and containments. The audit remediation programme is humanly closed only in that bounded
+scope. `STATE-06 INTEGRATION`, `ActivationState=None`, normal operational containments and the prohibition on O1,
+`OBSERVER`, AIOps operation and lifecycle transition remain unchanged.
 After the initial hand-off, Bruno reported one retained generic Windows Terminal tab opened by the pre-existing
 synthetic `ping.exe` process-tree test. The first process-based cleanup statement was therefore premature. Bruno
 closed only that tab and authorised a documentation correction; the follow-up audit proved zero matching window,

@@ -10,7 +10,7 @@
 - Findings `BLOQUEADO`: `0`
 - Findings `NÃO TESTADO`: `0`
 - Automatic R8 result: `APPROVED`
-- Human acceptance of R8: `PENDING`
+- Human acceptance of R8: `APPROVED WITH RESERVATIONS`
 - Post-handoff cleanup correction: `REVALIDATED`
 - Lifecycle: `STATE-06 INTEGRATION` unchanged
 - MOD-12 activation: `ActivationState=None`
@@ -18,7 +18,10 @@
 
 R8 re-audited the original findings against the accepted R0/R0-F1, R1, R2-A, R3, R4-A, R4-B, R5, R6 and R7-A0 evidence. It made no product, source, test, workflow, dependency or configuration correction. `ENCERRADO` means that the original defect has a bounded accepted correction and current regression evidence. `CONTIDO` means that the unsafe or incomplete capability remains inaccessible in normal composition and requires a separately authorised future gate before activation.
 
-The automatic result does not close the remediation programme, accept R8 on Bruno's behalf, promote the lifecycle or activate any capability. A separate informed Human Gate is required.
+The automatic result did not close the remediation programme or accept R8 on Bruno's behalf. Bruno subsequently
+closed the separate [R8 Human Gate](STATE-06-Audit-Remediation-R8-Human-Gate-Report.md) as
+`APPROVED WITH RESERVATIONS`. That decision closes only the audit remediation programme; it does not promote the
+lifecycle or activate any capability.
 
 ## Authority and method
 
@@ -134,7 +137,7 @@ authorised factual correction and cleanup revalidation. The repeated read-only a
 - a clean worktree before this documentation-only correction.
 
 No source or test correction was authorised or performed. The automatic R8 result remains `APPROVED` only after
-this follow-up cleanup proof; Human acceptance remains `PENDING`.
+this follow-up cleanup proof. Bruno subsequently approved the Human Gate with the report's reservations.
 
 ## Preserved limitations and incidents
 
@@ -164,4 +167,4 @@ These limitations do not create an uncontained known high finding in the current
 
 R8 is automatically `APPROVED` after the corrected cleanup revalidation: all 39 original findings have a bounded current disposition, the four contained capabilities remain inaccessible in normal composition, proportional gates passed, and no current finding is open or blocked. This is an automatic audit result only.
 
-Human acceptance remains `PENDING`. The next permitted decision is a separate Human Gate that either accepts or rejects this R8 report with its recorded limitations. Until that decision, the remediation programme is not humanly closed. Even acceptance would not authorise R2-B, O1, `OBSERVER`, AIOps operation, deployment, provider homologation or lifecycle transition.
+Bruno decided exactly `HUMAN GATE DO R8: APROVADO COM RESSALVAS — aceito as limitações e contenções registradas no relatório R8. Esta decisão encerra somente a remediação e não autoriza O1, OBSERVER, AIOps operacional ou transição de lifecycle.` The remediation programme is therefore humanly closed with the recorded reservations. R2-B, O1, `OBSERVER`, AIOps operation, deployment, provider homologation and lifecycle transition remain unauthorised.
