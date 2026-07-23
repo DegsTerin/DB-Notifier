@@ -2837,6 +2837,19 @@
 - Próxima decisão: qualquer preparação, verificação ou execução de `none → OBSERVER` exige proposta, autorização, Quality Gate e Human Gate posteriores e separados.
 - Aprovador: Bruno, 2026-07-23, exclusivamente para o Human Gate O1.
 
+## 2026-07-23 — Pacote de prontidão `NONE → OBSERVER` elaborado
+
+- Estado anterior: `STATE-06 INTEGRATION`, O1 automática e humanamente aprovado somente como sandbox test-only, `ActivationState=None`.
+- Autoridade: elaboração documental local, sem código, configuração, runtime, teste, acesso externo, ativação ou transição.
+- Estado resultante: sem transição; `STATE-06 INTEGRATION` e `ActivationState=None` mantidos.
+- Resultado: a fundação determinística e O1 estão prontos para sustentar a proposta do próximo sandbox, mas a ativação `NONE → OBSERVER` permanece `BLOQUEADA`.
+- Lacunas principais: pipeline canônico Agent → Server → MOD-12 sob um único contexto, ownership/composição normal, opt-in/kill switch/rollback, corpus representativo, calibração, limites empíricos `HM-01`–`HM-03`, observabilidade e projeção read-only.
+- Não testado: nenhuma evidência foi reexecutada; os resultados citados são evidências históricas aceitas.
+- Evidência: [pacote de prontidão](../../docs/STATE-06-MOD-12-None-To-Observer-Readiness-Package.md).
+- Próximo lote proposto: `O2-A — Canonical Read-Only Observation Pipeline Sandbox`, ainda sem autorização de implementação.
+- Limites: nenhum dado/provider/banco/corpus real, LLM, recomendação, comando, automação, push, deploy, Quality Gate, Human Gate, `OBSERVER` ou lifecycle foi executado ou autorizado.
+- Aprovador: resultado documental local; decisão sobre O2-A pendente.
+
 ## Template de nova entrada
 
 - Data:
