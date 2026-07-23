@@ -2812,6 +2812,19 @@
 - Próxima decisão: qualquer O1, ativação `OBSERVER`, AIOps incremental ou transição exige proposta e autorização separadas.
 - Aprovador: Bruno, 2026-07-23, exclusivamente para o Human Gate R8.
 
+## 2026-07-23 — O1 sandbox concluído automaticamente
+
+- Estado anterior: `STATE-06 INTEGRATION`, R8 humanamente encerrado com ressalvas, R7-A0 aceito e O1 autorizado exclusivamente sobre `c38c494413d16ce1090d31f30d7b2efa87c589dd`.
+- Estado resultante: sem transição; `STATE-06 INTEGRATION` e `ActivationState=None` mantidos. O1 está automaticamente `APROVADO`; Human Gate O1 permanece `PENDENTE`.
+- Implementação: marker test-only exato no host sandbox existente; coordinator de confiança; bundle, delegações, manifest e approvals assinados por papéis/chaves sintéticos distintos; nonce one-use; store atómica de checkpoint/heads/audit intent; crash/restart; quarentena de rollback/gap/divergência; recuperação separadamente rooted; recursos finitos; serialização, control lane, quiescência e fencing multiprocess.
+- Rastreabilidade: catálogo executável com `24` vetores `TR`, `36` `RE` e oito `CO`, cada um ligado a componente, grupo de teste e owner, sem converter claims físicos/fleet/fairness futuros em aprovação.
+- Gates: O1 `10/10`; arquitetura O1 `3/3`; arquitetura completa `55/55`; regressão proporcional `494/494`; build Release com zero avisos/erros; coverage `81,98%` linhas/`53,85%` branches; format aprovado.
+- Limite de regressão: o teste preexistente de árvore sintética de readiness foi excluído desta execução para não repetir a aba visível do Windows Terminal registrada no R8; ele não pertence ao O1 e nenhuma conclusão O1 depende dele.
+- Evidência: [relatório O1](../../docs/STATE-06-MOD-12-O1-Durable-Trust-And-Resource-Admission-Report.md) e [plano de remediação](../../docs/STATE-06-Complete-Project-Audit-Remediation-Plan.md).
+- Limites: zero referência na composição normal; nenhum restore/download/dependência, acesso externo, dado/corpus/provider/banco/credencial real, LLM, recomendação, comando, automação, push, deploy, `OBSERVER` ou lifecycle.
+- Próxima decisão: Human Gate O1 separado poderá aceitar ou rejeitar somente este sandbox. Qualquer `none → OBSERVER` continua sendo decisão posterior e independente.
+- Aprovador: resultado automático local; decisão humana O1 pendente.
+
 ## Template de nova entrada
 
 - Data:

@@ -453,9 +453,18 @@ Antes de o código atual poder servir como dependência de O1 ou de um gate futu
 
 R7-A0 não cria trust host, persistência, corpus real, telemetria, UI ou modo.
 
-### O1 futuro — escopo preservado
+### O1 — sandbox executado sob autorização separada
 
-Depois de R7-A0 e somente sob outra autorização, O1 poderá implementar o `Durable Trust Continuity and Resource Admission Sandbox` já definido:
+**Execution record (2026-07-23):** the separately authorised local O1 implementation is complete on baseline
+`c38c494413d16ce1090d31f30d7b2efa87c589dd`. The exact test-only sandbox implements the host trust coordinator,
+signed bundle, distinct synthetic roles and keys, dual one-use approvals, atomic checkpoint/corpus-head/audit-intent
+state, crash recovery, rollback/gap/divergence quarantine, separately rooted recovery, finite serial resource
+admission, reserved control capacity, quiescence and multiprocess fencing. The executable catalogue maps all `24`
+trust, `36` resource and `8` corpus vectors. The automatic result is `APPROVED`; human acceptance remains `PENDING`.
+`ActivationState=None`, zero normal-composition references and all operational prohibitions remain intact. Evidence:
+[MOD-12 O1 report](STATE-06-MOD-12-O1-Durable-Trust-And-Resource-Admission-Report.md).
+
+The implemented boundary follows the previously preserved `Durable Trust Continuity and Resource Admission Sandbox` scope:
 
 1. mapear os `24` vetores de confiança, `36` de recursos e `8` de corpus/manifest ao código, teste e owner;
 2. implementar host coordinator, bundle, papéis/chaves materialmente distintos, delegações, dual control e approvals one-use em fixtures públicas de teste;

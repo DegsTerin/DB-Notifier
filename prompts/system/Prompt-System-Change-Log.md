@@ -2,7 +2,7 @@
 
 ## Versão atual
 
-- Versão: `3.56.24`
+- Versão: `3.56.25`
 - Data: 2026-07-23
 - Status: corpus DB-Notifier consolidado
 - Escopo: 13 arquivos ativos
@@ -16,6 +16,13 @@ A versão do corpus é independente da versão do software.
 - PATCH: clareza, correção ou referência sem mudança de autoridade.
 
 Toda alteração atualiza este arquivo e, quando necessário, `../Start-Here.md`.
+
+## 3.56.25 — 2026-07-23
+
+- Registra a implementação automática local do O1 sobre `c38c494413d16ce1090d31f30d7b2efa87c589dd`, exclusivamente em sandbox test-only opt-in.
+- Registra trust bundle assinado, papéis/chaves sintéticos distintos, dual control one-use, checkpoint/heads/audit intent atómicos, crash/recovery, quarentena e admissão de recursos/fencing.
+- Rastreia exatamente `24` vetores de confiança, `36` de recursos e `8` de corpus e mantém o resultado humano O1 `PENDENTE`.
+- Preserva `ActivationState=None`, zero referência na composição normal e a proibição de `OBSERVER`, dados/providers reais, LLM, recomendação, comando, automação e transição.
 
 ## 3.56.24 — 2026-07-23
 

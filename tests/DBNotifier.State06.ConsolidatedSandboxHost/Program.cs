@@ -1,4 +1,4 @@
-// Module purpose: Validates exact local activation and delegates one bounded consolidated STATE-06 evidence run to the test-only integration composition.
+// Module purpose: Validates exact local activation and delegates bounded STATE-06 or O1 evidence runs to test-only integration compositions.
 using DBNotifier.IntegrationTests;
 
 namespace DBNotifier.State06.ConsolidatedSandboxHost;
@@ -15,6 +15,13 @@ internal static class Program
     /// <returns>Zero after complete cleanup, two for invalid activation, or three for a sanitised harness failure.</returns>
     public static async Task<int> Main(string[] args)
     {
+        if (args.Length >= 2 &&
+            string.Equals(args[0], "--activation", StringComparison.Ordinal) &&
+            string.Equals(args[1], "o1-durable-trust-resource-sandbox", StringComparison.Ordinal))
+        {
+            return await O1SandboxProcess.RunAsync(args);
+        }
+
         if (!TryReadOptions(
                 args,
                 out string? dashboardRoot,
