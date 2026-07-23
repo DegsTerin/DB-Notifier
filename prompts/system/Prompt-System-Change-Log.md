@@ -2,7 +2,7 @@
 
 ## Versão atual
 
-- Versão: `3.56.10`
+- Versão: `3.56.11`
 - Data: 2026-07-22
 - Status: corpus DB-Notifier consolidado
 - Escopo: 13 arquivos ativos
@@ -16,6 +16,13 @@ A versão do corpus é independente da versão do software.
 - PATCH: clareza, correção ou referência sem mudança de autoridade.
 
 Toda alteração atualiza este arquivo e, quando necessário, `../Start-Here.md`.
+
+## 3.56.11 — 2026-07-22
+
+- Registra a conclusão automática restrita do R6-UI1 sobre `321e04d83cdaeab6ad3a4bdedd929c60083788fc`, sem converter o resultado em aprovação humana de W01 ou R6.
+- `Current-State.md` e o log append-only registram pills/texto, gráfico de Providers, gutters, tabelas e reflow corrigidos; 64/64 rotas executáveis aprovadas, 32 combinações físicas não testadas, preferência restaurada e cleanup concluído.
+- Preserva Web, dependências e lockfiles sem diff, a única falha global R0 e o incidente NuGet R5 sem correção.
+- A próxima decisão passa a ser uma proposta separada para repetir visivelmente somente W01; W02, P01, aceitação R6, R7–R8, R7-A0/O1, AIOps e transição continuam não autorizados.
 
 ## 3.56.10 — 2026-07-22
 

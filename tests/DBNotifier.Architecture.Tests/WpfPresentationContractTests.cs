@@ -85,7 +85,7 @@ public sealed class WpfPresentationContractTests
         Assert.Contains("MinHeight=\"620\"", markup, StringComparison.Ordinal);
         Assert.Contains("active ? \"ColourSelectionBackgroundBrush\" : \"ColourSurfaceSubtleBrush\"", behaviour, StringComparison.Ordinal);
         Assert.Contains("active ? \"ColourActionPrimaryBackgroundBrush\" : \"ColourSurfaceSubtleBrush\"", behaviour, StringComparison.Ordinal);
-        Assert.Contains("bool compact = availableWidth < 1000", behaviour, StringComparison.Ordinal);
+        Assert.Contains("bool compact = availableWidth < 1100", behaviour, StringComparison.Ordinal);
         Assert.Contains("bool compactInventorySummary = availableWidth < 1240", behaviour, StringComparison.Ordinal);
         Assert.Contains("OverviewSummaryGrid.Columns = compact ? 2 : 4", behaviour, StringComparison.Ordinal);
         Assert.Contains("ArrangeAdaptivePair(SettingsPreferencePanel, SettingsNotificationsPanel, compact)", behaviour, StringComparison.Ordinal);
@@ -511,6 +511,7 @@ public sealed class WpfPresentationContractTests
         string semanticIcons = File.ReadAllText(Path.Combine(desktopDirectory, "SemanticIcon.xaml.cs"));
 
         Assert.Equal(13, Regex.Count(mainWindowMarkup, "<local:KpiCard", RegexOptions.CultureInvariant));
+        Assert.Equal(13, Regex.Count(mainWindowMarkup, "<local:KpiCard[^>]*Margin=\"8\"", RegexOptions.CultureInvariant));
         Assert.Equal(2, Regex.Count(mainWindowMarkup, "<local:PerformanceChart", RegexOptions.CultureInvariant));
         Assert.Equal(2, Regex.Count(mainWindowMarkup, "<local:ProviderDistributionChart", RegexOptions.CultureInvariant));
         Assert.True(Regex.Count(mainWindowMarkup, "<local:StatusPill", RegexOptions.CultureInvariant) >= 3);
@@ -533,7 +534,7 @@ public sealed class WpfPresentationContractTests
         Assert.Contains("SemanticIconKind.Disabled", semanticIcons, StringComparison.Ordinal);
         Assert.Contains("SemanticIconKind.Unknown", semanticIcons, StringComparison.Ordinal);
         Assert.Contains("SemanticIconKind.Performance", semanticIcons, StringComparison.Ordinal);
-        Assert.Equal(2, Regex.Count(mainWindowMarkup, "Icon=\"\\{Binding StatusIcon\\}\"", RegexOptions.CultureInvariant));
+        Assert.True(Regex.Count(mainWindowMarkup, "Icon=\"\\{Binding StatusIcon\\}\"", RegexOptions.CultureInvariant) >= 2);
         Assert.Equal(2, Regex.Count(mainWindowMarkup, "Icon=\"\\{Binding IconKind\\}\"", RegexOptions.CultureInvariant));
         Assert.Contains("x:Name=\"AlertTotalCard\"", mainWindowMarkup, StringComparison.Ordinal);
         Assert.Contains("Icon=\"Healthy\" Tone=\"Neutral\"", mainWindowMarkup, StringComparison.Ordinal);
@@ -550,6 +551,212 @@ public sealed class WpfPresentationContractTests
         Assert.Contains("M0,25 H640 M0,75 H640 M0,125 H640", chartMarkup, StringComparison.Ordinal);
         Assert.Contains("ClipToBounds=\"True\"", chartMarkup, StringComparison.Ordinal);
         Assert.Contains("AutomationProperties.HelpText=\"{DynamicResource Overview.DemonstrationChart}\"", chartMarkup, StringComparison.Ordinal);
+    }
+
+    /// <summary>Ensures R6-UI1 keeps compact WPF geometry bounded, informative and accessible without changing the Web reference.</summary>
+    [Fact]
+    public void WpfUi1GeometryAndCompactAccessibilityContractsRemainBounded()
+    {
+        string repositoryRoot = RepositoryRoot();
+        string desktopDirectory = Path.Combine(repositoryRoot, "src", "DBNotifier.Desktop.Wpf");
+        string mainWindowMarkup = File.ReadAllText(Path.Combine(desktopDirectory, "MainWindow.xaml"));
+        string mainWindow = File.ReadAllText(Path.Combine(desktopDirectory, "MainWindow.xaml.cs"));
+        string statusMarkup = File.ReadAllText(Path.Combine(desktopDirectory, "StatusPill.xaml"));
+        string status = File.ReadAllText(Path.Combine(desktopDirectory, "StatusPill.xaml.cs"));
+        string distributionMarkup = File.ReadAllText(Path.Combine(desktopDirectory, "ProviderDistributionChart.xaml"));
+        string distribution = File.ReadAllText(Path.Combine(desktopDirectory, "ProviderDistributionChart.xaml.cs"));
+        string providerIdentityMarkup = File.ReadAllText(Path.Combine(desktopDirectory, "ProviderIdentityView.xaml"));
+        string auditor = File.ReadAllText(Path.Combine(repositoryRoot, "scripts", "audit-state05-wpf.ps1"));
+
+        Assert.Contains("HorizontalContentAlignment=\"Stretch\"", statusMarkup, StringComparison.Ordinal);
+        Assert.DoesNotContain("MaxWidth=", statusMarkup, StringComparison.Ordinal);
+        Assert.Contains("x:Name=\"PillBorder\"", statusMarkup, StringComparison.Ordinal);
+        Assert.Contains("CornerRadius=\"6\"", statusMarkup, StringComparison.Ordinal);
+        Assert.Contains("<Grid MinWidth=\"0\">", statusMarkup, StringComparison.Ordinal);
+        Assert.Contains("<ColumnDefinition Width=\"Auto\" />", statusMarkup, StringComparison.Ordinal);
+        Assert.Contains("<ColumnDefinition Width=\"*\" />", statusMarkup, StringComparison.Ordinal);
+        Assert.Contains("x:Name=\"StatusIcon\"", statusMarkup, StringComparison.Ordinal);
+        Assert.Contains("x:Name=\"StatusText\"", statusMarkup, StringComparison.Ordinal);
+        Assert.Contains("AutomationProperties.AutomationId=\"StatusPill\"", statusMarkup, StringComparison.Ordinal);
+        Assert.Contains("<local:StatusPillTextBlock", statusMarkup, StringComparison.Ordinal);
+        Assert.Contains("AutomationProperties.AutomationId=\"StatusPillText\"", statusMarkup, StringComparison.Ordinal);
+        Assert.DoesNotContain("AutomationProperties.AccessibilityView", statusMarkup, StringComparison.Ordinal);
+        Assert.Contains("TextWrapping=\"Wrap\"", statusMarkup, StringComparison.Ordinal);
+        Assert.Contains("ToolTip=\"{Binding Text, ElementName=Root}\"", statusMarkup, StringComparison.Ordinal);
+        Assert.DoesNotContain("<StackPanel Orientation=\"Horizontal\"", statusMarkup, StringComparison.Ordinal);
+        Assert.Contains("OnCreateAutomationPeer() => new StatusPillAutomationPeer(this)", status, StringComparison.Ordinal);
+        Assert.Contains("sealed class StatusPillAutomationPeer : FrameworkElementAutomationPeer", status, StringComparison.Ordinal);
+        Assert.Contains("GetAutomationControlTypeCore() => AutomationControlType.Text", status, StringComparison.Ordinal);
+        Assert.Contains("GetClassNameCore() => nameof(StatusPill)", status, StringComparison.Ordinal);
+        Assert.Contains("GetNameCore() => ((StatusPill)Owner).Text", status, StringComparison.Ordinal);
+        Assert.Contains("override List<AutomationPeer> GetChildrenCore()", status, StringComparison.Ordinal);
+        Assert.Contains("UIElementAutomationPeer.CreatePeerForElement(((StatusPill)Owner).StatusText)", status, StringComparison.Ordinal);
+        Assert.Contains("sealed class StatusPillTextBlock : TextBlock", status, StringComparison.Ordinal);
+        Assert.Contains("new StatusPillTextAutomationPeer(this)", status, StringComparison.Ordinal);
+        Assert.Contains("IsControlElementCore() => false", status, StringComparison.Ordinal);
+        Assert.Contains("IsContentElementCore() => false", status, StringComparison.Ordinal);
+        Assert.Contains("GetAutomationIdCore() => \"StatusPillText\"", status, StringComparison.Ordinal);
+        Assert.Contains("IsStatusIcon(Icon) ? Icon : SemanticIconKind.Unknown", status, StringComparison.Ordinal);
+        Assert.Contains("private static bool IsStatusIcon", status, StringComparison.Ordinal);
+
+        foreach (string elementName in new[] { "DistributionLayout", "RingViewport", "SegmentCanvas", "Legend" })
+        {
+            Assert.Contains($"x:Name=\"{elementName}\"", distributionMarkup, StringComparison.Ordinal);
+        }
+        Assert.Contains("SizeChanged=\"DistributionSizeChanged\"", distributionMarkup, StringComparison.Ordinal);
+        Assert.Contains("Width=\"126\"", distributionMarkup, StringComparison.Ordinal);
+        Assert.Contains("Height=\"126\"", distributionMarkup, StringComparison.Ordinal);
+        Assert.Contains("Margin=\"0,0,12,0\"", distributionMarkup, StringComparison.Ordinal);
+        Assert.Contains("AutomationProperties.AutomationId=\"ProviderDistributionRingViewport\"", distributionMarkup, StringComparison.Ordinal);
+        Assert.Contains("<local:DistributionRingViewbox", distributionMarkup, StringComparison.Ordinal);
+        Assert.Contains("Width=\"44\" Height=\"44\"", distributionMarkup, StringComparison.Ordinal);
+        Assert.Contains("Canvas.Left=\"6.1\" Canvas.Top=\"6.1\" Width=\"31.8\" Height=\"31.8\"", distributionMarkup, StringComparison.Ordinal);
+        Assert.Contains("StrokeThickness=\"7\"", distributionMarkup, StringComparison.Ordinal);
+        Assert.Contains("TextWrapping=\"Wrap\"", distributionMarkup, StringComparison.Ordinal);
+        Assert.DoesNotContain("CharacterEllipsis", distributionMarkup, StringComparison.Ordinal);
+        Assert.Contains("availableWidth < 220", distribution, StringComparison.Ordinal);
+        Assert.Contains("availableWidth < 300", distribution, StringComparison.Ordinal);
+        Assert.Contains("RingViewport.Width = compact ? 96 : 126", distribution, StringComparison.Ordinal);
+        Assert.Contains("Grid.SetRow(Legend, stacked ? 1 : 0)", distribution, StringComparison.Ordinal);
+        Assert.Contains("Grid.SetColumnSpan(Legend, stacked ? 2 : 1)", distribution, StringComparison.Ordinal);
+        Assert.Contains("new Thickness(0, 8, 0, 0)", distribution, StringComparison.Ordinal);
+        Assert.Contains("int visibleSegmentCount", distribution, StringComparison.Ordinal);
+        Assert.Contains("Math.Min(4d, sweep / 3d)", distribution, StringComparison.Ordinal);
+        Assert.Contains("sealed class DistributionRingViewbox : Viewbox", distribution, StringComparison.Ordinal);
+        Assert.Contains("new DistributionRingViewboxAutomationPeer(this)", distribution, StringComparison.Ordinal);
+        Assert.Contains("GetAutomationIdCore() => \"ProviderDistributionRingViewport\"", distribution, StringComparison.Ordinal);
+        Assert.Contains("IsControlElementCore() => false", distribution, StringComparison.Ordinal);
+        Assert.Contains("IsContentElementCore() => false", distribution, StringComparison.Ordinal);
+
+        Assert.Contains("x:Name=\"ProviderText\"", providerIdentityMarkup, StringComparison.Ordinal);
+        Assert.Contains("TextWrapping=\"Wrap\"", providerIdentityMarkup, StringComparison.Ordinal);
+        Assert.DoesNotContain("TextTrimming=\"CharacterEllipsis\"", providerIdentityMarkup, StringComparison.Ordinal);
+
+        Assert.Contains("x:Name=\"DesktopContentScrollViewer\"", mainWindowMarkup, StringComparison.Ordinal);
+        Assert.Contains("HorizontalScrollBarVisibility=\"Disabled\"", mainWindowMarkup, StringComparison.Ordinal);
+        Assert.Contains("x:Name=\"DesktopContentRoot\"", mainWindowMarkup, StringComparison.Ordinal);
+        Assert.DoesNotContain("RowHeight=\"Auto\"", mainWindowMarkup, StringComparison.Ordinal);
+        Assert.DoesNotContain("ColumnHeaderHeight=\"Auto\"", mainWindowMarkup, StringComparison.Ordinal);
+        Assert.Contains("x:Key=\"DesktopDataGridContent\"", mainWindowMarkup, StringComparison.Ordinal);
+        Assert.Contains("<Setter Property=\"Margin\" Value=\"12,0\" />", mainWindowMarkup, StringComparison.Ordinal);
+        Assert.Contains("<local:AuditableCardBorder x:Name=\"OverviewProvidersPanel\" AutomationProperties.AutomationId=\"OverviewProviderCard\"", mainWindowMarkup, StringComparison.Ordinal);
+        Assert.Contains("<local:AuditableCardBorder AutomationProperties.AutomationId=\"ProvidersRouteDistributionCard\"", mainWindowMarkup, StringComparison.Ordinal);
+        Assert.Contains("sealed class AuditableCardBorder : Border", mainWindow, StringComparison.Ordinal);
+        Assert.Contains("new AuditableCardBorderAutomationPeer(this)", mainWindow, StringComparison.Ordinal);
+        Assert.Contains("IsControlElementCore() => false", mainWindow, StringComparison.Ordinal);
+        Assert.Contains("IsContentElementCore() => false", mainWindow, StringComparison.Ordinal);
+        foreach (string template in new[]
+                 {
+                     "OverviewInventoryDesktopRowTemplate",
+                     "OverviewInventoryCompactRowTemplate",
+                     "InventoryCompactRowTemplate",
+                     "TimelineCompactRowTemplate",
+                     "AlertCompactRowTemplate",
+                     "ConfigurationCompactRowTemplate",
+                     "CapabilityCompactRowTemplate",
+                     "ProviderCatalogueCompactPanel",
+                 })
+        {
+            Assert.Contains($"x:Key=\"{template}\"", mainWindowMarkup, StringComparison.Ordinal);
+        }
+        foreach (string key in new[]
+                 {
+                     "Common.Instance",
+                     "Common.Support",
+                     "Common.Environment",
+                     "Common.ObservedAtUtc",
+                     "Common.Latency",
+                     "Common.State",
+                     "Common.Provider",
+                     "Common.Updated",
+                     "Common.TimeUtc",
+                     "Common.Capability",
+                     "Common.Reason",
+                 })
+        {
+            Assert.Contains($"DynamicResource {key}", mainWindowMarkup, StringComparison.Ordinal);
+        }
+        Assert.Contains("bool compact = availableWidth < 1100", mainWindow, StringComparison.Ordinal);
+        Assert.Contains("OverviewSummaryGrid.Columns = compact ? 2 : 4", mainWindow, StringComparison.Ordinal);
+        Assert.Contains("InventorySummaryGrid.Columns = compact ? 2", mainWindow, StringComparison.Ordinal);
+        Assert.Contains("AlertSummaryGrid.Columns = compact ? 1 : 3", mainWindow, StringComparison.Ordinal);
+        Assert.Contains("DesktopContentRoot.Margin = compact", mainWindow, StringComparison.Ordinal);
+        Assert.Contains("OverviewInventoryList.ItemTemplate = (DataTemplate)FindResource(compact", mainWindow, StringComparison.Ordinal);
+        Assert.Contains("? \"OverviewInventoryCompactRowTemplate\"", mainWindow, StringComparison.Ordinal);
+        Assert.Contains(": \"OverviewInventoryDesktopRowTemplate\"", mainWindow, StringComparison.Ordinal);
+        Assert.Contains("<Border MinHeight=\"76\" Padding=\"14,10\"", mainWindowMarkup, StringComparison.Ordinal);
+        Assert.Contains("<TextBlock Grid.Row=\"1\" Grid.Column=\"1\" Text=\"{Binding LatencyLabel}\"", mainWindowMarkup, StringComparison.Ordinal);
+        Assert.Equal(5, Regex.Count(mainWindow, "ConfigureResponsiveGrid\\(", RegexOptions.CultureInvariant) - 1);
+        Assert.Contains("ScrollViewer.SetHorizontalScrollBarVisibility(grid, compact", mainWindow, StringComparison.Ordinal);
+        Assert.Contains("ScrollBarVisibility.Disabled", mainWindow, StringComparison.Ordinal);
+        Assert.Contains("ProviderCatalogueCompactPanel", mainWindow, StringComparison.Ordinal);
+
+        foreach (string auditorContract in new[]
+                 {
+                     "Find-AuditNamedElement",
+                     "Find-AuditVisibleNamedElement",
+                     "Find-AuditNamedElementByAutomationId",
+                     "Find-AuditRawNamedElementByAutomationId",
+                     "Find-AuditRawElementByAutomationId",
+                     "Get-AuditRawDescendants",
+                     "Get-AuditDesktopGridGeometryEvidence",
+                     "Test-AuditOwnsElement",
+                     "Test-AuditVisualRow",
+                     "Test-AuditVerticalStack",
+                     "Test-AuditVerticalOrder",
+                     "compactKeys",
+                     "horizontalViewSize",
+                     "horizontalScrollPercent",
+                     "pillContent",
+                     "compactLayout",
+                     "compactRecords",
+                     "verticalReachability",
+                     "providerDistribution",
+                     "desktopTableGeometry",
+                     "focusTargets",
+                     "requiredGlobalFocus",
+                     "dbnotifier.r6-ui1-audit.v1",
+                 })
+        {
+            Assert.Contains(auditorContract, auditor, StringComparison.Ordinal);
+        }
+        Assert.Contains("$SampleWidth -eq 820", auditor, StringComparison.Ordinal);
+        Assert.Contains("[System.Windows.Automation.ScrollPattern]::NoScroll", auditor, StringComparison.Ordinal);
+        Assert.Equal(2, Regex.Count(auditor, "key = \"Status.Disabled\"", RegexOptions.CultureInvariant));
+        Assert.Contains("AutomationId \"StatusPill\" -Name $pillName", auditor, StringComparison.Ordinal);
+        Assert.Contains("AutomationId \"StatusPillText\" -Name $pillName", auditor, StringComparison.Ordinal);
+        Assert.Contains("[System.Windows.Automation.TreeWalker]::RawViewWalker", auditor, StringComparison.Ordinal);
+        Assert.Contains("ProviderDistributionRingViewport", auditor, StringComparison.Ordinal);
+        Assert.Contains("ringViewportBounds", auditor, StringComparison.Ordinal);
+        Assert.Contains("ringViewportMargins", auditor, StringComparison.Ordinal);
+        Assert.Contains("OverviewProviderCard", auditor, StringComparison.Ordinal);
+        Assert.Contains("ProvidersRouteDistributionCard", auditor, StringComparison.Ordinal);
+        Assert.Contains("cardBounds", auditor, StringComparison.Ordinal);
+        Assert.Contains("minimumIntercolumnGap", auditor, StringComparison.Ordinal);
+        Assert.Contains("firstContentGutter", auditor, StringComparison.Ordinal);
+        Assert.Contains("lastContentGutter", auditor, StringComparison.Ordinal);
+        Assert.Contains("containedByViewport", auditor, StringComparison.Ordinal);
+        Assert.Contains("bounded-visible-row", auditor, StringComparison.Ordinal);
+        Assert.Contains("visibleIntersectionHeight", auditor, StringComparison.Ordinal);
+        Assert.Contains("minimumVisibleHeight", auditor, StringComparison.Ordinal);
+        Assert.Contains("Test-AuditHorizontalContainment -Child $focusedRectangle", auditor, StringComparison.Ordinal);
+        Assert.Contains("[ValidateRange(1, 512)][int]$MaximumNodes = 128", auditor, StringComparison.Ordinal);
+        Assert.Contains("complete content containment cannot be proved", auditor, StringComparison.Ordinal);
+        Assert.Contains("Get-AuditCompactGridEvidence", auditor, StringComparison.Ordinal);
+        Assert.Contains("horizontallyScrollable", auditor, StringComparison.Ordinal);
+        Assert.Contains("headerCount", auditor, StringComparison.Ordinal);
+        Assert.Contains("inventoryGridCompact", auditor, StringComparison.Ordinal);
+        Assert.Contains("alertsGridCompact", auditor, StringComparison.Ordinal);
+        Assert.Contains("historyGridCompact", auditor, StringComparison.Ordinal);
+        Assert.Contains("configurationGridCompact", auditor, StringComparison.Ordinal);
+        Assert.Contains("capabilityGridCompact", auditor, StringComparison.Ordinal);
+        Assert.DoesNotContain("Get-AuditGridColumnCount", auditor, StringComparison.Ordinal);
+        Assert.Contains("summaryPrecedesRecords", auditor, StringComparison.Ordinal);
+        Assert.Contains("configurationPrecedesPermission", auditor, StringComparison.Ordinal);
+        Assert.Contains("permissionPrecedesCapabilities", auditor, StringComparison.Ordinal);
+        Assert.Contains("DBNotifier-R6-UI1-Audit-", auditor, StringComparison.Ordinal);
+        Assert.Contains("\"--test-subject\", \"r6-ui1-audit\"", auditor, StringComparison.Ordinal);
+        Assert.Contains("r6-ui1-wpf-audit.json", auditor, StringComparison.Ordinal);
     }
 
     /// <summary>Ensures the existing WPF runner covers the authorised matrix, restores preferences and never enters the notification-producing close path.</summary>

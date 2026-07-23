@@ -56,7 +56,7 @@ $TemporaryRoot = [System.IO.Path]::GetFullPath([System.IO.Path]::GetTempPath()).
 $Root = Split-Path -Parent $PSScriptRoot
 $Executable = Join-Path $Root "src/DBNotifier.Desktop.Wpf/bin/Release/net10.0-windows10.0.22621.0/DBNotifier.Desktop.Wpf.exe"
 $PreferencePath = Join-Path ([Environment]::GetFolderPath([Environment+SpecialFolder]::LocalApplicationData)) "DB-Notifier/ui-preferences.v1.json"
-$EvidenceRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("DBNotifier-R6-WPF2-Audit-" + [Guid]::NewGuid().ToString("N"))
+$EvidenceRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("DBNotifier-R6-UI1-Audit-" + [Guid]::NewGuid().ToString("N"))
 
 if (-not (Test-Path -LiteralPath $Executable -PathType Leaf)) {
     throw "Build the Release WPF application before running this audit."
@@ -92,6 +92,259 @@ function Find-AuditElement {
         [System.Windows.Automation.AutomationElement]::AutomationIdProperty,
         $AutomationId)
     return $Window.FindFirst([System.Windows.Automation.TreeScope]::Descendants, $condition)
+}
+
+# Finds one descendant by its exact localised accessible name.
+function Find-AuditNamedElement {
+    param(
+        [Parameter(Mandatory = $true)][System.Windows.Automation.AutomationElement]$Owner,
+        [Parameter(Mandatory = $true)][string]$Name
+    )
+    $condition = [System.Windows.Automation.PropertyCondition]::new(
+        [System.Windows.Automation.AutomationElement]::NameProperty,
+        $Name)
+    return $Owner.FindFirst([System.Windows.Automation.TreeScope]::Descendants, $condition)
+}
+
+# Finds the first positive on-screen descendant when an exact name is repeated by collapsed route surfaces.
+function Find-AuditVisibleNamedElement {
+    param(
+        [Parameter(Mandatory = $true)][System.Windows.Automation.AutomationElement]$Owner,
+        [Parameter(Mandatory = $true)][string]$Name
+    )
+    $condition = [System.Windows.Automation.PropertyCondition]::new(
+        [System.Windows.Automation.AutomationElement]::NameProperty,
+        $Name)
+    $matches = $Owner.FindAll([System.Windows.Automation.TreeScope]::Descendants, $condition)
+    foreach ($match in $matches) {
+        $rectangle = Get-AuditRectangle -Element $match
+        if (-not $match.Current.IsOffscreen -and $rectangle.width -gt 0 -and $rectangle.height -gt 0) {
+            return $match
+        }
+    }
+    return $null
+}
+
+# Finds one descendant that exposes both a stable component identifier and its complete localised name.
+function Find-AuditNamedElementByAutomationId {
+    param(
+        [Parameter(Mandatory = $true)][System.Windows.Automation.AutomationElement]$Owner,
+        [Parameter(Mandatory = $true)][string]$AutomationId,
+        [Parameter(Mandatory = $true)][string]$Name
+    )
+    $condition = [System.Windows.Automation.AndCondition]::new(
+        [System.Windows.Automation.PropertyCondition]::new(
+            [System.Windows.Automation.AutomationElement]::AutomationIdProperty,
+            $AutomationId),
+        [System.Windows.Automation.PropertyCondition]::new(
+            [System.Windows.Automation.AutomationElement]::NameProperty,
+            $Name))
+    return $Owner.FindFirst([System.Windows.Automation.TreeScope]::Descendants, $condition)
+}
+
+# Traverses a bounded raw-view subtree so diagnostic-only peers remain measurable without entering the screen-reader views.
+function Find-AuditRawNamedElementByAutomationId {
+    param(
+        [Parameter(Mandatory = $true)][System.Windows.Automation.AutomationElement]$Owner,
+        [Parameter(Mandatory = $true)][string]$AutomationId,
+        [Parameter(Mandatory = $true)][string]$Name,
+        [ValidateRange(1, 512)][int]$MaximumNodes = 128
+    )
+    $walker = [System.Windows.Automation.TreeWalker]::RawViewWalker
+    $queue = [System.Collections.Generic.Queue[System.Windows.Automation.AutomationElement]]::new()
+    $firstChild = $walker.GetFirstChild($Owner)
+    if ($null -ne $firstChild) { $queue.Enqueue($firstChild) }
+    $visited = 0
+    while ($queue.Count -gt 0 -and $visited -lt $MaximumNodes) {
+        $current = $queue.Dequeue()
+        $visited += 1
+        if ([string]::Equals($current.Current.AutomationId, $AutomationId, [StringComparison]::Ordinal) -and
+            [string]::Equals($current.Current.Name, $Name, [StringComparison]::Ordinal)) {
+            return $current
+        }
+        $child = $walker.GetFirstChild($current)
+        if ($null -ne $child) { $queue.Enqueue($child) }
+        $sibling = $walker.GetNextSibling($current)
+        if ($null -ne $sibling) { $queue.Enqueue($sibling) }
+    }
+    return $null
+}
+
+# Traverses a bounded raw-view subtree for a stable identifier whose peer is intentionally absent from ControlView.
+function Find-AuditRawElementByAutomationId {
+    param(
+        [Parameter(Mandatory = $true)][System.Windows.Automation.AutomationElement]$Owner,
+        [Parameter(Mandatory = $true)][string]$AutomationId,
+        [ValidateRange(1, 1024)][int]$MaximumNodes = 512
+    )
+    $walker = [System.Windows.Automation.TreeWalker]::RawViewWalker
+    $queue = [System.Collections.Generic.Queue[System.Windows.Automation.AutomationElement]]::new()
+    $firstChild = $walker.GetFirstChild($Owner)
+    if ($null -ne $firstChild) { $queue.Enqueue($firstChild) }
+    $visited = 0
+    while ($queue.Count -gt 0 -and $visited -lt $MaximumNodes) {
+        $current = $queue.Dequeue()
+        $visited += 1
+        if ([string]::Equals($current.Current.AutomationId, $AutomationId, [StringComparison]::Ordinal)) {
+            return $current
+        }
+        $child = $walker.GetFirstChild($current)
+        if ($null -ne $child) { $queue.Enqueue($child) }
+        $sibling = $walker.GetNextSibling($current)
+        if ($null -ne $sibling) { $queue.Enqueue($sibling) }
+    }
+    return $null
+}
+
+# Returns bounded raw-view descendants so generated DataGrid cells can prove their actual content gutters.
+function Get-AuditRawDescendants {
+    param(
+        [Parameter(Mandatory = $true)][System.Windows.Automation.AutomationElement]$Owner,
+        [ValidateRange(1, 1024)][int]$MaximumNodes = 128
+    )
+    $walker = [System.Windows.Automation.TreeWalker]::RawViewWalker
+    $queue = [System.Collections.Generic.Queue[System.Windows.Automation.AutomationElement]]::new()
+    $result = [System.Collections.Generic.List[System.Windows.Automation.AutomationElement]]::new()
+    $firstChild = $walker.GetFirstChild($Owner)
+    if ($null -ne $firstChild) { $queue.Enqueue($firstChild) }
+    while ($queue.Count -gt 0 -and $result.Count -lt $MaximumNodes) {
+        $current = $queue.Dequeue()
+        $result.Add($current)
+        $child = $walker.GetFirstChild($current)
+        if ($null -ne $child) { $queue.Enqueue($child) }
+        $sibling = $walker.GetNextSibling($current)
+        if ($null -ne $sibling) { $queue.Enqueue($sibling) }
+    }
+    return @($result)
+}
+
+# Records whether one responsive DataGrid exposes its headerless, non-horizontal compact presentation.
+function Get-AuditCompactGridEvidence {
+    param([Parameter(Mandatory = $true)][System.Windows.Automation.AutomationElement]$Element)
+    $scrollPatternObject = $null
+    $scrollPatternAvailable = $Element.TryGetCurrentPattern(
+        [System.Windows.Automation.ScrollPattern]::Pattern,
+        [ref]$scrollPatternObject)
+    $horizontallyScrollable = $null
+    if ($scrollPatternAvailable) {
+        $horizontallyScrollable = ([System.Windows.Automation.ScrollPattern]$scrollPatternObject).Current.HorizontallyScrollable
+    }
+    $headerCondition = [System.Windows.Automation.OrCondition]::new(
+        [System.Windows.Automation.PropertyCondition]::new(
+            [System.Windows.Automation.AutomationElement]::ControlTypeProperty,
+            [System.Windows.Automation.ControlType]::Header),
+        [System.Windows.Automation.PropertyCondition]::new(
+            [System.Windows.Automation.AutomationElement]::ControlTypeProperty,
+            [System.Windows.Automation.ControlType]::HeaderItem))
+    $headerCount = $Element.FindAll([System.Windows.Automation.TreeScope]::Descendants, $headerCondition).Count
+    return [ordered]@{
+        scrollPatternAvailable = $scrollPatternAvailable
+        horizontallyScrollable = $horizontallyScrollable
+        headerCount = $headerCount
+        compact = $scrollPatternAvailable -and -not $horizontallyScrollable -and $headerCount -eq 0
+    }
+}
+
+# Measures the first desktop DataGrid record by its generated cells and their named raw content.
+function Get-AuditDesktopGridGeometryEvidence {
+    param(
+        [Parameter(Mandatory = $true)][System.Windows.Automation.AutomationElement]$Element,
+        [Parameter(Mandatory = $true)][int]$ExpectedColumns,
+        [Parameter(Mandatory = $true)][double]$Scale
+    )
+    $gridPatternObject = $null
+    $gridPatternAvailable = $Element.TryGetCurrentPattern(
+        [System.Windows.Automation.GridPattern]::Pattern,
+        [ref]$gridPatternObject)
+    $evidence = [ordered]@{
+        gridPatternAvailable = $gridPatternAvailable
+        rowCount = 0
+        columnCount = 0
+        expectedColumns = $ExpectedColumns
+        minimumRequiredGutter = [Math]::Round(4 * $Scale, 3)
+        firstContentGutter = $null
+        lastContentGutter = $null
+        minimumIntercolumnGap = $null
+        cells = @()
+        passed = $false
+    }
+    if (-not $gridPatternAvailable) { return $evidence }
+
+    $gridPattern = [System.Windows.Automation.GridPattern]$gridPatternObject
+    $evidence.rowCount = $gridPattern.Current.RowCount
+    $evidence.columnCount = $gridPattern.Current.ColumnCount
+    if ($evidence.rowCount -lt 1 -or $evidence.columnCount -lt $ExpectedColumns) { return $evidence }
+
+    $contentRectangles = @()
+    $allContentVisible = $true
+    for ($column = 0; $column -lt $ExpectedColumns; $column += 1) {
+        $cell = $gridPattern.GetItem(0, $column)
+        $cellRectangle = Get-AuditRectangle -Element $cell
+        $rawContentRectangles = @(
+            Get-AuditRawDescendants -Owner $cell | ForEach-Object {
+                $candidateRectangle = Get-AuditRectangle -Element $_
+                if (-not $_.Current.IsOffscreen -and
+                    -not [string]::IsNullOrWhiteSpace($_.Current.Name) -and
+                    $candidateRectangle.width -gt 0 -and $candidateRectangle.height -gt 0 -and
+                    (Test-AuditContainment -Child $candidateRectangle -Owner $cellRectangle -Tolerance 1)) {
+                    $candidateRectangle
+                }
+            })
+        $contentRectangle = if ($rawContentRectangles.Count -gt 0) {
+            Get-AuditRectangleUnion -Rectangles $rawContentRectangles
+        }
+        else {
+            $null
+        }
+        $contentVisible = $null -ne $contentRectangle -and
+            -not $cellRectangle.offscreen -and
+            (Test-AuditContainment -Child $contentRectangle -Owner $cellRectangle -Tolerance 1)
+        if (-not $contentVisible) { $allContentVisible = $false }
+        $contentRectangles += $contentRectangle
+        $evidence.cells += [ordered]@{
+            column = $column
+            cellBounds = $cellRectangle
+            contentBounds = $contentRectangle
+            contentVisible = $contentVisible
+        }
+    }
+
+    if (-not $allContentVisible) { return $evidence }
+    $firstCell = $evidence.cells[0].cellBounds
+    $firstContent = $evidence.cells[0].contentBounds
+    $lastCell = $evidence.cells[$ExpectedColumns - 1].cellBounds
+    $lastContent = $evidence.cells[$ExpectedColumns - 1].contentBounds
+    $evidence.firstContentGutter = [Math]::Round([double]$firstContent.x - [double]$firstCell.x, 3)
+    $evidence.lastContentGutter = [Math]::Round(
+        ([double]$lastCell.x + [double]$lastCell.width) - ([double]$lastContent.x + [double]$lastContent.width),
+        3)
+    $minimumGap = [double]::PositiveInfinity
+    for ($column = 1; $column -lt $ExpectedColumns; $column += 1) {
+        $previous = $contentRectangles[$column - 1]
+        $current = $contentRectangles[$column]
+        $gap = [double]$current.x - ([double]$previous.x + [double]$previous.width)
+        $minimumGap = [Math]::Min($minimumGap, $gap)
+    }
+    $evidence.minimumIntercolumnGap = [Math]::Round($minimumGap, 3)
+    $minimumRequiredGutter = [double]$evidence.minimumRequiredGutter
+    $evidence.passed = $evidence.firstContentGutter -ge $minimumRequiredGutter -and
+        $evidence.lastContentGutter -ge $minimumRequiredGutter -and
+        $evidence.minimumIntercolumnGap -ge ($minimumRequiredGutter * 2)
+    return $evidence
+}
+
+# Determines whether a focused element is the requested owner or one of its control-view descendants.
+function Test-AuditOwnsElement {
+    param(
+        [Parameter(Mandatory = $true)][System.Windows.Automation.AutomationElement]$Owner,
+        [Parameter(Mandatory = $true)][System.Windows.Automation.AutomationElement]$Candidate
+    )
+    $current = $Candidate
+    while ($null -ne $current) {
+        if ([System.Windows.Automation.Automation]::Compare($Owner, $current)) { return $true }
+        $current = [System.Windows.Automation.TreeWalker]::ControlViewWalker.GetParent($current)
+    }
+    return $false
 }
 
 # Returns a serialisable finite rectangle for geometry evidence.
@@ -133,6 +386,80 @@ function Test-AuditHorizontalContainment {
     return $Child.width -gt 0 -and
         $Child.x -ge ($Owner.x - $Tolerance) -and
         ($Child.x + $Child.width) -le ($Owner.x + $Owner.width + $Tolerance)
+}
+
+# Unions positive finite rectangles so a textual legend can provide runtime evidence for its reserved chart area.
+function Get-AuditRectangleUnion {
+    param([Parameter(Mandatory = $true)][object[]]$Rectangles)
+    $usable = @($Rectangles | Where-Object {
+        $null -ne $_ -and $_.width -gt 0 -and $_.height -gt 0 -and
+        -not [double]::IsNaN([double]$_.x) -and -not [double]::IsNaN([double]$_.y)
+    })
+    if ($usable.Count -eq 0) { return $null }
+    $left = [double]::PositiveInfinity
+    $top = [double]::PositiveInfinity
+    $right = [double]::NegativeInfinity
+    $bottom = [double]::NegativeInfinity
+    foreach ($rectangle in $usable) {
+        $left = [Math]::Min($left, [double]$rectangle.x)
+        $top = [Math]::Min($top, [double]$rectangle.y)
+        $right = [Math]::Max($right, [double]$rectangle.x + [double]$rectangle.width)
+        $bottom = [Math]::Max($bottom, [double]$rectangle.y + [double]$rectangle.height)
+    }
+    return [ordered]@{ x = $left; y = $top; width = $right - $left; height = $bottom - $top; offscreen = $false }
+}
+
+# Verifies that a set of controls forms one non-overlapping visual row with comparable widths.
+function Test-AuditVisualRow {
+    param(
+        [Parameter(Mandatory = $true)][object[]]$Rectangles,
+        [Parameter(Mandatory = $true)][double]$Tolerance
+    )
+    if ($Rectangles.Count -lt 2 -or @($Rectangles | Where-Object { $null -eq $_ -or $_.width -le 0 -or $_.height -le 0 }).Count -gt 0) {
+        return $false
+    }
+    $referenceY = [double]$Rectangles[0].y
+    for ($index = 0; $index -lt $Rectangles.Count; $index += 1) {
+        if ([Math]::Abs([double]$Rectangles[$index].y - $referenceY) -gt $Tolerance) { return $false }
+        if ($index -gt 0 -and [double]$Rectangles[$index - 1].x + [double]$Rectangles[$index - 1].width -gt [double]$Rectangles[$index].x + $Tolerance) {
+            return $false
+        }
+    }
+    $minimumWidth = [double]::PositiveInfinity
+    $maximumWidth = 0d
+    foreach ($rectangle in $Rectangles) {
+        $minimumWidth = [Math]::Min($minimumWidth, [double]$rectangle.width)
+        $maximumWidth = [Math]::Max($maximumWidth, [double]$rectangle.width)
+    }
+    return $minimumWidth -gt 0 -and ($maximumWidth / $minimumWidth) -le 1.2
+}
+
+# Verifies that a later compact block starts below an earlier block and returns to the same left edge.
+function Test-AuditVerticalStack {
+    param(
+        [Parameter(Mandatory = $true)]$First,
+        [Parameter(Mandatory = $true)]$Second,
+        [Parameter(Mandatory = $true)][double]$Tolerance
+    )
+    if ($null -eq $First -or $null -eq $Second -or $First.width -le 0 -or $Second.width -le 0) { return $false }
+    return [Math]::Abs([double]$First.x - [double]$Second.x) -le $Tolerance -and
+        [double]$Second.y -ge ([double]$First.y + [double]$First.height - $Tolerance) -and
+        [Math]::Abs([double]$First.width - [double]$Second.width) -le [Math]::Max($Tolerance, [double]$First.width * 0.08)
+}
+
+# Verifies that a compact row or section follows another without requiring equal horizontal dimensions.
+function Test-AuditVerticalOrder {
+    param(
+        [Parameter(Mandatory = $true)]$First,
+        [Parameter(Mandatory = $true)]$Second,
+        [Parameter(Mandatory = $true)][double]$Tolerance,
+        [switch]$RequireAlignedLeft
+    )
+    if ($null -eq $First -or $null -eq $Second -or $First.width -le 0 -or $First.height -le 0 -or $Second.width -le 0 -or $Second.height -le 0) {
+        return $false
+    }
+    if ($RequireAlignedLeft -and [Math]::Abs([double]$First.x - [double]$Second.x) -gt $Tolerance) { return $false }
+    return [double]$Second.y -ge ([double]$First.y + [double]$First.height - $Tolerance)
 }
 
 # Captures only the identified DB Notifier window and returns its path and SHA-256 digest.
@@ -214,14 +541,117 @@ function Get-UnboundLoopbackUri {
 }
 
 $Routes = @(
-    [ordered]@{ id = "Overview"; titleKey = "View.Overview.Title"; components = @("OverviewTotalCard", "OverviewHealthyCard", "OverviewWarningCard", "OverviewCriticalCard", "OverviewInventoryList", "OverviewAlertList", "OverviewPerformanceChart", "OverviewProviderDistribution") },
-    [ordered]@{ id = "Inventory"; titleKey = "View.Inventory.Title"; components = @("InventoryTotalCard", "InventoryHealthyCard", "InventoryDegradedCard", "InventoryAttentionCard", "InventoryStaleCard", "InventoryDisabledCard", "InventoryGrid") },
-    [ordered]@{ id = "Alerts"; titleKey = "View.Alerts.Title"; components = @("AlertCriticalCard", "AlertActiveCard", "AlertTotalCard", "AlertsGrid") },
-    [ordered]@{ id = "Performance"; titleKey = "View.Performance.Title"; components = @("PerformanceRouteChart") },
-    [ordered]@{ id = "History"; titleKey = "View.History.Title"; components = @("HistoryGrid", "HistorySummaryText") },
-    [ordered]@{ id = "Configuration"; titleKey = "View.Configuration.Title"; components = @("ConfigurationGrid", "CapabilityGrid", "PermissionSelector") },
-    [ordered]@{ id = "Providers"; titleKey = "View.Providers.Title"; components = @("ProvidersDistribution", "ProviderCatalogueList") },
-    [ordered]@{ id = "Settings"; titleKey = "View.Settings.Title"; components = @("SettingsPreferenceTitleText", "SettingsLanguageText", "SettingsThemeText", "SettingsNotificationTitleText") }
+    [ordered]@{
+        id = "Overview"; titleKey = "View.Overview.Title"
+        components = @("OverviewTotalCard", "OverviewHealthyCard", "OverviewWarningCard", "OverviewCriticalCard", "OverviewInventoryList", "OverviewAlertList", "OverviewPerformanceChart", "OverviewProviderDistribution")
+        fieldGroups = @()
+        compactRecords = @([ordered]@{
+            owner = "OverviewInventoryList"
+            values = @(
+                [ordered]@{ label = "headline"; key = "Sample.Instance.Finance" },
+                [ordered]@{ label = "provider"; value = "postgresql" },
+                [ordered]@{ label = "latency"; value = "24 ms" })
+        })
+        focusTargets = @(); distribution = "OverviewProviderDistribution"
+        pillGroup = [ordered]@{ owner = "OverviewInventoryList"; key = "Status.Disabled" }
+    },
+    [ordered]@{
+        id = "Inventory"; titleKey = "View.Inventory.Title"
+        components = @("InventoryTotalCard", "InventoryHealthyCard", "InventoryDegradedCard", "InventoryAttentionCard", "InventoryStaleCard", "InventoryDisabledCard", "InventoryGrid")
+        fieldGroups = @([ordered]@{
+            owner = "InventoryGrid"
+            keys = @("Common.Instance", "Common.Provider", "Common.Support", "Common.Environment", "Common.Status", "Common.ObservedAtUtc", "Common.Latency")
+            compactKeys = @("Common.Instance", "Common.Support", "Common.Environment", "Common.ObservedAtUtc", "Common.Latency")
+        })
+        compactRecords = @([ordered]@{
+            owner = "InventoryGrid"
+            values = @(
+                [ordered]@{ label = "headline"; key = "Sample.Instance.Finance" },
+                [ordered]@{ label = "summary"; key = "Sample.Support.Implemented" },
+                [ordered]@{ label = "provider"; value = "postgresql" })
+        })
+        focusTargets = @("InventoryGrid"); distribution = $null
+        pillGroup = [ordered]@{ owner = "InventoryGrid"; key = "Status.Disabled" }
+    },
+    [ordered]@{
+        id = "Alerts"; titleKey = "View.Alerts.Title"
+        components = @("AlertCriticalCard", "AlertActiveCard", "AlertTotalCard", "AlertsGrid")
+        fieldGroups = @([ordered]@{
+            owner = "AlertsGrid"
+            keys = @("Common.Severity", "Common.State", "Common.Rule", "Common.Instance", "Common.Provider", "Common.Summary", "Common.Updated")
+            compactKeys = @("Common.State", "Common.Instance", "Common.Provider", "Common.Updated")
+        })
+        compactRecords = @([ordered]@{
+            owner = "AlertsGrid"
+            values = @(
+                [ordered]@{ label = "headline"; key = "Sample.Alert.TimeoutRule" },
+                [ordered]@{ label = "summary"; key = "Sample.Alert.TimeoutSummary" },
+                [ordered]@{ label = "provider"; value = "sql-server" })
+        })
+        focusTargets = @("AlertsGrid"); distribution = $null
+        pillGroup = [ordered]@{ owner = "AlertsGrid"; key = "Severity.Critical" }
+    },
+    [ordered]@{
+        id = "Performance"; titleKey = "View.Performance.Title"; components = @("PerformanceRouteChart")
+        fieldGroups = @(); compactRecords = @(); focusTargets = @(); distribution = $null; pillGroup = $null
+    },
+    [ordered]@{
+        id = "History"; titleKey = "View.History.Title"; components = @("HistoryGrid", "HistorySummaryText")
+        fieldGroups = @([ordered]@{
+            owner = "HistoryGrid"
+            keys = @("Common.TimeUtc", "Common.Severity", "Common.Event", "Common.Instance", "Common.Provider", "Common.Summary")
+            compactKeys = @("Common.TimeUtc", "Common.Instance", "Common.Provider")
+        })
+        compactRecords = @([ordered]@{
+            owner = "HistoryGrid"
+            values = @(
+                [ordered]@{ label = "headline"; value = "Recovered" },
+                [ordered]@{ label = "summary"; key = "Sample.Event.Recovered" },
+                [ordered]@{ label = "provider"; value = "postgresql" })
+        })
+        focusTargets = @("HistoryGrid"); distribution = $null
+        pillGroup = [ordered]@{ owner = "HistoryGrid"; key = "Severity.Critical" }
+    },
+    [ordered]@{
+        id = "Configuration"; titleKey = "View.Configuration.Title"; components = @("ConfigurationGrid", "CapabilityGrid", "PermissionSelector")
+        fieldGroups = @(
+            [ordered]@{
+                owner = "ConfigurationGrid"; keys = @("Common.Field", "Common.SafeValue", "Common.Description")
+                compactKeys = @("Sample.Config.Interval.Label", "Sample.Config.Timeout.Label", "Sample.Config.Retry.Label", "Sample.Config.Credential.Label")
+            },
+            [ordered]@{
+                owner = "CapabilityGrid"; keys = @("Common.Action", "Common.Capability", "Common.State", "Common.Reason")
+                compactKeys = @("Common.Capability", "Common.Reason")
+            })
+        compactRecords = @(
+            [ordered]@{
+                owner = "ConfigurationGrid"
+                values = @(
+                    [ordered]@{ label = "headline"; key = "Sample.Config.Interval.Label" },
+                    [ordered]@{ label = "value"; key = "Sample.Config.Interval.Value" },
+                    [ordered]@{ label = "summary"; key = "Sample.Config.Interval.Description" })
+            },
+            [ordered]@{
+                owner = "CapabilityGrid"
+                values = @(
+                    [ordered]@{ label = "headline"; key = "Action.Start" },
+                    [ordered]@{ label = "state"; key = "Configuration.Unsupported" },
+                    [ordered]@{ label = "summary"; value = "provider.control_unsupported" })
+            },
+            [ordered]@{
+                owner = "__window"
+                values = @([ordered]@{ label = "provider"; value = "postgresql" })
+            })
+        focusTargets = @("ConfigurationGrid", "PermissionSelector", "CapabilityGrid"); distribution = $null; pillGroup = $null
+    },
+    [ordered]@{
+        id = "Providers"; titleKey = "View.Providers.Title"; components = @("ProvidersDistribution", "ProviderCatalogueList")
+        fieldGroups = @(); compactRecords = @(); focusTargets = @(); distribution = "ProvidersDistribution"; pillGroup = $null
+    },
+    [ordered]@{
+        id = "Settings"; titleKey = "View.Settings.Title"; components = @("SettingsPreferenceTitleText", "SettingsLanguageText", "SettingsThemeText", "SettingsNotificationTitleText")
+        fieldGroups = @(); compactRecords = @(); focusTargets = @(); distribution = $null; pillGroup = $null
+    }
 )
 
 # Runs one locale, theme and native-window-size sample across all eight presentation routes.
@@ -258,7 +688,7 @@ function Invoke-WpfAuditSample {
             "--api-base", $apiBase,
             "--state-directory", ('"' + $stateDirectory + '"'),
             "--test-certificate-thumbprint", ("A" * 64),
-            "--test-subject", "r6-wpf2-audit"
+            "--test-subject", "r6-ui1-audit"
         )
         if ($ReviewComboBoxOverflow) { $arguments += "--review-combobox-overflow" }
         $process = Start-Process -FilePath $Executable -ArgumentList $arguments -PassThru
@@ -322,15 +752,29 @@ function Invoke-WpfAuditSample {
             if ($currentNavigationCount -ne 1 -or [string]::IsNullOrWhiteSpace($navigation.Current.ItemStatus)) {
                 $routeFailures.Add("The current-route indication was not unique and textual.")
             }
+            if (-not $navigation.Current.IsKeyboardFocusable -or [string]::IsNullOrWhiteSpace($navigation.Current.Name)) {
+                $routeFailures.Add("The current navigation destination is not a named keyboard focus target.")
+            }
 
-            $outerScroll = [ordered]@{ horizontallyScrollable = $false; verticallyScrollable = $false; verticalViewSize = 100 }
+            $outerScroll = [ordered]@{
+                horizontallyScrollable = $false
+                horizontalViewSize = 100
+                horizontalScrollPercent = [System.Windows.Automation.ScrollPattern]::NoScroll
+                verticallyScrollable = $false
+                verticalViewSize = 100
+            }
             $scroll = $null
-            if ($null -ne $contentScroller) {
+            if ($null -eq $contentScroller) {
+                $routeFailures.Add("The owning content scroller is absent, so page overflow cannot be proved bounded.")
+            }
+            else {
                 $scrollObject = $null
                 if ($contentScroller.TryGetCurrentPattern([System.Windows.Automation.ScrollPattern]::Pattern, [ref]$scrollObject)) {
                     $scroll = [System.Windows.Automation.ScrollPattern]$scrollObject
                     $outerScroll = [ordered]@{
                         horizontallyScrollable = $scroll.Current.HorizontallyScrollable
+                        horizontalViewSize = $scroll.Current.HorizontalViewSize
+                        horizontalScrollPercent = $scroll.Current.HorizontalScrollPercent
                         verticallyScrollable = $scroll.Current.VerticallyScrollable
                         verticalViewSize = $scroll.Current.VerticalViewSize
                     }
@@ -338,6 +782,15 @@ function Invoke-WpfAuditSample {
                         $routeFailures.Add("The outer content surface exposed forbidden horizontal scrolling.")
                     }
                 }
+                elseif ($SampleWidth -eq 820) {
+                    $routeFailures.Add("The 820-DIP sample exposed no ScrollPattern evidence for the owning content surface.")
+                }
+            }
+            if ($SampleWidth -eq 820 -and
+                ($outerScroll.horizontallyScrollable -or
+                 [double]$outerScroll.horizontalViewSize -lt 99.9 -or
+                 [double]$outerScroll.horizontalScrollPercent -ne [System.Windows.Automation.ScrollPattern]::NoScroll)) {
+                $routeFailures.Add("The 820-DIP page did not retain a complete non-horizontal outer viewport.")
             }
             $contentRectangle = if ($null -ne $contentScroller) { Get-AuditRectangle -Element $contentScroller } else { $windowRectangle }
             $deferredComponentIds = [System.Collections.Generic.List[string]]::new()
@@ -351,6 +804,9 @@ function Invoke-WpfAuditSample {
                 }
                 $rectangle = Get-AuditRectangle -Element $component
                 $componentBounds[$componentId] = $rectangle
+                if ([string]::IsNullOrWhiteSpace($component.Current.Name)) {
+                    $routeFailures.Add("Required component '$componentId' has no accessible name.")
+                }
                 if (-not (Test-AuditHorizontalContainment -Child $rectangle -Owner $contentRectangle)) {
                     $routeFailures.Add("Component '$componentId' is horizontally clipped outside the content viewport.")
                 }
@@ -361,6 +817,203 @@ function Invoke-WpfAuditSample {
                     elseif (-not $rectangle.offscreen) {
                         $routeFailures.Add("Visible component '$componentId' is clipped outside the content viewport.")
                     }
+                }
+            }
+
+            $fieldEvidence = [ordered]@{}
+            $desktopTableGeometry = [ordered]@{}
+            foreach ($fieldGroup in $route.fieldGroups) {
+                $owner = Find-AuditElement -Window $window -AutomationId $fieldGroup.owner
+                if ($null -eq $owner) {
+                    $routeFailures.Add("Accessible field owner '$($fieldGroup.owner)' is absent.")
+                    continue
+                }
+                $fields = [ordered]@{}
+                $requiredFieldKeys = if ($SampleWidth -eq 820 -and $fieldGroup.Contains("compactKeys")) {
+                    @($fieldGroup.compactKeys)
+                }
+                else {
+                    @($fieldGroup.keys)
+                }
+                foreach ($fieldKey in $requiredFieldKeys) {
+                    $fieldName = [string]$messages[$fieldKey]
+                    $field = Find-AuditNamedElement -Owner $owner -Name $fieldName
+                    $fields[$fieldKey] = $null -ne $field
+                    if ($null -eq $field) {
+                        $routeFailures.Add("Required accessible field '$fieldKey' is absent from '$($fieldGroup.owner)'.")
+                    }
+                }
+                $fieldEvidence[$fieldGroup.owner] = $fields
+                if ($SampleWidth -eq 1180) {
+                    if ($null -ne $scroll -and $scroll.Current.VerticallyScrollable) {
+                        foreach ($verticalPercent in @(0, 20, 40, 60, 80, 100)) {
+                            $scroll.SetScrollPercent([System.Windows.Automation.ScrollPattern]::NoScroll, $verticalPercent)
+                            Start-Sleep -Milliseconds 40
+                            $ownerRectangle = Get-AuditRectangle -Element $owner
+                            $ownerTopVisible = -not $owner.Current.IsOffscreen -and
+                                $ownerRectangle.y -ge ($contentRectangle.y - (3 * $windowDpi / 96)) -and
+                                $ownerRectangle.y -lt ($contentRectangle.y + $contentRectangle.height - (56 * $windowDpi / 96))
+                            if ($ownerTopVisible) { break }
+                        }
+                    }
+                    $geometry = Get-AuditDesktopGridGeometryEvidence -Element $owner -ExpectedColumns $fieldGroup.keys.Count -Scale ($windowDpi / 96)
+                    $desktopTableGeometry[$fieldGroup.owner] = $geometry
+                    if (-not $geometry.passed) {
+                        $routeFailures.Add("Desktop table '$($fieldGroup.owner)' has insufficient first/last content gutters, adjacent-content separation or visible cell content at 1180 DIP.")
+                    }
+                    if ($null -ne $scroll -and $scroll.Current.VerticallyScrollable) {
+                        $scroll.SetScrollPercent([System.Windows.Automation.ScrollPattern]::NoScroll, 0)
+                        Start-Sleep -Milliseconds 40
+                    }
+                }
+            }
+
+            $compactRecordEvidence = [ordered]@{}
+            if ($SampleWidth -eq 820) {
+                foreach ($recordGroup in $route.compactRecords) {
+                    $recordOwner = if ($recordGroup.owner -eq "__window") {
+                        $window
+                    }
+                    else {
+                        Find-AuditElement -Window $window -AutomationId $recordGroup.owner
+                    }
+                    if ($null -eq $recordOwner) {
+                        $routeFailures.Add("Compact-record owner '$($recordGroup.owner)' is absent.")
+                        continue
+                    }
+                    $recordOwnerRectangle = Get-AuditRectangle -Element $recordOwner
+                    $recordFields = [ordered]@{}
+                    foreach ($recordValue in $recordGroup.values) {
+                        $requiredName = if ($recordValue.Contains("key")) {
+                            [string]$messages[$recordValue.key]
+                        }
+                        else {
+                            [string]$recordValue.value
+                        }
+                        $recordElement = if ($recordGroup.owner -eq "__window") {
+                            Find-AuditVisibleNamedElement -Owner $recordOwner -Name $requiredName
+                        }
+                        else {
+                            Find-AuditNamedElement -Owner $recordOwner -Name $requiredName
+                        }
+                        $recordRectangle = if ($null -ne $recordElement) { Get-AuditRectangle -Element $recordElement } else { $null }
+                        $present = $null -ne $recordRectangle -and $recordRectangle.width -gt 0 -and $recordRectangle.height -gt 0 -and
+                            (Test-AuditHorizontalContainment -Child $recordRectangle -Owner $recordOwnerRectangle)
+                        $recordFields[$recordValue.label] = [ordered]@{ name = $requiredName; present = $present; bounds = $recordRectangle }
+                        if (-not $present) {
+                            $routeFailures.Add("Compact-record field '$($recordValue.label)' is absent, empty or horizontally clipped in '$($recordGroup.owner)'.")
+                        }
+                    }
+                    $compactRecordEvidence[$recordGroup.owner] = $recordFields
+                }
+            }
+
+            $pillEvidence = [ordered]@{
+                owner = $null
+                requiredKey = $null
+                automationId = "StatusPill"
+                containerBounds = $null
+                rawTextBounds = $null
+                rawTextAvailable = $false
+                aspectRatio = $null
+            }
+            if ($null -ne $route.pillGroup) {
+                $pillOwner = Find-AuditElement -Window $window -AutomationId $route.pillGroup.owner
+                $pillEvidence.owner = $route.pillGroup.owner
+                $pillEvidence.requiredKey = $route.pillGroup.key
+                if ($null -eq $pillOwner) {
+                    $routeFailures.Add("The status-pill content owner '$($route.pillGroup.owner)' is absent.")
+                }
+                else {
+                    $pillName = [string]$messages[$route.pillGroup.key]
+                    $pillContainer = Find-AuditNamedElementByAutomationId -Owner $pillOwner -AutomationId "StatusPill" -Name $pillName
+                    if ($null -eq $pillContainer) {
+                        $routeFailures.Add("The complete '$($route.pillGroup.key)' StatusPill peer is absent from '$($route.pillGroup.owner)'.")
+                    }
+                    else {
+                        $containerRectangle = Get-AuditRectangle -Element $pillContainer
+                        $pillEvidence.containerBounds = $containerRectangle
+                        if ($containerRectangle.height -gt 0) {
+                            $pillEvidence.aspectRatio = [Math]::Round($containerRectangle.width / $containerRectangle.height, 3)
+                        }
+                        $pillText = Find-AuditRawNamedElementByAutomationId -Owner $pillContainer -AutomationId "StatusPillText" -Name $pillName
+                        if ($null -ne $pillText) {
+                            $pillEvidence.rawTextAvailable = $true
+                            $pillEvidence.rawTextBounds = Get-AuditRectangle -Element $pillText
+                        }
+                        if ($pillContainer.Current.ControlType -ne [System.Windows.Automation.ControlType]::Text -or
+                            -not [string]::Equals($pillContainer.Current.Name, $pillName, [StringComparison]::Ordinal) -or
+                            $containerRectangle.width -le 0 -or $containerRectangle.height -le 0 -or
+                            [double]$pillEvidence.aspectRatio -gt 14 -or
+                            -not (Test-AuditHorizontalContainment -Child $containerRectangle -Owner (Get-AuditRectangle -Element $pillOwner))) {
+                            $routeFailures.Add("The complete StatusPill peer has an invalid name, type, ratio or horizontal container bounds.")
+                        }
+                        if (-not $pillEvidence.rawTextAvailable) {
+                            $routeFailures.Add("The raw status text is absent, so complete content containment cannot be proved.")
+                        }
+                        elseif ($pillEvidence.rawTextBounds.width -le 0 -or $pillEvidence.rawTextBounds.height -le 0 -or
+                            -not (Test-AuditContainment -Child $pillEvidence.rawTextBounds -Owner $containerRectangle)) {
+                            $routeFailures.Add("The raw status text is not completely contained by its StatusPill peer bounds.")
+                        }
+                    }
+                }
+            }
+
+            $compactLayout = [ordered]@{ applicable = $SampleWidth -eq 820; checks = [ordered]@{}; grids = [ordered]@{} }
+            if ($SampleWidth -eq 820) {
+                $compactTolerance = [Math]::Max(4, 4 * $windowDpi / 96)
+                if ($route.id -eq "Overview") {
+                    $compactLayout.checks.summaryFirstRow = Test-AuditVisualRow -Rectangles @($componentBounds.OverviewTotalCard, $componentBounds.OverviewHealthyCard) -Tolerance $compactTolerance
+                    $compactLayout.checks.summarySecondRow = Test-AuditVisualRow -Rectangles @($componentBounds.OverviewWarningCard, $componentBounds.OverviewCriticalCard) -Tolerance $compactTolerance
+                    $compactLayout.checks.summaryRowsSeparated = Test-AuditVerticalOrder -First $componentBounds.OverviewTotalCard -Second $componentBounds.OverviewWarningCard -Tolerance $compactTolerance -RequireAlignedLeft
+                    $compactLayout.checks.operationalPanelsStacked = Test-AuditVerticalStack -First $componentBounds.OverviewInventoryList -Second $componentBounds.OverviewAlertList -Tolerance $compactTolerance
+                    $compactLayout.checks.insightPanelsStacked = Test-AuditVerticalStack -First $componentBounds.OverviewPerformanceChart -Second $componentBounds.OverviewProviderDistribution -Tolerance $compactTolerance
+                }
+                elseif ($route.id -eq "Inventory") {
+                    $compactLayout.checks.summaryFirstRow = Test-AuditVisualRow -Rectangles @($componentBounds.InventoryTotalCard, $componentBounds.InventoryHealthyCard) -Tolerance $compactTolerance
+                    $compactLayout.checks.summarySecondRow = Test-AuditVisualRow -Rectangles @($componentBounds.InventoryDegradedCard, $componentBounds.InventoryAttentionCard) -Tolerance $compactTolerance
+                    $compactLayout.checks.summaryThirdRow = Test-AuditVisualRow -Rectangles @($componentBounds.InventoryStaleCard, $componentBounds.InventoryDisabledCard) -Tolerance $compactTolerance
+                    $compactLayout.checks.summaryRowsOneAndTwoSeparated = Test-AuditVerticalOrder -First $componentBounds.InventoryTotalCard -Second $componentBounds.InventoryDegradedCard -Tolerance $compactTolerance -RequireAlignedLeft
+                    $compactLayout.checks.summaryRowsTwoAndThreeSeparated = Test-AuditVerticalOrder -First $componentBounds.InventoryDegradedCard -Second $componentBounds.InventoryStaleCard -Tolerance $compactTolerance -RequireAlignedLeft
+                    $inventoryGrid = Find-AuditElement -Window $window -AutomationId "InventoryGrid"
+                    if ($null -ne $inventoryGrid) { $compactLayout.grids.InventoryGrid = Get-AuditCompactGridEvidence -Element $inventoryGrid }
+                    $compactLayout.checks.inventoryGridCompact = $null -ne $inventoryGrid -and $compactLayout.grids.InventoryGrid.compact
+                }
+                elseif ($route.id -eq "Alerts") {
+                    $compactLayout.checks.summaryCriticalPrecedesActive = Test-AuditVerticalStack -First $componentBounds.AlertCriticalCard -Second $componentBounds.AlertActiveCard -Tolerance $compactTolerance
+                    $compactLayout.checks.summaryActivePrecedesTotal = Test-AuditVerticalStack -First $componentBounds.AlertActiveCard -Second $componentBounds.AlertTotalCard -Tolerance $compactTolerance
+                    $alertsGrid = Find-AuditElement -Window $window -AutomationId "AlertsGrid"
+                    if ($null -ne $alertsGrid) { $compactLayout.grids.AlertsGrid = Get-AuditCompactGridEvidence -Element $alertsGrid }
+                    $compactLayout.checks.alertsGridCompact = $null -ne $alertsGrid -and $compactLayout.grids.AlertsGrid.compact
+                }
+                elseif ($route.id -eq "History") {
+                    $historyGrid = Find-AuditElement -Window $window -AutomationId "HistoryGrid"
+                    if ($null -ne $historyGrid) { $compactLayout.grids.HistoryGrid = Get-AuditCompactGridEvidence -Element $historyGrid }
+                    $compactLayout.checks.historyGridCompact = $null -ne $historyGrid -and $compactLayout.grids.HistoryGrid.compact
+                    $compactLayout.checks.summaryPrecedesRecords = Test-AuditVerticalOrder -First $componentBounds.HistorySummaryText -Second $componentBounds.HistoryGrid -Tolerance $compactTolerance
+                }
+                elseif ($route.id -eq "Configuration") {
+                    $configurationGrid = Find-AuditElement -Window $window -AutomationId "ConfigurationGrid"
+                    $capabilityGrid = Find-AuditElement -Window $window -AutomationId "CapabilityGrid"
+                    $providerRecordRectangle = if ($compactRecordEvidence.Contains("__window") -and $compactRecordEvidence["__window"].Contains("provider")) {
+                        $compactRecordEvidence["__window"]["provider"].bounds
+                    }
+                    else {
+                        $null
+                    }
+                    if ($null -ne $configurationGrid) { $compactLayout.grids.ConfigurationGrid = Get-AuditCompactGridEvidence -Element $configurationGrid }
+                    if ($null -ne $capabilityGrid) { $compactLayout.grids.CapabilityGrid = Get-AuditCompactGridEvidence -Element $capabilityGrid }
+                    $compactLayout.checks.configurationGridCompact = $null -ne $configurationGrid -and $compactLayout.grids.ConfigurationGrid.compact
+                    $compactLayout.checks.capabilityGridCompact = $null -ne $capabilityGrid -and $compactLayout.grids.CapabilityGrid.compact
+                    $compactLayout.checks.providerPrecedesConfiguration = Test-AuditVerticalOrder -First $providerRecordRectangle -Second $componentBounds.ConfigurationGrid -Tolerance $compactTolerance
+                    $compactLayout.checks.configurationPrecedesPermission = Test-AuditVerticalOrder -First $componentBounds.ConfigurationGrid -Second $componentBounds.PermissionSelector -Tolerance $compactTolerance
+                    $compactLayout.checks.permissionPrecedesCapabilities = Test-AuditVerticalOrder -First $componentBounds.PermissionSelector -Second $componentBounds.CapabilityGrid -Tolerance $compactTolerance
+                }
+                elseif ($route.id -eq "Settings") {
+                    $compactLayout.checks.preferencePanelsStacked = Test-AuditVerticalOrder -First $componentBounds.SettingsPreferenceTitleText -Second $componentBounds.SettingsNotificationTitleText -Tolerance ([Math]::Max($compactTolerance, 18 * $windowDpi / 96)) -RequireAlignedLeft
+                }
+                foreach ($check in $compactLayout.checks.GetEnumerator()) {
+                    if (-not [bool]$check.Value) { $routeFailures.Add("Compact-layout geometry failed '$($check.Key)' at 820 DIP.") }
                 }
             }
 
@@ -377,28 +1030,188 @@ function Invoke-WpfAuditSample {
             $routeDirectory = Join-Path $sampleDirectory $route.id.ToLowerInvariant()
             $topCapture = Save-AuditWindow -Handle $process.MainWindowHandle -Window $window -Path (Join-Path $routeDirectory "top-$($windowDpi)dpi.png")
             $bottomCapture = $null
+            $verticalReachability = [ordered]@{}
             if ($null -ne $scroll -and $scroll.Current.VerticallyScrollable) {
                 $scroll.SetScrollPercent([System.Windows.Automation.ScrollPattern]::NoScroll, 100)
                 Start-Sleep -Milliseconds 100
                 $bottomCapture = Save-AuditWindow -Handle $process.MainWindowHandle -Window $window -Path (Join-Path $routeDirectory "bottom-$($windowDpi)dpi.png")
                 foreach ($componentId in $deferredComponentIds) {
-                    $reachable = $false
+                    $topReachable = $false
+                    $bottomReachable = $false
+                    $verticalTolerance = [Math]::Max(4, 4 * $windowDpi / 96)
                     foreach ($verticalPercent in @(0, 20, 40, 60, 80, 100)) {
                         $scroll.SetScrollPercent([System.Windows.Automation.ScrollPattern]::NoScroll, $verticalPercent)
                         Start-Sleep -Milliseconds 40
                         $component = Find-AuditElement -Window $window -AutomationId $componentId
-                        if ($null -ne $component -and -not $component.Current.IsOffscreen -and
-                            (Test-AuditContainment -Child (Get-AuditRectangle -Element $component) -Owner $contentRectangle)) {
-                            $reachable = $true
-                            break
+                        if ($null -eq $component -or $component.Current.IsOffscreen) { continue }
+                        $componentRectangle = Get-AuditRectangle -Element $component
+                        if (-not (Test-AuditHorizontalContainment -Child $componentRectangle -Owner $contentRectangle)) { continue }
+                        $viewportTop = [double]$contentRectangle.y
+                        $viewportBottom = [double]$contentRectangle.y + [double]$contentRectangle.height
+                        $componentTop = [double]$componentRectangle.y
+                        $componentBottom = [double]$componentRectangle.y + [double]$componentRectangle.height
+                        if ($componentTop -ge ($viewportTop - $verticalTolerance) -and $componentTop -le ($viewportBottom + $verticalTolerance)) {
+                            $topReachable = $true
                         }
+                        if ($componentBottom -ge ($viewportTop - $verticalTolerance) -and $componentBottom -le ($viewportBottom + $verticalTolerance)) {
+                            $bottomReachable = $true
+                        }
+                        if ($topReachable -and $bottomReachable) { break }
                     }
-                    if (-not $reachable) {
-                        $routeFailures.Add("Component '$componentId' was not fully reachable through bounded vertical scrolling.")
+                    $verticalReachability[$componentId] = [ordered]@{ top = $topReachable; bottom = $bottomReachable }
+                    if (-not $topReachable -or -not $bottomReachable) {
+                        $routeFailures.Add("Component '$componentId' did not expose both vertical boundaries through bounded page scrolling.")
                     }
                 }
                 $scroll.SetScrollPercent([System.Windows.Automation.ScrollPattern]::NoScroll, 0)
                 Start-Sleep -Milliseconds 75
+            }
+
+            $distributionEvidence = $null
+            if (-not [string]::IsNullOrWhiteSpace([string]$route.distribution)) {
+                $distribution = Find-AuditElement -Window $window -AutomationId $route.distribution
+                if ($null -eq $distribution) {
+                    $routeFailures.Add("Provider distribution '$($route.distribution)' is absent from the automation tree.")
+                }
+                else {
+                    if ($distribution.Current.IsOffscreen -and $null -ne $scroll -and $scroll.Current.VerticallyScrollable) {
+                        foreach ($verticalPercent in @(0, 20, 40, 60, 80, 100)) {
+                            $scroll.SetScrollPercent([System.Windows.Automation.ScrollPattern]::NoScroll, $verticalPercent)
+                            Start-Sleep -Milliseconds 50
+                            $distribution = Find-AuditElement -Window $window -AutomationId $route.distribution
+                            if ($null -ne $distribution -and -not $distribution.Current.IsOffscreen) { break }
+                        }
+                    }
+                    $distributionRectangle = Get-AuditRectangle -Element $distribution
+                    $distributionCardAutomationId = if ($route.id -eq "Overview") {
+                        "OverviewProviderCard"
+                    }
+                    else {
+                        "ProvidersRouteDistributionCard"
+                    }
+                    $distributionCard = Find-AuditRawElementByAutomationId -Owner $window -AutomationId $distributionCardAutomationId
+                    if ($null -eq $distributionCard) {
+                        throw "$distributionCardAutomationId is absent from the audited window RawView subtree."
+                    }
+                    $distributionCardRectangle = Get-AuditRectangle -Element $distributionCard
+                    $ringViewport = Find-AuditRawElementByAutomationId -Owner $distribution -AutomationId "ProviderDistributionRingViewport"
+                    if ($null -eq $ringViewport) {
+                        throw "ProviderDistributionRingViewport is absent from the provider distribution RawView subtree."
+                    }
+                    $ringRectangle = Get-AuditRectangle -Element $ringViewport
+                    $providerBounds = @()
+                    $missingProviders = [System.Collections.Generic.List[string]]::new()
+                    foreach ($providerName in @("postgresql", "mysql", "sql-server", "mongodb")) {
+                        $providerElement = Find-AuditNamedElement -Owner $distribution -Name $providerName
+                        if ($null -eq $providerElement) { $missingProviders.Add($providerName) }
+                        else { $providerBounds += Get-AuditRectangle -Element $providerElement }
+                    }
+                    $legendRectangle = Get-AuditRectangleUnion -Rectangles $providerBounds
+                    $scale = $windowDpi / 96
+                    $leftReservation = if ($null -eq $legendRectangle) { 0 } else { $legendRectangle.x - $distributionRectangle.x }
+                    $rightMargin = if ($null -eq $legendRectangle) { 0 } else { ($distributionRectangle.x + $distributionRectangle.width) - ($legendRectangle.x + $legendRectangle.width) }
+                    $ringMargins = [ordered]@{
+                        left = [Math]::Round([double]$ringRectangle.x - [double]$distributionCardRectangle.x, 3)
+                        top = [Math]::Round([double]$ringRectangle.y - [double]$distributionCardRectangle.y, 3)
+                        right = [Math]::Round(
+                            ([double]$distributionCardRectangle.x + [double]$distributionCardRectangle.width) -
+                            ([double]$ringRectangle.x + [double]$ringRectangle.width),
+                            3)
+                        bottom = [Math]::Round(
+                            ([double]$distributionCardRectangle.y + [double]$distributionCardRectangle.height) -
+                            ([double]$ringRectangle.y + [double]$ringRectangle.height),
+                            3)
+                    }
+                    $distributionEvidence = [ordered]@{
+                        bounds = $distributionRectangle
+                        cardAutomationId = $distributionCardAutomationId
+                        cardBounds = $distributionCardRectangle
+                        ringViewportBounds = $ringRectangle
+                        ringViewportMargins = $ringMargins
+                        legendBounds = $legendRectangle
+                        missingProviders = @($missingProviders)
+                        leftRingReservation = $leftReservation
+                        rightLegendMargin = $rightMargin
+                    }
+                    if ($distributionRectangle.width -le 0 -or $distributionRectangle.height -lt (112 * $scale) -or $distributionRectangle.offscreen) {
+                        $routeFailures.Add("The provider distribution has no visible bounded area large enough for the ring.")
+                    }
+                    if ($ringRectangle.offscreen -or
+                        -not (Test-AuditContainment -Child $ringRectangle -Owner $distributionCardRectangle -Tolerance 1) -or
+                        $ringMargins.left -le 0 -or $ringMargins.top -le 0 -or
+                        $ringMargins.right -le 0 -or $ringMargins.bottom -le 0) {
+                        $routeFailures.Add("The provider ring viewport is not visibly contained by the card with positive margins on every edge.")
+                    }
+                    if ($missingProviders.Count -gt 0 -or $null -eq $legendRectangle -or
+                        -not (Test-AuditContainment -Child $legendRectangle -Owner $distributionRectangle) -or
+                        $leftReservation -lt (88 * $scale) -or $rightMargin -lt (2 * $scale)) {
+                        $routeFailures.Add("The provider ring reservation or complete textual legend is clipped or missing its bounded margins.")
+                    }
+                    if ($null -ne $scroll -and $scroll.Current.VerticallyScrollable) {
+                        $scroll.SetScrollPercent([System.Windows.Automation.ScrollPattern]::NoScroll, 0)
+                        Start-Sleep -Milliseconds 50
+                    }
+                }
+            }
+
+            $focusEvidence = [ordered]@{}
+            foreach ($focusTargetId in $route.focusTargets) {
+                $focusTarget = Find-AuditElement -Window $window -AutomationId $focusTargetId
+                if ($null -eq $focusTarget -or -not $focusTarget.Current.IsKeyboardFocusable -or [string]::IsNullOrWhiteSpace($focusTarget.Current.Name)) {
+                    $focusEvidence[$focusTargetId] = $false
+                    $routeFailures.Add("Required focus target '$focusTargetId' is absent, unnamed or not keyboard focusable.")
+                    continue
+                }
+                try {
+                    $focusTarget.SetFocus()
+                    Start-Sleep -Milliseconds 50
+                    $focusedElement = [System.Windows.Automation.AutomationElement]::FocusedElement
+                    $focusOwned = $focusedElement.Current.ProcessId -eq $process.Id -and (Test-AuditOwnsElement -Owner $focusTarget -Candidate $focusedElement)
+                    $focusedRectangle = Get-AuditRectangle -Element $focusedElement
+                    $focusVisible = -not $focusedElement.Current.IsOffscreen
+                    $focusTolerance = [Math]::Max(3, 3 * $windowDpi / 96)
+                    $oversizedGridMinimumHeight = switch ($focusTargetId) {
+                        "InventoryGrid" { 48 }
+                        "AlertsGrid" { 52 }
+                        "HistoryGrid" { 46 }
+                        "ConfigurationGrid" { 46 }
+                        "CapabilityGrid" { 46 }
+                        default { 0 }
+                    }
+                    $oversizedGrid = $oversizedGridMinimumHeight -gt 0 -and
+                        $null -ne $scroll -and $scroll.Current.VerticallyScrollable -and
+                        $focusedRectangle.height -gt ($contentRectangle.height + $focusTolerance)
+                    $visibleIntersectionHeight = [Math]::Max(
+                        0,
+                        [Math]::Min(
+                            [double]$focusedRectangle.y + [double]$focusedRectangle.height,
+                            [double]$contentRectangle.y + [double]$contentRectangle.height) -
+                        [Math]::Max([double]$focusedRectangle.y, [double]$contentRectangle.y))
+                    $minimumVisibleHeight = $oversizedGridMinimumHeight * $windowDpi / 96
+                    $focusContained = if ($oversizedGrid) {
+                        (Test-AuditHorizontalContainment -Child $focusedRectangle -Owner $contentRectangle -Tolerance $focusTolerance) -and
+                            $visibleIntersectionHeight -ge $minimumVisibleHeight
+                    }
+                    else {
+                        Test-AuditContainment -Child $focusedRectangle -Owner $contentRectangle -Tolerance $focusTolerance
+                    }
+                    $focusEvidence[$focusTargetId] = [ordered]@{
+                        owned = $focusOwned
+                        visible = $focusVisible
+                        containedByViewport = $focusContained
+                        containmentMode = if ($oversizedGrid) { "bounded-visible-row" } else { "complete" }
+                        visibleIntersectionHeight = [Math]::Round($visibleIntersectionHeight, 3)
+                        minimumVisibleHeight = [Math]::Round($minimumVisibleHeight, 3)
+                        bounds = $focusedRectangle
+                    }
+                    if (-not $focusOwned -or -not $focusVisible -or -not $focusContained) {
+                        $routeFailures.Add("Required focus target '$focusTargetId' did not retain visible keyboard focus inside its own control tree and the content viewport.")
+                    }
+                }
+                catch {
+                    $focusEvidence[$focusTargetId] = [ordered]@{ owned = $false; visible = $false; containedByViewport = $false; bounds = $null }
+                    $routeFailures.Add("Required focus target '$focusTargetId' rejected bounded keyboard focus.")
+                }
             }
 
             $status = if ($routeFailures.Count -eq 0) { "PASS" } else { "FAIL" }
@@ -411,6 +1224,14 @@ function Invoke-WpfAuditSample {
                 failures = @($routeFailures)
                 components = $componentBounds
                 outerScroll = $outerScroll
+                verticalReachability = $verticalReachability
+                fields = $fieldEvidence
+                desktopTableGeometry = $desktopTableGeometry
+                compactRecords = $compactRecordEvidence
+                pillContent = $pillEvidence
+                compactLayout = $compactLayout
+                providerDistribution = $distributionEvidence
+                focusTargets = $focusEvidence
                 topCapture = $topCapture
                 bottomCapture = $bottomCapture
             }
@@ -430,6 +1251,14 @@ function Invoke-WpfAuditSample {
         $unnamedFocusable = @($focusable | Where-Object { [string]::IsNullOrWhiteSpace($_.name) })
         if ($focusable.Count -lt 12 -or $unnamedFocusable.Count -gt 0) {
             $sampleFailures.Add("The WPF shell exposed too few focusable controls or an unnamed focus target.")
+        }
+        $requiredGlobalFocus = [ordered]@{}
+        foreach ($requiredFocusId in @("LanguagePreferenceButton", "ThemePreferenceButton", "NotificationButton", "SettingsButton", "OverviewNavigationButton", "ScenarioSelector")) {
+            $requiredFocusTarget = Find-AuditElement -Window $window -AutomationId $requiredFocusId
+            $validFocusTarget = $null -ne $requiredFocusTarget -and $requiredFocusTarget.Current.IsKeyboardFocusable -and
+                -not [string]::IsNullOrWhiteSpace($requiredFocusTarget.Current.Name)
+            $requiredGlobalFocus[$requiredFocusId] = $validFocusTarget
+            if (-not $validFocusTarget) { $sampleFailures.Add("Required global focus target '$requiredFocusId' is absent, unnamed or not keyboard focusable.") }
         }
         $window.SetFocus()
         Start-Sleep -Milliseconds 100
@@ -459,6 +1288,7 @@ function Invoke-WpfAuditSample {
             routes = $routeRows
             focusableCount = $focusable.Count
             unnamedFocusable = $unnamedFocusable
+            requiredGlobalFocus = $requiredGlobalFocus
             tabSequence = $tabSequence
         }
     }
@@ -472,7 +1302,7 @@ $previousDpiAwarenessContext = [AuditNativeMethods]::SetThreadDpiAwarenessContex
 if ($previousDpiAwarenessContext -eq [IntPtr]::Zero) { throw "The audit thread could not enter the Per-Monitor V2 DPI-awareness context." }
 [System.IO.Directory]::CreateDirectory($EvidenceRoot) | Out-Null
 $campaign = [ordered]@{
-    schemaVersion = "dbnotifier.r6-wpf2-audit.v1"
+    schemaVersion = "dbnotifier.r6-ui1-audit.v1"
     generatedAt = [DateTimeOffset]::UtcNow.ToString("O")
     expectedPreferenceHash = $ExpectedPreferenceHash
     preferenceHashBefore = $PreferenceHashBefore
@@ -559,7 +1389,7 @@ $campaign.summary = [ordered]@{
     preferenceRestored = $campaign.preferenceHashAfter -eq $ExpectedPreferenceHash
     cleanupPassed = $campaign.processResidue.Count -eq 0 -and $campaign.ownedStateResidue.Count -eq 0
 }
-$reportPath = Join-Path $EvidenceRoot "r6-wpf2-wpf-audit.json"
+$reportPath = Join-Path $EvidenceRoot "r6-ui1-wpf-audit.json"
 $campaign | ConvertTo-Json -Depth 14 | Set-Content -LiteralPath $reportPath -Encoding utf8
 if ($null -ne $campaignFailure) { throw "WPF parity audit failed: $($campaignFailure.Exception.Message) Evidence: $reportPath" }
 if ($failedSamples.Count -gt 0 -or $failedRows.Count -gt 0) { throw "WPF parity audit reported failed samples. Evidence: $reportPath" }

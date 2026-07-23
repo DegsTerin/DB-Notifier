@@ -2629,6 +2629,22 @@
 - Próxima decisão: requer proposta e autorização separadas para remediar acabamento/uniformidade, pills e contenção de texto, gráfico de Providers, reflow e tabelas, seguida por nova repetição humana também separadamente autorizada.
 - Aprovador: Bruno, 2026-07-22, exclusivamente para a decisão da repetição `R6-HV-W01`.
 
+## 2026-07-22 — Remediação automática focal `R6-UI1`
+
+- Estado anterior: `STATE-06 INTEGRATION`, R6-WPF2 automaticamente aprovado, `R6-HV-W01` reprovada por pills/texto, gráfico de Providers, reflow, espaçamento e tabelas, W02 bloqueada e P01 não testada; R6-UI1 autorizado exclusivamente sobre `321e04d83cdaeab6ad3a4bdedd929c60083788fc`.
+- Estado resultante: sem transição; `STATE-06 INTEGRATION` mantido. R6-UI1 está automaticamente `APROVADO` no seu escopo; a decisão humana W01 permanece `REPROVADA` até repetição visível separadamente autorizada, e a aceitação humana R6 continua `PENDENTE`.
+- Causas: raio virtualmente infinito e medição horizontal não bounded deformavam pills; larguras fixas comprimiam ring/legenda; rotas mantinham tabelas desktop no tamanho mínimo; o template nativo do `DataGridCell` não aplicava o padding declarado ao conteúdo; providers aceitavam ellipsis; o auditor anterior não media texto/pill, gutters reais, card/ring ou foco visível de listas roláveis.
+- Correção: pills com raio/padding bounded e texto contido; gráfico circular e legenda responsivos; providers completos sem ellipsis; composição desktop proporcional em `1180×760`; registros empilhados completos e zero scroll horizontal de página em `820×620`; gutters `Space3` no conteúdo real; peers raw-only permitem geometria sem duplicar leitura acessível.
+- Matriz automática: 64/64 rotas executáveis passaram nas oito rotas, pt-BR/en-GB, Light/Dark e `820×620`/`1180×760`; 32 combinações `1920×1080` permaneceram `NÃO TESTADAS` porque a área útil mede `1920×1032`.
+- Medidas: gutters de 12–13 px, gaps adjacentes mínimos de 24–25 px, margens card/ring positivas nos quatro lados e interseção visível de DataGrid compacto superior ao mínimo de uma linha.
+- Gates: build Release offline 0 avisos/erros; WPF 3/3, Presentation 66/66, arquitetura focal 15/15, Dashboard 66/66; coverage 393/393, 81,92% linhas/53,56% branches e dez componentes; toolchain Node.js 24.18.0/npm 11.16.0, tokens, marca, 11 identidades/22 variantes de providers, localização, PowerShell 7/5.1, documentação, links, secrets, formatação e diff passaram.
+- Gate global: 47/48 arquitetura; a única falha continuou sendo a asserção R0 preexistente `State06ConsolidatedHarnessIsolationTests.BrowserRunnersBoundWorkAndCleanupExactOwnedResources`, que espera `state05-dashboard-failure.json`. Nenhuma correção, exclusão ou bypass foi aplicado; o incidente NuGet R5 permaneceu registrado e nenhum restore, download ou acesso a metadados ocorreu.
+- Imutabilidade e cleanup: Dashboard Web, dependências e lockfiles têm zero diff; preferência anterior/final exatamente `ABC049CBB37CC998FF86E018E6853D811E58ED166B2B6B4A5CF0FBA4B171868F`; zero processo, listener, state root ou resíduo de coverage pertencente ao lote.
+- Evidência: [relatório R6-UI1](../../docs/STATE-06-Audit-Remediation-R6-UI1-Report.md), [reprovação W01 pós-R6-WPF2](../../docs/STATE-06-Audit-Remediation-R6-HV-W01-Post-WPF2-Repetition-Report.md) e [Design System 3.2.0](../../docs/design/DB-Notifier-Design-System.md). O identificador do commit focal está no hand-off final.
+- Limites: nenhuma amostra humana, W02/P01, notificação, configuração do Windows, fonte/provider/banco real, restore/download/acesso externo, CI remota, push/deploy, correção R0, alteração do incidente R5, R2-B, R7–R8, R7-A0/O1, AIOps, comando, LLM, recomendação, automação, promoção ou transição foi executada.
+- Próxima decisão: requer proposta e autorização separadas para repetir visivelmente somente `R6-HV-W01` após R6-UI1. W02/P01 não retomam automaticamente.
+- Aprovador: autorização de implementação R6-UI1 por Bruno em 2026-07-22; nenhuma aprovação humana de W01 ou R6 foi inferida.
+
 ## Template de nova entrada
 
 - Data:

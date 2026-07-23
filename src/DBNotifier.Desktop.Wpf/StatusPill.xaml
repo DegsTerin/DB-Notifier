@@ -6,24 +6,37 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="clr-namespace:DBNotifier.Desktop.Wpf"
              Focusable="False"
-             IsTabStop="False">
+             IsTabStop="False"
+             AutomationProperties.AutomationId="StatusPill"
+             HorizontalContentAlignment="Stretch">
+  <!-- The typed radius mirrors RadiusControl=6; long factual states wrap instead of escaping the bounded native grid field. -->
   <Border x:Name="PillBorder"
           Padding="8,3"
           BorderThickness="1"
-          CornerRadius="999"
-          HorizontalAlignment="Left">
-    <StackPanel Orientation="Horizontal">
+          CornerRadius="6"
+          HorizontalAlignment="Stretch">
+    <Grid MinWidth="0">
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="Auto" />
+        <ColumnDefinition Width="*" />
+      </Grid.ColumnDefinitions>
       <local:SemanticIcon x:Name="StatusIcon"
                           Width="13"
                           Height="13"
                           Margin="0,0,4,0"
+                          VerticalAlignment="Center"
                           Foreground="{Binding Foreground, ElementName=Root}" />
-      <TextBlock x:Name="StatusText"
-                 Text="{Binding Text, ElementName=Root}"
-                 Foreground="{Binding Foreground, ElementName=Root}"
-                 FontSize="11"
-                 FontWeight="SemiBold"
-                 VerticalAlignment="Center" />
-    </StackPanel>
+      <local:StatusPillTextBlock x:Name="StatusText"
+                                 Grid.Column="1"
+                                 MinWidth="0"
+                                 Text="{Binding Text, ElementName=Root}"
+                                 Foreground="{Binding Foreground, ElementName=Root}"
+                                 FontSize="11"
+                                 FontWeight="SemiBold"
+                                 VerticalAlignment="Center"
+                                 TextWrapping="Wrap"
+                                 AutomationProperties.AutomationId="StatusPillText"
+                                 ToolTip="{Binding Text, ElementName=Root}" />
+    </Grid>
   </Border>
 </UserControl>

@@ -26,10 +26,42 @@ internal enum DesktopView
     Settings,
 }
 
+/// <summary>Preserves native card rendering while exposing its arranged bounds only to raw diagnostic automation.</summary>
+internal sealed class AuditableCardBorder : Border
+{
+    /// <summary>Creates the raw-only peer used to compare contained chart geometry with the actual card boundary.</summary>
+    /// <returns>A diagnostic peer excluded from assistive-technology control and content views.</returns>
+    protected override AutomationPeer OnCreateAutomationPeer() => new AuditableCardBorderAutomationPeer(this);
+
+    /// <summary>Keeps card geometry measurable without adding a duplicate readable group around its existing content.</summary>
+    private sealed class AuditableCardBorderAutomationPeer : FrameworkElementAutomationPeer
+    {
+        /// <summary>Initialises the peer for one rendered card boundary.</summary>
+        /// <param name="owner">Card border whose arranged rectangle is audited.</param>
+        public AuditableCardBorderAutomationPeer(AuditableCardBorder owner)
+            : base(owner)
+        {
+        }
+
+        /// <summary>Classifies the diagnostic geometry as a non-interactive group.</summary>
+        /// <returns>The standard group automation control type.</returns>
+        protected override AutomationControlType GetAutomationControlTypeCore() => AutomationControlType.Group;
+
+        /// <summary>Excludes the duplicate card boundary from the control view.</summary>
+        /// <returns>False because the existing card content carries the accessible information.</returns>
+        protected override bool IsControlElementCore() => false;
+
+        /// <summary>Excludes the duplicate card boundary from the content view.</summary>
+        /// <returns>False because the existing card content carries the accessible information.</returns>
+        protected override bool IsContentElementCore() => false;
+    }
+}
+
 /// <summary>
 /// Presents read-only demonstration data and accessible operational states without connecting to databases or executing commands.
 /// Localised presentation values are rebuilt whenever the user changes the supported interface language;
 /// theme changes remain isolated to generated semantic resources owned by the desktop theme service.
+/// Responsive route templates preserve every factual field while switching between desktop tables and compact stacked records.
 /// </summary>
 public partial class MainWindow : Window
 {
@@ -50,6 +82,7 @@ public partial class MainWindow : Window
     private TrayAggregateState aggregateState;
     private IDisposable? windowIconLease;
     private bool nativeIconsInitialised;
+    private bool? compactLayoutApplied;
 
     /// <summary>Initialises the local demonstration surface with loaded preferences and one factual aggregate icon state.</summary>
     /// <param name="localisation">Desktop localisation owner shared with the application and tray controller.</param>
@@ -599,11 +632,11 @@ public partial class MainWindow : Window
     /// <summary>Refreshes detached DataGrid column headers that do not inherit WPF dynamic-resource invalidation.</summary>
     private void RefreshGridHeaders()
     {
-        SetHeaders(InventoryGrid, "Common.Instance", "Common.Provider", "Common.Support", "Common.Environment", "Common.Status", "Common.ObservedAtUtc", "Common.Latency");
-        SetHeaders(HistoryGrid, "Common.TimeUtc", "Common.Severity", "Common.Event", "Common.Instance", "Common.Provider", "Common.Summary");
-        SetHeaders(AlertsGrid, "Common.Severity", "Common.State", "Common.Rule", "Common.Instance", "Common.Provider", "Common.Summary", "Common.Updated");
-        SetHeaders(ConfigurationGrid, "Common.Field", "Common.SafeValue", "Common.Description");
-        SetHeaders(CapabilityGrid, "Common.Action", "Common.Capability", "Common.State", "Common.Reason");
+        SetHeaders(InventoryGrid, "Common.Instance", "Common.Provider", "Common.Support", "Common.Environment", "Common.Status", "Common.ObservedAtUtc", "Common.Latency", "View.Inventory.Title");
+        SetHeaders(HistoryGrid, "Common.TimeUtc", "Common.Severity", "Common.Event", "Common.Instance", "Common.Provider", "Common.Summary", "History.Title");
+        SetHeaders(AlertsGrid, "Common.Severity", "Common.State", "Common.Rule", "Common.Instance", "Common.Provider", "Common.Summary", "Common.Updated", "Alerts.Title");
+        SetHeaders(ConfigurationGrid, "Common.Field", "Common.SafeValue", "Common.Description", "Wpf.ConfigurationTitle");
+        SetHeaders(CapabilityGrid, "Common.Action", "Common.Capability", "Common.State", "Common.Reason", "Configuration.AdminTitle");
     }
 
     /// <summary>Assigns canonical translated labels to one grid while preserving its fixed column contract.</summary>
@@ -661,7 +694,7 @@ public partial class MainWindow : Window
         }
     }
 
-    /// <summary>Reflows dense overview and preference panels when the native window enters or leaves its compact width.</summary>
+    /// <summary>Reflows all eight routes when the native window enters or leaves its compact width.</summary>
     /// <param name="sender">The resized desktop window.</param>
     /// <param name="e">The new and previous native layout sizes.</param>
     private void WindowSizeChanged(object sender, SizeChangedEventArgs e) => UpdateResponsiveLayout();
@@ -671,19 +704,86 @@ public partial class MainWindow : Window
     {
         double availableWidth = ActualWidth > 0 ? ActualWidth : Width;
         // The fixed native navigation rail leaves materially less room than the outer window width suggests.
-        bool compact = availableWidth < 1000;
+        bool compact = availableWidth < 1100;
         bool compactInventorySummary = availableWidth < 1240;
         OverviewSummaryGrid.Columns = compact ? 2 : 4;
-        InventorySummaryGrid.Columns = compactInventorySummary ? 3 : 6;
-        AlertSummaryGrid.Columns = compact ? 2 : 3;
+        InventorySummaryGrid.Columns = compact ? 2 : compactInventorySummary ? 3 : 6;
+        AlertSummaryGrid.Columns = compact ? 1 : 3;
+        DesktopContentRoot.Margin = compact ? new Thickness(20, 22, 20, 22) : new Thickness(32, 28, 32, 28);
         SidebarStateCard.Visibility = ActualHeight > 0 && ActualHeight < 700 ? Visibility.Collapsed : Visibility.Visible;
         Grid.SetRow(DesktopScenarioPanel, compact ? 1 : 0);
         Grid.SetColumn(DesktopScenarioPanel, compact ? 0 : 1);
         Grid.SetColumnSpan(DesktopScenarioPanel, compact ? 2 : 1);
         DesktopScenarioPanel.Margin = compact ? new Thickness(0, 16, 0, 0) : new Thickness(24, 0, 0, 0);
+        DesktopScenarioPanel.HorizontalAlignment = compact ? System.Windows.HorizontalAlignment.Left : System.Windows.HorizontalAlignment.Right;
         ArrangeAdaptivePair(OverviewFleetPanel, OverviewAlertsPanel, compact);
         ArrangeAdaptivePair(OverviewPerformancePanel, OverviewProvidersPanel, compact);
         ArrangeAdaptivePair(SettingsPreferencePanel, SettingsNotificationsPanel, compact);
+        ArrangeConfigurationHeaders(compact);
+        ConfigureResponsiveGrid(InventoryGrid, 7, 48, compact);
+        ConfigureResponsiveGrid(HistoryGrid, 6, 46, compact);
+        ConfigureResponsiveGrid(AlertsGrid, 7, 52, compact);
+        ConfigureResponsiveGrid(ConfigurationGrid, 3, 46, compact);
+        ConfigureResponsiveGrid(CapabilityGrid, 4, 46, compact);
+
+        if (compactLayoutApplied != compact)
+        {
+            OverviewInventoryList.ItemTemplate = (DataTemplate)FindResource(compact
+                ? "OverviewInventoryCompactRowTemplate"
+                : "OverviewInventoryDesktopRowTemplate");
+            ProviderCatalogueList.ItemsPanel = (ItemsPanelTemplate)FindResource(compact
+                ? "ProviderCatalogueCompactPanel"
+                : "ProviderCatalogueDesktopPanel");
+            compactLayoutApplied = compact;
+        }
+    }
+
+    /// <summary>Places configuration metadata, permission controls and safe review actions without horizontal page overflow.</summary>
+    /// <param name="compact">Whether header controls must follow their associated explanatory text.</param>
+    private void ArrangeConfigurationHeaders(bool compact)
+    {
+        Grid.SetRow(ConfigurationNotPersistedText, compact ? 1 : 0);
+        Grid.SetColumn(ConfigurationNotPersistedText, compact ? 0 : 1);
+        Grid.SetColumnSpan(ConfigurationNotPersistedText, compact ? 2 : 1);
+        ConfigurationNotPersistedText.HorizontalAlignment = compact ? System.Windows.HorizontalAlignment.Left : System.Windows.HorizontalAlignment.Right;
+        ConfigurationNotPersistedText.Margin = compact ? new Thickness(0, 8, 0, 0) : new Thickness(0);
+
+        Grid.SetRow(PermissionSelector, compact ? 1 : 0);
+        Grid.SetColumn(PermissionSelector, compact ? 0 : 1);
+        Grid.SetColumnSpan(PermissionSelector, compact ? 2 : 1);
+        PermissionSelector.HorizontalAlignment = compact ? System.Windows.HorizontalAlignment.Left : System.Windows.HorizontalAlignment.Right;
+        PermissionSelector.Margin = compact ? new Thickness(0, 12, 0, 0) : new Thickness(0);
+
+        CapabilityActionsPanel.HorizontalAlignment = compact ? System.Windows.HorizontalAlignment.Stretch : System.Windows.HorizontalAlignment.Right;
+        ReviewCapabilityButton.Margin = compact ? new Thickness(0, 0, 10, 8) : new Thickness(0, 0, 10, 0);
+        PreviewConfirmationButton.Margin = compact ? new Thickness(0, 0, 0, 8) : new Thickness(0);
+    }
+
+    /// <summary>Switches one read-only table between desktop columns and a complete stacked compact record.</summary>
+    /// <param name="grid">The route table whose item and automation identity remain unchanged.</param>
+    /// <param name="desktopColumnCount">Number of desktop columns preceding the single compact template column.</param>
+    /// <param name="minimumRowHeight">Minimum touch and reading target retained while wrapped content grows vertically.</param>
+    /// <param name="compact">Whether the complete compact record must be shown.</param>
+    /// <exception cref="InvalidOperationException">Thrown when the XAML column contract no longer contains one compact column after the desktop columns.</exception>
+    private static void ConfigureResponsiveGrid(System.Windows.Controls.DataGrid grid, int desktopColumnCount, double minimumRowHeight, bool compact)
+    {
+        if (grid.Columns.Count != desktopColumnCount + 1)
+        {
+            throw new InvalidOperationException($"Responsive column count does not match {grid.Name}.");
+        }
+
+        for (int index = 0; index < desktopColumnCount; index++)
+        {
+            grid.Columns[index].Visibility = compact ? Visibility.Collapsed : Visibility.Visible;
+        }
+
+        grid.Columns[desktopColumnCount].Visibility = compact ? Visibility.Visible : Visibility.Collapsed;
+        grid.HeadersVisibility = compact ? DataGridHeadersVisibility.None : DataGridHeadersVisibility.Column;
+        grid.RowHeight = double.NaN;
+        grid.MinRowHeight = minimumRowHeight;
+        ScrollViewer.SetHorizontalScrollBarVisibility(grid, compact
+            ? ScrollBarVisibility.Disabled
+            : ScrollBarVisibility.Auto);
     }
 
     /// <summary>Places a related pair side by side at comfortable widths and in one readable column when compact.</summary>

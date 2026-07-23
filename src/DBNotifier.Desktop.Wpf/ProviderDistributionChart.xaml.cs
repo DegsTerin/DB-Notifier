@@ -1,6 +1,7 @@
 // Module purpose: Draws a bounded provider-neutral distribution ring from already-presented WPF provider counts.
 using System.Windows;
 using System.Windows.Automation;
+using System.Windows.Automation.Peers;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Shapes;
@@ -12,6 +13,41 @@ namespace DBNotifier.Desktop.Wpf;
 /// <param name="Count">Non-negative count represented by the categorical ring and visible legend.</param>
 /// <param name="SupportLabel">Existing factual support declaration used by the provider catalogue.</param>
 internal sealed record ProviderDistributionItem(ProviderVisualIdentity ProviderIdentity, int Count, string SupportLabel);
+
+/// <summary>Hosts the decorative provider ring while exposing its arranged rectangle only to raw diagnostic automation.</summary>
+internal sealed class DistributionRingViewbox : Viewbox
+{
+    /// <summary>Creates the raw-only peer used to prove that the complete ring stays inside its owning card.</summary>
+    /// <returns>A diagnostic peer excluded from assistive-technology control and content views.</returns>
+    protected override AutomationPeer OnCreateAutomationPeer() => new DistributionRingViewboxAutomationPeer(this);
+
+    /// <summary>Keeps ring geometry measurable without duplicating the authoritative textual provider legend.</summary>
+    private sealed class DistributionRingViewboxAutomationPeer : FrameworkElementAutomationPeer
+    {
+        /// <summary>Initialises a diagnostic peer for one arranged ring viewport.</summary>
+        /// <param name="owner">Ring viewport whose bounds are audited.</param>
+        public DistributionRingViewboxAutomationPeer(DistributionRingViewbox owner)
+            : base(owner)
+        {
+        }
+
+        /// <summary>Provides the stable identifier consumed by the bounded WPF auditor.</summary>
+        /// <returns>The canonical ring-viewport automation identifier.</returns>
+        protected override string GetAutomationIdCore() => "ProviderDistributionRingViewport";
+
+        /// <summary>Classifies the diagnostic geometry as a non-interactive group.</summary>
+        /// <returns>The standard group automation control type.</returns>
+        protected override AutomationControlType GetAutomationControlTypeCore() => AutomationControlType.Group;
+
+        /// <summary>Excludes decorative geometry from the control view.</summary>
+        /// <returns>False because the visible provider legend carries the accessible information.</returns>
+        protected override bool IsControlElementCore() => false;
+
+        /// <summary>Excludes decorative geometry from the content view.</summary>
+        /// <returns>False because the visible provider legend carries the accessible information.</returns>
+        protected override bool IsContentElementCore() => false;
+    }
+}
 
 /// <summary>
 /// Presents a code-native categorical ring and a visible provider/count legend.
@@ -46,6 +82,34 @@ internal sealed partial class ProviderDistributionChart : System.Windows.Control
     private static void ItemsChanged(DependencyObject dependencyObject, DependencyPropertyChangedEventArgs e) =>
         ((ProviderDistributionChart)dependencyObject).ApplyItems();
 
+    /// <summary>Reflows the ring and legend without changing their data whenever their card supplies a new width.</summary>
+    /// <param name="sender">Distribution control whose arranged size changed.</param>
+    /// <param name="e">Previous and new arranged dimensions.</param>
+    private void DistributionSizeChanged(object sender, SizeChangedEventArgs e) => ApplyResponsiveLayout(e.NewSize.Width);
+
+    /// <summary>Uses a smaller side-by-side ring before stacking both regions at genuinely narrow widths.</summary>
+    /// <param name="availableWidth">Finite arranged width in device-independent pixels.</param>
+    private void ApplyResponsiveLayout(double availableWidth)
+    {
+        bool hasMeasuredWidth = double.IsFinite(availableWidth) && availableWidth > 0;
+        bool stacked = hasMeasuredWidth && availableWidth < 220;
+        bool compact = hasMeasuredWidth && availableWidth < 300;
+
+        RingViewport.Width = compact ? 96 : 126;
+        RingViewport.Height = compact ? 96 : 126;
+        RingColumn.Width = stacked ? new GridLength(1, GridUnitType.Star) : GridLength.Auto;
+        LegendColumn.Width = stacked ? new GridLength(0) : new GridLength(1, GridUnitType.Star);
+
+        Grid.SetRow(RingViewport, 0);
+        Grid.SetColumn(RingViewport, 0);
+        Grid.SetColumnSpan(RingViewport, stacked ? 2 : 1);
+        Grid.SetRow(Legend, stacked ? 1 : 0);
+        Grid.SetColumn(Legend, stacked ? 0 : 1);
+        Grid.SetColumnSpan(Legend, stacked ? 2 : 1);
+        RingViewport.Margin = stacked ? new Thickness(0) : new Thickness(0, 0, compact ? 8 : 12, 0);
+        Legend.Margin = stacked ? new Thickness(0, 8, 0, 0) : new Thickness(0);
+    }
+
     /// <summary>Draws at most one arc per visible provider and retains a complete textual legend.</summary>
     private void ApplyItems()
     {
@@ -63,6 +127,7 @@ internal sealed partial class ProviderDistributionChart : System.Windows.Control
             return;
         }
 
+        int visibleSegmentCount = items.Count(item => Math.Max(0, item.Count) > 0);
         double startAngle = -90;
         for (int index = 0; index < items.Count; index++)
         {
@@ -73,7 +138,8 @@ internal sealed partial class ProviderDistributionChart : System.Windows.Control
             }
 
             double sweep = 360d * count / total;
-            Path segment = CreateSegment(startAngle, sweep);
+            double gap = visibleSegmentCount > 1 ? Math.Min(4d, sweep / 3d) : 0;
+            Path segment = CreateSegment(startAngle + (gap / 2d), sweep - gap);
             segment.SetResourceReference(Shape.StrokeProperty, $"ColourDataCategory{(index % 5) + 1}Brush");
             SegmentCanvas.Children.Add(segment);
             startAngle += sweep;

@@ -47,6 +47,6 @@
                Foreground="{Binding Foreground, ElementName=Root}"
                FontSize="{Binding FontSize, ElementName=Root}"
                FontWeight="{Binding FontWeight, ElementName=Root}"
-               TextTrimming="CharacterEllipsis" />
+               TextWrapping="Wrap" />
   </Grid>
 </UserControl>

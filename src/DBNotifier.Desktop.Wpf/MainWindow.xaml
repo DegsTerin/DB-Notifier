@@ -169,6 +169,17 @@
       <Setter Property="Background" Value="{DynamicResource ColourSurfaceSubtleBrush}" />
       <Setter Property="Foreground" Value="{DynamicResource ColourTextPrimaryBrush}" />
       <Setter Property="BorderBrush" Value="{DynamicResource ColourBorderDefaultBrush}" />
+      <Setter Property="Padding" Value="12,0" />
+      <Setter Property="MinHeight" Value="40" />
+      <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+      <Setter Property="VerticalContentAlignment" Value="Center" />
+      <Setter Property="ContentTemplate">
+        <Setter.Value>
+          <DataTemplate>
+            <TextBlock Text="{Binding}" TextWrapping="Wrap" VerticalAlignment="Center" />
+          </DataTemplate>
+        </Setter.Value>
+      </Setter>
     </Style>
     <Style TargetType="DataGridRow">
       <Setter Property="Foreground" Value="{DynamicResource ColourTextPrimaryBrush}" />
@@ -177,6 +188,9 @@
       <Setter Property="BorderBrush" Value="{DynamicResource ColourBorderDefaultBrush}" />
       <Setter Property="BorderThickness" Value="0" />
       <Setter Property="KeyboardNavigation.IsTabStop" Value="False" />
+      <Setter Property="Padding" Value="12,0" />
+      <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+      <Setter Property="VerticalContentAlignment" Value="Stretch" />
       <Style.Triggers>
         <Trigger Property="IsSelected" Value="True">
           <Setter Property="Background" Value="{DynamicResource ColourSelectionBackgroundBrush}" />
@@ -276,6 +290,172 @@
       <Setter Property="StrokeLineJoin" Value="Round" />
       <Setter Property="Stretch" Value="Uniform" />
     </Style>
+    <!-- Compact route templates retain every read-only field when a desktop table cannot fit the native window. -->
+    <Style x:Key="CompactFieldLabel" TargetType="TextBlock">
+      <Setter Property="Foreground" Value="{DynamicResource ColourTextSecondaryBrush}" />
+      <Setter Property="FontSize" Value="10" />
+      <Setter Property="Margin" Value="0,0,10,0" />
+      <Setter Property="VerticalAlignment" Value="Top" />
+    </Style>
+    <Style x:Key="CompactFieldValue" TargetType="TextBlock">
+      <Setter Property="TextWrapping" Value="Wrap" />
+      <Setter Property="VerticalAlignment" Value="Top" />
+    </Style>
+    <!-- WPF DataGridCell does not template-bind Padding into every generated content presenter. The Space3-equivalent
+         12-DIP content gutter therefore lives on desktop cell content so adjacent fields remain visually distinct. -->
+    <Style x:Key="DesktopDataGridContent" TargetType="{x:Type FrameworkElement}">
+      <Setter Property="Margin" Value="12,0" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+    <Style x:Key="WrappingDataGridText" TargetType="TextBlock" BasedOn="{StaticResource DesktopDataGridContent}">
+      <Setter Property="TextWrapping" Value="Wrap" />
+    </Style>
+    <!-- Compact records own their internal spacing, so desktop table padding must not be applied twice. -->
+    <Style x:Key="CompactDataGridCell" TargetType="DataGridCell" BasedOn="{StaticResource {x:Type DataGridCell}}">
+      <Setter Property="Padding" Value="0" />
+    </Style>
+    <ItemsPanelTemplate x:Key="ProviderCatalogueDesktopPanel">
+      <UniformGrid Columns="2" />
+    </ItemsPanelTemplate>
+    <ItemsPanelTemplate x:Key="ProviderCatalogueCompactPanel">
+      <UniformGrid Columns="1" />
+    </ItemsPanelTemplate>
+    <!-- Overview instance rows follow the Web reading order without squeezing latency and trend into one narrow desktop row. -->
+    <DataTemplate x:Key="OverviewInventoryDesktopRowTemplate">
+      <Border MinHeight="52" Padding="18,0" BorderBrush="{DynamicResource ColourBorderDefaultBrush}" BorderThickness="0,1,0,0">
+        <Grid>
+          <Grid.ColumnDefinitions><ColumnDefinition Width="30" /><ColumnDefinition Width="1.25*" /><ColumnDefinition Width="Auto" /><ColumnDefinition Width="54" /><ColumnDefinition Width="96" /></Grid.ColumnDefinitions>
+          <local:ProviderIdentityView Identity="{Binding ProviderIdentity}" IconSize="24" ShowText="False" VerticalAlignment="Center" />
+          <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="8,0"><TextBlock Text="{Binding DisplayName}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" ToolTip="{Binding InstanceId}" AutomationProperties.HelpText="{Binding InstanceId}" /><TextBlock Text="{Binding ProviderType}" Foreground="{DynamicResource ColourTextSecondaryBrush}" FontSize="10" Margin="0,2,0,0" /></StackPanel>
+          <local:StatusPill Grid.Column="2" Text="{Binding StatusLabel}" Tone="{Binding StatusTone}" Icon="{Binding StatusIcon}" VerticalAlignment="Center" Margin="4,0,8,0" />
+          <TextBlock Grid.Column="3" Text="{Binding LatencyLabel}" Foreground="{DynamicResource ColourTextSecondaryBrush}" VerticalAlignment="Center" HorizontalAlignment="Right" />
+          <Viewbox Grid.Column="4" Height="28" Margin="10,0,0,0" Stretch="Fill" VerticalAlignment="Center" IsHitTestVisible="False">
+            <Polyline Points="{Binding SparklinePoints}" StrokeThickness="1.7" Fill="Transparent">
+              <Polyline.Style><Style TargetType="Polyline"><Setter Property="Stroke" Value="{DynamicResource ComponentStatusNeutralForegroundBrush}" /><Style.Triggers><DataTrigger Binding="{Binding SparklineTone}" Value="Healthy"><Setter Property="Stroke" Value="{DynamicResource ComponentStatusHealthyForegroundBrush}" /></DataTrigger><DataTrigger Binding="{Binding SparklineTone}" Value="Degraded"><Setter Property="Stroke" Value="{DynamicResource ComponentStatusDegradedForegroundBrush}" /></DataTrigger><DataTrigger Binding="{Binding SparklineTone}" Value="Critical"><Setter Property="Stroke" Value="{DynamicResource ComponentStatusCriticalForegroundBrush}" /></DataTrigger></Style.Triggers></Style></Polyline.Style>
+            </Polyline>
+          </Viewbox>
+        </Grid>
+      </Border>
+    </DataTemplate>
+    <DataTemplate x:Key="OverviewInventoryCompactRowTemplate">
+      <Border MinHeight="76" Padding="14,10" BorderBrush="{DynamicResource ColourBorderDefaultBrush}" BorderThickness="0,1,0,0">
+        <Grid>
+          <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+          <Grid.ColumnDefinitions><ColumnDefinition Width="30" /><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+          <local:ProviderIdentityView Grid.RowSpan="2" Identity="{Binding ProviderIdentity}" IconSize="24" ShowText="False" VerticalAlignment="Top" Margin="0,2,0,0" />
+          <StackPanel Grid.Column="1" Margin="8,0,10,0"><TextBlock Text="{Binding DisplayName}" FontWeight="SemiBold" TextWrapping="Wrap" ToolTip="{Binding InstanceId}" AutomationProperties.HelpText="{Binding InstanceId}" /><TextBlock Text="{Binding ProviderType}" Foreground="{DynamicResource ColourTextSecondaryBrush}" FontSize="10" Margin="0,2,0,0" /></StackPanel>
+          <local:StatusPill Grid.Column="2" Text="{Binding StatusLabel}" Tone="{Binding StatusTone}" Icon="{Binding StatusIcon}" VerticalAlignment="Top" />
+          <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding LatencyLabel}" Foreground="{DynamicResource ColourTextSecondaryBrush}" Margin="8,8,10,0" VerticalAlignment="Center" />
+          <Viewbox Grid.Row="1" Grid.Column="2" Width="96" Height="22" Margin="0,8,0,0" Stretch="Fill" HorizontalAlignment="Right" VerticalAlignment="Center" IsHitTestVisible="False">
+            <Polyline Points="{Binding SparklinePoints}" StrokeThickness="1.7" Fill="Transparent">
+              <Polyline.Style><Style TargetType="Polyline"><Setter Property="Stroke" Value="{DynamicResource ComponentStatusNeutralForegroundBrush}" /><Style.Triggers><DataTrigger Binding="{Binding SparklineTone}" Value="Healthy"><Setter Property="Stroke" Value="{DynamicResource ComponentStatusHealthyForegroundBrush}" /></DataTrigger><DataTrigger Binding="{Binding SparklineTone}" Value="Degraded"><Setter Property="Stroke" Value="{DynamicResource ComponentStatusDegradedForegroundBrush}" /></DataTrigger><DataTrigger Binding="{Binding SparklineTone}" Value="Critical"><Setter Property="Stroke" Value="{DynamicResource ComponentStatusCriticalForegroundBrush}" /></DataTrigger></Style.Triggers></Style></Polyline.Style>
+            </Polyline>
+          </Viewbox>
+        </Grid>
+      </Border>
+    </DataTemplate>
+    <DataTemplate x:Key="InventoryCompactRowTemplate">
+      <Border Padding="14,12" BorderBrush="{DynamicResource ColourBorderDefaultBrush}" BorderThickness="0,1,0,0">
+        <StackPanel>
+          <Grid>
+            <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+            <TextBlock Text="{Binding DisplayName}" FontWeight="SemiBold" TextWrapping="Wrap" AutomationProperties.HelpText="{Binding InstanceId}" />
+            <local:StatusPill Grid.Column="1" Text="{Binding StatusLabel}" Tone="{Binding StatusTone}" Icon="{Binding StatusIcon}" Margin="12,0,0,0" VerticalAlignment="Top" />
+          </Grid>
+          <local:ProviderIdentityView Identity="{Binding ProviderIdentity}" IconSize="20" FontSize="11" Margin="0,8,0,10" />
+          <Grid>
+            <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+            <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+            <TextBlock Text="{DynamicResource Common.Instance}" Style="{StaticResource CompactFieldLabel}" />
+            <TextBlock Grid.Column="1" Text="{Binding InstanceId}" Style="{StaticResource CompactFieldValue}" AutomationProperties.Name="{Binding InstanceId}" />
+            <TextBlock Grid.Row="1" Text="{DynamicResource Common.Support}" Style="{StaticResource CompactFieldLabel}" Margin="0,6,10,0" />
+            <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding SupportLabel}" Style="{StaticResource CompactFieldValue}" Margin="0,6,0,0" />
+            <TextBlock Grid.Row="2" Text="{DynamicResource Common.Environment}" Style="{StaticResource CompactFieldLabel}" Margin="0,6,10,0" />
+            <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding Environment}" Style="{StaticResource CompactFieldValue}" Margin="0,6,0,0" />
+            <TextBlock Grid.Row="3" Text="{DynamicResource Common.ObservedAtUtc}" Style="{StaticResource CompactFieldLabel}" Margin="0,6,10,0" />
+            <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding ObservedAtLabel}" Style="{StaticResource CompactFieldValue}" Margin="0,6,0,0" />
+            <TextBlock Grid.Row="4" Text="{DynamicResource Common.Latency}" Style="{StaticResource CompactFieldLabel}" Margin="0,6,10,0" />
+            <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding LatencyLabel}" Style="{StaticResource CompactFieldValue}" Margin="0,6,0,0" />
+          </Grid>
+        </StackPanel>
+      </Border>
+    </DataTemplate>
+    <DataTemplate x:Key="TimelineCompactRowTemplate">
+      <Border Padding="14,12" BorderBrush="{DynamicResource ColourBorderDefaultBrush}" BorderThickness="0,1,0,0">
+        <StackPanel>
+          <Grid>
+            <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+            <TextBlock Text="{Binding EventType}" FontWeight="SemiBold" TextWrapping="Wrap" />
+            <local:StatusPill Grid.Column="1" Text="{Binding SeverityLabel}" Tone="{Binding Tone}" Icon="{Binding Path=IconKind}" Margin="12,0,0,0" VerticalAlignment="Top" />
+          </Grid>
+          <TextBlock Text="{Binding Summary}" TextWrapping="Wrap" Margin="0,8,0,10" />
+          <Grid>
+            <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+            <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+            <TextBlock Text="{DynamicResource Common.TimeUtc}" Style="{StaticResource CompactFieldLabel}" />
+            <TextBlock Grid.Column="1" Text="{Binding OccurredAtLabel}" Style="{StaticResource CompactFieldValue}" />
+            <TextBlock Grid.Row="1" Text="{DynamicResource Common.Instance}" Style="{StaticResource CompactFieldLabel}" Margin="0,6,10,0" />
+            <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding InstanceName}" Style="{StaticResource CompactFieldValue}" Margin="0,6,0,0" />
+            <TextBlock Grid.Row="2" Text="{DynamicResource Common.Provider}" Style="{StaticResource CompactFieldLabel}" Margin="0,6,10,0" />
+            <local:ProviderIdentityView Grid.Row="2" Grid.Column="1" Identity="{Binding ProviderIdentity}" IconSize="18" FontSize="11" Margin="0,6,0,0" />
+          </Grid>
+        </StackPanel>
+      </Border>
+    </DataTemplate>
+    <DataTemplate x:Key="AlertCompactRowTemplate">
+      <Border Padding="14,12" BorderBrush="{DynamicResource ColourBorderDefaultBrush}" BorderThickness="0,1,0,0">
+        <StackPanel>
+          <Grid>
+            <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+            <TextBlock Text="{Binding RuleName}" FontWeight="SemiBold" TextWrapping="Wrap" />
+            <local:StatusPill Grid.Column="1" Text="{Binding SeverityLabel}" Tone="{Binding Tone}" Icon="{Binding Path=IconKind}" Margin="12,0,0,0" VerticalAlignment="Top" />
+          </Grid>
+          <TextBlock Text="{Binding Summary}" TextWrapping="Wrap" Margin="0,8,0,10" />
+          <Grid>
+            <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+            <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+            <TextBlock Text="{DynamicResource Common.State}" Style="{StaticResource CompactFieldLabel}" />
+            <TextBlock Grid.Column="1" Text="{Binding StateLabel}" Style="{StaticResource CompactFieldValue}" />
+            <TextBlock Grid.Row="1" Text="{DynamicResource Common.Instance}" Style="{StaticResource CompactFieldLabel}" Margin="0,6,10,0" />
+            <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding InstanceName}" Style="{StaticResource CompactFieldValue}" Margin="0,6,0,0" />
+            <TextBlock Grid.Row="2" Text="{DynamicResource Common.Provider}" Style="{StaticResource CompactFieldLabel}" Margin="0,6,10,0" />
+            <local:ProviderIdentityView Grid.Row="2" Grid.Column="1" Identity="{Binding ProviderIdentity}" IconSize="18" FontSize="11" Margin="0,6,0,0" />
+            <TextBlock Grid.Row="3" Text="{DynamicResource Common.Updated}" Style="{StaticResource CompactFieldLabel}" Margin="0,6,10,0" />
+            <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding UpdatedAtLabel}" Style="{StaticResource CompactFieldValue}" Margin="0,6,0,0" />
+          </Grid>
+        </StackPanel>
+      </Border>
+    </DataTemplate>
+    <DataTemplate x:Key="ConfigurationCompactRowTemplate">
+      <Border Padding="14,12" BorderBrush="{DynamicResource ColourBorderDefaultBrush}" BorderThickness="0,1,0,0">
+        <Grid>
+          <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+          <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+          <TextBlock Text="{DynamicResource Common.Field}" Style="{StaticResource CompactFieldLabel}" />
+          <TextBlock Grid.Column="1" Text="{Binding Label}" FontWeight="SemiBold" Style="{StaticResource CompactFieldValue}" />
+          <TextBlock Grid.Row="1" Text="{DynamicResource Common.SafeValue}" Style="{StaticResource CompactFieldLabel}" Margin="0,6,10,0" />
+          <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding SafeValue}" Style="{StaticResource CompactFieldValue}" Margin="0,6,0,0" />
+          <TextBlock Grid.Row="2" Text="{DynamicResource Common.Description}" Style="{StaticResource CompactFieldLabel}" Margin="0,6,10,0" />
+          <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding Description}" Style="{StaticResource CompactFieldValue}" Foreground="{DynamicResource ColourTextSecondaryBrush}" Margin="0,6,0,0" />
+        </Grid>
+      </Border>
+    </DataTemplate>
+    <DataTemplate x:Key="CapabilityCompactRowTemplate">
+      <Border Padding="14,12" BorderBrush="{DynamicResource ColourBorderDefaultBrush}" BorderThickness="0,1,0,0">
+        <Grid>
+          <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+          <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+          <TextBlock Text="{DynamicResource Common.Action}" Style="{StaticResource CompactFieldLabel}" />
+          <TextBlock Grid.Column="1" Text="{Binding DisplayName}" FontWeight="SemiBold" Style="{StaticResource CompactFieldValue}" />
+          <TextBlock Grid.Row="1" Text="{DynamicResource Common.State}" Style="{StaticResource CompactFieldLabel}" Margin="0,6,10,0" />
+          <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding StateLabel}" Style="{StaticResource CompactFieldValue}" Margin="0,6,0,0" />
+          <TextBlock Grid.Row="2" Text="{DynamicResource Common.Capability}" Style="{StaticResource CompactFieldLabel}" Margin="0,6,10,0" />
+          <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding CapabilityId}" Style="{StaticResource CompactFieldValue}" Margin="0,6,0,0" />
+          <TextBlock Grid.Row="3" Text="{DynamicResource Common.Reason}" Style="{StaticResource CompactFieldLabel}" Margin="0,6,10,0" />
+          <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding ReasonCode}" Style="{StaticResource CompactFieldValue}" Margin="0,6,0,0" />
+        </Grid>
+      </Border>
+    </DataTemplate>
   </Window.Resources>
 
   <Grid>
@@ -362,7 +542,7 @@
       </Border>
 
     <ScrollViewer x:Name="DesktopContentScrollViewer" Grid.Column="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" AutomationProperties.Name="{DynamicResource App.Title}">
-      <Grid Margin="32,28">
+      <Grid x:Name="DesktopContentRoot" Margin="32,28">
         <Grid.RowDefinitions>
           <RowDefinition Height="Auto" />
           <RowDefinition Height="Auto" />
@@ -376,10 +556,10 @@
           </Grid.RowDefinitions>
           <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
           <StackPanel x:Name="DesktopPageHeadingText">
-            <TextBlock x:Name="ViewEyebrowText" Foreground="{DynamicResource ColourActionPrimaryBackgroundBrush}" FontSize="11" FontWeight="SemiBold" />
-            <TextBlock x:Name="ViewTitleText" FontSize="28" FontWeight="SemiBold" Margin="0,4,0,0" />
+            <TextBlock x:Name="ViewEyebrowText" Foreground="{DynamicResource ColourActionPrimaryBackgroundBrush}" FontSize="11" FontWeight="SemiBold" TextWrapping="Wrap" />
+            <TextBlock x:Name="ViewTitleText" FontSize="28" FontWeight="SemiBold" Margin="0,4,0,0" TextWrapping="Wrap" />
             <TextBlock x:Name="ViewDescriptionText" Foreground="{DynamicResource ColourTextSecondaryBrush}" Margin="0,5,0,0" TextWrapping="Wrap" />
-            <TextBlock x:Name="UpdatedAtText" Foreground="{DynamicResource ColourTextSecondaryBrush}" Margin="0,5,0,0" />
+            <TextBlock x:Name="UpdatedAtText" Foreground="{DynamicResource ColourTextSecondaryBrush}" Margin="0,5,0,0" TextWrapping="Wrap" />
           </StackPanel>
           <WrapPanel x:Name="DesktopScenarioPanel" Grid.Column="1" Margin="24,0,0,0" HorizontalAlignment="Right" VerticalAlignment="Center">
             <TextBlock Text="{DynamicResource Scenario.Label}" VerticalAlignment="Center" Margin="0,0,10,0" />
@@ -403,10 +583,10 @@
         <Grid x:Name="OverviewSurface" Grid.Row="1" Margin="0,22,0,0">
           <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
           <UniformGrid x:Name="OverviewSummaryGrid" Columns="4">
-            <local:KpiCard x:Name="OverviewTotalCard" Margin="0,0,12,0" Label="{DynamicResource Overview.TotalInstances}" Value="{Binding Text, ElementName=OverviewTotalCountText}" Detail="{Binding Text, ElementName=OverviewDisabledCountText}" Icon="Database" Tone="Neutral" />
-            <local:KpiCard x:Name="OverviewHealthyCard" Margin="0,0,12,0" Label="{DynamicResource Inventory.Healthy}" Value="{Binding Text, ElementName=OverviewHealthyCountText}" Icon="Healthy" Tone="Healthy" />
-            <local:KpiCard x:Name="OverviewWarningCard" Margin="0,0,12,0" Label="{DynamicResource Overview.Warning}" Value="{Binding Text, ElementName=OverviewDegradedCountText}" Icon="Degraded" Tone="Degraded" />
-            <local:KpiCard x:Name="OverviewCriticalCard" Label="{DynamicResource Overview.Critical}" Value="{Binding Text, ElementName=OverviewAttentionCountText}" Icon="Critical" Tone="Critical" />
+            <local:KpiCard x:Name="OverviewTotalCard" Margin="8" Label="{DynamicResource Overview.TotalInstances}" Value="{Binding Text, ElementName=OverviewTotalCountText}" Detail="{Binding Text, ElementName=OverviewDisabledCountText}" Icon="Database" Tone="Neutral" />
+            <local:KpiCard x:Name="OverviewHealthyCard" Margin="8" Label="{DynamicResource Inventory.Healthy}" Value="{Binding Text, ElementName=OverviewHealthyCountText}" Icon="Healthy" Tone="Healthy" />
+            <local:KpiCard x:Name="OverviewWarningCard" Margin="8" Label="{DynamicResource Overview.Warning}" Value="{Binding Text, ElementName=OverviewDegradedCountText}" Icon="Degraded" Tone="Degraded" />
+            <local:KpiCard x:Name="OverviewCriticalCard" Margin="8" Label="{DynamicResource Overview.Critical}" Value="{Binding Text, ElementName=OverviewAttentionCountText}" Icon="Critical" Tone="Critical" />
           </UniformGrid>
           <!-- Hidden binding anchors retain the existing atomic count update contract. -->
           <StackPanel Visibility="Collapsed"><TextBlock x:Name="OverviewTotalCountText" /><TextBlock x:Name="OverviewDisabledCountText" /><TextBlock x:Name="OverviewHealthyCountText" /><TextBlock x:Name="OverviewDegradedCountText" /><TextBlock x:Name="OverviewAttentionCountText" /></StackPanel>
@@ -417,26 +597,10 @@
             <Border x:Name="OverviewFleetPanel" Background="{DynamicResource ComponentCardBackgroundBrush}" BorderBrush="{DynamicResource ComponentCardBorderBrush}" BorderThickness="1" CornerRadius="10">
               <Grid><Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
                 <Grid Margin="18,14"><Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions><StackPanel><TextBlock Text="{DynamicResource Overview.FleetStatus}" FontSize="16" FontWeight="SemiBold" /><TextBlock Text="{DynamicResource Overview.FleetDescription}" Foreground="{DynamicResource ColourTextSecondaryBrush}" FontSize="12" Margin="0,4,0,0" /></StackPanel><TextBlock Grid.Column="1" Text="{DynamicResource Overview.ResponseTime}" Foreground="{DynamicResource ColourTextSecondaryBrush}" FontSize="10" VerticalAlignment="Bottom" /></Grid>
-                <ItemsControl x:Name="OverviewInventoryList" Grid.Row="1" AutomationProperties.Name="{DynamicResource Overview.FleetStatus}">
-                  <ItemsControl.ItemTemplate>
-                    <DataTemplate>
-                      <Border MinHeight="52" Padding="18,0" BorderBrush="{DynamicResource ColourBorderDefaultBrush}" BorderThickness="0,1,0,0">
-                        <Grid>
-                          <Grid.ColumnDefinitions><ColumnDefinition Width="30" /><ColumnDefinition Width="1.25*" /><ColumnDefinition Width="Auto" /><ColumnDefinition Width="54" /><ColumnDefinition Width="96" /></Grid.ColumnDefinitions>
-                          <local:ProviderIdentityView Identity="{Binding ProviderIdentity}" IconSize="24" ShowText="False" VerticalAlignment="Center" />
-                          <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="8,0,8,0"><TextBlock Text="{Binding DisplayName}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" ToolTip="{Binding InstanceId}" AutomationProperties.HelpText="{Binding InstanceId}" /><TextBlock Text="{Binding ProviderType}" Foreground="{DynamicResource ColourTextSecondaryBrush}" FontSize="10" Margin="0,2,0,0" /></StackPanel>
-                          <local:StatusPill Grid.Column="2" Text="{Binding StatusLabel}" Tone="{Binding StatusTone}" Icon="{Binding StatusIcon}" VerticalAlignment="Center" Margin="4,0,8,0" />
-                          <TextBlock Grid.Column="3" Text="{Binding LatencyLabel}" Foreground="{DynamicResource ColourTextSecondaryBrush}" VerticalAlignment="Center" HorizontalAlignment="Right" />
-                          <Viewbox Grid.Column="4" Height="28" Margin="10,0,0,0" Stretch="Fill" VerticalAlignment="Center" IsHitTestVisible="False">
-                            <Polyline Points="{Binding SparklinePoints}" StrokeThickness="1.7" Fill="Transparent">
-                              <Polyline.Style><Style TargetType="Polyline"><Setter Property="Stroke" Value="{DynamicResource ComponentStatusNeutralForegroundBrush}" /><Style.Triggers><DataTrigger Binding="{Binding SparklineTone}" Value="Healthy"><Setter Property="Stroke" Value="{DynamicResource ComponentStatusHealthyForegroundBrush}" /></DataTrigger><DataTrigger Binding="{Binding SparklineTone}" Value="Degraded"><Setter Property="Stroke" Value="{DynamicResource ComponentStatusDegradedForegroundBrush}" /></DataTrigger><DataTrigger Binding="{Binding SparklineTone}" Value="Critical"><Setter Property="Stroke" Value="{DynamicResource ComponentStatusCriticalForegroundBrush}" /></DataTrigger></Style.Triggers></Style></Polyline.Style>
-                            </Polyline>
-                          </Viewbox>
-                        </Grid>
-                      </Border>
-                    </DataTemplate>
-                  </ItemsControl.ItemTemplate>
-                </ItemsControl>
+                <ItemsControl x:Name="OverviewInventoryList"
+                              Grid.Row="1"
+                              ItemTemplate="{StaticResource OverviewInventoryDesktopRowTemplate}"
+                              AutomationProperties.Name="{DynamicResource Overview.FleetStatus}" />
               </Grid>
             </Border>
             <Border x:Name="OverviewAlertsPanel" Grid.Column="2" Background="{DynamicResource ComponentCardBackgroundBrush}" BorderBrush="{DynamicResource ComponentCardBorderBrush}" BorderThickness="1" CornerRadius="10">
@@ -469,9 +633,9 @@
                 <local:PerformanceChart x:Name="OverviewPerformanceChart" Grid.Row="1" Margin="14,0,14,10" />
               </Grid>
             </Border>
-            <Border x:Name="OverviewProvidersPanel" Grid.Column="2" Background="{DynamicResource ComponentCardBackgroundBrush}" BorderBrush="{DynamicResource ComponentCardBorderBrush}" BorderThickness="1" CornerRadius="10" Padding="18,14">
+            <local:AuditableCardBorder x:Name="OverviewProvidersPanel" AutomationProperties.AutomationId="OverviewProviderCard" Grid.Column="2" Background="{DynamicResource ComponentCardBackgroundBrush}" BorderBrush="{DynamicResource ComponentCardBorderBrush}" BorderThickness="1" CornerRadius="10" Padding="18,14">
               <Grid><Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /></Grid.RowDefinitions><StackPanel><TextBlock Text="{DynamicResource Overview.ProviderFixture}" FontSize="16" FontWeight="SemiBold" /><TextBlock Text="{DynamicResource Overview.ProviderDescription}" Foreground="{DynamicResource ColourTextSecondaryBrush}" FontSize="11" Margin="0,4,0,8" TextWrapping="Wrap" /></StackPanel><local:ProviderDistributionChart x:Name="OverviewProviderDistribution" Grid.Row="1" /></Grid>
-            </Border>
+            </local:AuditableCardBorder>
           </Grid>
         </Grid>
 
@@ -481,12 +645,12 @@
             <RowDefinition Height="Auto" />
           </Grid.RowDefinitions>
           <UniformGrid x:Name="InventorySummaryGrid" Columns="6">
-            <local:KpiCard x:Name="InventoryTotalCard" Margin="0,0,10,0" Label="{DynamicResource Inventory.Total}" Value="{Binding Text, ElementName=TotalCountText}" Icon="Database" Tone="Neutral" />
-            <local:KpiCard x:Name="InventoryHealthyCard" Margin="0,0,10,0" Label="{DynamicResource Inventory.Healthy}" Value="{Binding Text, ElementName=HealthyCountText}" Icon="Healthy" Tone="Healthy" />
-            <local:KpiCard x:Name="InventoryDegradedCard" Margin="0,0,10,0" Label="{DynamicResource Inventory.Degraded}" Value="{Binding Text, ElementName=DegradedCountText}" Icon="Degraded" Tone="Degraded" />
-            <local:KpiCard x:Name="InventoryAttentionCard" Margin="0,0,10,0" Label="{DynamicResource Inventory.Attention}" Value="{Binding Text, ElementName=AttentionCountText}" Icon="Critical" Tone="Critical" />
-            <local:KpiCard x:Name="InventoryStaleCard" Margin="0,0,10,0" Label="{DynamicResource Inventory.Stale}" Value="{Binding Text, ElementName=StaleCountText}" Icon="Stale" Tone="Neutral" />
-            <local:KpiCard x:Name="InventoryDisabledCard" Label="{DynamicResource Inventory.Disabled}" Value="{Binding Text, ElementName=DisabledCountText}" Icon="Database" Tone="Neutral" />
+            <local:KpiCard x:Name="InventoryTotalCard" Margin="8" Label="{DynamicResource Inventory.Total}" Value="{Binding Text, ElementName=TotalCountText}" Icon="Database" Tone="Neutral" />
+            <local:KpiCard x:Name="InventoryHealthyCard" Margin="8" Label="{DynamicResource Inventory.Healthy}" Value="{Binding Text, ElementName=HealthyCountText}" Icon="Healthy" Tone="Healthy" />
+            <local:KpiCard x:Name="InventoryDegradedCard" Margin="8" Label="{DynamicResource Inventory.Degraded}" Value="{Binding Text, ElementName=DegradedCountText}" Icon="Degraded" Tone="Degraded" />
+            <local:KpiCard x:Name="InventoryAttentionCard" Margin="8" Label="{DynamicResource Inventory.Attention}" Value="{Binding Text, ElementName=AttentionCountText}" Icon="Critical" Tone="Critical" />
+            <local:KpiCard x:Name="InventoryStaleCard" Margin="8" Label="{DynamicResource Inventory.Stale}" Value="{Binding Text, ElementName=StaleCountText}" Icon="Stale" Tone="Neutral" />
+            <local:KpiCard x:Name="InventoryDisabledCard" Margin="8" Label="{DynamicResource Inventory.Disabled}" Value="{Binding Text, ElementName=DisabledCountText}" Icon="Database" Tone="Neutral" />
           </UniformGrid>
           <StackPanel Visibility="Collapsed"><TextBlock x:Name="TotalCountText" /><TextBlock x:Name="HealthyCountText" /><TextBlock x:Name="DegradedCountText" /><TextBlock x:Name="AttentionCountText" /><TextBlock x:Name="StaleCountText" /><TextBlock x:Name="DisabledCountText" /></StackPanel>
 
@@ -514,19 +678,21 @@
                         HeadersVisibility="Column"
                         GridLinesVisibility="Horizontal"
                         BorderThickness="0"
-                        RowHeight="48"
-                        ColumnHeaderHeight="42"
+                        MinRowHeight="48"
                         AlternatingRowBackground="{DynamicResource ColourSurfaceSubtleBrush}"
                         SelectionMode="Single"
                         AutomationProperties.Name="{DynamicResource View.Inventory.Title}">
                 <DataGrid.Columns>
-                  <DataGridTemplateColumn Header="{DynamicResource Common.Instance}" SortMemberPath="DisplayName" Width="170"><DataGridTemplateColumn.CellTemplate><DataTemplate><TextBlock Text="{Binding DisplayName}" ToolTip="{Binding InstanceId}" AutomationProperties.HelpText="{Binding InstanceId}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" /></DataTemplate></DataGridTemplateColumn.CellTemplate></DataGridTemplateColumn>
-                  <DataGridTemplateColumn Header="{DynamicResource Common.Provider}" SortMemberPath="ProviderType" Width="150"><DataGridTemplateColumn.CellTemplate><DataTemplate><local:ProviderIdentityView Identity="{Binding ProviderIdentity}" IconSize="20" FontSize="11" /></DataTemplate></DataGridTemplateColumn.CellTemplate></DataGridTemplateColumn>
-                  <DataGridTextColumn Header="{DynamicResource Common.Support}" Binding="{Binding SupportLabel}" Width="210" />
-                  <DataGridTextColumn Header="{DynamicResource Common.Environment}" Binding="{Binding Environment}" Width="140" />
-                  <DataGridTemplateColumn Header="{DynamicResource Common.Status}" SortMemberPath="StatusLabel" Width="150"><DataGridTemplateColumn.CellTemplate><DataTemplate><local:StatusPill Text="{Binding StatusLabel}" Tone="{Binding StatusTone}" Icon="{Binding StatusIcon}" VerticalAlignment="Center" /></DataTemplate></DataGridTemplateColumn.CellTemplate></DataGridTemplateColumn>
-                  <DataGridTextColumn Header="{DynamicResource Common.ObservedAt}" Binding="{Binding ObservedAtLabel}" Width="180" />
-                  <DataGridTextColumn Header="{DynamicResource Common.Latency}" Binding="{Binding LatencyLabel}" Width="90" />
+                  <DataGridTemplateColumn Header="{DynamicResource Common.Instance}" SortMemberPath="DisplayName" Width="1.15*"><DataGridTemplateColumn.CellTemplate><DataTemplate><TextBlock Style="{StaticResource DesktopDataGridContent}" Text="{Binding DisplayName}" ToolTip="{Binding InstanceId}" AutomationProperties.HelpText="{Binding InstanceId}" TextWrapping="Wrap" /></DataTemplate></DataGridTemplateColumn.CellTemplate></DataGridTemplateColumn>
+                  <DataGridTemplateColumn Header="{DynamicResource Common.Provider}" SortMemberPath="ProviderType" Width="1.1*"><DataGridTemplateColumn.CellTemplate><DataTemplate><local:ProviderIdentityView Style="{StaticResource DesktopDataGridContent}" Identity="{Binding ProviderIdentity}" IconSize="20" FontSize="11" /></DataTemplate></DataGridTemplateColumn.CellTemplate></DataGridTemplateColumn>
+                  <DataGridTextColumn Header="{DynamicResource Common.Support}" Binding="{Binding SupportLabel}" Width="1.3*" ElementStyle="{StaticResource WrappingDataGridText}" />
+                  <DataGridTextColumn Header="{DynamicResource Common.Environment}" Binding="{Binding Environment}" Width="*" ElementStyle="{StaticResource WrappingDataGridText}" />
+                  <DataGridTemplateColumn Header="{DynamicResource Common.Status}" SortMemberPath="StatusLabel" Width="1.65*"><DataGridTemplateColumn.CellTemplate><DataTemplate><local:StatusPill Style="{StaticResource DesktopDataGridContent}" Text="{Binding StatusLabel}" Tone="{Binding StatusTone}" Icon="{Binding StatusIcon}" /></DataTemplate></DataGridTemplateColumn.CellTemplate></DataGridTemplateColumn>
+                  <DataGridTextColumn Header="{DynamicResource Common.ObservedAt}" Binding="{Binding ObservedAtLabel}" Width="1.35*" ElementStyle="{StaticResource WrappingDataGridText}" />
+                  <DataGridTextColumn Header="{DynamicResource Common.Latency}" Binding="{Binding LatencyLabel}" Width="0.65*" ElementStyle="{StaticResource WrappingDataGridText}" />
+                  <DataGridTemplateColumn Header="{DynamicResource View.Inventory.Title}" Width="*" Visibility="Collapsed" CellStyle="{StaticResource CompactDataGridCell}">
+                    <DataGridTemplateColumn.CellTemplate><StaticResource ResourceKey="InventoryCompactRowTemplate" /></DataGridTemplateColumn.CellTemplate>
+                  </DataGridTemplateColumn>
                 </DataGrid.Columns>
               </DataGrid>
             </Grid>
@@ -542,14 +708,17 @@
             <Grid>
               <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
               <Grid Margin="18,14"><Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions><StackPanel><TextBlock Text="{DynamicResource History.Title}" FontSize="16" FontWeight="SemiBold" /><TextBlock x:Name="HistorySummaryText" Foreground="{DynamicResource ColourTextSecondaryBrush}" FontSize="11" Margin="0,3,0,0" /></StackPanel><TextBlock Grid.Column="1" Text="{DynamicResource Common.ReadOnly}" Foreground="{DynamicResource ColourTextSecondaryBrush}" /></Grid>
-              <DataGrid x:Name="HistoryGrid" Grid.Row="1" AutoGenerateColumns="False" IsReadOnly="True" CanUserAddRows="False" HeadersVisibility="Column" GridLinesVisibility="Horizontal" BorderThickness="0" RowHeight="46" ColumnHeaderHeight="40" AlternatingRowBackground="{DynamicResource ColourSurfaceSubtleBrush}" ScrollViewer.HorizontalScrollBarVisibility="Auto" AutomationProperties.Name="{DynamicResource History.Title}">
+              <DataGrid x:Name="HistoryGrid" Grid.Row="1" AutoGenerateColumns="False" IsReadOnly="True" CanUserAddRows="False" HeadersVisibility="Column" GridLinesVisibility="Horizontal" BorderThickness="0" MinRowHeight="46" AlternatingRowBackground="{DynamicResource ColourSurfaceSubtleBrush}" ScrollViewer.HorizontalScrollBarVisibility="Auto" AutomationProperties.Name="{DynamicResource History.Title}">
                 <DataGrid.Columns>
-                  <DataGridTextColumn Header="{DynamicResource Common.TimeUtc}" Binding="{Binding OccurredAtLabel}" Width="170" />
-                  <DataGridTemplateColumn Header="{DynamicResource Common.Severity}" SortMemberPath="SeverityLabel" Width="140"><DataGridTemplateColumn.CellTemplate><DataTemplate><local:StatusPill Text="{Binding SeverityLabel}" Tone="{Binding Tone}" Icon="{Binding IconKind}" VerticalAlignment="Center" /></DataTemplate></DataGridTemplateColumn.CellTemplate></DataGridTemplateColumn>
-                  <DataGridTextColumn Header="{DynamicResource Common.Event}" Binding="{Binding EventType}" Width="150" />
-                  <DataGridTextColumn Header="{DynamicResource Common.Instance}" Binding="{Binding InstanceName}" Width="180" />
-                  <DataGridTemplateColumn Header="{DynamicResource Common.Provider}" SortMemberPath="ProviderType" Width="150"><DataGridTemplateColumn.CellTemplate><DataTemplate><local:ProviderIdentityView Identity="{Binding ProviderIdentity}" IconSize="18" FontSize="11" /></DataTemplate></DataGridTemplateColumn.CellTemplate></DataGridTemplateColumn>
-                  <DataGridTextColumn Header="{DynamicResource Common.Summary}" Binding="{Binding Summary}" Width="420" />
+                  <DataGridTextColumn Header="{DynamicResource Common.TimeUtc}" Binding="{Binding OccurredAtLabel}" Width="1.25*" ElementStyle="{StaticResource WrappingDataGridText}" />
+                  <DataGridTemplateColumn Header="{DynamicResource Common.Severity}" SortMemberPath="SeverityLabel" Width="1.15*"><DataGridTemplateColumn.CellTemplate><DataTemplate><local:StatusPill Style="{StaticResource DesktopDataGridContent}" Text="{Binding SeverityLabel}" Tone="{Binding Tone}" Icon="{Binding IconKind}" /></DataTemplate></DataGridTemplateColumn.CellTemplate></DataGridTemplateColumn>
+                  <DataGridTextColumn Header="{DynamicResource Common.Event}" Binding="{Binding EventType}" Width="1.35*" ElementStyle="{StaticResource WrappingDataGridText}" />
+                  <DataGridTextColumn Header="{DynamicResource Common.Instance}" Binding="{Binding InstanceName}" Width="1.1*" ElementStyle="{StaticResource WrappingDataGridText}" />
+                  <DataGridTemplateColumn Header="{DynamicResource Common.Provider}" SortMemberPath="ProviderType" Width="0.95*"><DataGridTemplateColumn.CellTemplate><DataTemplate><local:ProviderIdentityView Style="{StaticResource DesktopDataGridContent}" Identity="{Binding ProviderIdentity}" IconSize="18" FontSize="11" /></DataTemplate></DataGridTemplateColumn.CellTemplate></DataGridTemplateColumn>
+                  <DataGridTextColumn Header="{DynamicResource Common.Summary}" Binding="{Binding Summary}" Width="1.8*" ElementStyle="{StaticResource WrappingDataGridText}" />
+                  <DataGridTemplateColumn Header="{DynamicResource History.Title}" Width="*" Visibility="Collapsed" CellStyle="{StaticResource CompactDataGridCell}">
+                    <DataGridTemplateColumn.CellTemplate><StaticResource ResourceKey="TimelineCompactRowTemplate" /></DataGridTemplateColumn.CellTemplate>
+                  </DataGridTemplateColumn>
                 </DataGrid.Columns>
               </DataGrid>
             </Grid>
@@ -557,24 +726,27 @@
           <Grid x:Name="AlertsPanel" Grid.Row="1" Margin="0,18,0,0">
             <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
             <UniformGrid x:Name="AlertSummaryGrid" Columns="3">
-              <local:KpiCard x:Name="AlertCriticalCard" Margin="0,0,12,0" Label="{DynamicResource Alerts.CriticalOpen}" Value="{Binding Text, ElementName=AlertCriticalCountText}" Icon="Critical" Tone="Critical" />
-              <local:KpiCard x:Name="AlertActiveCard" Margin="0,0,12,0" Label="{DynamicResource Alerts.Active}" Value="{Binding Text, ElementName=AlertActiveCountText}" Icon="Degraded" Tone="Degraded" />
-              <local:KpiCard x:Name="AlertTotalCard" Label="{DynamicResource Alerts.TotalVisible}" Value="{Binding Text, ElementName=AlertTotalCountText}" Icon="Healthy" Tone="Neutral" />
+              <local:KpiCard x:Name="AlertCriticalCard" Margin="8" Label="{DynamicResource Alerts.CriticalOpen}" Value="{Binding Text, ElementName=AlertCriticalCountText}" Icon="Critical" Tone="Critical" />
+              <local:KpiCard x:Name="AlertActiveCard" Margin="8" Label="{DynamicResource Alerts.Active}" Value="{Binding Text, ElementName=AlertActiveCountText}" Icon="Degraded" Tone="Degraded" />
+              <local:KpiCard x:Name="AlertTotalCard" Margin="8" Label="{DynamicResource Alerts.TotalVisible}" Value="{Binding Text, ElementName=AlertTotalCountText}" Icon="Healthy" Tone="Neutral" />
             </UniformGrid>
             <StackPanel Visibility="Collapsed"><TextBlock x:Name="AlertCriticalCountText" /><TextBlock x:Name="AlertActiveCountText" /><TextBlock x:Name="AlertTotalCountText" /></StackPanel>
             <Border Grid.Row="1" Background="{DynamicResource ComponentCardBackgroundBrush}" BorderBrush="{DynamicResource ComponentCardBorderBrush}" BorderThickness="1" CornerRadius="10" Margin="0,18,0,0">
               <Grid>
                 <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
                 <Grid Margin="18,14"><Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions><StackPanel><TextBlock Text="{DynamicResource Alerts.Title}" FontSize="16" FontWeight="SemiBold" /><TextBlock Text="{DynamicResource Alerts.Description}" Foreground="{DynamicResource ColourTextSecondaryBrush}" FontSize="11" Margin="0,3,0,0" /></StackPanel><TextBlock Grid.Column="1" x:Name="AlertSummaryText" Foreground="{DynamicResource ColourTextSecondaryBrush}" /></Grid>
-                <DataGrid x:Name="AlertsGrid" Grid.Row="1" AutoGenerateColumns="False" IsReadOnly="True" CanUserAddRows="False" HeadersVisibility="Column" GridLinesVisibility="Horizontal" BorderThickness="0" RowHeight="52" ColumnHeaderHeight="40" AlternatingRowBackground="{DynamicResource ColourSurfaceSubtleBrush}" ScrollViewer.HorizontalScrollBarVisibility="Auto" AutomationProperties.Name="{DynamicResource Alerts.Title}">
+                <DataGrid x:Name="AlertsGrid" Grid.Row="1" AutoGenerateColumns="False" IsReadOnly="True" CanUserAddRows="False" HeadersVisibility="Column" GridLinesVisibility="Horizontal" BorderThickness="0" MinRowHeight="52" AlternatingRowBackground="{DynamicResource ColourSurfaceSubtleBrush}" ScrollViewer.HorizontalScrollBarVisibility="Auto" AutomationProperties.Name="{DynamicResource Alerts.Title}">
                   <DataGrid.Columns>
-                    <DataGridTemplateColumn Header="{DynamicResource Common.Severity}" SortMemberPath="SeverityLabel" Width="130"><DataGridTemplateColumn.CellTemplate><DataTemplate><local:StatusPill Text="{Binding SeverityLabel}" Tone="{Binding Tone}" Icon="{Binding IconKind}" VerticalAlignment="Center" /></DataTemplate></DataGridTemplateColumn.CellTemplate></DataGridTemplateColumn>
-                    <DataGridTextColumn Header="{DynamicResource Common.State}" Binding="{Binding StateLabel}" Width="120" />
-                    <DataGridTextColumn Header="{DynamicResource Common.Rule}" Binding="{Binding RuleName}" Width="180" />
-                    <DataGridTextColumn Header="{DynamicResource Common.Instance}" Binding="{Binding InstanceName}" Width="170" />
-                    <DataGridTemplateColumn Header="{DynamicResource Common.Provider}" SortMemberPath="ProviderType" Width="150"><DataGridTemplateColumn.CellTemplate><DataTemplate><local:ProviderIdentityView Identity="{Binding ProviderIdentity}" IconSize="18" FontSize="11" /></DataTemplate></DataGridTemplateColumn.CellTemplate></DataGridTemplateColumn>
-                    <DataGridTextColumn Header="{DynamicResource Common.Summary}" Binding="{Binding Summary}" Width="390" />
-                    <DataGridTextColumn Header="{DynamicResource Common.Updated}" Binding="{Binding UpdatedAtLabel}" Width="180" />
+                    <DataGridTemplateColumn Header="{DynamicResource Common.Severity}" SortMemberPath="SeverityLabel" Width="1.35*"><DataGridTemplateColumn.CellTemplate><DataTemplate><local:StatusPill Style="{StaticResource DesktopDataGridContent}" Text="{Binding SeverityLabel}" Tone="{Binding Tone}" Icon="{Binding IconKind}" /></DataTemplate></DataGridTemplateColumn.CellTemplate></DataGridTemplateColumn>
+                    <DataGridTextColumn Header="{DynamicResource Common.State}" Binding="{Binding StateLabel}" Width="1.2*" ElementStyle="{StaticResource WrappingDataGridText}" />
+                    <DataGridTextColumn Header="{DynamicResource Common.Rule}" Binding="{Binding RuleName}" Width="1.25*" ElementStyle="{StaticResource WrappingDataGridText}" />
+                    <DataGridTextColumn Header="{DynamicResource Common.Instance}" Binding="{Binding InstanceName}" Width="1.15*" ElementStyle="{StaticResource WrappingDataGridText}" />
+                    <DataGridTemplateColumn Header="{DynamicResource Common.Provider}" SortMemberPath="ProviderType" Width="1.15*"><DataGridTemplateColumn.CellTemplate><DataTemplate><local:ProviderIdentityView Style="{StaticResource DesktopDataGridContent}" Identity="{Binding ProviderIdentity}" IconSize="18" FontSize="11" /></DataTemplate></DataGridTemplateColumn.CellTemplate></DataGridTemplateColumn>
+                    <DataGridTextColumn Header="{DynamicResource Common.Summary}" Binding="{Binding Summary}" Width="1.7*" ElementStyle="{StaticResource WrappingDataGridText}" />
+                    <DataGridTextColumn Header="{DynamicResource Common.Updated}" Binding="{Binding UpdatedAtLabel}" Width="1.4*" ElementStyle="{StaticResource WrappingDataGridText}" />
+                    <DataGridTemplateColumn Header="{DynamicResource Alerts.Title}" Width="*" Visibility="Collapsed" CellStyle="{StaticResource CompactDataGridCell}">
+                      <DataGridTemplateColumn.CellTemplate><StaticResource ResourceKey="AlertCompactRowTemplate" /></DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
                   </DataGrid.Columns>
                 </DataGrid>
               </Grid>
@@ -592,12 +764,13 @@
 
         <Grid x:Name="ProvidersSurface" Grid.Row="1" Visibility="Collapsed" Margin="0,22,0,0">
           <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
-          <Border Background="{DynamicResource ComponentCardBackgroundBrush}" BorderBrush="{DynamicResource ComponentCardBorderBrush}" BorderThickness="1" CornerRadius="10" Padding="22">
+          <local:AuditableCardBorder AutomationProperties.AutomationId="ProvidersRouteDistributionCard" Background="{DynamicResource ComponentCardBackgroundBrush}" BorderBrush="{DynamicResource ComponentCardBorderBrush}" BorderThickness="1" CornerRadius="10" Padding="22">
             <Grid><Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /></Grid.RowDefinitions><StackPanel><TextBlock Text="{DynamicResource Overview.ProviderFixture}" FontSize="18" FontWeight="SemiBold" /><TextBlock Text="{DynamicResource Overview.ProviderDescription}" Foreground="{DynamicResource ColourTextSecondaryBrush}" Margin="0,5,0,14" TextWrapping="Wrap" /></StackPanel><local:ProviderDistributionChart x:Name="ProvidersDistribution" Grid.Row="1" /></Grid>
-          </Border>
+          </local:AuditableCardBorder>
           <Border Grid.Row="1" Background="{DynamicResource ComponentCardBackgroundBrush}" BorderBrush="{DynamicResource ComponentCardBorderBrush}" BorderThickness="1" CornerRadius="10" Padding="18" Margin="0,18,0,0">
-            <ItemsControl x:Name="ProviderCatalogueList">
-              <ItemsControl.ItemsPanel><ItemsPanelTemplate><UniformGrid Columns="2" /></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+            <ItemsControl x:Name="ProviderCatalogueList"
+                          ItemsPanel="{StaticResource ProviderCatalogueDesktopPanel}"
+                          AutomationProperties.Name="{DynamicResource View.Providers.Title}">
               <ItemsControl.ItemTemplate>
                 <DataTemplate>
                   <Border Background="{DynamicResource ColourSurfaceSubtleBrush}" BorderBrush="{DynamicResource ColourBorderDefaultBrush}" BorderThickness="1" CornerRadius="8" Margin="5" Padding="18">
@@ -617,15 +790,44 @@
           <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
           <Border Background="{DynamicResource ComponentCardBackgroundBrush}" BorderBrush="{DynamicResource ComponentCardBorderBrush}" BorderThickness="1" CornerRadius="10">
             <Grid><Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
-              <Grid Margin="18,14"><Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions><StackPanel><TextBlock Text="{DynamicResource Wpf.ConfigurationTitle}" FontSize="16" FontWeight="SemiBold" /><TextBlock x:Name="ConfigurationInstanceText" Foreground="{DynamicResource ColourTextSecondaryBrush}" Margin="0,4,0,0" /><local:ProviderIdentityView x:Name="ConfigurationProviderIdentity" IconSize="18" FontSize="11" Margin="0,4,0,0" /></StackPanel><TextBlock Grid.Column="1" Text="{DynamicResource Common.NotPersisted}" Foreground="{DynamicResource ColourTextSecondaryBrush}" /></Grid>
-              <DataGrid x:Name="ConfigurationGrid" Grid.Row="1" AutoGenerateColumns="False" IsReadOnly="True" CanUserAddRows="False" HeadersVisibility="Column" BorderThickness="0" RowHeight="46" AutomationProperties.Name="{DynamicResource Wpf.ConfigurationTitle}"><DataGrid.Columns><DataGridTextColumn Header="{DynamicResource Common.Field}" Binding="{Binding Label}" Width="1.3*" /><DataGridTextColumn Header="{DynamicResource Common.SafeValue}" Binding="{Binding SafeValue}" Width="*" /><DataGridTextColumn Header="{DynamicResource Common.Description}" Binding="{Binding Description}" Width="2*" /></DataGrid.Columns></DataGrid>
+              <Grid x:Name="ConfigurationSnapshotHeader" Margin="18,14">
+                <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+                <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                <StackPanel><TextBlock Text="{DynamicResource Wpf.ConfigurationTitle}" FontSize="16" FontWeight="SemiBold" TextWrapping="Wrap" /><TextBlock x:Name="ConfigurationInstanceText" Foreground="{DynamicResource ColourTextSecondaryBrush}" Margin="0,4,0,0" TextWrapping="Wrap" /><local:ProviderIdentityView x:Name="ConfigurationProviderIdentity" IconSize="18" FontSize="11" Margin="0,4,0,0" /></StackPanel>
+                <TextBlock x:Name="ConfigurationNotPersistedText" Grid.Column="1" Text="{DynamicResource Common.NotPersisted}" Foreground="{DynamicResource ColourTextSecondaryBrush}" TextWrapping="Wrap" />
+              </Grid>
+              <DataGrid x:Name="ConfigurationGrid" Grid.Row="1" AutoGenerateColumns="False" IsReadOnly="True" CanUserAddRows="False" HeadersVisibility="Column" BorderThickness="0" MinRowHeight="46" ScrollViewer.HorizontalScrollBarVisibility="Auto" AutomationProperties.Name="{DynamicResource Wpf.ConfigurationTitle}">
+                <DataGrid.Columns>
+                  <DataGridTextColumn Header="{DynamicResource Common.Field}" Binding="{Binding Label}" Width="1.3*" ElementStyle="{StaticResource WrappingDataGridText}" />
+                  <DataGridTextColumn Header="{DynamicResource Common.SafeValue}" Binding="{Binding SafeValue}" Width="*" ElementStyle="{StaticResource WrappingDataGridText}" />
+                  <DataGridTextColumn Header="{DynamicResource Common.Description}" Binding="{Binding Description}" Width="2*" ElementStyle="{StaticResource WrappingDataGridText}" />
+                  <DataGridTemplateColumn Header="{DynamicResource Wpf.ConfigurationTitle}" Width="*" Visibility="Collapsed" CellStyle="{StaticResource CompactDataGridCell}">
+                    <DataGridTemplateColumn.CellTemplate><StaticResource ResourceKey="ConfigurationCompactRowTemplate" /></DataGridTemplateColumn.CellTemplate>
+                  </DataGridTemplateColumn>
+                </DataGrid.Columns>
+              </DataGrid>
             </Grid>
           </Border>
           <Border Grid.Row="1" Background="{DynamicResource ComponentCardBackgroundBrush}" BorderBrush="{DynamicResource ComponentCardBorderBrush}" BorderThickness="1" CornerRadius="10" Margin="0,18,0,0">
             <Grid><Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
-              <Grid Margin="18,14"><Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions><StackPanel><TextBlock Text="{DynamicResource Configuration.AdminTitle}" FontSize="16" FontWeight="SemiBold" /><TextBlock Text="{DynamicResource Wpf.NoAction}" Foreground="{DynamicResource ColourTextSecondaryBrush}" Margin="0,4,0,0" /></StackPanel><ComboBox x:Name="PermissionSelector" Grid.Column="1" Width="170" SelectedIndex="0" AutomationProperties.Name="{DynamicResource Configuration.PermissionScenario}"><ComboBoxItem Content="{DynamicResource Configuration.Authorized}" Tag="Authorized" /><ComboBoxItem Content="{DynamicResource Configuration.Denied}" Tag="Denied" /></ComboBox></Grid>
-              <DataGrid x:Name="CapabilityGrid" Grid.Row="1" AutoGenerateColumns="False" IsReadOnly="True" CanUserAddRows="False" HeadersVisibility="Column" BorderThickness="0" RowHeight="46" SelectionMode="Single" AutomationProperties.Name="{DynamicResource Configuration.AdminTitle}"><DataGrid.Columns><DataGridTextColumn Header="{DynamicResource Common.Action}" Binding="{Binding DisplayName}" Width="*" /><DataGridTextColumn Header="{DynamicResource Common.Capability}" Binding="{Binding CapabilityId}" Width="1.2*" /><DataGridTextColumn Header="{DynamicResource Common.State}" Binding="{Binding StateLabel}" Width="*" /><DataGridTextColumn Header="{DynamicResource Common.Reason}" Binding="{Binding ReasonCode}" Width="1.5*" /></DataGrid.Columns></DataGrid>
-              <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="18,12"><Button Content="{DynamicResource Wpf.ReviewSelected}" Click="ReviewCapabilityClick" Margin="0,0,10,0" /><Button Content="{DynamicResource Configuration.ViewConfirmation}" Click="PreviewConfirmationClick" /></StackPanel>
+              <Grid x:Name="ConfigurationCapabilityHeader" Margin="18,14">
+                <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+                <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                <StackPanel><TextBlock Text="{DynamicResource Configuration.AdminTitle}" FontSize="16" FontWeight="SemiBold" TextWrapping="Wrap" /><TextBlock Text="{DynamicResource Wpf.NoAction}" Foreground="{DynamicResource ColourTextSecondaryBrush}" Margin="0,4,0,0" TextWrapping="Wrap" /></StackPanel>
+                <ComboBox x:Name="PermissionSelector" Grid.Column="1" Width="170" SelectedIndex="0" AutomationProperties.Name="{DynamicResource Configuration.PermissionScenario}"><ComboBoxItem Content="{DynamicResource Configuration.Authorized}" Tag="Authorized" /><ComboBoxItem Content="{DynamicResource Configuration.Denied}" Tag="Denied" /></ComboBox>
+              </Grid>
+              <DataGrid x:Name="CapabilityGrid" Grid.Row="1" AutoGenerateColumns="False" IsReadOnly="True" CanUserAddRows="False" HeadersVisibility="Column" BorderThickness="0" MinRowHeight="46" SelectionMode="Single" ScrollViewer.HorizontalScrollBarVisibility="Auto" AutomationProperties.Name="{DynamicResource Configuration.AdminTitle}">
+                <DataGrid.Columns>
+                  <DataGridTextColumn Header="{DynamicResource Common.Action}" Binding="{Binding DisplayName}" Width="*" ElementStyle="{StaticResource WrappingDataGridText}" />
+                  <DataGridTextColumn Header="{DynamicResource Common.Capability}" Binding="{Binding CapabilityId}" Width="1.2*" ElementStyle="{StaticResource WrappingDataGridText}" />
+                  <DataGridTextColumn Header="{DynamicResource Common.State}" Binding="{Binding StateLabel}" Width="*" ElementStyle="{StaticResource WrappingDataGridText}" />
+                  <DataGridTextColumn Header="{DynamicResource Common.Reason}" Binding="{Binding ReasonCode}" Width="1.5*" ElementStyle="{StaticResource WrappingDataGridText}" />
+                  <DataGridTemplateColumn Header="{DynamicResource Configuration.AdminTitle}" Width="*" Visibility="Collapsed" CellStyle="{StaticResource CompactDataGridCell}">
+                    <DataGridTemplateColumn.CellTemplate><StaticResource ResourceKey="CapabilityCompactRowTemplate" /></DataGridTemplateColumn.CellTemplate>
+                  </DataGridTemplateColumn>
+                </DataGrid.Columns>
+              </DataGrid>
+              <WrapPanel x:Name="CapabilityActionsPanel" Grid.Row="2" HorizontalAlignment="Right" Margin="18,12"><Button x:Name="ReviewCapabilityButton" Content="{DynamicResource Wpf.ReviewSelected}" Click="ReviewCapabilityClick" Margin="0,0,10,0" /><Button x:Name="PreviewConfirmationButton" Content="{DynamicResource Configuration.ViewConfirmation}" Click="PreviewConfirmationClick" /></WrapPanel>
             </Grid>
           </Border>
         </Grid>
