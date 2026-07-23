@@ -5,12 +5,14 @@
 - Authorised baseline: `ee16f302e703ccad7574c77cb374cd0f44905508`
 - Findings: `AUD-H13` and `AUD-M11`
 - Automatic result: `APPROVED`
-- Human acceptance: `PENDING`
+- Human acceptance: `ACCEPTED`
 - MOD-12 capability: `observer-analysis`
 - MOD-12 activation state: `None`
 - O1, runtime and lifecycle transition: `NOT AUTHORISED`
 
 R7-A0 corrects only the already inactive MOD-12 Application foundation. It creates no trust host, persistence, corpus, telemetry source, provider, database, API, UI, worker or operational composition.
+
+Bruno closed the independent review on 2026-07-23 with the exact decision `ACEITO O R7-A0, SEM AUTORIZAR O1, OBSERVER, R8, AIOPS OPERACIONAL OU TRANSIÇÃO.` The acceptance closes only R7-A0 in its bounded inactive-foundation scope.
 
 ## Finding disposition
 
@@ -129,4 +131,4 @@ An initial attempt to run two focused builds concurrently caused one compiler pr
 
 ## Next decision
 
-The next permissible step is a separate human decision to accept or reject R7-A0 in this bounded inactive-foundation scope. Acceptance would not authorise O1, `none → OBSERVER`, R8, operational AIOps or lifecycle transition.
+R7-A0 is accepted and closed only in this bounded inactive-foundation scope. Any R8 remediation audit, O1 work, `none → OBSERVER` activation, operational AIOps or lifecycle transition requires a separate proposal and explicit authorisation.

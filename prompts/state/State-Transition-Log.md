@@ -2766,6 +2766,17 @@
 - Próxima decisão: Bruno poderá aceitar ou rejeitar separadamente somente o R7-A0; qualquer O1, R8, AIOps operacional, promoção ou lifecycle exige autoridade posterior explícita.
 - Aprovador: resultado automático local; decisão humana R7-A0 pendente.
 
+## 2026-07-23 — R7-A0 aceito
+
+- Estado anterior: `STATE-06 INTEGRATION`, R7-A0 automaticamente aprovado no commit `cf8ee87f50027fad25f7b5c0051940f03a9bef92`, com aceitação humana pendente.
+- Estado resultante: sem transição; `STATE-06 INTEGRATION` mantido. R7-A0, `AUD-H13` e `AUD-M11` estão humanamente aceitos e fechados somente no escopo bounded da fundação MOD-12 inativa.
+- Decisão: Bruno declarou exatamente `ACEITO O R7-A0, SEM AUTORIZAR O1, OBSERVER, R8, AIOPS OPERACIONAL OU TRANSIÇÃO.`
+- Evidência: [relatório R7-A0](../../docs/STATE-06-Audit-Remediation-R7-A0-Report.md), incluindo capability separada da ativação, complete-only publication, materialização offline bounded e os gates automáticos aprovados.
+- Atividade documental: baseline `cf8ee87f50027fad25f7b5c0051940f03a9bef92`, worktree limpa e zero processo/listener no preflight; nenhum código, runtime, push, deploy ou transição.
+- Limites: a aceitação não autoriza trust host, persistência, corpus/telemetria real, O1, `OBSERVER`, R8, AIOps operacional, execução, promoção ou lifecycle.
+- Próxima decisão: qualquer R8, O1, ativação `OBSERVER`, AIOps operacional ou progressão exige proposta e autorização separadas.
+- Aprovador: Bruno, 2026-07-23, exclusivamente para R7-A0.
+
 ## Template de nova entrada
 
 - Data:

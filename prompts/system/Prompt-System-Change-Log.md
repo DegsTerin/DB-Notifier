@@ -2,7 +2,7 @@
 
 ## Versão atual
 
-- Versão: `3.56.20`
+- Versão: `3.56.21`
 - Data: 2026-07-23
 - Status: corpus DB-Notifier consolidado
 - Escopo: 13 arquivos ativos
@@ -16,6 +16,12 @@ A versão do corpus é independente da versão do software.
 - PATCH: clareza, correção ou referência sem mudança de autoridade.
 
 Toda alteração atualiza este arquivo e, quando necessário, `../Start-Here.md`.
+
+## 3.56.21 — 2026-07-23
+
+- Registra a decisão humana exata `ACEITO O R7-A0, SEM AUTORIZAR O1, OBSERVER, R8, AIOPS OPERACIONAL OU TRANSIÇÃO.`
+- Encerra R7-A0, `AUD-H13` e `AUD-M11` somente no escopo bounded da fundação MOD-12 inativa, preservando `ActivationState=None`.
+- Não autoriza trust host, persistência, corpus/telemetria real, O1, `OBSERVER`, R8, AIOps operacional, execução, promoção ou transição de lifecycle.
 
 ## 3.56.20 — 2026-07-23
 

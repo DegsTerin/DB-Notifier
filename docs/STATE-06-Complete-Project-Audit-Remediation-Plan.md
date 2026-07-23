@@ -435,8 +435,10 @@ R7 é somente uma parte deste plano. Nenhuma alteração da fundação AIOps, O1
 revalidates absolute deadline/cancellation/context revision before complete-only publication, suppresses every subset
 aggregate for incomplete offline runs, materialises bounded cancellation-aware sources before analysis, sanitises
 source exceptions and marks corpus provenance `DeclaredOnly`. The automatic scope is `APPROVED`; human acceptance
-remains pending. No trust host, persistence, real corpus/telemetry, runtime, UI, O1, mode or lifecycle transition was
-created. Evidence: [STATE-06 Audit Remediation R7-A0 Report](STATE-06-Audit-Remediation-R7-A0-Report.md).
+is complete with Bruno's exact decision `ACEITO O R7-A0, SEM AUTORIZAR O1, OBSERVER, R8, AIOPS OPERACIONAL OU
+TRANSIÇÃO.` R7-A0 is accepted and closed only in this bounded scope. No trust host, persistence, real corpus/telemetry,
+runtime, UI, O1, mode or lifecycle transition was created or authorised. Evidence:
+[STATE-06 Audit Remediation R7-A0 Report](STATE-06-Audit-Remediation-R7-A0-Report.md).
 
 Antes de o código atual poder servir como dependência de O1 ou de um gate futuro:
 
