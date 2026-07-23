@@ -2645,6 +2645,20 @@
 - Próxima decisão: requer proposta e autorização separadas para repetir visivelmente somente `R6-HV-W01` após R6-UI1. W02/P01 não retomam automaticamente.
 - Aprovador: autorização de implementação R6-UI1 por Bruno em 2026-07-22; nenhuma aprovação humana de W01 ou R6 foi inferida.
 
+## 2026-07-22 — Repetição visível `R6-HV-W01` reprovada após R6-UI1
+
+- Estado anterior: `STATE-06 INTEGRATION`, R6-UI1 automaticamente aprovado no commit `c7479d853f20ceb45aab70173431e46480b458e9`, W01 pendente de repetição, W02 bloqueada e P01 não testada.
+- Estado resultante: sem transição; `STATE-06 INTEGRATION` mantido. `R6-HV-W01` permanece `REPROVADA`, agora pela contenção Web incorreta observada após R6-UI1; a aceitação humana R6 continua `PENDENTE`.
+- Execução: outputs Release existentes reutilizados; Web de referência em preview loopback e Chrome dedicado com perfil temporário, proxy fechado e resolução externa negada; WPF com ativação test-only completa e `--notifications-quiet`, endpoint HTTPS loopback sem listener, estado temporário e sujeito sintético. A auditoria encontrou zero conexão não loopback. Nenhum build, restore, download, fonte operacional, notificação, código ou configuração permanente foi executado.
+- Observação: no Web compacto da rota Visão geral, o texto `Desabilitada · excluída da saúde atual` ultrapassou o status pill e invadiu a região reservada ao sparkline durante o reflow. A campanha parou nesse defeito material, sem inferir resultado positivo para as demais rotas, combinações de idioma/tema, variantes compactas ou Tray/flyout.
+- Decisão: Bruno declarou exatamente `AMOSTRA R6-HV-W01 REPETIDA — REPROVADA: na versão Web, o texto “Desabilitada · excluída da saúde atual” ultrapassa o status pill e invade a área do sparkline durante o reflow`.
+- Limitação física: `1920×1080` permaneceu `NÃO TESTADA` porque a área útil ativa mede `1920×1032`; nenhuma configuração do Windows foi alterada.
+- Cleanup: duas comparações recusaram fail-closed a interpretação cultural do timestamp antes de qualquer encerramento. A leitura ISO preservada comprovou PID, caminho, comando quiet e instante exatos; WPF, Chrome e preview foram então encerrados por identidade, com zero processo, listener, janela, elemento Tray ou root residual e preferência restaurada byte a byte ao SHA-256 `ABC049CBB37CC998FF86E018E6853D811E58ED166B2B6B4A5CF0FBA4B171868F`.
+- Evidência: [relatório da repetição W01 pós-R6-UI1](../../docs/STATE-06-Audit-Remediation-R6-HV-W01-Post-UI1-Repetition-Report.md) e captura sanitizada fornecida por Bruno na conversa, sem binário adicionado ao repositório.
+- Limites: o resultado automático R6-UI1 permanece factual somente no seu escopo. W02 permanece bloqueada; P01 e suas cinco condições permanecem não testadas. Nenhuma correção, aceitação R6, correção R0, alteração do incidente R5, R2-B, R7–R8, R7-A0/O1, AIOps, comando, LLM, automação, promoção ou transição foi autorizada ou inferida.
+- Próxima decisão: requer proposta e autorização separadas para remediação focal da contenção Web do estado desabilitado e da alocação responsiva entre status e sparkline; qualquer repetição humana posterior também exigirá autoridade separada.
+- Aprovador: Bruno, 2026-07-22, exclusivamente para a decisão da repetição `R6-HV-W01`.
+
 ## Template de nova entrada
 
 - Data:

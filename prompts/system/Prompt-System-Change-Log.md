@@ -2,7 +2,7 @@
 
 ## Versão atual
 
-- Versão: `3.56.11`
+- Versão: `3.56.12`
 - Data: 2026-07-22
 - Status: corpus DB-Notifier consolidado
 - Escopo: 13 arquivos ativos
@@ -16,6 +16,12 @@ A versão do corpus é independente da versão do software.
 - PATCH: clareza, correção ou referência sem mudança de autoridade.
 
 Toda alteração atualiza este arquivo e, quando necessário, `../Start-Here.md`.
+
+## 3.56.12 — 2026-07-22
+
+- Registra a decisão humana que manteve `R6-HV-W01` reprovada após R6-UI1 porque, no Web compacto, o texto do estado desabilitado ultrapassou o status pill e invadiu a região do sparkline durante o reflow.
+- Preserva o resultado automático R6-UI1 somente no seu escopo, sem convertê-lo em aprovação humana; registra a parada antecipada, `1920×1080` não testado, preferência restaurada e cleanup sem resíduo.
+- A próxima decisão passa a ser proposta separada de remediação focal Web; W02, P01, aceitação R6, correção R0, incidente R5, R7–R8, R7-A0/O1, AIOps e transição continuam não autorizados ou inalterados.
 
 ## 3.56.11 — 2026-07-22
 
