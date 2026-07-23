@@ -2676,6 +2676,20 @@
 - Próxima decisão: requer proposta e autorização separadas para repetir visivelmente somente `R6-HV-W01` após R6-WEB1. W02/P01 não retomam automaticamente.
 - Aprovador: autorização de implementação R6-WEB1 por Bruno em 2026-07-22; nenhuma aprovação humana de W01 ou R6 foi inferida.
 
+## 2026-07-23 — Repetição visível `R6-HV-W01` aprovada após R6-WEB1
+
+- Estado anterior: `STATE-06 INTEGRATION`, R6-WEB1 automaticamente aprovado no commit `eb14985615dd160500e40e56bd8e910789d98c7d`, W01 reprovada pela decisão humana pós-R6-UI1, W02 bloqueada e P01 não testada.
+- Estado resultante: sem transição; `STATE-06 INTEGRATION` mantido. `R6-HV-W01` está `APROVADA` na repetição posterior ao R6-WEB1; a aceitação humana R6 continua `PENDENTE`.
+- Execução: outputs existentes reutilizados sem build; Web em preview loopback e Chrome com perfil temporário, proxy fechado e resolução externa negada; WPF com ativação test-only completa e `--notifications-quiet`. Nenhum restore, download, acesso externo, fonte operacional, notificação, código ou configuração permanente foi executado.
+- Observação: Bruno concluiu a inspeção com a resposta exata `INSPEÇÃO R6-HV-W01 APÓS R6-WEB1 CONCLUÍDA: Sem observações`.
+- Decisão: Bruno declarou exatamente `AMOSTRA R6-HV-W01 REPETIDA — APROVADA`.
+- Cleanup: WPF, Chrome dedicado e preview foram encerrados por identidade exata sem usar o Close normal; preferência restaurada byte a byte ao SHA-256 `ABC049CBB37CC998FF86E018E6853D811E58ED166B2B6B4A5CF0FBA4B171868F`; zero processo, janela, elemento Tray, listener ou root temporário após três verificações de ausência.
+- Evidência: [relatório da repetição W01 pós-R6-WEB1](../../docs/STATE-06-Audit-Remediation-R6-HV-W01-Post-WEB1-Repetition-Report.md). Nenhuma captura binária foi adicionada ao repositório.
+- Histórico: os resultados W01 bloqueado/reprovados anteriores permanecem preservados e não foram reescritos.
+- Limites: W02 permanece bloqueada; P01 e suas cinco condições permanecem não testadas. A decisão não aceita R6 completo nem autoriza correção R0, alteração do incidente R5, R2-B, R7–R8, R7-A0/O1, AIOps, comando, automação, promoção ou transição.
+- Próxima decisão: qualquer aceitação R6, retomada W02/P01 ou progressão exige proposta e autoridade separadas.
+- Aprovador: Bruno, 2026-07-23, exclusivamente para a repetição `R6-HV-W01` após R6-WEB1.
+
 ## Template de nova entrada
 
 - Data:

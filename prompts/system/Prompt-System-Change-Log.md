@@ -2,8 +2,8 @@
 
 ## Versão atual
 
-- Versão: `3.56.13`
-- Data: 2026-07-22
+- Versão: `3.56.14`
+- Data: 2026-07-23
 - Status: corpus DB-Notifier consolidado
 - Escopo: 13 arquivos ativos
 
@@ -16,6 +16,13 @@ A versão do corpus é independente da versão do software.
 - PATCH: clareza, correção ou referência sem mudança de autoridade.
 
 Toda alteração atualiza este arquivo e, quando necessário, `../Start-Here.md`.
+
+## 3.56.14 — 2026-07-23
+
+- Registra a repetição visível `R6-HV-W01` após R6-WEB1 e a decisão humana exata `AMOSTRA R6-HV-W01 REPETIDA — APROVADA`.
+- Preserva as reprovações anteriores como evidência histórica e mantém W02 bloqueada, P01 não testada e a aceitação humana R6 pendente.
+- Registra execução local isolada, preferência restaurada e cleanup sem processo, janela, Tray, listener ou diretório temporário residual.
+- Não autoriza implementação, correção R0, alteração do incidente R5, R7–R8, R7-A0/O1, AIOps ou transição de lifecycle.
 
 ## 3.56.13 — 2026-07-22
 
