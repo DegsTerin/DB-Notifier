@@ -290,15 +290,15 @@ public sealed class ObserverTelemetryAdaptationResult
 /// </summary>
 public static class CanonicalObserverTelemetryAdapter
 {
-    /// <summary>Provider-neutral metric emitted by this first trusted transformation.</summary>
-    public const string MetricKey = "database.probe.duration";
+    /// <summary>Provider-neutral metric prefix used to keep probe outcomes in separate duration series.</summary>
+    public const string MetricKeyPrefix = "database.probe.duration";
 
     /// <summary>Canonical duration unit emitted by this first trusted transformation.</summary>
     public const string Unit = "milliseconds";
 
     private const string SourceKind = "canonical.health-observation";
     private const string SchemaVersion = "health-observation.v1";
-    private const string TransformationVersion = "observer-duration.v1";
+    private const string TransformationVersion = "observer-duration-by-outcome.v2";
     private const int MaximumAttemptCount = 10;
     private const int MaximumLimitationCount = 20;
     private const int MaximumLimitationLength = 200;
@@ -307,6 +307,23 @@ public static class CanonicalObserverTelemetryAdapter
     private const int MaximumErrorCodeLength = 100;
     private const int MaximumSafeErrorLength = 1_000;
     private static readonly TimeSpan MaximumDuration = TimeSpan.FromMinutes(5);
+
+    /// <summary>Returns the provider-neutral duration series for one canonical probe outcome.</summary>
+    /// <param name="status">Validated canonical probe status.</param>
+    /// <returns>A stable metric key that preserves the probe outcome instead of mixing unlike evidence.</returns>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="status"/> is undefined.</exception>
+    internal static string MetricKeyFor(HealthStatus status) =>
+        status switch
+        {
+            HealthStatus.Healthy => $"{MetricKeyPrefix}.healthy",
+            HealthStatus.Degraded => $"{MetricKeyPrefix}.degraded",
+            HealthStatus.Unavailable => $"{MetricKeyPrefix}.unavailable",
+            HealthStatus.AuthFailed => $"{MetricKeyPrefix}.auth-failed",
+            HealthStatus.Timeout => $"{MetricKeyPrefix}.timeout",
+            HealthStatus.Maintenance => $"{MetricKeyPrefix}.maintenance",
+            HealthStatus.Unknown => $"{MetricKeyPrefix}.unknown",
+            _ => throw new ArgumentOutOfRangeException(nameof(status)),
+        };
 
     /// <summary>Adapts one canonical health observation under an explicit, current and exact-source opt-in policy.</summary>
     /// <param name="telemetry">Typed canonical observation and authoritative receipt instant.</param>
@@ -429,7 +446,7 @@ public static class CanonicalObserverTelemetryAdapter
             observation.ObservationId,
             observation.InstanceId,
             policy.AuthorisationScopeId,
-            MetricKey,
+            MetricKeyFor(observation.Status),
             Unit,
             observation.Duration.TotalMilliseconds,
             observation.ObservedAt,

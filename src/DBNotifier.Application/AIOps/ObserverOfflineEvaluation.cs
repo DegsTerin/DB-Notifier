@@ -175,64 +175,87 @@ public sealed class ObserverOfflineEvaluationCase
     /// </summary>
     /// <param name="telemetry">Immutable, deterministically ordered telemetry when validation succeeds.</param>
     /// <param name="rejectionCode">Stable fail-closed code when the caller-owned source changed or is invalid.</param>
+    /// <param name="cancellationToken">Cancellation checked before and during bounded source enumeration.</param>
     /// <returns><see langword="true"/> only when the admitted source can be materialised safely.</returns>
     internal bool TryMaterialiseTelemetry(
         out IReadOnlyList<ObserverCanonicalHealthTelemetry>? telemetry,
-        out string? rejectionCode)
+        out string? rejectionCode,
+        CancellationToken cancellationToken)
     {
-        if (telemetrySource.Count != TelemetryCount)
+        try
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            if (telemetrySource.Count != TelemetryCount)
+            {
+                telemetry = null;
+                rejectionCode = "aiops.observer.offline.telemetry_source_changed";
+                return false;
+            }
+
+            List<ObserverCanonicalHealthTelemetry> copiedItems = new(TelemetryCount);
+            using IEnumerator<ObserverCanonicalHealthTelemetry> enumerator = telemetrySource.GetEnumerator();
+            while (copiedItems.Count <= ObserverAnalysisRequest.MaximumSampleCount && enumerator.MoveNext())
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                copiedItems.Add(enumerator.Current);
+            }
+
+            cancellationToken.ThrowIfCancellationRequested();
+            ObserverCanonicalHealthTelemetry[] copiedTelemetry = copiedItems.ToArray();
+            if (copiedTelemetry.Length != TelemetryCount || telemetrySource.Count != TelemetryCount)
+            {
+                telemetry = null;
+                rejectionCode = "aiops.observer.offline.telemetry_source_changed";
+                return false;
+            }
+
+            if (copiedTelemetry.Any(item => item is null))
+            {
+                telemetry = null;
+                rejectionCode = "aiops.observer.offline.telemetry_source_invalid";
+                return false;
+            }
+
+            if (copiedTelemetry
+                    .Select(item => item.Observation.ObservationId)
+                    .Distinct()
+                    .Count() != copiedTelemetry.Length ||
+                copiedTelemetry.Any(item =>
+                    !string.Equals(
+                        item.Observation.ProviderType.Value,
+                        Segment.ProviderType,
+                        StringComparison.Ordinal) ||
+                    !string.Equals(
+                        item.Observation.ProviderVersion,
+                        Segment.ProviderVersion,
+                        StringComparison.Ordinal)))
+            {
+                telemetry = null;
+                rejectionCode = "aiops.observer.offline.telemetry_source_invalid";
+                return false;
+            }
+
+            Array.Sort(copiedTelemetry, static (left, right) =>
+            {
+                int observedAtComparison = left.Observation.ObservedAt.CompareTo(right.Observation.ObservedAt);
+                return observedAtComparison != 0
+                    ? observedAtComparison
+                    : left.Observation.ObservationId.CompareTo(right.Observation.ObservationId);
+            });
+            telemetry = Array.AsReadOnly(copiedTelemetry);
+            rejectionCode = null;
+            return true;
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (Exception)
         {
             telemetry = null;
-            rejectionCode = "aiops.observer.offline.telemetry_source_changed";
+            rejectionCode = "aiops.observer.offline.telemetry_source_unavailable";
             return false;
         }
-
-        ObserverCanonicalHealthTelemetry[] copiedTelemetry = telemetrySource
-            .Take(ObserverAnalysisRequest.MaximumSampleCount + 1)
-            .ToArray();
-        if (copiedTelemetry.Length != TelemetryCount || telemetrySource.Count != TelemetryCount)
-        {
-            telemetry = null;
-            rejectionCode = "aiops.observer.offline.telemetry_source_changed";
-            return false;
-        }
-
-        if (copiedTelemetry.Any(item => item is null))
-        {
-            telemetry = null;
-            rejectionCode = "aiops.observer.offline.telemetry_source_invalid";
-            return false;
-        }
-
-        if (copiedTelemetry
-                .Select(item => item.Observation.ObservationId)
-                .Distinct()
-                .Count() != copiedTelemetry.Length ||
-            copiedTelemetry.Any(item =>
-                !string.Equals(
-                    item.Observation.ProviderType.Value,
-                    Segment.ProviderType,
-                    StringComparison.Ordinal) ||
-                !string.Equals(
-                    item.Observation.ProviderVersion,
-                    Segment.ProviderVersion,
-                    StringComparison.Ordinal)))
-        {
-            telemetry = null;
-            rejectionCode = "aiops.observer.offline.telemetry_source_invalid";
-            return false;
-        }
-
-        Array.Sort(copiedTelemetry, static (left, right) =>
-        {
-            int observedAtComparison = left.Observation.ObservedAt.CompareTo(right.Observation.ObservedAt);
-            return observedAtComparison != 0
-                ? observedAtComparison
-                : left.Observation.ObservationId.CompareTo(right.Observation.ObservationId);
-        });
-        telemetry = Array.AsReadOnly(copiedTelemetry);
-        rejectionCode = null;
-        return true;
     }
 
     /// <summary>Rejects default or offset-bearing evaluation instants.</summary>
@@ -246,6 +269,13 @@ public sealed class ObserverOfflineEvaluationCase
             throw new ArgumentException("Offline evaluation instants must be explicit UTC values.", parameterName);
         }
     }
+}
+
+/// <summary>Classifies the evidential authority of offline corpus provenance.</summary>
+public enum ObserverCorpusProvenanceAuthority
+{
+    /// <summary>References are caller declarations only and have no signed manifest or authenticated head.</summary>
+    DeclaredOnly = 1,
 }
 
 /// <summary>
@@ -345,6 +375,10 @@ public sealed class ObserverOfflineEvaluationDataset
 
     /// <summary>Gets the stable non-secret authority reference.</summary>
     public string AuthorityReference { get; }
+
+    /// <summary>Gets the explicit non-authoritative status of provenance until a signed manifest and head exist.</summary>
+    public ObserverCorpusProvenanceAuthority ProvenanceAuthority { get; } =
+        ObserverCorpusProvenanceAuthority.DeclaredOnly;
 
     /// <summary>Gets the dataset's explicit operational-telemetry classification.</summary>
     public ObserverDataClassification Classification { get; }
@@ -556,12 +590,15 @@ public sealed class ObserverOfflineEvaluationReport
         DatasetSchemaVersion = dataset.DatasetSchemaVersion;
         ProvenanceReference = dataset.ProvenanceReference;
         AuthorityReference = dataset.AuthorityReference;
+        ProvenanceAuthority = dataset.ProvenanceAuthority;
         EvaluatedAt = evaluatedAt;
         DatasetAccepted = datasetAccepted;
         ProcessingCompleted = processingCompleted;
         Code = code;
-        CaseResults = caseResults;
-        SegmentResults = Array.AsReadOnly(caseResults
+        IReadOnlyList<ObserverOfflineEvaluationCaseResult> publishableResults =
+            processingCompleted ? caseResults : [];
+        CaseResults = publishableResults;
+        SegmentResults = Array.AsReadOnly(publishableResults
             .GroupBy(result => (
                 result.Segment.ProviderType,
                 result.Segment.ProviderVersion,
@@ -574,16 +611,16 @@ public sealed class ObserverOfflineEvaluationReport
         MaximumWorkUnits = budget.MaximumWorkUnits;
         MaximumRequiredWorkUnits = dataset.MaximumRequiredWorkUnits;
         ConsumedWorkUnits = consumedWorkUnits;
-        PassedCaseCount = caseResults.Count(result => result.Passed);
-        FailedCaseCount = caseResults.Count - PassedCaseCount;
-        RejectedAdversarialCaseCount = caseResults.Count(result =>
+        PassedCaseCount = publishableResults.Count(result => result.Passed);
+        FailedCaseCount = publishableResults.Count - PassedCaseCount;
+        RejectedAdversarialCaseCount = publishableResults.Count(result =>
             result.Kind == ObserverOfflineCaseKind.Adversarial &&
             result.ActualDisposition == ObserverOfflineExpectedDisposition.AdaptationRejected);
-        AcceptedAdversarialCaseCount = caseResults.Count(result =>
+        AcceptedAdversarialCaseCount = publishableResults.Count(result =>
             result.Kind == ObserverOfflineCaseKind.Adversarial &&
             result.ActualDisposition != ObserverOfflineExpectedDisposition.AdaptationRejected);
 
-        foreach (ObserverOfflineEvaluationCaseResult result in caseResults)
+        foreach (ObserverOfflineEvaluationCaseResult result in publishableResults)
         {
             bool expectedPositive = result.ExpectedDisposition == ObserverOfflineExpectedDisposition.FindingDetected;
             bool expectedNegative = result.ExpectedDisposition == ObserverOfflineExpectedDisposition.FindingNotDetected;
@@ -642,6 +679,9 @@ public sealed class ObserverOfflineEvaluationReport
     /// <summary>Gets the dataset authority reference.</summary>
     public string AuthorityReference { get; }
 
+    /// <summary>Gets whether corpus provenance is merely declared or cryptographically authoritative.</summary>
+    public ObserverCorpusProvenanceAuthority ProvenanceAuthority { get; }
+
     /// <summary>Gets the trusted UTC evaluation instant.</summary>
     public DateTimeOffset EvaluatedAt { get; }
 
@@ -671,6 +711,9 @@ public sealed class ObserverOfflineEvaluationReport
 
     /// <summary>Gets whether admission or elapsed-time enforcement refused complete processing.</summary>
     public bool BackpressureApplied => DatasetAccepted && !ProcessingCompleted;
+
+    /// <summary>Gets a value that is always false because offline evidence grants no runtime or mode authority.</summary>
+    public bool IsAuthorising { get; }
 
     /// <summary>Gets the exact-match case count.</summary>
     public int PassedCaseCount { get; }
@@ -718,11 +761,10 @@ public static class ObserverOfflineEvaluationRunner
     /// <param name="budget">Explicit case, sample, work-unit and elapsed-time limits.</param>
     /// <param name="evaluatedAt">Trusted UTC evaluation instant.</param>
     /// <param name="timeProvider">Clock used solely to enforce elapsed processing time.</param>
-    /// <param name="cancellationToken">Cancellation checked between cases and telemetry items.</param>
-    /// <returns>A deterministic dataset report with exact-match and quality metrics.</returns>
+    /// <param name="cancellationToken">Cancellation checked during admission, materialisation and case processing.</param>
+    /// <returns>A complete deterministic report or an empty, typed, non-authorising terminal report.</returns>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="dataset"/> is null.</exception>
     /// <exception cref="ArgumentException">Thrown when <paramref name="evaluatedAt"/> is default or not expressed as UTC.</exception>
-    /// <exception cref="OperationCanceledException">Thrown when cancellation is requested during the bounded run.</exception>
     public static ObserverOfflineEvaluationReport Evaluate(
         ObserverOfflineEvaluationDataset dataset,
         ObserverProcessingBudget budget,
@@ -737,7 +779,11 @@ public static class ObserverOfflineEvaluationRunner
             throw new ArgumentException("Offline evaluation time must be an explicit UTC value.", nameof(evaluatedAt));
         }
 
-        cancellationToken.ThrowIfCancellationRequested();
+        if (cancellationToken.IsCancellationRequested)
+        {
+            return Cancelled(dataset, budget, evaluatedAt, consumedWorkUnits: 0);
+        }
+
         if (evaluatedAt < dataset.CreatedAt)
         {
             return DatasetRejected(dataset, budget, evaluatedAt, "aiops.observer.offline.dataset_not_effective");
@@ -751,19 +797,42 @@ public static class ObserverOfflineEvaluationRunner
         string? admissionRejection = AdmissionRejection(dataset, budget);
         if (admissionRejection is not null)
         {
-            return Backpressured(dataset, budget, evaluatedAt, admissionRejection, [], consumedWorkUnits: 0);
+            return Backpressured(dataset, budget, evaluatedAt, admissionRejection, consumedWorkUnits: 0);
         }
 
         ObserverProcessingBudgetTracker tracker = new(budget, timeProvider ?? TimeProvider.System);
         List<ObserverOfflineEvaluationCaseResult> results = new(dataset.Cases.Count);
         try
         {
+            List<MaterialisedOfflineCase> admittedCases = new(dataset.Cases.Count);
             foreach (ObserverOfflineEvaluationCase evaluationCase in dataset.Cases)
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 tracker.Consume();
-                results.Add(EvaluateCase(evaluationCase, tracker, cancellationToken));
+                bool materialised = evaluationCase.TryMaterialiseTelemetry(
+                    out IReadOnlyList<ObserverCanonicalHealthTelemetry>? telemetry,
+                    out string? rejectionCode,
+                    cancellationToken);
+                admittedCases.Add(new MaterialisedOfflineCase(
+                    evaluationCase,
+                    materialised ? telemetry : null,
+                    rejectionCode));
+                tracker.EnsureTimeAvailable();
             }
+
+            foreach (MaterialisedOfflineCase admittedCase in admittedCases)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                results.Add(EvaluateCase(admittedCase, tracker, cancellationToken));
+                tracker.EnsureTimeAvailable();
+            }
+
+            cancellationToken.ThrowIfCancellationRequested();
+            tracker.EnsureTimeAvailable();
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            return Cancelled(dataset, budget, evaluatedAt, tracker.ConsumedWorkUnits);
         }
         catch (ObserverProcessingBudgetExceededException)
         {
@@ -772,7 +841,6 @@ public static class ObserverOfflineEvaluationRunner
                 budget,
                 evaluatedAt,
                 "aiops.observer.offline.processing_time_exhausted",
-                results.AsReadOnly(),
                 tracker.ConsumedWorkUnits);
         }
 
@@ -788,27 +856,27 @@ public static class ObserverOfflineEvaluationRunner
     }
 
     /// <summary>Runs one case while converting cross-evidence boundary conflicts to an explicit sanitised rejection.</summary>
-    /// <param name="evaluationCase">Bounded offline case.</param>
+    /// <param name="admittedCase">Case and immutable telemetry materialised during admission.</param>
     /// <param name="cancellationToken">Cancellation checked before every adaptation.</param>
     /// <returns>One exact expected-versus-actual comparison.</returns>
     private static ObserverOfflineEvaluationCaseResult EvaluateCase(
-        ObserverOfflineEvaluationCase evaluationCase,
+        MaterialisedOfflineCase admittedCase,
         ObserverProcessingBudgetTracker tracker,
         CancellationToken cancellationToken)
     {
+        ObserverOfflineEvaluationCase evaluationCase = admittedCase.EvaluationCase;
         tracker.EnsureTimeAvailable();
-        if (!evaluationCase.TryMaterialiseTelemetry(out IReadOnlyList<ObserverCanonicalHealthTelemetry>? telemetryBatch, out string? rejectionCode))
+        tracker.Consume();
+        if (admittedCase.Telemetry is null)
         {
             return new ObserverOfflineEvaluationCaseResult(
                 evaluationCase,
                 ObserverOfflineExpectedDisposition.AdaptationRejected,
-                rejectionCode!);
+                admittedCase.RejectionCode!);
         }
 
-        tracker.EnsureTimeAvailable();
-
-        List<ObserverMetricSample> samples = new(telemetryBatch!.Count);
-        foreach (ObserverCanonicalHealthTelemetry telemetry in telemetryBatch)
+        List<ObserverMetricSample> samples = new(admittedCase.Telemetry.Count);
+        foreach (ObserverCanonicalHealthTelemetry telemetry in admittedCase.Telemetry)
         {
             cancellationToken.ThrowIfCancellationRequested();
             tracker.Consume();
@@ -846,7 +914,6 @@ public static class ObserverOfflineEvaluationRunner
                 "aiops.observer.offline.evidence_boundary_invalid");
         }
 
-        tracker.Consume();
         ObserverThresholdResult threshold = DeterministicThresholdAnalyser.Analyse(
             request,
             evaluationCase.ThresholdRule);
@@ -908,7 +975,6 @@ public static class ObserverOfflineEvaluationRunner
         ObserverProcessingBudget budget,
         DateTimeOffset evaluatedAt,
         string code,
-        IReadOnlyList<ObserverOfflineEvaluationCaseResult> results,
         long consumedWorkUnits) =>
         new(
             dataset,
@@ -916,26 +982,54 @@ public static class ObserverOfflineEvaluationRunner
             datasetAccepted: true,
             processingCompleted: false,
             code,
-            results,
+            [],
             budget,
             consumedWorkUnits);
+
+    /// <summary>Creates an empty typed report when caller cancellation prevents complete publication.</summary>
+    /// <param name="dataset">Governed dataset whose partial work is suppressed.</param>
+    /// <param name="budget">Applied processing budget.</param>
+    /// <param name="evaluatedAt">Trusted UTC evaluation instant.</param>
+    /// <param name="consumedWorkUnits">Work consumed before cancellation was observed.</param>
+    /// <returns>An empty non-authorising cancelled report.</returns>
+    private static ObserverOfflineEvaluationReport Cancelled(
+        ObserverOfflineEvaluationDataset dataset,
+        ObserverProcessingBudget budget,
+        DateTimeOffset evaluatedAt,
+        long consumedWorkUnits) =>
+        new(
+            dataset,
+            evaluatedAt,
+            datasetAccepted: true,
+            processingCompleted: false,
+            "aiops.observer.offline.cancelled",
+            [],
+            budget,
+            consumedWorkUnits);
+
+    /// <summary>Pairs one case with its immutable admitted telemetry or sanitised source rejection.</summary>
+    /// <param name="EvaluationCase">Original bounded case metadata.</param>
+    /// <param name="Telemetry">Immutable telemetry materialised before analysis begins.</param>
+    /// <param name="RejectionCode">Stable source rejection when materialisation failed.</param>
+    private sealed record MaterialisedOfflineCase(
+        ObserverOfflineEvaluationCase EvaluationCase,
+        IReadOnlyList<ObserverCanonicalHealthTelemetry>? Telemetry,
+        string? RejectionCode);
 }
 
-/// <summary>Enforces deterministic work accounting and an elapsed-time ceiling without queueing or partial retries.</summary>
+/// <summary>Enforces deterministic work accounting and an absolute deadline without queueing or partial retries.</summary>
 internal sealed class ObserverProcessingBudgetTracker
 {
-    private readonly ObserverProcessingBudget budget;
     private readonly TimeProvider timeProvider;
-    private readonly long startedAt;
+    private readonly DateTimeOffset absoluteDeadline;
 
     /// <summary>Initialises one run-local tracker at the supplied clock timestamp.</summary>
     /// <param name="budget">Already admitted processing limits.</param>
     /// <param name="timeProvider">Clock used only for elapsed-time measurement.</param>
     public ObserverProcessingBudgetTracker(ObserverProcessingBudget budget, TimeProvider timeProvider)
     {
-        this.budget = budget;
         this.timeProvider = timeProvider;
-        startedAt = timeProvider.GetTimestamp();
+        absoluteDeadline = timeProvider.GetUtcNow().Add(budget.MaximumElapsedTime);
     }
 
     /// <summary>Gets successfully reserved deterministic work units.</summary>
@@ -949,11 +1043,11 @@ internal sealed class ObserverProcessingBudgetTracker
         ConsumedWorkUnits++;
     }
 
-    /// <summary>Stops the run when uncharged bounded preparation has exhausted the elapsed-time ceiling.</summary>
+    /// <summary>Stops the run when uncharged bounded preparation has reached the absolute deadline.</summary>
     /// <exception cref="ObserverProcessingBudgetExceededException">Thrown before further work after time exhaustion.</exception>
     public void EnsureTimeAvailable()
     {
-        if (timeProvider.GetElapsedTime(startedAt) >= budget.MaximumElapsedTime)
+        if (timeProvider.GetUtcNow() >= absoluteDeadline)
         {
             throw new ObserverProcessingBudgetExceededException();
         }

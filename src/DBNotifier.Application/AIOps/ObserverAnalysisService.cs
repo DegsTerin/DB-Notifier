@@ -1,6 +1,29 @@
 // Module purpose: Orchestrates the inactive MOD-12 Observer foundation as a bounded, deterministic and non-mutating in-memory analysis.
 namespace DBNotifier.Application.AIOps;
 
+/// <summary>Identifies whether the inactive MOD-12 foundation has been promoted into an operational mode.</summary>
+public enum ObserverActivationState
+{
+    /// <summary>No MOD-12 mode is active; this is the only state exposed by the inactive foundation.</summary>
+    None,
+}
+
+/// <summary>Classifies whether a bounded analysis completed or was refused before publication.</summary>
+public enum ObserverAnalysisDisposition
+{
+    /// <summary>All bounded analysers completed and the publication boundary remained current.</summary>
+    Completed = 1,
+
+    /// <summary>Cancellation was observed before safe publication.</summary>
+    Cancelled = 2,
+
+    /// <summary>The absolute execution deadline elapsed before safe publication.</summary>
+    Expired = 3,
+
+    /// <summary>The publication context no longer matched the admitted evidence context.</summary>
+    StaleContext = 4,
+}
+
 /// <summary>Reports the fixed capability restrictions of the initial Observer foundation.</summary>
 public sealed class ObserverCapabilityProfile
 {
@@ -9,8 +32,11 @@ public sealed class ObserverCapabilityProfile
     {
     }
 
-    /// <summary>Gets the only implemented analysis mode.</summary>
-    public string Mode { get; } = "OBSERVER";
+    /// <summary>Gets the implemented, non-activating analysis capability.</summary>
+    public string Capability { get; } = "observer-analysis";
+
+    /// <summary>Gets the explicit absence of MOD-12 mode activation.</summary>
+    public ObserverActivationState ActivationState { get; } = ObserverActivationState.None;
 
     /// <summary>Gets a value indicating that this foundation never collects evidence by itself.</summary>
     public bool CollectsEvidence { get; }
@@ -29,6 +55,52 @@ public sealed class ObserverCapabilityProfile
 
     /// <summary>Gets a value indicating that this foundation has no command or executor access.</summary>
     public bool CanExecute { get; }
+}
+
+/// <summary>
+/// Defines the absolute publication boundary for one in-memory analysis without creating a runtime, trust host or
+/// persistence surface.
+/// </summary>
+public sealed class ObserverAnalysisExecutionContext
+{
+    /// <summary>Initialises one immutable, deadline-bound publication context.</summary>
+    /// <param name="deadline">Exclusive absolute UTC deadline.</param>
+    /// <param name="evidenceContextRevision">Revision bound to the admitted evidence.</param>
+    /// <param name="publicationContextRevision">Revision current at the publication boundary.</param>
+    /// <param name="timeProvider">Clock used only for deadline validation.</param>
+    /// <exception cref="ArgumentException">Thrown for a default, non-UTC or unsafe context value.</exception>
+    public ObserverAnalysisExecutionContext(
+        DateTimeOffset deadline,
+        string evidenceContextRevision,
+        string publicationContextRevision,
+        TimeProvider? timeProvider = null)
+    {
+        if (deadline == default || deadline.Offset != TimeSpan.Zero)
+        {
+            throw new ArgumentException("Observer analysis deadlines must be explicit UTC values.", nameof(deadline));
+        }
+
+        Deadline = deadline;
+        EvidenceContextRevision = ObserverContractGuard.StableIdentifier(
+            evidenceContextRevision,
+            nameof(evidenceContextRevision));
+        PublicationContextRevision = ObserverContractGuard.StableIdentifier(
+            publicationContextRevision,
+            nameof(publicationContextRevision));
+        TimeProvider = timeProvider ?? TimeProvider.System;
+    }
+
+    /// <summary>Gets the exclusive absolute UTC deadline.</summary>
+    public DateTimeOffset Deadline { get; }
+
+    /// <summary>Gets the revision bound to admitted evidence.</summary>
+    public string EvidenceContextRevision { get; }
+
+    /// <summary>Gets the revision asserted immediately before publication.</summary>
+    public string PublicationContextRevision { get; }
+
+    /// <summary>Gets the clock used only to validate the absolute deadline.</summary>
+    internal TimeProvider TimeProvider { get; }
 }
 
 /// <summary>Defines a bounded collection of deterministic Observer rules and forecast policies.</summary>
@@ -108,10 +180,14 @@ public sealed class ObserverAnalysisReport
 {
     /// <summary>Initialises an immutable report from one validated request and its deterministic outcomes.</summary>
     /// <param name="request">Scope-bound request whose identity and analysis instant are retained.</param>
-    /// <param name="thresholdResults">Deterministic threshold outcomes in policy order.</param>
-    /// <param name="capacityForecasts">Capacity outcomes in policy order.</param>
+    /// <param name="disposition">Completed or fail-closed terminal disposition.</param>
+    /// <param name="code">Stable sanitised publication code.</param>
+    /// <param name="thresholdResults">Complete threshold outcomes, or an empty collection when not completed.</param>
+    /// <param name="capacityForecasts">Complete capacity outcomes, or an empty collection when not completed.</param>
     internal ObserverAnalysisReport(
         ObserverAnalysisRequest request,
+        ObserverAnalysisDisposition disposition,
+        string code,
         IReadOnlyList<ObserverThresholdResult> thresholdResults,
         IReadOnlyList<ObserverCapacityForecastResult> capacityForecasts)
     {
@@ -119,13 +195,16 @@ public sealed class ObserverAnalysisReport
         InstanceId = request.InstanceId;
         AuthorisationScopeId = request.AuthorisationScopeId;
         AnalysedAt = request.AsOf;
-        ThresholdResults = thresholdResults;
-        CapacityForecasts = capacityForecasts;
+        Disposition = disposition;
+        Code = code;
+        IsComplete = disposition == ObserverAnalysisDisposition.Completed;
+        ThresholdResults = IsComplete ? thresholdResults : [];
+        CapacityForecasts = IsComplete ? capacityForecasts : [];
         Capabilities = new ObserverCapabilityProfile();
     }
 
     /// <summary>Gets the versioned report schema.</summary>
-    public string SchemaVersion { get; } = "aiops.observer.analysis.v1";
+    public string SchemaVersion { get; } = "aiops.observer.analysis.v2";
 
     /// <summary>Gets the deterministic report correlation identifier.</summary>
     public Guid AnalysisId { get; }
@@ -138,6 +217,18 @@ public sealed class ObserverAnalysisReport
 
     /// <summary>Gets the authoritative analysis instant in UTC.</summary>
     public DateTimeOffset AnalysedAt { get; }
+
+    /// <summary>Gets whether analysis completed or publication failed closed.</summary>
+    public ObserverAnalysisDisposition Disposition { get; }
+
+    /// <summary>Gets the stable sanitised publication code.</summary>
+    public string Code { get; }
+
+    /// <summary>Gets whether every analyser completed before a current publication boundary.</summary>
+    public bool IsComplete { get; }
+
+    /// <summary>Gets a value that is always false because this inactive foundation grants no authority.</summary>
+    public bool IsAuthorising { get; }
 
     /// <summary>Gets the immutable deterministic threshold outcomes.</summary>
     public IReadOnlyList<ObserverThresholdResult> ThresholdResults { get; }
@@ -155,36 +246,125 @@ public static class ObserverAnalysisService
     /// <summary>Produces one deterministic report using only the supplied in-memory request and policy.</summary>
     /// <param name="request">Validated single-instance evidence request.</param>
     /// <param name="policy">Bounded deterministic rules and statistical policies.</param>
-    /// <param name="cancellationToken">Cancellation checked between bounded analyser invocations.</param>
-    /// <returns>A versioned Observer-only report with explicit capability restrictions.</returns>
-    /// <exception cref="ArgumentNullException">Thrown when <paramref name="request"/> or <paramref name="policy"/> is null.</exception>
-    /// <exception cref="OperationCanceledException">Thrown when cancellation is requested between analyser invocations.</exception>
+    /// <param name="executionContext">Absolute deadline and publication-revision boundary.</param>
+    /// <param name="cancellationToken">Cancellation checked before and after every bounded analyser invocation.</param>
+    /// <returns>A complete deterministic report or an empty, typed, non-authorising refusal.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when a required argument is null.</exception>
     public static ObserverAnalysisReport Analyse(
         ObserverAnalysisRequest request,
         ObserverAnalysisPolicy policy,
+        ObserverAnalysisExecutionContext executionContext,
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(request);
         ArgumentNullException.ThrowIfNull(policy);
-        cancellationToken.ThrowIfCancellationRequested();
+        ArgumentNullException.ThrowIfNull(executionContext);
+        ObserverAnalysisReport? refused = RefusalBeforePublication(
+            request,
+            executionContext,
+            validateRevision: false,
+            cancellationToken);
+        if (refused is not null)
+        {
+            return refused;
+        }
 
         List<ObserverThresholdResult> thresholdResults = new(policy.ThresholdRules.Count);
         foreach (ObserverThresholdRule rule in policy.ThresholdRules)
         {
-            cancellationToken.ThrowIfCancellationRequested();
             thresholdResults.Add(DeterministicThresholdAnalyser.Analyse(request, rule));
+            refused = RefusalBeforePublication(
+                request,
+                executionContext,
+                validateRevision: false,
+                cancellationToken);
+            if (refused is not null)
+            {
+                return refused;
+            }
         }
 
         List<ObserverCapacityForecastResult> forecastResults = new(policy.CapacityForecasts.Count);
         foreach (ObserverCapacityForecastPolicy forecast in policy.CapacityForecasts)
         {
-            cancellationToken.ThrowIfCancellationRequested();
             forecastResults.Add(CapacityForecastAnalyser.Analyse(request, forecast));
+            refused = RefusalBeforePublication(
+                request,
+                executionContext,
+                validateRevision: false,
+                cancellationToken);
+            if (refused is not null)
+            {
+                return refused;
+            }
+        }
+
+        refused = RefusalBeforePublication(
+            request,
+            executionContext,
+            validateRevision: true,
+            cancellationToken);
+        if (refused is not null)
+        {
+            return refused;
         }
 
         return new ObserverAnalysisReport(
             request,
+            ObserverAnalysisDisposition.Completed,
+            "aiops.observer.analysis.completed",
             thresholdResults.AsReadOnly(),
             forecastResults.AsReadOnly());
     }
+
+    /// <summary>Returns a typed empty refusal whenever cancellation, expiry or stale publication forbids a report.</summary>
+    /// <param name="request">Validated request whose correlation boundary is retained.</param>
+    /// <param name="executionContext">Absolute deadline and revision boundary.</param>
+    /// <param name="validateRevision">Whether this is the final publication boundary.</param>
+    /// <param name="cancellationToken">Caller cancellation observed without throwing partial results.</param>
+    /// <returns>An empty refusal, or <see langword="null"/> while processing remains safe.</returns>
+    private static ObserverAnalysisReport? RefusalBeforePublication(
+        ObserverAnalysisRequest request,
+        ObserverAnalysisExecutionContext executionContext,
+        bool validateRevision,
+        CancellationToken cancellationToken)
+    {
+        if (cancellationToken.IsCancellationRequested)
+        {
+            return Refused(
+                request,
+                ObserverAnalysisDisposition.Cancelled,
+                "aiops.observer.analysis.cancelled");
+        }
+
+        if (executionContext.TimeProvider.GetUtcNow() >= executionContext.Deadline)
+        {
+            return Refused(
+                request,
+                ObserverAnalysisDisposition.Expired,
+                "aiops.observer.analysis.deadline_expired");
+        }
+
+        return validateRevision &&
+            !string.Equals(
+                executionContext.EvidenceContextRevision,
+                executionContext.PublicationContextRevision,
+                StringComparison.Ordinal)
+            ? Refused(
+                request,
+                ObserverAnalysisDisposition.StaleContext,
+                "aiops.observer.analysis.context_stale")
+            : null;
+    }
+
+    /// <summary>Creates an empty non-authorising terminal report.</summary>
+    /// <param name="request">Request identity retained without analyser outcomes.</param>
+    /// <param name="disposition">Typed terminal disposition.</param>
+    /// <param name="code">Stable sanitised code.</param>
+    /// <returns>An empty terminal report.</returns>
+    private static ObserverAnalysisReport Refused(
+        ObserverAnalysisRequest request,
+        ObserverAnalysisDisposition disposition,
+        string code) =>
+        new(request, disposition, code, [], []);
 }

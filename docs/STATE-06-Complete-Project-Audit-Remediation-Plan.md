@@ -429,6 +429,15 @@ R7 é somente uma parte deste plano. Nenhuma alteração da fundação AIOps, O1
 
 ### R7-A0 — correções prévias da fundação inativa
 
+**Execution record (2026-07-23):** the separately authorised local R7-A0 implementation is complete on baseline
+`ee16f302e703ccad7574c77cb374cd0f44905508`. The inactive foundation now separates
+`Capability=observer-analysis` from `ActivationState=None`, keeps probe-duration series distinct by canonical outcome,
+revalidates absolute deadline/cancellation/context revision before complete-only publication, suppresses every subset
+aggregate for incomplete offline runs, materialises bounded cancellation-aware sources before analysis, sanitises
+source exceptions and marks corpus provenance `DeclaredOnly`. The automatic scope is `APPROVED`; human acceptance
+remains pending. No trust host, persistence, real corpus/telemetry, runtime, UI, O1, mode or lifecycle transition was
+created. Evidence: [STATE-06 Audit Remediation R7-A0 Report](STATE-06-Audit-Remediation-R7-A0-Report.md).
+
 Antes de o código atual poder servir como dependência de O1 ou de um gate futuro:
 
 - separar `Capability=observer-analysis` de `ActivationState=None`; não declarar `Mode=OBSERVER` sem promoção;

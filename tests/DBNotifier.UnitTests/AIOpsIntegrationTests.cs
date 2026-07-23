@@ -77,15 +77,52 @@ public sealed class AIOpsIntegrationTests
         Assert.Equal(telemetry.Observation.ObservationId, sample.EvidenceId);
         Assert.Equal(InstanceId, sample.InstanceId);
         Assert.Equal(ScopeId, sample.AuthorisationScopeId);
-        Assert.Equal(CanonicalObserverTelemetryAdapter.MetricKey, sample.MetricKey);
+        Assert.Equal("database.probe.duration.degraded", sample.MetricKey);
         Assert.Equal(CanonicalObserverTelemetryAdapter.Unit, sample.Unit);
         Assert.Equal(125, sample.Value);
         Assert.Equal(ObserverEvidenceQuality.Verified, sample.Quality);
         Assert.Equal("canonical.health-observation", sample.SourceKind);
         Assert.Equal("health-observation.v1", sample.SchemaVersion);
-        Assert.Equal("observer-duration.v1", sample.TransformationVersion);
+        Assert.Equal("observer-duration-by-outcome.v2", sample.TransformationVersion);
         Assert.DoesNotContain("fixture", sample.SourceKind, StringComparison.Ordinal);
         Assert.DoesNotContain("probe", sample.SourceKind, StringComparison.Ordinal);
+    }
+
+    /// <summary>Preserves canonical probe status by assigning each outcome to a distinct duration series.</summary>
+    [Fact]
+    public void AdapterSeparatesProbeDurationSeriesByOutcome()
+    {
+        ObserverDataPolicy policy = DataPolicy(
+            ObserverDataOptInState.Enabled,
+            [new ObserverDataScope(InstanceId, AgentId)]);
+        PolicyEvidence evidence = CreatePolicyEvidence(policy);
+        ObserverTelemetryAdaptationResult healthy = CanonicalObserverTelemetryAdapter.Adapt(
+            Telemetry(101, 10, Start, status: HealthStatus.Healthy),
+            evidence.Context,
+            evidence.TrustConfiguration,
+            Start);
+        ObserverTelemetryAdaptationResult timeout = CanonicalObserverTelemetryAdapter.Adapt(
+            Telemetry(
+                102,
+                10,
+                Start,
+                status: HealthStatus.Timeout,
+                error: new NormalizedError(
+                    "probe.timeout",
+                    ErrorCategory.Timeout,
+                    Retryability.Backoff,
+                    "Sanitised timeout.")),
+            evidence.Context,
+            evidence.TrustConfiguration,
+            Start);
+
+        Assert.Equal(
+            "database.probe.duration.healthy",
+            Assert.IsType<ObserverMetricSample>(healthy.Sample).MetricKey);
+        Assert.Equal(
+            "database.probe.duration.timeout",
+            Assert.IsType<ObserverMetricSample>(timeout.Sample).MetricKey);
+        Assert.NotEqual(healthy.Sample!.MetricKey, timeout.Sample!.MetricKey);
     }
 
     /// <summary>Verifies sanitised fail-closed outcomes for disabled, unauthorised, future and weak evidence.</summary>
@@ -285,13 +322,15 @@ public sealed class AIOpsIntegrationTests
         Assert.Equal(3, dataset.Segments.Select(item => item.ProviderType).Distinct(StringComparer.Ordinal).Count());
         Assert.True(report.ProcessingCompleted);
         Assert.False(report.BackpressureApplied);
-        Assert.Equal(33, report.ConsumedWorkUnits);
+        Assert.Equal(36, report.ConsumedWorkUnits);
         Assert.True(report.ConsumedWorkUnits <= dataset.MaximumRequiredWorkUnits);
         Assert.Equal(3, report.SegmentResults.Count);
         Assert.All(report.SegmentResults, result => Assert.True(result.Passed));
         Assert.Equal(ObserverOfflineEvaluationDataset.CurrentSchemaVersion, report.DatasetSchemaVersion);
         Assert.Equal("state-06.local-evaluation", report.AuthorityReference);
         Assert.Equal("deterministic.synthetic.v1", report.ProvenanceReference);
+        Assert.Equal(ObserverCorpusProvenanceAuthority.DeclaredOnly, report.ProvenanceAuthority);
+        Assert.False(report.IsAuthorising);
     }
 
     /// <summary>Confirms that dataset expiry blocks all case execution and grants no success.</summary>
@@ -388,19 +427,26 @@ public sealed class AIOpsIntegrationTests
         Assert.Null(report.Recall);
     }
 
-    /// <summary>Confirms cancellation is honoured before a bounded offline run begins.</summary>
+    /// <summary>Confirms cancellation returns an empty typed report before a bounded offline run begins.</summary>
     [Fact]
     public void OfflineEvaluationHonoursCancellation()
     {
         using CancellationTokenSource cancellation = new();
         cancellation.Cancel();
 
-        Assert.Throws<OperationCanceledException>(() =>
-            ObserverOfflineEvaluationRunner.Evaluate(
-                ReferenceDataset(),
-                GenerousBudget(),
-                Start,
-                cancellationToken: cancellation.Token));
+        ObserverOfflineEvaluationReport report = ObserverOfflineEvaluationRunner.Evaluate(
+            ReferenceDataset(),
+            GenerousBudget(),
+            Start,
+            cancellationToken: cancellation.Token);
+
+        Assert.Equal("aiops.observer.offline.cancelled", report.Code);
+        Assert.False(report.ProcessingCompleted);
+        Assert.False(report.IsAuthorising);
+        Assert.Empty(report.CaseResults);
+        Assert.Empty(report.SegmentResults);
+        Assert.Null(report.Precision);
+        Assert.Null(report.Recall);
     }
 
     /// <summary>Confirms case, sample and work admission plus elapsed-time enforcement produce typed backpressure.</summary>
@@ -435,6 +481,10 @@ public sealed class AIOpsIntegrationTests
         Assert.False(report.Passed);
         Assert.Equal(expectedCode, report.Code);
         Assert.True(report.ConsumedWorkUnits < report.MaximumRequiredWorkUnits);
+        Assert.Empty(report.CaseResults);
+        Assert.Empty(report.SegmentResults);
+        Assert.Null(report.Precision);
+        Assert.Null(report.Recall);
     }
 
     /// <summary>Proves aggregate admission rejects a workload before the caller-owned telemetry source is enumerated.</summary>
@@ -479,6 +529,118 @@ public sealed class AIOpsIntegrationTests
         Assert.Equal("aiops.observer.offline.sample_budget_exhausted", report.Code);
         Assert.Equal(0, telemetry.EnumerationCount);
         Assert.Equal(0, report.ConsumedWorkUnits);
+    }
+
+    /// <summary>Converts an exception from an untrusted telemetry source into one sanitised case outcome.</summary>
+    [Fact]
+    public void OfflineEvaluationSanitisesUntrustedSourceExceptions()
+    {
+        ObserverOfflineEvaluationDataset dataset = SingleCaseDataset(
+            "observer.throwing-source",
+            new ThrowingTelemetryCollection(),
+            "aiops.observer.offline.telemetry_source_unavailable");
+
+        ObserverOfflineEvaluationReport report = ObserverOfflineEvaluationRunner.Evaluate(
+            dataset,
+            GenerousBudget(),
+            Start);
+
+        Assert.True(report.ProcessingCompleted);
+        Assert.True(report.Passed);
+        ObserverOfflineEvaluationCaseResult result = Assert.Single(report.CaseResults);
+        Assert.Equal("aiops.observer.offline.telemetry_source_unavailable", result.ActualCode);
+    }
+
+    /// <summary>Checks cancellation during source materialisation and suppresses every partial aggregate.</summary>
+    [Fact]
+    public void OfflineEvaluationCancelsDuringMaterialisationWithoutPublishingSubsets()
+    {
+        using CancellationTokenSource cancellation = new();
+        ObserverCanonicalHealthTelemetry telemetry = Telemetry(
+            95,
+            500,
+            Start,
+            EvidenceLevel.Synthetic);
+        ObserverOfflineEvaluationDataset dataset = SingleCaseDataset(
+            "observer.cancelling-source",
+            new CancellingTelemetryCollection(telemetry, cancellation),
+            "aiops.observer.offline.telemetry_source_invalid");
+
+        ObserverOfflineEvaluationReport report = ObserverOfflineEvaluationRunner.Evaluate(
+            dataset,
+            GenerousBudget(),
+            Start,
+            cancellationToken: cancellation.Token);
+
+        Assert.Equal("aiops.observer.offline.cancelled", report.Code);
+        Assert.False(report.ProcessingCompleted);
+        Assert.Empty(report.CaseResults);
+        Assert.Empty(report.SegmentResults);
+        Assert.Null(report.Precision);
+        Assert.Null(report.Recall);
+    }
+
+    /// <summary>Bounds a source whose enumeration exceeds its declared count without allocating beyond the hard limit.</summary>
+    [Fact]
+    public void OfflineEvaluationRejectsTelemetryEnumerationOverflow()
+    {
+        ObserverCanonicalHealthTelemetry telemetry = Telemetry(
+            96,
+            500,
+            Start,
+            EvidenceLevel.Synthetic);
+        ObserverOfflineEvaluationDataset dataset = SingleCaseDataset(
+            "observer.overflow-source",
+            new ReportedCountTelemetryCollection(
+                1,
+                Enumerable.Repeat(telemetry, ObserverAnalysisRequest.MaximumSampleCount + 1)),
+            "aiops.observer.offline.telemetry_source_changed");
+
+        ObserverOfflineEvaluationReport report = ObserverOfflineEvaluationRunner.Evaluate(
+            dataset,
+            GenerousBudget(),
+            Start);
+
+        Assert.True(report.ProcessingCompleted);
+        Assert.True(report.Passed);
+        Assert.Equal(
+            "aiops.observer.offline.telemetry_source_changed",
+            Assert.Single(report.CaseResults).ActualCode);
+    }
+
+    /// <summary>Builds one adversarial dataset around a caller-owned telemetry source.</summary>
+    /// <param name="datasetId">Stable dataset identifier.</param>
+    /// <param name="telemetry">Untrusted bounded telemetry collection.</param>
+    /// <param name="expectedCode">Expected sanitised materialisation outcome.</param>
+    /// <returns>One local synthetic single-case dataset.</returns>
+    private static ObserverOfflineEvaluationDataset SingleCaseDataset(
+        string datasetId,
+        IReadOnlyCollection<ObserverCanonicalHealthTelemetry> telemetry,
+        string expectedCode)
+    {
+        ObserverDataPolicy policy = OfflinePolicy(
+            $"policy.{datasetId}",
+            ObserverDataOptInState.Enabled,
+            [new ObserverDataScope(InstanceId, AgentId)]);
+        ObserverOfflineEvaluationCase evaluationCase = EvaluationCase(
+            "adversarial.telemetry-source",
+            95,
+            ObserverOfflineCaseKind.Adversarial,
+            new ObserverOfflineEvaluationSegment("synthetic-db", "1.0.0", "offline-windows"),
+            CreatePolicyEvidence(policy),
+            telemetry,
+            DurationRule(),
+            ObserverOfflineExpectedDisposition.AdaptationRejected,
+            expectedCode);
+        return new ObserverOfflineEvaluationDataset(
+            datasetId,
+            "1.0.0",
+            "deterministic.synthetic.v1",
+            "state-06.local-evaluation",
+            ObserverDataClassification.OperationalTelemetry,
+            Start.AddDays(-1),
+            Start.AddDays(1),
+            [evaluationCase]);
     }
 
     /// <summary>Builds the governed nine-case, three-segment synthetic corpus used by the offline quality regression.</summary>
@@ -846,7 +1008,7 @@ public sealed class AIOpsIntegrationTests
         new(
             "database.probe.slow",
             "1.0.0",
-            CanonicalObserverTelemetryAdapter.MetricKey,
+            "database.probe.duration.degraded",
             CanonicalObserverTelemetryAdapter.Unit,
             ObserverThresholdComparison.GreaterThanOrEqual,
             1_000,
@@ -856,17 +1018,18 @@ public sealed class AIOpsIntegrationTests
             TimeSpan.FromMinutes(30),
             TimeSpan.FromMinutes(15));
 
-    /// <summary>Advances two ticks per timestamp read to deterministically exercise elapsed-time backpressure.</summary>
+    /// <summary>Advances two ticks per UTC read to deterministically exercise absolute-deadline backpressure.</summary>
     private sealed class AdvancingTimeProvider : TimeProvider
     {
-        private long timestamp;
+        private DateTimeOffset current = Start;
 
-        /// <summary>Gets the TimeSpan tick frequency used by this deterministic test clock.</summary>
-        public override long TimestampFrequency => TimeSpan.TicksPerSecond;
-
-        /// <summary>Returns a monotonically advancing timestamp without wall-clock access.</summary>
-        /// <returns>The next deterministic timestamp.</returns>
-        public override long GetTimestamp() => Interlocked.Add(ref timestamp, 2);
+        /// <summary>Returns a monotonically advancing absolute UTC instant without wall-clock access.</summary>
+        /// <returns>The next deterministic UTC instant.</returns>
+        public override DateTimeOffset GetUtcNow()
+        {
+            current = current.AddTicks(2);
+            return current;
+        }
     }
 
     /// <summary>Tracks enumeration so admission-before-materialisation remains directly testable.</summary>
@@ -895,6 +1058,83 @@ public sealed class AIOpsIntegrationTests
 
         /// <summary>Delegates non-generic enumeration to the typed implementation.</summary>
         /// <returns>The underlying deterministic telemetry enumerator.</returns>
+        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => GetEnumerator();
+    }
+
+    /// <summary>Throws during enumeration to prove sanitised handling of an untrusted source failure.</summary>
+    private sealed class ThrowingTelemetryCollection : IReadOnlyCollection<ObserverCanonicalHealthTelemetry>
+    {
+        /// <summary>Gets the bounded count declared before the hostile enumeration attempt.</summary>
+        public int Count => 1;
+
+        /// <summary>Throws a diagnostic-bearing exception that must not escape the application boundary.</summary>
+        /// <returns>This member never returns.</returns>
+        public IEnumerator<ObserverCanonicalHealthTelemetry> GetEnumerator() =>
+            throw new InvalidOperationException("hostile-source-detail");
+
+        /// <summary>Delegates non-generic enumeration to the hostile typed implementation.</summary>
+        /// <returns>This member never returns.</returns>
+        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => GetEnumerator();
+    }
+
+    /// <summary>Cancels the caller token exactly when telemetry enumeration begins.</summary>
+    private sealed class CancellingTelemetryCollection : IReadOnlyCollection<ObserverCanonicalHealthTelemetry>
+    {
+        private readonly ObserverCanonicalHealthTelemetry telemetry;
+        private readonly CancellationTokenSource cancellation;
+
+        /// <summary>Initialises one cancellation-aware test source.</summary>
+        /// <param name="telemetry">Single bounded item exposed after cancellation is requested.</param>
+        /// <param name="cancellation">Caller token source cancelled at enumeration.</param>
+        public CancellingTelemetryCollection(
+            ObserverCanonicalHealthTelemetry telemetry,
+            CancellationTokenSource cancellation)
+        {
+            this.telemetry = telemetry;
+            this.cancellation = cancellation;
+        }
+
+        /// <summary>Gets the exact declared item count.</summary>
+        public int Count => 1;
+
+        /// <summary>Requests cancellation and returns the bounded fixture enumerator.</summary>
+        /// <returns>A single-item enumerator.</returns>
+        public IEnumerator<ObserverCanonicalHealthTelemetry> GetEnumerator()
+        {
+            cancellation.Cancel();
+            return new[] { telemetry }.AsEnumerable().GetEnumerator();
+        }
+
+        /// <summary>Delegates non-generic enumeration to the typed implementation.</summary>
+        /// <returns>A single-item enumerator after cancellation.</returns>
+        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => GetEnumerator();
+    }
+
+    /// <summary>Reports one bounded count while exposing a separately controlled sequence.</summary>
+    private sealed class ReportedCountTelemetryCollection : IReadOnlyCollection<ObserverCanonicalHealthTelemetry>
+    {
+        private readonly IEnumerable<ObserverCanonicalHealthTelemetry> telemetry;
+
+        /// <summary>Initialises one source whose count and enumeration are intentionally independent.</summary>
+        /// <param name="count">Declared count used during aggregate admission.</param>
+        /// <param name="telemetry">Sequence exposed only during bounded materialisation.</param>
+        public ReportedCountTelemetryCollection(
+            int count,
+            IEnumerable<ObserverCanonicalHealthTelemetry> telemetry)
+        {
+            Count = count;
+            this.telemetry = telemetry;
+        }
+
+        /// <summary>Gets the caller-declared count.</summary>
+        public int Count { get; }
+
+        /// <summary>Returns the controlled telemetry sequence.</summary>
+        /// <returns>The underlying sequence enumerator.</returns>
+        public IEnumerator<ObserverCanonicalHealthTelemetry> GetEnumerator() => telemetry.GetEnumerator();
+
+        /// <summary>Delegates non-generic enumeration to the typed implementation.</summary>
+        /// <returns>The underlying sequence enumerator.</returns>
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => GetEnumerator();
     }
 

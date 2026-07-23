@@ -2,7 +2,7 @@
 
 ## Versão atual
 
-- Versão: `3.56.19`
+- Versão: `3.56.20`
 - Data: 2026-07-23
 - Status: corpus DB-Notifier consolidado
 - Escopo: 13 arquivos ativos
@@ -16,6 +16,13 @@ A versão do corpus é independente da versão do software.
 - PATCH: clareza, correção ou referência sem mudança de autoridade.
 
 Toda alteração atualiza este arquivo e, quando necessário, `../Start-Here.md`.
+
+## 3.56.20 — 2026-07-23
+
+- Registra a implementação automática local do R7-A0 sobre `ee16f302e703ccad7574c77cb374cd0f44905508`, limitada a `AUD-H13` e `AUD-M11`.
+- Separa `Capability=observer-analysis` de `ActivationState=None`, preserva outcomes de probe e torna publicação cancelada, expirada, stale ou parcial vazia e não autorizante.
+- Registra materialização offline bounded/cancellation-aware, exceções sanitizadas e corpus `DeclaredOnly`, com 483/483 testes da solução e coverage proporcional aprovados.
+- Mantém aceitação humana R7-A0 pendente e não autoriza trust host, persistência, corpus/telemetria real, O1, `OBSERVER`, R8, AIOps operacional ou transição.
 
 ## 3.56.19 — 2026-07-23
 

@@ -575,10 +575,18 @@ public sealed class AIOpsObserverTests
         ],
         Start.AddHours(0.5));
 
-        ObserverAnalysisReport report = ObserverAnalysisService.Analyse(request, policy);
+        ObserverAnalysisReport report = ObserverAnalysisService.Analyse(
+            request,
+            policy,
+            ExecutionContext());
 
-        Assert.Equal("aiops.observer.analysis.v1", report.SchemaVersion);
-        Assert.Equal("OBSERVER", report.Capabilities.Mode);
+        Assert.Equal("aiops.observer.analysis.v2", report.SchemaVersion);
+        Assert.Equal(ObserverAnalysisDisposition.Completed, report.Disposition);
+        Assert.Equal("aiops.observer.analysis.completed", report.Code);
+        Assert.True(report.IsComplete);
+        Assert.False(report.IsAuthorising);
+        Assert.Equal("observer-analysis", report.Capabilities.Capability);
+        Assert.Equal(ObserverActivationState.None, report.Capabilities.ActivationState);
         Assert.False(report.Capabilities.CollectsEvidence);
         Assert.False(report.Capabilities.PersistsEvidence);
         Assert.False(report.Capabilities.UsesLlm);
@@ -589,17 +597,69 @@ public sealed class AIOpsObserverTests
         Assert.Equal(["a.capacity", "z.capacity"], report.CapacityForecasts.Select(result => result.PolicyId));
     }
 
-    /// <summary>Verifies cancellation before bounded analyser work begins.</summary>
+    /// <summary>Verifies cancellation before bounded analyser work returns an empty non-authorising report.</summary>
     [Fact]
     public void ObserverAnalysisHonoursCancellation()
     {
         using CancellationTokenSource cancellation = new();
         cancellation.Cancel();
 
-        Assert.Throws<OperationCanceledException>(() => ObserverAnalysisService.Analyse(
+        ObserverAnalysisReport report = ObserverAnalysisService.Analyse(
             Request([], Start),
             new ObserverAnalysisPolicy([], []),
-            cancellation.Token));
+            ExecutionContext(),
+            cancellation.Token);
+
+        Assert.Equal(ObserverAnalysisDisposition.Cancelled, report.Disposition);
+        Assert.Equal("aiops.observer.analysis.cancelled", report.Code);
+        Assert.False(report.IsComplete);
+        Assert.False(report.IsAuthorising);
+        Assert.Empty(report.ThresholdResults);
+        Assert.Empty(report.CapacityForecasts);
+    }
+
+    /// <summary>Suppresses completed subset results when the absolute deadline expires between analyser phases.</summary>
+    [Fact]
+    public void ObserverAnalysisRevalidatesAbsoluteDeadlineBeforePublication()
+    {
+        ObserverAnalysisPolicy policy = new(
+            [ThresholdRule(ruleId: "a.rule"), ThresholdRule(ruleId: "b.rule")],
+            []);
+        ObserverAnalysisExecutionContext execution = new(
+            Start.AddSeconds(90),
+            "context.revision.1",
+            "context.revision.1",
+            new AdvancingUtcTimeProvider(Start, TimeSpan.FromMinutes(1)));
+
+        ObserverAnalysisReport report = ObserverAnalysisService.Analyse(
+            Request([Sample(1, 95)], Start),
+            policy,
+            execution);
+
+        Assert.Equal(ObserverAnalysisDisposition.Expired, report.Disposition);
+        Assert.Equal("aiops.observer.analysis.deadline_expired", report.Code);
+        Assert.Empty(report.ThresholdResults);
+        Assert.Empty(report.CapacityForecasts);
+        Assert.False(report.IsAuthorising);
+    }
+
+    /// <summary>Prevents publication when the current context revision differs from admitted evidence.</summary>
+    [Fact]
+    public void ObserverAnalysisRejectsStalePublicationContext()
+    {
+        ObserverAnalysisReport report = ObserverAnalysisService.Analyse(
+            Request([Sample(1, 95)], Start),
+            new ObserverAnalysisPolicy([ThresholdRule()], []),
+            new ObserverAnalysisExecutionContext(
+                Start.AddHours(1),
+                "context.revision.1",
+                "context.revision.2",
+                new AdvancingUtcTimeProvider(Start, TimeSpan.Zero)));
+
+        Assert.Equal(ObserverAnalysisDisposition.StaleContext, report.Disposition);
+        Assert.Equal("aiops.observer.analysis.context_stale", report.Code);
+        Assert.Empty(report.ThresholdResults);
+        Assert.False(report.IsAuthorising);
     }
 
     /// <summary>Verifies that duplicate policy identifiers are rejected before analysis.</summary>
@@ -814,6 +874,40 @@ public sealed class AIOpsObserverTests
             forecastHorizon ?? TimeSpan.FromDays(30),
             minimumFitQuality,
             minimumGrowthPerHour);
+
+    /// <summary>Creates a current non-activating execution boundary for deterministic analysis tests.</summary>
+    /// <returns>An execution boundary whose deadline and revisions permit publication.</returns>
+    private static ObserverAnalysisExecutionContext ExecutionContext() =>
+        new(
+            Start.AddHours(1),
+            "context.revision.1",
+            "context.revision.1",
+            new AdvancingUtcTimeProvider(Start, TimeSpan.Zero));
+
+    /// <summary>Advances the UTC clock by one fixed interval after each publication-boundary check.</summary>
+    private sealed class AdvancingUtcTimeProvider : TimeProvider
+    {
+        private readonly TimeSpan increment;
+        private DateTimeOffset current;
+
+        /// <summary>Initialises one deterministic UTC clock.</summary>
+        /// <param name="initial">UTC instant returned by the first read.</param>
+        /// <param name="increment">Amount added after each read.</param>
+        public AdvancingUtcTimeProvider(DateTimeOffset initial, TimeSpan increment)
+        {
+            current = initial;
+            this.increment = increment;
+        }
+
+        /// <summary>Returns the current deterministic instant and advances the next read.</summary>
+        /// <returns>The current UTC fixture instant.</returns>
+        public override DateTimeOffset GetUtcNow()
+        {
+            DateTimeOffset value = current;
+            current = current.Add(increment);
+            return value;
+        }
+    }
 
     /// <summary>Supplies a deliberately false count while preserving the wrapped enumeration for boundary tests.</summary>
     /// <typeparam name="T">Fixture element type.</typeparam>

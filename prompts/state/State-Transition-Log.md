@@ -2753,6 +2753,19 @@
 - Próxima decisão: qualquer atividade posterior exige proposta e autorização separadas.
 - Aprovador: Bruno, 2026-07-23, exclusivamente para R0-F1.
 
+## 2026-07-23 — R7-A0 corrige a fundação MOD-12 inativa
+
+- Estado anterior: `STATE-06 INTEGRATION`, R0-F1 aceito, gate .NET local verde, R6 encerrado com ressalvas e R7-A0 autorizado exclusivamente sobre `ee16f302e703ccad7574c77cb374cd0f44905508`.
+- Estado resultante: sem transição; `STATE-06 INTEGRATION` mantido. R7-A0 está automaticamente `APROVADO` no escopo de `AUD-H13` e `AUD-M11`; aceitação humana permanece `PENDENTE`.
+- Implementação: capability `observer-analysis` separada de `ActivationState=None`; duração de probe separada por outcome; relatório v2 completo-only com deadline absoluto, cancelamento e context revision; execução offline sem agregados parciais, com materialização imutável/bounded/cancellation-aware, exceções sanitizadas e proveniência `DeclaredOnly`.
+- Vetores: cancelamento antes e durante trabalho, expiry entre fases, publicação stale, fonte hostil, overflow de enumeração, outcome separado e regressões criptográficas independentes de grant/revocation/tampering/rollback/checkpoint.
+- Gates: MOD-12 `77/77`; unitários `399/399`; arquitetura `52/52`; WPF `10/10`; integração `22/22`; solução `483/483`; build Release com zero avisos/erros; coverage `81,98%` linhas/`53,85%` branches e dez componentes; format aprovado.
+- Observação ambiental: a tentativa inicial de executar dois builds focais em paralelo causou somente disputa do arquivo intermediário Application; ambos foram repetidos sequencialmente e aprovados.
+- Evidência: [relatório R7-A0](../../docs/STATE-06-Audit-Remediation-R7-A0-Report.md) e [plano de remediação](../../docs/STATE-06-Complete-Project-Audit-Remediation-Plan.md).
+- Limites: nenhum restore, download, acesso externo, runtime operacional, trust host, persistência, corpus/telemetria real, UI, provider, banco, O1, ativação `OBSERVER`, LLM, recomendação, comando, automação, R8, push, deploy ou transição.
+- Próxima decisão: Bruno poderá aceitar ou rejeitar separadamente somente o R7-A0; qualquer O1, R8, AIOps operacional, promoção ou lifecycle exige autoridade posterior explícita.
+- Aprovador: resultado automático local; decisão humana R7-A0 pendente.
+
 ## Template de nova entrada
 
 - Data:
