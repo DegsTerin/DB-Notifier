@@ -2690,6 +2690,19 @@
 - Próxima decisão: qualquer aceitação R6, retomada W02/P01 ou progressão exige proposta e autoridade separadas.
 - Aprovador: Bruno, 2026-07-23, exclusivamente para a repetição `R6-HV-W01` após R6-WEB1.
 
+## 2026-07-23 — Mecanismo test-only W02 implementado
+
+- Estado anterior: `STATE-06 INTEGRATION`, W01 aprovada após R6-WEB1, W02 bloqueada por ausência de mecanismo seguro, P01 não testada e aceitação humana R6 pendente.
+- Estado resultante: sem transição; `STATE-06 INTEGRATION` mantido. O mecanismo automático W02 está `APROVADO` no escopo local autorizado; a amostra humana `R6-HV-W02` não foi executada e continua `BLOQUEADA` até autorização visível separada.
+- Implementação: marker exato/único `--review-flyout-live-update`; três frames in-memory bounded que exigem exatamente as quatro identidades sintéticas; agregado e contagens derivados das mesmas quatro linhas; atualização no mesmo Dispatcher turn de mark/tooltip do Tray e mark/texto/contagem/linhas do flyout; semantic icons acompanham cada estado; hide para o timer e restaura somente a fixture normal de Tray/flyout.
+- Isolamento: W02 não cria publisher, não inicia refresh normal, não ativa sandbox reconciliado e recusa confirmação de Close, fila legacy e fallback. Os três atalhos do shell secundário ficam desabilitados, uma guarda adicional recusa a navegação e a restauração não atualiza o shell oculto. A sequência não contém arquivo, HTTP, rede, persistência, comando ou integração operacional.
+- Gates observados: build WPF e solução Release sem restore, ambos com 0 avisos/erros; WPF 10/10; unitários focados de apresentação 66/66 e completos 393/393; arquitetura focal 23/23; documentação, links, tokens, localização, secrets e format check aprovados. A arquitetura global ficou 51/52 exclusivamente pela falha R0 preexistente que procura `state05-dashboard-failure.json`. O primeiro build expôs somente CA1859 e passou depois da correção de tipo.
+- Imutabilidade: nenhuma dependência, package, lockfile, schema, migration, fixture operacional ou contrato externo foi alterado; preferência local permaneceu no SHA-256 `ABC049CBB37CC998FF86E018E6853D811E58ED166B2B6B4A5CF0FBA4B171868F`.
+- Evidência: [relatório R6-W02](../../docs/STATE-06-Audit-Remediation-R6-W02-Test-Mechanism-Report.md) e [Design System 3.2.1](../../docs/design/DB-Notifier-Design-System.md). O commit focal será registrado no hand-off.
+- Limites: nenhuma amostra visível, notificação Windows, persistência, fonte real, acesso externo, push/deploy, correção R0, alteração do incidente R5, R7–R8, R7-A0/O1, AIOps, comando, automação, promoção ou transição foi executada.
+- Próxima decisão: requer autorização separada e explícita para executar visivelmente apenas `R6-HV-W02`, seguida de cleanup e decisão humana própria. P01 e aceitação R6 não retomam automaticamente.
+- Aprovador: autorização de implementação automática W02 por Bruno em 2026-07-23; nenhuma aprovação humana da amostra ou do R6 foi inferida.
+
 ## Template de nova entrada
 
 - Data:

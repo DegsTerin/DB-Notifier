@@ -2,7 +2,7 @@
 
 ## Versão atual
 
-- Versão: `3.56.14`
+- Versão: `3.56.15`
 - Data: 2026-07-23
 - Status: corpus DB-Notifier consolidado
 - Escopo: 13 arquivos ativos
@@ -16,6 +16,13 @@ A versão do corpus é independente da versão do software.
 - PATCH: clareza, correção ou referência sem mudança de autoridade.
 
 Toda alteração atualiza este arquivo e, quando necessário, `../Start-Here.md`.
+
+## 3.56.15 — 2026-07-23
+
+- Registra a implementação automática local do mecanismo W02 test-only, presentation-only e in-memory, sem executar a amostra humana.
+- O Design System `3.2.1` documenta marker exato/único, sequência bounded, atualização coerente do Tray/flyout, bloqueio do shell secundário e supressão integral de publishers e fallbacks no modo W02.
+- Preserva `R6-HV-W02` bloqueada até autorização visível separada, P01 não testada e a aceitação humana R6 pendente.
+- Não autoriza notificação Windows, persistência, integração operacional, comando, acesso externo, correção R0, alteração do incidente R5, R7–R8, R7-A0/O1, AIOps ou transição.
 
 ## 3.56.14 — 2026-07-23
 

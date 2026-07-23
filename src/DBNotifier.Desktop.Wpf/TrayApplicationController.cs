@@ -29,9 +29,13 @@ internal sealed class TrayApplicationController : IDisposable
     private readonly DispatcherTimer notificationIconRestoreTimer;
     private readonly DispatcherTimer legacyNotificationAdvanceTimer;
     private readonly DispatcherTimer fleetRefreshTimer;
+    private readonly DispatcherTimer flyoutLiveReviewTimer;
     private readonly WindowsAppNotificationPublisher? appNotificationPublisher;
     private readonly ReconciledNotificationSandboxRuntime? reconciledNotificationRuntime;
     private readonly bool suppressDemonstrationNotifications;
+    private readonly bool suppressAllNotifications;
+    private readonly TrayFlyoutLiveReviewMode flyoutLiveReviewMode;
+    private readonly TrayFlyoutLiveReviewSession? flyoutLiveReviewSession;
     private readonly TrayFlyoutWindow flyout;
     private readonly Queue<LegacyNotificationRequest> legacyNotificationQueue = new();
     private TrayFleetSummary fleetSummary;
@@ -53,6 +57,7 @@ internal sealed class TrayApplicationController : IDisposable
     /// <param name="initialSummary">Aggregate evaluated at the evidence creation instant.</param>
     /// <param name="notificationValidationMode">Explicit validation-only mode; invalid values fail safely to normal fixture behaviour.</param>
     /// <param name="reconciledNotificationActivation">Validated opt-in sandbox activation, or null for the disabled default.</param>
+    /// <param name="flyoutLiveReviewMode">Exact W02 presentation-only mode, disabled in normal composition.</param>
     public TrayApplicationController(
         MainWindow window,
         System.Windows.Application application,
@@ -61,12 +66,19 @@ internal sealed class TrayApplicationController : IDisposable
         DesktopDemonstrationEvidence evidence,
         TrayFleetSummary initialSummary,
         TrayNotificationValidationMode notificationValidationMode,
-        ReconciledNotificationSandboxActivation? reconciledNotificationActivation)
+        ReconciledNotificationSandboxActivation? reconciledNotificationActivation,
+        TrayFlyoutLiveReviewMode flyoutLiveReviewMode)
     {
         this.window = window;
         this.application = application;
         this.localisation = localisation;
         this.evidence = evidence;
+        this.flyoutLiveReviewMode = flyoutLiveReviewMode;
+        suppressAllNotifications =
+            flyoutLiveReviewMode == TrayFlyoutLiveReviewMode.BoundedInMemorySequence;
+        flyoutLiveReviewSession = suppressAllNotifications
+            ? new TrayFlyoutLiveReviewSession()
+            : null;
         transitionValidationCases = notificationValidationMode == TrayNotificationValidationMode.TransitionMatrix
             ? TrayNotificationTransitionValidationMatrix.Cases
             : [];
@@ -78,7 +90,9 @@ internal sealed class TrayApplicationController : IDisposable
             evidence,
             initialSummary,
             ShowView,
-            () => Apply(TrayWindowIntent.Exit));
+            () => Apply(TrayWindowIntent.Exit),
+            TrayFlyoutLiveReviewPolicy.AllowsSecondaryShell(flyoutLiveReviewMode));
+        flyout.IsVisibleChanged += FlyoutIsVisibleChanged;
         (applicationIcon, notifyIcon) = CreateNotificationAreaResources(initialSummary.State);
         notificationIconRestoreTimer = new DispatcherTimer
         {
@@ -95,13 +109,21 @@ internal sealed class TrayApplicationController : IDisposable
             Interval = TimeSpan.FromSeconds(30),
         };
         fleetRefreshTimer.Tick += FleetRefreshTimerTick;
+        flyoutLiveReviewTimer = new DispatcherTimer
+        {
+            Interval = TrayFlyoutLiveReviewSequence.StepInterval,
+        };
+        flyoutLiveReviewTimer.Tick += FlyoutLiveReviewTimerTick;
         notifyIcon.MouseClick += NotifyIconMouseClick;
         notifyIcon.BalloonTipClicked += NotifyIconBalloonTipClicked;
-        appNotificationPublisher = WindowsAppNotificationPublisher.TryCreate(
-            application.Dispatcher,
-            () => Apply(TrayWindowIntent.Show));
-        suppressDemonstrationNotifications = reconciledNotificationActivation is not null;
-        if (reconciledNotificationActivation is not null)
+        appNotificationPublisher = suppressAllNotifications
+            ? null
+            : WindowsAppNotificationPublisher.TryCreate(
+                application.Dispatcher,
+                () => Apply(TrayWindowIntent.Show));
+        suppressDemonstrationNotifications =
+            suppressAllNotifications || reconciledNotificationActivation is not null;
+        if (!suppressAllNotifications && reconciledNotificationActivation is not null)
         {
             reconciledNotificationRuntime = new ReconciledNotificationSandboxRuntime(
                 reconciledNotificationActivation,
@@ -112,7 +134,10 @@ internal sealed class TrayApplicationController : IDisposable
         window.Closing += WindowClosing;
         localisation.LanguageChanged += LanguageChanged;
         RefreshText();
-        fleetRefreshTimer.Start();
+        if (!suppressAllNotifications)
+        {
+            fleetRefreshTimer.Start();
+        }
     }
 
     /// <summary>Releases notification and event resources without changing external process state.</summary>
@@ -123,10 +148,14 @@ internal sealed class TrayApplicationController : IDisposable
         window.StateChanged -= WindowStateChanged;
         window.Closing -= WindowClosing;
         localisation.LanguageChanged -= LanguageChanged;
+        flyout.IsVisibleChanged -= FlyoutIsVisibleChanged;
         notifyIcon.MouseClick -= NotifyIconMouseClick;
         notifyIcon.BalloonTipClicked -= NotifyIconBalloonTipClicked;
         fleetRefreshTimer.Tick -= FleetRefreshTimerTick;
         fleetRefreshTimer.Stop();
+        flyoutLiveReviewTimer.Tick -= FlyoutLiveReviewTimerTick;
+        flyoutLiveReviewTimer.Stop();
+        flyoutLiveReviewSession?.Close();
         RestoreAggregateIconAfterNotificationCapture(TrayNotificationIconLeaseSignal.Disposed);
         notificationIconRestoreTimer.Tick -= NotificationIconRestoreTimerTick;
         notificationIconRestoreTimer.Stop();
@@ -197,6 +226,12 @@ internal sealed class TrayApplicationController : IDisposable
     /// <summary>Refreshes tray labels after an interface-language change.</summary>
     private void LanguageChanged(object? sender, EventArgs e)
     {
+        if (flyoutLiveReviewSession?.CurrentFrame is TrayFlyoutPresentationFrame currentFrame)
+        {
+            ApplyFlyoutLiveReviewFrame(currentFrame);
+            return;
+        }
+
         RefreshFleetPresentation(TimeProvider.System.GetUtcNow(), advanceTransitionValidation: false);
     }
 
@@ -263,7 +298,11 @@ internal sealed class TrayApplicationController : IDisposable
     {
         if (e.Button is Forms.MouseButtons.Left or Forms.MouseButtons.Right)
         {
-            RefreshFleetPresentation(TimeProvider.System.GetUtcNow(), advanceTransitionValidation: false);
+            if (flyoutLiveReviewMode == TrayFlyoutLiveReviewMode.Disabled)
+            {
+                RefreshFleetPresentation(TimeProvider.System.GetUtcNow(), advanceTransitionValidation: false);
+            }
+
             ToggleFlyout();
         }
     }
@@ -273,7 +312,10 @@ internal sealed class TrayApplicationController : IDisposable
     /// <param name="e">Event metadata supplied by Windows Forms.</param>
     private void NotifyIconBalloonTipClicked(object? sender, EventArgs e)
     {
-        Apply(TrayWindowIntent.Show);
+        if (TrayFlyoutLiveReviewPolicy.AllowsSecondaryShell(flyoutLiveReviewMode))
+        {
+            Apply(TrayWindowIntent.Show);
+        }
     }
 
     /// <summary>Restores the factual aggregate icon after the monotonic bounded notification-meaning lease.</summary>
@@ -345,12 +387,96 @@ internal sealed class TrayApplicationController : IDisposable
             return;
         }
 
+        if (flyoutLiveReviewSession is not null)
+        {
+            ApplyFlyoutLiveReviewFrame(flyoutLiveReviewSession.Open());
+        }
+
         flyout.ShowNearNotificationArea();
+        if (flyoutLiveReviewSession is not null)
+        {
+            flyoutLiveReviewTimer.Interval = TrayFlyoutLiveReviewSequence.StepInterval;
+            flyoutLiveReviewTimer.Start();
+        }
+    }
+
+    /// <summary>Advances one bounded W02 frame only while the dedicated flyout remains visible.</summary>
+    /// <param name="sender">Dispatcher timer owned solely by the W02 presentation mode.</param>
+    /// <param name="e">Timer event metadata.</param>
+    private void FlyoutLiveReviewTimerTick(object? sender, EventArgs e)
+    {
+        if (!flyout.IsVisible || flyoutLiveReviewSession is null)
+        {
+            flyoutLiveReviewTimer.Stop();
+            return;
+        }
+
+        TrayFlyoutPresentationFrame? nextFrame = flyoutLiveReviewSession.Advance();
+        if (nextFrame is null)
+        {
+            flyoutLiveReviewTimer.Stop();
+            return;
+        }
+
+        ApplyFlyoutLiveReviewFrame(nextFrame);
+    }
+
+    /// <summary>Restores the normal in-memory demonstration presentation after the W02 flyout is dismissed.</summary>
+    /// <param name="sender">Reusable flyout whose effective visibility changed.</param>
+    /// <param name="e">Old and new visibility values.</param>
+    private void FlyoutIsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
+    {
+        if (flyout.IsVisible ||
+            flyoutLiveReviewMode != TrayFlyoutLiveReviewMode.BoundedInMemorySequence)
+        {
+            return;
+        }
+
+        flyoutLiveReviewTimer.Stop();
+        flyoutLiveReviewSession?.Close();
+        RestoreFlyoutLiveReviewBaseline(TimeProvider.System.GetUtcNow());
+    }
+
+    /// <summary>Restores only the ordinary Tray and flyout fixture after W02 without mutating the hidden shell.</summary>
+    /// <param name="evaluatedAt">UTC instant used solely to evaluate the immutable local fixture.</param>
+    private void RestoreFlyoutLiveReviewBaseline(DateTimeOffset evaluatedAt)
+    {
+        TrayFleetSummary baseline = evidence.Summarise(evaluatedAt);
+        if (baseline.State != fleetSummary.State)
+        {
+            ReplaceAggregateIcon(baseline.State);
+        }
+
+        fleetSummary = baseline;
+        RefreshText();
+        flyout.RefreshPresentation(evaluatedAt, baseline);
+    }
+
+    /// <summary>
+    /// Applies one coherent W02 frame to the aggregate mark, tooltip and open flyout in the current Dispatcher turn.
+    /// </summary>
+    /// <param name="frame">Frame whose rows, counts and aggregate were derived together in memory.</param>
+    private void ApplyFlyoutLiveReviewFrame(TrayFlyoutPresentationFrame frame)
+    {
+        ArgumentNullException.ThrowIfNull(frame);
+        if (frame.Summary.State != fleetSummary.State)
+        {
+            ReplaceAggregateIcon(frame.Summary.State);
+        }
+
+        fleetSummary = frame.Summary;
+        RefreshText();
+        flyout.RefreshReviewPresentation(frame);
     }
 
     /// <summary>Restores the desktop window and selects one safe read-only destination.</summary>
     private void ShowView(DesktopView view)
     {
+        if (!TrayFlyoutLiveReviewPolicy.AllowsSecondaryShell(flyoutLiveReviewMode))
+        {
+            return;
+        }
+
         Apply(TrayWindowIntent.Show);
         window.ShowView(view);
     }
@@ -384,6 +510,11 @@ internal sealed class TrayApplicationController : IDisposable
     /// <summary>Requests one fresh close-to-Tray confirmation through a bounded best-effort green source.</summary>
     private void ShowCloseToTrayNotification()
     {
+        if (suppressAllNotifications)
+        {
+            return;
+        }
+
         string title = localisation.Text("Tray.BalloonTitle");
         string message = localisation.Text("Tray.BalloonMessage");
 
@@ -476,7 +607,7 @@ internal sealed class TrayApplicationController : IDisposable
     /// <param name="meaning">Typed meaning used to select the temporary canonical semantic bell.</param>
     private bool QueueLegacyNotification(string title, string message, TrayNotificationMeaning meaning)
     {
-        if (disposing || exiting) return false;
+        if (suppressAllNotifications || disposing || exiting) return false;
         int pendingNotifications = legacyNotificationQueue.Count + (legacyNotificationInFlight ? 1 : 0);
         if (pendingNotifications >= MaximumLegacyNotificationQueueLength)
         {
@@ -495,7 +626,7 @@ internal sealed class TrayApplicationController : IDisposable
     private ReconciledNotificationDeliveryResult DeliverReconciledNotification(
         ReconciledNotificationDeliveryRequest request)
     {
-        if (disposing || exiting ||
+        if (suppressAllNotifications || disposing || exiting ||
             !Enum.TryParse(request.Transition.PreviousStatus, ignoreCase: false, out HealthStatus previous) ||
             !Enum.TryParse(request.Transition.CurrentStatus, ignoreCase: false, out HealthStatus current))
         {
@@ -531,7 +662,11 @@ internal sealed class TrayApplicationController : IDisposable
         string message,
         TrayNotificationMeaning meaning)
     {
-        if (disposing || exiting || legacyNotificationInFlight || legacyNotificationQueue.Count != 0)
+        if (suppressAllNotifications ||
+            disposing ||
+            exiting ||
+            legacyNotificationInFlight ||
+            legacyNotificationQueue.Count != 0)
         {
             return false;
         }
@@ -545,7 +680,9 @@ internal sealed class TrayApplicationController : IDisposable
     /// <summary>Displays the next queued fallback only after the prior semantic-icon lease has completed.</summary>
     private void TryShowNextLegacyNotification()
     {
-        if (disposing || exiting ||
+        if (suppressAllNotifications ||
+            disposing ||
+            exiting ||
             legacyNotificationInFlight ||
             legacyNotificationQueue.Count == 0)
         {
@@ -561,7 +698,7 @@ internal sealed class TrayApplicationController : IDisposable
     /// <returns>True only after the Windows Forms boundary accepted the synchronous call.</returns>
     private bool TryBeginLegacyNotification(LegacyNotificationRequest request)
     {
-        if (disposing || exiting || legacyNotificationInFlight)
+        if (suppressAllNotifications || disposing || exiting || legacyNotificationInFlight)
         {
             return false;
         }

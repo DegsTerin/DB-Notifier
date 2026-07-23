@@ -21,5 +21,7 @@
     <ProjectReference Include="..\..\src\DBNotifier.Application\DBNotifier.Application.csproj" />
     <Compile Include="..\..\src\DBNotifier.Desktop.Wpf\ReconciledWindowsNotificationBoundary.cs"
              Link="ReconciledWindowsNotificationBoundary.cs" />
+    <Compile Include="..\..\src\DBNotifier.Desktop.Wpf\TrayFlyoutLiveReview.cs"
+             Link="TrayFlyoutLiveReview.cs" />
   </ItemGroup>
 </Project>

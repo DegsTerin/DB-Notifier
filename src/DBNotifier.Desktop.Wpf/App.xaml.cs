@@ -17,7 +17,7 @@ public partial class App : System.Windows.Application, IDisposable
     private ProviderVisualIdentityPolicy? providerVisualIdentityPolicy;
 
     /// <summary>Loads safe preferences and starts in the notification area with only explicitly requested local review modes enabled.</summary>
-    /// <param name="e">Startup arguments; exact desktop, notification-transition and accessibility review switches remain independent and opt-in.</param>
+    /// <param name="e">Startup arguments; exact desktop, notification-transition, accessibility and W02 review switches remain opt-in.</param>
     protected override void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
@@ -31,7 +31,12 @@ public partial class App : System.Windows.Application, IDisposable
         DateTimeOffset generatedAt = TimeProvider.System.GetUtcNow();
         DesktopDemonstrationEvidence evidence = DesktopDemonstrationEvidence.Create(generatedAt);
         TrayFleetSummary fleetSummary = evidence.Summarise(generatedAt);
-        DesktopAccessibilityReviewMode accessibilityReviewMode = DesktopAccessibilityReviewPolicy.Resolve(e.Args);
+        TrayFlyoutLiveReviewMode flyoutLiveReviewMode = TrayFlyoutLiveReviewPolicy.Resolve(e.Args);
+        bool flyoutLiveReviewEnabled =
+            flyoutLiveReviewMode == TrayFlyoutLiveReviewMode.BoundedInMemorySequence;
+        DesktopAccessibilityReviewMode accessibilityReviewMode = flyoutLiveReviewEnabled
+            ? DesktopAccessibilityReviewMode.Disabled
+            : DesktopAccessibilityReviewPolicy.Resolve(e.Args);
         MainWindow window = new(
             localisation,
             theme,
@@ -41,9 +46,12 @@ public partial class App : System.Windows.Application, IDisposable
             fleetSummary.State,
             accessibilityReviewMode);
         MainWindow = window;
-        TrayNotificationValidationMode notificationValidationMode = TrayNotificationValidationPolicy.Resolve(e.Args);
-        ReconciledNotificationSandboxActivation? reconciledNotificationActivation =
-            ReconciledNotificationSandboxActivationPolicy.Resolve(e.Args);
+        TrayNotificationValidationMode notificationValidationMode = flyoutLiveReviewEnabled
+            ? TrayNotificationValidationMode.Disabled
+            : TrayNotificationValidationPolicy.Resolve(e.Args);
+        ReconciledNotificationSandboxActivation? reconciledNotificationActivation = flyoutLiveReviewEnabled
+            ? null
+            : ReconciledNotificationSandboxActivationPolicy.Resolve(e.Args);
         trayController = new TrayApplicationController(
             window,
             this,
@@ -52,8 +60,10 @@ public partial class App : System.Windows.Application, IDisposable
             evidence,
             fleetSummary,
             notificationValidationMode,
-            reconciledNotificationActivation);
-        if (TrayStartupPolicy.Resolve(e.Args) == TrayStartupMode.ShowDesktop)
+            reconciledNotificationActivation,
+            flyoutLiveReviewMode);
+        if (!flyoutLiveReviewEnabled &&
+            TrayStartupPolicy.Resolve(e.Args) == TrayStartupMode.ShowDesktop)
         {
             window.Show();
         }

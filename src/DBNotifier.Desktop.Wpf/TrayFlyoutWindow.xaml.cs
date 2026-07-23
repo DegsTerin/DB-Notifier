@@ -3,7 +3,6 @@ using System.ComponentModel;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Shapes;
 using System.Windows.Threading;
 using DBNotifier.Application.Presentation;
 using DBNotifier.Domain;
@@ -35,13 +34,15 @@ internal sealed partial class TrayFlyoutWindow : Window
     /// <param name="initialSummary">Aggregate evaluated at the evidence creation instant.</param>
     /// <param name="openView">Callback that opens one validated read-only desktop destination.</param>
     /// <param name="exitApplication">Callback that explicitly exits DB Notifier.</param>
+    /// <param name="secondaryNavigationEnabled">Whether the current composition permits opening the preference-bearing shell.</param>
     internal TrayFlyoutWindow(
         DesktopLocalisationService localisation,
         ProviderVisualIdentityPolicy providerVisualIdentityPolicy,
         DesktopDemonstrationEvidence evidence,
         TrayFleetSummary initialSummary,
         Action<DesktopView> openView,
-        Action exitApplication)
+        Action exitApplication,
+        bool secondaryNavigationEnabled)
     {
         this.localisation = localisation;
         this.providerVisualIdentityPolicy = providerVisualIdentityPolicy;
@@ -55,6 +56,9 @@ internal sealed partial class TrayFlyoutWindow : Window
         };
         activationTimer.Tick += CompleteActivation;
         InitializeComponent();
+        OpenOverviewButton.IsEnabled = secondaryNavigationEnabled;
+        OpenConfigurationButton.IsEnabled = secondaryNavigationEnabled;
+        OpenHistoryAlertsButton.IsEnabled = secondaryNavigationEnabled;
         providerVisualIdentityPolicy.VisualIdentityChanged += ProviderVisualIdentityChanged;
         Closed += TrayFlyoutWindowClosed;
         RefreshPresentation(evidence.GeneratedAt, initialSummary);
@@ -127,20 +131,46 @@ internal sealed partial class TrayFlyoutWindow : Window
     /// <param name="summary">Aggregate derived from the same evidence and evaluation instant.</param>
     internal void RefreshPresentation(DateTimeOffset evaluatedAt, TrayFleetSummary summary)
     {
+        InstanceInventoryItem[] items = evidence.CreateInventorySnapshot(localisation).Items.ToArray();
+        ApplyPresentation(
+            summary,
+            items.Select(item => new TrayFlyoutInstancePresentationState(
+                item.InstanceId,
+                item.Status,
+                item.GetFreshness(evaluatedAt, DesktopDemonstrationEvidence.StaleAfter),
+                item.Enabled)).ToArray());
+    }
+
+    /// <summary>Applies one coherent W02 frame without reading, persisting or publishing any operational state.</summary>
+    /// <param name="frame">Bounded frame whose row states, aggregate and counts were derived together.</param>
+    internal void RefreshReviewPresentation(TrayFlyoutPresentationFrame frame)
+    {
+        ArgumentNullException.ThrowIfNull(frame);
+        ApplyPresentation(frame.Summary, frame.InstanceStates);
+    }
+
+    /// <summary>Updates aggregate text, brand mark and rows from one presentation transaction.</summary>
+    /// <param name="summary">Aggregate and counts derived from the supplied row states.</param>
+    /// <param name="states">Stable per-instance states belonging to the same evaluation frame.</param>
+    private void ApplyPresentation(
+        TrayFleetSummary summary,
+        IReadOnlyList<TrayFlyoutInstancePresentationState> states)
+    {
         fleetSummary = summary;
         string aggregateLabel = localisation.Text($"Tray.Aggregate.{fleetSummary.State}");
-        AggregateText.Text = $"{localisation.Text("Tray.AggregateSummary", aggregateLabel)} · {localisation.Text("Inventory.DisabledCount", fleetSummary.DisabledCount)}";
+        AggregateText.Text =
+            $"{localisation.Text("Tray.AggregateSummary", aggregateLabel)} · {localisation.Text("Inventory.DisabledCount", fleetSummary.DisabledCount)}";
         SnapshotText.Text = localisation.Text("Tray.LocalSnapshot", FormatUtc(evidence.GeneratedAt));
         RefreshBrandStatusImage(VisualTreeHelper.GetDpi(this));
-        RefreshInstanceStates(evaluatedAt);
+        RefreshInstanceStates(states);
     }
 
     /// <summary>Aligns every flyout row with the canonical freshness and provider-neutral status policies.</summary>
-    /// <param name="evaluatedAt">UTC instant used only to classify item evidence.</param>
-    private void RefreshInstanceStates(DateTimeOffset evaluatedAt)
+    /// <param name="states">Stable row states already evaluated for the current presentation frame.</param>
+    private void RefreshInstanceStates(IReadOnlyList<TrayFlyoutInstancePresentationState> states)
     {
         InstanceInventoryItem[] items = evidence.CreateInventorySnapshot(localisation).Items.ToArray();
-        Shape[] glyphs = [FinanceStatusGlyph, OrdersStatusGlyph, AnalyticsStatusGlyph, CatalogueStatusGlyph];
+        SemanticIcon[] glyphs = [FinanceStatusGlyph, OrdersStatusGlyph, AnalyticsStatusGlyph, CatalogueStatusGlyph];
         System.Windows.Controls.TextBlock[] labels = [FinanceStatusText, OrdersStatusText, AnalyticsStatusText, CatalogueStatusText];
         ProviderIdentityView[] providerIdentities =
             [FinanceProviderIdentity, OrdersProviderIdentity, AnalyticsProviderIdentity, CatalogueProviderIdentity];
@@ -148,26 +178,45 @@ internal sealed partial class TrayFlyoutWindow : Window
         {
             InstanceInventoryItem item = items[index];
             providerIdentities[index].Identity = providerVisualIdentityPolicy.Resolve(item.ProviderType);
-            EvidenceFreshness freshness = item.GetFreshness(evaluatedAt, DesktopDemonstrationEvidence.StaleAfter);
-            (string labelKey, string brushKey) = !item.Enabled
-                ? ("Status.Disabled", "ComponentStatusNeutralForegroundBrush")
-                : freshness switch
-                {
-                    EvidenceFreshness.Stale => ("Status.Stale", "ComponentStatusNeutralForegroundBrush"),
-                    EvidenceFreshness.Unknown => ("Status.Unknown", "ComponentStatusNeutralForegroundBrush"),
-                    _ => item.Status switch
-                    {
-                        HealthStatus.Healthy => ("Status.Healthy", "ComponentStatusHealthyForegroundBrush"),
-                        HealthStatus.Degraded or HealthStatus.Maintenance => ($"Status.{item.Status}", "ComponentStatusDegradedForegroundBrush"),
-                        HealthStatus.Unavailable or HealthStatus.AuthFailed or HealthStatus.Timeout => ($"Status.{item.Status}", "ComponentStatusCriticalForegroundBrush"),
-                        _ => ("Status.Unknown", "ComponentStatusNeutralForegroundBrush"),
-                    },
-                };
+            TrayFlyoutInstancePresentationState state = states
+                .SingleOrDefault(candidate => candidate.InstanceId == item.InstanceId)
+                ?? new(item.InstanceId, HealthStatus.Unknown, EvidenceFreshness.Unknown, true);
+            (string labelKey, string brushKey, SemanticIconKind iconKind) = ResolveInstancePresentation(state);
             labels[index].Text = localisation.Text(labelKey);
             labels[index].SetResourceReference(System.Windows.Controls.TextBlock.ForegroundProperty, brushKey);
-            glyphs[index].SetResourceReference(Shape.FillProperty, brushKey);
-            glyphs[index].SetResourceReference(Shape.StrokeProperty, brushKey);
+            glyphs[index].Kind = iconKind;
+            glyphs[index].SetResourceReference(System.Windows.Controls.Control.ForegroundProperty, brushKey);
         }
+    }
+
+    /// <summary>Maps one row state to matching text, colour resource and code-native semantic geometry.</summary>
+    /// <param name="state">Provider-neutral row state from the active frame.</param>
+    /// <returns>A localised key, semantic brush key and icon kind that fail unknown evidence closed.</returns>
+    private static (string LabelKey, string BrushKey, SemanticIconKind IconKind) ResolveInstancePresentation(
+        TrayFlyoutInstancePresentationState state)
+    {
+        if (!state.Enabled)
+        {
+            return ("Status.Disabled", "ComponentStatusNeutralForegroundBrush", SemanticIconKind.Disabled);
+        }
+
+        return state.Freshness switch
+        {
+            EvidenceFreshness.Stale =>
+                ("Status.Stale", "ComponentStatusNeutralForegroundBrush", SemanticIconKind.Stale),
+            EvidenceFreshness.Unknown =>
+                ("Status.Unknown", "ComponentStatusNeutralForegroundBrush", SemanticIconKind.Unknown),
+            _ => state.Status switch
+            {
+                HealthStatus.Healthy =>
+                    ("Status.Healthy", "ComponentStatusHealthyForegroundBrush", SemanticIconKind.Healthy),
+                HealthStatus.Degraded or HealthStatus.Maintenance =>
+                    ($"Status.{state.Status}", "ComponentStatusDegradedForegroundBrush", SemanticIconKind.Degraded),
+                HealthStatus.Unavailable or HealthStatus.AuthFailed or HealthStatus.Timeout =>
+                    ($"Status.{state.Status}", "ComponentStatusCriticalForegroundBrush", SemanticIconKind.Critical),
+                _ => ("Status.Unknown", "ComponentStatusNeutralForegroundBrush", SemanticIconKind.Unknown),
+            },
+        };
     }
 
     /// <summary>Synchronises the flyout mark with the latest aggregate without changing notification delivery state.</summary>
