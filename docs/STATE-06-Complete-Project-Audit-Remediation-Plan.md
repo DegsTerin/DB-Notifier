@@ -413,7 +413,7 @@ Depois do relatório automático aprovado, qualquer amostra visível exige autor
 
 ### Estado factual de execução
 
-A fase automática R6 foi autorizada e implementada localmente em 2026-07-21 sobre a baseline `a8d67e35af0be55c9d01a6141677b52fb0f23ed4`. O [relatório factual R6](STATE-06-Audit-Remediation-R6-Report.md) registra a disposição dos doze achados, os gates automáticos e as limitações físicas. O resultado automático está `APPROVED`; a asserção global R0 e o incidente NuGet R5 permanecem explícitos e sem correção. Windows 200%, mixed-DPI físico, Narrator, High Contrast físico, reduced motion físico e flyout visível continuam `NOT TESTED`. A aceitação humana R6 permanece `PENDING` e requer autorização, execução e decisão separadas; esta anotação não autoriza amostra visível, R7, R8, R7-A0, O1 ou transição.
+A fase automática R6 foi autorizada e implementada localmente em 2026-07-21 sobre a baseline `a8d67e35af0be55c9d01a6141677b52fb0f23ed4`. O [relatório factual R6](STATE-06-Audit-Remediation-R6-Report.md) registra a disposição dos doze achados, os gates automáticos e as limitações físicas. O resultado automático está `APPROVED`; a asserção global R0 e o incidente NuGet R5 permanecem explícitos e sem correção. Depois das remediações e repetições separadamente autorizadas, D01, D02, D03, W01 e W02 estão aprovadas. Bruno encerrou o [Human Gate específico do lote R6](STATE-06-Audit-Remediation-R6-Human-Gate-Report.md) como `APPROVED WITH RESERVATIONS`, aceitando que Windows 200%, mixed-DPI físico, Narrator, High Contrast físico e reduced motion físico permanecem `NOT TESTED` e limitam a evidência de acessibilidade e DPI físico. Esta decisão não autoriza R7, R8, R7-A0, O1, AIOps, execução operacional ou transição.
 
 ### Rollback
 

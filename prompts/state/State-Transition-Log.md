@@ -2717,6 +2717,18 @@
 - Próxima decisão: qualquer aceitação R6, execução P01 ou progressão exige proposta e autoridade separadas.
 - Aprovador: Bruno, 2026-07-23, exclusivamente para a amostra `R6-HV-W02`.
 
+## 2026-07-23 — Human Gate do lote R6 aprovado com ressalvas
+
+- Estado anterior: `STATE-06 INTEGRATION`, fase automática R6 e remediações focais aprovadas nos seus escopos, D01/D02/D03/W01/W02 aprovadas, P01 não testada e aceitação humana do lote R6 pendente.
+- Estado resultante: sem transição; `STATE-06 INTEGRATION` mantido. O Human Gate específico do lote R6 está `APROVADO COM RESSALVAS`; o lote está humanamente encerrado somente no seu escopo.
+- Decisão: Bruno declarou exatamente `HUMAN GATE DO R6: APROVADO COM RESSALVAS — aceito que R6-HV-P01 e suas cinco condições físicas permanecem NÃO TESTADAS; reconheço que essa ausência limita a evidência de acessibilidade e DPI físico, sem invalidar as amostras automáticas e humanas aprovadas. Esta decisão encerra somente o lote R6 e não autoriza correção do R0, R7-A0, R8, O1, AIOps, execução operacional ou transição de lifecycle.`
+- Ressalvas: High Contrast físico, reduced motion físico, Narrator, escala física Windows 200% e mixed-DPI entre monitores permanecem individualmente `NÃO TESTADOS`; nenhuma condição foi inferida como aprovada.
+- Evidência: [relatório do Human Gate R6](../../docs/STATE-06-Audit-Remediation-R6-Human-Gate-Report.md), relatórios automáticos e decisões individuais D01/D02/D03/W01/W02 já registrados.
+- Atividade documental: baseline `c781101a8607b0be1cf7fca593f6c7d1b1a92fc5`, worktree limpa, zero processo/listener e preferência preservada no SHA-256 `ABC049CBB37CC998FF86E018E6853D811E58ED166B2B6B4A5CF0FBA4B171868F`; nenhum código, runtime, push, deploy ou transição.
+- Limites: a decisão não corrige ou dispensa R0, não altera o incidente R5 e não autoriza R7-A0, R8, O1, AIOps, execução operacional, promoção ou lifecycle.
+- Próxima decisão: correção R0, R7-A0, R8, eventual P01 ou progressão exigem propostas e autorizações separadas.
+- Aprovador: Bruno, 2026-07-23, exclusivamente para o Human Gate do lote R6.
+
 ## Template de nova entrada
 
 - Data:

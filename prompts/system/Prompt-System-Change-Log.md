@@ -2,7 +2,7 @@
 
 ## Versão atual
 
-- Versão: `3.56.16`
+- Versão: `3.56.17`
 - Data: 2026-07-23
 - Status: corpus DB-Notifier consolidado
 - Escopo: 13 arquivos ativos
@@ -16,6 +16,13 @@ A versão do corpus é independente da versão do software.
 - PATCH: clareza, correção ou referência sem mudança de autoridade.
 
 Toda alteração atualiza este arquivo e, quando necessário, `../Start-Here.md`.
+
+## 3.56.17 — 2026-07-23
+
+- Registra o Human Gate específico do lote de remediação R6 como `APROVADO COM RESSALVAS`.
+- Mantém R6-HV-P01, High Contrast físico, reduced motion físico, Narrator, escala Windows 200% e mixed-DPI como não testados e limitações explícitas.
+- Distingue este encerramento do Human Gate histórico do `STATE-06` e preserva a ausência de transição.
+- Não autoriza correção R0, alteração do incidente R5, R7-A0, R8, O1, AIOps ou execução operacional.
 
 ## 3.56.16 — 2026-07-23
 
