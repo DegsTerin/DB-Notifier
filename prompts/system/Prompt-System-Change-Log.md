@@ -2,7 +2,7 @@
 
 ## Versão atual
 
-- Versão: `3.56.18`
+- Versão: `3.56.19`
 - Data: 2026-07-23
 - Status: corpus DB-Notifier consolidado
 - Escopo: 13 arquivos ativos
@@ -16,6 +16,13 @@ A versão do corpus é independente da versão do software.
 - PATCH: clareza, correção ou referência sem mudança de autoridade.
 
 Toda alteração atualiza este arquivo e, quando necessário, `../Start-Here.md`.
+
+## 3.56.19 — 2026-07-23
+
+- Registra a decisão humana exata `ACEITO O R0-F1, SEM AUTORIZAR R7-A0, R8, O1, AIOps OU TRANSIÇÃO.`
+- Mantém a correção restrita à asserção arquitetural e preserva runners, workflow, dependências e produto.
+- Preserva o incidente NuGet R5 e os resultados R0 históricos nas suas baselines.
+- Não autoriza implementação adicional, execução operacional ou transição de lifecycle.
 
 ## 3.56.18 — 2026-07-23
 

@@ -2742,6 +2742,17 @@
 - Próxima decisão: R7-A0 continua exigindo proposta e autorização separadas; R8 permanece posterior e igualmente não autorizado.
 - Aprovador: autorização técnica R0-F1 por Bruno em 2026-07-23; nenhuma aceitação humana adicional ou lifecycle foi inferido.
 
+## 2026-07-23 — R0-F1 aceito
+
+- Estado anterior: `STATE-06 INTEGRATION`, R0-F1 automaticamente aprovado no commit `68e8aa7dee0bf1e59c7ac70b4398fa9e4a6becb9`, gate local corrente verde e aceitação humana pendente.
+- Estado resultante: sem transição; `STATE-06 INTEGRATION` mantido. R0-F1 está humanamente aceito no seu escopo focal.
+- Decisão: Bruno declarou exatamente `ACEITO O R0-F1, SEM AUTORIZAR R7-A0, R8, O1, AIOps OU TRANSIÇÃO.`
+- Evidência: [relatório R0-F1](../../docs/STATE-06-Audit-Remediation-R0-F1-Report.md), incluindo causa, diff focal, `52/52` arquitetura, `477/477` solução, build, format e hashes imutáveis dos runners/workflow.
+- Atividade documental: baseline `68e8aa7dee0bf1e59c7ac70b4398fa9e4a6becb9`, worktree limpa, zero processo/listener e preferência preservada no SHA-256 `ABC049CBB37CC998FF86E018E6853D811E58ED166B2B6B4A5CF0FBA4B171868F`; nenhum código, runtime, push, deploy ou transição.
+- Limites: a aceitação não autoriza R7-A0, R8, O1, AIOps, execução operacional, promoção ou lifecycle e não altera o incidente NuGet R5.
+- Próxima decisão: qualquer atividade posterior exige proposta e autorização separadas.
+- Aprovador: Bruno, 2026-07-23, exclusivamente para R0-F1.
+
 ## Template de nova entrada
 
 - Data:

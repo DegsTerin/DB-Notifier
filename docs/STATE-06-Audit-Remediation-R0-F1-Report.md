@@ -5,6 +5,7 @@
 - Authorised baseline: `c2a966c23c5829e8e2eaf8d2d320fe7579efb390`
 - Scope: focal correction of the pre-existing R0 architecture assertion
 - Automatic result: `APPROVED`
+- Human result: `ACCEPTED`
 - Product, runner and workflow behaviour: `UNCHANGED`
 - Lifecycle transition: `NOT AUTHORISED`
 
@@ -62,3 +63,11 @@ The following preflight SHA-256 values are preserved for final comparison:
 No dependency, package, lockfile, CI execution, runtime, external access, push, deploy, R7-A0, R8, O1, AIOps capability or lifecycle state was changed or authorised. The R5 NuGet metadata incident remains recorded and unaltered.
 
 Historical reports that recorded the R0 assertion as failing remain factual for their original baselines. R0-F1 changes only the current disposition: the previously blocking global architecture assertion is now resolved and the current local .NET gate is green.
+
+## Human acceptance
+
+After reviewing the result on commit `68e8aa7dee0bf1e59c7ac70b4398fa9e4a6becb9`, Bruno decided exactly:
+
+`ACEITO O R0-F1, SEM AUTORIZAR R7-A0, R8, O1, AIOps OU TRANSIÇÃO.`
+
+This decision accepts only the bounded R0-F1 correction. It does not expand its scope or authorise any subsequent remediation, AIOps or lifecycle activity.
