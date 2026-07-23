@@ -2850,6 +2850,17 @@
 - Limites: nenhum dado/provider/banco/corpus real, LLM, recomendação, comando, automação, push, deploy, Quality Gate, Human Gate, `OBSERVER` ou lifecycle foi executado ou autorizado.
 - Aprovador: resultado documental local; decisão sobre O2-A pendente.
 
+## 2026-07-23 — Pacote de prontidão `NONE → OBSERVER` aceito como direção
+
+- Estado anterior: `STATE-06 INTEGRATION`, pacote documental concluído, `ActivationState=None` e O2-A não autorizado.
+- Decisão: Bruno declarou exatamente `ACEITO O PACOTE DE PRONTIDÃO COMO DIREÇÃO, SEM AUTORIZAR O2-A, OBSERVER OU TRANSIÇÃO.`
+- Estado resultante: sem transição; `STATE-06 INTEGRATION` e `ActivationState=None` mantidos.
+- Escopo aceito: matriz de prontidão, lacunas, composição futura, critérios objetivos de ativação, plano O2–O5 e O2-A como próximo lote proposto.
+- Limites: a aceitação não é Quality Gate, Human Gate de ativação ou autorização de código, runtime, O2-A, `OBSERVER`, push, deploy ou lifecycle.
+- Evidência: [pacote de prontidão](../../docs/STATE-06-MOD-12-None-To-Observer-Readiness-Package.md).
+- Próxima decisão: qualquer implementação do O2-A exige proposta e autorização posteriores e separadas.
+- Aprovador: Bruno, 2026-07-23, exclusivamente como direção documental.
+
 ## Template de nova entrada
 
 - Data:

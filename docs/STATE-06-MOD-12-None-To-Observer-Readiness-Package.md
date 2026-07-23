@@ -7,6 +7,7 @@
 - Ciclo de vida: `STATE-06 INTEGRATION`.
 - Estado de ativação MOD-12: `ActivationState=None`.
 - Resultado do pacote: **NÃO PRONTO PARA ATIVAÇÃO**.
+- Disposição humana: **ACEITO COMO DIREÇÃO** por Bruno em 2026-07-23, sem autorização de O2-A, `OBSERVER` ou transição.
 - Próximo incremento recomendado: **O2-A — Canonical Read-Only Observation Pipeline Sandbox**.
 
 O MOD-12 possui uma fundação determinística inativa e um O1 sintético, test-only, automática e humanamente aprovado. Isso é suficiente para preparar o próximo sandbox de integração, mas não é evidência para ativar `OBSERVER`.
@@ -311,6 +312,7 @@ Antes de qualquer execução, essa proposta deverá ser revisada contra a baseli
 ## Disposição final
 
 - Pacote documental: `CONCLUÍDO`.
+- Aceitação humana: `ACEITO COMO DIREÇÃO`, exclusivamente para o pacote de prontidão.
 - Prontidão para implementar O2-A: `PRONTO PARA PROPOSTA`, não para execução.
 - Prontidão para `NONE → OBSERVER`: `BLOQUEADO`.
 - `ActivationState`: `None`.
