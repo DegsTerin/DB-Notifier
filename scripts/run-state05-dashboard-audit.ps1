@@ -72,6 +72,8 @@ function Stop-OwnedBrowserResidue([string]$OwnedProfilePath, [int]$TimeoutMillis
 }
 
 # Removes only this runner's GUID-named temporary root after bounded lock-release retries.
+# Path must resolve beneath the system temporary directory; TimeoutMilliseconds bounds deletion and stable-absence checks.
+# Returns no value and throws when ownership cannot be proved or the directory does not remain absent.
 function Remove-OwnedTemporaryRoot([string]$Path, [int]$TimeoutMilliseconds = 15000) {
     $candidate = [System.IO.Path]::GetFullPath($Path)
     $systemTemp = [System.IO.Path]::GetFullPath([System.IO.Path]::GetTempPath())
@@ -79,17 +81,21 @@ function Remove-OwnedTemporaryRoot([string]$Path, [int]$TimeoutMilliseconds = 15
         -not (Split-Path -Leaf $candidate).StartsWith('DBNotifier-Dashboard-Runner-', [StringComparison]::Ordinal)) {
         throw 'The STATE-05 temporary root failed its exact ownership check.'
     }
-    if (-not (Test-Path -LiteralPath $candidate)) { return }
     $deadline = [DateTimeOffset]::UtcNow.AddMilliseconds($TimeoutMilliseconds)
+    $consecutiveAbsentChecks = 0
     do {
-        try {
-            [System.IO.Directory]::Delete($candidate, $true)
-            return
+        if (Test-Path -LiteralPath $candidate) {
+            $consecutiveAbsentChecks = 0
+            try { [System.IO.Directory]::Delete($candidate, $true) }
+            catch [System.IO.IOException] { }
+            catch [System.UnauthorizedAccessException] { }
         }
-        catch [System.IO.IOException] { Start-Sleep -Milliseconds 250 }
-        catch [System.UnauthorizedAccessException] { Start-Sleep -Milliseconds 250 }
+        Start-Sleep -Milliseconds 250
+        if (Test-Path -LiteralPath $candidate) { $consecutiveAbsentChecks = 0 }
+        else { $consecutiveAbsentChecks++ }
+        if ($consecutiveAbsentChecks -ge 3) { return }
     } while ([DateTimeOffset]::UtcNow -lt $deadline)
-    throw 'The STATE-05 temporary root remained locked after bounded cleanup retries.'
+    throw 'The STATE-05 temporary root remained present or reappeared after bounded cleanup retries.'
 }
 
 # Redacts repository, temporary paths and loopback endpoints from a bounded Node error tail.
@@ -222,7 +228,7 @@ try {
             $report = Get-Content -LiteralPath $reportPath -Raw | ConvertFrom-Json
             $currentReport = $report
             $failures = [System.Collections.Generic.List[string]]::new()
-            if (@($report.viewports).Count -ne 30) { $failures.Add('Expected 30 viewport samples.') }
+            if (@($report.viewports).Count -ne 32) { $failures.Add('Expected 32 viewport samples.') }
             if (@($report.viewports | Where-Object { $_.layout.horizontalOverflow }).Count -gt 0) { $failures.Add('Horizontal overflow was detected.') }
             $mobileSamples = @($report.viewports | Where-Object { $_.width -le 390 })
             if (@($mobileSamples | Where-Object { -not $_.layout.topbarSingleRow -or -not $_.layout.topbarControlsContained }).Count -gt 0) { $failures.Add('Compact topbar controls wrapped or escaped their header.') }
@@ -232,14 +238,29 @@ try {
             $narrowAlertSamples = @($report.viewports | Where-Object { $_.name -eq 'alerts-narrow-desktop-960x1040' })
             if ($narrowAlertSamples.Count -ne 1 -or $narrowAlertSamples[0].layout.alertSummary.columns -ne 3 -or $narrowAlertSamples[0].layout.alertSummary.cardCount -ne 3 -or $narrowAlertSamples[0].layout.alertSummary.parentRightGap -ne 0) { $failures.Add('Narrow-desktop alert summary did not fill its three-column row.') }
             $overviewSamples = @($report.viewports | Where-Object { $_.hash -eq 'overview' })
-            if ($overviewSamples.Count -ne 7 -or @($overviewSamples | Where-Object { $_.layout.overview.instanceRows -ne 4 -or $_.layout.overview.alertRows -ne 3 -or $_.layout.overview.contentOverflow }).Count -gt 0) { $failures.Add('Operational overview did not preserve its complete local fixture without overflow.') }
+            if ($overviewSamples.Count -ne 9 -or @($overviewSamples | Where-Object { $_.layout.overview.instanceRows -ne 4 -or $_.layout.overview.alertRows -ne 3 -or $_.layout.overview.contentOverflow }).Count -gt 0) { $failures.Add('Operational overview did not preserve its complete local fixture without overflow.') }
+            $expectedDisabledStatus = if ($locale -eq 'pt-BR') { 'Desabilitada · excluída da saúde atual' } else { 'Disabled · excluded from current health' }
+            if (@($overviewSamples | Where-Object {
+                $null -eq $_.layout.overviewStatus -or -not $_.layout.overviewStatus.allValid -or
+                $_.layout.overviewStatus.rowCount -ne 4 -or $_.layout.overviewStatus.disabledCount -ne 1 -or
+                $_.layout.overviewStatus.sparklineCount -ne 4 -or $_.layout.overviewStatus.containerOverflow -or
+                @($_.layout.overviewStatus.rows | Where-Object {
+                    -not $_.valid -or $_.pillOverflow -or $_.rowOverflow -or -not $_.labelContained -or
+                    -not $_.identityVisible -or -not $_.identityContainedByRow -or -not $_.pillContainedByRegion -or
+                    -not $_.regionContainedByRow -or -not $_.latencyContainedByRow -or -not $_.visualOrderValid -or
+                    -not $_.latencyVisible -or -not $_.sparklineExpected -or -not $_.sparklinePresent -or
+                    -not $_.sparklineVisible -or -not $_.sparklineContainedByRow -or $_.statusLatencyIntersectionArea -gt 0 -or
+                    $_.statusSparklineIntersectionArea -gt 0 -or $_.latencySparklineIntersectionArea -gt 0
+                }).Count -gt 0 -or
+                @($_.layout.overviewStatus.rows | Where-Object { $_.statusClass -match '(^|\s)disabled(\s|$)' -and $_.statusText -eq $expectedDisabledStatus }).Count -ne 1
+            }).Count -gt 0) { $failures.Add('An Overview status escaped its region, lost text, overflowed, or intersected latency or sparkline evidence.') }
             if (@($overviewSamples | Where-Object { ($_.width -gt 767 -and $_.layout.overview.summaryColumns -ne 4) -or ($_.width -gt 350 -and $_.width -le 767 -and $_.layout.overview.summaryColumns -ne 2) -or ($_.width -le 350 -and $_.layout.overview.summaryColumns -ne 1) }).Count -gt 0) { $failures.Add('Operational overview summary retained empty or unexpected grid tracks.') }
             $performanceChartSamples = @($report.viewports | Where-Object { $null -ne $_.layout.performanceChart })
-            if ($performanceChartSamples.Count -ne 12 -or @($performanceChartSamples | Where-Object { $_.layout.performanceChart.clipped }).Count -gt 0) { $failures.Add('A performance chart was clipped or overflowed its owning card in the 100/200/400-percent reflow matrix.') }
+            if ($performanceChartSamples.Count -ne 14 -or @($performanceChartSamples | Where-Object { $_.layout.performanceChart.clipped }).Count -gt 0) { $failures.Add('A performance chart was clipped or overflowed its owning card in the 100/200/400-percent reflow matrix.') }
             if (@($report.accessibilityTree.unnamedInteractive).Count -gt 0) { $failures.Add('Unnamed interactive controls were detected.') }
             if ($report.accessibilityTree.exposedNodeCount -le 0) { $failures.Add('The accessibility tree contained no exposed nodes.') }
             $forcedColours = @($report.forcedColours)
-            if ($forcedColours.Count -ne 24) { $failures.Add('Forced-colour coverage did not include all 24 route/zoom samples.') }
+            if ($forcedColours.Count -ne 24) { $failures.Add('Forced-colour coverage did not include all 24 route/page-scale samples.') }
             foreach ($zoomPercent in @(100, 200, 400)) {
                 $zoomSamples = @($forcedColours | Where-Object { $_.zoomPercent -eq $zoomPercent })
                 if ($zoomSamples.Count -ne 8 -or ((@($zoomSamples | ForEach-Object route) -join ',') -ne 'overview,inventory,alerts,performance,history,configuration,providers,settings')) { $failures.Add("Forced-colour coverage at $zoomPercent percent did not include all eight Dashboard destinations in canonical order.") }
@@ -247,6 +268,25 @@ try {
             if (@($forcedColours | Where-Object { -not $_.active -or $_.horizontalOverflow -or -not $_.bodyUsesSystemCanvas -or -not $_.bodyUsesSystemText -or -not $_.activeNavigationUsesHighlight -or -not $_.activeNavigationTextUsesHighlightText -or -not $_.activeNavigationResistsRemapping -or -not $_.activeNavigationLabelVisible -or -not $_.activeNavigationCountUsesSystemColours -or -not $_.activeNavigationFocusVisible -or -not $_.focusVisible -or -not $_.statusBoundaryVisible -or [string]::IsNullOrWhiteSpace([string]$_.mainName) -or $_.currentNavigationCount -ne 1 -or $_.accessibilityTree.exposedNodeCount -le 0 -or @($_.accessibilityTree.unnamedInteractive).Count -gt 0 }).Count -gt 0) { $failures.Add('A forced-colour destination lost system colours, visible selected-route text, distinct focus, status boundary, navigation semantics or an accessible control name.') }
             $forcedColourOverview = @($forcedColours | Where-Object { $_.route -eq 'overview' })
             if ($forcedColourOverview.Count -ne 3 -or @($forcedColourOverview | Where-Object { @($_.metricCards).Count -ne 4 -or @($_.metricCards | Where-Object { -not $_.allBoundariesVisible }).Count -gt 0 }).Count -gt 0) { $failures.Add('An Overview metric card lost one or more boundaries in the forced-colour 100/200/400-percent matrix.') }
+            if (@($forcedColourOverview | Where-Object { $null -eq $_.overviewStatus -or -not $_.overviewStatus.allValid -or $_.overviewStatus.sparklineCount -ne 4 }).Count -gt 0) { $failures.Add('A forced-colour Overview status lost visible latency, demonstration sparklines, geometric containment or separation.') }
+            $forcedColourOverviewStatus = @($report.forcedColourOverviewStatus)
+            $expectedFocalStatusKeys = @('1180x760@100', '820x620@100', '1180x760@200', '820x620@200', '1280x900@400', '1440x1000@400') | Sort-Object
+            $actualFocalStatusKeys = @($forcedColourOverviewStatus | ForEach-Object { '{0}x{1}@{2}' -f $_.width, $_.height, $_.zoomPercent }) | Sort-Object
+            if ($forcedColourOverviewStatus.Count -ne 6 -or @($forcedColourOverviewStatus | Where-Object {
+                $expectedLayoutWidth = [int][Math]::Floor($_.width / ($_.zoomPercent / 100.0))
+                $expectedLayoutHeight = [int][Math]::Floor($_.height / ($_.zoomPercent / 100.0))
+                $_.zoomPercent -notin @(100, 200, 400) -or $expectedLayoutWidth -lt 320 -or
+                $_.layoutWidth -ne $expectedLayoutWidth -or $_.layoutHeight -ne $expectedLayoutHeight -or
+                $_.innerWidth -ne $expectedLayoutWidth -or
+                $null -eq $_.statusLayout -or -not $_.statusLayout.allValid -or
+                $_.statusLayout.rowCount -ne 4 -or $_.statusLayout.disabledCount -ne 1 -or $_.statusLayout.sparklineCount -ne 4 -or
+                $null -eq $_.forcedColourPresentation -or -not $_.forcedColourPresentation.active -or
+                $_.forcedColourPresentation.horizontalOverflow -or
+                $_.forcedColourPresentation.statusCount -ne 4 -or
+                -not $_.forcedColourPresentation.allStatusBoundariesVisible -or
+                -not $_.forcedColourPresentation.allStatusesUseSystemColours -or
+                @($_.statusLayout.rows | Where-Object { $_.statusClass -match '(^|\s)disabled(\s|$)' -and $_.statusText -eq $expectedDisabledStatus }).Count -ne 1
+            }).Count -gt 0 -or ($actualFocalStatusKeys -join '|') -ne ($expectedFocalStatusKeys -join '|')) { $failures.Add('The focal forced-colour Overview status matrix was incomplete, inactive, duplicated, or lost system-colour boundaries or containment.') }
             if (@($forcedColours | Where-Object { $null -ne $_.performanceChart -and $_.performanceChart.clipped }).Count -gt 0) { $failures.Add('A forced-colour performance chart was clipped or overflowed its owning card.') }
             if ($report.semanticBrand.candidateCount -ne 1 -or $report.semanticBrand.aggregateState -ne 'critical' -or [string]$report.semanticBrand.href -ne $expectedCriticalFavicon) { $failures.Add("The runtime favicon did not expose the canonical brand revision $($brandRevisionMatch.Groups[1].Value) Critical candidate.") }
             if ($report.browser.product -ne $BrowserProduct -or $report.browser.version -ne $browserVersion) { $failures.Add('Browser product/version provenance was not preserved in the report.') }
@@ -261,6 +301,7 @@ try {
             if ($report.duplicateHistorySearchRegions -ne 1) { $failures.Add('History exposed an unexpected number of search regions.') }
             if ($report.tvMode.active.tvMode -ne 'true' -or $report.tvMode.active.buttonState -ne 'exit') { $failures.Add('TV mode did not become active.') }
             if ($report.tvMode.active.overviewDisplay -eq 'none' -or $report.tvMode.active.overviewInstanceRows -ne 4) { $failures.Add('TV mode did not present the complete operational overview.') }
+            if ($null -eq $report.tvMode.active.overviewStatus -or -not $report.tvMode.active.overviewStatus.allValid -or $report.tvMode.active.overviewStatus.sparklineCount -ne 4) { $failures.Add('TV mode did not preserve four visible demonstration sparklines or contain and separate its status and latency evidence.') }
             if ($report.tvMode.active.languageDisplay -eq 'none' -or $report.tvMode.active.themeDisplay -eq 'none') { $failures.Add('TV mode hid a global preference control.') }
             if ([string]::IsNullOrWhiteSpace($report.tvMode.active.clockText) -or [string]::IsNullOrWhiteSpace($report.tvMode.active.systemTimeZone)) { $failures.Add('TV mode did not expose system-time evidence.') }
             $tvLayouts = @($report.tvMode.layouts)
@@ -269,6 +310,7 @@ try {
             if (@($tvLayouts | Where-Object { -not $_.topbarControlsContained -or -not $_.topbarControlsWithinViewport }).Count -gt 0) { $failures.Add('TV mode topbar controls escaped their header or viewport.') }
             if (@($tvLayouts | Where-Object { ($_.width -le 1100 -and $_.overviewColumns -ne 1) -or ($_.width -gt 1100 -and $_.overviewColumns -ne 2) }).Count -gt 0) { $failures.Add('TV mode overview did not reflow to the expected compact and wide column counts.') }
             if (@($tvLayouts | Where-Object { $null -eq $_.performanceChart -or $_.performanceChart.clipped }).Count -gt 0) { $failures.Add('TV mode clipped the performance chart at a required layout width.') }
+            if (@($tvLayouts | Where-Object { $null -eq $_.overviewStatus -or -not $_.overviewStatus.allValid -or $_.overviewStatus.sparklineCount -ne 4 }).Count -gt 0) { $failures.Add('TV mode lost visible demonstration sparklines or status containment at a required layout width.') }
             if ($null -ne $report.tvMode.restored.tvMode -or $report.tvMode.restored.buttonState -ne 'enter') { $failures.Add('TV mode did not restore the standard layout.') }
             if ($report.tvMode.unavailableFullscreen.tvMode -ne 'true' -or $report.tvMode.unavailableFullscreen.nativeFullscreen) { $failures.Add('TV mode fullscreen fallback failed.') }
             if ($failures.Count -gt 0) {
@@ -279,7 +321,7 @@ try {
         }
     }
     $summaries | Format-Table -AutoSize
-    Write-Output "STATE-05 Dashboard audit passed for 120 viewport samples and 96 forced-colour route/zoom samples across pt-BR/en-GB and Light/Dark on $BrowserProduct $browserVersion."
+    Write-Output "STATE-05 Dashboard audit passed for 128 viewport samples, 96 forced-colour route/page-scale samples and 24 focal zoom/reflow status samples across pt-BR/en-GB and Light/Dark on $BrowserProduct $browserVersion."
 }
 catch {
     if (-not [string]::IsNullOrWhiteSpace($DiagnosticDirectory)) {
@@ -288,6 +330,29 @@ catch {
             @($currentReport.viewports | Where-Object {
                 $_.width -le 390 -and ($null -ne $_.layout.alertCards -or $null -ne $_.layout.capabilityCards)
             } | ForEach-Object { $_.name })
+        }
+        else { @() }
+        $focalStatusSamples = if ($null -ne $currentReport) {
+            @($currentReport.forcedColourOverviewStatus | ForEach-Object {
+                [pscustomobject]@{
+                    width = $_.width
+                    height = $_.height
+                    zoomPercent = $_.zoomPercent
+                    layoutWidth = $_.layoutWidth
+                    layoutHeight = $_.layoutHeight
+                    innerWidth = $_.innerWidth
+                    forcedColoursActive = $_.forcedColourPresentation.active
+                    horizontalOverflow = $_.forcedColourPresentation.horizontalOverflow
+                    statusCount = $_.forcedColourPresentation.statusCount
+                    allStatusBoundariesVisible = $_.forcedColourPresentation.allStatusBoundariesVisible
+                    allStatusesUseSystemColours = $_.forcedColourPresentation.allStatusesUseSystemColours
+                    statusLayoutValid = $_.statusLayout.allValid
+                    statusContainerWidth = $_.statusLayout.containerWidth
+                    statusContainerOverflow = $_.statusLayout.containerOverflow
+                    sparklineCount = $_.statusLayout.sparklineCount
+                    invalidRowIndexes = @($_.statusLayout.rows | Where-Object { -not $_.valid } | ForEach-Object { $_.index })
+                }
+            })
         }
         else { @() }
         [pscustomobject]@{
@@ -300,6 +365,7 @@ catch {
             failures = @($currentFailures)
             viewportCount = if ($null -ne $currentReport) { @($currentReport.viewports).Count } else { 0 }
             compactOperationalSamples = @($compactOperational)
+            focalStatusSamples = @($focalStatusSamples)
             nodeErrorTail = @($currentNodeDiagnostics)
         } | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath (Join-Path $DiagnosticDirectory 'state05-dashboard-failure.json') -Encoding utf8
     }

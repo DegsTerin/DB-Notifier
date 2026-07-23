@@ -218,18 +218,23 @@ input[type="radio"] { accent-color: var(--db-colour-action-primary-background); 
   cursor: pointer;
 }
 .overview-panel-heading button:hover, .overview-panel-action:hover { background: var(--db-colour-selection-background); }
+.overview-fleet { container: overview-fleet / inline-size; }
 .overview-instance-list { display: grid; }
-.overview-instance-row { min-width: 0; min-height: 60px; padding: var(--db-space-3) var(--db-space-4); display: grid; grid-template-columns: 30px minmax(160px, 1.2fr) minmax(116px, auto) 72px minmax(76px, .7fr); align-items: center; gap: var(--db-space-3); border-bottom: 1px solid var(--db-colour-border-default); }
-.overview-instance-row.no-sparkline { grid-template-columns: 30px minmax(160px, 1.2fr) minmax(116px, auto) 72px; }
+.overview-instance-row { min-width: 0; min-height: 60px; padding: var(--db-space-3) var(--db-space-4); display: grid; grid-template-columns: 30px minmax(160px, 1.2fr) minmax(116px, auto) 72px minmax(76px, .7fr); grid-template-areas: "provider identity status latency sparkline"; align-items: center; gap: var(--db-space-3); border-bottom: 1px solid var(--db-colour-border-default); }
+.overview-instance-row.no-sparkline { grid-template-columns: 30px minmax(160px, 1.2fr) minmax(116px, auto) 72px; grid-template-areas: "provider identity status latency"; }
 .overview-instance-row:last-child { border-bottom: 0; }
+.overview-instance-row > .provider-icon { grid-area: provider; }
 .overview-status-dot { width: 9px; height: 9px; background: var(--db-component-status-neutral-foreground); border-radius: 50%; }
 .overview-status-dot.healthy { background: var(--db-component-status-healthy-foreground); }
 .overview-status-dot.degraded { background: var(--db-component-status-degraded-foreground); }
 .overview-status-dot.critical { background: var(--db-component-status-critical-foreground); border-radius: var(--db-radius-small); }
-.overview-instance-name { min-width: 0; display: grid; gap: calc(var(--db-space-1) / 2); }
+.overview-instance-name { min-width: 0; display: grid; grid-area: identity; gap: calc(var(--db-space-1) / 2); }
 .overview-instance-name strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: .82rem; }
 .overview-instance-name small { color: var(--db-colour-text-secondary); font-size: .68rem; }
 .overview-column-label { color: var(--db-colour-text-secondary); font-size: .68rem; }
+.overview-status-region { min-width: 0; max-width: 100%; display: flex; grid-area: status; align-items: center; }
+.overview-status-region .status-badge { min-width: 0; max-width: 100%; justify-self: start; white-space: normal; line-height: 1.25; }
+.overview-status-region .status-badge-label { min-width: 0; overflow-wrap: break-word; }
 /* Provider artwork remains decorative, theme-aware and bounded by a provider-neutral generic fallback. */
 .provider-icon { position: relative; width: 26px; height: 26px; display: inline-grid; place-items: center; flex: 0 0 auto; color: var(--db-colour-data-category-1); vertical-align: middle; }
 .provider-icon-variant, .provider-icon-generic { grid-area: 1 / 1; width: 100%; height: 100%; }
@@ -244,8 +249,8 @@ input[type="radio"] { accent-color: var(--db-colour-action-primary-background); 
 .provider-identity { min-width: 0; max-width: 100%; display: inline-flex; align-items: center; gap: var(--db-space-2); vertical-align: middle; }
 .provider-identity-inline { gap: var(--db-space-1); }
 .provider-identity code { min-width: 0; overflow-wrap: anywhere; }
-.overview-latency { color: var(--db-colour-text-secondary); font-size: .74rem; text-align: right; font-variant-numeric: tabular-nums; }
-.sparkline { width: 100%; height: 28px; color: var(--db-component-status-healthy-foreground); }
+.overview-latency { color: var(--db-colour-text-secondary); grid-area: latency; font-size: .74rem; text-align: right; font-variant-numeric: tabular-nums; }
+.sparkline { min-width: 0; width: 100%; height: 28px; grid-area: sparkline; color: var(--db-component-status-healthy-foreground); }
 .sparkline polyline { fill: none; stroke: currentColor; stroke-width: 1.8; vector-effect: non-scaling-stroke; }
 .sparkline-2 { color: var(--db-component-status-degraded-foreground); }
 .sparkline-3 { color: var(--db-component-status-critical-foreground); }
@@ -546,11 +551,6 @@ html[data-tv-mode="true"], html[data-tv-mode="true"] body, html[data-tv-mode="tr
   .filters { grid-template-columns: 1fr; }
   .mobile-list { padding: var(--db-space-3); grid-template-columns: 1fr; gap: var(--db-space-3); }
   .instance-card dl { grid-template-columns: 1fr; gap: var(--db-space-2); }
-  .overview-instance-row { grid-template-columns: 28px minmax(0, 1fr) auto; gap: var(--db-space-2); }
-  .overview-instance-row .status-badge { justify-self: end; }
-  .overview-latency, .sparkline { grid-column: 2 / -1; }
-  .overview-latency { justify-self: start; text-align: left; }
-  .sparkline { height: 22px; }
   .provider-figure { grid-template-columns: 112px minmax(0, 1fr); }
   .settings-layout { grid-template-columns: 1fr; }
 }
@@ -587,6 +587,41 @@ html[data-tv-mode="true"], html[data-tv-mode="true"] body, html[data-tv-mode="tr
   .summary-grid.overview-summary { grid-template-columns: 1fr; }
   .provider-figure { grid-template-columns: 1fr; }
   .provider-ring { width: 104px; }
+}
+
+/* Instance evidence reflows from the owning panel width before status text can collide with latency or trend evidence. */
+@container overview-fleet (max-width: 767px) {
+  .overview-instance-row, .overview-instance-row.no-sparkline {
+    grid-template-columns: 28px minmax(0, 1fr) minmax(132px, 1.45fr);
+    grid-template-areas:
+      "provider identity status"
+      ". latency sparkline";
+    gap: var(--db-space-2);
+  }
+  .overview-instance-row.no-sparkline {
+    grid-template-areas:
+      "provider identity status"
+      ". latency latency";
+  }
+  .overview-latency { justify-self: start; text-align: left; }
+  .sparkline { height: 22px; }
+}
+
+@container overview-fleet (max-width: 430px) {
+  .overview-instance-row, .overview-instance-row.no-sparkline {
+    grid-template-columns: 28px minmax(0, 1fr);
+    grid-template-areas:
+      "provider identity"
+      ". status"
+      ". latency"
+      ". sparkline";
+  }
+  .overview-instance-row.no-sparkline {
+    grid-template-areas:
+      "provider identity"
+      ". status"
+      ". latency";
+  }
 }
 
 /* Forced-colour mode delegates palette decisions to the operating system while retaining status shapes and borders. */

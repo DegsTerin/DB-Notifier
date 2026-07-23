@@ -2,7 +2,7 @@
 
 ## Versão atual
 
-- Versão: `3.56.12`
+- Versão: `3.56.13`
 - Data: 2026-07-22
 - Status: corpus DB-Notifier consolidado
 - Escopo: 13 arquivos ativos
@@ -16,6 +16,13 @@ A versão do corpus é independente da versão do software.
 - PATCH: clareza, correção ou referência sem mudança de autoridade.
 
 Toda alteração atualiza este arquivo e, quando necessário, `../Start-Here.md`.
+
+## 3.56.13 — 2026-07-22
+
+- Registra a conclusão automática restrita do R6-WEB1 sobre `1a192a82b3879975e5ecd51a1ebfd156c9db52da`, sem converter o resultado em aprovação humana de W01 ou R6.
+- `Current-State.md` e o log append-only registram contenção integral do label desabilitado, reflow por largura real do painel, zero interseção status/latência/sparkline, matriz bilingue Light/Dark com forced-colours, page-scale e zoom/reflow focal, e preservação do ramo TV autoritativo sem tendência demonstrativa.
+- Preserva WPF/Tray, dependências, lockfiles, fixtures e contratos sem diff, a única falha global R0 e o incidente NuGet R5 sem correção; registra também o cleanup final do perfil GUID residual do runner.
+- A próxima decisão passa a ser proposta separada para repetir visivelmente somente W01; W02, P01, aceitação R6, R7–R8, R7-A0/O1, AIOps e transição continuam não autorizados.
 
 ## 3.56.12 — 2026-07-22
 

@@ -447,6 +447,43 @@ test("performance charts surrender intrinsic SVG height before their responsive 
   assert.match(authoritativeAudit, /view\.performanceChartCount === 0 && Boolean\(view\.sourceTruth\)/);
 });
 
+test("overview status text remains contained and separated from latency and sparklines during panel reflow", () => {
+  const app = readFileSync(new URL("../src/App.tsx", import.meta.url), "utf8");
+  const css = readFileSync(new URL("../src/styles.css", import.meta.url), "utf8");
+  const browserAudit = readFileSync(new URL("../../../scripts/audit-state05-dashboard.mjs", import.meta.url), "utf8");
+  const browserGate = readFileSync(new URL("../../../scripts/run-state05-dashboard-audit.ps1", import.meta.url), "utf8");
+  const authoritativeAudit = readFileSync(new URL("../../../scripts/audit-state06-dashboard-tv-browser.mjs", import.meta.url), "utf8");
+
+  assert.match(app, /className="overview-status-region"><StatusBadge/);
+  assert.match(app, /className="status-badge-label"/);
+  assert.match(css, /\.overview-fleet \{ container: overview-fleet \/ inline-size; \}/);
+  assert.match(css, /\.overview-status-region \.status-badge \{[^}]*max-width: 100%;[^}]*white-space: normal;/);
+  assert.match(css, /@container overview-fleet \(max-width: 767px\)/);
+  assert.match(css, /@container overview-fleet \(max-width: 430px\)/);
+  assert.match(browserAudit, /async function auditOverviewStatusLayout\(call\)/);
+  assert.match(browserAudit, /document\.createRange\(\)/);
+  assert.match(browserAudit, /getClientRects\(\)/);
+  assert.match(browserAudit, /statusSparklineIntersectionArea/);
+  assert.match(browserAudit, /sparklineExpected/);
+  assert.match(browserAudit, /latencyVisible/);
+  assert.match(browserAudit, /visualOrderValid/);
+  assert.match(browserAudit, /layoutWidth = Math\.floor\(dimensions\.width \/ zoomFactor\)/);
+  assert.match(browserAudit, /allStatusBoundariesVisible/);
+  assert.match(browserAudit, /allStatusesUseSystemColours/);
+  assert.match(browserAudit, /overview-human-review-1180x760/);
+  assert.match(browserAudit, /overview-compact-820x620/);
+  assert.match(browserGate, /An Overview status escaped its region, lost text, overflowed, or intersected latency or sparkline evidence\./);
+  assert.match(browserGate, /The focal forced-colour Overview status matrix was incomplete, inactive, duplicated, or lost system-colour boundaries or containment\./);
+  assert.match(browserGate, /\.overviewStatus\.sparklineCount -ne 4/);
+  assert.match(browserGate, /consecutiveAbsentChecks -ge 3/);
+  assert.match(authoritativeAudit, /async function readOverviewStatusLayout\(call\)/);
+  assert.match(authoritativeAudit, /const identityVisible = Boolean\(/);
+  assert.match(authoritativeAudit, /const pillVisible = Boolean\(/);
+  assert.match(authoritativeAudit, /const labelVisible = Boolean\(/);
+  assert.match(authoritativeAudit, /sparklineExpected/);
+  assert.match(authoritativeAudit, /view\.overviewStatus\.allValid && view\.overviewStatus\.sparklineCount === 0/);
+});
+
 test("alert summary uses its full row without inheriting empty inventory columns", () => {
   const css = readFileSync(new URL("../src/styles.css", import.meta.url), "utf8");
 

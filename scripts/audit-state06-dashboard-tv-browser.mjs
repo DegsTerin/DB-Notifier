@@ -103,9 +103,85 @@ async function waitFor(call, predicate, description, timeoutMilliseconds = 8_000
   throw new Error(`Timed out waiting for ${description}.`);
 }
 
+/** Measures whether each visible Overview status remains contained and separate from adjacent factual evidence. */
+async function readOverviewStatusLayout(call) {
+  return evaluate(call, `(() => {
+    const tolerance = 1;
+    const contains = (outer, inner) => Boolean(
+      outer && inner && inner.left >= outer.left - tolerance && inner.right <= outer.right + tolerance &&
+      inner.top >= outer.top - tolerance && inner.bottom <= outer.bottom + tolerance);
+    const intersects = (first, second) => Boolean(
+      first && second && Math.min(first.right, second.right) - Math.max(first.left, second.left) > 0 &&
+      Math.min(first.bottom, second.bottom) - Math.max(first.top, second.top) > 0);
+    const follows = (first, second) => Boolean(
+      first && second && (
+        second.top >= first.bottom - tolerance ||
+        (Math.min(first.bottom, second.bottom) - Math.max(first.top, second.top) > 0 && second.left >= first.right - tolerance)));
+    const container = document.querySelector(".overview-fleet");
+    const rows = [...document.querySelectorAll(".overview-instance-row")].map((row) => {
+      const identity = row.querySelector(".overview-instance-name");
+      const region = row.querySelector(".overview-status-region");
+      const pill = region?.querySelector(".status-badge");
+      const label = pill?.querySelector(".status-badge-label");
+      const latency = row.querySelector(".overview-latency");
+      const sparkline = row.querySelector(".sparkline");
+      const rowRect = row.getBoundingClientRect();
+      const identityRect = identity?.getBoundingClientRect();
+      const regionRect = region?.getBoundingClientRect();
+      const pillRect = pill?.getBoundingClientRect();
+      const latencyRect = latency?.getBoundingClientRect();
+      const sparklineRect = sparkline?.getBoundingClientRect();
+      const range = label ? document.createRange() : null;
+      range?.selectNodeContents(label);
+      const labelRects = range ? [...range.getClientRects()] : [];
+      range?.detach();
+      const identityStyle = identity ? getComputedStyle(identity) : null;
+      const pillStyle = pill ? getComputedStyle(pill) : null;
+      const labelStyle = label ? getComputedStyle(label) : null;
+      const latencyStyle = latency ? getComputedStyle(latency) : null;
+      const sparklineStyle = sparkline ? getComputedStyle(sparkline) : null;
+      const identityVisible = Boolean(
+        identityRect && identityRect.width > 0 && identityRect.height > 0 && identityStyle &&
+        identityStyle.display !== "none" && identityStyle.visibility !== "hidden" && Number(identityStyle.opacity) > 0);
+      const pillVisible = Boolean(
+        pillRect && pillRect.width > 0 && pillRect.height > 0 && pillStyle &&
+        pillStyle.display !== "none" && pillStyle.visibility !== "hidden" && Number(pillStyle.opacity) > 0);
+      const labelVisible = Boolean(
+        label?.textContent?.trim() && labelStyle && labelStyle.display !== "none" &&
+        labelStyle.visibility !== "hidden" && Number(labelStyle.opacity) > 0);
+      const latencyVisible = Boolean(
+        latencyRect && latencyRect.width > 0 && latencyRect.height > 0 && latencyStyle &&
+        latencyStyle.display !== "none" && latencyStyle.visibility !== "hidden" && Number(latencyStyle.opacity) > 0);
+      const sparklineExpected = !row.classList.contains("no-sparkline");
+      const sparklineVisible = Boolean(
+        sparklineRect && sparklineRect.width > 0 && sparklineRect.height > 0 && sparklineStyle &&
+        sparklineStyle.display !== "none" && sparklineStyle.visibility !== "hidden" && Number(sparklineStyle.opacity) > 0);
+      const visualOrderValid = follows(identityRect, pillRect) && follows(pillRect, latencyRect) &&
+        (!sparklineExpected || follows(latencyRect, sparklineRect));
+      const valid = Boolean(
+        rowRect.width > 0 && rowRect.height > 0 && identityVisible && pillVisible && labelVisible &&
+        regionRect && pillRect && latencyRect && latencyVisible && visualOrderValid &&
+        labelRects.length > 0 && labelRects.every((fragment) => contains(pillRect, fragment)) &&
+        contains(rowRect, identityRect) && contains(rowRect, regionRect) && contains(regionRect, pillRect) && contains(rowRect, latencyRect) &&
+        (sparklineExpected ? sparklineVisible && contains(rowRect, sparklineRect) : !sparkline) &&
+        !intersects(pillRect, latencyRect) && !intersects(pillRect, sparklineRect) &&
+        row.scrollWidth <= row.clientWidth + tolerance && pill.scrollWidth <= pill.clientWidth + tolerance &&
+        pill.scrollHeight <= pill.clientHeight + tolerance);
+      return { valid, identityVisible, pillVisible, labelVisible, latencyVisible, sparklineExpected, sparklinePresent: Boolean(sparkline), sparklineVisible: sparklineExpected ? sparklineVisible : true, visualOrderValid, statusText: label?.textContent?.trim() ?? null };
+    });
+    return {
+      rowCount: rows.length,
+      sparklineCount: rows.filter((row) => row.sparklinePresent).length,
+      containerOverflow: Boolean(container && container.scrollWidth > container.clientWidth + tolerance),
+      allValid: Boolean(container && container.getBoundingClientRect().width > 0 && container.scrollWidth <= container.clientWidth + tolerance) && rows.length > 0 && rows.every((row) => row.valid),
+      rows,
+    };
+  })()`);
+}
+
 /** Reads the current factual TV surface without capturing credentials or response bodies. */
 async function readView(call) {
-  return evaluate(call, `(() => ({
+  const view = await evaluate(call, `(() => ({
     tvActive: document.documentElement.dataset.tvMode === "true",
     control: document.querySelector(".tv-mode-button")?.dataset.tvModeControl ?? null,
     badge: document.querySelector(".demo-badge")?.textContent?.trim() ?? null,
@@ -114,6 +190,8 @@ async function readView(call) {
     sourceTruth: document.querySelector(".source-truth")?.textContent?.trim() ?? null,
     timerDelays: [...(window.__dbNotifierBrowserE2eTimerDelays ?? [])],
   }))()`);
+  view.overviewStatus = await readOverviewStatusLayout(call);
+  return view;
 }
 
 /** Reads sanitised host evidence for one fixed scenario through the same HTTPS loopback origin. */
@@ -202,6 +280,7 @@ async function enterAndWaitForSnapshot(call, scenario) {
   assertEvidence(view.tvActive && view.control === "exit", "TV presentation did not remain active after the authoritative read.");
   assertEvidence(view.instanceNames.length === 2 && view.instanceNames.includes("Orders sandbox"), "The browser did not render the two authoritative sandbox items.");
   assertEvidence(view.performanceChartCount === 0 && Boolean(view.sourceTruth), "The authoritative TV surface retained a demonstration chart or lost its source-truth explanation.");
+  assertEvidence(view.overviewStatus.allValid && view.overviewStatus.sparklineCount === 0, "The authoritative TV surface lost status containment or retained a demonstration sparkline.");
   return view;
 }
 
@@ -258,6 +337,7 @@ try {
   await waitFor(call, `document.querySelector(".tv-mode-button") !== null`, "the initial Dashboard shell");
   let standardView = await readView(call);
   assertEvidence(!standardView.tvActive && standardView.instanceNames.length === 4 && standardView.performanceChartCount === 1, "The normal Dashboard did not preserve its four-item demonstration baseline and labelled performance chart.");
+  assertEvidence(standardView.overviewStatus.allValid && standardView.overviewStatus.sparklineCount === 4, "The normal Dashboard did not contain its status and demonstration sparkline evidence.");
   assertEvidence((await readHostEvidence(call, "authoritative")).requestCount === 0, "The standard Dashboard contacted the sandbox before TV entry.");
 
   reportStage("starting authenticated SignalR hint and independent real periodic deadline");
@@ -399,6 +479,7 @@ try {
   await prepareScenario(call, "authoritative-after-fence", true);
   standardView = await readView(call);
   assertEvidence(!standardView.tvActive && standardView.control === "enter" && standardView.instanceNames.length === 4 && standardView.performanceChartCount === 1, "The final standard Dashboard did not return to its demonstration baseline and labelled performance chart.");
+  assertEvidence(standardView.overviewStatus.allValid && standardView.overviewStatus.sparklineCount === 4, "The final standard Dashboard lost status containment while restoring demonstration evidence.");
 
   const version = await fetch(`${cdpEndpoint}/json/version`).then((response) => response.json());
   assertEvidence(networkEvidence.externalOrigins.size === 0, `The evidence browser contacted an external HTTP origin: ${[...networkEvidence.externalOrigins].join(", ")}`);

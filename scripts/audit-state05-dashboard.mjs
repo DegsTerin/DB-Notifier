@@ -158,6 +158,120 @@ async function auditPerformanceChart(call) {
   })()`);
 }
 
+/** Measures status containment and separation from latency and sparkline evidence in every Overview row. */
+async function auditOverviewStatusLayout(call) {
+  return evaluate(call, `(() => {
+    const tolerance = 1;
+    const rect = (element) => element?.getBoundingClientRect() ?? null;
+    const contains = (outer, inner) => Boolean(
+      outer && inner &&
+      inner.left >= outer.left - tolerance && inner.right <= outer.right + tolerance &&
+      inner.top >= outer.top - tolerance && inner.bottom <= outer.bottom + tolerance);
+    const intersectionArea = (first, second) => {
+      if (!first || !second) return 0;
+      return Math.max(0, Math.min(first.right, second.right) - Math.max(first.left, second.left)) *
+        Math.max(0, Math.min(first.bottom, second.bottom) - Math.max(first.top, second.top));
+    };
+    const follows = (first, second) => Boolean(
+      first && second && (
+        second.top >= first.bottom - tolerance ||
+        (Math.min(first.bottom, second.bottom) - Math.max(first.top, second.top) > 0 && second.left >= first.right - tolerance)));
+    const container = document.querySelector(".overview-fleet");
+    const rows = [...document.querySelectorAll(".overview-instance-row")].map((row, index) => {
+      const identity = row.querySelector(".overview-instance-name");
+      const region = row.querySelector(".overview-status-region");
+      const pill = region?.querySelector(".status-badge");
+      const label = pill?.querySelector(".status-badge-label");
+      const latency = row.querySelector(".overview-latency");
+      const sparkline = row.querySelector(".sparkline");
+      const rowRect = rect(row);
+      const identityRect = rect(identity);
+      const regionRect = rect(region);
+      const pillRect = rect(pill);
+      const latencyRect = rect(latency);
+      const sparklineRect = rect(sparkline);
+      const labelRange = label ? document.createRange() : null;
+      labelRange?.selectNodeContents(label);
+      const labelFragments = labelRange ? [...labelRange.getClientRects()] : [];
+      labelRange?.detach();
+      const pillStyle = pill ? getComputedStyle(pill) : null;
+      const labelStyle = label ? getComputedStyle(label) : null;
+      const identityStyle = identity ? getComputedStyle(identity) : null;
+      const latencyStyle = latency ? getComputedStyle(latency) : null;
+      const sparklineStyle = sparkline ? getComputedStyle(sparkline) : null;
+      const labelText = label?.textContent?.trim() ?? "";
+      const labelContained = labelFragments.length > 0 && labelFragments.every((fragment) => contains(pillRect, fragment));
+      const pillVisible = Boolean(
+        pillRect && pillRect.width > 0 && pillRect.height > 0 && pillStyle &&
+        pillStyle.display !== "none" && pillStyle.visibility !== "hidden" && Number(pillStyle.opacity) > 0);
+      const labelVisible = Boolean(
+        labelText && labelStyle && labelStyle.display !== "none" &&
+        labelStyle.visibility !== "hidden" && Number(labelStyle.opacity) > 0);
+      const identityVisible = Boolean(
+        identityRect && identityRect.width > 0 && identityRect.height > 0 && identityStyle &&
+        identityStyle.display !== "none" && identityStyle.visibility !== "hidden" && Number(identityStyle.opacity) > 0);
+      const latencyVisible = Boolean(
+        latencyRect && latencyRect.width > 0 && latencyRect.height > 0 && latencyStyle &&
+        latencyStyle.display !== "none" && latencyStyle.visibility !== "hidden" && Number(latencyStyle.opacity) > 0);
+      const sparklineExpected = !row.classList.contains("no-sparkline");
+      const sparklineVisible = Boolean(
+        sparklineRect && sparklineRect.width > 0 && sparklineRect.height > 0 && sparklineStyle &&
+        sparklineStyle.display !== "none" && sparklineStyle.visibility !== "hidden" && Number(sparklineStyle.opacity) > 0);
+      const visualOrderValid = follows(identityRect, pillRect) && follows(pillRect, latencyRect) &&
+        (!sparklineExpected || follows(latencyRect, sparklineRect));
+      const pillOverflow = Boolean(pill && (pill.scrollWidth > pill.clientWidth + tolerance || pill.scrollHeight > pill.clientHeight + tolerance));
+      const rowOverflow = row.scrollWidth > row.clientWidth + tolerance;
+      const valid = Boolean(
+        rowRect && identityRect && regionRect && pillRect && latencyRect &&
+        rowRect.width > 0 && rowRect.height > 0 && identityVisible && pillVisible && labelVisible && latencyVisible && visualOrderValid &&
+        labelContained && !pillOverflow && !rowOverflow &&
+        contains(rowRect, identityRect) && contains(rowRect, regionRect) && contains(regionRect, pillRect) && contains(rowRect, latencyRect) &&
+        (sparklineExpected
+          ? sparklineVisible && contains(rowRect, sparklineRect) && sparkline.clientWidth > 0 && sparkline.scrollWidth <= sparkline.clientWidth + tolerance
+          : !sparkline) &&
+        intersectionArea(pillRect, latencyRect) === 0 && intersectionArea(pillRect, sparklineRect) === 0 &&
+        intersectionArea(latencyRect, sparklineRect) === 0);
+      return {
+        index,
+        statusClass: pill?.className ?? null,
+        statusText: labelText,
+        labelFragmentCount: labelFragments.length,
+        labelContained,
+        identityVisible,
+        identityContainedByRow: contains(rowRect, identityRect),
+        pillContainedByRegion: contains(regionRect, pillRect),
+        regionContainedByRow: contains(rowRect, regionRect),
+        latencyContainedByRow: contains(rowRect, latencyRect),
+        latencyVisible,
+        sparklineExpected,
+        sparklinePresent: Boolean(sparkline),
+        sparklineVisible: sparklineExpected ? sparklineVisible : true,
+        visualOrderValid,
+        sparklineContainedByRow: sparkline ? contains(rowRect, sparklineRect) : true,
+        statusLatencyIntersectionArea: intersectionArea(pillRect, latencyRect),
+        statusSparklineIntersectionArea: intersectionArea(pillRect, sparklineRect),
+        latencySparklineIntersectionArea: intersectionArea(latencyRect, sparklineRect),
+        pillOverflow,
+        rowOverflow,
+        pillVisible,
+        labelVisible,
+        gridTemplateAreas: getComputedStyle(row).gridTemplateAreas,
+        valid,
+      };
+    });
+    return {
+      containerWidth: container?.getBoundingClientRect().width ?? 0,
+      containerOverflow: Boolean(container && container.scrollWidth > container.clientWidth + tolerance),
+      rowCount: rows.length,
+      disabledCount: rows.filter((row) => row.statusClass?.split(/\\s+/).includes("disabled")).length,
+      sparklineCount: rows.filter((row) => row.sparklinePresent).length,
+      allValid: Boolean(container && container.getBoundingClientRect().width > 0 && container.scrollWidth <= container.clientWidth + tolerance) &&
+        rows.length > 0 && rows.every((row) => row.valid),
+      rows,
+    };
+  })()`);
+}
+
 /** Captures layout and screenshot evidence for one route and viewport. */
 async function captureViewport(call, name, width, height, hash = "inventory", pageScaleFactor = 1) {
   await call("Emulation.setDeviceMetricsOverride", { width, height, deviceScaleFactor: 1, mobile: false });
@@ -227,6 +341,7 @@ async function captureViewport(call, name, width, height, hash = "inventory", pa
     };
   })()`);
   layout.performanceChart = await auditPerformanceChart(call);
+  layout.overviewStatus = hash === "overview" ? await auditOverviewStatusLayout(call) : null;
   if (hash === "alerts") await evaluate(call, 'document.querySelector(".inventory-panel")?.scrollIntoView({ block: "start" }); true');
   if (hash === "configuration") await evaluate(call, 'document.querySelector(".capability-panel")?.scrollIntoView({ block: "start" }); true');
   await settle(80);
@@ -273,6 +388,7 @@ async function auditTvMode(call) {
     clockText: document.querySelector(".tv-mode-status time")?.textContent?.trim(),
     statusText: document.querySelector(".tv-mode-status")?.textContent?.trim().replace(/\s+/g, " "),
   }))()`);
+  active.overviewStatus = await auditOverviewStatusLayout(call);
   const screenshot = await call("Page.captureScreenshot", { format: "png", captureBeyondViewport: false });
   const screenshotPath = join(evidenceDirectory, "tv-mode-overview-1920x1080.png");
   writeFileSync(screenshotPath, Buffer.from(screenshot.data, "base64"));
@@ -331,6 +447,7 @@ async function auditTvMode(call) {
       };
     })()`);
     layout.performanceChart = await auditPerformanceChart(call);
+    layout.overviewStatus = await auditOverviewStatusLayout(call);
     layouts.push(layout);
     if (!unavailableFullscreen) {
       unavailableFullscreen = await evaluate(call, `(() => ({
@@ -514,6 +631,7 @@ async function auditForcedColours(call) {
         };
       })()`);
       surface.performanceChart = await auditPerformanceChart(call);
+      surface.overviewStatus = route === "overview" ? await auditOverviewStatusLayout(call) : null;
       const tree = await auditAccessibilityTree(call);
       samples.push({ ...surface, accessibilityTree: tree });
       if (route === "overview" && zoomPercent === 100) {
@@ -524,6 +642,84 @@ async function auditForcedColours(call) {
   }
   await call("Emulation.setPageScaleFactor", { pageScaleFactor: 1 });
   await call("Emulation.setEmulatedMedia", { features: [] });
+  return samples;
+}
+
+/** Records focal forced-colour status geometry at desktop and compact physical widths with zoom-equivalent CSS viewports. */
+async function auditForcedColourOverviewStatus(call) {
+  const samples = [];
+  const focalViewports = [
+    { width: 1180, height: 760, zoomPercent: 100 },
+    { width: 820, height: 620, zoomPercent: 100 },
+    { width: 1180, height: 760, zoomPercent: 200 },
+    { width: 820, height: 620, zoomPercent: 200 },
+    { width: 1280, height: 900, zoomPercent: 400 },
+    { width: 1440, height: 1000, zoomPercent: 400 },
+  ];
+  await call("Emulation.setEmulatedMedia", {
+    features: [
+      { name: "forced-colors", value: "active" },
+      { name: "prefers-reduced-motion", value: "reduce" },
+    ],
+  });
+  for (const dimensions of focalViewports) {
+    const { zoomPercent } = dimensions;
+    const zoomFactor = zoomPercent / 100;
+    await call("Emulation.setPageScaleFactor", { pageScaleFactor: 1 });
+    const layoutWidth = Math.floor(dimensions.width / zoomFactor);
+    const layoutHeight = Math.floor(dimensions.height / zoomFactor);
+    await call("Emulation.setDeviceMetricsOverride", { width: layoutWidth, height: layoutHeight, deviceScaleFactor: zoomFactor, mobile: false });
+    await call("Page.navigate", { url: `${dashboardUrl}#overview` });
+    await waitForPage(call, 'document.readyState === "complete" && location.hash === "#overview"', "forced-colour Overview navigation");
+    await call("Page.reload", { ignoreCache: true });
+    await waitForPage(call, `document.readyState === "complete" && innerWidth === ${layoutWidth} && document.querySelectorAll(".overview-instance-row").length > 0`, "forced-colour Overview status layout");
+    await evaluate(call, "new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve(true))))");
+    const forcedColourPresentation = await evaluate(call, `(() => {
+        const probe = document.createElement("div");
+        probe.style.cssText = "position:fixed;left:-10000px;color:CanvasText;background:Canvas";
+        document.body.append(probe);
+        const probeStyle = getComputedStyle(probe);
+        const system = { canvasText: probeStyle.color, canvas: probeStyle.backgroundColor };
+        probe.remove();
+        const boundaryVisible = (width, lineStyle) => parseFloat(width) >= 1 && lineStyle !== "none";
+        const statuses = [...document.querySelectorAll(".overview-instance-row .status-badge")].map((status) => {
+          const style = getComputedStyle(status);
+          const boundaries = {
+            top: boundaryVisible(style.borderTopWidth, style.borderTopStyle),
+            right: boundaryVisible(style.borderRightWidth, style.borderRightStyle),
+            bottom: boundaryVisible(style.borderBottomWidth, style.borderBottomStyle),
+            left: boundaryVisible(style.borderLeftWidth, style.borderLeftStyle),
+          };
+          return {
+            boundaries,
+            allBoundariesVisible: Object.values(boundaries).every(Boolean),
+            usesSystemText: style.color === system.canvasText,
+            usesSystemCanvas: style.backgroundColor === system.canvas,
+          };
+        });
+        return {
+          active: matchMedia("(forced-colors: active)").matches,
+          horizontalOverflow: document.documentElement.scrollWidth > document.documentElement.clientWidth + 1,
+          system,
+          statusCount: statuses.length,
+          allStatusBoundariesVisible: statuses.length > 0 && statuses.every((status) => status.allBoundariesVisible),
+          allStatusesUseSystemColours: statuses.length > 0 && statuses.every((status) => status.usesSystemText && status.usesSystemCanvas),
+          statuses,
+        };
+    })()`);
+    samples.push({
+      ...dimensions,
+      zoomFactor,
+      layoutWidth,
+      layoutHeight,
+      innerWidth: await evaluate(call, "innerWidth"),
+      forcedColourPresentation,
+      statusLayout: await auditOverviewStatusLayout(call),
+    });
+  }
+  await call("Emulation.setPageScaleFactor", { pageScaleFactor: 1 });
+  await call("Emulation.setEmulatedMedia", { features: [] });
+  await call("Emulation.setDeviceMetricsOverride", { width: 1440, height: 1000, deviceScaleFactor: 1, mobile: false });
   return samples;
 }
 
@@ -635,6 +831,8 @@ async function main() {
   for (const [name, width, height, hash = "inventory", pageScaleFactor = 1] of [
     ["overview-ultrawide-1920x1080", 1920, 1080, "overview"],
     ["overview-desktop-1440x1000", 1440, 1000, "overview"],
+    ["overview-human-review-1180x760", 1180, 760, "overview"],
+    ["overview-compact-820x620", 820, 620, "overview"],
     ["overview-200-percent-reflow-equivalent-640x800", 640, 800, "overview"],
     ["overview-200-percent-browser-zoom-1280x900", 1280, 900, "overview", 2],
     ["overview-400-percent-browser-zoom-1280x900", 1280, 900, "overview", 4],
@@ -682,6 +880,7 @@ async function main() {
     semanticBrand: await auditSemanticBrand(call),
     accessibilityTree: await auditAccessibilityTree(call),
     forcedColours: await auditForcedColours(call),
+    forcedColourOverviewStatus: await auditForcedColourOverviewStatus(call),
     operationalStates: await auditOperationalStates(call),
     modal: await auditModal(call),
     duplicateHistorySearchRegions,

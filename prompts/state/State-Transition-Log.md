@@ -2659,6 +2659,23 @@
 - Próxima decisão: requer proposta e autorização separadas para remediação focal da contenção Web do estado desabilitado e da alocação responsiva entre status e sparkline; qualquer repetição humana posterior também exigirá autoridade separada.
 - Aprovador: Bruno, 2026-07-22, exclusivamente para a decisão da repetição `R6-HV-W01`.
 
+## 2026-07-22 — Remediação automática focal `R6-WEB1`
+
+- Estado anterior: `STATE-06 INTEGRATION`, R6-UI1 automaticamente aprovado, `R6-HV-W01` reprovada pela contenção Web incorreta do status desabilitado, W02 bloqueada e P01 não testada; R6-WEB1 autorizado exclusivamente sobre `1a192a82b3879975e5ecd51a1ebfd156c9db52da`.
+- Estado resultante: sem transição; `STATE-06 INTEGRATION` mantido. R6-WEB1 está automaticamente `APROVADO` no seu escopo focal; a decisão humana W01 permanece `REPROVADA`, e a aceitação humana R6 continua `PENDENTE`.
+- Causa: a grade de cinco colunas dependia do breakpoint global da viewport enquanto o painel esquerdo já estava estreito; o pill global mantinha no-wrap e podia receber uma track menor que o texto. O `overflow: hidden` do painel mascarava o descendente para o gate de overflow global, que não media os fragmentos do texto nem as interseções status/latência/sparkline.
+- Correção: label mensurável dentro do badge; região bounded de status; áreas de grid nomeadas; container query pela largura real do painel; reflow ordenado em largura restrita; ramo autoritativo sem sparkline preservado. Nenhum texto, fonte, estado ou sparkline foi truncado, reduzido, ocultado ou removido para obter o resultado.
+- Matriz Dashboard: 67/67 testes e 25/25 testes focais de apresentação; type-check/build offline; 128 viewports, 96 forced-colour rota/page-scale e 24 medições focais de zoom/reflow passaram em pt-BR/en-GB e Light/Dark. A submatriz focal usa `1180×760`/`820×620` em 100% e 200%, e `1280×900`/`1440×1000` em 400%, com larguras CSS efetivas de `320px` e `360px` no último caso.
+- Sandbox TV autoritativo: 12 cenários bounded passaram em HTTPS loopback; zero origem HTTP externa, zero dado operacional, zero sparkline demonstrativa no snapshot autoritativo e containment geométrico aprovado.
+- Gates complementares: toolchain instalada Node.js 24.18.0/npm 11.16.0; coverage focal 98,09% linhas/92,00% branches/85,71% funções; arquitetura Web/TV focal 5/5; marca, 11 identidades/22 variantes de providers, tokens, localização, 326 arquivos documentáveis, 619 links e secrets passaram.
+- Gate global: 13/14 no filtro proporcional; a única falha continuou sendo a asserção R0 preexistente `State06ConsolidatedHarnessIsolationTests.BrowserRunnersBoundWorkAndCleanupExactOwnedResources`, que espera `state05-dashboard-failure.json`. Nenhuma correção, exclusão ou bypass foi aplicado; o incidente NuGet R5 permaneceu registrado e nenhum restore, download ou acesso a metadados ocorreu.
+- Imutabilidade: WPF/Tray, `package.json`, dependências, lockfiles, fixtures, contratos, fontes geradas e Design System 3.2.0 têm zero diff. Nenhuma nova dependência, harness, rota, dado ou capacidade operacional foi introduzida.
+- Cleanup: a reaudição independente encontrou um perfil Chrome GUID do runner sem processo/listener associado; após validação exata de propriedade, o root foi removido. A prova final registrou zero processo, zero listener e zero root temporário correspondente.
+- Evidência: [relatório R6-WEB1](../../docs/STATE-06-Audit-Remediation-R6-WEB1-Report.md), [reprovação W01 pós-R6-UI1](../../docs/STATE-06-Audit-Remediation-R6-HV-W01-Post-UI1-Repetition-Report.md) e [Design System 3.2.0](../../docs/design/DB-Notifier-Design-System.md). O identificador do commit focal está no hand-off final.
+- Limites: nenhuma amostra humana, alteração WPF/Tray, W02/P01, notificação, configuração do Windows, fonte/provider/banco real, restore/download/acesso externo, CI remota, push/deploy, correção R0, alteração do incidente R5, R2-B, R7–R8, R7-A0/O1, AIOps, comando, LLM, recomendação, automação, promoção ou transição foi executada.
+- Próxima decisão: requer proposta e autorização separadas para repetir visivelmente somente `R6-HV-W01` após R6-WEB1. W02/P01 não retomam automaticamente.
+- Aprovador: autorização de implementação R6-WEB1 por Bruno em 2026-07-22; nenhuma aprovação humana de W01 ou R6 foi inferida.
+
 ## Template de nova entrada
 
 - Data:

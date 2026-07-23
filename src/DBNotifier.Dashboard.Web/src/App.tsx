@@ -147,19 +147,25 @@ const statusPresentation: Record<HealthStatus, { symbol: string; labelKey: Messa
   unknown: { symbol: "○", labelKey: "Status.Unknown", className: "unknown" },
 };
 
+/**
+ * Renders one localised, text-first health state without changing the underlying inventory evidence.
+ * @param item - Provider-neutral inventory item whose enabled state, freshness and health determine the badge.
+ * @param now - Accepted presentation instant used to classify freshness consistently.
+ * @returns One semantic status badge whose visible label remains independently containable during reflow.
+ */
 function StatusBadge({ item, now }: { item: InventoryItem; now: Date }) {
   const { t } = useLocalisation();
   if (!item.enabled) {
-    return <span className="status-badge disabled"><span aria-hidden="true">○</span> {t("Status.Disabled")}</span>;
+    return <span className="status-badge disabled"><span aria-hidden="true">○</span><span className="status-badge-label">{t("Status.Disabled")}</span></span>;
   }
   const freshness = classifyEvidenceFreshness(item, now);
   if (freshness === "stale") {
-    return <span className="status-badge stale"><span aria-hidden="true">◷</span> {t("Status.Stale")}</span>;
+    return <span className="status-badge stale"><span aria-hidden="true">◷</span><span className="status-badge-label">{t("Status.Stale")}</span></span>;
   }
   const presentation = freshness === "unknown"
     ? statusPresentation.unknown
     : statusPresentation[normalizeHealthStatus(item.status)];
-  return <span className={`status-badge ${presentation.className}`}><span aria-hidden="true">{presentation.symbol}</span> {t(presentation.labelKey)}</span>;
+  return <span className={`status-badge ${presentation.className}`}><span aria-hidden="true">{presentation.symbol}</span><span className="status-badge-label">{t(presentation.labelKey)}</span></span>;
 }
 
 /**
@@ -466,7 +472,7 @@ function OverviewView({
           {items.map((item, index) => <article className={`overview-instance-row ${authoritativeSnapshot ? "no-sparkline" : ""}`.trim()} key={item.instanceId}>
             <ProviderIcon providerType={item.providerType} />
             <div className="overview-instance-name"><strong>{item.displayName}</strong><small>{item.providerType}</small></div>
-            <StatusBadge item={item} now={now} />
+            <div className="overview-status-region"><StatusBadge item={item} now={now} /></div>
             <span className="overview-latency">{item.latencyMilliseconds === null ? "—" : `${item.latencyMilliseconds} ms`}</span>
             {!authoritativeSnapshot && <svg className={`sparkline sparkline-${index + 1}`} viewBox="0 0 92 28" preserveAspectRatio="none" aria-hidden="true" focusable="false"><polyline points={index === 0 ? "0,20 10,18 20,21 30,12 40,15 50,7 60,13 70,9 80,17 92,8" : index === 1 ? "0,18 10,16 20,19 30,10 40,14 50,9 60,20 70,13 80,15 92,6" : index === 2 ? "0,9 10,14 20,8 30,20 40,12 50,22 60,17 70,24 80,18 92,25" : "0,18 12,18 24,18 36,18 48,18 60,18 72,18 84,18 92,18"} /></svg>}
           </article>)}
