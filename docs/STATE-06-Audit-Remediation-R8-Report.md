@@ -11,6 +11,7 @@
 - Findings `NÃO TESTADO`: `0`
 - Automatic R8 result: `APPROVED`
 - Human acceptance of R8: `PENDING`
+- Post-handoff cleanup correction: `REVALIDATED`
 - Lifecycle: `STATE-06 INTEGRATION` unchanged
 - MOD-12 activation: `ActivationState=None`
 - O1, `OBSERVER`, operational AIOps and lifecycle transition: `NOT AUTHORISED`
@@ -105,11 +106,35 @@ All commands ran locally without restore, download or external access.
 | Packaging | `PASS` | Validation succeeded and normal generation refused fail-closed; no distributable artefact produced. |
 | Git integrity | `PASS` | Object verification and remediation-range whitespace checks passed; dependency files unchanged. |
 | Documentation and links | `PASS` | Documentation gate covered 329 source files; 642 local links across 144 Markdown files passed. |
-| Cleanup | `PASS` | Zero owned process/listener; dedicated browser/WPF roots removed; preference restored byte-for-byte. |
+| Cleanup | `PASS AFTER CORRECTION` | The first process-based check missed one retained Windows Terminal tab. Bruno closed it; the repeated check proved zero matching window, `ping.exe`, owned process/listener and temporary root, with preferences preserved byte-for-byte. |
 
 ### WPF orchestration note
 
 An initial outer command incorrectly invoked the already complete WPF matrix more than once and reached its outer orchestration timeout during a repeated campaign. This was not a product or test failure. The owned child process completed, restored the exact preference bytes and exited. One isolated full matrix was then run successfully with 64/64 executable routes passing and 32 physically unavailable `1920×1080` combinations remaining `NÃO TESTADAS`. Every exact temporary root from both attempts was inspected and removed.
+
+### Post-handoff Windows Terminal cleanup correction
+
+After the first R8 report and commit, Bruno reported one visible Windows Terminal tab titled
+`C:\WINDOWS\system32\ping.exe`. The full solution test
+`TimeoutAndCancellationTerminateSyntheticReadinessProcessTree` uses a local
+`ping.exe 127.0.0.1 -t` child to prove process-tree termination. The displayed `0x800700e8` condition was the
+already documented closed-pipe race from the R5 evidence. No `ping.exe` process or external connection remained,
+but the generic Windows Terminal tab survived and was not attributable through the repository-path and process
+checks used by the first cleanup audit.
+
+This means the original statement of complete cleanup was premature. Bruno closed only that tab and separately
+authorised factual correction and cleanup revalidation. The repeated read-only audit then proved:
+
+- zero `ping.exe`;
+- zero visible window whose title matched `ping.exe` or `127.0.0.1`;
+- zero DB-Notifier-owned process or listener;
+- zero matching DB-Notifier temporary root;
+- the WPF preference present at the exact expected SHA-256
+  `ABC049CBB37CC998FF86E018E6853D811E58ED166B2B6B4A5CF0FBA4B171868F`;
+- a clean worktree before this documentation-only correction.
+
+No source or test correction was authorised or performed. The automatic R8 result remains `APPROVED` only after
+this follow-up cleanup proof; Human acceptance remains `PENDING`.
 
 ## Preserved limitations and incidents
 
@@ -130,11 +155,13 @@ These limitations do not create an uncontained known high finding in the current
 - No source, test, workflow, dependency, lockfile or executable configuration was changed.
 - No database, provider, delivery adapter, command surface, observer mode or operational runtime was activated.
 - The exact WPF preference file remains present with SHA-256 `ABC049CBB37CC998FF86E018E6853D811E58ED166B2B6B4A5CF0FBA4B171868F`.
-- All dedicated Chrome profiles, WPF audit roots, listeners and project-owned processes were removed.
-- The focused R8 commit contains only this report and factual governance/state records.
+- All dedicated Chrome profiles, WPF audit roots, listeners and project-owned processes were removed. The
+  initially missed generic Windows Terminal tab was closed by Bruno and its absence was then verified explicitly.
+- The initial focused R8 commit and its follow-up correction contain only this report and factual governance/state
+  records.
 
 ## Automatic conclusion and next decision
 
-R8 is automatically `APPROVED`: all 39 original findings have a bounded current disposition, the four contained capabilities remain inaccessible in normal composition, proportional gates passed, and no current finding is open or blocked. This is an automatic audit result only.
+R8 is automatically `APPROVED` after the corrected cleanup revalidation: all 39 original findings have a bounded current disposition, the four contained capabilities remain inaccessible in normal composition, proportional gates passed, and no current finding is open or blocked. This is an automatic audit result only.
 
 Human acceptance remains `PENDING`. The next permitted decision is a separate Human Gate that either accepts or rejects this R8 report with its recorded limitations. Until that decision, the remediation programme is not humanly closed. Even acceptance would not authorise R2-B, O1, `OBSERVER`, AIOps operation, deployment, provider homologation or lifecycle transition.

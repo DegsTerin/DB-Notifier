@@ -2789,6 +2789,17 @@
 - Próxima decisão: Human Gate separado poderá aceitar ou rejeitar somente o R8 com suas limitações; nenhuma decisão está pré-preenchida.
 - Aprovador: resultado automático local; decisão humana R8 pendente.
 
+## 2026-07-23 — Evidência de cleanup do R8 corrigida e revalidada
+
+- Estado anterior: `STATE-06 INTEGRATION`, R8 automaticamente aprovado no commit `d1fed5a0e927c97f8dfa9f2edd024ad9f1a85aad`, com Human Gate pendente.
+- Incidente: Bruno reportou uma aba visível genérica do Windows Terminal intitulada `C:\WINDOWS\system32\ping.exe`, aberta durante o teste sintético preexistente de encerramento da árvore `ping.exe 127.0.0.1 -t`. Não havia processo `ping.exe`, mas a aba residual não foi detectada pela primeira auditoria baseada em caminho/comando de processo.
+- Correção factual: a declaração inicial de cleanup integral foi reconhecida como prematura. Bruno fechou somente a aba e autorizou exclusivamente a correção documental e a revalidação, sem código.
+- Revalidação: zero `ping.exe`, zero janela correspondente, zero processo/listener DB-Notifier e zero temporário correspondente; preferência preservada no SHA-256 `ABC049CBB37CC998FF86E018E6853D811E58ED166B2B6B4A5CF0FBA4B171868F`.
+- Estado resultante: sem transição; R8 permanece automaticamente `APROVADO` somente depois desta prova corrigida. Human Gate R8 continua `PENDENTE`.
+- Limites: nenhum código, teste, configuração, runtime operacional, acesso externo, push, deploy, O1, `OBSERVER`, AIOps operacional ou lifecycle foi alterado ou autorizado.
+- Próxima decisão: Human Gate separado do R8, baseado no relatório corrigido e nas limitações já registradas.
+- Aprovador: revalidação automática local; decisão humana R8 pendente.
+
 ## Template de nova entrada
 
 - Data:

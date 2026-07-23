@@ -2,7 +2,7 @@
 
 ## Versão atual
 
-- Versão: `3.56.22`
+- Versão: `3.56.23`
 - Data: 2026-07-23
 - Status: corpus DB-Notifier consolidado
 - Escopo: 13 arquivos ativos
@@ -16,6 +16,13 @@ A versão do corpus é independente da versão do software.
 - PATCH: clareza, correção ou referência sem mudança de autoridade.
 
 Toda alteração atualiza este arquivo e, quando necessário, `../Start-Here.md`.
+
+## 3.56.23 — 2026-07-23
+
+- Corrige a evidência de cleanup do R8 depois de Bruno reportar uma aba genérica do Windows Terminal deixada pelo teste sintético preexistente de `ping.exe`.
+- Registra que a primeira declaração de cleanup era prematura e que a aba foi fechada por Bruno antes da revalidação.
+- Registra zero janela correspondente, `ping.exe`, processo/listener ou temporário DB-Notifier e a preferência preservada byte a byte.
+- Mantém R8 automaticamente aprovado somente após a prova corrigida, com Human Gate pendente e sem código, O1, `OBSERVER`, AIOps operacional ou transição.
 
 ## 3.56.22 — 2026-07-23
 

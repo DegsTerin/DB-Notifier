@@ -503,6 +503,11 @@ cleanup gates passed. The R5 NuGet incident, five R6 physical conditions, locked
 freshness and current PostgreSQL-laboratory repetition remain explicit limitations. The automatic result is
 `APPROVED`; Human acceptance is `PENDING`. `STATE-06 INTEGRATION`, `ActivationState=None`, normal operational
 containments and the prohibition on O1, `OBSERVER`, AIOps operation and lifecycle transition remain unchanged.
+After the initial hand-off, Bruno reported one retained generic Windows Terminal tab opened by the pre-existing
+synthetic `ping.exe` process-tree test. The first process-based cleanup statement was therefore premature. Bruno
+closed only that tab and authorised a documentation correction; the follow-up audit proved zero matching window,
+`ping.exe`, owned process/listener and temporary root, with preferences preserved byte-for-byte. The R8 automatic
+result remains `APPROVED` only after this corrected cleanup proof.
 
 ### Evidência mínima
 
