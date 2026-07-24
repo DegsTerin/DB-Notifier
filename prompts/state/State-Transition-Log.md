@@ -3061,6 +3061,19 @@
 - Próxima decisão: proposta concisa e autorização separada do O5-R1 documental.
 - Aprovador: Bruno, 2026-07-24, exclusivamente para a direção documental.
 
+## 2026-07-24 — O5-R1 escopo piloto e governança elaborados
+
+- Estado anterior: plano O5 aceito como direção, O5 automático `BLOQUEADO`, O5-R1 ainda não executado e `ActivationState=None`.
+- Autoridade: elaboração documental local exclusiva sobre `52697b8b3c48fc906e88dd8acfb0f6735ae4c37b`, sem código, configuração, teste, runtime, dado/provider/banco real, acesso externo, ativação ou transição.
+- Célula candidata: `OBS-PILOT-PG16-LOCAL-001`, com artefacto PostgreSQL 16 Alpine documentado por digest, single-primary descartável loopback-only, Agent no host Windows 11 x64 e sinais read-only estreitos.
+- Governança: fontes e campos permitidos/proibidos, retenção proposta, papéis separados, partições disjuntas, representatividade limitada à matriz controlada, labels e thresholds determinísticos definidos.
+- Thresholds: mínimo `30/30/60` por célula Development/Calibration/Holdout; 100% de integridade/cobertura/labels; zero leakage, segredo, resultado parcial, FP ou FN no holdout; forecast permanece fora do escopo e `Unknown`.
+- Estado resultante: O5-R1 `CONCLUÍDO COM DECISÕES PENDENTES`; célula não escolhida, owners materiais não nomeados, corpus/laboratório não autorizados, O5-R2 não autorizado e `ActivationState=None`.
+- Evidência: [relatório O5-R1](../../docs/STATE-06-MOD-12-O5-R1-Pilot-Scope-And-Data-Governance-Report.md).
+- Limites: PostgreSQL permanece `Homologation=None` e suporte público `No`; nenhum suporte, dado real, previsão, recomendação, comando, automação, `OBSERVER` ou lifecycle foi ativado.
+- Próxima decisão: Human Gate O5-R1 deverá aceitar, aceitar com ressalvas, solicitar ajustes ou rejeitar a candidata e os thresholds, além de dispor sobre os owners pendentes.
+- Aprovador: resultado documental local; Human Gate O5-R1 pendente.
+
 ## Template de nova entrada
 
 - Data:
