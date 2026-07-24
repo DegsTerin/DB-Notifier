@@ -62,6 +62,16 @@ internal static class Program
             return await O3BSandboxProcess.RunAsync(args);
         }
 
+        if (args.Length >= 2 &&
+            string.Equals(args[0], "--activation", StringComparison.Ordinal) &&
+            string.Equals(
+                args[1],
+                "o4-factual-observer-projection-sandbox",
+                StringComparison.Ordinal))
+        {
+            return await O4SandboxProcess.RunAsync(args);
+        }
+
         if (!TryReadOptions(
                 args,
                 out string? dashboardRoot,

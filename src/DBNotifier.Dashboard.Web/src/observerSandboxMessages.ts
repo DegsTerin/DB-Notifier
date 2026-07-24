@@ -1,0 +1,118 @@
+/** Module purpose: Provides the typed pt-BR/en-GB catalogue owned only by the test-only O4 Web sandbox. */
+import type { SupportedLocale } from "./generated/localisation";
+
+const ptBRMessages = {
+  "ActivationNone": "ActivationState=None · Observer não ativado",
+  "Corpus": "Corpus sintético",
+  "Current": "Atual",
+  "CurrentSignals": "Sinais atuais",
+  "CurrentSignalsDescription": "Resultados determinísticos completos ligados à evidência sintética aceita.",
+  "Description": "Sinais factuais e previsões disponíveis, com evidências, incerteza e limites explícitos.",
+  "Detected": "Detectado",
+  "EvaluatedAt": "Avaliado em",
+  "Evidence": "Evidências e rastreabilidade",
+  "EvidenceCount": "{0} evidência(s) vinculada(s)",
+  "EvidenceDescription": "Vínculos content-addressed do resultado à política e ao corpus sintético.",
+  "Eyebrow": "Análise determinística somente leitura",
+  "Forecasts": "Previsões determinísticas",
+  "ForecastsDescription": "Somente previsões completas e verificáveis podem aparecer nesta área.",
+  "ForecastUnavailable": "Nenhuma previsão determinística completa está disponível no resultado O2 aceito.",
+  "ForecastUnknown": "Desconhecida",
+  "Freshness": "Freshness",
+  "InsufficientEvidence": "Evidência insuficiente",
+  "Limitation.ForecastUnavailable": "O resultado O2 aceito não contém uma previsão determinística completa.",
+  "Limitation.NoHoldoutInference": "Nenhuma previsão é inferida da aprovação do holdout sintético.",
+  "Limitation.NonAuthorising": "A projeção não recomenda, não autoriza e não executa ações.",
+  "Limitation.PhysicalAccessibilityNotTested": "As condições físicas de acessibilidade e DPI do Windows não são comprovadas por este sandbox.",
+  "Limitation.SyntheticNotProduction": "Evidências sintéticas locais não representam produção.",
+  "Limitations": "Limitações",
+  "Loading": "Validando a projeção sintética local…",
+  "Metric": "Métrica",
+  "NoExternalData": "Nenhum dado externo, provider ou banco real é usado nesta superfície.",
+  "NotDetected": "Não detectado",
+  "ObservedValue": "Valor observado",
+  "Policy": "Política avaliada",
+  "ReadOnly": "Somente leitura · não recomenda, não autoriza e não executa ações",
+  "Result": "Resultado O3",
+  "Source": "Fonte",
+  "Stale": "Desatualizado",
+  "SyntheticApprovalWarning": "A aprovação sintética mede somente este corpus local e não comprova qualidade em produção.",
+  "SyntheticBadge": "SANDBOX SINTÉTICO · NÃO OPERACIONAL",
+  "Threshold": "Limite da política",
+  "Title": "Observer",
+  "UnavailableMessage": "A projeção foi recusada porque não foi possível comprovar integridade, validade ou compatibilidade.",
+  "UnavailableTitle": "Projeção Observer indisponível",
+  "Uncertainty": "Incerteza",
+  "Unknown": "Desconhecido",
+  "ValidUntil": "Válido até",
+} as const;
+
+const enGBMessages: Record<keyof typeof ptBRMessages, string> = {
+  "ActivationNone": "ActivationState=None · Observer is not active",
+  "Corpus": "Synthetic corpus",
+  "Current": "Current",
+  "CurrentSignals": "Current signals",
+  "CurrentSignalsDescription": "Complete deterministic results linked to accepted synthetic evidence.",
+  "Description": "Factual signals and available forecasts with explicit evidence, uncertainty and limitations.",
+  "Detected": "Detected",
+  "EvaluatedAt": "Evaluated at",
+  "Evidence": "Evidence and traceability",
+  "EvidenceCount": "{0} linked evidence item(s)",
+  "EvidenceDescription": "Content-addressed links from the result to the policy and synthetic corpus.",
+  "Eyebrow": "Read-only deterministic analysis",
+  "Forecasts": "Deterministic forecasts",
+  "ForecastsDescription": "Only complete and verifiable forecasts may appear in this area.",
+  "ForecastUnavailable": "No complete deterministic forecast is available in the accepted O2 result.",
+  "ForecastUnknown": "Unknown",
+  "Freshness": "Freshness",
+  "InsufficientEvidence": "Insufficient evidence",
+  "Limitation.ForecastUnavailable": "The accepted O2 result contains no complete deterministic forecast.",
+  "Limitation.NoHoldoutInference": "No forecast is inferred from synthetic holdout approval.",
+  "Limitation.NonAuthorising": "The projection does not recommend, authorise or execute actions.",
+  "Limitation.PhysicalAccessibilityNotTested": "Physical Windows accessibility and DPI conditions are not evidenced by this sandbox.",
+  "Limitation.SyntheticNotProduction": "Local synthetic evidence is not representative of production.",
+  "Limitations": "Limitations",
+  "Loading": "Validating the local synthetic projection…",
+  "Metric": "Metric",
+  "NoExternalData": "No external data, provider or real database is used by this surface.",
+  "NotDetected": "Not detected",
+  "ObservedValue": "Observed value",
+  "Policy": "Evaluated policy",
+  "ReadOnly": "Read-only · does not recommend, authorise or execute actions",
+  "Result": "O3 result",
+  "Source": "Source",
+  "Stale": "Stale",
+  "SyntheticApprovalWarning": "Synthetic approval measures only this local corpus and does not prove production quality.",
+  "SyntheticBadge": "SYNTHETIC SANDBOX · NON-OPERATIONAL",
+  "Threshold": "Policy threshold",
+  "Title": "Observer",
+  "UnavailableMessage": "The projection was refused because integrity, validity or compatibility could not be proved.",
+  "UnavailableTitle": "Observer projection unavailable",
+  "Uncertainty": "Uncertainty",
+  "Unknown": "Unknown",
+  "ValidUntil": "Valid until",
+};
+
+const observerMessages: Readonly<Record<SupportedLocale, Readonly<Record<ObserverMessageKey, string>>>> = {
+  "pt-BR": ptBRMessages,
+  "en-GB": enGBMessages,
+};
+
+export type ObserverMessageKey = keyof typeof ptBRMessages;
+
+/** Resolves one sandbox-owned message and substitutes only positional placeholders. */
+export function observerText(
+  locale: SupportedLocale,
+  key: ObserverMessageKey,
+  ...values: readonly (string | number)[]
+): string {
+  return observerMessages[locale][key].replace(
+    /\{(\d+)\}/gu,
+    (_, index: string) => String(values[Number(index)] ?? ""),
+  );
+}
+
+/** Exposes the immutable catalogue only to parity tests. */
+export function observerMessageCatalogue(locale: SupportedLocale): Readonly<Record<ObserverMessageKey, string>> {
+  return observerMessages[locale];
+}

@@ -2964,6 +2964,20 @@
 - Próxima decisão: qualquer O4, trabalho com corpus representativo, preparação de ativação ou transição exige proposta e autorização posteriores e separadas.
 - Aprovador: Bruno, 2026-07-24, exclusivamente para o Human Gate O3-B.
 
+## 2026-07-24 — O4 factual read-only Observer projection, API and UI sandbox concluído automaticamente
+
+- Estado anterior: `STATE-06 INTEGRATION`, O3-B automática e humanamente aprovado somente como sandbox sintético e `ActivationState=None`.
+- Autoridade: implementação local exclusiva do O4 sobre `a7f70fe86e21050eba8b570b5ef0eb1184c91ff1`, somente sob marker test-only, usando resultados sintéticos O2/O3 e sem composição normal, dado real, WPF/Tray, recomendação, ação, ativação ou transição.
+- Estado resultante: sem transição; `STATE-06 INTEGRATION` e `ActivationState=None` mantidos. O4 está automaticamente `APROVADO`; amostra visível e Human Gate O4 permanecem `PENDENTES`.
+- Implementação: projeção in-memory content-addressed com rastreabilidade O2→resultado O3→política→corpus; API GET autenticada em HTTPS loopback; Dashboard dedicado pt-BR/en-GB e Light/Dark; sinais, freshness, Unknown, evidências, incerteza e limitações factuais.
+- Verdade preservada: o sinal sintético completo está `Stale`; nenhuma previsão completa existe no resultado O2 e a UI mostra `Unknown` em vez de inferir forecast da aprovação sintética O3.
+- Matriz adversarial: incompletude, alteração, expiração, revogação, supersession, future skew, divergência de política/corpus, schema incompatível, texto hostil, número não finito, falta de autenticação, write e origem/marker impróprios falharam fechados.
+- Gates: O4 integração `3/3`; arquitetura `3/3`; integração completa `75/75`; arquitetura completa `74/74`; unitários `399/399` após um timeout sintético preexistente não reproduzido; WPF `10/10`; Dashboard `72/72`; coverage `81,98%/53,85%`; build Release sem avisos/erros; browser `16/16`, acessibilidade, forced colours modelado, zero origem externa, normal build com zero referência O4 e cleanup aprovados.
+- Evidência: [relatório automático O4](../../docs/STATE-06-MOD-12-O4-Factual-Observer-Projection-API-UI-Sandbox-Report.md).
+- Limites: corpus/resultado somente sintéticos e não representativos; autenticação fixa somente de sandbox; acessibilidade física e amostra humana O4 não testadas; sem composição normal, telemetria/provider/banco/credencial real, WPF/Tray, LLM, recomendação, comando, automação, push, deploy, `OBSERVER` ou lifecycle.
+- Próxima decisão: proposta e autorização separadas para amostra humana visível O4; somente depois, Human Gate O4 informado. O5 e qualquer transição continuam sem autorização.
+- Aprovador: resultado automático local; decisão humana O4 pendente.
+
 ## Template de nova entrada
 
 - Data:
