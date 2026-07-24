@@ -2912,6 +2912,19 @@
 - Próxima decisão: qualquer proposta ou implementação O3-A e qualquer ativação `None → Observer` exigem autorizações e gates posteriores e separados.
 - Aprovador: Bruno, 2026-07-23, exclusivamente para o Human Gate O2-B.
 
+## 2026-07-23 — O3-A governed synthetic corpus sandbox concluído automaticamente
+
+- Estado anterior: `STATE-06 INTEGRATION`, O2-B automática e humanamente aprovado somente como sandbox test-only e `ActivationState=None`.
+- Autoridade: implementação local exclusiva do O3-A sobre `4ca1d42ee03a1c36d8e2a85ef68062902794fcb9`, somente sob marker test-only, com corpus exclusivamente sintético e sem composição normal, dado real, treino, UI, ativação ou transição.
+- Estado resultante: sem transição; `STATE-06 INTEGRATION` e `ActivationState=None` mantidos. O3-A está automaticamente `APROVADO`; Human Gate O3-A permanece `PENDENTE`.
+- Implementação: contrato provider-neutral, manifest autenticado e content-addressed, três papéis/chaves sintéticas distintos, dupla aprovação, proveniência/classificação/finalidade/retenção/retirada, membership exata, partições imutáveis de desenvolvimento/calibração/holdout e critérios quantitativos prévios para três segmentos.
+- Matriz adversarial: corrupção, substituição, duplicidade, leakage entre partições, missingness, conflito, poisoning, critérios incompletos, papel/assinatura inválidos, expiração, alegação de representatividade de produção, rollback, gap, divergência, reativação após retirada e 96 mutações determinísticas falharam fechados.
+- Gates: O3-A `9/9`; arquitetura O3-A `4/4`; integração `62/62`; arquitetura `67/67`; unitários/coverage `399/399`; cobertura `81,98%/53,85%`; build Release sem avisos/erros; processo separado reportou nove casos, três partições, `productionRepresentative=false` e `ActivationState=None`.
+- Evidência: [relatório automático O3-A](../../docs/STATE-06-MOD-12-O3A-Governed-Synthetic-Corpus-Sandbox-Report.md).
+- Limites: as nove fixtures equilibradas não são representativas de produção; sem corpus real, dados pessoais, provider/version/topology real, calibração operacional, treinamento, composição normal, UI, LLM, recomendação, comando, automação, push, deploy, `OBSERVER` ou lifecycle.
+- Próxima decisão: Human Gate O3-A separado poderá aceitar, aceitar com ressalvas ou rejeitar somente este sandbox sintético. O3-B, qualquer corpus real e qualquer ativação continuam sem autorização.
+- Aprovador: resultado automático local; decisão humana O3-A pendente.
+
 ## Template de nova entrada
 
 - Data:

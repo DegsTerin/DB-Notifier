@@ -42,6 +42,16 @@ internal static class Program
             return await O2BSandboxProcess.RunAsync(args);
         }
 
+        if (args.Length >= 2 &&
+            string.Equals(args[0], "--activation", StringComparison.Ordinal) &&
+            string.Equals(
+                args[1],
+                "o3a-governed-corpus-sandbox",
+                StringComparison.Ordinal))
+        {
+            return await O3ASandboxProcess.RunAsync(args);
+        }
+
         if (!TryReadOptions(
                 args,
                 out string? dashboardRoot,
