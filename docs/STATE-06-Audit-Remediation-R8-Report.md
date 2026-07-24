@@ -139,6 +139,16 @@ authorised factual correction and cleanup revalidation. The repeated read-only a
 No source or test correction was authorised or performed. The automatic R8 result remains `APPROVED` only after
 this follow-up cleanup proof. Bruno subsequently approved the Human Gate with the report's reservations.
 
+### Later source correction
+
+On 2026-07-24, after the same generic Windows Terminal tab recurred during a later full unit run, Bruno explicitly
+authorised its correction. The synthetic readiness fixture no longer uses PowerShell `Start-Process`, which could
+delegate the console child to the configured default terminal. Parent and child are now created with
+`UseShellExecute=false`, `CreateNoWindow=true`, a hidden window style and redirected streams. The timeout and caller
+cancellation cases both passed while proving zero process main-window handles, zero new Windows Terminal process
+and zero residual `ping.exe`. This later correction does not rewrite the original R8 incident or its cleanup
+evidence.
+
 ## Preserved limitations and incidents
 
 The following evidence is deliberately not upgraded to approval:

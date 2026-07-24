@@ -2978,6 +2978,14 @@
 - Próxima decisão: proposta e autorização separadas para amostra humana visível O4; somente depois, Human Gate O4 informado. O5 e qualquer transição continuam sem autorização.
 - Aprovador: resultado automático local; decisão humana O4 pendente.
 
+## 2026-07-24 — Correção da aba residual do Windows Terminal no teste sintético PostgreSQL
+
+- Estado anterior: o teste unitário de encerramento da árvore sintética executava `ping.exe 127.0.0.1 -t` por `Start-Process`; em execuções anteriores e novamente após O4, o terminal padrão do Windows reteve uma aba genérica com erro de pipe `0x800700e8`.
+- Autoridade: pedido explícito de Bruno para corrigir exclusivamente a ocorrência recorrente.
+- Correção: a fixture passou a criar o processo filho diretamente com `UseShellExecute=false`, `CreateNoWindow=true`, `WindowStyle=Hidden` e streams redirecionados; pai e filho devem expor handle de janela igual a zero.
+- Gates: timeout e cancellation `2/2`; suíte unitária `399/399`; zero novo processo Windows Terminal; zero `ping.exe` residual; format, documentação, links, secrets, diff e cleanup aprovados.
+- Limites: nenhuma alteração em provider, runtime normal, composição, dependência, O4, `ActivationState=None`, `OBSERVER` ou lifecycle.
+
 ## Template de nova entrada
 
 - Data:

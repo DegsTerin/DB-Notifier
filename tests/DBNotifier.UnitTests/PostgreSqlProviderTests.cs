@@ -289,6 +289,12 @@ public sealed class PostgreSqlProviderTests
         Assert.Equal(0, transport.CallCount);
     }
 
+    /// <summary>
+    /// Verifies that timeout and caller cancellation terminate a synthetic readiness process tree without creating
+    /// a visible console window.
+    /// </summary>
+    /// <param name="callerCancels">Whether cancellation, rather than the bounded timeout, initiates termination.</param>
+    /// <returns>A task that completes after both synthetic processes have exited.</returns>
     [Theory]
     [InlineData(false)]
     [InlineData(true)]
@@ -304,6 +310,7 @@ public sealed class PostgreSqlProviderTests
             FileName = powershell,
             UseShellExecute = false,
             CreateNoWindow = true,
+            WindowStyle = ProcessWindowStyle.Hidden,
             RedirectStandardOutput = true,
             RedirectStandardError = true,
         };
@@ -311,8 +318,12 @@ public sealed class PostgreSqlProviderTests
         startInfo.ArgumentList.Add("-NonInteractive");
         startInfo.ArgumentList.Add("-Command");
         startInfo.ArgumentList.Add(
-            $"$child=Start-Process -FilePath '{ping}' -ArgumentList '127.0.0.1','-t' -PassThru; " +
-            "[Console]::Out.WriteLine($child.Id); [Console]::Out.Flush(); Wait-Process -Id $child.Id");
+            $"$start=[System.Diagnostics.ProcessStartInfo]::new(); $start.FileName='{ping}'; " +
+            "$start.Arguments='127.0.0.1 -t'; $start.UseShellExecute=$false; $start.CreateNoWindow=$true; " +
+            "$start.WindowStyle=[System.Diagnostics.ProcessWindowStyle]::Hidden; " +
+            "$start.RedirectStandardOutput=$true; $start.RedirectStandardError=$true; " +
+            "$child=[System.Diagnostics.Process]::Start($start); " +
+            "[Console]::Out.WriteLine($child.Id); [Console]::Out.Flush(); $child.WaitForExit()");
         using Process root = Process.Start(startInfo)!;
         Process? child = null;
         try
@@ -320,6 +331,10 @@ public sealed class PostgreSqlProviderTests
             string? childLine = await root.StandardOutput.ReadLineAsync().WaitAsync(TimeSpan.FromSeconds(5));
             Assert.True(int.TryParse(childLine, NumberStyles.None, CultureInfo.InvariantCulture, out int childId));
             child = Process.GetProcessById(childId);
+            root.Refresh();
+            child.Refresh();
+            Assert.Equal(IntPtr.Zero, root.MainWindowHandle);
+            Assert.Equal(IntPtr.Zero, child.MainWindowHandle);
 
             using CancellationTokenSource caller = new();
             if (callerCancels)
