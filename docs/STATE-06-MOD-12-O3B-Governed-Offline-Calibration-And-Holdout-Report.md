@@ -4,7 +4,7 @@
 
 - Authorised baseline: `89f290cc950ed0385ee004c57ff9d0a3c07a8f85`
 - Automatic result: `APPROVED`
-- Human acceptance: `PENDING`
+- Human acceptance: `APPROVED` in the separate [O3-B Human Gate](STATE-06-MOD-12-O3B-Human-Gate-Report.md)
 - Runtime boundary: exact test-only opt-in sandbox
 - Input corpus: the nine approved synthetic O3-A members only
 - Production representativeness: `FALSE`
@@ -148,7 +148,9 @@ providers, versions, topology, workload drift, incident rarity or label uncertai
 segment cannot establish operational false-positive or false-negative rates. The binary error measured here also
 does not validate the separate OLS capacity-forecast path against future production outcomes.
 
-The automatic O3-B result is `APPROVED` only for the authorised sandbox. Human acceptance remains `PENDING`. A
-separate Human Gate may accept, accept with reservations or reject this evidence. Any representative or real corpus,
-normal composition, `OBSERVER`, UI, LLM, recommendation, command, automation, push, deploy or lifecycle transition
-requires later and separate authority.
+The automatic O3-B result is `APPROVED` only for the authorised sandbox. Bruno subsequently decided exactly
+`HUMAN GATE DO O3-B: APROVADO`. The separate
+[O3-B Human Gate report](STATE-06-MOD-12-O3B-Human-Gate-Report.md) records that acceptance and its authority boundary.
+The decision accepts this governed synthetic evaluation while retaining its false-positive and representativeness
+limitations. Any representative or real corpus, normal composition, `OBSERVER`, UI, LLM, recommendation, command,
+automation, push, deploy or lifecycle transition requires later and separate authority.

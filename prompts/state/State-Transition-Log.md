@@ -2951,6 +2951,19 @@
 - Próxima decisão: Human Gate O3-B separado poderá aceitar, aceitar com ressalvas ou rejeitar somente este sandbox. Qualquer corpus real e qualquer passo posterior continuam sem autorização.
 - Aprovador: resultado automático local; decisão humana O3-B pendente.
 
+## 2026-07-24 — Human Gate O3-B aprovado
+
+- Estado anterior: `STATE-06 INTEGRATION`, O3-B automaticamente aprovado no commit `1736571fe56c5723e0514b8e86450c89b4f53ca4`, com Human Gate próprio pendente.
+- Estado resultante: sem transição; `STATE-06 INTEGRATION` e `ActivationState=None` mantidos. O3-B está humanamente aceito somente como sandbox test-only opt-in e avaliação de corpus sintético.
+- Decisão: Bruno declarou exatamente `HUMAN GATE DO O3-B: APROVADO`.
+- Escopo aceito: separação desenvolvimento/calibração/holdout, política determinística autenticada e congelada, holdout one-use, métricas segmentadas completas, resultado sintético não autorizador e recusas fail-closed, conforme o relatório automático O3-B.
+- Limitação preservada: o segmento sintético disponibilidade reteve um falso positivo e erro binário `1,00`; a aceitação não converte isso em precisão, forecast ou qualidade comprovada de produção.
+- Evidência: [relatório automático O3-B](../../docs/STATE-06-MOD-12-O3B-Governed-Offline-Calibration-And-Holdout-Report.md) e [Human Gate O3-B](../../docs/STATE-06-MOD-12-O3B-Human-Gate-Report.md).
+- Atividade documental: baseline `1736571fe56c5723e0514b8e86450c89b4f53ca4`, worktree limpa e shutdown preflight com zero processo ou listener DB-Notifier; nenhum código, teste, runtime de produto, push, deploy ou transição.
+- Limites: a aceitação não autoriza O4, corpus real ou representativo, composição normal, dado/telemetria/provider/banco/credencial real, UI, LLM, recomendação, comando, automação, `OBSERVER`, execução operacional, promoção ou lifecycle.
+- Próxima decisão: qualquer O4, trabalho com corpus representativo, preparação de ativação ou transição exige proposta e autorização posteriores e separadas.
+- Aprovador: Bruno, 2026-07-24, exclusivamente para o Human Gate O3-B.
+
 ## Template de nova entrada
 
 - Data:
