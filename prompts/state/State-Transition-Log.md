@@ -2925,6 +2925,18 @@
 - Próxima decisão: Human Gate O3-A separado poderá aceitar, aceitar com ressalvas ou rejeitar somente este sandbox sintético. O3-B, qualquer corpus real e qualquer ativação continuam sem autorização.
 - Aprovador: resultado automático local; decisão humana O3-A pendente.
 
+## 2026-07-24 — Human Gate O3-A aprovado
+
+- Estado anterior: `STATE-06 INTEGRATION`, O3-A automaticamente aprovado no commit `2832153565a3a8a1f5bb1748dfb9cda11cd1745c`, com Human Gate próprio pendente.
+- Estado resultante: sem transição; `STATE-06 INTEGRATION` e `ActivationState=None` mantidos. O3-A está humanamente aceito somente como sandbox test-only opt-in e corpus sintético.
+- Decisão: Bruno declarou exatamente `HUMAN GATE DO O3-A: APROVADO`.
+- Escopo aceito: autoridade/proveniência/finalidade/retenção/retirada, manifest autenticado e content-addressed, membership exata, partições imutáveis, critérios quantitativos prévios e recusas fail-closed do corpus sintético, conforme o relatório automático O3-A.
+- Evidência: [relatório automático O3-A](../../docs/STATE-06-MOD-12-O3A-Governed-Synthetic-Corpus-Sandbox-Report.md) e [Human Gate O3-A](../../docs/STATE-06-MOD-12-O3A-Human-Gate-Report.md).
+- Atividade documental: baseline `2832153565a3a8a1f5bb1748dfb9cda11cd1745c`, worktree limpa e shutdown preflight com zero processo ou listener DB-Notifier; nenhum código, teste, runtime de produto, push, deploy ou transição.
+- Limites: a aceitação não autoriza O3-B, corpus/telemetria/provider/banco/credencial real, dados pessoais, treinamento, UI, LLM, recomendação, comando, automação, `OBSERVER`, execução operacional, promoção ou lifecycle; `ProductionRepresentative=false` permanece obrigatório.
+- Próxima decisão: qualquer proposta ou implementação O3-B e qualquer ativação `None → Observer` exigem autorizações e gates posteriores e separados.
+- Aprovador: Bruno, 2026-07-24, exclusivamente para o Human Gate O3-A.
+
 ## Template de nova entrada
 
 - Data:

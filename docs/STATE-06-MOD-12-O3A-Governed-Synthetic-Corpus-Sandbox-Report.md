@@ -4,7 +4,7 @@
 
 - Authorised baseline: `4ca1d42ee03a1c36d8e2a85ef68062902794fcb9`
 - Automatic result: `APPROVED`
-- Human acceptance: `PENDING`
+- Human acceptance: `APPROVED` in the separate [O3-A Human Gate](STATE-06-MOD-12-O3A-Human-Gate-Report.md)
 - Runtime boundary: exact test-only opt-in sandbox
 - Corpus: deterministic, local, synthetic, non-personal, non-secret and in-memory
 - Production representativeness: `FALSE`
@@ -130,6 +130,9 @@ O3-A proves only a governance mechanism against deterministic synthetic fixtures
 representativeness, label validity under real workloads, provider/version/topology coverage, real bias prevalence or
 an empirical operational resource envelope. No real corpus is authorised.
 
-The automatic O3-A result is `APPROVED`. A separate Human Gate may accept, accept with reservations or reject only
-this synthetic sandbox and its stated limitations. O3-B, any real corpus, normal composition, model training, LLM,
-recommendation, command, automation, `OBSERVER` activation and lifecycle transition remain unauthorised.
+The automatic O3-A result is `APPROVED`. Bruno subsequently decided exactly
+`HUMAN GATE DO O3-A: APROVADO`. The separate
+[O3-A Human Gate report](STATE-06-MOD-12-O3A-Human-Gate-Report.md) records that acceptance and its authority boundary.
+The decision accepted only this synthetic sandbox and its stated limitations. O3-B, any real corpus, normal
+composition, model training, LLM, recommendation, command, automation, `OBSERVER` activation and lifecycle transition
+remain unauthorised.
