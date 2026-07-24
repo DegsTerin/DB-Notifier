@@ -94,6 +94,10 @@ test("Observer sandbox messages retain exact locale parity and bounded placehold
   assert.deepEqual(Object.keys(ptBR), Object.keys(enGB));
   assert.equal(observerText("pt-BR", "EvidenceCount", 2), "2 evidência(s) vinculada(s)");
   assert.equal(observerText("en-GB", "EvidenceCount", 2), "2 linked evidence item(s)");
+  assert.equal(observerText("pt-BR", "Metric.DurationDegraded"), "Duração do probe acima do limite");
+  assert.equal(observerText("en-GB", "Metric.DurationDegraded"), "Probe duration above policy threshold");
+  assert.equal(observerText("pt-BR", "Summary.ReadOnly"), "Observer inativo · somente leitura");
+  assert.equal(observerText("en-GB", "Summary.ReadOnly"), "Observer inactive · read-only");
   for (const value of [...Object.values(ptBR), ...Object.values(enGB)]) {
     assert.equal(/[\u0000-\u001F\u007F\u202A-\u202E\u2066-\u2069]/u.test(value), false);
   }

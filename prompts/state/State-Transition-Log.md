@@ -2986,6 +2986,19 @@
 - Gates: timeout e cancellation `2/2`; suíte unitária `399/399`; zero novo processo Windows Terminal; zero `ping.exe` residual; format, documentação, links, secrets, diff e cleanup aprovados.
 - Limites: nenhuma alteração em provider, runtime normal, composição, dependência, O4, `ActivationState=None`, `OBSERVER` ou lifecycle.
 
+## 2026-07-24 — O4-UI1 remediação visual e organizacional concluída automaticamente
+
+- Estado anterior: O4 automaticamente aprovado somente como sandbox sintético, primeiras amostras humanas visíveis `REPROVADAS` por hierarquia, espaçamento, alinhamento e distribuição insuficientes; `ActivationState=None`.
+- Autoridade: implementação local exclusiva do O4-UI1 sobre `67e83bff61921387dbbe606499a8569bb4d11dd6`, limitada à UI Web Observer test-only, sem API, contrato factual, dependência, dado real, WPF/Tray, ativação ou transição.
+- Estado resultante: sem transição; `STATE-06 INTEGRATION` e `ActivationState=None` mantidos. O4-UI1 está automaticamente `APROVADO`; repetição humana visível e Human Gate O4 permanecem `PENDENTES`.
+- Implementação: resumo factual em três cartões, composição desktop equilibrada, empilhamento antecipado, cabeçalhos e ícones semânticos code-native, sinal com rótulo legível e chave técnica preservada, forecast Unknown explícito e rastreabilidade ordenada com hashes compactos e valores completos acessíveis.
+- Verdade preservada: sinal `Stale`, forecast `Unknown`, conteúdo sintético/não operacional/não autorizador, API estritamente read-only, ausência de recomendação, comando, automação ou execução e zero referência no build normal.
+- Gates: Dashboard `72/72`; O4 arquitetura `4/4`; arquitetura completa `75/75`; integração O4 `3/3`; solução Release sem avisos/erros; coverage `81,98%/53,85%`; browser `28/28`, forced colours modelado, acessibilidade, zero origem externa, zero referência O4 no build normal e cleanup aprovados.
+- Evidência: [relatório automático O4-UI1](../../docs/STATE-06-MOD-12-O4-UI1-Visual-Organisation-Remediation-Report.md).
+- Limites: a reprovação humana anterior permanece histórica; nenhuma nova amostra humana foi autorizada ou executada. Sem dado/corpus/provider/banco/credencial real, composição normal, WPF/Tray, LLM, recomendação, comando, automação, push, deploy, `OBSERVER`, O5 ou lifecycle.
+- Próxima decisão: proposta e autorização separadas para repetir as amostras humanas visíveis do O4 após O4-UI1; somente depois poderá existir Human Gate O4 informado.
+- Aprovador: resultado automático local; decisão humana O4 pendente.
+
 ## Template de nova entrada
 
 - Data:

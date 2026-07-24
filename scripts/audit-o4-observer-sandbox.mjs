@@ -88,7 +88,11 @@ async function layoutEvidence(call) {
   return evaluate(call, `(() => {
     const root = document.documentElement;
     const main = document.querySelector(".observer-main");
+    const grid = document.querySelector(".observer-grid");
     const panels = [...document.querySelectorAll(".observer-panel")];
+    const panelLefts = [...new Set(panels.map((panel) =>
+      Math.round(panel.getBoundingClientRect().left)))];
+    const traceDetails = [...document.querySelectorAll(".observer-trace details")];
     const allContained = panels.every((panel) => {
       const rect = panel.getBoundingClientRect();
       return rect.width > 0 && rect.height > 0 && panel.scrollWidth <= panel.clientWidth + 1;
@@ -104,9 +108,15 @@ async function layoutEvidence(call) {
       theme: root.dataset.theme,
       language: root.lang,
       panelCount: panels.length,
+      summaryCount: document.querySelectorAll(".observer-summary-card").length,
       signalCount: document.querySelectorAll(".observer-signal-card").length,
       traceCount: document.querySelectorAll(".observer-trace dd").length,
+      fullTraceCount: traceDetails.length,
+      fullTraceAvailable: traceDetails.every((item) =>
+        (item.querySelector("code")?.textContent?.length ?? 0) === 64),
       limitationCount: document.querySelectorAll(".observer-limitation-list li").length,
+      panelColumnCount: panelLefts.length,
+      gridVisible: Boolean(grid && grid.getBoundingClientRect().width > 0),
       horizontalOverflow: document.documentElement.scrollWidth > document.documentElement.clientWidth + 1,
       mainOverflow: Boolean(main && main.scrollWidth > main.clientWidth + 1),
       allContained,
@@ -190,7 +200,10 @@ try {
 
   const matrix = [
     { width: 1440, height: 900, scale: 1 },
+    { width: 1180, height: 760, scale: 1 },
+    { width: 1024, height: 768, scale: 1 },
     { width: 820, height: 620, scale: 1 },
+    { width: 390, height: 844, scale: 1 },
     { width: 1440, height: 900, scale: 2 },
     { width: 1440, height: 900, scale: 4 },
   ];
@@ -208,10 +221,23 @@ try {
           mobile: false,
         });
         const evidence = await layoutEvidence(call);
+        const effectiveWidth = Math.floor(sample.width / sample.scale);
         assertEvidence(evidence.panelCount === 4, "A factual Observer panel is missing.");
+        assertEvidence(evidence.summaryCount === 3, "The factual Observer summary is incomplete.");
         assertEvidence(evidence.signalCount >= 1, "No complete signal is visible.");
         assertEvidence(evidence.traceCount === 4, "Result-policy-corpus traceability is incomplete.");
+        assertEvidence(
+          evidence.fullTraceCount === 3 && evidence.fullTraceAvailable,
+          "Compact technical identifiers do not retain their complete trace values.",
+        );
         assertEvidence(evidence.limitationCount >= 5, "Uncertainty or limitations are incomplete.");
+        assertEvidence(evidence.gridVisible, "The organised Observer panel grid is hidden.");
+        assertEvidence(
+          effectiveWidth <= 1120
+            ? evidence.panelColumnCount === 1
+            : evidence.panelColumnCount === 2,
+          "Observer panels did not use the expected balanced or stacked composition.",
+        );
         assertEvidence(!evidence.horizontalOverflow && !evidence.mainOverflow, "Observer page overflowed horizontally.");
         assertEvidence(evidence.allContained, "Observer panel content is clipped.");
         assertEvidence(evidence.stateVisible && evidence.activationVisible, "Freshness or activation truth is hidden.");
@@ -258,7 +284,7 @@ try {
 
   console.log(JSON.stringify({
     result: "approved",
-    matrixSamples: 16,
+    matrixSamples: 28,
     screenshotsSanitisedInMemory: screenshotCount,
     forcedColours: "modelled",
     accessibilityTree: "verified",

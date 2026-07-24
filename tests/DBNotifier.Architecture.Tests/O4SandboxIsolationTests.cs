@@ -98,6 +98,29 @@ public sealed class O4SandboxIsolationTests
         Assert.Empty(productReferences);
     }
 
+    /// <summary>Verifies the isolated Observer view retains its factual hierarchy and early responsive stacking.</summary>
+    [Fact]
+    public void ObserverPresentationRetainsOrganisedReadOnlyHierarchy()
+    {
+        string app = Read(
+            "src",
+            "DBNotifier.Dashboard.Web",
+            "src",
+            "ObserverSandboxApp.tsx");
+        string styles = Read(
+            "src",
+            "DBNotifier.Dashboard.Web",
+            "src",
+            "observerSandbox.css");
+
+        Assert.Contains("className=\"observer-summary\"", app, StringComparison.Ordinal);
+        Assert.Contains("ObserverSummaryCard", app, StringComparison.Ordinal);
+        Assert.Contains("detailsLabel={ot(\"FullIdentifier\")}", app, StringComparison.Ordinal);
+        Assert.Contains("@media (max-width: 1120px)", styles, StringComparison.Ordinal);
+        Assert.Contains("grid-template-columns: 1fr;", styles, StringComparison.Ordinal);
+        Assert.DoesNotContain(".observer-signals { grid-row: span 2; }", styles, StringComparison.Ordinal);
+    }
+
     /// <summary>Reads one exact repository file.</summary>
     private static string Read(params string[] path) =>
         File.ReadAllText(Path.Combine([RepositoryRoot(), .. path]));
