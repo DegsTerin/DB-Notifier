@@ -2887,6 +2887,19 @@
 - Próxima decisão: qualquer proposta ou implementação O2-B e qualquer ativação `None → Observer` exigem autorizações e gates posteriores e separados.
 - Aprovador: Bruno, 2026-07-23, exclusivamente para o Human Gate O2-A.
 
+## 2026-07-23 — O2-B durable pipeline continuity, backpressure and observability sandbox concluído automaticamente
+
+- Estado anterior: `STATE-06 INTEGRATION`, O2-A automática e humanamente aprovado somente como sandbox test-only e `ActivationState=None`.
+- Autoridade: implementação local exclusiva do O2-B sobre `2408093ff2a66d05e4f00f523cf4b3b35be71ac4`, somente sob marker test-only e sem composição normal, dado real, acesso externo, UI, ativação ou transição.
+- Estado resultante: sem transição; `STATE-06 INTEGRATION` e `ActivationState=None` mantidos. O2-B está automaticamente `APROVADO`; Human Gate O2-B permanece `PENDENTE`.
+- Implementação: ledger temporário autenticado com commit old-or-new, witness monotônico e quarantine; sequência/idempotência/gap/contexto/outcome/publicação duráveis; retomada pós-crash; fence por sessão; backpressure serial sem fila; retenção bounded e observabilidade sanitizada por códigos e contadores.
+- Matriz adversarial: crash antes/depois do replace, interrupção após admissão, replay pós-restart, reorder/gap, missing/corrupt/rollback, fence antigo, supersession de contexto, saturação, concurrency busy, deadline, cancellation, quiescência e compaction falharam fechados sem duplicar publicação.
+- Gates: O2-B `15/15`; arquitetura O2-B `4/4`; regressão O1/O2-A `16/16`; integração `53/53`; arquitetura `63/63`; unitários/coverage `399/399`; cobertura `81,98%/53,85%`; build Release sem avisos/erros; format, documentação, links e secrets aprovados; processo separado executado duas vezes sobre o mesmo ledger com `totalPublications=1` e `ActivationState=None`.
+- Evidência: [relatório automático O2-B](../../docs/STATE-06-MOD-12-O2B-Durable-Pipeline-Continuity-Report.md).
+- Limites: sandbox sintético e store temporária; witness apenas local; sem corpus representativo, calibração, valores operacionais, fairness fleet-wide, composição normal, kill switch, UI, LLM, recomendação, comando, automação, push, deploy, `OBSERVER` ou lifecycle.
+- Próxima decisão: Human Gate O2-B separado poderá aceitar, aceitar com ressalvas ou rejeitar somente este sandbox. O3 e qualquer ativação continuam sem autorização.
+- Aprovador: resultado automático local; decisão humana O2-B pendente.
+
 ## Template de nova entrada
 
 - Data:

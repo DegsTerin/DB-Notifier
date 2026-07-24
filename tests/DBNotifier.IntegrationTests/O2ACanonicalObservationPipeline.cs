@@ -234,6 +234,50 @@ internal sealed class O2ACanonicalObservationPipeline : IObservationIngestionSto
     /// <summary>Gets or sets one exact next-message resource demand used by boundary tests.</summary>
     internal O1ResourceRequest? NextResourceRequest { get; set; }
 
+    /// <summary>
+    /// Restores an already authenticated O2-B continuity baseline into a newly created in-memory O2-A session.
+    /// </summary>
+    /// <param name="highestSequence">Highest sequence durably completed by O2-B.</param>
+    /// <param name="completedMessageDigests">Retained completed message identifiers and their canonical digests.</param>
+    /// <param name="completedObservationDigests">Retained completed observation identifiers and their canonical digests.</param>
+    /// <exception cref="InvalidOperationException">Thrown when the session is not fresh or the baseline is inconsistent.</exception>
+    internal void RestoreDurableBaseline(
+        long highestSequence,
+        IReadOnlyDictionary<Guid, string> completedMessageDigests,
+        IReadOnlyDictionary<Guid, string> completedObservationDigests)
+    {
+        ArgumentOutOfRangeException.ThrowIfNegative(highestSequence);
+        ArgumentNullException.ThrowIfNull(completedMessageDigests);
+        ArgumentNullException.ThrowIfNull(completedObservationDigests);
+        if (highestContiguousSequence != 0 ||
+            messageDigests.Count != 0 ||
+            observationDigests.Count != 0 ||
+            pending.Count != 0 ||
+            outcomes.Count != 0 ||
+            publishedReports.Count != 0)
+        {
+            throw new InvalidOperationException("o2a.pipeline.restore_not_fresh");
+        }
+
+        foreach ((Guid id, string digest) in completedMessageDigests)
+        {
+            if (id == Guid.Empty || string.IsNullOrWhiteSpace(digest))
+            {
+                throw new InvalidOperationException("o2a.pipeline.restore_invalid");
+            }
+            messageDigests.Add(id, digest);
+        }
+        foreach ((Guid id, string digest) in completedObservationDigests)
+        {
+            if (id == Guid.Empty || string.IsNullOrWhiteSpace(digest))
+            {
+                throw new InvalidOperationException("o2a.pipeline.restore_invalid");
+            }
+            observationDigests.Add(id, digest);
+        }
+        highestContiguousSequence = highestSequence;
+    }
+
     /// <summary>Creates one bootstrapped pipeline below an exact caller-owned temporary sandbox root.</summary>
     /// <param name="rootPath">Canonical O2-A sandbox root.</param>
     /// <param name="agentId">Synthetic Agent identity.</param>
@@ -399,6 +443,49 @@ internal sealed class O2ACanonicalObservationPipeline : IObservationIngestionSto
         {
             throw new InvalidOperationException("o2a.pipeline.context_advance_failed");
         }
+    }
+
+    /// <summary>
+    /// Advances a fresh synthetic O1 session to the exact durable context revision retained by O2-B.
+    /// </summary>
+    /// <param name="contextRevision">Canonical <c>o2a-context-N</c> revision.</param>
+    /// <param name="cancellationToken">Cancellation propagated through each monotonic successor admission.</param>
+    /// <exception cref="InvalidOperationException">Thrown for a malformed, regressive or unbounded revision.</exception>
+    internal async Task AlignDurableContextAsync(
+        string contextRevision,
+        CancellationToken cancellationToken = default)
+    {
+        const string prefix = "o2a-context-";
+        if (!contextRevision.StartsWith(prefix, StringComparison.Ordinal) ||
+            !long.TryParse(
+                contextRevision.AsSpan(prefix.Length),
+                System.Globalization.NumberStyles.None,
+                System.Globalization.CultureInfo.InvariantCulture,
+                out long target) ||
+            target < 1 ||
+            target > 1024)
+        {
+            throw new InvalidOperationException("o2a.pipeline.context_restore_invalid");
+        }
+        O1CheckpointState current = await trustStore.LoadAsync(cancellationToken).ConfigureAwait(false);
+        if (current.ContextRevision > target)
+        {
+            throw new InvalidOperationException("o2a.pipeline.context_restore_regressive");
+        }
+        while (current.ContextRevision < target)
+        {
+            await AdvanceTrustAsync(cancellationToken).ConfigureAwait(false);
+            current = await trustStore.LoadAsync(cancellationToken).ConfigureAwait(false);
+        }
+    }
+
+    /// <summary>Returns the exact current O1 context identifier without exposing checkpoint content.</summary>
+    /// <param name="cancellationToken">Cancellation checked during the bounded local load.</param>
+    /// <returns>The canonical monotonic context identifier.</returns>
+    internal async Task<string> GetCurrentContextRevisionAsync(CancellationToken cancellationToken = default)
+    {
+        O1CheckpointState current = await trustStore.LoadAsync(cancellationToken).ConfigureAwait(false);
+        return ContextIdentifier(current.ContextRevision);
     }
 
     /// <summary>Revokes the exact synthetic MOD-12 data-use grant for all subsequent adaptations.</summary>
