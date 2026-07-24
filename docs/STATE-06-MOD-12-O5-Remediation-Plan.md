@@ -6,6 +6,7 @@
 - Baseline de elaboração: `42541abd4546a01f83d21fe2382cd5a14cb7c94e`.
 - Origem: [O5 — Quality Gate de ativação `None → Observer`](STATE-06-MOD-12-O5-None-To-Observer-Quality-Gate-Report.md).
 - Natureza: plano documental; nenhum lote está autorizado.
+- Disposição humana: `ACEITO O PLANO COMO DIREÇÃO, SEM IMPLEMENTAÇÃO` por Bruno em 2026-07-24.
 - Estado do MOD-12: `ActivationState=None`.
 - Resultado O5 corrente: `BLOQUEADO`.
 - Implementação, runtime, dado real, ativação e transição: não executados.
@@ -286,9 +287,15 @@ Proposta futura, ainda **não autorizada**:
 ## Disposição
 
 - Plano: `CONCLUÍDO` documentalmente.
+- Aceitação humana: `ACEITO O PLANO COMO DIREÇÃO, SEM IMPLEMENTAÇÃO`.
 - Lotes O5-R1–O5-R10: não autorizados.
 - Dados, provider e banco reais: não acessados.
 - Código e configuração: inalterados.
 - `ActivationState`: `None`.
 - Human Gate O5: bloqueado.
 - Transição `None → Observer`: bloqueada.
+
+Bruno decidiu exatamente `ACEITO O PLANO COMO DIREÇÃO, SEM IMPLEMENTAÇÃO` em 2026-07-24. A
+decisão aceita somente a ordem, os critérios, as dependências e os limites documentais. Ela não
+autoriza O5-R1, código, configuração, runtime, dado/provider/banco real, `OBSERVER`, push, deploy
+ou transição de lifecycle.

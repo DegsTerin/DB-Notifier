@@ -3050,6 +3050,17 @@
 - Próxima decisão: Bruno poderá aceitar, aceitar com ressalvas, solicitar ajustes ou rejeitar o plano. Somente depois uma autorização separada poderá liberar o O5-R1 documental.
 - Aprovador: plano documental elaborado; decisão humana pendente.
 
+## 2026-07-24 — Plano de remediação O5 aceito como direção
+
+- Estado anterior: plano O5 concluído documentalmente, decisão humana pendente, O5 automático `BLOQUEADO` e `ActivationState=None`.
+- Decisão: Bruno declarou exatamente `ACEITO O PLANO COMO DIREÇÃO, SEM IMPLEMENTAÇÃO`.
+- Escopo aceito: ordem O5-R1–O5-R10, dependências, critérios mensuráveis, critérios de parada, riscos e proposta documental do primeiro lote.
+- Estado resultante: sem transição; o plano está aceito somente como direção. Nenhum lote, código, configuração, runtime, dado/provider/banco real ou ativação foi autorizado.
+- Evidência: [plano de remediação O5](../../docs/STATE-06-MOD-12-O5-Remediation-Plan.md).
+- Limites: PostgreSQL permanece apenas candidato, não escolhido e não homologado; `ActivationState=None`, Human Gate O5 e `None → Observer` permanecem bloqueados.
+- Próxima decisão: proposta concisa e autorização separada do O5-R1 documental.
+- Aprovador: Bruno, 2026-07-24, exclusivamente para a direção documental.
+
 ## Template de nova entrada
 
 - Data:
