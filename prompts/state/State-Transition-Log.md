@@ -2861,6 +2861,20 @@
 - Próxima decisão: qualquer implementação do O2-A exige proposta e autorização posteriores e separadas.
 - Aprovador: Bruno, 2026-07-23, exclusivamente como direção documental.
 
+## 2026-07-23 — O2-A canonical read-only observation pipeline sandbox concluído automaticamente
+
+- Estado anterior: `STATE-06 INTEGRATION`, O1 automática e humanamente aprovado somente como sandbox test-only, pacote `NONE → OBSERVER` aceito como direção e `ActivationState=None`.
+- Autoridade: implementação local exclusiva do O2-A sobre `6cfe42facb83819447c216757cdf1d73bfc180de`, somente sob marker test-only e sem composição normal, dado real, acesso externo, UI, ativação ou transição.
+- Estado resultante: sem transição; `STATE-06 INTEGRATION` e `ActivationState=None` mantidos. O2-A está automaticamente `APROVADO`; Human Gate O2-A permanece `PENDENTE`.
+- Implementação: envelope canônico provider-neutral versionado; Agent outbox sintético; fronteiras de produção `AgentOutboxDispatchRunner` e `ObservationBatchIngestor`; O1 trust/resource; adapter canônico; análise MOD-12 pura; publicação somente completa e não autorizadora.
+- Matriz adversarial: contrato, idempotência, duplicidade, replay, reorder, gap, freshness, future skew, erro não normalizado, revogação assinada, context supersession, deadline, cancellation, limites, quiescência e fencing falharam fechados.
+- Gates: O2-A `6/6`; arquitetura O2-A `4/4`; integração `38/38`; arquitetura `59/59`; MOD-12 `77/77`; unitários proporcionais `397/397`; WPF `10/10`; build Release sem avisos/erros; format, documentação, links, secrets, diff e processo exato aprovados.
+- Nota de regressão: uma orquestração paralela encontrou `UnauthorizedAccessException` transitório no teste legado de migração; o grupo exato passou `4/4` e a suite unitária isolada passou `397/397`. Nenhum código fora do O2-A foi alterado.
+- Evidência: [relatório automático O2-A](../../docs/STATE-06-MOD-12-O2A-Canonical-Read-Only-Observation-Pipeline-Sandbox-Report.md).
+- Limites: store O2-A/outbox in-memory, O1 durável somente em raiz temporária; sem crash/restart O2-B, corpus representativo, calibração, observabilidade operacional, composição normal, kill switch, rollback, UI, LLM, recomendação, comando, automação, push, deploy, `OBSERVER` ou lifecycle.
+- Próxima decisão: Human Gate O2-A separado poderá aceitar, aceitar com ressalvas ou rejeitar somente este sandbox. O2-B e qualquer ativação continuam sem autorização.
+- Aprovador: resultado automático local; decisão humana O2-A pendente.
+
 ## Template de nova entrada
 
 - Data:

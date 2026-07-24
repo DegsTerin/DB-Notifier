@@ -22,6 +22,16 @@ internal static class Program
             return await O1SandboxProcess.RunAsync(args);
         }
 
+        if (args.Length >= 2 &&
+            string.Equals(args[0], "--activation", StringComparison.Ordinal) &&
+            string.Equals(
+                args[1],
+                "o2a-canonical-observation-pipeline-sandbox",
+                StringComparison.Ordinal))
+        {
+            return await O2ASandboxProcess.RunAsync(args);
+        }
+
         if (!TryReadOptions(
                 args,
                 out string? dashboardRoot,
