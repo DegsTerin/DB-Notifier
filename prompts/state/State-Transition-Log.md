@@ -3038,6 +3038,18 @@
 - Próxima decisão: somente uma autorização separada para elaborar o plano de remediação das lacunas O5 é elegível. Human Gate O5 e transição `None → Observer` permanecem bloqueados.
 - Aprovador: resultado automático local; Human Gate O5 não solicitado.
 
+## 2026-07-24 — Plano de remediação das lacunas O5 elaborado
+
+- Estado anterior: O5 automático `BLOQUEADO`, `STATE-06 INTEGRATION` e `ActivationState=None`.
+- Autoridade: elaboração documental local exclusiva sobre `42541abd4546a01f83d21fe2382cd5a14cb7c94e`, sem implementação, teste, runtime, dado/provider real, acesso externo, ativação ou transição.
+- Plano: dez lotes separados cobrem escopo/governança, control plane inativo, observabilidade/SLO/incidente, segurança, `HM-01`–`HM-03`, corpus representativo, calibração/holdout, homologação exata, rehearsal integrado e repetição do O5.
+- Ordem de risco: primeiro definir uma única célula provider/version/platform/topology/signal; somente depois autorizar controles, medições, dados representativos e laboratório.
+- PostgreSQL: recomendado apenas como candidato para avaliação por possuir o único backend slice implementado; permanece não escolhido, `Homologation=None` e suporte público `No`.
+- Evidência: [plano de remediação O5](../../docs/STATE-06-MOD-12-O5-Remediation-Plan.md).
+- Estado resultante: sem transição; nenhum lote O5-R1–O5-R10 autorizado, `ActivationState=None`, Human Gate O5 e `None → Observer` bloqueados.
+- Próxima decisão: Bruno poderá aceitar, aceitar com ressalvas, solicitar ajustes ou rejeitar o plano. Somente depois uma autorização separada poderá liberar o O5-R1 documental.
+- Aprovador: plano documental elaborado; decisão humana pendente.
+
 ## Template de nova entrada
 
 - Data:
