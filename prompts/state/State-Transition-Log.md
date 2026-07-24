@@ -2999,6 +2999,19 @@
 - Próxima decisão: proposta e autorização separadas para repetir as amostras humanas visíveis do O4 após O4-UI1; somente depois poderá existir Human Gate O4 informado.
 - Aprovador: resultado automático local; decisão humana O4 pendente.
 
+## 2026-07-24 — Amostras humanas O4 após O4-UI1 aprovadas
+
+- Estado anterior: O4-UI1 automaticamente aprovado, primeiras amostras O4 historicamente reprovadas e repetição remediada pendente; `ActivationState=None`.
+- Autoridade: repetição local e visível exclusiva sobre `0e740671c2b92220ccd6b9de8899ff99dcc953a9`, sem implementação, correção, dado real, O5, ativação ou transição.
+- Inspeção: Bruno respondeu exatamente `INSPEÇÃO O4 APÓS O4-UI1 CONCLUÍDA: Sem observações` contra o checklist pt-BR/en-GB, Light/Dark, desktop/compacto, teclado, foco, rastreabilidade e verdades factuais.
+- Decisão: Bruno declarou exatamente `AMOSTRAS HUMANAS O4 APÓS O4-UI1 — APROVADAS`.
+- Evidência: [relatório da repetição humana O4-UI1](../../docs/STATE-06-MOD-12-O4-UI1-Human-Samples-Repetition-Report.md), com screenshot conversacional corroborante não copiado para o repositório.
+- Cleanup: zero processo O4/Chrome dedicado, listener e root temporário; build normal restaurado com zero referência O4; baseline e worktree limpas antes do registro.
+- Estado resultante: sem transição; as amostras remediadas O4 estão aprovadas, a reprovação original permanece histórica e o Human Gate O4 continua `PENDENTE`.
+- Limites: sem composição normal, dado/corpus/provider/banco/credencial real, WPF/Tray, LLM, sugestão, recomendação, comando, automação, O5, push, deploy, `OBSERVER` ou lifecycle.
+- Próxima decisão: proposta concisa e decisão separada do Human Gate O4; eventual aceitação de O4 não ativará `OBSERVER` nem autorizará O5.
+- Aprovador: Bruno, 2026-07-24, somente para as amostras humanas O4 após O4-UI1.
+
 ## Template de nova entrada
 
 - Data:
