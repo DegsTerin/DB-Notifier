@@ -4,7 +4,7 @@
 
 - Authorised baseline: `2408093ff2a66d05e4f00f523cf4b3b35be71ac4`
 - Automatic result: `APPROVED`
-- Human acceptance: `PENDING`
+- Human acceptance: `APPROVED` in the separate [O2-B Human Gate](STATE-06-MOD-12-O2B-Human-Gate-Report.md)
 - Runtime boundary: exact test-only opt-in sandbox
 - Durable state: synthetic caller-owned operating-system temporary root only
 - MOD-12 activation: `ActivationState=None`
@@ -136,6 +136,8 @@ described by ADR-0007; no operational backup integration is claimed. Resource va
 calibrated on a representative corpus. There is no normal composition, operational observability backend, kill switch,
 UI, provider support, LLM, recommendation, command, automation or `OBSERVER` activation.
 
-The automatic O2-B result is `APPROVED`. Human acceptance remains a separate pending decision. Acceptance of this
-report would accept only the synthetic durable pipeline and its explicit limits; it would not authorise O3, a corpus,
+The automatic O2-B result is `APPROVED`. Bruno subsequently decided exactly
+`HUMAN GATE DO O2-B: APROVADO`. The separate
+[O2-B Human Gate report](STATE-06-MOD-12-O2B-Human-Gate-Report.md) records that acceptance and its authority boundary.
+The decision accepted only the synthetic durable pipeline and its explicit limits; it did not authorise O3, a corpus,
 normal composition, `OBSERVER` or lifecycle transition.
