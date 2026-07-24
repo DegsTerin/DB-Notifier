@@ -3012,6 +3012,19 @@
 - Próxima decisão: proposta concisa e decisão separada do Human Gate O4; eventual aceitação de O4 não ativará `OBSERVER` nem autorizará O5.
 - Aprovador: Bruno, 2026-07-24, somente para as amostras humanas O4 após O4-UI1.
 
+## 2026-07-24 — Human Gate O4 aprovado com ressalvas
+
+- Estado anterior: `STATE-06 INTEGRATION`, O4 e O4-UI1 automaticamente aprovados, repetição humana visível aprovada e Human Gate O4 pendente; `ActivationState=None`.
+- Decisão: Bruno declarou exatamente `HUMAN GATE DO O4: APROVADO COM RESSALVAS — aceito o O4, o O4-UI1 e as amostras humanas aprovadas como evidência suficiente do sandbox Observer factual, sintético, read-only e não autorizador. Reconheço que o corpus não representa produção, a previsão permanece Unknown e acessibilidade/DPI físicos não foram comprovados. Esta decisão encerra somente o O4 e não autoriza O5, dados reais, ativação do OBSERVER, recomendações, comandos, automação, deploy ou transição de lifecycle.`
+- Estado resultante: sem transição; `STATE-06 INTEGRATION` e `ActivationState=None` mantidos. O4 está humanamente encerrado somente no seu sandbox factual, sintético, read-only e não autorizador.
+- Escopo aceito: projeção provider-neutral in-memory, rastreabilidade content-addressed, API HTTPS loopback autenticada e read-only, UI dedicada, sinal `Stale`, forecast `Unknown`, incerteza e limitações explícitas, O4-UI1 e amostras visíveis repetidas.
+- Ressalvas: o corpus não representa produção; `Unknown` não comprova capacidade preditiva; acessibilidade e DPI físicos não foram demonstrados; suporte operacional, qualidade de produção e prontidão de ativação não são inferidos.
+- Evidência: [relatório automático O4](../../docs/STATE-06-MOD-12-O4-Factual-Observer-Projection-API-UI-Sandbox-Report.md), [relatório O4-UI1](../../docs/STATE-06-MOD-12-O4-UI1-Visual-Organisation-Remediation-Report.md), [amostras humanas repetidas](../../docs/STATE-06-MOD-12-O4-UI1-Human-Samples-Repetition-Report.md) e [Human Gate O4](../../docs/STATE-06-MOD-12-O4-Human-Gate-Report.md).
+- Atividade documental: baseline `ea849ad5589bfe7936410d0aa85ba4bccee16a68`; shutdown preflight removeu um perfil temporário dedicado residual sem processo associado e depois comprovou zero processo e zero root temporário DB-Notifier. Nenhum código, teste, runtime de produto, push, deploy ou transição.
+- Limites: a aceitação não autoriza O5, dado/telemetria/corpus/provider/banco/credencial real, composição normal, LLM, sugestão, recomendação, comando, automação, `OBSERVER`, execução operacional, push, deploy, promoção ou lifecycle.
+- Próxima decisão: qualquer O5, evidência representativa, Quality Gate de ativação, `None → Observer` ou transição exige proposta, autorização e gates posteriores e separados.
+- Aprovador: Bruno, 2026-07-24, exclusivamente para o Human Gate O4.
+
 ## Template de nova entrada
 
 - Data:
