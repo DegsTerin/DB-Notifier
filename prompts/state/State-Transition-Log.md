@@ -2937,6 +2937,20 @@
 - Próxima decisão: qualquer proposta ou implementação O3-B e qualquer ativação `None → Observer` exigem autorizações e gates posteriores e separados.
 - Aprovador: Bruno, 2026-07-24, exclusivamente para o Human Gate O3-A.
 
+## 2026-07-24 — O3-B governed offline calibration and holdout sandbox concluído automaticamente
+
+- Estado anterior: `STATE-06 INTEGRATION`, O3-A automática e humanamente aprovado somente como corpus sandbox sintético e `ActivationState=None`.
+- Autoridade: implementação local exclusiva do O3-B sobre `89f290cc950ed0385ee004c57ff9d0a3c07a8f85`, somente sob marker test-only, usando apenas o corpus sintético O3-A e sem composição normal, dado real, treino, UI, ativação ou transição.
+- Estado resultante: sem transição; `STATE-06 INTEGRATION` e `ActivationState=None` mantidos. O3-B está automaticamente `APROVADO`; Human Gate O3-B permanece `PENDENTE`.
+- Implementação: partition gate que exclui holdout da calibração; política bounded por segmento, dual-approved, attested, content-addressed e congelada; holdout one-use; binding exato corpus/política; métricas completas e autenticadas; continuidade contra reuse e rollback; publicação all-or-nothing e não autorizadora.
+- Medição sintética: três segmentos com cobertura `1,00`, abstention `0,00`, estabilidade `1,00` e explicabilidade `1,00`; capacidade e latência sem falso positivo/negativo; disponibilidade com um falso positivo e erro binário `1,00`, preservado como limitação factual. Essa aprovação prova o protocolo e não qualidade de produção.
+- Matriz adversarial: leakage, retirada/expiração, revisão/membership divergente, política alterada, papel incorreto, holdout pré-freeze/repetido, rollback, métrica incompleta/adulterada/não finita, segmento ausente, deadline, cancellation, caso/trabalho/memória saturados e 96 mutações determinísticas falharam fechados.
+- Gates: O3-B `10/10`; integração `72/72`; arquitetura O3-B `4/4`; arquitetura completa `71/71`; MOD-12 proporcional `77/77`; solução Release sem avisos/erros; cobertura focal do source test-only `93,91%` (`540/575`); format, documentação, links, secrets, diff e cleanup aprovados; processo exato reportou três segmentos, aprovação sintética, não representatividade, não autoridade e `ActivationState=None`.
+- Evidência: [relatório automático O3-B](../../docs/STATE-06-MOD-12-O3B-Governed-Offline-Calibration-And-Holdout-Report.md).
+- Limites: corpus de nove fixtures e um holdout por segmento; sem prova de prevalência, provider/version/topology, previsão OLS futura ou qualidade operacional; sem corpus/telemetria real, dados pessoais, treino, composição normal, UI, LLM, recomendação, comando, automação, push, deploy, `OBSERVER` ou lifecycle.
+- Próxima decisão: Human Gate O3-B separado poderá aceitar, aceitar com ressalvas ou rejeitar somente este sandbox. Qualquer corpus real e qualquer passo posterior continuam sem autorização.
+- Aprovador: resultado automático local; decisão humana O3-B pendente.
+
 ## Template de nova entrada
 
 - Data:
