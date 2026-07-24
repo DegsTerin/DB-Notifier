@@ -2875,6 +2875,18 @@
 - Próxima decisão: Human Gate O2-A separado poderá aceitar, aceitar com ressalvas ou rejeitar somente este sandbox. O2-B e qualquer ativação continuam sem autorização.
 - Aprovador: resultado automático local; decisão humana O2-A pendente.
 
+## 2026-07-23 — Human Gate O2-A aprovado
+
+- Estado anterior: `STATE-06 INTEGRATION`, O2-A automaticamente aprovado no commit `eec5511b15208e7aadb569b9c8a82db0200fdc74`, com Human Gate próprio pendente.
+- Estado resultante: sem transição; `STATE-06 INTEGRATION` e `ActivationState=None` mantidos. O2-A está humanamente aceito somente como sandbox test-only opt-in.
+- Decisão: Bruno declarou exatamente `HUMAN GATE DO O2-A: APROVADO`.
+- Escopo aceito: envelope canônico provider-neutral, cadeia sintética Agent → Server → O1 → MOD-12, controles fail-closed de contrato/identidade/sequência/freshness/revogação/contexto/recursos e publicação somente completa e não autorizadora, conforme o relatório automático O2-A.
+- Evidência: [relatório automático O2-A](../../docs/STATE-06-MOD-12-O2A-Canonical-Read-Only-Observation-Pipeline-Sandbox-Report.md) e [Human Gate O2-A](../../docs/STATE-06-MOD-12-O2A-Human-Gate-Report.md).
+- Atividade documental: baseline `eec5511b15208e7aadb569b9c8a82db0200fdc74`, worktree limpa e shutdown preflight com zero processo, listener ou janela DB-Notifier; nenhum código, teste, runtime de produto, push, deploy ou transição.
+- Limites: a aceitação não autoriza O2-B, composição normal, dado/corpus/provider/banco/credencial real, UI, LLM, recomendação, comando, automação, `OBSERVER`, execução operacional, promoção ou lifecycle.
+- Próxima decisão: qualquer proposta ou implementação O2-B e qualquer ativação `None → Observer` exigem autorizações e gates posteriores e separados.
+- Aprovador: Bruno, 2026-07-23, exclusivamente para o Human Gate O2-A.
+
 ## Template de nova entrada
 
 - Data:

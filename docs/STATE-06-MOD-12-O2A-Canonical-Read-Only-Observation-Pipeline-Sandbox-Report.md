@@ -4,7 +4,7 @@
 
 - Authorised baseline: `6cfe42facb83819447c216757cdf1d73bfc180de`
 - Automatic result: `APPROVED`
-- Human acceptance: `PENDING`
+- Human acceptance: `APPROVED` in the separate [O2-A Human Gate](STATE-06-MOD-12-O2A-Human-Gate-Report.md)
 - Runtime boundary: exact test-only opt-in sandbox
 - Synthetic durable state: caller-owned temporary O1 trust root only
 - Other O2-A state: bounded in-memory fixtures
@@ -131,6 +131,7 @@ bounded retention, operational observability and backpressure hardening belong t
 Representative corpus, calibration, empirical host limits, normal composition, kill switch, rollback, API/UI projection
 and the transition to `OBSERVER` remain blocked.
 
-The authorised automatic O2-A increment is `APPROVED`. A separate Human Gate may now accept, accept with reservations
-or reject only this synthetic sandbox and its stated limitations. That decision will not activate `OBSERVER` or
-authorise O2-B.
+The authorised automatic O2-A increment is `APPROVED`. Bruno subsequently decided exactly
+`HUMAN GATE DO O2-A: APROVADO`. The separate
+[O2-A Human Gate report](STATE-06-MOD-12-O2A-Human-Gate-Report.md) records that acceptance and its authority boundary.
+The decision did not activate `OBSERVER` or authorise O2-B.
