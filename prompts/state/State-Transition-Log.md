@@ -3025,6 +3025,19 @@
 - Próxima decisão: qualquer O5, evidência representativa, Quality Gate de ativação, `None → Observer` ou transição exige proposta, autorização e gates posteriores e separados.
 - Aprovador: Bruno, 2026-07-24, exclusivamente para o Human Gate O4.
 
+## 2026-07-24 — O5 Quality Gate de ativação bloqueado
+
+- Estado anterior: `STATE-06 INTEGRATION`, O1–O4 aceitos somente nos seus sandboxes e `ActivationState=None`.
+- Autoridade: execução local exclusiva do O5 sobre `970a2785abd11e3c493d26d2b00507f0f3a29462`, sem implementação, correção, dado/provider real, acesso externo, ativação ou transição.
+- Estado resultante: sem transição; `STATE-06 INTEGRATION` e `ActivationState=None` mantidos. O resultado automático O5 é `BLOQUEADO`.
+- Evidência verde preservada: build Release sem avisos/erros; integração `75/75`; arquitetura `75/75`; unitários MOD-12 `36/36`; Dashboard `72/72`; auditor O4 `28/28`; isolamento do build normal e cleanup aprovados.
+- Bloqueios: corpus apenas sintético e `ProductionRepresentative=false`; calibração sem validade operacional; `HM-01`–`HM-03` não testados; ausência de revisão de segurança da composição ativável; opt-in/kill switch/rollback operacionais não implementados ou ensaiados; SLOs, retenção, owners e resposta a incidentes não testados; nenhuma entrada de provider homologada.
+- Escopo de provider: PostgreSQL permanece `Homologation=None` e suporte público `No`; nenhum provider, banco, credencial, telemetria ou corpus real foi utilizado.
+- Evidência: [relatório automático O5](../../docs/STATE-06-MOD-12-O5-None-To-Observer-Quality-Gate-Report.md).
+- Limites: nenhuma correção foi tentada; código e configuração permaneceram inalterados; sem LLM, recomendação, comando, automação, push, deploy, `OBSERVER` ou lifecycle.
+- Próxima decisão: somente uma autorização separada para elaborar o plano de remediação das lacunas O5 é elegível. Human Gate O5 e transição `None → Observer` permanecem bloqueados.
+- Aprovador: resultado automático local; Human Gate O5 não solicitado.
+
 ## Template de nova entrada
 
 - Data:
