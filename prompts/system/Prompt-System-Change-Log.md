@@ -2,10 +2,10 @@
 
 ## Versão atual
 
-- Versão: `3.56.34`
+- Versão: `4.0.0`
 - Data: 2026-07-25
-- Status: corpus DB-Notifier consolidado
-- Escopo: 13 arquivos ativos
+- Status: corpus DB-Notifier com Prompt Mestre incorporado
+- Escopo: 14 arquivos ativos
 
 A versão do corpus é independente da versão do software.
 
@@ -16,6 +16,35 @@ A versão do corpus é independente da versão do software.
 - PATCH: clareza, correção ou referência sem mudança de autoridade.
 
 Toda alteração atualiza este arquivo e, quando necessário, `../Start-Here.md`.
+
+## 4.0.0 — 2026-07-25
+
+- Incorpora as `30` macroseções completas da fonte
+  `PROMPT_MESTRE_CODEX.md` como
+  `system/AI-Software-Engineering-Master-Prompt.md`, sem manter cópia paralela
+  na raiz, preservando copyright, título, uso recomendado, versão de origem
+  `2.0.0` e SHA-256, e registrando explicitamente as adaptações.
+- Registra no próprio Prompt Mestre a matriz normativa das 30 macroseções, os
+  proprietários temáticos, o mapeamento F0–F12 para `STATE-00`–`STATE-08` e os
+  trechos que permanecem informativos ou condicionais.
+- Torna explícita a precedência entre plataforma, solicitação atual, limites
+  não renunciáveis, instruções de diretório, estado factual, autoridades
+  temáticas, Prompt Mestre, playbooks, templates e história; as decisões PM-1
+  prevalecem nos conflitos antigos que resolvem, enquanto o proprietário
+  temático permanece canônico nos itens delegados pela matriz.
+- Adota autorização explícita ou inclusão inequívoca para commit local e
+  Conventional Commits, sem ampliar essa autoridade para qualquer ação remota
+  ou de entrega.
+- Mantém `70%` de linhas e `45%` de branches como pisos automáticos, define
+  `80%` de linhas como meta orientativa baseada em risco e proíbe reduzir pisos
+  por componente sem decisão, evidência e registro.
+- Adapta trabalho multiagente à disponibilidade da plataforma e a ganho
+  material, sem expandir o escopo autorizado ou substituir revisão
+  independente e Human Gate.
+- Atualiza a estrutura ativa de `13` para `14` arquivos. Esta mudança não
+  altera código, dependências, estado factual, `STATE-06`,
+  `ActivationState=None` ou qualquer autoridade de runtime, release ou
+  transição.
 
 ## 3.56.34 — 2026-07-25
 

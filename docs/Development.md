@@ -95,7 +95,7 @@ $dotnet = ".\.dotnet\dotnet.exe"
 
 All active projects target `net10.0` or an appropriate versioned .NET 10 Windows TFM; the WPF Desktop currently targets `net10.0-windows10.0.22621.0`. Warnings are treated as errors, nullable analysis and .NET analyzers are enabled, and the Domain dependency direction has a baseline architecture test.
 
-The unit-test coverage gate requires at least 70% line coverage and 45% branch coverage. The separate legacy Pester gate requires at least 25% command coverage; these are regression floors for the current bounded suites, not claims of complete behavioural coverage.
+The unit-test coverage gate requires at least 70% line coverage and 45% branch coverage. An 80% line-coverage level is a risk-based directional target, not a replacement automatic gate; existing component floors must not be reduced without explicit authority, evidence and a governance record. The separate legacy Pester gate requires at least 25% command coverage. These are regression floors for the current bounded suites, not claims of complete behavioural coverage.
 
 ## R4-B disposable PostgreSQL ownership laboratory
 

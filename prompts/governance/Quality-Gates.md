@@ -23,6 +23,21 @@ Banner de sucesso, compilação isolada ou ausência de erro aparente não prova
 - Dívida e cobertura pendente explicitadas.
 - Mudanças preexistentes não relacionadas preservadas.
 
+## Política de cobertura
+
+- Os gates automatizados correntes mantêm pisos obrigatórios de `70%` de
+  linhas e `45%` de branches para a suíte .NET abrangida.
+- `80%` de linhas é meta orientativa baseada em risco. Não substitui os pisos,
+  não é um novo gate automático e não prova qualidade isoladamente.
+- Componentes críticos podem exigir cobertura superior. Nenhum piso existente
+  por componente pode ser reduzido sem decisão explícita, evidência e registro
+  de governança.
+- Cobertura não substitui testes funcionais, negativos, de integração,
+  segurança, acessibilidade, compatibilidade, resiliência ou desempenho
+  aplicáveis.
+- Exclusões de código gerado ou trivial devem ser estreitas, justificadas e
+  verificáveis; não podem ocultar comportamento de produto.
+
 ## Auditoria automática comum
 
 1. Confirmar estado e escopo.

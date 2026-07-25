@@ -2,7 +2,11 @@
 
 ## Autoridade
 
-A precedência global está em `../Start-Here.md`. Nenhum documento histórico ou template altera o estado do projeto.
+A precedência global está em `../Start-Here.md`. O Prompt Mestre incorporado em
+`../system/AI-Software-Engineering-Master-Prompt.md` fornece o método geral e
+sua matriz de adoção; este documento permanece proprietário da autoridade,
+execução controlada e estados canônicos. Nenhum documento histórico ou
+template altera o estado do projeto.
 
 ## Estados canônicos
 
@@ -102,7 +106,9 @@ Bloqueio não autoriza salto de estado.
 
 ## Trabalho multiagente
 
-Somente quando explicitamente autorizado:
+Usar somente quando a plataforma permitir e houver ganho material de
+independência, especialização ou paralelismo. O uso de agentes não amplia o
+escopo já autorizado nem concede autoridade de edição, runtime ou ação externa.
 
 - Um integrador mantém escopo, estado e decisões.
 - Subtarefas devem ser independentes e ter ownership claro.

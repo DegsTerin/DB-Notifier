@@ -2,7 +2,7 @@
 
 ## Finalidade
 
-Este é o ponto de entrada obrigatório para trabalhos orientados pelo corpus do DB-Notifier. O sistema separa visão, arquitetura, governança, segurança, ciclo de desenvolvimento, qualidade, playbooks, estado corrente, histórico e templates.
+Este é o ponto de entrada obrigatório para trabalhos orientados pelo corpus do DB-Notifier. O sistema separa visão, método geral de engenharia assistida por IA, arquitetura, governança, segurança, ciclo de desenvolvimento, qualidade, playbooks, estado corrente, histórico e templates.
 
 Agentes que operam no repositório começam também por [`../AGENTS.md`](../AGENTS.md), fonte operacional principal das instruções permanentes e reutilizáveis. O `AGENTS.md` consolida regras transversais e encaminha para este corpus; não substitui a autoridade temática detalhada, os ADRs aceitos nem a evidência factual.
 
@@ -11,13 +11,15 @@ Agentes que operam no repositório começam também por [`../AGENTS.md`](../AGEN
 1. [`foundation/Prompt-New-Project.md`](foundation/Prompt-New-Project.md): visão e limites do produto.
 2. [`state/Current-State.md`](state/Current-State.md): situação factual do workspace.
 3. [`governance/Governance.md`](governance/Governance.md): autoridade, estados e regras de execução.
-4. Abrir somente os documentos temáticos necessários à tarefa.
+4. [`system/AI-Software-Engineering-Master-Prompt.md`](system/AI-Software-Engineering-Master-Prompt.md): leitura obrigatória para projeto novo, auditoria ampla, reorganização material ou trabalho transversal; em ajuste focal, aplicar a síntese permanente de `AGENTS.md` e abrir a seção temática roteada quando necessária.
+5. Abrir somente os demais documentos temáticos necessários à tarefa.
 
 ## Roteamento
 
 | Necessidade | Documento |
 |---|---|
 | Instruções permanentes e comportamento operacional de agentes | `../AGENTS.md` |
+| Método geral de engenharia, papéis virtuais, proporcionalidade, modos de trabalho e matriz de adoção | `system/AI-Software-Engineering-Master-Prompt.md` |
 | Visão, escopo e objetivos | `foundation/Prompt-New-Project.md` |
 | Arquitetura, dados, providers e módulos | `foundation/Solution-Architecture-Document.md` |
 | MOD-12 AIOPS_AI, modelos estatísticos, LLM e automação controlada | `foundation/AIOps-And-AI-Module.md` |
@@ -37,14 +39,22 @@ Agentes que operam no repositório começam também por [`../AGENTS.md`](../AGEN
 
 Em caso de conflito, aplicar nesta ordem:
 
-1. Pedido atual e explícito do usuário.
-2. Segurança, proteção de dados e limites de autorização.
-3. Visão do produto.
-4. Estado corrente.
-5. Governança e ciclo de desenvolvimento.
-6. Arquitetura e segurança específicas.
-7. Playbook selecionado.
-8. Templates e histórico.
+1. Instruções da plataforma, sistema e desenvolvedor.
+2. Pedido atual e explícito do proprietário.
+3. Segurança, proteção de dados, autorização externa e gates de lifecycle que
+   uma solicitação comum não pode dispensar silenciosamente.
+4. Instruções aplicáveis ao diretório, da mais específica para a mais geral,
+   incluindo `AGENTS.override.md` quando existir e `AGENTS.md`.
+5. Estado corrente factual.
+6. Visão do produto, governança e lifecycle canônico.
+7. Decisões explícitas da matriz PM-1, que substituem instruções preexistentes
+   nos conflitos que a própria matriz resolve.
+8. Autoridade temática específica de arquitetura, segurança, qualidade, dados,
+   Design System ou ADR aceito para itens classificados como `JÁ GOVERNADO` ou
+   para a especialização descrita em um item `ADAPTADO`.
+9. Baseline genérica do Prompt Mestre onde não houver especialização.
+10. Playbook selecionado.
+11. Templates, evidência histórica e convenções inferidas.
 
 Conflitos que ampliem materialmente o escopo, exijam ação externa irreversível ou reduzam segurança devem ser apresentados ao usuário antes da execução.
 
@@ -63,4 +73,9 @@ Conflitos que ampliem materialmente o escopo, exijam ação externa irreversíve
 
 ## Estrutura ativa
 
-O corpus contém 13 arquivos ativos. Um novo arquivo só deve ser criado quando o conteúdo tiver autoridade, ciclo de vida ou público diferente dos documentos existentes. Caso contrário, adicionar uma seção ao documento temático apropriado.
+O corpus contém 14 arquivos ativos. O Prompt Mestre incorporado tem autoridade
+transversal distinta: preserva a baseline geral e encaminha especializações
+aos documentos proprietários, sem criar um lifecycle paralelo. Um novo arquivo
+só deve ser criado quando o conteúdo tiver autoridade, ciclo de vida ou público
+diferente dos documentos existentes. Caso contrário, adicionar uma seção ao
+documento temático apropriado.

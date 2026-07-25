@@ -4,7 +4,7 @@
 
 This file is the primary operational source for permanent, reusable instructions that govern work in this repository. It applies to the whole workspace unless a more specific `AGENTS.md` is deliberately introduced for a subtree.
 
-Before acting, read [`prompts/Start-Here.md`](prompts/Start-Here.md), the current factual state, and the documents routed there for the requested work. This file consolidates cross-cutting behaviour; it does not replace accepted ADRs, lifecycle gates, security policy, the Design System, or factual evidence.
+Before acting, read [`prompts/Start-Here.md`](prompts/Start-Here.md), the current factual state, and the documents routed there for the requested work. The adopted [`AI Software Engineering Master Prompt`](prompts/system/AI-Software-Engineering-Master-Prompt.md) owns the general engineering method, role model, proportionality and work modes; its adoption matrix routes each specialised rule to the existing thematic authority. This file consolidates cross-cutting behaviour; it does not replace accepted ADRs, lifecycle gates, security policy, the Design System, or factual evidence.
 
 Resolve conflicts using the precedence in `prompts/Start-Here.md`. A current explicit user instruction may refine the requested scope, but it does not silently waive safety, data protection, external-authorisation boundaries, or lifecycle gates. Surface any unresolved material conflict before taking an irreversible or externally impactful action.
 
@@ -16,6 +16,7 @@ Resolve conflicts using the precedence in `prompts/Start-Here.md`. A current exp
 - Build an open, professional, provider-neutral database monitoring and controlled-administration platform, not a PostgreSQL-only product.
 - Treat `MOD-12 AIOPS_AI` as DB-Notifier's principal strategic product differentiator: evidence-grounded, provider-neutral intelligence that progresses from deterministic `OBSERVER` signals to independently gated recommendations and typed controlled automation. This priority never bypasses data governance, lifecycle states, Quality/Human Gates, provider homologation, least privilege, or the separation between recommendation, approval and execution.
 - Treat roadmap, implementation, homologation, public support, runtime availability, and authorisation as distinct facts.
+- Apply the adopted engineering framework proportionally to scope and risk. Activate only the roles needed for the current work, preserve independent review where risk requires it, and treat generic tools, stacks, branches and directory layouts in that framework as examples rather than implicit project requirements.
 - Never invent implementation, support, evidence, test results, credentials, approvals, runtime state, or environment capabilities.
 - Before beginning every newly authorised technical action on the codebase or product, perform the mandatory DB-Notifier shutdown preflight. Triggers include an approval that releases execution, source/configuration/documentation changes, adjustments, remediations, modifications, implementations, executable audits, builds, tests and human runtime samples. Stop and close every currently running DB-Notifier component and project-owned runtime, including WPF/Tray, Dashboard preview or development servers, Agent, API, project-owned background helpers and any dedicated review browser. Identify shared-host processes through verified PID, executable path, command line or parentage rather than by process name alone. Verify that no matching process, visible window, notification-area instance or owned listener remains before continuing. Never stop a monitored database engine/service, the user's ordinary browser, IDE or any unrelated process under this rule. If complete shutdown cannot be proved, report the exact residue and treat the technical action as blocked. Pure conversation, questions, explanations, status reports and other turns that perform no codebase/product action do not trigger shutdown. A runtime may remain visible only while its current technical action explicitly hands a human sample to the user; perform shutdown before any subsequent technical action.
 - Inspect the current state before work. Do not advance a lifecycle state automatically: an automatic audit and an explicit Human Gate are both required.
@@ -117,7 +118,7 @@ Resolve conflicts using the precedence in `prompts/Start-Here.md`. A current exp
 - `prompts/state/State-Transition-Log.md`: append-only factual transition/increment history.
 - `prompts/operations/`: task-specific operational playbooks.
 - `prompts/templates/`: evidence templates; templates are not approvals or proof of execution.
-- `prompts/system/`: instruction-corpus version and change history.
+- `prompts/system/`: adopted cross-cutting engineering framework, instruction-corpus version and change history.
 - `docs/architecture/` and `docs/data/`: accepted decisions and specialised technical contracts.
 - `docs/design/DB-Notifier-Design-System.md`: normative frontend specification.
 - `docs/STATE-*` and migration reports: historical evidence, not standing authority unless an active governing document explicitly adopts a decision from them.
@@ -146,6 +147,7 @@ Resolve conflicts using the precedence in `prompts/Start-Here.md`. A current exp
 - For runtime work, verify actual process/service state and live health; do not rely only on startup output. Stop validation processes when the task does not authorise leaving them running.
 - When an explicitly authorised human review opens the local Dashboard, always launch a dedicated browser process with its own isolated temporary profile. Never open the review in, attach automation to, add a tab to, or reuse the browser/profile the user is already using, even when a separate window would be available there. Leave every unrelated browser process, profile, window and tab untouched; close or hand off only the dedicated review browser according to the agreed sample workflow, and remove its temporary profile only after that dedicated process has ended.
 - Distinguish observed, inferred, not tested, and blocked results. Record commands, environment, versions, exit codes, scope, and sanitised artefacts where appropriate.
+- Preserve the current automated coverage floors of 70% lines and 45% branches. Treat 80% line coverage as a risk-based directional target, not an automatic replacement gate, and never lower an existing component floor without explicit authority, evidence and a governance record.
 - Keep automatic audit and human validation separate. Never pre-fill or infer a Human Gate approval.
 - Treat a bare acknowledgement such as `yes`, `approved`, `sim`, `aprovado` or `continue` as a Human Gate decision only when it directly answers an explicit gate summary that names the single lifecycle state, reviewed automatic report, repeated human samples, reservations and exact decision being requested. Ambiguous or bundled acknowledgements leave the gate pending.
 - If a validator later disputes whether a recorded approval was informed, preserve the historical record, place lifecycle progression on hold and require a separate retrospective ratification for each affected state. Never ratify on the validator's behalf.
@@ -163,9 +165,9 @@ Resolve conflicts using the precedence in `prompts/Start-Here.md`. A current exp
 
 - Inspect `git status` and the relevant diff before editing and again before committing.
 - Keep changes scoped. Preserve and exclude unrelated user edits, environment drift, logs, caches, generated build output, installers, binaries, and secrets.
-- Use focused commits after each completed, verified increment. The standing project preference is to commit completed work rather than leave it uncommitted.
+- Create a focused local commit only when the user explicitly authorises it or the current request unequivocally includes it. When authorised, use Conventional Commits in the form `<type>(<scope>): <description>` and include only the related, validated increment.
 - Review the staged diff and run `git diff --cached --check` plus applicable validations before committing.
-- Do not amend, rebase, force-push, push, publish, or open a pull request unless the user explicitly requests that operation.
+- Authorisation for a local commit does not authorise amend, rebase, force-push, push, publish, merge, release, deployment, or opening a pull request; each requires its corresponding explicit authority.
 - Report the commit identifier and validation outcome in the final hand-off.
 
 ## Maintaining these instructions
