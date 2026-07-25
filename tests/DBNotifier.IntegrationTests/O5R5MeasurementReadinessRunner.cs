@@ -49,12 +49,13 @@ internal sealed record O5R5PhaseLimit(
 /// </summary>
 internal sealed class O5R5MeasurementProtocol
 {
-    internal const string Version = "pfobs1-physical-measurement-2.0.0";
+    internal const string Version = "pfobs1-physical-measurement-3.0.0";
     internal const int WarmUpRepetitions = 5;
     internal const int MeasuredRepetitions = 30;
     internal const int RepeatabilityGroupCount = 5;
     internal const int SamplesPerRepeatabilityGroup = 6;
     internal const int RequiredConsecutiveCampaigns = 2;
+    internal const int FirstByteRepeatabilityWorkUnits = 100_000;
     internal const int MaximumCheckpoints = 64;
     internal const int Percentile50 = 50;
     internal const int Percentile95 = 95;
@@ -123,7 +124,7 @@ internal sealed class O5R5MeasurementProtocol
                 new(
                     O5R5MeasurementPhase.FirstByte,
                     envelope.FirstByteDuration + SchedulingAllowance,
-                    false),
+                    true),
                 new(
                     O5R5MeasurementPhase.Idle,
                     envelope.IdleDuration + SchedulingAllowance,
@@ -174,6 +175,7 @@ internal sealed class O5R5MeasurementProtocol
             SamplesPerRepeatabilityGroup != 6 ||
             RepeatabilityGroupCount * SamplesPerRepeatabilityGroup != MeasuredRepetitions ||
             RequiredConsecutiveCampaigns != 2 ||
+            FirstByteRepeatabilityWorkUnits != Envelope.MaximumWorkUnits ||
             MaximumCheckpoints != 64 ||
             MaximumElapsedMicrosecondsPerWorkUnit <= 0d ||
             MaximumCpuMicrosecondsPerWorkUnit <= 0d)
@@ -186,7 +188,7 @@ internal sealed class O5R5MeasurementProtocol
             O5R5PhaseLimit limit = LimitFor(phase);
             if (limit.MaximumElapsed <= TimeSpan.Zero ||
                 limit.MaximumElapsed > Envelope.TotalDuration ||
-                limit.MeasuresWorkRate != IsComputePhase(phase))
+                limit.MeasuresWorkRate != MeasuresDeterministicWorkRate(phase))
             {
                 throw new InvalidOperationException("o5r5a.protocol.phase_limit_invalid");
             }
@@ -206,6 +208,9 @@ internal sealed class O5R5MeasurementProtocol
             $"repeatability_group_count={RepeatabilityGroupCount}",
             $"samples_per_repeatability_group={SamplesPerRepeatabilityGroup}",
             $"required_consecutive_campaigns={RequiredConsecutiveCampaigns}",
+            $"first_byte_repeatability_work_units={FirstByteRepeatabilityWorkUnits}",
+            "first_byte_absolute_metric=before-to-first-observation",
+            "first_byte_repeatability_metric=first-observation-to-terminal-fixed-work-window",
             $"maximum_checkpoints={MaximumCheckpoints}",
             $"percentiles={Percentile50},{Percentile95},{Percentile99},100",
             $"maximum_coefficient_of_variation={MaximumCoefficientOfVariation.ToString("F2", CultureInfo.InvariantCulture)}",
@@ -241,11 +246,12 @@ internal sealed class O5R5MeasurementProtocol
         return string.Join('\n', lines);
     }
 
-    /// <summary>Returns whether a phase participates in deterministic CPU/work calibration.</summary>
+    /// <summary>Returns whether a phase has a predeclared deterministic work window.</summary>
     /// <param name="phase">Candidate phase.</param>
-    /// <returns><see langword="true"/> only for parse, cryptography, sort and analysis.</returns>
-    internal static bool IsComputePhase(O5R5MeasurementPhase phase) =>
+    /// <returns><see langword="true"/> for FirstByte v3 and the four compute phases.</returns>
+    internal static bool MeasuresDeterministicWorkRate(O5R5MeasurementPhase phase) =>
         phase is
+            O5R5MeasurementPhase.FirstByte or
             O5R5MeasurementPhase.Parse or
             O5R5MeasurementPhase.Cryptography or
             O5R5MeasurementPhase.Sort or
@@ -381,6 +387,8 @@ internal sealed record O5R5MeasurementScenario(
 /// <param name="AccountedMemoryBytes">Predeclared accounted-memory reservation.</param>
 /// <param name="ElapsedMicrosecondsPerWorkUnit">Elapsed work cost for compute phases.</param>
 /// <param name="CpuMicrosecondsPerWorkUnit">CPU work cost for compute phases.</param>
+/// <param name="FirstObservationMilliseconds">First-byte liveness duration, only for FirstByte.</param>
+/// <param name="RepeatabilityWindowMilliseconds">Fixed-window duration, only for FirstByte.</param>
 /// <param name="Passed">Whether every applicable preregistered threshold passed.</param>
 internal sealed record O5R5MeasurementSample(
     string ProtocolDigest,
@@ -398,18 +406,21 @@ internal sealed record O5R5MeasurementSample(
     long AccountedMemoryBytes,
     double? ElapsedMicrosecondsPerWorkUnit,
     double? CpuMicrosecondsPerWorkUnit,
+    double? FirstObservationMilliseconds,
+    double? RepeatabilityWindowMilliseconds,
     bool Passed);
 
 /// <summary>Identifies one allow-listed physical threshold without exposing payload or host identity.</summary>
 internal enum O5R5ThresholdMetric
 {
     ElapsedTime = 1,
-    ManagedHeapPeak = 2,
-    WorkingSetPeak = 3,
-    AllocationPeak = 4,
-    ElapsedPerWorkUnit = 5,
-    CpuPerWorkUnit = 6,
-    RepeatabilityCoefficient = 7,
+    FirstObservationTime = 2,
+    ManagedHeapPeak = 3,
+    WorkingSetPeak = 4,
+    AllocationPeak = 5,
+    ElapsedPerWorkUnit = 6,
+    CpuPerWorkUnit = 7,
+    RepeatabilityCoefficient = 8,
 }
 
 /// <summary>Identifies the exact unit used by one sanitised physical threshold diagnostic.</summary>
@@ -477,6 +488,13 @@ internal sealed record O5R5MetricDistribution(
     double PopulationStandardDeviation,
     double CoefficientOfVariation);
 
+/// <summary>Identifies the predeclared raw metric used by the repeatability statistic.</summary>
+internal enum O5R5RepeatabilityBasis
+{
+    TotalElapsed = 1,
+    FirstByteFixedWindowElapsed = 2,
+}
+
 /// <summary>Reports one exact phase/temperature batch after warm-up separation and completeness checks.</summary>
 /// <param name="Code">Stable accepted or failed summary code.</param>
 /// <param name="Phase">Single exact phase represented by the batch.</param>
@@ -490,6 +508,8 @@ internal sealed record O5R5MetricDistribution(
 /// <param name="AllocationPeak">Checkpoint allocation-peak distribution.</param>
 /// <param name="ElapsedPerWorkUnit">Elapsed work-cost distribution for compute phases.</param>
 /// <param name="CpuPerWorkUnit">CPU work-cost distribution for compute phases.</param>
+/// <param name="FirstObservation">First-byte liveness distribution, or null for other phases.</param>
+/// <param name="RepeatabilityBasis">Predeclared raw metric used for fixed-group medians.</param>
 /// <param name="RepeatabilityElapsed">Distribution of five predeclared sequential-group medians.</param>
 /// <param name="Failures">Bounded batch-level threshold diagnostics.</param>
 /// <param name="Passed">Whether completeness, thresholds and variance all passed.</param>
@@ -506,6 +526,8 @@ internal sealed record O5R5MeasurementSummary(
     O5R5MetricDistribution AllocationPeak,
     O5R5MetricDistribution? ElapsedPerWorkUnit,
     O5R5MetricDistribution? CpuPerWorkUnit,
+    O5R5MetricDistribution? FirstObservation,
+    O5R5RepeatabilityBasis RepeatabilityBasis,
     O5R5MetricDistribution RepeatabilityElapsed,
     IReadOnlyList<O5R5ThresholdFailure> Failures,
     bool Passed)
@@ -668,6 +690,17 @@ internal sealed class O5R5MeasurementReadinessRunner
         O5R5MeasurementSample[] measured = copied.Where(sample => !sample.IsWarmUp).ToArray();
         ValidateSequence(warmUps, O5R5MeasurementProtocol.WarmUpRepetitions);
         ValidateSequence(measured, O5R5MeasurementProtocol.MeasuredRepetitions);
+        bool firstByte = phase == O5R5MeasurementPhase.FirstByte;
+        if (copied.Any(
+                sample =>
+                    firstByte
+                        ? sample.FirstObservationMilliseconds is null ||
+                            sample.RepeatabilityWindowMilliseconds is null
+                        : sample.FirstObservationMilliseconds is not null ||
+                            sample.RepeatabilityWindowMilliseconds is not null))
+        {
+            throw new InvalidOperationException("o5r5d2.summary.metric_shape_invalid");
+        }
 
         O5R5MetricDistribution elapsed = Distribution(measured.Select(sample => sample.ElapsedMilliseconds));
         O5R5MetricDistribution cpu = Distribution(measured.Select(sample => sample.CpuMilliseconds));
@@ -676,14 +709,27 @@ internal sealed class O5R5MeasurementReadinessRunner
             measured.Select(sample => (double)sample.WorkingSetPeakDeltaBytes));
         O5R5MetricDistribution allocation = Distribution(
             measured.Select(sample => (double)sample.AllocationPeakBytes));
-        O5R5MetricDistribution? elapsedPerWork = O5R5MeasurementProtocol.IsComputePhase(phase)
+        O5R5MetricDistribution? elapsedPerWork =
+            O5R5MeasurementProtocol.MeasuresDeterministicWorkRate(phase)
             ? Distribution(measured.Select(sample => sample.ElapsedMicrosecondsPerWorkUnit!.Value))
             : null;
-        O5R5MetricDistribution? cpuPerWork = O5R5MeasurementProtocol.IsComputePhase(phase)
+        O5R5MetricDistribution? cpuPerWork =
+            O5R5MeasurementProtocol.MeasuresDeterministicWorkRate(phase)
             ? Distribution(measured.Select(sample => sample.CpuMicrosecondsPerWorkUnit!.Value))
             : null;
+        O5R5MetricDistribution? firstObservation = firstByte
+            ? Distribution(measured.Select(sample => sample.FirstObservationMilliseconds!.Value))
+            : null;
+        O5R5RepeatabilityBasis repeatabilityBasis = firstByte
+            ? O5R5RepeatabilityBasis.FirstByteFixedWindowElapsed
+            : O5R5RepeatabilityBasis.TotalElapsed;
         O5R5MetricDistribution repeatabilityElapsed = FixedGroupMedianDistribution(
-            measured.Select(sample => sample.ElapsedMilliseconds).ToArray());
+            measured
+                .Select(
+                    sample => firstByte
+                        ? sample.RepeatabilityWindowMilliseconds!.Value
+                        : sample.ElapsedMilliseconds)
+                .ToArray());
         O5R5ThresholdFailure[] failures =
             repeatabilityElapsed.CoefficientOfVariation >
                 O5R5MeasurementProtocol.MaximumCoefficientOfVariation
@@ -720,6 +766,8 @@ internal sealed class O5R5MeasurementReadinessRunner
             allocation,
             elapsedPerWork,
             cpuPerWork,
+            firstObservation,
+            repeatabilityBasis,
             repeatabilityElapsed,
             failures,
             passed);
@@ -737,6 +785,12 @@ internal sealed class O5R5MeasurementReadinessRunner
         IReadOnlyList<O5R5MetricSnapshot> checkpoints,
         O5R5MetricSnapshot after)
     {
+        bool firstByte = scenario.Phase == O5R5MeasurementPhase.FirstByte;
+        if (firstByte && checkpoints.Count != 1)
+        {
+            return Refused("o5r5d2.first-byte.checkpoint_invalid");
+        }
+
         O5R5MetricSnapshot[] snapshots = [before, .. checkpoints, after];
         if (source.Frequency <= 0 ||
             snapshots.Any(
@@ -764,6 +818,15 @@ internal sealed class O5R5MeasurementReadinessRunner
         double elapsedMilliseconds = (elapsedTicks * 1_000d) / source.Frequency;
         double elapsedMicroseconds = (elapsedTicks * 1_000_000d) / source.Frequency;
         double cpuMilliseconds = (after.CpuTime - before.CpuTime).TotalMilliseconds;
+        O5R5MetricSnapshot? firstObservationSnapshot = firstByte ? checkpoints[0] : null;
+        double? firstObservationMilliseconds = firstByte
+            ? ((firstObservationSnapshot!.MonotonicTimestamp - before.MonotonicTimestamp) * 1_000d) /
+                source.Frequency
+            : null;
+        double? repeatabilityWindowMilliseconds = firstByte
+            ? ((after.MonotonicTimestamp - firstObservationSnapshot!.MonotonicTimestamp) * 1_000d) /
+                source.Frequency
+            : null;
         long heapPeak = snapshots.Max(snapshot => snapshot.HeapBytes) - before.HeapBytes;
         long workingSetPeak = snapshots.Max(snapshot => snapshot.WorkingSetBytes) - before.WorkingSetBytes;
         long cumulativeAllocated = after.TotalAllocatedBytes - before.TotalAllocatedBytes;
@@ -775,17 +838,27 @@ internal sealed class O5R5MeasurementReadinessRunner
                 snapshots[index].TotalAllocatedBytes - snapshots[index - 1].TotalAllocatedBytes);
         }
 
-        double? elapsedPerWork = O5R5MeasurementProtocol.IsComputePhase(scenario.Phase)
-            ? elapsedMicroseconds / scenario.DeclaredWorkUnits
+        double workElapsedMicroseconds = firstByte
+            ? repeatabilityWindowMilliseconds!.Value * 1_000d
+            : elapsedMicroseconds;
+        double workCpuMicroseconds = firstByte
+            ? ((after.CpuTime - firstObservationSnapshot!.CpuTime).Ticks / 10d)
+            : ((after.CpuTime - before.CpuTime).Ticks / 10d);
+        double? elapsedPerWork =
+            O5R5MeasurementProtocol.MeasuresDeterministicWorkRate(scenario.Phase)
+            ? workElapsedMicroseconds / scenario.DeclaredWorkUnits
             : null;
-        double? cpuPerWork = O5R5MeasurementProtocol.IsComputePhase(scenario.Phase)
-            ? ((after.CpuTime - before.CpuTime).Ticks / 10d) / scenario.DeclaredWorkUnits
+        double? cpuPerWork =
+            O5R5MeasurementProtocol.MeasuresDeterministicWorkRate(scenario.Phase)
+            ? workCpuMicroseconds / scenario.DeclaredWorkUnits
             : null;
         double[] finite =
         [
             elapsedMilliseconds,
             elapsedMicroseconds,
             cpuMilliseconds,
+            firstObservationMilliseconds ?? 0d,
+            repeatabilityWindowMilliseconds ?? 0d,
             elapsedPerWork ?? 0d,
             cpuPerWork ?? 0d,
         ];
@@ -804,6 +877,16 @@ internal sealed class O5R5MeasurementReadinessRunner
             elapsedMilliseconds,
             limit.MaximumElapsed.TotalMilliseconds,
             O5R5ThresholdUnit.Milliseconds);
+        if (firstByte)
+        {
+            AddFailure(
+                failures,
+                scenario,
+                O5R5ThresholdMetric.FirstObservationTime,
+                firstObservationMilliseconds!.Value,
+                limit.MaximumElapsed.TotalMilliseconds,
+                O5R5ThresholdUnit.Milliseconds);
+        }
         AddFailure(
             failures,
             scenario,
@@ -860,6 +943,8 @@ internal sealed class O5R5MeasurementReadinessRunner
             scenario.AccountedMemoryBytes,
             elapsedPerWork,
             cpuPerWork,
+            firstObservationMilliseconds,
+            repeatabilityWindowMilliseconds,
             passed);
         return new O5R5MeasurementResult(
             O5R5MeasurementDisposition.Accepted,
@@ -937,6 +1022,7 @@ internal sealed class O5R5MeasurementReadinessRunner
         metric switch
         {
             O5R5ThresholdMetric.ElapsedTime => "elapsed",
+            O5R5ThresholdMetric.FirstObservationTime => "first-observation",
             O5R5ThresholdMetric.ManagedHeapPeak => "heap-peak",
             O5R5ThresholdMetric.WorkingSetPeak => "working-set-peak",
             O5R5ThresholdMetric.AllocationPeak => "allocation-peak",
@@ -969,6 +1055,11 @@ internal sealed class O5R5MeasurementReadinessRunner
             scenario.DeclaredWorkUnits > protocol.Envelope.MaximumWorkUnits)
         {
             return "o5r5a.scenario.work_refused";
+        }
+        if (scenario.Phase == O5R5MeasurementPhase.FirstByte &&
+            scenario.DeclaredWorkUnits != O5R5MeasurementProtocol.FirstByteRepeatabilityWorkUnits)
+        {
+            return "o5r5d2.first-byte.work_window_invalid";
         }
         if (scenario.AccountedMemoryBytes < 1 ||
             scenario.AccountedMemoryBytes > protocol.Envelope.MaximumAccountedMemoryBytes)

@@ -179,8 +179,8 @@ function Copy-PhysicalEvidenceAtomically(
         }
 
         $decoded = Get-Content -LiteralPath $temporary -Raw | ConvertFrom-Json
-        if ($decoded.protocolVersion -ne 'pfobs1-physical-measurement-2.0.0' -or
-            $decoded.protocolDigest -ne '53F40F7DC72548EB488FFF729823BF0DCFD64EDD085314022C8E746CC45B5D71' -or
+        if ($decoded.protocolVersion -ne 'pfobs1-physical-measurement-3.0.0' -or
+            $decoded.protocolDigest -ne '60C7559F42960878B03269A1A6AAE40C944DE2DC805D8C7A73A2EF2274C2395A' -or
             $decoded.activationState -ne 'None' -or
             $null -eq $decoded.samples -or
             $null -eq $decoded.summaries -or

@@ -3530,6 +3530,46 @@
 - Aprovador: resultado automático local reprovado; nenhuma decisão humana
   inferida.
 
+## 2026-07-25 — PF-OBS-1-D2 metodologia FirstByte v3 congelada
+
+- Estado anterior: retomada PF-OBS-1 pós-D1 `REPROVADA` em
+  `FirstByte/Cold`, evidência v2 retida e `ActivationState=None`.
+- Autoridade: diagnosticar somente a evidência retida, separar latência
+  absoluta e repetibilidade, implementar runner/driver test-only, testar
+  offline e não executar campanha física.
+- Evidência causal: os 30 valores v2 ficaram entre `0,0313` e `0,0960 ms`;
+  os cinco grupos tiveram medianas `0,06310`, `0,03405`, `0,03415`,
+  `0,03335` e `0,03395 ms`, com coeficiente
+  `0,2943936135230859`. A primeira mediana foi mais de `1,8` vez a maior
+  das restantes; o valor relativo usava a operação inteira
+  submilissegundo. Scheduler, JIT e page-in não puderam ser distinguidos.
+- Decisão técnica: preservar latência absoluta até o primeiro byte e usar
+  para repetibilidade somente uma janela posterior predeclarada de
+  `100.000` observações; exatamente um checkpoint separa os campos e todos
+  os resultados brutos permanecem retidos.
+- Protocolo: `pfobs1-physical-measurement-3.0.0`, SHA-256
+  `60C7559F42960878B03269A1A6AAE40C944DE2DC805D8C7A73A2EF2274C2395A`.
+  SLOs absolutos, memória, CPU, trabalho, segurança, cancelamento, `30`
+  amostras, cinco grupos de seis, limite `0,20` e duas campanhas
+  consecutivas não foram relaxados; FirstByte recebeu gates adicionais de
+  work rate.
+- Gates: `16/16` integrações focais, `10/10` provas arquiteturais focais,
+  `111/111` integrações completas, `89/89` provas arquiteturais completas e
+  build Release com zero aviso/erro; format, documentação, links, secrets e
+  parser PowerShell passaram.
+- Execução física: marcador ausente; nenhuma nova medição, campanha,
+  PostgreSQL ou runtime piloto foi executado.
+- Estado resultante: PF-OBS-1-D2 automático `APROVADO` no escopo test-only;
+  PF-OBS-1 e O5 continuam sem aprovação; `ActivationState=None`.
+- Evidência:
+  [relatório D2](../../docs/STATE-06-MOD-12-PF-OBS-1-D2-FirstByte-Repeatability-Report.md)
+  e
+  [protocolo v3](../../docs/STATE-06-MOD-12-PF-OBS-1-Physical-Measurement-Protocol-v3.md).
+- Próxima decisão: Human Gate D2 separado; qualquer campanha física futura
+  exige autorização posterior e independente.
+- Aprovador: resultado automático local; nenhuma decisão humana ou
+  transição inferida.
+
 ## Template de nova entrada
 
 - Data:

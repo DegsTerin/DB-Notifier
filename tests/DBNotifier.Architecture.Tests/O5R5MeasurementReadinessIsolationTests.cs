@@ -14,6 +14,8 @@ public sealed class O5R5MeasurementReadinessIsolationTests
         "266B7A952DF1A46BEE4577894D0A9206D92917AC661E0E17F9052DE1EB415DD7";
     private const string ExpectedV2Digest =
         "53F40F7DC72548EB488FFF729823BF0DCFD64EDD085314022C8E746CC45B5D71";
+    private const string ExpectedV3Digest =
+        "60C7559F42960878B03269A1A6AAE40C944DE2DC805D8C7A73A2EF2274C2395A";
 
     /// <summary>Verifies normal product projects contain no O5-R5-A marker, runner or measurement source.</summary>
     [Fact]
@@ -191,24 +193,42 @@ public sealed class O5R5MeasurementReadinessIsolationTests
         Assert.Contains("at or below `0.20`", protocol, StringComparison.Ordinal);
     }
 
-    /// <summary>Verifies the scheduler-robust PF-OBS-1 protocol was frozen before resumed measurement.</summary>
+    /// <summary>Verifies the v2 protocol remains immutable historical evidence of the failed campaign.</summary>
     [Fact]
-    public void CorrectedPhysicalProtocolIsFrozenBeforeResumedCampaign()
+    public void V2PhysicalProtocolRemainsPreservedAsHistoricalEvidence()
     {
         string protocol = Read(
             "docs",
             "STATE-06-MOD-12-PF-OBS-1-Physical-Measurement-Protocol-v2.md");
-        string runner = Read(
-            "tests",
-            "DBNotifier.IntegrationTests",
-            "O5R5MeasurementReadinessRunner.cs");
-        string pilot = Read("scripts", "run-pf-obs1-pilot.ps1");
 
         Assert.Contains("`pfobs1-physical-measurement-2.0.0`", protocol, StringComparison.Ordinal);
         Assert.Contains(ExpectedV2Digest, protocol, StringComparison.Ordinal);
         Assert.Contains("five fixed sequential groups of six", protocol, StringComparison.Ordinal);
         Assert.Contains("Two complete consecutive campaigns", protocol, StringComparison.Ordinal);
         Assert.Contains("No measured sample may be removed", protocol, StringComparison.Ordinal);
+    }
+
+    /// <summary>Verifies D2 froze FirstByte v3 before any future physical campaign could run.</summary>
+    [Fact]
+    public void D2FirstByteProtocolIsFrozenBeforeFutureMeasurement()
+    {
+        string protocol = Read(
+            "docs",
+            "STATE-06-MOD-12-PF-OBS-1-Physical-Measurement-Protocol-v3.md");
+        string runner = Read(
+            "tests",
+            "DBNotifier.IntegrationTests",
+            "O5R5MeasurementReadinessRunner.cs");
+        string pilot = Read("scripts", "run-pf-obs1-pilot.ps1");
+
+        Assert.Contains("`pfobs1-physical-measurement-3.0.0`", protocol, StringComparison.Ordinal);
+        Assert.Contains(ExpectedV3Digest, protocol, StringComparison.Ordinal);
+        Assert.Contains("100,000", protocol, StringComparison.Ordinal);
+        Assert.Contains("first observation", protocol, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("No sample", protocol, StringComparison.Ordinal);
+        Assert.Contains("FirstByteRepeatabilityWorkUnits = 100_000", runner, StringComparison.Ordinal);
+        Assert.Contains("FirstByteFixedWindowElapsed", runner, StringComparison.Ordinal);
+        Assert.Contains("o5r5d2.first-byte.checkpoint_invalid", runner, StringComparison.Ordinal);
         Assert.Contains("RequiredConsecutiveCampaigns = 2", runner, StringComparison.Ordinal);
         Assert.Contains("FixedGroupMedianDistribution", runner, StringComparison.Ordinal);
         Assert.Contains(
@@ -221,6 +241,7 @@ public sealed class O5R5MeasurementReadinessIsolationTests
             StringComparison.Ordinal);
         Assert.Contains("$requiredConsecutivePhysicalCampaigns = 2", pilot, StringComparison.Ordinal);
         Assert.Contains("no replacement run is permitted", pilot, StringComparison.Ordinal);
+        Assert.Contains(ExpectedV3Digest, pilot, StringComparison.Ordinal);
     }
 
     /// <summary>Verifies failed physical evidence is committed before exit handling and temporary cleanup.</summary>

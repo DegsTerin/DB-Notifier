@@ -7,7 +7,7 @@ namespace DBNotifier.IntegrationTests;
 public sealed class O5R5PhysicalCampaignDriverTests
 {
     private const string ExpectedDigest =
-        "53F40F7DC72548EB488FFF729823BF0DCFD64EDD085314022C8E746CC45B5D71";
+        "60C7559F42960878B03269A1A6AAE40C944DE2DC805D8C7A73A2EF2274C2395A";
 
     /// <summary>Proves the driver creates exactly eight phases, two temperatures and the frozen 5/30 sequences.</summary>
     [Fact]
@@ -72,6 +72,10 @@ public sealed class O5R5PhysicalCampaignDriverTests
             O5R5MeasurementContext context = new(new CheckpointSyntheticSource());
             await scenario.Operation(context, timeout.Token);
             Assert.InRange(context.Checkpoints.Count, 1, O5R5MeasurementProtocol.MaximumCheckpoints);
+            if (scenario.Phase == O5R5MeasurementPhase.FirstByte)
+            {
+                Assert.Single(context.Checkpoints);
+            }
         }
 
         O5R5MeasurementScenario cancellable = representatives.Single(
@@ -218,10 +222,12 @@ public sealed class O5R5PhysicalCampaignDriverTests
                 786_433,
                 0,
                 0,
-                1,
+                O5R5MeasurementProtocol.FirstByteRepeatabilityWorkUnits,
                 524_288,
-                null,
-                null,
+                0.0075d,
+                0d,
+                0.25d,
+                0.75d,
                 false);
             O5R5PhysicalCampaignReport report = new(
                 O5R5MeasurementProtocol.Version,

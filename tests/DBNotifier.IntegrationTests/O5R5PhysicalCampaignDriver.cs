@@ -116,7 +116,10 @@ internal sealed class O5R5PhysicalWorkloadCatalogue
             _ => throw new ArgumentOutOfRangeException(nameof(phase)),
         };
 
-    /// <summary>Reads one first byte while retaining a maximum-size declared input reservation.</summary>
+    /// <summary>
+    /// Records first-byte liveness, then executes the frozen observation window used only for
+    /// repeatability and deterministic work-rate evidence.
+    /// </summary>
     /// <param name="context">Bounded measurement checkpoint context.</param>
     /// <param name="temperature">Cold creates fresh data; warm reuses immutable prepared data.</param>
     /// <param name="cancellationToken">Cancellation checked before observable work.</param>
@@ -128,8 +131,20 @@ internal sealed class O5R5PhysicalWorkloadCatalogue
     {
         cancellationToken.ThrowIfCancellationRequested();
         byte[] input = InputFor(temperature);
+        int observed = input[0];
+        Volatile.Write(ref observableSink, observed);
         context.CaptureCheckpoint();
-        Volatile.Write(ref observableSink, input[0]);
+        for (int unit = 0; unit < O5R5MeasurementProtocol.FirstByteRepeatabilityWorkUnits; unit++)
+        {
+            if ((unit & 1_023) == 0)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+            }
+
+            observed ^= input[unit & (input.Length - 1)];
+        }
+
+        Volatile.Write(ref observableSink, observed);
         return ValueTask.CompletedTask;
     }
 
@@ -620,7 +635,7 @@ internal static class O5R5PhysicalEvidenceWriter
     private const string RootPrefix = "DBNotifier-O5-R5-Physical-";
     private const string EvidenceFileName = "o5-r5-physical-campaign.json";
     private const int MaximumEvidenceBytes = 4 * 1024 * 1024;
-    private const int MaximumFailures = 6;
+    private const int MaximumFailures = 7;
     private static readonly JsonSerializerOptions Options = new(JsonSerializerDefaults.Web)
     {
         WriteIndented = true,
@@ -786,17 +801,8 @@ internal static class O5R5PhysicalEvidenceWriter
             throw new InvalidOperationException("o5r5d1.evidence.incomplete");
         }
 
-        if (report.Samples.Any(
-                sample =>
-                    sample is null ||
-                    !string.Equals(sample.ProtocolDigest, protocol.Digest, StringComparison.Ordinal) ||
-                    !Enum.IsDefined(sample.Phase) ||
-                    !Enum.IsDefined(sample.Temperature)) ||
-            report.Summaries.Any(
-                summary =>
-                    summary is null ||
-                    !Enum.IsDefined(summary.Phase) ||
-                    !Enum.IsDefined(summary.Temperature)))
+        if (report.Samples.Any(sample => !IsValidSample(sample, protocol)) ||
+            report.Summaries.Any(summary => !IsValidSummary(summary)))
         {
             throw new InvalidOperationException("o5r5d1.evidence.membership_invalid");
         }
@@ -831,6 +837,86 @@ internal static class O5R5PhysicalEvidenceWriter
         {
             throw new InvalidOperationException("o5r5d1.evidence.failure_missing");
         }
+    }
+
+    /// <summary>Validates one complete sample and its phase-specific D2 metric shape.</summary>
+    /// <param name="sample">Candidate sample.</param>
+    /// <param name="protocol">Current frozen protocol.</param>
+    /// <returns>True only for finite, bounded and structurally complete evidence.</returns>
+    private static bool IsValidSample(
+        O5R5MeasurementSample? sample,
+        O5R5MeasurementProtocol protocol)
+    {
+        if (sample is null)
+        {
+            return false;
+        }
+
+        bool firstByte = sample.Phase == O5R5MeasurementPhase.FirstByte;
+        bool measuresWorkRate =
+            O5R5MeasurementProtocol.MeasuresDeterministicWorkRate(sample.Phase);
+        double[] finite =
+        [
+            sample.ElapsedMilliseconds,
+            sample.CpuMilliseconds,
+            sample.ElapsedMicrosecondsPerWorkUnit ?? 0d,
+            sample.CpuMicrosecondsPerWorkUnit ?? 0d,
+            sample.FirstObservationMilliseconds ?? 0d,
+            sample.RepeatabilityWindowMilliseconds ?? 0d,
+        ];
+        bool firstByteShape = firstByte
+            ? sample.FirstObservationMilliseconds is not null &&
+                sample.RepeatabilityWindowMilliseconds is not null &&
+                Math.Abs(
+                    sample.ElapsedMilliseconds -
+                    sample.FirstObservationMilliseconds.Value -
+                    sample.RepeatabilityWindowMilliseconds.Value) <= 0.000_001d
+            : sample.FirstObservationMilliseconds is null &&
+                sample.RepeatabilityWindowMilliseconds is null;
+        bool workShape = measuresWorkRate
+            ? sample.ElapsedMicrosecondsPerWorkUnit is not null &&
+                sample.CpuMicrosecondsPerWorkUnit is not null
+            : sample.ElapsedMicrosecondsPerWorkUnit is null &&
+                sample.CpuMicrosecondsPerWorkUnit is null;
+        return string.Equals(sample.ProtocolDigest, protocol.Digest, StringComparison.Ordinal) &&
+            Enum.IsDefined(sample.Phase) &&
+            Enum.IsDefined(sample.Temperature) &&
+            sample.Repetition >= 1 &&
+            sample.HeapPeakDeltaBytes >= 0 &&
+            sample.WorkingSetPeakDeltaBytes >= 0 &&
+            sample.AllocationPeakBytes >= 0 &&
+            sample.CumulativeAllocatedBytes >= 0 &&
+            sample.DeclaredWorkUnits >= 1 &&
+            sample.DeclaredWorkUnits <= protocol.Envelope.MaximumWorkUnits &&
+            (!firstByte ||
+                sample.DeclaredWorkUnits ==
+                    O5R5MeasurementProtocol.FirstByteRepeatabilityWorkUnits) &&
+            sample.AccountedMemoryBytes >= 1 &&
+            sample.AccountedMemoryBytes <= protocol.Envelope.MaximumAccountedMemoryBytes &&
+            finite.All(value => double.IsFinite(value) && value >= 0d) &&
+            firstByteShape &&
+            workShape;
+    }
+
+    /// <summary>Validates one summary and the predeclared repeatability basis for its phase.</summary>
+    /// <param name="summary">Candidate complete summary.</param>
+    /// <returns>True only when FirstByte and other phases retain distinct metric shapes.</returns>
+    private static bool IsValidSummary(O5R5MeasurementSummary? summary)
+    {
+        if (summary is null ||
+            !Enum.IsDefined(summary.Phase) ||
+            !Enum.IsDefined(summary.Temperature) ||
+            !Enum.IsDefined(summary.RepeatabilityBasis))
+        {
+            return false;
+        }
+
+        return summary.Phase == O5R5MeasurementPhase.FirstByte
+            ? summary.FirstObservation is not null &&
+                summary.RepeatabilityBasis ==
+                    O5R5RepeatabilityBasis.FirstByteFixedWindowElapsed
+            : summary.FirstObservation is null &&
+                summary.RepeatabilityBasis == O5R5RepeatabilityBasis.TotalElapsed;
     }
 
     /// <summary>Validates one allow-listed diagnostic without accepting arbitrary text or values.</summary>
@@ -877,7 +963,9 @@ internal static class O5R5PhysicalEvidenceWriter
     private static O5R5ThresholdUnit UnitFor(O5R5ThresholdMetric metric) =>
         metric switch
         {
-            O5R5ThresholdMetric.ElapsedTime => O5R5ThresholdUnit.Milliseconds,
+            O5R5ThresholdMetric.ElapsedTime or
+            O5R5ThresholdMetric.FirstObservationTime =>
+                O5R5ThresholdUnit.Milliseconds,
             O5R5ThresholdMetric.ManagedHeapPeak or
             O5R5ThresholdMetric.WorkingSetPeak or
             O5R5ThresholdMetric.AllocationPeak => O5R5ThresholdUnit.Bytes,

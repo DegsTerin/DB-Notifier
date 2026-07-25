@@ -86,7 +86,7 @@ public sealed class O5R5PhysicalCampaignEntryPointTests
     internal const string SdkVariable = "DBNOTIFIER_O5_R5_B_DOTNET_SDK";
     internal const string InstalledMemoryVariable = "DBNOTIFIER_O5_R5_B_INSTALLED_MEMORY_BYTES";
     internal const string ExactPhysicalMarker =
-        "53F40F7DC72548EB488FFF729823BF0DCFD64EDD085314022C8E746CC45B5D71";
+        "60C7559F42960878B03269A1A6AAE40C944DE2DC805D8C7A73A2EF2274C2395A";
     private static readonly TimeSpan CampaignDeadline = TimeSpan.FromMinutes(10);
 
     /// <summary>
