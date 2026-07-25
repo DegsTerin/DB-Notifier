@@ -3848,6 +3848,30 @@
 - Aprovador: resultado automático local bloqueado; nenhuma decisão humana
   inferida.
 
+## 2026-07-25 — Human Gate PF-OBS-1-D5 aceito como bloqueado
+
+- Estado anterior: PF-OBS-1-D5 automaticamente `BLOQUEADO`, excesso
+  histórico não reproduzido, nenhuma causa atribuída e nenhuma correção ou
+  campanha física executada.
+- Decisão humana exata: `HUMAN GATE DO PF-OBS-1-D5: ACEITO COMO BLOQUEADO —
+  reconheço que o excesso histórico de working set não foi reproduzido nas
+  duas execuções do prefixo V3 exato, que nenhuma causa foi atribuída e que
+  nenhuma correção ou campanha física foi executada. Esta decisão encerra
+  somente o D5 e não autoriza novo diagnóstico, campanha física, PostgreSQL,
+  OBSERVER ou transição.`
+- Disposição: a revisão humana do D5 está encerrada como
+  `ACEITO COMO BLOQUEADO`; o resultado técnico não é convertido em aprovação.
+- Escopo negativo: zero código, runtime, novo diagnóstico, campanha física,
+  PostgreSQL, provider, corpus, Observer, push, deploy ou transição.
+- Estado resultante: PF-OBS-1 e O5 continuam sem aprovação,
+  `STATE-06 INTEGRATION` permanece vigente e `ActivationState=None` permanece
+  imutável.
+- Evidência:
+  [Human Gate D5](../../docs/STATE-06-MOD-12-PF-OBS-1-D5-Human-Gate-Report.md).
+- Próxima decisão: somente autorização separada pode definir e executar
+  qualquer diagnóstico, mudança metodológica ou futura campanha física.
+- Aprovador: Bruno; nenhum lifecycle gate ou ativação inferido.
+
 ## Template de nova entrada
 
 - Data:
