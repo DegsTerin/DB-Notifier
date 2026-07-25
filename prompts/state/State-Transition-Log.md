@@ -3501,6 +3501,35 @@
 - Aprovador: resultado automático local; nenhum Human Gate ou transição
   inferido.
 
+## 2026-07-25 — única retomada PF-OBS-1 pós-D1 reprovada
+
+- Estado anterior: PF-OBS-1-D1 automático `APROVADO`, protocolo v2
+  congelado, exatamente uma retomada autorizada e `ActivationState=None`.
+- Preflight: commit `6964d12053676fa9f2d505492777ba9b339f1c25`,
+  worktree limpo, zero processo/state/root/recurso Docker próprio, Docker
+  `29.6.2` disponível e imagem PostgreSQL 16 pinned já presente localmente.
+- Execução: a primeira campanha reteve cinco warm-ups e trinta medições de
+  `FirstByte/Cold`, totalizando `35/560` samples e `1/16` summaries.
+- Condição de parada: coeficiente de repetibilidade
+  `0,2943936135230859`, acima do limite inclusivo imutável `0,20`; código
+  `o5r5d1.threshold.repeatability-coefficient`.
+- Integridade: relatório de `25.208 bytes`, SHA-256
+  `4BC4DF3F436B137B909F3A034190D5FF6446A46EAD2FBBCAFEF0B67509B0153C`,
+  retido atomicamente antes do cleanup. Nenhuma amostra foi removida,
+  reordenada, substituída ou ocultada.
+- Estado resultante: retomada PF-OBS-1 `REPROVADA`; segunda campanha,
+  laboratório vivo, pipeline, corpus, calibração, holdout, resiliência e
+  amostra humana não executados; `ActivationState=None`.
+- Cleanup: zero processo, state file, root temporário, container, rede,
+  volume ou arquivo temporário próprio. Um JSON local ignorado pelo Git
+  permanece intencionalmente como evidência.
+- Evidência:
+  [relatório pós-D1](../../docs/STATE-06-MOD-12-PF-OBS-1-Post-D1-Resumption-Report.md).
+- Próxima decisão: nova tentativa ou remediação exige autorização separada;
+  nenhum Observer ou lifecycle gate está elegível.
+- Aprovador: resultado automático local reprovado; nenhuma decisão humana
+  inferida.
+
 ## Template de nova entrada
 
 - Data:
