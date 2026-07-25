@@ -3226,6 +3226,36 @@
   implementação ou execução.
 - Aprovador: Bruno.
 
+## 2026-07-24 — O5-R5 bloqueado antes da campanha física
+
+- Estado anterior: O5-R4 automática e humanamente `APROVADO`, O5 geral
+  `BLOQUEADO`, O5-R5 não executado e `ActivationState=None`.
+- Autoridade: execução local exclusiva de `HM-01`, `HM-02` e `HM-03` sobre
+  `505f098e710aceadf78548d20a0a139a2d211df4`, com carga sintética e ferramentas
+  existentes, sem implementação, configuração, restore, download, dependência,
+  dado/provider/banco real, acesso externo, ativação ou transição.
+- Preflight: baseline exata, worktree limpo, zero processo e zero listener
+  pertencente ao projeto.
+- Parada: não existe runner O5-R5/HM sob `src/`, `tests/` ou `scripts/`; os SLOs
+  O5-R3 não definem thresholds físicos nem headroom HM; e a cadeia local não
+  possui profiler e analisador capazes de atribuir heap, allocation peak, CPU e
+  elapsed às fases exigidas sem novo código ou instalação.
+- Ferramentas: `dotnet-counters`, `dotnet-trace`, `dotnet-gcdump`, PerfView e
+  Windows Performance Analyzer ausentes; WPR disponível, porém insuficiente sem
+  analisador suportado e runner phase-labelled.
+- Estado resultante: O5-R5 automático `BLOQUEADO`; `HM-01`, `HM-02` e `HM-03`
+  permanecem `NÃO TESTADOS`; O5 geral continua `BLOQUEADO`; `STATE-06
+  INTEGRATION` e `ActivationState=None` permanecem inalterados.
+- Evidência: [relatório O5-R5](../../docs/STATE-06-MOD-12-O5-R5-Physical-Measurement-Campaign-Report.md).
+- Limites: nenhuma carga, profiler, build ou teste foi iniciado depois da
+  condição de parada; nenhum código, configuração, dependência ou lockfile
+  mudou; nenhum número físico foi inferido.
+- Próxima decisão: somente uma proposta concisa de O5-R5-A para pré-registrar
+  thresholds/headroom e autorizar um runner e instrumentação test-only bounded.
+  O5-R6, dados reais, `OBSERVER` e transição permanecem não autorizados.
+- Aprovador: resultado automático local bloqueado; decisão humana O5-R5 não
+  elegível antes da remediação.
+
 ## Template de nova entrada
 
 - Data:
