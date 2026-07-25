@@ -3372,6 +3372,36 @@
 - Aprovador: resultado automático local; Human Gate O5-R5 ainda não elegível
   antes da campanha.
 
+## 2026-07-25 — Campanha física O5-R5 pós-O5-R5-B reprovada
+
+- Estado anterior: O5-R5-B automático `APROVADO`, `HM-01`–`HM-03` ainda
+  `NÃO TESTADOS`, O5 geral `BLOQUEADO` e `ActivationState=None`.
+- Autoridade: execução física local HM-01–HM-03 depois da validação automática,
+  usando somente protocolo congelado, driver test-only e APIs .NET/Windows
+  existentes, sem correção, restore, download, acesso externo ou dado real.
+- Preflight: driver baseline
+  `737dab6ae1667c41f41d09bc6954c827b0e07f57`; worktree limpo; zero processo
+  e listener do projeto; .NET SDK `10.0.301`, runtime `10.0.10`, Windows
+  `10.0.26200`, oito processadores lógicos e `16.963.534.848` bytes de memória.
+- Parada: no sample medido `FirstByte/Cold` repetição 14, o pico adicional de
+  working set foi `864.256 bytes`, acima do teto imutável de `786.432 bytes`
+  por `77.824 bytes`; código `o5r5a.measurement.threshold_exceeded`.
+- Estado resultante: campanha O5-R5 `REPROVADA`; HM-02 `REPROVADO`, HM-01
+  `BLOQUEADO` sem matriz completa e HM-03 `NÃO TESTADO`; O5 geral,
+  `STATE-06 INTEGRATION` e `ActivationState=None` inalterados.
+- Integridade: 19/560 samples completos e 0/16 summaries; evidência temporária
+  de 12.628 bytes com SHA-256
+  `90F5A06CD58655D537CD53B2D14F03F3D174FD8306305F0246DD3C0BC3956AF7`;
+  ambiente opt-in removido e root temporário eliminado após extração.
+- Limites: nenhum threshold, protocolo, workload ou código foi alterado depois
+  do resultado; nenhuma publicação, dado/provider/banco/corpus real,
+  recomendação, comando, automação, O5-R6 ou transição ocorreu.
+- Evidência: [relatório físico pós-O5-R5-B](../../docs/STATE-06-MOD-12-O5-R5-Physical-Measurement-Campaign-Post-R5B-Report.md).
+- Próxima decisão: somente proposta separada para analisar/remediar o headroom
+  físico; repetição, alteração do limite e O5-R6 permanecem não autorizados.
+- Aprovador: resultado automático local reprovado; Human Gate O5-R5 não
+  elegível antes de remediação.
+
 ## Template de nova entrada
 
 - Data:

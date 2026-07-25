@@ -2,7 +2,7 @@
 
 ## Versão atual
 
-- Versão: `3.56.32`
+- Versão: `3.56.33`
 - Data: 2026-07-25
 - Status: corpus DB-Notifier consolidado
 - Escopo: 13 arquivos ativos
@@ -16,6 +16,17 @@ A versão do corpus é independente da versão do software.
 - PATCH: clareza, correção ou referência sem mudança de autoridade.
 
 Toda alteração atualiza este arquivo e, quando necessário, `../Start-Here.md`.
+
+## 3.56.33 — 2026-07-25
+
+- Registra a campanha física O5-R5 pós-O5-R5-B como `REPROVADA` no primeiro
+  threshold físico excedido.
+- Classifica HM-02 `REPROVADO`, HM-01 `BLOQUEADO` sem matriz completa e HM-03
+  `NÃO TESTADO`, sem inferir resultados das fases não executadas.
+- Preserva o O5-R5-B automático, o protocolo congelado,
+  `ActivationState=None`, zero correção pós-resultado e cleanup integral.
+- Bloqueia O5-R6 e encaminha somente para proposta separada de remediação do
+  working-set headroom.
 
 ## 3.56.32 — 2026-07-25
 
