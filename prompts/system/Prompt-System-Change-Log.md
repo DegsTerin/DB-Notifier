@@ -2,8 +2,8 @@
 
 ## Versão atual
 
-- Versão: `3.56.28`
-- Data: 2026-07-24
+- Versão: `3.56.29`
+- Data: 2026-07-25
 - Status: corpus DB-Notifier consolidado
 - Escopo: 13 arquivos ativos
 
@@ -16,6 +16,17 @@ A versão do corpus é independente da versão do software.
 - PATCH: clareza, correção ou referência sem mudança de autoridade.
 
 Toda alteração atualiza este arquivo e, quando necessário, `../Start-Here.md`.
+
+## 3.56.29 — 2026-07-25
+
+- Registra o O5-R5-A automático como `APROVADO` somente para prontidão de
+  medição e runner test-only.
+- Congela versão, digest, thresholds, headroom, repetições, estatística e
+  critérios de parada antes de qualquer resultado físico.
+- Preserva O5-R5 `BLOQUEADO`, `HM-01`–`HM-03` `NÃO TESTADOS`,
+  `ActivationState=None` e composição normal sem referência O5-R5-A.
+- Encaminha somente para Human Gate O5-R5-A; não autoriza campanha física,
+  O5-R6, dado/provider real, `OBSERVER` ou transição.
 
 ## 3.56.28 — 2026-07-24
 

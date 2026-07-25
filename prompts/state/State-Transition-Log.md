@@ -3256,6 +3256,46 @@
 - Aprovador: resultado automático local bloqueado; decisão humana O5-R5 não
   elegível antes da remediação.
 
+## 2026-07-25 — O5-R5-A prontidão de medição concluída automaticamente
+
+- Estado anterior: O5-R5 automático `BLOQUEADO`, `HM-01`–`HM-03` `NÃO
+  TESTADOS`, O5 geral `BLOQUEADO` e `ActivationState=None`.
+- Autoridade: implementação local exclusiva do O5-R5-A sobre
+  `160cfdcdf63a425b1b16033fd557b90727b3de88`, sem campanha física, nova
+  dependência, instalação, download, acesso externo, dado/provider/banco real,
+  publicação, ativação ou transição.
+- Protocolo: versão `o5r5a-physical-measurement-1.0.0`, SHA-256
+  `266B7A952DF1A46BEE4577894D0A9206D92917AC661E0E17F9052DE1EB415DD7`,
+  congelada antes dos testes com thresholds numéricos, headroom `3/2`, cinco
+  warm-ups, trinta medições, P50/P95/P99/máximo, CV `0.20` e critérios de
+  parada.
+- Implementação: um runner serial no assembly de integração, protegido pelo
+  marker exato `DBNOTIFIER_O5_R5_A_TEST_ONLY`, rotula first-byte, idle,
+  cancellation, control-update, parse, cryptography, sort e analysis e retorna
+  somente evidência completa, sanitizada, in-memory e não autorizadora.
+- Evidência: `7/7` integrações focais, `6/6` arquitetura focal, `98/98`
+  integrações completas, `85/85` arquitetura completa e `401/401` unitários
+  passaram; build Release teve zero aviso/erro. N/N+1, maximum−1/maximum/
+  maximum+1, cancellation, saturação, checkpoint 64/65, rollback, fonte
+  indisponível, protocolo divergente e variância falharam fechados.
+- Ferramenta: o gate de lockfiles invocou `dotnet restore --locked-mode`;
+  nenhum download foi reportado, e dependências, lockfiles e estado do
+  repositório permaneceram inalterados. Sete workers MSBuild órfãos desse gate
+  foram identificados por caminho/linha de comando, encerrados por PID exato e
+  a reaudição confirmou zero processo ou listener pertencente ao workspace.
+- Estado resultante: O5-R5-A automático `APROVADO`; Human Gate O5-R5-A
+  `PENDENTE`; O5-R5 original continua `BLOQUEADO`; `HM-01`–`HM-03` continuam
+  `NÃO TESTADOS`; O5 geral, `STATE-06 INTEGRATION` e `ActivationState=None`
+  permanecem inalterados.
+- Limites: a fonte física foi compilada, mas não instanciada; nenhuma carga
+  física, profiler, medição do host, publicação Observer, provider/banco/corpus
+  real, O5-R6, push, deploy ou transição foi executada.
+- Evidência: [relatório automático O5-R5-A](../../docs/STATE-06-MOD-12-O5-R5A-Measurement-Readiness-Report.md)
+  e [protocolo congelado](../../docs/STATE-06-MOD-12-O5-R5A-Physical-Measurement-Protocol.md).
+- Próxima decisão: Human Gate O5-R5-A separado; eventual aprovação permitirá
+  somente propor uma autorização para repetir fisicamente o O5-R5.
+- Aprovador: resultado automático local; decisão humana O5-R5-A pendente.
+
 ## Template de nova entrada
 
 - Data:
