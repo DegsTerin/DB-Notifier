@@ -5,7 +5,8 @@
 - Date: 2026-07-24.
 - Authorised baseline: `601bf2d1b4352f1df83d959f653b11357ac9018b`.
 - Automatic result: `APPROVED`.
-- Human Gate O5-R2: `PENDING`.
+- Human Gate O5-R2: `APPROVED`; see the
+  [Human Gate report](STATE-06-MOD-12-O5-R2-Human-Gate-Report.md).
 - Lifecycle: `STATE-06 INTEGRATION` unchanged.
 - MOD-12 activation: `ActivationState=None`.
 - Provider, database, corpus, credential and telemetry: not used.
@@ -139,6 +140,6 @@ listener, coverage root and `dbnotifier-o5r2-*` temporary root before the focuse
 
 ## Next decision
 
-The only eligible next step is the Human Gate O5-R2. Approval would close this increment only and
-would permit proposing O5-R3 separately. It would not authorise O5-R3 implementation, provider or
-database runtime, corpus, `OBSERVER`, push, deploy or lifecycle transition.
+The Human Gate O5-R2 is approved and closes this increment only. The next eligible step is a
+separate concise proposal for O5-R3. O5-R3 implementation, provider or database runtime, corpus,
+`OBSERVER`, push, deploy and lifecycle transition remain unauthorised.

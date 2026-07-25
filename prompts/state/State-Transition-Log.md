@@ -3099,6 +3099,24 @@
 - Próxima decisão: Human Gate O5-R2 separado; eventual aprovação permitirá somente propor O5-R3.
 - Aprovador: resultado automático local; decisão humana O5-R2 pendente.
 
+## 2026-07-24 — Human Gate O5-R2 aprovado
+
+- Estado anterior: O5-R2 automático `APROVADO`, Human Gate O5-R2 `PENDENTE`, O5 geral
+  `BLOQUEADO`, `STATE-06 INTEGRATION` e `ActivationState=None`.
+- Decisão humana exata: `HUMAN GATE DO O5-R2: APROVADO`.
+- Evidência revista: [relatório automático O5-R2](../../docs/STATE-06-MOD-12-O5-R2-Inactive-Control-Plane-Report.md)
+  e implementação focal no commit `3fe55ed359916df8853dcec6d829a632a9b6f4dc`.
+- Registro: [relatório do Human Gate O5-R2](../../docs/STATE-06-MOD-12-O5-R2-Human-Gate-Report.md).
+- Escopo aceito: control plane provider-neutral dormente; autoridade normal indisponível; approvals
+  sintéticos duais, autenticados, one-use e bounded; kill switch prioritário; cancellation,
+  fencing, quarantine, recovery e rollback crash-consistent, todos limitados ao sandbox autorizado.
+- Estado resultante: O5-R2 automática e humanamente `APROVADO`; O5 geral permanece `BLOQUEADO`;
+  `STATE-06 INTEGRATION` e `ActivationState=None` permanecem inalterados.
+- Limites: sem O5-R3, laboratório, corpus/provider/banco/credencial real, UI, LLM, recomendação,
+  comando, automação, acesso externo, push, deploy, `OBSERVER` ou transição.
+- Próxima decisão: somente uma proposta concisa de autorização do O5-R3, sem implementação.
+- Aprovador: Bruno.
+
 ## Template de nova entrada
 
 - Data:
