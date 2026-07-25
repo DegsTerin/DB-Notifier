@@ -3171,6 +3171,39 @@
   implementação.
 - Aprovador: Bruno.
 
+## 2026-07-24 — O5-R4 threat model e revisão de segurança concluídos automaticamente
+
+- Estado anterior: O5-R3 automática e humanamente `APROVADO`, O5 geral
+  `BLOQUEADO`, O5-R4 não executado e `ActivationState=None`.
+- Autoridade: execução local exclusiva do O5-R4 sobre
+  `1f9e90874ae580e571a9d657dc8099f217ded7e0`, sem implementação, correção,
+  dado/provider/banco/corpus/credencial real, acesso externo, recomendação,
+  comando, automação, ativação ou transição.
+- Modelo: oito assets, oito identidades/responsabilidades, dez trust boundaries
+  e treze grupos adversariais cobrindo controle, telemetria, corpus, holdout,
+  API/UI, observabilidade e a separação de recomendação/comando/execução.
+- Achados: zero crítico, zero alto, zero boundary desconhecida e três médios de
+  prontidão, todos com owner funcional, deadline e decisão fail-closed:
+  accountability material, autoridade/custódia operacional e continuidade/
+  reconciliação independente.
+- Evidência: [relatório automático O5-R4](../../docs/STATE-06-MOD-12-O5-R4-Threat-Model-And-Security-Review-Report.md);
+  unitários focados `38/38`, integrações O1–O5-R3 `69/69`, arquitetura
+  `27/27`, browser/API O4 `28/28`, read/write indevidos recusados, zero origem
+  externa e secret scan aprovado.
+- Incidente de ferramenta: três builds paralelos disputaram arquivos de
+  compilação antes de executar testes; build servers foram encerrados, um build
+  único passou sem aviso/erro e as suítes foram repetidas sem build, todas
+  verdes. Não foi achado de produto ou segurança.
+- Estado resultante: O5-R4 automático `APROVADO`, Human Gate O5-R4 `PENDENTE`,
+  O5 geral ainda `BLOQUEADO`, `STATE-06 INTEGRATION` e `ActivationState=None`
+  inalterados.
+- Limites: sem código/configuração/dependência alterado, penetration test
+  operacional, identidade/chave real, sink/on-call real, HM-01–HM-03,
+  PostgreSQL homologado, O5-R5, `OBSERVER`, push, deploy ou lifecycle.
+- Próxima decisão: Human Gate O5-R4 separado; eventual aprovação permitirá
+  somente propor O5-R5.
+- Aprovador: resultado automático local; decisão humana O5-R4 pendente.
+
 ## Template de nova entrada
 
 - Data:
