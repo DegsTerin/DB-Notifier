@@ -3594,6 +3594,45 @@
   futura campanha física sob o protocolo v3.
 - Aprovador: Bruno; nenhum lifecycle gate ou ativação inferido.
 
+## 2026-07-25 — campanha física PF-OBS-1-V3 reprovada
+
+- Estado anterior: PF-OBS-1-D2 automática e humanamente `APROVADO`,
+  protocolo v3 congelado, PF-OBS-1 e O5 sem aprovação,
+  `ActivationState=None`.
+- Autoridade: executar exatamente duas campanhas físicas consecutivas de
+  HM-01–HM-03, interromper na primeira falha e preservar atomicamente toda
+  evidência antes do cleanup.
+- Baseline e protocolo: commit
+  `2f5c128e226a18cfef4f93323a66f6ebfb46e2a2`,
+  `pfobs1-physical-measurement-3.0.0`, SHA-256
+  `60C7559F42960878B03269A1A6AAE40C944DE2DC805D8C7A73A2EF2274C2395A`.
+- Execução: a primeira campanha completou `158/560` amostras e `4/16`
+  resumos antes de parar em `Cancellation/Cold`, repetição medida `13`.
+- Condição de parada: `WorkingSetPeak` observado de `2.998.272 bytes`
+  excedeu o limite inclusivo de `786.432 bytes` por `2.211.840 bytes`;
+  código `o5r5d1.threshold.working-set-peak`.
+- Classificação: `HM-01 BLOQUEADO`, `HM-02 REPROVADO`,
+  `HM-03 NÃO TESTADO` e reprodutibilidade de duas campanhas `REPROVADA`.
+- Integridade: a segunda campanha não foi iniciada; não houve campanha
+  substituta nem terceira execução. FirstByte/Cold e FirstByte/Warm
+  passaram o gate v3 isolado de repetibilidade, sem provar
+  reprodutibilidade da campanha incompleta.
+- Evidência: relatório de `123.245 bytes`, SHA-256
+  `B12B8C096DE79F619B59A8F21EA3191A12FEEAE6439F729265B5CEA1AF80C1DE`,
+  retido atomicamente em
+  `artifacts/pf-obs-1/e4b39e453cf3486c93c6ed8682260c5e/hm-01-03-run-1.json`.
+- Cleanup: zero processo, listener, root temporário ou arquivo parcial
+  próprio. PostgreSQL, laboratório, pipeline, corpus e Observer não foram
+  executados.
+- Estado resultante: PF-OBS-1-V3 `REPROVADA`; PF-OBS-1 e O5 continuam sem
+  aprovação; `ActivationState=None`.
+- Evidência:
+  [relatório da campanha física PF-OBS-1-V3](../../docs/STATE-06-MOD-12-PF-OBS-1-v3-Physical-Campaign-Report.md).
+- Próxima decisão: diagnóstico e remediação do pico de working set exigem
+  autorização separada; nenhuma nova campanha ou progressão é inferida.
+- Aprovador: resultado automático local reprovado; nenhuma decisão humana
+  inferida.
+
 ## Template de nova entrada
 
 - Data:
