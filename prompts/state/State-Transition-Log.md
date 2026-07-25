@@ -3086,6 +3086,19 @@
 - Próxima decisão: proposta concisa de autorização do O5-R2, ainda sem implementação.
 - Aprovador: Bruno, 2026-07-24, exclusivamente para o Human Gate O5-R1.
 
+## 2026-07-24 — O5-R2 control plane inativo implementado
+
+- Estado anterior: O5-R1 humanamente aprovado com ressalvas, O5 automático `BLOQUEADO`, O5-R2 não implementado e `ActivationState=None`.
+- Autoridade: implementação local exclusiva do O5-R2 sobre `601bf2d1b4352f1df83d959f653b11357ac9018b`, sem restore, download, dado/provider/banco/corpus real, acesso externo, UI, recomendação, comando, automação, ativação ou transição.
+- Composição normal: somente `DormantObserverControlPlane` e `UnavailableObserverActivationAuthority`; zero store, key, evaluator, pipeline, corpus, publisher, hosted service, trabalho ou caminho `None → Observer`.
+- Sandbox: marker exato `DBNOTIFIER_O5_R2_TEST_ONLY`, approval dual autenticado, one-use, bounded e scope-bound; checkpoint/witness autenticados, crash-consistent, com kill switch, cancellation, fencing, quarantine, recovery e rollback para `None`.
+- Evidência: [relatório O5-R2](../../docs/STATE-06-MOD-12-O5-R2-Inactive-Control-Plane-Report.md); `2/2` testes de composição, `8/8` O5-R2, `401/401` unitários, `83/83` integrações, `75/75` arquitetura, build Release sem aviso/erro, cobertura `82,01%` linhas/`53,92%` branches e auditoria fail-closed aprovados.
+- Critérios: `100/100` admissões simuladas pós-kill recusadas; contextos atuais/obsoletos nunca publicaram; crash aceitou somente estado antigo ou novo completo; corrupção, rollback, gap e split view entraram em quarantine; cleanup temporário aprovado.
+- Estado resultante: O5-R2 automático `APROVADO`, Human Gate O5-R2 `PENDENTE`, O5 geral ainda `BLOQUEADO`, `STATE-06 INTEGRATION` e `ActivationState=None` inalterados.
+- Limites: PostgreSQL continua candidato não homologado; sem laboratório, Docker, provider/banco real, corpus, credencial, telemetria, LLM, recomendação, comando, automação, push, deploy, `OBSERVER` ou lifecycle.
+- Próxima decisão: Human Gate O5-R2 separado; eventual aprovação permitirá somente propor O5-R3.
+- Aprovador: resultado automático local; decisão humana O5-R2 pendente.
+
 ## Template de nova entrada
 
 - Data:

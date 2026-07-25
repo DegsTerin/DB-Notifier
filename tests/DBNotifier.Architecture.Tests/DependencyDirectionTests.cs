@@ -85,7 +85,13 @@ public sealed class DependencyDirectionTests
             "CanonicalObserverTelemetryAdapter",
             "CapacityForecastAnalyser",
             "DeterministicThresholdAnalyser",
+            "DormantObserverControlPlane",
+            "IObserverActivationAuthority",
+            "IObserverControlPlane",
             "ObserverActivationState",
+            "ObserverApprovalAuthentication",
+            "ObserverApprovalRole",
+            "ObserverApprovalSignature",
             "ObserverAnalysisDisposition",
             "ObserverAnalysisExecutionContext",
             "ObserverAnalysisPolicy",
@@ -96,6 +102,8 @@ public sealed class DependencyDirectionTests
             "ObserverCapacityForecastResult",
             "ObserverCapabilityProfile",
             "ObserverCanonicalHealthTelemetry",
+            "ObserverControlAdmission",
+            "ObserverControlPlaneStatus",
             "ObserverCorpusProvenanceAuthority",
             "ObserverDataClassification",
             "ObserverDataOptInState",
@@ -119,6 +127,7 @@ public sealed class DependencyDirectionTests
             "ObserverOfflineEvaluationSegment",
             "ObserverOfflineSegmentResult",
             "ObserverOfflineExpectedDisposition",
+            "ObserverOptInApproval",
             "ObserverPolicyProvenancePayload",
             "ObserverPolicyRevocationSnapshot",
             "ObserverPolicyTrustAnchor",
@@ -132,6 +141,7 @@ public sealed class DependencyDirectionTests
             "ObserverThresholdComparison",
             "ObserverThresholdResult",
             "ObserverThresholdRule",
+            "UnavailableObserverActivationAuthority",
         ];
         Assert.Equal(
             approvedTypeNames.Order(StringComparer.Ordinal),
@@ -158,7 +168,19 @@ public sealed class DependencyDirectionTests
             .Distinct(StringComparer.Ordinal)
             .Order(StringComparer.Ordinal)
             .ToArray();
-        Assert.Equal(["Adapt", "Analyse", "CreateGrant", "CreateRevocation", "Evaluate"], declaredOperationNames);
+        Assert.Equal(
+            [
+                "Adapt",
+                "Analyse",
+                "AuthenticateAsync",
+                "CreateGrant",
+                "CreateRevocation",
+                "Evaluate",
+                "GetStatus",
+                "Refused",
+                "TryAdmitAsync",
+            ],
+            declaredOperationNames);
     }
 
     /// <summary>Returns public constructor, property and method types for one exported contract type.</summary>

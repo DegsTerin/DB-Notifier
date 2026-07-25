@@ -30,6 +30,7 @@ builder.WebHost.ConfigureKestrel(options =>
         httpsOptions.ClientCertificateMode = ClientCertificateMode.AllowCertificate);
 });
 builder.Services.AddProblemDetails();
+builder.Services.AddDormantObserverControlPlane();
 bool dashboardTvSandboxEnabled = builder.Services.AddDashboardTvSandbox(
     builder.Environment,
     builder.Configuration);
