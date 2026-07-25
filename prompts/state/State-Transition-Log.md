@@ -3570,6 +3570,30 @@
 - Aprovador: resultado automático local; nenhuma decisão humana ou
   transição inferida.
 
+## 2026-07-25 — Human Gate PF-OBS-1-D2 aprovado
+
+- Estado anterior: PF-OBS-1-D2 automático `APROVADO`,
+  `STATE-06 INTEGRATION` e `ActivationState=None`.
+- Evidência revista: commit
+  `28adf3a0f96debeb138c6b46868975c806a35b0e`, relatório D2 e protocolo
+  `pfobs1-physical-measurement-3.0.0` com SHA-256
+  `60C7559F42960878B03269A1A6AAE40C944DE2DC805D8C7A73A2EF2274C2395A`.
+- Decisão exata de Bruno:
+  `HUMAN GATE DO PF-OBS-1-D2: APROVADO`.
+- Escopo aceito: diagnóstico metodológico, separação da latência absoluta
+  e repetibilidade FirstByte, janela fixa de `100.000` observações,
+  preservação integral das amostras e limites iguais ou mais restritivos.
+- Limitações: nenhuma campanha física v3, PostgreSQL, runtime piloto,
+  corpus representativo, Observer ou transição foi executado ou autorizado;
+  a reprovação física v2 permanece preservada.
+- Estado resultante: PF-OBS-1-D2 encerrado e humanamente `APROVADO`;
+  PF-OBS-1 e O5 continuam sem aprovação; `ActivationState=None`.
+- Evidência:
+  [Human Gate D2](../../docs/STATE-06-MOD-12-PF-OBS-1-D2-Human-Gate-Report.md).
+- Próxima decisão: somente uma autorização separada poderá liberar uma
+  futura campanha física sob o protocolo v3.
+- Aprovador: Bruno; nenhum lifecycle gate ou ativação inferido.
+
 ## Template de nova entrada
 
 - Data:
