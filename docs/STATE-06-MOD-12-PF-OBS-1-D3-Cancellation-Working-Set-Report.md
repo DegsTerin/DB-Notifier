@@ -123,7 +123,12 @@ The final audit found no DB-Notifier-owned process, listener, physical
 temporary root, coverage directory or new retained campaign artefact. Build
 and test outputs are ordinary ignored artefacts.
 
-D3 does not reclassify the failed PF-OBS-1-V3 campaign. A future physical
-campaign requires a separate Human Gate for D3 and a separate explicit
-execution authorisation. PostgreSQL, the pilot pipeline, corpus admission,
-Observer activation and lifecycle transition remain prohibited.
+D3 does not reclassify the failed PF-OBS-1-V3 campaign. Bruno subsequently
+decided exactly `HUMAN GATE DO PF-OBS-1-D3: APROVADO`. The separate
+[D3 Human Gate report](STATE-06-MOD-12-PF-OBS-1-D3-Human-Gate-Report.md)
+records that acceptance and its authority boundary.
+
+The decision closes only D3. A future physical campaign still requires a
+separate explicit execution authorisation. PostgreSQL, the pilot pipeline,
+corpus admission, Observer activation and lifecycle transition remain
+prohibited.

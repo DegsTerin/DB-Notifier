@@ -3673,6 +3673,32 @@
 - Aprovador: resultado automático local; nenhuma decisão humana ou
   transição inferida.
 
+## 2026-07-25 — Human Gate PF-OBS-1-D3 aprovado
+
+- Estado anterior: PF-OBS-1-D3 automático `APROVADO`,
+  PF-OBS-1-V3 historicamente `REPROVADA`, `STATE-06 INTEGRATION` e
+  `ActivationState=None`.
+- Evidência revista: commit
+  `5fcc0da9b5b5cb9a0fcdea4fdc971fd3736bc75f`, relatório D3 e protocolo
+  `pfobs1-physical-measurement-3.0.0` com SHA-256
+  `60C7559F42960878B03269A1A6AAE40C944DE2DC805D8C7A73A2EF2274C2395A`.
+- Decisão exata de Bruno:
+  `HUMAN GATE DO PF-OBS-1-D3: APROVADO`.
+- Escopo aceito: diagnóstico da alocação dominante, buffer bounded único,
+  cópia completa por invocação serial, cancelamento preservado e gate
+  inclusivo de working set inalterado em `786.432 bytes`.
+- Limitações: a propriedade das páginas exatas não foi inferida; a
+  reprovação V3 permanece histórica e nenhuma nova campanha física,
+  PostgreSQL, pipeline piloto, corpus ou Observer foi executado ou
+  autorizado.
+- Estado resultante: PF-OBS-1-D3 encerrado e humanamente `APROVADO`;
+  PF-OBS-1 e O5 continuam sem aprovação; `ActivationState=None`.
+- Evidência:
+  [Human Gate D3](../../docs/STATE-06-MOD-12-PF-OBS-1-D3-Human-Gate-Report.md).
+- Próxima decisão: somente uma autorização separada poderá liberar uma
+  futura campanha física sob o protocolo V3.
+- Aprovador: Bruno; nenhum lifecycle gate ou ativação inferido.
+
 ## Template de nova entrada
 
 - Data:
