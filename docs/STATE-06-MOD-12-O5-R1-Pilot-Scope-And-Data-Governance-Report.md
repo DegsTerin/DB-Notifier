@@ -11,7 +11,7 @@
 - Provider/banco: não iniciado e não acessado.
 - Código, configuração, testes e runtime: inalterados.
 - Estado MOD-12: `ActivationState=None`.
-- Human Gate O5-R1: `PENDENTE`.
+- Human Gate O5-R1: `APROVADO COM RESSALVAS`.
 
 O O5-R1 define uma candidata única e verificável para decisão humana. Ele não escolhe PostgreSQL,
 não cria suporte público e não autoriza laboratório, corpus, credencial, implementação ou
@@ -307,6 +307,12 @@ Antes do O5-R6:
 - `ActivationState`: `None`.
 - `OBSERVER` e lifecycle: sem transição.
 
-O próximo passo elegível é um Human Gate específico do O5-R1. Ele poderá aceitar a candidata e os
-thresholds, aceitar com ressalvas, solicitar ajustes ou rejeitar. A decisão deverá também dispor
-sobre os owners pendentes; sem essa nomeação, O5-R6 e O5-R8 continuarão bloqueados.
+Bruno decidiu exatamente `HUMAN GATE O5-R1: APROVADO COM RESSALVAS` em 2026-07-24. A decisão
+aceita a célula apenas como escopo candidato exclusivo do futuro laboratório, preserva todos os
+limites de homologação, suporte, representatividade e autoridade e mantém os owners pendentes.
+O [relatório do Human Gate O5-R1](STATE-06-MOD-12-O5-R1-Human-Gate-Report.md) registra a decisão
+integral.
+
+O próximo passo elegível é somente apresentar a proposta do O5-R2. Sem a nomeação dos owners,
+O5-R6 e O5-R8 continuam bloqueados. O5-R2, implementação, runtime, laboratório, corpus, provider,
+banco, `OBSERVER` e transição permanecem não autorizados.

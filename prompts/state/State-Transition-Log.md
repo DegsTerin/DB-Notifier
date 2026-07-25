@@ -3074,6 +3074,18 @@
 - Próxima decisão: Human Gate O5-R1 deverá aceitar, aceitar com ressalvas, solicitar ajustes ou rejeitar a candidata e os thresholds, além de dispor sobre os owners pendentes.
 - Aprovador: resultado documental local; Human Gate O5-R1 pendente.
 
+## 2026-07-24 — Human Gate O5-R1 aprovado com ressalvas
+
+- Estado anterior: O5-R1 concluído documentalmente com célula candidata, thresholds e owners pendentes; `ActivationState=None`.
+- Decisão: Bruno declarou exatamente `HUMAN GATE O5-R1: APROVADO COM RESSALVAS` e aceitou `OBS-PILOT-PG16-LOCAL-001` somente como escopo candidato exclusivo do futuro laboratório.
+- Escopo aceito: artefacto PostgreSQL documentado, single-primary local, loopback-only, Agent Windows, sinais read-only, governança, retenção, partições, thresholds e critérios de parada do O5-R1.
+- Ressalvas: nenhuma homologação, suporte público ou representatividade de produção; owners materiais pendentes; versão semântica, TLS e credencial sintética ainda não comprovados; laboratório, corpus e runtime não autorizados.
+- Estado resultante: O5-R1 fechado com ressalvas, sem transição; O5-R2 pode somente ser proposto. O5-R6 e O5-R8 continuam bloqueados e `ActivationState=None` permanece.
+- Evidência: [relatório O5-R1](../../docs/STATE-06-MOD-12-O5-R1-Pilot-Scope-And-Data-Governance-Report.md) e [Human Gate O5-R1](../../docs/STATE-06-MOD-12-O5-R1-Human-Gate-Report.md).
+- Limites: nenhum código, configuração, teste, runtime, corpus, provider/banco real, push, deploy, `OBSERVER` ou lifecycle foi autorizado ou executado.
+- Próxima decisão: proposta concisa de autorização do O5-R2, ainda sem implementação.
+- Aprovador: Bruno, 2026-07-24, exclusivamente para o Human Gate O5-R1.
+
 ## Template de nova entrada
 
 - Data:
