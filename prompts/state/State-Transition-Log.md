@@ -3783,6 +3783,31 @@
 - Aprovador: resultado automático local bloqueado; nenhuma decisão humana
   inferida.
 
+## 2026-07-25 — Human Gate PF-OBS-1-D4 aceito como bloqueado
+
+- Estado anterior: PF-OBS-1-D4 automaticamente `BLOQUEADO`, causa residual
+  não comprovada, workload V3 inalterado e nenhuma campanha física executada.
+- Decisão humana exata: `HUMAN GATE DO PF-OBS-1-D4: ACEITO COMO BLOQUEADO —
+  reconheço que a causa do working set residual não foi comprovada, que
+  nenhuma correção foi aplicada ao workload V3 e que nenhuma campanha física
+  foi executada. Aceito o incidente de restore bloqueado registrado, sem
+  reclassificá-lo como autorizado. Esta decisão encerra somente o D4 e não
+  autoriza D5, nova campanha física, PostgreSQL, OBSERVER ou transição.`
+- Disposição: a revisão humana do D4 está encerrada como
+  `ACEITO COMO BLOQUEADO`; o resultado técnico não é convertido em aprovação.
+- Incidente preservado: o restore bloqueado interno ao gate de lockfile
+  continua fora da autoridade D4 e não é reclassificado como autorizado.
+- Escopo negativo: zero código, runtime, D5, campanha física, PostgreSQL,
+  provider, corpus, Observer, push, deploy ou transição.
+- Estado resultante: PF-OBS-1 e O5 continuam sem aprovação,
+  `STATE-06 INTEGRATION` permanece vigente e `ActivationState=None` permanece
+  imutável.
+- Evidência:
+  [Human Gate D4](../../docs/STATE-06-MOD-12-PF-OBS-1-D4-Human-Gate-Report.md).
+- Próxima decisão: somente autorização separada poderá liberar qualquer D5,
+  diagnóstico adicional ou futura campanha física.
+- Aprovador: Bruno; nenhum lifecycle gate ou ativação inferido.
+
 ## Template de nova entrada
 
 - Data:
