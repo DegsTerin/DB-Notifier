@@ -5,7 +5,8 @@
 - Date: 2026-07-24.
 - Authorised baseline: `cdfdce9d3961b2ca64f4f009c2b822a13ced7f47`.
 - Automatic result: `APPROVED`.
-- Human Gate O5-R3: `PENDING`.
+- Human Gate O5-R3: `APPROVED`; see the
+  [Human Gate report](STATE-06-MOD-12-O5-R3-Human-Gate-Report.md).
 - Lifecycle: `STATE-06 INTEGRATION` unchanged.
 - MOD-12 activation: `ActivationState=None`.
 - Provider, database, corpus, credential and telemetry: not used.
@@ -118,6 +119,6 @@ Normal composition remained dormant throughout validation.
 
 ## Next decision
 
-The automatic O5-R3 result is `APPROVED`, but the increment remains humanly pending. The next
-eligible step is a separate Human Gate O5-R3 reviewing this report and its limitations. O5-R4,
-operational observability, `OBSERVER` activation and lifecycle transition remain unauthorised.
+The automatic and Human Gate O5-R3 results are `APPROVED`, closing this increment only. The next
+eligible step is a concise proposal for O5-R4, without implementation. O5-R4, operational
+observability, `OBSERVER` activation and lifecycle transition remain unauthorised.

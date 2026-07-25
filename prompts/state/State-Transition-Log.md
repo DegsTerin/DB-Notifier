@@ -3149,6 +3149,28 @@
   propor O5-R4.
 - Aprovador: resultado automático local; decisão humana O5-R3 pendente.
 
+## 2026-07-24 — Human Gate O5-R3 aprovado
+
+- Estado anterior: O5-R3 automático `APROVADO`, Human Gate O5-R3 `PENDENTE`, O5
+  geral `BLOQUEADO`, `STATE-06 INTEGRATION` e `ActivationState=None`.
+- Decisão humana exata: `HUMAN GATE DO O5-R3: APROVADO`.
+- Evidência revista: [relatório automático O5-R3](../../docs/STATE-06-MOD-12-O5-R3-Observability-SLO-Incident-Response-Report.md)
+  e implementação focal no commit `a1e7ead768cd2f2c02e924cd615a7253bb1ec32c`.
+- Registro: [relatório do Human Gate O5-R3](../../docs/STATE-06-MOD-12-O5-R3-Human-Gate-Report.md).
+- Escopo aceito: catálogo sintético fechado e versionado, quatro SLIs/SLOs
+  numéricos, seis diagnósticos/alertas, ownership funcional, escalonamento,
+  runbooks não executáveis, exercícios adversariais e sanitização/cardinalidade
+  bounded.
+- Estado resultante: O5-R3 automática e humanamente `APROVADO`; O5 geral
+  permanece `BLOQUEADO`; `STATE-06 INTEGRATION` e `ActivationState=None`
+  permanecem inalterados.
+- Limites: owners materiais continuam sem nomeação; sem sink, paging, alerta
+  operacional, O5-R4, dado/provider/banco/corpus real, LLM, recomendação,
+  comando, automação, acesso externo, push, deploy, `OBSERVER` ou transição.
+- Próxima decisão: somente uma proposta concisa de autorização do O5-R4, sem
+  implementação.
+- Aprovador: Bruno.
+
 ## Template de nova entrada
 
 - Data:
