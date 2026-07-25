@@ -2,8 +2,8 @@
 
 ## Versão atual
 
-- Versão: `3.56.26`
-- Data: 2026-07-23
+- Versão: `3.56.27`
+- Data: 2026-07-24
 - Status: corpus DB-Notifier consolidado
 - Escopo: 13 arquivos ativos
 
@@ -16,6 +16,15 @@ A versão do corpus é independente da versão do software.
 - PATCH: clareza, correção ou referência sem mudança de autoridade.
 
 Toda alteração atualiza este arquivo e, quando necessário, `../Start-Here.md`.
+
+## 3.56.27 — 2026-07-24
+
+- Torna obrigatório encerrar cada atividade com uma contagem separada dos lotes
+  técnicos, Human Gates ou decisões formais e eventual autorização final de
+  transição ainda pendentes.
+- Exige declarar a base da contagem e distinguir valores condicionais ou ainda
+  não determináveis.
+- Mantém inalteradas as autoridades, os gates e o lifecycle do produto.
 
 ## 3.56.26 — 2026-07-23
 
