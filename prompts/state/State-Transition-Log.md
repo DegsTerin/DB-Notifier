@@ -3699,6 +3699,47 @@
   futura campanha física sob o protocolo V3.
 - Aprovador: Bruno; nenhum lifecycle gate ou ativação inferido.
 
+## 2026-07-25 — campanha física PF-OBS-1 pós-D3 reprovada
+
+- Estado anterior: PF-OBS-1-D3 automática e humanamente `APROVADO`,
+  protocolo V3 congelado, PF-OBS-1 e O5 sem aprovação e
+  `ActivationState=None`.
+- Autoridade: executar exatamente duas campanhas físicas consecutivas,
+  interromper na primeira falha e reter toda evidência antes do cleanup.
+- Baseline e protocolo: commit
+  `ec2013a379963544e0f33b6497dc23ba503e5fd8`,
+  `pfobs1-physical-measurement-3.0.0`, SHA-256
+  `60C7559F42960878B03269A1A6AAE40C944DE2DC805D8C7A73A2EF2274C2395A`.
+- Execução: a primeira campanha completou `158/560` amostras e `4/16`
+  resumos antes de parar em `Cancellation/Cold`, repetição medida `13`.
+- Condição de parada: `WorkingSetPeak` observado de `2.916.352 bytes`
+  excedeu o limite inclusivo de `786.432 bytes` por `2.129.920 bytes`;
+  código `o5r5d1.threshold.working-set-peak`.
+- Efeito D3 observado: a amostra reprovada registrou allocation peak,
+  cumulative managed allocation e heap delta iguais a `0 bytes`. A
+  alocação removida não explica nem encerra o working-set residual, cuja
+  propriedade exata permanece desconhecida.
+- Classificação: `HM-01 BLOQUEADO`, `HM-02 REPROVADO`,
+  `HM-03 NÃO TESTADO` e reprodutibilidade de duas campanhas `REPROVADA`.
+- Integridade: a segunda campanha não foi iniciada; não houve campanha
+  substituta nem terceira execução. Duas rejeições anteriores ao processo
+  físico não criaram runtime/evidência e não foram contabilizadas.
+- Evidência: relatório de `123.348 bytes`, SHA-256
+  `4699130A77448E14E99C38BB279F5DD9A29E67D654CEA8E22FF58800943E2C84`,
+  retido atomicamente em
+  `artifacts/pf-obs-1/20e251594f0747dfb6f2bd5fd8046020/hm-01-03-run-1.json`.
+- Cleanup: zero processo, listener, root temporário ou arquivo parcial
+  próprio. PostgreSQL, pipeline, corpus e Observer não foram executados.
+- Estado resultante: campanha pós-D3 `REPROVADA`; D3 continua aceito no
+  seu escopo test-only, PF-OBS-1 e O5 continuam sem aprovação e
+  `ActivationState=None`.
+- Evidência:
+  [relatório da campanha pós-D3](../../docs/STATE-06-MOD-12-PF-OBS-1-Post-D3-Physical-Campaign-Report.md).
+- Próxima decisão: diagnóstico ou remediação do working-set residual exige
+  autorização separada; nenhuma nova campanha ou progressão é inferida.
+- Aprovador: resultado automático local reprovado; nenhuma decisão humana
+  inferida.
+
 ## Template de nova entrada
 
 - Data:
