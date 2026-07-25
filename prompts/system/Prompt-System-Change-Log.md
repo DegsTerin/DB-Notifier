@@ -2,7 +2,7 @@
 
 ## Versão atual
 
-- Versão: `3.56.33`
+- Versão: `3.56.34`
 - Data: 2026-07-25
 - Status: corpus DB-Notifier consolidado
 - Escopo: 13 arquivos ativos
@@ -16,6 +16,17 @@ A versão do corpus é independente da versão do software.
 - PATCH: clareza, correção ou referência sem mudança de autoridade.
 
 Toda alteração atualiza este arquivo e, quando necessário, `../Start-Here.md`.
+
+## 3.56.34 — 2026-07-25
+
+- Torna obrigatório identificar o objetivo exato usado em toda contagem de
+  trabalho restante.
+- Separa e nomeia lotes técnicos, decisões formais, etapas macro, estados do
+  lifecycle e transições de ativação, sem dupla contagem silenciosa.
+- Exige distinguir itens obrigatórios, condicionais e indeterminados e
+  recalcular as contagens quando o objetivo ou o escopo mudar.
+- Padroniza o próximo passo imediato e exige um bloco exato para copiar e colar
+  sempre que uma resposta ou autorização do utilizador for necessária.
 
 ## 3.56.33 — 2026-07-25
 
