@@ -3117,6 +3117,38 @@
 - Próxima decisão: somente uma proposta concisa de autorização do O5-R3, sem implementação.
 - Aprovador: Bruno.
 
+## 2026-07-24 — O5-R3 observabilidade, SLOs e resposta a incidentes concluído automaticamente
+
+- Estado anterior: O5-R2 automática e humanamente `APROVADO`, O5 geral `BLOQUEADO`,
+  O5-R3 não implementado e `ActivationState=None`.
+- Autoridade: implementação local exclusiva do O5-R3 sobre
+  `cdfdce9d3961b2ca64f4f009c2b822a13ced7f47`, sem restore, download, integração
+  externa, alerta real, dado/provider/banco/corpus real, UI, recomendação, comando,
+  automação, ativação ou transição.
+- Sandbox: marker exato `DBNOTIFIER_O5_R3_TEST_ONLY`, catálogo
+  `o5r3-observability-1.0.0`, quatro SLIs/SLOs numéricos, seis diagnósticos O5-R2
+  allow-listed, seis alertas, ownership funcional, escalonamento e seis runbooks
+  não executáveis.
+- Exercícios: saturação, corrupção, Stale, split view, kill switch e rollback
+  cumpriram detecção `250/1000 ms`, contenção `1000/3000 ms`, recuperação
+  `3000/8000 ms` e encerramento `6000/15000 ms`.
+- Contenções: payload canary, incidente/código desconhecido, SLO inválido ou
+  excedido, owner/runbook ausente, timeline inválida, expiração, cancellation e
+  capacidade falharam fechados; retenção e cardinalidade permaneceram bounded.
+- Evidência: [relatório automático O5-R3](../../docs/STATE-06-MOD-12-O5-R3-Observability-SLO-Incident-Response-Report.md);
+  O5-R3 `8/8`, arquitetura O5-R3 `4/4`, unitários `401/401`, integração `91/91`,
+  arquitetura `79/79`, WPF `10/10`, build Release sem aviso/erro e cobertura
+  `82,01%` linhas/`53,92%` branches.
+- Estado resultante: O5-R3 automático `APROVADO`, Human Gate O5-R3 `PENDENTE`,
+  O5 geral ainda `BLOQUEADO`, `STATE-06 INTEGRATION` e `ActivationState=None`
+  inalterados.
+- Limites: owners são papéis funcionais, não pessoas nomeadas; sem sink, paging,
+  alerta operacional, persistência, PostgreSQL homologado, LLM, recomendação,
+  comando, automação, push, deploy, `OBSERVER` ou lifecycle.
+- Próxima decisão: Human Gate O5-R3 separado; eventual aprovação permitirá somente
+  propor O5-R4.
+- Aprovador: resultado automático local; decisão humana O5-R3 pendente.
+
 ## Template de nova entrada
 
 - Data:
