@@ -2,7 +2,7 @@
 
 ## Versão atual
 
-- Versão: `3.56.30`
+- Versão: `3.56.31`
 - Data: 2026-07-25
 - Status: corpus DB-Notifier consolidado
 - Escopo: 13 arquivos ativos
@@ -16,6 +16,16 @@ A versão do corpus é independente da versão do software.
 - PATCH: clareza, correção ou referência sem mudança de autoridade.
 
 Toda alteração atualiza este arquivo e, quando necessário, `../Start-Here.md`.
+
+## 3.56.31 — 2026-07-25
+
+- Registra a repetição física O5-R5 como `BLOQUEADA` antes de qualquer medição.
+- Distingue a fonte física existente da ausência de entrypoint e workloads
+  físicos executáveis.
+- Preserva `HM-01`–`HM-03` `NÃO TESTADOS`, `ActivationState=None` e zero
+  alteração de código/configuração.
+- Encaminha somente para proposta O5-R5-B; O5-R6 e transição continuam
+  bloqueados.
 
 ## 3.56.30 — 2026-07-25
 

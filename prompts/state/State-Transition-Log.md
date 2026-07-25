@@ -3315,6 +3315,33 @@
   mesma baseline, usando somente o protocolo e runner aprovados.
 - Aprovador: Bruno.
 
+## 2026-07-25 — Repetição física O5-R5 bloqueada antes da medição
+
+- Estado anterior: O5-R5-A automática e humanamente `APROVADO`, repetição
+  física O5-R5 autorizada, `HM-01`–`HM-03` `NÃO TESTADOS` e
+  `ActivationState=None`.
+- Autoridade: campanha física local usando somente protocolo e runner
+  existentes, sem alteração de código/configuração, restore, download, acesso
+  externo, provider/banco/corpus real, ativação ou transição.
+- Preflight: source baseline autorizada
+  `45ade378ef8e5468a45e9507a77f25229327b29a`; execução após o commit
+  documental `5a63245`; worktree limpo, zero processo e zero listener do
+  workspace.
+- Condição de parada: existe uma definição de
+  `O5R5DotNetMeasurementSource`, mas zero construção/instanciação, zero
+  entrypoint físico e zero workload físico para as oito fases. Os sete testes
+  descobertos são exclusivamente sintéticos.
+- Estado resultante: repetição O5-R5 `BLOQUEADA`; `HM-01`, `HM-02` e `HM-03`
+  permanecem `NÃO TESTADOS`; O5 geral, `STATE-06 INTEGRATION` e
+  `ActivationState=None` inalterados.
+- Limites: nenhuma fonte física, workload, contador, profiler, trace ou teste
+  foi executado; nenhum código/configuração/dependência mudou.
+- Evidência: [relatório da repetição O5-R5](../../docs/STATE-06-MOD-12-O5-R5-Physical-Measurement-Campaign-Repetition-Report.md).
+- Próxima decisão: somente proposta concisa O5-R5-B para um driver físico
+  marker-gated usando o runner existente; O5-R6 continua não autorizado.
+- Aprovador: resultado automático local bloqueado; Human Gate O5-R5 não
+  elegível.
+
 ## Template de nova entrada
 
 - Data:
