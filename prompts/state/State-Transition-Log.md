@@ -3296,6 +3296,25 @@
   somente propor uma autorização para repetir fisicamente o O5-R5.
 - Aprovador: resultado automático local; decisão humana O5-R5-A pendente.
 
+## 2026-07-25 — Human Gate O5-R5-A aprovado
+
+- Estado anterior: O5-R5-A automático `APROVADO`, Human Gate `PENDENTE`,
+  O5-R5 `BLOQUEADO`, `HM-01`–`HM-03` `NÃO TESTADOS` e
+  `ActivationState=None`.
+- Decisão humana exata: `HUMAN GATE DO O5-R5-A: APROVADO`.
+- Evidência revista: [relatório automático O5-R5-A](../../docs/STATE-06-MOD-12-O5-R5A-Measurement-Readiness-Report.md),
+  [protocolo congelado](../../docs/STATE-06-MOD-12-O5-R5A-Physical-Measurement-Protocol.md)
+  e implementação no commit `45ade378ef8e5468a45e9507a77f25229327b29a`.
+- Registro: [relatório Human Gate O5-R5-A](../../docs/STATE-06-MOD-12-O5-R5A-Human-Gate-Report.md).
+- Estado resultante: O5-R5-A automática e humanamente `APROVADO`;
+  `STATE-06 INTEGRATION` e `ActivationState=None` inalterados.
+- Limites: aprovação de prontidão apenas; nenhuma medição física, headroom,
+  provider, banco, corpus, publicação Observer, O5-R6 ou transição foi
+  autorizada por esta decisão.
+- Próxima ação: a repetição física O5-R5 foi autorizada separadamente sobre a
+  mesma baseline, usando somente o protocolo e runner aprovados.
+- Aprovador: Bruno.
+
 ## Template de nova entrada
 
 - Data:

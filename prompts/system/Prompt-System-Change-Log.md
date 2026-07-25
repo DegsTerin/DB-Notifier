@@ -2,7 +2,7 @@
 
 ## Versão atual
 
-- Versão: `3.56.29`
+- Versão: `3.56.30`
 - Data: 2026-07-25
 - Status: corpus DB-Notifier consolidado
 - Escopo: 13 arquivos ativos
@@ -16,6 +16,14 @@ A versão do corpus é independente da versão do software.
 - PATCH: clareza, correção ou referência sem mudança de autoridade.
 
 Toda alteração atualiza este arquivo e, quando necessário, `../Start-Here.md`.
+
+## 3.56.30 — 2026-07-25
+
+- Registra a decisão humana exata `HUMAN GATE DO O5-R5-A: APROVADO`.
+- Aceita somente protocolo e runner de prontidão, sem converter
+  `HM-01`–`HM-03` em resultado físico.
+- Mantém `ActivationState=None`, O5 geral bloqueado e O5-R6 não autorizado.
+- Encaminha para a repetição O5-R5 autorizada separadamente.
 
 ## 3.56.29 — 2026-07-25
 
