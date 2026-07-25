@@ -1,4 +1,4 @@
-// Module purpose: Proves O5-R5-A remains test-only, uses the frozen protocol and cannot run a physical campaign now.
+// Module purpose: Proves O5-R5-A/B remain test-only, use the frozen protocol and cannot enter normal composition.
 using DBNotifier.Application.AIOps;
 using Xunit;
 
@@ -6,7 +6,7 @@ namespace DBNotifier.Architecture.Tests;
 
 /// <summary>
 /// Protects normal-composition isolation, built-in counter provenance, synthetic-only validation
-/// and the immutable inactive Observer state for O5-R5-A.
+/// marker-gated physical execution and the immutable inactive Observer state for O5-R5-A/B.
 /// </summary>
 public sealed class O5R5MeasurementReadinessIsolationTests
 {
@@ -102,7 +102,7 @@ public sealed class O5R5MeasurementReadinessIsolationTests
         Assert.All(forbidden, value => Assert.DoesNotContain(value, runner, StringComparison.Ordinal));
     }
 
-    /// <summary>Verifies O5-R5-A tests use only synthetic sources and cannot execute host measurements.</summary>
+    /// <summary>Verifies automatic O5-R5-A/B tests use only synthetic sources and cannot execute host measurements.</summary>
     [Fact]
     public void AutomaticTestsDoNotInstantiatePhysicalMeasurementSource()
     {
@@ -116,6 +116,52 @@ public sealed class O5R5MeasurementReadinessIsolationTests
         Assert.DoesNotContain("O5R5DotNetMeasurementSource", tests, StringComparison.Ordinal);
         Assert.DoesNotContain("Stopwatch.GetTimestamp", tests, StringComparison.Ordinal);
         Assert.DoesNotContain("Process.GetCurrentProcess", tests, StringComparison.Ordinal);
+
+        string driverTests = Read(
+            "tests",
+            "DBNotifier.IntegrationTests",
+            "O5R5PhysicalCampaignDriverTests.cs");
+        Assert.Contains("UnusedSyntheticSource", driverTests, StringComparison.Ordinal);
+        Assert.Contains("CheckpointSyntheticSource", driverTests, StringComparison.Ordinal);
+        Assert.DoesNotContain("O5R5DotNetMeasurementSource", driverTests, StringComparison.Ordinal);
+        Assert.DoesNotContain("Stopwatch.GetTimestamp", driverTests, StringComparison.Ordinal);
+        Assert.DoesNotContain("Process.GetCurrentProcess", driverTests, StringComparison.Ordinal);
+    }
+
+    /// <summary>Verifies the sole physical source construction is guarded by the exact digest marker.</summary>
+    [Fact]
+    public void PhysicalEntryPointValidatesOptInBeforeSourceConstruction()
+    {
+        string entryPoint = Read(
+            "tests",
+            "DBNotifier.IntegrationTests",
+            "O5R5PhysicalCampaignEntryPointTests.cs");
+        int markerRead = entryPoint.IndexOf(
+            "Environment.GetEnvironmentVariable(PhysicalMarkerVariable)",
+            StringComparison.Ordinal);
+        int inertReturn = entryPoint.IndexOf("if (marker is null)", StringComparison.Ordinal);
+        int digestCheck = entryPoint.IndexOf(
+            "Assert.Equal(ExactPhysicalMarker, marker);",
+            StringComparison.Ordinal);
+        int destinationCheck = entryPoint.IndexOf(
+            "O5R5PhysicalEvidenceWriter.ValidateDestination",
+            StringComparison.Ordinal);
+        int physicalConstruction = entryPoint.IndexOf(
+            "new O5R5DotNetMeasurementSource()",
+            StringComparison.Ordinal);
+
+        Assert.True(markerRead >= 0);
+        Assert.True(inertReturn > markerRead);
+        Assert.True(digestCheck > inertReturn);
+        Assert.True(destinationCheck > digestCheck);
+        Assert.True(physicalConstruction > destinationCheck);
+        Assert.Contains(
+            "[Trait(\"Category\", \"O5R5Physical\")]",
+            entryPoint,
+            StringComparison.Ordinal);
+        Assert.Equal(
+            1,
+            CountOccurrences(entryPoint, "new O5R5DotNetMeasurementSource()"));
     }
 
     /// <summary>Verifies the preregistered protocol document records the exact version, digest and prohibition.</summary>
@@ -175,6 +221,23 @@ public sealed class O5R5MeasurementReadinessIsolationTests
     /// <returns>The complete file content.</returns>
     private static string Read(params string[] path) =>
         File.ReadAllText(Path.Combine([RepositoryRoot(), .. path]));
+
+    /// <summary>Counts exact non-overlapping source occurrences.</summary>
+    /// <param name="source">Complete source text.</param>
+    /// <param name="value">Exact value to count.</param>
+    /// <returns>Number of exact occurrences.</returns>
+    private static int CountOccurrences(string source, string value)
+    {
+        int count = 0;
+        int index = 0;
+        while ((index = source.IndexOf(value, index, StringComparison.Ordinal)) >= 0)
+        {
+            count++;
+            index += value.Length;
+        }
+
+        return count;
+    }
 
     /// <summary>Finds the repository root from the architecture-test output directory.</summary>
     /// <returns>The absolute repository root.</returns>

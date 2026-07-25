@@ -2,7 +2,7 @@
 
 ## Versão atual
 
-- Versão: `3.56.31`
+- Versão: `3.56.32`
 - Data: 2026-07-25
 - Status: corpus DB-Notifier consolidado
 - Escopo: 13 arquivos ativos
@@ -16,6 +16,17 @@ A versão do corpus é independente da versão do software.
 - PATCH: clareza, correção ou referência sem mudança de autoridade.
 
 Toda alteração atualiza este arquivo e, quando necessário, `../Start-Here.md`.
+
+## 3.56.32 — 2026-07-25
+
+- Registra o O5-R5-B automaticamente `APROVADO` como driver físico test-only
+  isolado e inerte sem o digest de opt-in exato.
+- Registra a matriz bounded de `560` cenários e a parada no primeiro limite,
+  resumo ou variância reprovado.
+- Preserva zero referência na composição normal, dependências inalteradas,
+  `ActivationState=None` e `HM-01`–`HM-03` ainda `NÃO TESTADOS`.
+- Encaminha somente para a campanha física já autorizada; O5-R6, `OBSERVER` e
+  transição continuam fora do escopo.
 
 ## 3.56.31 — 2026-07-25
 

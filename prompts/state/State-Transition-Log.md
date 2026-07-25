@@ -3342,6 +3342,36 @@
 - Aprovador: resultado automático local bloqueado; Human Gate O5-R5 não
   elegível.
 
+## 2026-07-25 — O5-R5-B driver físico concluído automaticamente
+
+- Estado anterior: O5-R5-A automática e humanamente `APROVADO`, repetição
+  física O5-R5 `BLOQUEADA`, `HM-01`–`HM-03` `NÃO TESTADOS` e
+  `ActivationState=None`.
+- Autoridade: implementação local exclusiva do O5-R5-B sobre
+  `92044fcbac86ccc67bc6495eeb63a27b7ff7154d`, seguida da campanha física
+  somente após validação automática, sem restore, download, dependência,
+  acesso externo, dado/provider/banco real, ativação ou transição.
+- Implementação: entrypoint inerte no assembly de integração exige o digest
+  exato, valida o destino temporário e somente depois constrói a única fonte
+  física. O driver materializa oito fases, duas temperaturas, cinco warm-ups e
+  trinta medições, totalizando `560` cenários seriais bounded.
+- Gates: `11/11` integrações focais, `7/7` arquitetura focal, `102/102`
+  integrações completas, `86/86` arquitetura completa e `401/401` unitários
+  passaram. Build Release teve zero aviso/erro; format, documentação, links,
+  tokens, localização, provider assets, secret scan e isolamento passaram.
+- Estado resultante: O5-R5-B automático `APROVADO`; `HM-01`–`HM-03`
+  permanecem `NÃO TESTADOS` até a campanha física autorizada nesta mesma
+  atividade; O5 geral, `STATE-06 INTEGRATION` e `ActivationState=None`
+  permanecem inalterados.
+- Limites: produto, composição normal, dependências e lockfiles não mudaram;
+  nenhuma medição física, publicação, provider, banco, corpus, recomendação,
+  comando ou automação ocorreu neste gate.
+- Evidência: [relatório automático O5-R5-B](../../docs/STATE-06-MOD-12-O5-R5B-Physical-Campaign-Driver-Report.md).
+- Próxima ação: execução física O5-R5 já autorizada, com parada imediata e sem
+  correção se qualquer limite ou requisito de reprodutibilidade falhar.
+- Aprovador: resultado automático local; Human Gate O5-R5 ainda não elegível
+  antes da campanha.
+
 ## Template de nova entrada
 
 - Data:
