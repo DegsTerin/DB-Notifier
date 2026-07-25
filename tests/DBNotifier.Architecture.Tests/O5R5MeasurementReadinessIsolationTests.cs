@@ -289,6 +289,68 @@ public sealed class O5R5MeasurementReadinessIsolationTests
         Assert.DoesNotContain("ArrayPool", driver, StringComparison.Ordinal);
     }
 
+    /// <summary>
+    /// Verifies D4 remains test-only, preserves the V3 campaign and excludes prohibited
+    /// working-set manipulation from its diagnostic implementation.
+    /// </summary>
+    [Fact]
+    public void D4DiagnosticsAreIsolatedAndDoNotChangeTheFrozenCampaign()
+    {
+        string diagnostics = Read(
+            "tests",
+            "DBNotifier.IntegrationTests",
+            "O5R5CancellationWorkingSetDiagnostics.cs");
+        string driver = Read(
+            "tests",
+            "DBNotifier.IntegrationTests",
+            "O5R5PhysicalCampaignDriver.cs");
+        string runner = Read(
+            "tests",
+            "DBNotifier.IntegrationTests",
+            "O5R5MeasurementReadinessRunner.cs");
+        string protocol = Read(
+            "docs",
+            "STATE-06-MOD-12-PF-OBS-1-D4-Cancellation-Diagnostic-Protocol.md");
+        string sourceTree = string.Join(
+            "\n",
+            Directory
+                .EnumerateFiles(
+                    Path.Combine(RepositoryRoot(), "src"),
+                    "*.cs",
+                    SearchOption.AllDirectories)
+                .Select(File.ReadAllText));
+
+        Assert.Contains(
+            "pf-obs-1-d4-cancellation-diagnostic-test-only",
+            diagnostics,
+            StringComparison.Ordinal);
+        Assert.Contains(
+            "FBA236A73DCBA87BA7247394082080AF9EB72A7D8AFE8CD3667C44A24EA5EDB7",
+            diagnostics,
+            StringComparison.Ordinal);
+        Assert.Contains(
+            "`FBA236A73DCBA87BA7247394082080AF9EB72A7D8AFE8CD3667C44A24EA5EDB7`",
+            protocol,
+            StringComparison.Ordinal);
+        Assert.Contains(
+            "internal const string Version = \"pfobs1-physical-measurement-3.0.0\";",
+            runner,
+            StringComparison.Ordinal);
+        Assert.Contains(
+            "await Task.Delay(Timeout.InfiniteTimeSpan, inner.Token)",
+            driver,
+            StringComparison.Ordinal);
+        Assert.Equal(2, CountOccurrences(driver, "GC.Collect("));
+        Assert.DoesNotContain("EmptyWorkingSet", diagnostics, StringComparison.Ordinal);
+        Assert.DoesNotContain("ProcessorAffinity", diagnostics, StringComparison.Ordinal);
+        Assert.DoesNotContain("PriorityClass", diagnostics, StringComparison.Ordinal);
+        Assert.DoesNotContain("O5R5D4", sourceTree, StringComparison.Ordinal);
+        Assert.DoesNotContain(
+            "pf-obs-1-d4-cancellation-diagnostic-test-only",
+            sourceTree,
+            StringComparison.Ordinal);
+    }
+
     /// <summary>Verifies failed physical evidence is committed before exit handling and temporary cleanup.</summary>
     [Fact]
     public void FailedPhysicalEvidenceIsRetainedBeforeCleanup()

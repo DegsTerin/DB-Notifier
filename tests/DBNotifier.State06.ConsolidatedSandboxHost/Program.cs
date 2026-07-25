@@ -24,6 +24,16 @@ internal static class Program
 
         if (args.Length >= 2 &&
             string.Equals(args[0], "--activation", StringComparison.Ordinal) &&
+            string.Equals(
+                args[1],
+                "pf-obs-1-d4-cancellation-diagnostic-test-only",
+                StringComparison.Ordinal))
+        {
+            return await O5R5D4CancellationDiagnosticProcess.RunAsync(args);
+        }
+
+        if (args.Length >= 2 &&
+            string.Equals(args[0], "--activation", StringComparison.Ordinal) &&
             string.Equals(args[1], "o1-durable-trust-resource-sandbox", StringComparison.Ordinal))
         {
             return await O1SandboxProcess.RunAsync(args);

@@ -3740,6 +3740,49 @@
 - Aprovador: resultado automático local reprovado; nenhuma decisão humana
   inferida.
 
+## 2026-07-25 — PF-OBS-1-D4 bloqueado por causa residual não comprovada
+
+- Estado anterior: campanha física pós-D3 `REPROVADA` em
+  `Cancellation/Cold`, com working-set residual de `2.916.352 bytes`,
+  alocação gerenciada e heap delta iguais a zero e causa sem atribuição.
+- Estado solicitado: diagnóstico e remediação local, test-only, do
+  working-set residual sem nova campanha física.
+- Decisão: `BLOQUEADO`; o diagnóstico isolado não reproduziu o salto
+  histórico e não comprovou causa suficiente para alterar o workload V3.
+- Protocolo diagnóstico:
+  `pfobs1-d4-cancellation-diagnostic-1.0.0`, SHA-256
+  `FBA236A73DCBA87BA7247394082080AF9EB72A7D8AFE8CD3667C44A24EA5EDB7`,
+  uma preparação e 35 amostras integrais por estratégia.
+- Evidência instrumental: duas comparações completas foram rejeitadas porque
+  `Process.Threads` e depois `Toolhelp` perturbavam a própria medição; as 140
+  amostras rejeitadas foram preservadas e nenhuma foi selecionada ou ocultada.
+- Comparação final: caminho `Task.Delay` `35/35`, máximo
+  `516.096 bytes`; candidato wait-handle `35/35`, máximo
+  `385.024 bytes`; zero resíduo de recurso próprio e cancellation abaixo de
+  `100 ms` em todas as amostras.
+- Disposição de código: instrumentação e writer D4 permanecem marker-gated e
+  test-only; runner, workload, protocolo V3, digest, SLOs e composição normal
+  permanecem inalterados.
+- Gates focais: `22/22` integrações e `12/12` arquitetura passaram; build
+  Release do host dedicado passou sem avisos ou erros. As suítes completas
+  passaram `118/118` integrações e `91/91` arquitetura.
+- Incidente de validação: `verify-dotnet-lockfiles.ps1`, invocado como gate
+  de lockfile, executou restore bloqueado dos 18 projetos fora da autorização.
+  O comando e o diff confirmaram zero alteração em dependências/lockfiles e
+  nenhum download foi reportado, mas consulta de metadados NuGet não pode ser
+  descartada nem reclassificada como autorizada.
+- Escopo negativo: nenhuma campanha física, PostgreSQL, provider, banco,
+  corpus, acesso externo, Observer, push, deploy ou transição.
+- Estado resultante: PF-OBS-1-D4 `BLOQUEADO`, PF-OBS-1 e O5 continuam sem
+  aprovação e `ActivationState=None`.
+- Evidência:
+  [relatório PF-OBS-1-D4](../../docs/STATE-06-MOD-12-PF-OBS-1-D4-Residual-Working-Set-Report.md).
+- Próxima decisão: qualquer diagnóstico da história processual anterior a
+  `Cancellation/Cold` e qualquer nova campanha física exigem autorizações
+  posteriores e separadas.
+- Aprovador: resultado automático local bloqueado; nenhuma decisão humana
+  inferida.
+
 ## Template de nova entrada
 
 - Data:
