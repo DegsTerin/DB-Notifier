@@ -3453,6 +3453,27 @@
 - Evidência:
   [protocolo físico PF-OBS-1 v2](../../docs/STATE-06-MOD-12-PF-OBS-1-Physical-Measurement-Protocol-v2.md).
 
+## 2026-07-25 — retomada PF-OBS-1 v2 parada em gate absoluto
+
+- Estado anterior: protocolo v2 congelado, PF-OBS-1 autorizada localmente,
+  `STATE-06 INTEGRATION` e `ActivationState=None`.
+- Execução: a primeira das duas campanhas físicas consecutivas iniciou após
+  preflight limpo e build Release sem aviso ou erro.
+- Condição de parada: `o5r5a.measurement.threshold_exceeded`.
+- Integridade: nenhuma execução substituta ocorreu; a segunda campanha e
+  todos os estágios posteriores não foram executados.
+- Limitação de evidência: o cleanup removeu o relatório físico temporário
+  antes da cópia, então fase e métrica exatas permanecem não identificadas.
+- Estado resultante: PF-OBS-1 v2 `REPROVADA`; HM-01–HM-03 incompletos;
+  laboratório, pipeline, corpus, holdout, resiliência e amostra humana não
+  elegíveis.
+- Cleanup: zero state file, processo, container, rede, volume ou root
+  temporário project-owned.
+- Evidência:
+  [relatório de retomada PF-OBS-1 v2](../../docs/STATE-06-MOD-12-PF-OBS-1-v2-Resumption-Report.md).
+- Aprovador: resultado automático local reprovado; Human Gate PF-OBS-1 não
+  elegível.
+
 ## Template de nova entrada
 
 - Data:
