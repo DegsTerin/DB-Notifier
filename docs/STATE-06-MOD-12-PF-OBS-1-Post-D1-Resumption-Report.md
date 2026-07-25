@@ -55,4 +55,3 @@ The D1 retention mechanism is automatically approved and worked as designed. PF-
 remains failed at the unchanged physical repeatability gate. A further attempt, changed protocol,
 threshold adjustment or progression to the PostgreSQL/Observer stages requires a new explicit
 authorisation. Observer activation and lifecycle transition remain prohibited.
-
