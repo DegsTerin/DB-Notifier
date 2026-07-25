@@ -5,7 +5,8 @@
 - Date: 2026-07-24.
 - Authorised baseline: `1f9e90874ae580e571a9d657dc8099f217ded7e0`.
 - Automatic result: `APPROVED`.
-- Human Gate O5-R4: `PENDING`.
+- Human Gate O5-R4: `APPROVED`; see the
+  [Human Gate report](STATE-06-MOD-12-O5-R4-Human-Gate-Report.md).
 - Lifecycle: `STATE-06 INTEGRATION` unchanged.
 - MOD-12 activation: `ActivationState=None`.
 - Critical findings: `0`.
@@ -186,7 +187,7 @@ O1–O5 temporary root and coverage root. `ActivationState=None` remained unchan
 
 ## Next decision
 
-O5-R4 is automatically `APPROVED` with the three bounded medium readiness findings above. Its Human
-Gate remains pending. The next eligible step is a separate Human Gate O5-R4 reviewing this report,
-the risk decisions and deadlines. O5-R5, operational data, `OBSERVER` activation and lifecycle
+O5-R4 is automatically and humanly `APPROVED` with the three bounded medium readiness findings
+above preserved. This closes only O5-R4. The next eligible step is a concise proposal for O5-R5,
+without implementation or execution. O5-R5, operational data, `OBSERVER` activation and lifecycle
 transition remain unauthorised.

@@ -3204,6 +3204,28 @@
   somente propor O5-R5.
 - Aprovador: resultado automático local; decisão humana O5-R4 pendente.
 
+## 2026-07-24 — Human Gate O5-R4 aprovado
+
+- Estado anterior: O5-R4 automático `APROVADO`, Human Gate O5-R4 `PENDENTE`, O5
+  geral `BLOQUEADO`, `STATE-06 INTEGRATION` e `ActivationState=None`.
+- Decisão humana exata: `HUMAN GATE DO O5-R4: APROVADO`.
+- Evidência revista: [relatório automático O5-R4](../../docs/STATE-06-MOD-12-O5-R4-Threat-Model-And-Security-Review-Report.md)
+  e revisão focal no commit `76d724371a14b44f1d038f7dba62d99bc505e672`.
+- Registro: [relatório do Human Gate O5-R4](../../docs/STATE-06-MOD-12-O5-R4-Human-Gate-Report.md).
+- Escopo aceito: threat model local sintético, boundaries conhecidos, matriz
+  adversarial, zero crítico/alto e três lacunas médias com owner, prazo e decisão
+  fail-closed.
+- Estado resultante: O5-R4 automática e humanamente `APROVADO`; O5 geral
+  permanece `BLOQUEADO`; `STATE-06 INTEGRATION` e `ActivationState=None`
+  permanecem inalterados.
+- Limites: as três lacunas médias permanecem abertas; sem O5-R5, identidade/chave
+  real, penetration test operacional, dado/provider/banco/corpus real, LLM,
+  recomendação, comando, automação, acesso externo, push, deploy, `OBSERVER` ou
+  transição.
+- Próxima decisão: somente uma proposta concisa de autorização do O5-R5, sem
+  implementação ou execução.
+- Aprovador: Bruno.
+
 ## Template de nova entrada
 
 - Data:
