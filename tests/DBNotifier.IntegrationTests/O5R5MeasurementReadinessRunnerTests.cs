@@ -199,6 +199,51 @@ public sealed class O5R5MeasurementReadinessRunnerTests
             workAboveLimit.Failures.Select(failure => failure.Metric));
     }
 
+    /// <summary>
+    /// Proves the unchanged Cancellation working-set ceiling accepts the inclusive limit and
+    /// rejects one additional byte without publishing partial authority.
+    /// </summary>
+    [Fact]
+    public async Task CancellationWorkingSetBoundaryRemainsFailClosedAtPlusOne()
+    {
+        O5R5MeasurementProtocol protocol = O5R5MeasurementProtocol.CreateFrozen();
+        long limit = protocol.EmpiricalMemoryLimit(
+            protocol.Envelope.MaximumAccountedMemoryBytes);
+        O5R5MeasurementResult accepted = await Runner(
+                protocol,
+                Pair(
+                    1_000,
+                    Snapshot(
+                        1,
+                        100,
+                        100,
+                        100 + limit,
+                        TimeSpan.Zero)))
+            .RunAsync(Scenario(O5R5MeasurementPhase.Cancellation));
+        O5R5MeasurementResult refused = await Runner(
+                protocol,
+                Pair(
+                    1_000,
+                    Snapshot(
+                        1,
+                        100,
+                        100,
+                        100 + limit + 1,
+                        TimeSpan.Zero)))
+            .RunAsync(Scenario(O5R5MeasurementPhase.Cancellation));
+
+        Assert.True(accepted.Sample!.Passed);
+        Assert.False(refused.Sample!.Passed);
+        O5R5ThresholdFailure failure = Assert.Single(refused.Failures);
+        Assert.Equal("o5r5d1.threshold.working-set-peak", failure.Code);
+        Assert.Equal(O5R5MeasurementPhase.Cancellation, failure.Phase);
+        Assert.Equal(O5R5ThresholdMetric.WorkingSetPeak, failure.Metric);
+        Assert.Equal(limit + 1d, failure.Observed);
+        Assert.Equal(limit, failure.InclusiveLimit);
+        Assert.False(O5R5MeasurementResult.MayEvaluate);
+        Assert.False(O5R5MeasurementResult.MayPublish);
+    }
+
     /// <summary>Proves deterministic work admission accepts maximum minus one and maximum, then refuses maximum plus one before capture.</summary>
     [Fact]
     public async Task DeterministicWorkAdmissionFailsBeforeExecutionAtMaximumPlusOne()

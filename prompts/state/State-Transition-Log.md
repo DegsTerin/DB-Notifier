@@ -3633,6 +3633,46 @@
 - Aprovador: resultado automático local reprovado; nenhuma decisão humana
   inferida.
 
+## 2026-07-25 — PF-OBS-1-D3 remediação Cancellation/Cold concluída
+
+- Estado anterior: PF-OBS-1-V3 `REPROVADA` em `Cancellation/Cold`,
+  PF-OBS-1 e O5 sem aprovação, `ActivationState=None`.
+- Autoridade: diagnosticar a evidência retida, corrigir somente runner e
+  driver test-only, validar sinteticamente sem campanha física e preservar
+  limites, workload e protocolo.
+- Diagnóstico: as dezoito amostras retidas alocaram `1.244.744 bytes`; a
+  clonagem de `65.536` bytes por invocação representou `85,39%`–`98,79%`
+  da alocação gerenciada de cada amostra e precedeu o salto process-wide de
+  `2.998.272 bytes`.
+- Limitação causal: a evidência comprova a pressão de alocação dominante,
+  mas não distingue a propriedade das páginas exatas entre GC, runtime,
+  stack ou outra região Windows.
+- Remediação: um buffer frio de tamanho exato, criado uma vez antes da
+  medição, recebe cópia integral nova por invocação serial; Warm continua
+  usando a fonte imutável. Inner cancellation, conteúdo, trabalho e
+  sequência `5 + 30` permanecem inalterados.
+- Protocolo preservado: `pfobs1-physical-measurement-3.0.0`, SHA-256
+  `60C7559F42960878B03269A1A6AAE40C944DE2DC805D8C7A73A2EF2274C2395A`;
+  working set inclusivo `786.432 bytes`, sem nova coleta de lixo,
+  dependência ou composição normal.
+- Gates: `18/18` integrações focais, `11/11` provas arquiteturais focais,
+  `114/114` integrações completas, `90/90` provas arquiteturais completas
+  e build Release com zero aviso/erro. As `35` materializações alocaram zero
+  armazenamento gerenciado por amostra; `786.432` foi aceito e `786.433`
+  recusado. Cobertura focal do novo componente: `84,61%` linhas e `66,66%`
+  branches.
+- Execução física: marcador ausente; nenhuma campanha, PostgreSQL,
+  laboratório ou Observer foi executado.
+- Estado resultante: PF-OBS-1-D3 automático `APROVADO` no escopo test-only;
+  a reprovação V3 permanece histórica, PF-OBS-1 e O5 continuam sem
+  aprovação e `ActivationState=None`.
+- Evidência:
+  [relatório PF-OBS-1-D3](../../docs/STATE-06-MOD-12-PF-OBS-1-D3-Cancellation-Working-Set-Report.md).
+- Próxima decisão: Human Gate D3 separado; qualquer nova campanha física
+  exige autorização posterior independente.
+- Aprovador: resultado automático local; nenhuma decisão humana ou
+  transição inferida.
+
 ## Template de nova entrada
 
 - Data:

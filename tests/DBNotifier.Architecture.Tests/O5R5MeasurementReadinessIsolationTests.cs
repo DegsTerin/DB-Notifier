@@ -244,6 +244,51 @@ public sealed class O5R5MeasurementReadinessIsolationTests
         Assert.Contains(ExpectedV3Digest, pilot, StringComparison.Ordinal);
     }
 
+    /// <summary>
+    /// Verifies D3 removes only repeated Cancellation/Cold input allocation while preserving the
+    /// frozen protocol, exact input size, unchanged memory gate and existing preconditioning.
+    /// </summary>
+    [Fact]
+    public void D3CancellationRemediationIsBoundedAndPreservesTheFrozenProtocol()
+    {
+        string driver = Read(
+            "tests",
+            "DBNotifier.IntegrationTests",
+            "O5R5PhysicalCampaignDriver.cs");
+        string runner = Read(
+            "tests",
+            "DBNotifier.IntegrationTests",
+            "O5R5MeasurementReadinessRunner.cs");
+
+        Assert.Contains("O5R5CancellationInputBuffer", driver, StringComparison.Ordinal);
+        Assert.Contains(
+            "source.AsSpan().CopyTo(coldInput);",
+            driver,
+            StringComparison.Ordinal);
+        Assert.Contains(
+            "coldInput = GC.AllocateUninitializedArray<byte>(source.Length);",
+            driver,
+            StringComparison.Ordinal);
+        Assert.Contains(
+            "ReadOnlyMemory<byte> input = cancellationInput.Materialise(temperature);",
+            driver,
+            StringComparison.Ordinal);
+        Assert.Contains(
+            "internal const string Version = \"pfobs1-physical-measurement-3.0.0\";",
+            runner,
+            StringComparison.Ordinal);
+        Assert.Contains(
+            "internal const int MemoryHeadroomNumerator = 3;",
+            runner,
+            StringComparison.Ordinal);
+        Assert.Contains(
+            "internal const int MemoryHeadroomDenominator = 2;",
+            runner,
+            StringComparison.Ordinal);
+        Assert.Equal(2, CountOccurrences(driver, "GC.Collect("));
+        Assert.DoesNotContain("ArrayPool", driver, StringComparison.Ordinal);
+    }
+
     /// <summary>Verifies failed physical evidence is committed before exit handling and temporary cleanup.</summary>
     [Fact]
     public void FailedPhysicalEvidenceIsRetainedBeforeCleanup()

@@ -93,6 +93,74 @@ public sealed class O5R5PhysicalCampaignDriverTests
             });
     }
 
+    /// <summary>
+    /// Proves Cancellation/Cold preserves the exact input workload while reusing one bounded
+    /// serial buffer without per-sample managed allocation.
+    /// </summary>
+    [Fact]
+    public void CancellationColdInputIsCompleteFreshAndAllocationStable()
+    {
+        byte[] source = Enumerable
+            .Range(0, checked((int)O1ResourceEnvelope.Fixture().MaximumInputBytes))
+            .Select(index => (byte)(index % 251))
+            .ToArray();
+        long cloneBefore = GC.GetAllocatedBytesForCurrentThread();
+        byte[] formerPerSampleClone = (byte[])source.Clone();
+        long formerCloneAllocation = GC.GetAllocatedBytesForCurrentThread() - cloneBefore;
+        O5R5CancellationInputBuffer buffer = new(source);
+        ReadOnlyMemory<byte> first = buffer.Materialise(O5R5Temperature.Cold);
+
+        long before = GC.GetAllocatedBytesForCurrentThread();
+        ReadOnlyMemory<byte> last = default;
+        for (int repetition = 0;
+             repetition <
+                O5R5MeasurementProtocol.WarmUpRepetitions +
+                O5R5MeasurementProtocol.MeasuredRepetitions;
+             repetition++)
+        {
+            last = buffer.Materialise(O5R5Temperature.Cold);
+        }
+        long allocated = GC.GetAllocatedBytesForCurrentThread() - before;
+
+        Assert.InRange(formerCloneAllocation, source.Length, source.Length + 64);
+        GC.KeepAlive(formerPerSampleClone);
+        Assert.Equal(0, allocated);
+        Assert.Equal(O1ResourceEnvelope.Fixture().MaximumInputBytes, last.Length);
+        Assert.True(first.Equals(last));
+        Assert.True(source.AsSpan().SequenceEqual(last.Span));
+        Assert.True(source.AsSpan().SequenceEqual(buffer.Materialise(O5R5Temperature.Warm).Span));
+    }
+
+    /// <summary>
+    /// Proves the full frozen Cancellation/Cold batch still observes inner cancellation once per
+    /// sample and remains bounded under synthetic counters.
+    /// </summary>
+    [Fact]
+    public async Task CancellationColdBatchPreservesCancellationAndCheckpointContract()
+    {
+        O5R5MeasurementProtocol protocol = O5R5MeasurementProtocol.CreateFrozen();
+        O5R5PhysicalCampaignDriver driver = new(protocol, new UnusedSyntheticSource());
+        O5R5MeasurementScenario[] cancellation = driver
+            .CreateScenarios()
+            .Where(
+                scenario =>
+                    scenario.Phase == O5R5MeasurementPhase.Cancellation &&
+                    scenario.Temperature == O5R5Temperature.Cold)
+            .ToArray();
+
+        Assert.Equal(
+            O5R5MeasurementProtocol.WarmUpRepetitions +
+                O5R5MeasurementProtocol.MeasuredRepetitions,
+            cancellation.Length);
+        using CancellationTokenSource deadline = new(TimeSpan.FromSeconds(5));
+        foreach (O5R5MeasurementScenario scenario in cancellation)
+        {
+            O5R5MeasurementContext context = new(new CheckpointSyntheticSource());
+            await scenario.Operation(context, deadline.Token);
+            Assert.Single(context.Checkpoints);
+        }
+    }
+
     /// <summary>Proves the evidence writer accepts only the exact project-owned temporary boundary.</summary>
     [Fact]
     public async Task EvidenceWriterIsAtomicAndRefusesPathsOutsideExactTemporaryRoot()

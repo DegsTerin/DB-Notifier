@@ -59,6 +59,51 @@ internal sealed record O5R5PhysicalCampaignReport(
 }
 
 /// <summary>
+/// Materialises the full synthetic cancellation input into one bounded buffer owned by the
+/// serial test-only workload instead of allocating a new large object for every sample.
+/// </summary>
+internal sealed class O5R5CancellationInputBuffer
+{
+    private readonly byte[] source;
+    private readonly byte[] coldInput;
+
+    /// <summary>Initialises storage with the exact frozen input length before measurement starts.</summary>
+    /// <param name="source">Immutable deterministic source bytes.</param>
+    internal O5R5CancellationInputBuffer(byte[] source)
+    {
+        ArgumentNullException.ThrowIfNull(source);
+        if (source.Length != O1ResourceEnvelope.Fixture().MaximumInputBytes)
+        {
+            throw new InvalidOperationException("o5r5d3.cancellation.input_length_invalid");
+        }
+
+        this.source = source;
+        coldInput = GC.AllocateUninitializedArray<byte>(source.Length);
+    }
+
+    /// <summary>
+    /// Returns immutable warm bytes or freshly copies the same complete input into the dedicated
+    /// cold buffer without allocating per sample.
+    /// </summary>
+    /// <param name="temperature">Cold or warm data-state classification.</param>
+    /// <returns>The exact frozen input bytes in bounded reusable storage.</returns>
+    internal ReadOnlyMemory<byte> Materialise(O5R5Temperature temperature)
+    {
+        if (temperature == O5R5Temperature.Warm)
+        {
+            return source;
+        }
+        if (temperature != O5R5Temperature.Cold)
+        {
+            throw new ArgumentOutOfRangeException(nameof(temperature));
+        }
+
+        source.AsSpan().CopyTo(coldInput);
+        return coldInput;
+    }
+}
+
+/// <summary>
 /// Materialises the exact eight bounded physical workloads without provider, database, corpus,
 /// network, publication or normal-composition authority.
 /// </summary>
@@ -76,6 +121,7 @@ internal sealed class O5R5PhysicalWorkloadCatalogue
     private readonly byte[] warmInput;
     private readonly int[] warmSortValues;
     private readonly double[] warmAnalysisValues;
+    private readonly O5R5CancellationInputBuffer cancellationInput;
     private int controlVersion;
     private int observableSink;
 
@@ -85,6 +131,7 @@ internal sealed class O5R5PhysicalWorkloadCatalogue
         warmInput = CreateInput();
         warmSortValues = CreateSortValues();
         warmAnalysisValues = CreateAnalysisValues();
+        cancellationInput = new O5R5CancellationInputBuffer(warmInput);
     }
 
     /// <summary>Creates the bounded operation for one exact phase and temperature.</summary>
@@ -174,7 +221,7 @@ internal sealed class O5R5PhysicalWorkloadCatalogue
         O5R5Temperature temperature,
         CancellationToken cancellationToken)
     {
-        byte[] input = InputFor(temperature);
+        ReadOnlyMemory<byte> input = cancellationInput.Materialise(temperature);
         context.CaptureCheckpoint();
         using CancellationTokenSource inner = CancellationTokenSource.CreateLinkedTokenSource(
             cancellationToken);
@@ -187,7 +234,7 @@ internal sealed class O5R5PhysicalWorkloadCatalogue
             inner.IsCancellationRequested &&
             !cancellationToken.IsCancellationRequested)
         {
-            Volatile.Write(ref observableSink, input[0]);
+            Volatile.Write(ref observableSink, input.Span[0]);
         }
     }
 
