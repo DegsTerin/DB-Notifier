@@ -14,6 +14,7 @@ $dotnet = (Resolve-Path (Join-Path $repositoryRoot '.dotnet\dotnet.exe')).Path
 $docker = (Get-Command docker.exe -CommandType Application -ErrorAction Stop | Select-Object -First 1).Path
 $dashboardRoot = Join-Path $repositoryRoot 'src\DBNotifier.Dashboard.Web'
 $dashboardDist = Join-Path $dashboardRoot 'dist'
+$evidenceRoot = Join-Path $repositoryRoot 'artifacts\pf-obs-1'
 $integrationProject = Join-Path $repositoryRoot 'tests\DBNotifier.IntegrationTests\DBNotifier.IntegrationTests.csproj'
 $hostProject = Join-Path $repositoryRoot 'tests\DBNotifier.State06.ConsolidatedSandboxHost\DBNotifier.State06.ConsolidatedSandboxHost.csproj'
 $hostAssembly = Join-Path $repositoryRoot 'tests\DBNotifier.State06.ConsolidatedSandboxHost\bin\Release\net10.0\DBNotifier.State06.ConsolidatedSandboxHost.dll'
@@ -69,6 +70,19 @@ function Remove-OwnedRoot([string]$Path) {
     }
 }
 
+# Removes an exact empty evidence archive created for an aborted run before any report was committed.
+function Remove-EmptyEvidenceArchive([string]$Path) {
+    if ([string]::IsNullOrWhiteSpace($Path)) { return }
+    $candidate = [IO.Path]::GetFullPath($Path)
+    $allowedRoot = [IO.Path]::GetFullPath($evidenceRoot) + [IO.Path]::DirectorySeparatorChar
+    if ($candidate.StartsWith($allowedRoot, [StringComparison]::OrdinalIgnoreCase) -and
+        (Split-Path -Leaf $candidate) -match '^[0-9a-f]{32}$' -and
+        (Test-Path -LiteralPath $candidate -PathType Container) -and
+        @(Get-ChildItem -LiteralPath $candidate -Force).Count -eq 0) {
+        Remove-Item -LiteralPath $candidate -Force
+    }
+}
+
 # Cleans one exact pilot state without touching unrelated Docker or browser resources.
 function Stop-Pilot([object]$State) {
     Stop-OwnedProcess ([Nullable[int]]$State.browserPid)
@@ -86,8 +100,105 @@ function Stop-Pilot([object]$State) {
         if ($LASTEXITCODE -ne 0) { throw 'The owned PF-OBS-1 network could not be removed.' }
     }
     Remove-OwnedRoot ([string]$State.temporaryRoot)
+    if ($State.PSObject.Properties.Name -contains 'evidenceArchiveRoot') {
+        Remove-EmptyEvidenceArchive ([string]$State.evidenceArchiveRoot)
+    }
     if (Test-Path -LiteralPath $statePath) {
         Remove-Item -LiteralPath $statePath -Force
+    }
+}
+
+# Creates one project-contained, non-reparse archive for evidence intentionally retained after cleanup.
+function New-EvidenceArchive([string]$RunId) {
+    if ($RunId -notmatch '^[0-9a-f]{32}$') {
+        throw 'The PF-OBS-1 evidence run identifier is invalid.'
+    }
+    [IO.Directory]::CreateDirectory($evidenceRoot) | Out-Null
+    $archive = Join-Path $evidenceRoot $RunId
+    [IO.Directory]::CreateDirectory($archive) | Out-Null
+    $fullArchive = [IO.Path]::GetFullPath($archive)
+    $allowedRoot = [IO.Path]::GetFullPath($evidenceRoot) + [IO.Path]::DirectorySeparatorChar
+    $information = [IO.DirectoryInfo]::new($fullArchive)
+    if (-not $fullArchive.StartsWith($allowedRoot, [StringComparison]::OrdinalIgnoreCase) -or
+        -not $information.Exists -or
+        $information.Attributes.HasFlag([IO.FileAttributes]::ReparsePoint)) {
+        throw 'The PF-OBS-1 evidence archive boundary is invalid.'
+    }
+    return $fullArchive
+}
+
+# Copies one validated physical report to retained evidence before temporary cleanup.
+function Copy-PhysicalEvidenceAtomically(
+    [string]$Source,
+    [string]$Destination,
+    [string]$ArchiveRoot
+) {
+    $sourceInformation = [IO.FileInfo]::new($Source)
+    if (-not $sourceInformation.Exists -or
+        $sourceInformation.Attributes.HasFlag([IO.FileAttributes]::ReparsePoint) -or
+        $sourceInformation.Length -lt 1 -or
+        $sourceInformation.Length -gt (4MB)) {
+        throw 'PF-OBS-1-D1 refused missing, linked or oversized physical evidence.'
+    }
+
+    $fullArchive = [IO.Path]::GetFullPath($ArchiveRoot)
+    $fullDestination = [IO.Path]::GetFullPath($Destination)
+    $allowedPrefix = $fullArchive + [IO.Path]::DirectorySeparatorChar
+    if (-not $fullDestination.StartsWith($allowedPrefix, [StringComparison]::OrdinalIgnoreCase) -or
+        (Split-Path -Leaf $fullDestination) -notmatch '^hm-01-03-run-[12]\.json$') {
+        throw 'PF-OBS-1-D1 refused an evidence destination outside the exact archive.'
+    }
+
+    $temporary = "$fullDestination.tmp"
+    try {
+        $input = [IO.FileStream]::new(
+            $sourceInformation.FullName,
+            [IO.FileMode]::Open,
+            [IO.FileAccess]::Read,
+            [IO.FileShare]::Read)
+        try {
+            $output = [IO.FileStream]::new(
+                $temporary,
+                [IO.FileMode]::CreateNew,
+                [IO.FileAccess]::Write,
+                [IO.FileShare]::None,
+                16384,
+                [IO.FileOptions]::WriteThrough)
+            try {
+                $input.CopyTo($output)
+                $output.Flush($true)
+            }
+            finally { $output.Dispose() }
+        }
+        finally { $input.Dispose() }
+
+        $sourceHash = (Get-FileHash -LiteralPath $sourceInformation.FullName -Algorithm SHA256).Hash
+        $temporaryHash = (Get-FileHash -LiteralPath $temporary -Algorithm SHA256).Hash
+        if ($sourceHash -ne $temporaryHash) {
+            throw 'PF-OBS-1-D1 detected evidence corruption before atomic commit.'
+        }
+
+        $decoded = Get-Content -LiteralPath $temporary -Raw | ConvertFrom-Json
+        if ($decoded.protocolVersion -ne 'pfobs1-physical-measurement-2.0.0' -or
+            $decoded.protocolDigest -ne '53F40F7DC72548EB488FFF729823BF0DCFD64EDD085314022C8E746CC45B5D71' -or
+            $decoded.activationState -ne 'None' -or
+            $null -eq $decoded.samples -or
+            $null -eq $decoded.summaries -or
+            $null -eq $decoded.failures -or
+            [int]$decoded.completedSampleCount -ne @($decoded.samples).Count) {
+            throw 'PF-OBS-1-D1 refused incomplete physical evidence.'
+        }
+
+        [IO.File]::Move($temporary, $fullDestination, $true)
+        $committedHash = (Get-FileHash -LiteralPath $fullDestination -Algorithm SHA256).Hash
+        if ($sourceHash -ne $committedHash) {
+            throw 'PF-OBS-1-D1 detected evidence corruption after atomic commit.'
+        }
+    }
+    finally {
+        if (Test-Path -LiteralPath $temporary -PathType Leaf) {
+            Remove-Item -LiteralPath $temporary -Force
+        }
     }
 }
 
@@ -199,6 +310,7 @@ function Start-Laboratory {
 
     $runId = [Guid]::NewGuid().ToString('N')
     $temporaryRoot = Join-Path ([IO.Path]::GetTempPath()) "DBNotifier-PF-OBS-1-$runId"
+    $evidenceArchive = New-EvidenceArchive $runId
     $containerName = "db-notifier-pf-obs-1-$runId"
     $networkName = "db-notifier-pf-obs-1-net-$runId"
     $volumeName = "db-notifier-pf-obs-1-data-$runId"
@@ -212,9 +324,10 @@ function Start-Laboratory {
         connection = ''
         certificateDigest = ''
         evidencePath = (Join-Path $temporaryRoot 'pf-obs-1-evidence.json')
+        evidenceArchiveRoot = $evidenceArchive
         hmPaths = @(
-            (Join-Path $temporaryRoot 'hm-01-03-run-1.json'),
-            (Join-Path $temporaryRoot 'hm-01-03-run-2.json')
+            (Join-Path $evidenceArchive 'hm-01-03-run-1.json'),
+            (Join-Path $evidenceArchive 'hm-01-03-run-2.json')
         )
         hostPid = $null
         browserPid = $null
@@ -325,10 +438,17 @@ function Invoke-PilotEvidence([object]$State, [bool]$IncludePhysical) {
                     --output $physicalOutput `
                     --sdk '10.0.301' `
                     --installed-memory ([string]$memory)
-                if ($LASTEXITCODE -ne 0) {
-                    throw "PF-OBS-1 physical campaign $attempt failed; no replacement run is permitted."
+                $physicalExitCode = $LASTEXITCODE
+                if (-not (Test-Path -LiteralPath $physicalOutput -PathType Leaf)) {
+                    throw "PF-OBS-1 physical campaign $attempt produced no retainable evidence; no replacement run is permitted."
                 }
-                Copy-Item -LiteralPath $physicalOutput -Destination $State.hmPaths[$attempt - 1]
+                Copy-PhysicalEvidenceAtomically `
+                    -Source $physicalOutput `
+                    -Destination $State.hmPaths[$attempt - 1] `
+                    -ArchiveRoot $State.evidenceArchiveRoot
+                if ($physicalExitCode -ne 0) {
+                    throw "PF-OBS-1 physical campaign $attempt failed; evidence was retained and no replacement run is permitted."
+                }
             }
         }
 
@@ -500,6 +620,7 @@ try {
             volumeName = $run.volumeName
             port = $run.port
             evidencePath = $run.evidencePath
+            evidenceArchiveRoot = $run.evidenceArchiveRoot
             hmPaths = $run.hmPaths
             hostPid = $run.hostPid
             browserPid = $run.browserPid

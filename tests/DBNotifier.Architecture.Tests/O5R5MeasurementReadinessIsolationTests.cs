@@ -211,9 +211,49 @@ public sealed class O5R5MeasurementReadinessIsolationTests
         Assert.Contains("No measured sample may be removed", protocol, StringComparison.Ordinal);
         Assert.Contains("RequiredConsecutiveCampaigns = 2", runner, StringComparison.Ordinal);
         Assert.Contains("FixedGroupMedianDistribution", runner, StringComparison.Ordinal);
-        Assert.Contains("workingSetPeak <= empiricalMemoryLimit", runner, StringComparison.Ordinal);
+        Assert.Contains(
+            "O5R5ThresholdMetric.WorkingSetPeak",
+            runner,
+            StringComparison.Ordinal);
+        Assert.Contains(
+            "workingSetPeak,\n            empiricalMemoryLimit",
+            runner.ReplaceLineEndings("\n"),
+            StringComparison.Ordinal);
         Assert.Contains("$requiredConsecutivePhysicalCampaigns = 2", pilot, StringComparison.Ordinal);
         Assert.Contains("no replacement run is permitted", pilot, StringComparison.Ordinal);
+    }
+
+    /// <summary>Verifies failed physical evidence is committed before exit handling and temporary cleanup.</summary>
+    [Fact]
+    public void FailedPhysicalEvidenceIsRetainedBeforeCleanup()
+    {
+        string pilot = Read("scripts", "run-pf-obs1-pilot.ps1");
+        int exitCapture = pilot.IndexOf(
+            "$physicalExitCode = $LASTEXITCODE",
+            StringComparison.Ordinal);
+        int evidenceCopy = pilot.IndexOf(
+            "Copy-PhysicalEvidenceAtomically",
+            exitCapture,
+            StringComparison.Ordinal);
+        int failureBranch = pilot.IndexOf(
+            "if ($physicalExitCode -ne 0)",
+            exitCapture,
+            StringComparison.Ordinal);
+
+        Assert.True(exitCapture >= 0);
+        Assert.True(evidenceCopy > exitCapture);
+        Assert.True(failureBranch > evidenceCopy);
+        Assert.Contains(
+            "$evidenceRoot = Join-Path $repositoryRoot 'artifacts\\pf-obs-1'",
+            pilot,
+            StringComparison.Ordinal);
+        Assert.Contains("[IO.File]::Move($temporary, $fullDestination, $true)", pilot);
+        Assert.Contains("$output.Flush($true)", pilot);
+        Assert.Contains("PF-OBS-1-D1 refused incomplete physical evidence.", pilot);
+        Assert.DoesNotContain(
+            "Copy-Item -LiteralPath $physicalOutput",
+            pilot,
+            StringComparison.Ordinal);
     }
 
     /// <summary>Verifies None remains the only activation state and normal composition stays dormant.</summary>

@@ -159,9 +159,31 @@ public sealed class O5R5MeasurementReadinessRunnerTests
         Assert.False(memoryAboveLimit.Sample!.Passed);
         Assert.True(workAtLimit.Sample!.Passed);
         Assert.False(workAboveLimit.Sample!.Passed);
-        Assert.Equal("o5r5a.measurement.threshold_exceeded", elapsedAboveLimit.Code);
-        Assert.Equal("o5r5a.measurement.threshold_exceeded", memoryAboveLimit.Code);
-        Assert.Equal("o5r5a.measurement.threshold_exceeded", workAboveLimit.Code);
+        Assert.Equal("o5r5d1.threshold.elapsed", elapsedAboveLimit.Code);
+        Assert.Equal("o5r5d1.threshold.heap-peak", memoryAboveLimit.Code);
+        Assert.Equal("o5r5d1.threshold.elapsed-per-work-unit", workAboveLimit.Code);
+        O5R5ThresholdFailure elapsedFailure = Assert.Single(elapsedAboveLimit.Failures);
+        Assert.Equal(O5R5MeasurementPhase.FirstByte, elapsedFailure.Phase);
+        Assert.Equal(O5R5Temperature.Warm, elapsedFailure.Temperature);
+        Assert.False(elapsedFailure.IsWarmUp);
+        Assert.Equal(1, elapsedFailure.Repetition);
+        Assert.Equal(O5R5ThresholdMetric.ElapsedTime, elapsedFailure.Metric);
+        Assert.Equal(2_251d, elapsedFailure.Observed);
+        Assert.Equal(2_250d, elapsedFailure.InclusiveLimit);
+        Assert.Equal(O5R5ThresholdUnit.Milliseconds, elapsedFailure.Unit);
+        Assert.Equal(
+            [
+                O5R5ThresholdMetric.ManagedHeapPeak,
+                O5R5ThresholdMetric.WorkingSetPeak,
+                O5R5ThresholdMetric.AllocationPeak,
+            ],
+            memoryAboveLimit.Failures.Select(failure => failure.Metric));
+        Assert.Equal(
+            [
+                O5R5ThresholdMetric.ElapsedPerWorkUnit,
+                O5R5ThresholdMetric.CpuPerWorkUnit,
+            ],
+            workAboveLimit.Failures.Select(failure => failure.Metric));
     }
 
     /// <summary>Proves deterministic work admission accepts maximum minus one and maximum, then refuses maximum plus one before capture.</summary>
@@ -338,6 +360,14 @@ public sealed class O5R5MeasurementReadinessRunnerTests
         Assert.False(O5R5MeasurementSummary.IsAuthorising);
         Assert.False(failed.Passed);
         Assert.Equal("o5r5a.summary.failed", failed.Code);
+        O5R5ThresholdFailure repeatabilityFailure = Assert.Single(failed.Failures);
+        Assert.Equal(
+            "o5r5d1.threshold.repeatability-coefficient",
+            repeatabilityFailure.Code);
+        Assert.Equal(O5R5ThresholdMetric.RepeatabilityCoefficient, repeatabilityFailure.Metric);
+        Assert.Null(repeatabilityFailure.IsWarmUp);
+        Assert.Null(repeatabilityFailure.Repetition);
+        Assert.Equal(O5R5ThresholdUnit.Ratio, repeatabilityFailure.Unit);
         Assert.Equal(1_000d, failed.Elapsed.Maximum);
         Assert.True(
             failed.RepeatabilityElapsed.CoefficientOfVariation >

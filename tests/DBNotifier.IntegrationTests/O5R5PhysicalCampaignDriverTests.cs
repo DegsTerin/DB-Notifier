@@ -103,8 +103,17 @@ public sealed class O5R5PhysicalCampaignDriverTests
             O5R5PhysicalCampaignReport report = Report();
 
             await O5R5PhysicalEvidenceWriter.WriteAsync(destination, report, CancellationToken.None);
+            O5R5PhysicalCampaignReport roundTrip =
+                await O5R5PhysicalEvidenceWriter.ReadValidatedAsync(
+                    destination,
+                    CancellationToken.None);
 
             string evidence = await File.ReadAllTextAsync(destination);
+            Assert.Equal(report.ProtocolVersion, roundTrip.ProtocolVersion);
+            Assert.Equal(report.ProtocolDigest, roundTrip.ProtocolDigest);
+            Assert.Equal(report.ActivationState, roundTrip.ActivationState);
+            Assert.Equal(report.Code, roundTrip.Code);
+            Assert.Equal(report.Passed, roundTrip.Passed);
             Assert.Contains("\"activationState\": \"None\"", evidence, StringComparison.Ordinal);
             Assert.Contains("\"passed\": false", evidence, StringComparison.Ordinal);
             Assert.DoesNotContain(Environment.MachineName, evidence, StringComparison.OrdinalIgnoreCase);
@@ -124,6 +133,136 @@ public sealed class O5R5PhysicalCampaignDriverTests
         }
     }
 
+    /// <summary>Proves corrupt and structurally incomplete evidence fail closed during recovery.</summary>
+    [Fact]
+    public async Task EvidenceReaderRejectsCorruptionAndIncompleteReports()
+    {
+        string root = NewEvidenceRoot();
+        string destination = Path.Combine(root, "o5-r5-physical-campaign.json");
+        try
+        {
+            await File.WriteAllTextAsync(destination, "{");
+            InvalidOperationException corrupt = await Assert.ThrowsAsync<InvalidOperationException>(
+                () => O5R5PhysicalEvidenceWriter.ReadValidatedAsync(
+                    destination,
+                    CancellationToken.None));
+            Assert.Equal("o5r5d1.evidence.corrupt", corrupt.Message);
+
+            await File.WriteAllTextAsync(destination, "{}");
+            InvalidOperationException incomplete =
+                await Assert.ThrowsAsync<InvalidOperationException>(
+                    () => O5R5PhysicalEvidenceWriter.ReadValidatedAsync(
+                        destination,
+                        CancellationToken.None));
+            Assert.Equal("o5r5d1.evidence.incomplete", incomplete.Message);
+        }
+        finally
+        {
+            Directory.Delete(root, recursive: true);
+        }
+    }
+
+    /// <summary>Proves a failed temporary write leaves neither destination nor temporary residue.</summary>
+    [Fact]
+    public async Task EvidenceWriterCleansTemporaryFileAfterWriteFailure()
+    {
+        string root = NewEvidenceRoot();
+        string destination = Path.Combine(root, "o5-r5-physical-campaign.json");
+        FailingEvidenceFileOperations operations = new();
+        try
+        {
+            await Assert.ThrowsAsync<IOException>(
+                () => O5R5PhysicalEvidenceWriter.WriteAsync(
+                    destination,
+                    Report(),
+                    operations,
+                    CancellationToken.None));
+
+            Assert.True(operations.DeleteCalled);
+            Assert.False(operations.TemporaryExists);
+            Assert.False(File.Exists(destination));
+        }
+        finally
+        {
+            Directory.Delete(root, recursive: true);
+        }
+    }
+
+    /// <summary>Proves a failed campaign retains exact phase, sample, metric, value and limit.</summary>
+    [Fact]
+    public async Task EvidenceWriterRetainsSanitisedThresholdDiagnostic()
+    {
+        string root = NewEvidenceRoot();
+        string destination = Path.Combine(root, "o5-r5-physical-campaign.json");
+        try
+        {
+            O5R5ThresholdFailure failure = new(
+                "o5r5d1.threshold.working-set-peak",
+                O5R5MeasurementPhase.FirstByte,
+                O5R5Temperature.Cold,
+                false,
+                1,
+                O5R5ThresholdMetric.WorkingSetPeak,
+                786_433d,
+                786_432d,
+                O5R5ThresholdUnit.Bytes);
+            O5R5MeasurementSample sample = new(
+                ExpectedDigest,
+                O5R5MeasurementPhase.FirstByte,
+                O5R5Temperature.Cold,
+                false,
+                1,
+                1d,
+                1d,
+                0,
+                786_433,
+                0,
+                0,
+                1,
+                524_288,
+                null,
+                null,
+                false);
+            O5R5PhysicalCampaignReport report = new(
+                O5R5MeasurementProtocol.Version,
+                ExpectedDigest,
+                "None",
+                DateTimeOffset.UnixEpoch,
+                DateTimeOffset.UnixEpoch,
+                SyntheticEnvironment(),
+                failure.Code,
+                false,
+                560,
+                1,
+                [sample],
+                [],
+                [failure]);
+
+            await O5R5PhysicalEvidenceWriter.WriteAsync(
+                destination,
+                report,
+                CancellationToken.None);
+            O5R5PhysicalCampaignReport retained =
+                await O5R5PhysicalEvidenceWriter.ReadValidatedAsync(
+                    destination,
+                    CancellationToken.None);
+
+            O5R5ThresholdFailure actual = Assert.Single(retained.Failures);
+            Assert.Equal(O5R5MeasurementPhase.FirstByte, actual.Phase);
+            Assert.Equal(O5R5Temperature.Cold, actual.Temperature);
+            Assert.False(actual.IsWarmUp);
+            Assert.Equal(1, actual.Repetition);
+            Assert.Equal(O5R5ThresholdMetric.WorkingSetPeak, actual.Metric);
+            Assert.Equal(786_433d, actual.Observed);
+            Assert.Equal(786_432d, actual.InclusiveLimit);
+            Assert.Equal(O5R5ThresholdUnit.Bytes, actual.Unit);
+        }
+        finally
+        {
+            Directory.Delete(root, recursive: true);
+        }
+    }
+
     /// <summary>Creates a minimal non-authorising report for evidence-writer validation.</summary>
     /// <returns>A sanitised incomplete campaign report.</returns>
     private static O5R5PhysicalCampaignReport Report() =>
@@ -133,21 +272,38 @@ public sealed class O5R5PhysicalCampaignDriverTests
             "None",
             DateTimeOffset.UnixEpoch,
             DateTimeOffset.UnixEpoch,
-            new O5R5PhysicalEnvironment(
-                "synthetic",
-                "synthetic",
-                "synthetic",
-                ".NET synthetic",
-                "10.0.0",
-                1,
-                1,
-                1),
+            SyntheticEnvironment(),
             "o5r5b.synthetic",
             false,
             560,
             0,
             [],
+            [],
             []);
+
+    /// <summary>Creates one bounded synthetic environment declaration.</summary>
+    /// <returns>A host-neutral environment without identity.</returns>
+    private static O5R5PhysicalEnvironment SyntheticEnvironment() =>
+        new(
+            "synthetic",
+            "synthetic",
+            "synthetic",
+            ".NET synthetic",
+            "10.0.0",
+            1,
+            1,
+            1);
+
+    /// <summary>Creates one exact project-owned temporary evidence root.</summary>
+    /// <returns>A newly created absolute root.</returns>
+    private static string NewEvidenceRoot()
+    {
+        string root = Path.Combine(
+            Path.GetTempPath(),
+            $"DBNotifier-O5-R5-Physical-{Guid.NewGuid():N}");
+        Directory.CreateDirectory(root);
+        return root;
+    }
 
     /// <summary>Rejects accidental physical capture during matrix-only automatic tests.</summary>
     private sealed class UnusedSyntheticSource : IO5R5MeasurementSource
@@ -176,5 +332,39 @@ public sealed class O5R5PhysicalCampaignDriverTests
                 timestamp,
                 1,
                 TimeSpan.FromTicks(timestamp));
+    }
+
+    /// <summary>Injects one deterministic write failure and records temporary cleanup.</summary>
+    private sealed class FailingEvidenceFileOperations : IO5R5EvidenceFileOperations
+    {
+        /// <summary>Gets whether the synthetic temporary path currently exists.</summary>
+        internal bool TemporaryExists { get; private set; }
+
+        /// <summary>Gets whether cleanup attempted to delete the temporary path.</summary>
+        internal bool DeleteCalled { get; private set; }
+
+        /// <inheritdoc />
+        public Task WriteAllBytesAsync(
+            string path,
+            byte[] bytes,
+            CancellationToken cancellationToken)
+        {
+            TemporaryExists = true;
+            throw new IOException("synthetic write failure");
+        }
+
+        /// <inheritdoc />
+        public bool Exists(string path) => TemporaryExists;
+
+        /// <inheritdoc />
+        public void Delete(string path)
+        {
+            DeleteCalled = true;
+            TemporaryExists = false;
+        }
+
+        /// <inheritdoc />
+        public void Move(string source, string destination) =>
+            throw new InvalidOperationException("move must not run after a failed write");
     }
 }

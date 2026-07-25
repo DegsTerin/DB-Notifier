@@ -400,14 +400,58 @@ internal sealed record O5R5MeasurementSample(
     double? CpuMicrosecondsPerWorkUnit,
     bool Passed);
 
+/// <summary>Identifies one allow-listed physical threshold without exposing payload or host identity.</summary>
+internal enum O5R5ThresholdMetric
+{
+    ElapsedTime = 1,
+    ManagedHeapPeak = 2,
+    WorkingSetPeak = 3,
+    AllocationPeak = 4,
+    ElapsedPerWorkUnit = 5,
+    CpuPerWorkUnit = 6,
+    RepeatabilityCoefficient = 7,
+}
+
+/// <summary>Identifies the exact unit used by one sanitised physical threshold diagnostic.</summary>
+internal enum O5R5ThresholdUnit
+{
+    Milliseconds = 1,
+    Bytes = 2,
+    MicrosecondsPerWorkUnit = 3,
+    Ratio = 4,
+}
+
+/// <summary>Records one bounded threshold breach with no payload, path, identity or topology.</summary>
+/// <param name="Code">Stable allow-listed diagnostic code derived only from the metric.</param>
+/// <param name="Phase">Exact allow-listed physical phase.</param>
+/// <param name="Temperature">Cold or warm classification.</param>
+/// <param name="IsWarmUp">Sample class, or null for a batch-level repeatability gate.</param>
+/// <param name="Repetition">One-based sample repetition, or null for a batch-level gate.</param>
+/// <param name="Metric">Exact allow-listed metric.</param>
+/// <param name="Observed">Finite non-negative observed value.</param>
+/// <param name="InclusiveLimit">Finite non-negative inclusive threshold.</param>
+/// <param name="Unit">Exact allow-listed measurement unit.</param>
+internal sealed record O5R5ThresholdFailure(
+    string Code,
+    O5R5MeasurementPhase Phase,
+    O5R5Temperature Temperature,
+    bool? IsWarmUp,
+    int? Repetition,
+    O5R5ThresholdMetric Metric,
+    double Observed,
+    double InclusiveLimit,
+    O5R5ThresholdUnit Unit);
+
 /// <summary>Returns a typed non-authorising runner outcome and optional complete sample.</summary>
 /// <param name="Disposition">Accepted or refused disposition.</param>
 /// <param name="Code">Stable sanitised diagnostic code.</param>
 /// <param name="Sample">Complete sample only after safe measurement.</param>
+/// <param name="Failures">Bounded threshold diagnostics retained for a complete failed sample.</param>
 internal sealed record O5R5MeasurementResult(
     O5R5MeasurementDisposition Disposition,
     string Code,
-    O5R5MeasurementSample? Sample)
+    O5R5MeasurementSample? Sample,
+    IReadOnlyList<O5R5ThresholdFailure> Failures)
 {
     /// <summary>Gets a value that is always false because O5-R5-A cannot evaluate Observer evidence.</summary>
     internal static bool MayEvaluate => false;
@@ -447,6 +491,7 @@ internal sealed record O5R5MetricDistribution(
 /// <param name="ElapsedPerWorkUnit">Elapsed work-cost distribution for compute phases.</param>
 /// <param name="CpuPerWorkUnit">CPU work-cost distribution for compute phases.</param>
 /// <param name="RepeatabilityElapsed">Distribution of five predeclared sequential-group medians.</param>
+/// <param name="Failures">Bounded batch-level threshold diagnostics.</param>
 /// <param name="Passed">Whether completeness, thresholds and variance all passed.</param>
 internal sealed record O5R5MeasurementSummary(
     string Code,
@@ -462,6 +507,7 @@ internal sealed record O5R5MeasurementSummary(
     O5R5MetricDistribution? ElapsedPerWorkUnit,
     O5R5MetricDistribution? CpuPerWorkUnit,
     O5R5MetricDistribution RepeatabilityElapsed,
+    IReadOnlyList<O5R5ThresholdFailure> Failures,
     bool Passed)
 {
     /// <summary>Gets a value that is always false because statistical evidence cannot authorise activation.</summary>
@@ -638,13 +684,28 @@ internal sealed class O5R5MeasurementReadinessRunner
             : null;
         O5R5MetricDistribution repeatabilityElapsed = FixedGroupMedianDistribution(
             measured.Select(sample => sample.ElapsedMilliseconds).ToArray());
+        O5R5ThresholdFailure[] failures =
+            repeatabilityElapsed.CoefficientOfVariation >
+                O5R5MeasurementProtocol.MaximumCoefficientOfVariation
+                ?
+                [
+                    Failure(
+                        phase,
+                        temperature,
+                        null,
+                        null,
+                        O5R5ThresholdMetric.RepeatabilityCoefficient,
+                        repeatabilityElapsed.CoefficientOfVariation,
+                        O5R5MeasurementProtocol.MaximumCoefficientOfVariation,
+                        O5R5ThresholdUnit.Ratio),
+                ]
+                : [];
 
         // Every raw sample remains subject to its absolute gate and in the evidence. Relative repeatability
         // alone uses five fixed sequential-group medians, preventing one Windows scheduling delay from
         // dominating a sub-millisecond workload without choosing or deleting any observation.
         bool passed = measured.All(sample => sample.Passed) &&
-            repeatabilityElapsed.CoefficientOfVariation <=
-            O5R5MeasurementProtocol.MaximumCoefficientOfVariation;
+            failures.Length == 0;
 
         return new O5R5MeasurementSummary(
             passed ? "o5r5a.summary.accepted" : "o5r5a.summary.failed",
@@ -660,6 +721,7 @@ internal sealed class O5R5MeasurementReadinessRunner
             elapsedPerWork,
             cpuPerWork,
             repeatabilityElapsed,
+            failures,
             passed);
     }
 
@@ -734,13 +796,54 @@ internal sealed class O5R5MeasurementReadinessRunner
 
         O5R5PhaseLimit limit = protocol.LimitFor(scenario.Phase);
         long empiricalMemoryLimit = protocol.EmpiricalMemoryLimit(scenario.AccountedMemoryBytes);
-        bool passed = elapsedMilliseconds <= limit.MaximumElapsed.TotalMilliseconds &&
-            heapPeak <= empiricalMemoryLimit &&
-            workingSetPeak <= empiricalMemoryLimit &&
-            allocationPeak <= empiricalMemoryLimit &&
-            (!limit.MeasuresWorkRate ||
-                (elapsedPerWork <= O5R5MeasurementProtocol.MaximumElapsedMicrosecondsPerWorkUnit &&
-                    cpuPerWork <= O5R5MeasurementProtocol.MaximumCpuMicrosecondsPerWorkUnit));
+        List<O5R5ThresholdFailure> failures = [];
+        AddFailure(
+            failures,
+            scenario,
+            O5R5ThresholdMetric.ElapsedTime,
+            elapsedMilliseconds,
+            limit.MaximumElapsed.TotalMilliseconds,
+            O5R5ThresholdUnit.Milliseconds);
+        AddFailure(
+            failures,
+            scenario,
+            O5R5ThresholdMetric.ManagedHeapPeak,
+            heapPeak,
+            empiricalMemoryLimit,
+            O5R5ThresholdUnit.Bytes);
+        AddFailure(
+            failures,
+            scenario,
+            O5R5ThresholdMetric.WorkingSetPeak,
+            workingSetPeak,
+            empiricalMemoryLimit,
+            O5R5ThresholdUnit.Bytes);
+        AddFailure(
+            failures,
+            scenario,
+            O5R5ThresholdMetric.AllocationPeak,
+            allocationPeak,
+            empiricalMemoryLimit,
+            O5R5ThresholdUnit.Bytes);
+        if (limit.MeasuresWorkRate)
+        {
+            AddFailure(
+                failures,
+                scenario,
+                O5R5ThresholdMetric.ElapsedPerWorkUnit,
+                elapsedPerWork!.Value,
+                O5R5MeasurementProtocol.MaximumElapsedMicrosecondsPerWorkUnit,
+                O5R5ThresholdUnit.MicrosecondsPerWorkUnit);
+            AddFailure(
+                failures,
+                scenario,
+                O5R5ThresholdMetric.CpuPerWorkUnit,
+                cpuPerWork!.Value,
+                O5R5MeasurementProtocol.MaximumCpuMicrosecondsPerWorkUnit,
+                O5R5ThresholdUnit.MicrosecondsPerWorkUnit);
+        }
+
+        bool passed = failures.Count == 0;
         O5R5MeasurementSample sample = new(
             protocol.Digest,
             scenario.Phase,
@@ -762,9 +865,86 @@ internal sealed class O5R5MeasurementReadinessRunner
             O5R5MeasurementDisposition.Accepted,
             passed
                 ? "o5r5a.measurement.accepted"
-                : "o5r5a.measurement.threshold_exceeded",
-            sample);
+                : failures[0].Code,
+            sample,
+            failures.ToArray());
     }
+
+    /// <summary>Adds one sample-level diagnostic only when an unchanged inclusive limit is exceeded.</summary>
+    /// <param name="failures">Bounded destination list.</param>
+    /// <param name="scenario">Exact phase and sample membership.</param>
+    /// <param name="metric">Allow-listed metric.</param>
+    /// <param name="observed">Finite observed value.</param>
+    /// <param name="inclusiveLimit">Unchanged inclusive threshold.</param>
+    /// <param name="unit">Allow-listed metric unit.</param>
+    private static void AddFailure(
+        List<O5R5ThresholdFailure> failures,
+        O5R5MeasurementScenario scenario,
+        O5R5ThresholdMetric metric,
+        double observed,
+        double inclusiveLimit,
+        O5R5ThresholdUnit unit)
+    {
+        if (observed > inclusiveLimit)
+        {
+            failures.Add(
+                Failure(
+                    scenario.Phase,
+                    scenario.Temperature,
+                    scenario.IsWarmUp,
+                    scenario.Repetition,
+                    metric,
+                    observed,
+                    inclusiveLimit,
+                    unit));
+        }
+    }
+
+    /// <summary>Creates one stable metric diagnostic from allow-listed factual fields.</summary>
+    /// <param name="phase">Exact physical phase.</param>
+    /// <param name="temperature">Cold or warm classification.</param>
+    /// <param name="isWarmUp">Sample class, or null for a batch gate.</param>
+    /// <param name="repetition">One-based repetition, or null for a batch gate.</param>
+    /// <param name="metric">Allow-listed threshold metric.</param>
+    /// <param name="observed">Observed value.</param>
+    /// <param name="inclusiveLimit">Inclusive threshold.</param>
+    /// <param name="unit">Allow-listed metric unit.</param>
+    /// <returns>A sanitised bounded threshold diagnostic.</returns>
+    private static O5R5ThresholdFailure Failure(
+        O5R5MeasurementPhase phase,
+        O5R5Temperature temperature,
+        bool? isWarmUp,
+        int? repetition,
+        O5R5ThresholdMetric metric,
+        double observed,
+        double inclusiveLimit,
+        O5R5ThresholdUnit unit) =>
+        new(
+            $"o5r5d1.threshold.{MetricCode(metric)}",
+            phase,
+            temperature,
+            isWarmUp,
+            repetition,
+            metric,
+            observed,
+            inclusiveLimit,
+            unit);
+
+    /// <summary>Maps one allow-listed metric to its stable sanitised diagnostic suffix.</summary>
+    /// <param name="metric">Allow-listed threshold metric.</param>
+    /// <returns>Stable lowercase diagnostic suffix.</returns>
+    internal static string MetricCode(O5R5ThresholdMetric metric) =>
+        metric switch
+        {
+            O5R5ThresholdMetric.ElapsedTime => "elapsed",
+            O5R5ThresholdMetric.ManagedHeapPeak => "heap-peak",
+            O5R5ThresholdMetric.WorkingSetPeak => "working-set-peak",
+            O5R5ThresholdMetric.AllocationPeak => "allocation-peak",
+            O5R5ThresholdMetric.ElapsedPerWorkUnit => "elapsed-per-work-unit",
+            O5R5ThresholdMetric.CpuPerWorkUnit => "cpu-per-work-unit",
+            O5R5ThresholdMetric.RepeatabilityCoefficient => "repeatability-coefficient",
+            _ => throw new ArgumentOutOfRangeException(nameof(metric)),
+        };
 
     /// <summary>Validates phase, sequence and deterministic resource bounds before source capture.</summary>
     /// <param name="scenario">Candidate scenario.</param>
@@ -897,5 +1077,5 @@ internal sealed class O5R5MeasurementReadinessRunner
     /// <param name="code">Sanitised diagnostic code.</param>
     /// <returns>A non-authorising refusal.</returns>
     private static O5R5MeasurementResult Refused(string code) =>
-        new(O5R5MeasurementDisposition.Refused, code, null);
+        new(O5R5MeasurementDisposition.Refused, code, null, []);
 }

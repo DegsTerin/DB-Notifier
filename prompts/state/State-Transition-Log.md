@@ -3474,6 +3474,33 @@
 - Aprovador: resultado automático local reprovado; Human Gate PF-OBS-1 não
   elegível.
 
+## 2026-07-25 — PF-OBS-1-D1 retenção diagnóstica concluída
+
+- Estado anterior: PF-OBS-1 v2 `REPROVADA`, relatório temporário removido
+  antes da cópia, fase e métrica exatas indisponíveis e
+  `ActivationState=None`.
+- Autoridade: implementar retenção local fail-closed da evidência física
+  aprovada ou reprovada, diagnosticar por campos allow-listed, testar
+  corrupção/incompletude/escrita/cleanup e criar commit focado.
+- Implementação: diagnósticos bounded de fase, amostra, métrica, valor,
+  limite e unidade; validação estrutural; escrita write-through seguida de
+  move atómico; arquivo project-owned retido antes da interpretação do exit
+  code e do cleanup temporário.
+- Gates: `13/13` integrações focais, `9/9` provas arquiteturais focais,
+  `109/109` integrações completas e `88/88` provas arquiteturais completas
+  passaram; build Release do host consolidado teve zero aviso/erro; sintaxe
+  PowerShell, format, documentação, links, secret scan, digest v2, corrupção,
+  incompletude, falha de escrita, round trip e isolamento passaram.
+- Estado resultante: PF-OBS-1-D1 automático `APROVADO`; protocolo
+  `pfobs1-physical-measurement-2.0.0` e limites inalterados;
+  `ActivationState=None`.
+- Evidência:
+  [relatório PF-OBS-1-D1](../../docs/STATE-06-MOD-12-PF-OBS-1-D1-Evidence-Retention-Report.md).
+- Próxima ação: uma única retomada integral já autorizada, sem execução
+  substituta e com parada imediata diante de falha.
+- Aprovador: resultado automático local; nenhum Human Gate ou transição
+  inferido.
+
 ## Template de nova entrada
 
 - Data:

@@ -38,6 +38,7 @@ internal sealed record O5R5PhysicalEnvironment(
 /// <param name="CompletedSampleCount">Number of complete samples retained before completion or stop.</param>
 /// <param name="Samples">Complete phase-labelled samples, including warm-ups.</param>
 /// <param name="Summaries">Completed phase/temperature summaries.</param>
+/// <param name="Failures">Bounded sanitised threshold diagnostics retained before cleanup.</param>
 internal sealed record O5R5PhysicalCampaignReport(
     string ProtocolVersion,
     string ProtocolDigest,
@@ -50,7 +51,8 @@ internal sealed record O5R5PhysicalCampaignReport(
     int ExpectedSampleCount,
     int CompletedSampleCount,
     IReadOnlyList<O5R5MeasurementSample> Samples,
-    IReadOnlyList<O5R5MeasurementSummary> Summaries)
+    IReadOnlyList<O5R5MeasurementSummary> Summaries,
+    IReadOnlyList<O5R5ThresholdFailure> Failures)
 {
     /// <summary>Gets a value that is always false because physical evidence cannot authorise activation.</summary>
     internal static bool IsAuthorising => false;
@@ -410,22 +412,38 @@ internal sealed class O5R5PhysicalCampaignDriver
         DateTimeOffset startedAtUtc = DateTimeOffset.UtcNow;
         List<O5R5MeasurementSample> samples = new(ExpectedSampleCount);
         List<O5R5MeasurementSummary> summaries = new(16);
+        List<O5R5ThresholdFailure> failures = new(6);
 
         foreach (O5R5MeasurementScenario scenario in CreateScenarios())
         {
             O5R5MeasurementResult result = await runner
                 .RunAsync(scenario, cancellationToken)
                 .ConfigureAwait(false);
+            failures.AddRange(result.Failures);
             if (result.Disposition != O5R5MeasurementDisposition.Accepted ||
                 result.Sample is null)
             {
-                return Report(startedAtUtc, environment, result.Code, false, samples, summaries);
+                return Report(
+                    startedAtUtc,
+                    environment,
+                    result.Code,
+                    false,
+                    samples,
+                    summaries,
+                    failures);
             }
 
             samples.Add(result.Sample);
             if (!result.Sample.Passed)
             {
-                return Report(startedAtUtc, environment, result.Code, false, samples, summaries);
+                return Report(
+                    startedAtUtc,
+                    environment,
+                    result.Code,
+                    false,
+                    samples,
+                    summaries,
+                    failures);
             }
 
             if (!scenario.IsWarmUp &&
@@ -437,9 +455,17 @@ internal sealed class O5R5PhysicalCampaignDriver
                 O5R5MeasurementSummary summary = runner.Summarise(
                     samples.TakeLast(batchSize).ToArray());
                 summaries.Add(summary);
+                failures.AddRange(summary.Failures);
                 if (!summary.Passed)
                 {
-                    return Report(startedAtUtc, environment, summary.Code, false, samples, summaries);
+                    return Report(
+                        startedAtUtc,
+                        environment,
+                        summary.Failures[0].Code,
+                        false,
+                        samples,
+                        summaries,
+                        failures);
                 }
             }
         }
@@ -450,7 +476,8 @@ internal sealed class O5R5PhysicalCampaignDriver
             "o5r5b.campaign.accepted",
             true,
             samples,
-            summaries);
+            summaries,
+            failures);
     }
 
     /// <summary>Adds one exact warm-up or measured sequence to the stable campaign matrix.</summary>
@@ -488,6 +515,7 @@ internal sealed class O5R5PhysicalCampaignDriver
     /// <param name="passed">Whether every gate passed.</param>
     /// <param name="samples">Complete retained samples.</param>
     /// <param name="summaries">Complete retained summaries.</param>
+    /// <param name="failures">Bounded sanitised threshold diagnostics.</param>
     /// <returns>A non-authorising campaign report.</returns>
     private O5R5PhysicalCampaignReport Report(
         DateTimeOffset startedAtUtc,
@@ -495,7 +523,8 @@ internal sealed class O5R5PhysicalCampaignDriver
         string code,
         bool passed,
         List<O5R5MeasurementSample> samples,
-        List<O5R5MeasurementSummary> summaries) =>
+        List<O5R5MeasurementSummary> summaries,
+        List<O5R5ThresholdFailure> failures) =>
         new(
             O5R5MeasurementProtocol.Version,
             protocol.Digest,
@@ -508,7 +537,8 @@ internal sealed class O5R5PhysicalCampaignDriver
             ExpectedSampleCount,
             samples.Count,
             samples.ToArray(),
-            summaries.ToArray());
+            summaries.ToArray(),
+            failures.ToArray());
 
     /// <summary>
     /// Materialises each code path once before the frozen warm-up and measured sequences so process-wide page-in
@@ -533,11 +563,64 @@ internal sealed class O5R5PhysicalCampaignDriver
     }
 }
 
-/// <summary>Writes one physical campaign report atomically inside an exact project-owned temporary root.</summary>
+/// <summary>Abstracts the four filesystem operations required for atomic evidence persistence.</summary>
+internal interface IO5R5EvidenceFileOperations
+{
+    /// <summary>Writes complete bytes to one temporary destination.</summary>
+    Task WriteAllBytesAsync(string path, byte[] bytes, CancellationToken cancellationToken);
+
+    /// <summary>Returns whether one exact path exists.</summary>
+    bool Exists(string path);
+
+    /// <summary>Deletes one exact temporary path.</summary>
+    void Delete(string path);
+
+    /// <summary>Atomically moves one completed temporary file over the destination.</summary>
+    void Move(string source, string destination);
+}
+
+/// <summary>Uses built-in filesystem APIs for the production path of the test-only evidence writer.</summary>
+internal sealed class O5R5EvidenceFileOperations : IO5R5EvidenceFileOperations
+{
+    /// <inheritdoc />
+    public async Task WriteAllBytesAsync(
+        string path,
+        byte[] bytes,
+        CancellationToken cancellationToken)
+    {
+        await using FileStream stream = new(
+            path,
+            FileMode.CreateNew,
+            FileAccess.Write,
+            FileShare.None,
+            bufferSize: 16_384,
+            FileOptions.Asynchronous | FileOptions.WriteThrough);
+        await stream.WriteAsync(bytes, cancellationToken).ConfigureAwait(false);
+        await stream.FlushAsync(cancellationToken).ConfigureAwait(false);
+        stream.Flush(flushToDisk: true);
+    }
+
+    /// <inheritdoc />
+    public bool Exists(string path) => File.Exists(path);
+
+    /// <inheritdoc />
+    public void Delete(string path) => File.Delete(path);
+
+    /// <inheritdoc />
+    public void Move(string source, string destination) =>
+        File.Move(source, destination, overwrite: true);
+}
+
+/// <summary>
+/// Validates and writes one physical campaign report atomically inside an exact project-owned
+/// temporary root.
+/// </summary>
 internal static class O5R5PhysicalEvidenceWriter
 {
     private const string RootPrefix = "DBNotifier-O5-R5-Physical-";
     private const string EvidenceFileName = "o5-r5-physical-campaign.json";
+    private const int MaximumEvidenceBytes = 4 * 1024 * 1024;
+    private const int MaximumFailures = 6;
     private static readonly JsonSerializerOptions Options = new(JsonSerializerDefaults.Web)
     {
         WriteIndented = true,
@@ -586,24 +669,221 @@ internal static class O5R5PhysicalEvidenceWriter
     internal static async Task WriteAsync(
         string destination,
         O5R5PhysicalCampaignReport report,
+        CancellationToken cancellationToken) =>
+        await WriteAsync(
+            destination,
+            report,
+            new O5R5EvidenceFileOperations(),
+            cancellationToken).ConfigureAwait(false);
+
+    /// <summary>Persists evidence through injectable operations so write failure cleanup is testable.</summary>
+    /// <param name="destination">Validated exact temporary destination.</param>
+    /// <param name="report">Complete or fail-closed campaign report.</param>
+    /// <param name="operations">Bounded filesystem operations.</param>
+    /// <param name="cancellationToken">Cancellation honoured before commit.</param>
+    /// <returns>A task that completes only after an atomic commit.</returns>
+    internal static async Task WriteAsync(
+        string destination,
+        O5R5PhysicalCampaignReport report,
+        IO5R5EvidenceFileOperations operations,
         CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(report);
+        ArgumentNullException.ThrowIfNull(operations);
         string validated = ValidateDestination(destination);
+        ValidateReport(report);
         string temporary = validated + ".tmp";
         byte[] encoded = JsonSerializer.SerializeToUtf8Bytes(report, Options);
+        if (encoded.Length is < 1 or > MaximumEvidenceBytes)
+        {
+            throw new InvalidOperationException("o5r5d1.evidence.size_invalid");
+        }
+        ValidateEncoded(encoded);
         try
         {
-            await File.WriteAllBytesAsync(temporary, encoded, cancellationToken).ConfigureAwait(false);
+            await operations
+                .WriteAllBytesAsync(temporary, encoded, cancellationToken)
+                .ConfigureAwait(false);
             cancellationToken.ThrowIfCancellationRequested();
-            File.Move(temporary, validated, overwrite: true);
+            operations.Move(temporary, validated);
         }
         finally
         {
-            if (File.Exists(temporary))
+            if (operations.Exists(temporary))
             {
-                File.Delete(temporary);
+                operations.Delete(temporary);
             }
         }
     }
+
+    /// <summary>Reads and validates one persisted report without accepting corruption or partial JSON.</summary>
+    /// <param name="destination">Exact project-owned temporary evidence path.</param>
+    /// <param name="cancellationToken">Cancellation honoured while reading.</param>
+    /// <returns>The complete validated non-authorising report.</returns>
+    internal static async Task<O5R5PhysicalCampaignReport> ReadValidatedAsync(
+        string destination,
+        CancellationToken cancellationToken)
+    {
+        string validated = ValidateDestination(destination);
+        FileInfo information = new(validated);
+        if (!information.Exists ||
+            information.Attributes.HasFlag(FileAttributes.ReparsePoint) ||
+            information.Length is < 1 or > MaximumEvidenceBytes)
+        {
+            throw new InvalidOperationException("o5r5d1.evidence.file_invalid");
+        }
+
+        byte[] encoded = await File
+            .ReadAllBytesAsync(validated, cancellationToken)
+            .ConfigureAwait(false);
+        return ValidateEncoded(encoded);
+    }
+
+    /// <summary>Deserialises bounded bytes and rejects corrupt or structurally incomplete evidence.</summary>
+    /// <param name="encoded">Bounded candidate JSON bytes.</param>
+    /// <returns>The complete validated report.</returns>
+    private static O5R5PhysicalCampaignReport ValidateEncoded(byte[] encoded)
+    {
+        try
+        {
+            O5R5PhysicalCampaignReport? decoded =
+                JsonSerializer.Deserialize<O5R5PhysicalCampaignReport>(encoded, Options);
+            if (decoded is null)
+            {
+                throw new InvalidOperationException("o5r5d1.evidence.incomplete");
+            }
+            ValidateReport(decoded);
+            return decoded;
+        }
+        catch (JsonException exception)
+        {
+            throw new InvalidOperationException("o5r5d1.evidence.corrupt", exception);
+        }
+    }
+
+    /// <summary>Validates report identity, completeness and bounded diagnostic membership.</summary>
+    /// <param name="report">Candidate deserialised report.</param>
+    private static void ValidateReport(O5R5PhysicalCampaignReport report)
+    {
+        O5R5MeasurementProtocol protocol = O5R5MeasurementProtocol.CreateFrozen();
+        if (!string.Equals(report.ProtocolVersion, O5R5MeasurementProtocol.Version, StringComparison.Ordinal) ||
+            !string.Equals(report.ProtocolDigest, protocol.Digest, StringComparison.Ordinal) ||
+            !string.Equals(report.ActivationState, "None", StringComparison.Ordinal) ||
+            report.Environment is null ||
+            report.Samples is null ||
+            report.Summaries is null ||
+            report.Failures is null ||
+            report.CompletedAtUtc < report.StartedAtUtc ||
+            report.ExpectedSampleCount != O5R5PhysicalCampaignDriver.ExpectedSampleCount ||
+            report.CompletedSampleCount != report.Samples.Count ||
+            report.CompletedSampleCount < 0 ||
+            report.CompletedSampleCount > report.ExpectedSampleCount ||
+            report.Summaries.Count > 16 ||
+            report.Failures.Count > MaximumFailures ||
+            string.IsNullOrWhiteSpace(report.Code) ||
+            report.Code.Length > 128)
+        {
+            throw new InvalidOperationException("o5r5d1.evidence.incomplete");
+        }
+
+        if (report.Samples.Any(
+                sample =>
+                    sample is null ||
+                    !string.Equals(sample.ProtocolDigest, protocol.Digest, StringComparison.Ordinal) ||
+                    !Enum.IsDefined(sample.Phase) ||
+                    !Enum.IsDefined(sample.Temperature)) ||
+            report.Summaries.Any(
+                summary =>
+                    summary is null ||
+                    !Enum.IsDefined(summary.Phase) ||
+                    !Enum.IsDefined(summary.Temperature)))
+        {
+            throw new InvalidOperationException("o5r5d1.evidence.membership_invalid");
+        }
+
+        foreach (O5R5ThresholdFailure failure in report.Failures)
+        {
+            ValidateFailure(failure);
+        }
+
+        bool thresholdDisposition =
+            report.Code.StartsWith("o5r5d1.threshold.", StringComparison.Ordinal);
+        if (report.Passed)
+        {
+            if (report.CompletedSampleCount != report.ExpectedSampleCount ||
+                report.Summaries.Count != 16 ||
+                report.Failures.Count != 0 ||
+                report.Samples.Any(sample => !sample.Passed) ||
+                report.Summaries.Any(summary => !summary.Passed))
+            {
+                throw new InvalidOperationException("o5r5d1.evidence.passing_report_invalid");
+            }
+        }
+        else if (report.Failures.Count > 0)
+        {
+            if (!thresholdDisposition ||
+                !string.Equals(report.Code, report.Failures[0].Code, StringComparison.Ordinal))
+            {
+                throw new InvalidOperationException("o5r5d1.evidence.failure_disposition_invalid");
+            }
+        }
+        else if (thresholdDisposition)
+        {
+            throw new InvalidOperationException("o5r5d1.evidence.failure_missing");
+        }
+    }
+
+    /// <summary>Validates one allow-listed diagnostic without accepting arbitrary text or values.</summary>
+    /// <param name="failure">Candidate bounded threshold diagnostic.</param>
+    private static void ValidateFailure(O5R5ThresholdFailure failure)
+    {
+        if (failure is null ||
+            !Enum.IsDefined(failure.Phase) ||
+            !Enum.IsDefined(failure.Temperature) ||
+            !Enum.IsDefined(failure.Metric) ||
+            !Enum.IsDefined(failure.Unit) ||
+            !double.IsFinite(failure.Observed) ||
+            !double.IsFinite(failure.InclusiveLimit) ||
+            failure.Observed <= failure.InclusiveLimit ||
+            failure.InclusiveLimit < 0d ||
+            !string.Equals(
+                failure.Code,
+                $"o5r5d1.threshold.{O5R5MeasurementReadinessRunner.MetricCode(failure.Metric)}",
+                StringComparison.Ordinal))
+        {
+            throw new InvalidOperationException("o5r5d1.evidence.failure_invalid");
+        }
+
+        bool batchLevel = failure.Metric == O5R5ThresholdMetric.RepeatabilityCoefficient;
+        bool membershipValid = batchLevel
+            ? failure.IsWarmUp is null &&
+                failure.Repetition is null &&
+                failure.Unit == O5R5ThresholdUnit.Ratio
+            : failure.IsWarmUp is not null &&
+                failure.Repetition is >= 1 &&
+                failure.Repetition <= (failure.IsWarmUp.Value
+                    ? O5R5MeasurementProtocol.WarmUpRepetitions
+                    : O5R5MeasurementProtocol.MeasuredRepetitions) &&
+                UnitFor(failure.Metric) == failure.Unit;
+        if (!membershipValid)
+        {
+            throw new InvalidOperationException("o5r5d1.evidence.failure_membership_invalid");
+        }
+    }
+
+    /// <summary>Returns the only valid unit for one sample-level threshold metric.</summary>
+    /// <param name="metric">Allow-listed sample-level metric.</param>
+    /// <returns>Exact unit required in persisted evidence.</returns>
+    private static O5R5ThresholdUnit UnitFor(O5R5ThresholdMetric metric) =>
+        metric switch
+        {
+            O5R5ThresholdMetric.ElapsedTime => O5R5ThresholdUnit.Milliseconds,
+            O5R5ThresholdMetric.ManagedHeapPeak or
+            O5R5ThresholdMetric.WorkingSetPeak or
+            O5R5ThresholdMetric.AllocationPeak => O5R5ThresholdUnit.Bytes,
+            O5R5ThresholdMetric.ElapsedPerWorkUnit or
+            O5R5ThresholdMetric.CpuPerWorkUnit =>
+                O5R5ThresholdUnit.MicrosecondsPerWorkUnit,
+            _ => throw new ArgumentOutOfRangeException(nameof(metric)),
+        };
 }
