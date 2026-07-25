@@ -17,6 +17,13 @@ internal static class Program
     {
         if (args.Length >= 2 &&
             string.Equals(args[0], "--activation", StringComparison.Ordinal) &&
+            string.Equals(args[1], "pf-obs-1-physical-test-only", StringComparison.Ordinal))
+        {
+            return await O5R5PhysicalCampaignProcess.RunAsync(args);
+        }
+
+        if (args.Length >= 2 &&
+            string.Equals(args[0], "--activation", StringComparison.Ordinal) &&
             string.Equals(args[1], "o1-durable-trust-resource-sandbox", StringComparison.Ordinal))
         {
             return await O1SandboxProcess.RunAsync(args);
@@ -67,6 +74,16 @@ internal static class Program
             string.Equals(
                 args[1],
                 "o4-factual-observer-projection-sandbox",
+                StringComparison.Ordinal))
+        {
+            return await O4SandboxProcess.RunAsync(args);
+        }
+
+        if (args.Length >= 2 &&
+            string.Equals(args[0], "--activation", StringComparison.Ordinal) &&
+            string.Equals(
+                args[1],
+                "pf-obs-1-postgresql-observer-local-test",
                 StringComparison.Ordinal))
         {
             return await O4SandboxProcess.RunAsync(args);

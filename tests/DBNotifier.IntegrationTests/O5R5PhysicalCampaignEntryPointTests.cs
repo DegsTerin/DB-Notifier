@@ -6,6 +6,78 @@ using Xunit;
 
 namespace DBNotifier.IntegrationTests;
 
+/// <summary>Runs the physical campaign in the existing dedicated sandbox host without xUnit process noise.</summary>
+public static class O5R5PhysicalCampaignProcess
+{
+    internal const string ActivationMarker = "pf-obs-1-physical-test-only";
+    private static readonly TimeSpan CampaignDeadline = TimeSpan.FromMinutes(10);
+
+    /// <summary>Validates exact bounded arguments, runs HM-01–HM-03 and writes sanitised evidence.</summary>
+    /// <param name="args">Exact activation, output, SDK and installed-memory arguments.</param>
+    /// <returns>Zero for an accepted campaign, two for invalid activation or three for a failed campaign.</returns>
+    public static async Task<int> RunAsync(string[] args)
+    {
+        if (args.Length != 8 ||
+            args[0] != "--activation" ||
+            args[1] != ActivationMarker ||
+            args[2] != "--output" ||
+            args[4] != "--sdk" ||
+            args[6] != "--installed-memory" ||
+            !long.TryParse(args[7], NumberStyles.None, CultureInfo.InvariantCulture, out long installedMemory) ||
+            installedMemory < 1)
+        {
+            Console.Error.WriteLine("o5r5b.physical.activation_invalid");
+            return 2;
+        }
+
+        try
+        {
+            string destination = O5R5PhysicalEvidenceWriter.ValidateDestination(args[3]);
+            string sdk = RequiredBoundedText(args[5], "o5r5b.environment.sdk_required");
+            O5R5MeasurementProtocol protocol = O5R5MeasurementProtocol.CreateFrozen();
+            O5R5PhysicalEnvironment environment = new(
+                RuntimeInformation.OSDescription,
+                RuntimeInformation.OSArchitecture.ToString(),
+                RuntimeInformation.ProcessArchitecture.ToString(),
+                RuntimeInformation.FrameworkDescription,
+                sdk,
+                Environment.ProcessorCount,
+                installedMemory,
+                Stopwatch.Frequency);
+            using O5R5DotNetMeasurementSource source = new();
+            O5R5PhysicalCampaignDriver driver = new(protocol, source);
+            using CancellationTokenSource deadline = new(CampaignDeadline);
+            O5R5PhysicalCampaignReport report = await driver.RunAsync(environment, deadline.Token);
+            await O5R5PhysicalEvidenceWriter.WriteAsync(destination, report, CancellationToken.None);
+            if (!report.Passed ||
+                report.CompletedSampleCount != O5R5PhysicalCampaignDriver.ExpectedSampleCount ||
+                report.Summaries.Count != 16)
+            {
+                Console.Error.WriteLine(report.Code);
+                return 3;
+            }
+            Console.WriteLine("o5r5b.physical.accepted");
+            return 0;
+        }
+        catch (Exception exception) when (exception is not OutOfMemoryException)
+        {
+            Console.Error.WriteLine($"o5r5b.physical.failed:{exception.GetType().Name}");
+            return 3;
+        }
+    }
+
+    private static string RequiredBoundedText(string? value, string code)
+    {
+        if (string.IsNullOrWhiteSpace(value) ||
+            value.Length > 32 ||
+            !string.Equals(value, value.Trim(), StringComparison.Ordinal))
+        {
+            throw new InvalidOperationException(code);
+        }
+        return value;
+    }
+}
+
 /// <summary>Runs the physical campaign only after exact environment opt-in and output validation.</summary>
 public sealed class O5R5PhysicalCampaignEntryPointTests
 {
@@ -54,7 +126,8 @@ public sealed class O5R5PhysicalCampaignEntryPointTests
             Stopwatch.Frequency);
 
         // Physical construction occurs only after every opt-in and destination boundary has passed.
-        O5R5PhysicalCampaignDriver driver = new(protocol, new O5R5DotNetMeasurementSource());
+        using O5R5DotNetMeasurementSource source = new();
+        O5R5PhysicalCampaignDriver driver = new(protocol, source);
         using CancellationTokenSource deadline = new(CampaignDeadline);
         O5R5PhysicalCampaignReport report = await driver.RunAsync(environment, deadline.Token);
         await O5R5PhysicalEvidenceWriter.WriteAsync(destination, report, CancellationToken.None);

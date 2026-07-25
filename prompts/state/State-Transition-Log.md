@@ -3402,6 +3402,36 @@
 - Aprovador: resultado automático local reprovado; Human Gate O5-R5 não
   elegível antes de remediação.
 
+## 2026-07-25 — PF-OBS-1 interrompida no gate físico de reprodutibilidade
+
+- Estado anterior: O5-R5 físico `REPROVADO`, O5 geral `BLOQUEADO`,
+  `STATE-06 INTEGRATION` e `ActivationState=None`.
+- Autoridade: macrocampanha local PF-OBS-1 consolidando driver físico,
+  laboratório PostgreSQL 16, pipeline Observer, corpus, resiliência e amostra
+  humana, sem produção, ativação, push, deploy ou transição.
+- Implementação preparada: collector PostgreSQL TLS/loopback, corpus de 36
+  medições com partições disjuntas, política congelada antes do holdout,
+  projeção O4 não autorizadora, processo físico dedicado e runner
+  `Campaign`/`Start`/`Stop`.
+- Gates aprovados: build Release sem avisos/erros, `17/17` integrações focais,
+  `4/4` arquitetura focal, sintaxe PowerShell, documentação de 378 fontes e
+  secret scan.
+- Condição de parada: execuções físicas dedicadas passaram os limites
+  absolutos por sample, mas lotes diferentes excederam o coeficiente máximo
+  congelado de variação `0.20`; uma execução diagnóstica em prioridade alta
+  também falhou.
+- Estado resultante: PF-OBS-1 `BLOQUEADA` antes do laboratório vivo,
+  calibração/holdout físicos, campanha de resiliência e amostra humana;
+  `ActivationState=None` e `STATE-06 INTEGRATION` inalterados.
+- Cleanup: zero container, rede, volume, processo, listener ou diretório
+  temporário PF-OBS-1/O5-R5 residual.
+- Evidência:
+  [checkpoint PF-OBS-1](../../docs/STATE-06-MOD-12-PF-OBS-1-Checkpoint-Report.md).
+- Próxima decisão: corrigir e congelar separadamente a metodologia física sem
+  relaxar SLO absoluto nem selecionar apenas execuções favoráveis.
+- Aprovador: resultado automático local bloqueado; Human Gate PF-OBS-1 não
+  elegível.
+
 ## Template de nova entrada
 
 - Data:

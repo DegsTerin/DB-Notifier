@@ -264,6 +264,13 @@
           "DBNotifier.Domain": "[1.0.0, )"
         }
       },
+      "dbnotifier.providers.postgresql": {
+        "type": "Project",
+        "dependencies": {
+          "DBNotifier.Provider.Abstractions": "[1.0.0, )",
+          "Npgsql": "[10.0.3, )"
+        }
+      },
       "dbnotifier.server.api": {
         "type": "Project",
         "dependencies": {

@@ -203,6 +203,7 @@
           "DBNotifier.Infrastructure": "[1.0.0, )",
           "DBNotifier.Persistence.Agent.Sqlite": "[1.0.0, )",
           "DBNotifier.Persistence.Server.PostgreSql": "[1.0.0, )",
+          "DBNotifier.Providers.PostgreSql": "[1.0.0, )",
           "DBNotifier.Server.Api": "[1.0.0, )",
           "Microsoft.EntityFrameworkCore.Sqlite": "[10.0.9, )",
           "Microsoft.NET.Test.Sdk": "[18.7.0, )",
@@ -230,6 +231,13 @@
         "type": "Project",
         "dependencies": {
           "DBNotifier.Domain": "[1.0.0, )"
+        }
+      },
+      "dbnotifier.providers.postgresql": {
+        "type": "Project",
+        "dependencies": {
+          "DBNotifier.Provider.Abstractions": "[1.0.0, )",
+          "Npgsql": "[10.0.3, )"
         }
       },
       "dbnotifier.server.api": {

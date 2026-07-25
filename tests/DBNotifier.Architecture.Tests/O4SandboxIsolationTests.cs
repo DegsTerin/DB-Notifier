@@ -47,7 +47,11 @@ public sealed class O4SandboxIsolationTests
             "internal const string ActivationMarker = \"o4-factual-observer-projection-sandbox\";",
             process,
             StringComparison.Ordinal);
-        Assert.Contains("args.Length != 6", process, StringComparison.Ordinal);
+        Assert.Contains("args.Length == 6", process, StringComparison.Ordinal);
+        Assert.Contains(
+            "internal const string PfObs1ActivationMarker = \"pf-obs-1-postgresql-observer-local-test\";",
+            process,
+            StringComparison.Ordinal);
     }
 
     /// <summary>Verifies the dedicated UI requires the exact build flag and the normal projects do not depend on tests.</summary>

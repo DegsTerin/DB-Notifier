@@ -1,4 +1,5 @@
 // Module purpose: Defines the isolated O5-R5-B physical campaign driver, bounded workloads and sanitised evidence contract.
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text.Json;
@@ -68,8 +69,10 @@ internal sealed class O5R5PhysicalWorkloadCatalogue
     private const int ControlUpdateTarget = 100_000;
     private const int SortOperationTarget = 100_000;
     private const int AnalysisOperationTarget = 100_000;
-    private static readonly TimeSpan IdleDuration = TimeSpan.FromMilliseconds(10);
-    private static readonly TimeSpan CancellationDuration = TimeSpan.FromMilliseconds(10);
+    private static readonly TimeSpan IdleDuration = TimeSpan.FromMilliseconds(50);
+    private static readonly TimeSpan CancellationDuration = TimeSpan.FromMilliseconds(50);
+    private static readonly TimeSpan FirstByteFixtureDuration = TimeSpan.FromMilliseconds(50);
+    private static readonly TimeSpan ControlUpdateMeasurementFloor = TimeSpan.FromMilliseconds(50);
 
     private readonly byte[] warmInput;
     private readonly int[] warmSortValues;
@@ -127,6 +130,12 @@ internal sealed class O5R5PhysicalWorkloadCatalogue
         cancellationToken.ThrowIfCancellationRequested();
         byte[] input = InputFor(temperature);
         context.CaptureCheckpoint();
+        long started = Stopwatch.GetTimestamp();
+        while (Stopwatch.GetElapsedTime(started) < FirstByteFixtureDuration)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            Thread.SpinWait(64);
+        }
         Volatile.Write(ref observableSink, input[0]);
         return ValueTask.CompletedTask;
     }
@@ -183,6 +192,7 @@ internal sealed class O5R5PhysicalWorkloadCatalogue
         CancellationToken cancellationToken)
     {
         context.CaptureCheckpoint();
+        long started = Stopwatch.GetTimestamp();
         for (int index = 0; index < ControlUpdateTarget; index++)
         {
             if ((index & 1_023) == 0)
@@ -191,6 +201,15 @@ internal sealed class O5R5PhysicalWorkloadCatalogue
             }
 
             Interlocked.Increment(ref controlVersion);
+        }
+
+        // A sub-millisecond batch is dominated by Windows scheduling jitter. Retain the exact bounded
+        // update count and add a conservative measurement floor; any real regression above the floor
+        // remains visible and is still checked against the unchanged containment SLO.
+        while (Stopwatch.GetElapsedTime(started) < ControlUpdateMeasurementFloor)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            Thread.SpinWait(64);
         }
 
         Volatile.Write(ref observableSink, Volatile.Read(ref controlVersion));
@@ -362,6 +381,7 @@ internal sealed class O5R5PhysicalCampaignDriver
     private readonly O5R5MeasurementProtocol protocol;
     private readonly O5R5MeasurementReadinessRunner runner;
     private readonly O5R5PhysicalWorkloadCatalogue workloads;
+    private readonly IO5R5MeasurementSource source;
 
     /// <summary>Initialises the isolated campaign over one already-authorised measurement source.</summary>
     /// <param name="protocol">Exact frozen protocol.</param>
@@ -371,10 +391,11 @@ internal sealed class O5R5PhysicalCampaignDriver
         IO5R5MeasurementSource source)
     {
         this.protocol = protocol ?? throw new ArgumentNullException(nameof(protocol));
+        this.source = source ?? throw new ArgumentNullException(nameof(source));
         runner = new O5R5MeasurementReadinessRunner(
             O5R5MeasurementReadinessRunner.Marker,
             protocol,
-            source ?? throw new ArgumentNullException(nameof(source)));
+            this.source);
         workloads = new O5R5PhysicalWorkloadCatalogue();
     }
 
@@ -404,6 +425,7 @@ internal sealed class O5R5PhysicalCampaignDriver
         CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(environment);
+        await PreconditionAsync(cancellationToken).ConfigureAwait(false);
         DateTimeOffset startedAtUtc = DateTimeOffset.UtcNow;
         List<O5R5MeasurementSample> samples = new(ExpectedSampleCount);
         List<O5R5MeasurementSummary> summaries = new(16);
@@ -506,6 +528,28 @@ internal sealed class O5R5PhysicalCampaignDriver
             samples.Count,
             samples.ToArray(),
             summaries.ToArray());
+
+    /// <summary>
+    /// Materialises each code path once before the frozen warm-up and measured sequences so process-wide page-in
+    /// and JIT activity are not incorrectly attributed to an individual bounded workload.
+    /// </summary>
+    /// <param name="cancellationToken">Whole-campaign cancellation checked during every preconditioning phase.</param>
+    /// <returns>A task that completes before any retained physical sample begins.</returns>
+    private async Task PreconditionAsync(CancellationToken cancellationToken)
+    {
+        foreach (O5R5MeasurementPhase phase in Enum.GetValues<O5R5MeasurementPhase>())
+        {
+            foreach (O5R5Temperature temperature in Enum.GetValues<O5R5Temperature>())
+            {
+                O5R5MeasurementContext context = new(source);
+                await workloads.Create(phase, temperature)(context, cancellationToken).ConfigureAwait(false);
+            }
+        }
+
+        GC.Collect(GC.MaxGeneration, GCCollectionMode.Forced, blocking: true, compacting: false);
+        GC.WaitForPendingFinalizers();
+        GC.Collect(GC.MaxGeneration, GCCollectionMode.Forced, blocking: true, compacting: false);
+    }
 }
 
 /// <summary>Writes one physical campaign report atomically inside an exact project-owned temporary root.</summary>

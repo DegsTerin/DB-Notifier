@@ -98,9 +98,12 @@ internal sealed record O4ObserverProjectionVerification(bool Accepted, string Co
 internal static class O4ObserverProjectionFactory
 {
     internal const string ActivationMarker = "o4-factual-observer-projection-sandbox";
+    internal const string PfObs1ActivationMarker = "pf-obs-1-postgresql-observer-local-test";
     internal const string SchemaVersion = "o4.observer.projection.v1";
     internal static readonly Guid AgentId = Guid.Parse("a4a10000-0000-4000-8000-000000000001");
     internal static readonly Guid InstanceId = Guid.Parse("a4a20000-0000-4000-8000-000000000001");
+    private static readonly JsonSerializerOptions PfObs1JsonOptions =
+        new(JsonSerializerDefaults.Web);
     private static readonly IReadOnlyList<string> ForecastLimitations = Array.AsReadOnly(new[]
     {
         "o4.limitation.forecast_unavailable",
@@ -239,6 +242,88 @@ internal static class O4ObserverProjectionFactory
         return new(payload, O1CanonicalCryptography.Digest(payload));
     }
 
+    /// <summary>Projects authenticated PF-OBS-1 laboratory evidence without retaining its ephemeral connection material.</summary>
+    /// <param name="evidencePath">Exact caller-owned temporary evidence file produced by the functional pilot.</param>
+    /// <param name="projectedAtUtc">Trusted local projection instant.</param>
+    /// <returns>A complete factual Observer package that remains synthetic, non-operational and non-authorising.</returns>
+    internal static O4ObserverProjectionPackage CreateFromPfObs1(
+        string evidencePath,
+        DateTimeOffset projectedAtUtc)
+    {
+        PfObs1PilotEvidence evidence = JsonSerializer.Deserialize<PfObs1PilotEvidence>(
+                File.ReadAllText(evidencePath),
+                PfObs1JsonOptions)
+            ?? throw new InvalidOperationException("pfobs1.projection.evidence_missing");
+        string expectedDigest = PfObs1CorpusEvaluation.Digest(
+            JsonSerializer.Serialize(evidence with { EvidenceDigest = string.Empty }));
+        if (evidence.SchemaVersion != PfObs1PilotCampaign.SchemaVersion ||
+            evidence.CellId != PfObs1PilotCampaign.CellId ||
+            evidence.ActivationState != ObserverActivationState.None.ToString() ||
+            !evidence.SyntheticLaboratory ||
+            evidence.ProductionRepresentative ||
+            !evidence.ReadOnly ||
+            evidence.IsAuthorising ||
+            evidence.Provider != "postgresql" ||
+            evidence.ProviderSemanticVersion != "16" ||
+            evidence.CorpusCount != PfObs1CorpusEvaluation.SampleCount ||
+            evidence.Holdout.Accuracy < 1d ||
+            evidence.EvidenceDigest != expectedDigest)
+        {
+            throw new InvalidOperationException("pfobs1.projection.evidence_refused");
+        }
+
+        double threshold = evidence.Holdout.ThresholdMilliseconds;
+        double observed = evidence.LatestDurationMilliseconds;
+        string disposition = observed >= threshold ? "Detected" : "NotDetected";
+        byte[] evidenceIdBytes = Convert.FromHexString(evidence.EvidenceDigest[..32]);
+        O4ObserverSignal signal = new(
+            PfObs1CorpusEvaluation.Digest($"{evidence.EvidenceDigest}:signal"),
+            "pfobs1.postgresql.duration-threshold",
+            "1.0.0",
+            "database.probe.duration.degraded",
+            "milliseconds",
+            disposition,
+            "Warning",
+            evidence.GeneratedAtUtc,
+            evidence.GeneratedAtUtc,
+            evidence.GeneratedAtUtc.AddMinutes(5),
+            projectedAtUtc <= evidence.GeneratedAtUtc.AddMinutes(5)
+                ? O4ObserverFreshness.Current
+                : O4ObserverFreshness.Stale,
+            observed,
+            threshold,
+            Array.AsReadOnly(new[] { new Guid(evidenceIdBytes) }),
+            Array.Empty<string>());
+        O4ObserverProjectionPayload payload = new(
+            SchemaVersion,
+            PfObs1CorpusEvaluation.Digest($"{evidence.EvidenceDigest}:{projectedAtUtc:O}"),
+            projectedAtUtc,
+            projectedAtUtc.AddMinutes(5),
+            true,
+            true,
+            false,
+            false,
+            false,
+            false,
+            false,
+            ObserverActivationState.None.ToString(),
+            "postgresql-16-loopback-laboratory",
+            new O4ObserverTrace(
+                evidence.O2EnvelopeDigest,
+                evidence.Mod12ReportDigest,
+                evidence.Holdout.PolicyDigest,
+                evidence.CorpusManifestDigest,
+                1,
+                evidence.EvidenceDigest),
+            Array.AsReadOnly(new[] { signal }),
+            new O4ObserverForecastAvailability(
+                "Unknown",
+                "o4.forecast.complete_result_unavailable",
+                ForecastLimitations),
+            ProjectionLimitations);
+        return new(payload, O1CanonicalCryptography.Digest(payload));
+    }
+
     /// <summary>Classifies a source result conservatively at the projection instant.</summary>
     /// <param name="validUntilUtc">Source validity boundary, when known.</param>
     /// <param name="projectedAtUtc">Trusted projection instant.</param>
@@ -328,7 +413,7 @@ public static class O4SandboxProcess
     /// <returns>Zero after clean shutdown, two for rejected activation or three for a bounded sandbox failure.</returns>
     public static async Task<int> RunAsync(string[] args)
     {
-        if (!TryReadOptions(args, out string? dashboardRoot, out Guid runId))
+        if (!TryReadOptions(args, out string? dashboardRoot, out Guid runId, out string? pilotEvidence))
         {
             Console.Error.WriteLine("o4_sandbox.failed:activation_invalid");
             return 2;
@@ -341,8 +426,9 @@ public static class O4SandboxProcess
         {
             Directory.CreateDirectory(temporaryRoot);
             DateTimeOffset now = DateTimeOffset.UtcNow;
-            O4ObserverProjectionPackage projection =
-                await O4ObserverProjectionFactory.CreateAsync(temporaryRoot, now);
+            O4ObserverProjectionPackage projection = pilotEvidence is null
+                ? await O4ObserverProjectionFactory.CreateAsync(temporaryRoot, now)
+                : O4ObserverProjectionFactory.CreateFromPfObs1(pilotEvidence, now);
             using O4LoopbackCertificateLease certificate = O4LoopbackCertificateLease.Create();
             WebApplicationBuilder builder = WebApplication.CreateBuilder(new WebApplicationOptions
             {
@@ -438,14 +524,23 @@ public static class O4SandboxProcess
                 extensions: new Dictionary<string, object?> { ["code"] = verification.Code });
     }
 
-    /// <summary>Accepts only the exact O4 marker, canonical Dashboard output and a version-four run identifier.</summary>
-    private static bool TryReadOptions(string[] args, out string? dashboardRoot, out Guid runId)
+    /// <summary>Accepts only an exact O4/PF-OBS-1 marker, canonical Dashboard output and bounded temporary evidence.</summary>
+    private static bool TryReadOptions(
+        string[] args,
+        out string? dashboardRoot,
+        out Guid runId,
+        out string? pilotEvidence)
     {
         dashboardRoot = null;
         runId = Guid.Empty;
-        if (args.Length != 6 ||
-            args[0] != "--activation" ||
-            args[1] != O4ObserverProjectionFactory.ActivationMarker ||
+        pilotEvidence = null;
+        bool pilot = args.Length == 8 &&
+            args[0] == "--activation" &&
+            args[1] == O4ObserverProjectionFactory.PfObs1ActivationMarker;
+        bool o4 = args.Length == 6 &&
+            args[0] == "--activation" &&
+            args[1] == O4ObserverProjectionFactory.ActivationMarker;
+        if ((!pilot && !o4) ||
             args[2] != "--dashboard-root" ||
             args[4] != "--run-id" ||
             !Guid.TryParseExact(args[5], "D", out runId) ||
@@ -468,6 +563,25 @@ public static class O4SandboxProcess
                 return false;
             }
             dashboardRoot = directory.FullName;
+            if (pilot)
+            {
+                if (args[6] != "--pilot-evidence")
+                {
+                    return false;
+                }
+                string evidence = Path.GetFullPath(args[7]);
+                string temporary = Path.GetFullPath(Path.GetTempPath());
+                string? parent = Path.GetDirectoryName(evidence);
+                if (parent is null ||
+                    !parent.StartsWith(temporary, StringComparison.OrdinalIgnoreCase) ||
+                    !Path.GetFileName(parent).StartsWith("DBNotifier-PF-OBS-1-", StringComparison.Ordinal) ||
+                    Path.GetFileName(evidence) != "pf-obs-1-evidence.json" ||
+                    !File.Exists(evidence))
+                {
+                    return false;
+                }
+                pilotEvidence = evidence;
+            }
             return true;
         }
         catch (Exception exception) when (
