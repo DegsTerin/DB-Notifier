@@ -608,7 +608,7 @@ internal sealed class O5R5PhysicalCampaignDriver
     /// </summary>
     /// <param name="cancellationToken">Whole-campaign cancellation checked during every preconditioning phase.</param>
     /// <returns>A task that completes before any retained physical sample begins.</returns>
-    private async Task PreconditionAsync(CancellationToken cancellationToken)
+    internal async Task PreconditionAsync(CancellationToken cancellationToken)
     {
         foreach (O5R5MeasurementPhase phase in Enum.GetValues<O5R5MeasurementPhase>())
         {

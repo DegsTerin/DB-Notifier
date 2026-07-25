@@ -351,6 +351,61 @@ public sealed class O5R5MeasurementReadinessIsolationTests
             StringComparison.Ordinal);
     }
 
+    /// <summary>
+    /// Verifies D5 is marker-gated, preserves the two existing V3 collections and introduces no
+    /// working-set manipulation or normal-composition reference.
+    /// </summary>
+    [Fact]
+    public void D5DiagnosticsPreserveExactHistoryAndRemainIsolated()
+    {
+        string diagnostics = Read(
+            "tests",
+            "DBNotifier.IntegrationTests",
+            "O5R5ProcessHistoryDiagnostics.cs");
+        string driver = Read(
+            "tests",
+            "DBNotifier.IntegrationTests",
+            "O5R5PhysicalCampaignDriver.cs");
+        string protocol = Read(
+            "docs",
+            "STATE-06-MOD-12-PF-OBS-1-D5-Process-History-Diagnostic-Protocol.md");
+        string sourceTree = string.Join(
+            "\n",
+            Directory
+                .EnumerateFiles(
+                    Path.Combine(RepositoryRoot(), "src"),
+                    "*.cs",
+                    SearchOption.AllDirectories)
+                .Select(File.ReadAllText));
+
+        Assert.Contains(
+            "pf-obs-1-d5-process-history-diagnostic-test-only",
+            diagnostics,
+            StringComparison.Ordinal);
+        Assert.Contains(
+            "82606BF31085214607C8CBE401C0F4050D9465523B9B01F89FFE45731012FFDA",
+            diagnostics,
+            StringComparison.Ordinal);
+        Assert.Contains(
+            "`82606BF31085214607C8CBE401C0F4050D9465523B9B01F89FFE45731012FFDA`",
+            protocol,
+            StringComparison.Ordinal);
+        Assert.Equal(2, CountOccurrences(driver, "GC.Collect("));
+        Assert.Contains(
+            "internal async Task PreconditionAsync",
+            driver,
+            StringComparison.Ordinal);
+        Assert.DoesNotContain("GC.Collect(", diagnostics, StringComparison.Ordinal);
+        Assert.DoesNotContain("EmptyWorkingSet", diagnostics, StringComparison.Ordinal);
+        Assert.DoesNotContain("ProcessorAffinity", diagnostics, StringComparison.Ordinal);
+        Assert.DoesNotContain("PriorityClass", diagnostics, StringComparison.Ordinal);
+        Assert.DoesNotContain("O5R5D5", sourceTree, StringComparison.Ordinal);
+        Assert.DoesNotContain(
+            "pf-obs-1-d5-process-history-diagnostic-test-only",
+            sourceTree,
+            StringComparison.Ordinal);
+    }
+
     /// <summary>Verifies failed physical evidence is committed before exit handling and temporary cleanup.</summary>
     [Fact]
     public void FailedPhysicalEvidenceIsRetainedBeforeCleanup()

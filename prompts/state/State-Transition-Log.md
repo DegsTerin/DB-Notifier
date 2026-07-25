@@ -3808,6 +3808,46 @@
   diagnóstico adicional ou futura campanha física.
 - Aprovador: Bruno; nenhum lifecycle gate ou ativação inferido.
 
+## 2026-07-25 — PF-OBS-1-D5 bloqueado sem reprodução do excesso histórico
+
+- Estado anterior: PF-OBS-1-D4 humanamente aceito como `BLOQUEADO`,
+  workload V3 inalterado, PF-OBS-1 e O5 sem aprovação e
+  `ActivationState=None`.
+- Autoridade: reproduzir controladamente o histórico processual anterior a
+  `Cancellation/Cold`, atribuir o working set residual ou terminar
+  `BLOQUEADO`, sem campanha física.
+- Esclarecimento de autoridade: somente as duas chamadas `GC.Collect`
+  preexistentes no precondicionamento V3 podiam ser preservadas e executadas;
+  nenhuma chamada foi adicionada, removida, movida, repetida ou condicionada.
+- Protocolo:
+  `pfobs1-d5-process-history-diagnostic-1.0.0`, SHA-256
+  `82606BF31085214607C8CBE401C0F4050D9465523B9B01F89FFE45731012FFDA`,
+  quatro variantes e duas execuções em processos novos por variante.
+- Execução: prefixo exato `158/158` duas vezes, sem FirstByte `88/88` duas
+  vezes, sem Idle `88/88` duas vezes e Cancellation isolada `18/18` duas
+  vezes; total `704/704` amostras integralmente retidas.
+- Resultado: o prefixo exato atingiu no máximo `12.288 bytes` de working-set
+  delta nos dois processos; o maior controle atingiu `176.128 bytes`. Todos
+  permaneceram abaixo do limite imutável de `786.432 bytes` e nenhum
+  reproduziu o salto histórico de `2.916.352 bytes`.
+- Decisão automática: `BLOQUEADO`; sem reprodução dupla, nenhuma fase ou
+  recurso recebeu atribuição causal e nenhuma correção foi aplicada.
+- Gates: `6/6` testes focais, `124/124` integrações, `1/1` arquitetura focal,
+  `92/92` arquitetura completa e build Release da solução sem
+  avisos/erros passaram offline e sem restore.
+- Escopo negativo: zero campanha HM-01–HM-03, PostgreSQL, laboratório,
+  provider, banco, corpus real, acesso externo, Observer, push, deploy ou
+  transição.
+- Estado resultante: PF-OBS-1-D5 `BLOQUEADO`, PF-OBS-1 e O5 continuam sem
+  aprovação, `STATE-06 INTEGRATION` permanece vigente e
+  `ActivationState=None` permanece imutável.
+- Evidência:
+  [relatório PF-OBS-1-D5](../../docs/STATE-06-MOD-12-PF-OBS-1-D5-Process-History-Diagnostic-Report.md).
+- Próxima decisão: Human Gate separado pode aceitar a disposição bloqueada;
+  qualquer diagnóstico ou campanha posterior exige nova autorização.
+- Aprovador: resultado automático local bloqueado; nenhuma decisão humana
+  inferida.
+
 ## Template de nova entrada
 
 - Data:
