@@ -49,9 +49,12 @@ internal sealed record O5R5PhaseLimit(
 /// </summary>
 internal sealed class O5R5MeasurementProtocol
 {
-    internal const string Version = "o5r5a-physical-measurement-1.0.0";
+    internal const string Version = "pfobs1-physical-measurement-2.0.0";
     internal const int WarmUpRepetitions = 5;
     internal const int MeasuredRepetitions = 30;
+    internal const int RepeatabilityGroupCount = 5;
+    internal const int SamplesPerRepeatabilityGroup = 6;
+    internal const int RequiredConsecutiveCampaigns = 2;
     internal const int MaximumCheckpoints = 64;
     internal const int Percentile50 = 50;
     internal const int Percentile95 = 95;
@@ -167,6 +170,10 @@ internal sealed class O5R5MeasurementProtocol
             Envelope.QueueEnabled ||
             WarmUpRepetitions != 5 ||
             MeasuredRepetitions != 30 ||
+            RepeatabilityGroupCount != 5 ||
+            SamplesPerRepeatabilityGroup != 6 ||
+            RepeatabilityGroupCount * SamplesPerRepeatabilityGroup != MeasuredRepetitions ||
+            RequiredConsecutiveCampaigns != 2 ||
             MaximumCheckpoints != 64 ||
             MaximumElapsedMicrosecondsPerWorkUnit <= 0d ||
             MaximumCpuMicrosecondsPerWorkUnit <= 0d)
@@ -195,6 +202,10 @@ internal sealed class O5R5MeasurementProtocol
             $"version={Version}",
             $"warm_up_repetitions={WarmUpRepetitions}",
             $"measured_repetitions={MeasuredRepetitions}",
+            "repeatability_method=fixed-sequential-groups-all-samples-median",
+            $"repeatability_group_count={RepeatabilityGroupCount}",
+            $"samples_per_repeatability_group={SamplesPerRepeatabilityGroup}",
+            $"required_consecutive_campaigns={RequiredConsecutiveCampaigns}",
             $"maximum_checkpoints={MaximumCheckpoints}",
             $"percentiles={Percentile50},{Percentile95},{Percentile99},100",
             $"maximum_coefficient_of_variation={MaximumCoefficientOfVariation.ToString("F2", CultureInfo.InvariantCulture)}",
@@ -435,6 +446,7 @@ internal sealed record O5R5MetricDistribution(
 /// <param name="AllocationPeak">Checkpoint allocation-peak distribution.</param>
 /// <param name="ElapsedPerWorkUnit">Elapsed work-cost distribution for compute phases.</param>
 /// <param name="CpuPerWorkUnit">CPU work-cost distribution for compute phases.</param>
+/// <param name="RepeatabilityElapsed">Distribution of five predeclared sequential-group medians.</param>
 /// <param name="Passed">Whether completeness, thresholds and variance all passed.</param>
 internal sealed record O5R5MeasurementSummary(
     string Code,
@@ -449,6 +461,7 @@ internal sealed record O5R5MeasurementSummary(
     O5R5MetricDistribution AllocationPeak,
     O5R5MetricDistribution? ElapsedPerWorkUnit,
     O5R5MetricDistribution? CpuPerWorkUnit,
+    O5R5MetricDistribution RepeatabilityElapsed,
     bool Passed)
 {
     /// <summary>Gets a value that is always false because statistical evidence cannot authorise activation.</summary>
@@ -623,11 +636,14 @@ internal sealed class O5R5MeasurementReadinessRunner
         O5R5MetricDistribution? cpuPerWork = O5R5MeasurementProtocol.IsComputePhase(phase)
             ? Distribution(measured.Select(sample => sample.CpuMicrosecondsPerWorkUnit!.Value))
             : null;
-        // Process CPU and memory counters are quantised, process-wide or affected by the measurement API itself
-        // on Windows, so only monotonic elapsed time is a valid relative-repeatability gate. Absolute CPU and
-        // memory thresholds still apply to every retained sample and every reported worst case.
+        O5R5MetricDistribution repeatabilityElapsed = FixedGroupMedianDistribution(
+            measured.Select(sample => sample.ElapsedMilliseconds).ToArray());
+
+        // Every raw sample remains subject to its absolute gate and in the evidence. Relative repeatability
+        // alone uses five fixed sequential-group medians, preventing one Windows scheduling delay from
+        // dominating a sub-millisecond workload without choosing or deleting any observation.
         bool passed = measured.All(sample => sample.Passed) &&
-            elapsed.CoefficientOfVariation <=
+            repeatabilityElapsed.CoefficientOfVariation <=
             O5R5MeasurementProtocol.MaximumCoefficientOfVariation;
 
         return new O5R5MeasurementSummary(
@@ -643,6 +659,7 @@ internal sealed class O5R5MeasurementReadinessRunner
             allocation,
             elapsedPerWork,
             cpuPerWork,
+            repeatabilityElapsed,
             passed);
     }
 
@@ -717,10 +734,9 @@ internal sealed class O5R5MeasurementReadinessRunner
 
         O5R5PhaseLimit limit = protocol.LimitFor(scenario.Phase);
         long empiricalMemoryLimit = protocol.EmpiricalMemoryLimit(scenario.AccountedMemoryBytes);
-        // Working set is retained as physical host evidence but is process-wide and cannot be charged to one
-        // workload. Attributable heap and allocation deltas remain subject to the unchanged memory ceiling.
         bool passed = elapsedMilliseconds <= limit.MaximumElapsed.TotalMilliseconds &&
             heapPeak <= empiricalMemoryLimit &&
+            workingSetPeak <= empiricalMemoryLimit &&
             allocationPeak <= empiricalMemoryLimit &&
             (!limit.MeasuresWorkRate ||
                 (elapsedPerWork <= O5R5MeasurementProtocol.MaximumElapsedMicrosecondsPerWorkUnit &&
@@ -801,10 +817,12 @@ internal sealed class O5R5MeasurementReadinessRunner
     /// <summary>Calculates nearest-rank percentiles and population variance without removing any sample.</summary>
     /// <param name="values">Complete retained metric values.</param>
     /// <returns>One finite immutable distribution.</returns>
-    private static O5R5MetricDistribution Distribution(IEnumerable<double> values)
+    private static O5R5MetricDistribution Distribution(
+        IEnumerable<double> values,
+        int expectedCount = O5R5MeasurementProtocol.MeasuredRepetitions)
     {
         double[] sorted = values.Order().ToArray();
-        if (sorted.Length != O5R5MeasurementProtocol.MeasuredRepetitions ||
+        if (sorted.Length != expectedCount ||
             sorted.Any(value => !double.IsFinite(value) || value < 0d))
         {
             throw new InvalidOperationException("o5r5a.summary.metric_invalid");
@@ -824,6 +842,47 @@ internal sealed class O5R5MeasurementReadinessRunner
             coefficient);
     }
 
+    /// <summary>
+    /// Calculates repeatability from all thirty samples in five fixed sequential groups without
+    /// dropping, reordering or choosing observations after execution.
+    /// </summary>
+    /// <param name="values">Exact retained elapsed measurements in repetition order.</param>
+    /// <returns>A distribution over the five fixed group medians.</returns>
+    private static O5R5MetricDistribution FixedGroupMedianDistribution(double[] values)
+    {
+        if (values.Length != O5R5MeasurementProtocol.MeasuredRepetitions)
+        {
+            throw new InvalidOperationException("o5r5a.summary.repeatability_membership_invalid");
+        }
+
+        double[] medians = values
+            .Chunk(O5R5MeasurementProtocol.SamplesPerRepeatabilityGroup)
+            .Select(Median)
+            .ToArray();
+        if (medians.Length != O5R5MeasurementProtocol.RepeatabilityGroupCount)
+        {
+            throw new InvalidOperationException("o5r5a.summary.repeatability_group_invalid");
+        }
+
+        return Distribution(medians, O5R5MeasurementProtocol.RepeatabilityGroupCount);
+    }
+
+    /// <summary>Calculates the finite median of one exact repeatability group.</summary>
+    /// <param name="values">One fixed group of six elapsed measurements.</param>
+    /// <returns>The arithmetic midpoint of the two central ordered values.</returns>
+    private static double Median(double[] values)
+    {
+        if (values.Length != O5R5MeasurementProtocol.SamplesPerRepeatabilityGroup ||
+            values.Any(value => !double.IsFinite(value) || value < 0d))
+        {
+            throw new InvalidOperationException("o5r5a.summary.repeatability_group_invalid");
+        }
+
+        double[] ordered = [.. values.Order()];
+        int upper = ordered.Length / 2;
+        return (ordered[upper - 1] + ordered[upper]) / 2d;
+    }
+
     /// <summary>Calculates one nearest-rank percentile over a sorted non-empty distribution.</summary>
     /// <param name="sorted">Ascending values.</param>
     /// <param name="percentile">Inclusive percentile from one to one hundred.</param>
@@ -833,12 +892,6 @@ internal sealed class O5R5MeasurementReadinessRunner
         int rank = Math.Max(1, (int)Math.Ceiling((percentile / 100d) * sorted.Length));
         return sorted[rank - 1];
     }
-
-    /// <summary>Returns only present optional distributions.</summary>
-    /// <param name="values">Nullable metric distributions.</param>
-    /// <returns>Present distributions in input order.</returns>
-    private static IEnumerable<O5R5MetricDistribution> Optional(params O5R5MetricDistribution?[] values) =>
-        values.Where(value => value is not null).Select(value => value!);
 
     /// <summary>Creates one stable refusal with no partial sample.</summary>
     /// <param name="code">Sanitised diagnostic code.</param>

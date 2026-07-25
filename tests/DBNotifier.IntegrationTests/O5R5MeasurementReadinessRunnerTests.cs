@@ -10,19 +10,21 @@ namespace DBNotifier.IntegrationTests;
 public sealed class O5R5MeasurementReadinessRunnerTests
 {
     private const string ExpectedProtocolDigest =
-        "266B7A952DF1A46BEE4577894D0A9206D92917AC661E0E17F9052DE1EB415DD7";
+        "53F40F7DC72548EB488FFF729823BF0DCFD64EDD085314022C8E746CC45B5D71";
 
     /// <summary>Proves every physical threshold and statistical rule was frozen before synthetic execution.</summary>
     [Fact]
     public void FrozenProtocolHasExactEnvelopeThresholdsAndDigest()
     {
         O5R5MeasurementProtocol protocol = O5R5MeasurementProtocol.CreateFrozen();
-
         Assert.Equal(ExpectedProtocolDigest, protocol.Digest);
-        Assert.Equal("o5r5a-physical-measurement-1.0.0", O5R5MeasurementProtocol.Version);
+        Assert.Equal("pfobs1-physical-measurement-2.0.0", O5R5MeasurementProtocol.Version);
         Assert.Equal(O1ResourceEnvelope.Fixture(), protocol.Envelope);
         Assert.Equal(5, O5R5MeasurementProtocol.WarmUpRepetitions);
         Assert.Equal(30, O5R5MeasurementProtocol.MeasuredRepetitions);
+        Assert.Equal(5, O5R5MeasurementProtocol.RepeatabilityGroupCount);
+        Assert.Equal(6, O5R5MeasurementProtocol.SamplesPerRepeatabilityGroup);
+        Assert.Equal(2, O5R5MeasurementProtocol.RequiredConsecutiveCampaigns);
         Assert.Equal(64, O5R5MeasurementProtocol.MaximumCheckpoints);
         Assert.Equal(0.20d, O5R5MeasurementProtocol.MaximumCoefficientOfVariation);
         Assert.Equal(100d, O5R5MeasurementProtocol.MaximumElapsedMicrosecondsPerWorkUnit);
@@ -299,16 +301,27 @@ public sealed class O5R5MeasurementReadinessRunnerTests
         Assert.Null(unavailable.Sample);
     }
 
-    /// <summary>Proves summaries require exact partitions, retain outliers and enforce the frozen variation ceiling.</summary>
+    /// <summary>Proves fixed groups retain all outliers while isolated scheduler noise cannot dominate repeatability.</summary>
     [Fact]
     public void SummaryRequiresExactSequencesAndRetainsOutliers()
     {
         O5R5MeasurementProtocol protocol = O5R5MeasurementProtocol.CreateFrozen();
         O5R5MeasurementReadinessRunner runner = Runner(protocol, Pair(1_000));
-        List<O5R5MeasurementSample> stable = Samples(protocol.Digest, outlier: false);
-        List<O5R5MeasurementSample> variable = Samples(protocol.Digest, outlier: true);
+        List<O5R5MeasurementSample> stable = Samples(protocol.Digest, _ => 10d);
+        List<O5R5MeasurementSample> isolatedOutlier = Samples(
+            protocol.Digest,
+            repetition => repetition == O5R5MeasurementProtocol.MeasuredRepetitions
+                ? 1_000d
+                : 10d);
+        List<O5R5MeasurementSample> variable = Samples(
+            protocol.Digest,
+            repetition =>
+                ((repetition - 1) / O5R5MeasurementProtocol.SamplesPerRepeatabilityGroup) % 2 == 0
+                    ? 10d
+                    : 1_000d);
 
         O5R5MeasurementSummary accepted = runner.Summarise(stable);
+        O5R5MeasurementSummary robust = runner.Summarise(isolatedOutlier);
         O5R5MeasurementSummary failed = runner.Summarise(variable);
         InvalidOperationException missing = Assert.Throws<InvalidOperationException>(
             () => runner.Summarise(stable.Skip(1).ToArray()));
@@ -319,12 +332,15 @@ public sealed class O5R5MeasurementReadinessRunnerTests
 
         Assert.True(accepted.Passed);
         Assert.Equal("o5r5a.summary.accepted", accepted.Code);
+        Assert.True(robust.Passed);
+        Assert.Equal(1_000d, robust.Elapsed.Maximum);
+        Assert.Equal(10d, robust.RepeatabilityElapsed.Maximum);
         Assert.False(O5R5MeasurementSummary.IsAuthorising);
         Assert.False(failed.Passed);
         Assert.Equal("o5r5a.summary.failed", failed.Code);
         Assert.Equal(1_000d, failed.Elapsed.Maximum);
         Assert.True(
-            failed.Elapsed.CoefficientOfVariation >
+            failed.RepeatabilityElapsed.CoefficientOfVariation >
             O5R5MeasurementProtocol.MaximumCoefficientOfVariation);
         Assert.Equal("o5r5a.summary.sample_count_invalid", missing.Message);
         Assert.Equal("o5r5a.summary.sequence_invalid", duplicated.Message);
@@ -386,11 +402,13 @@ public sealed class O5R5MeasurementReadinessRunnerTests
         TimeSpan cpu) =>
         new(timestamp, heap, allocated, workingSet, cpu);
 
-    /// <summary>Creates one exact summary batch, optionally retaining a high elapsed outlier.</summary>
+    /// <summary>Creates one exact summary batch from a predeclared elapsed-time sequence.</summary>
     /// <param name="digest">Frozen protocol digest.</param>
-    /// <param name="outlier">Whether the final measured sample carries a retained outlier.</param>
+    /// <param name="elapsedForRepetition">Deterministic elapsed value for each measured repetition.</param>
     /// <returns>Five warm-ups and thirty measured samples.</returns>
-    private static List<O5R5MeasurementSample> Samples(string digest, bool outlier)
+    private static List<O5R5MeasurementSample> Samples(
+        string digest,
+        Func<int, double> elapsedForRepetition)
     {
         List<O5R5MeasurementSample> samples = [];
         for (int repetition = 1; repetition <= O5R5MeasurementProtocol.WarmUpRepetitions; repetition++)
@@ -405,9 +423,7 @@ public sealed class O5R5MeasurementReadinessRunnerTests
                     digest,
                     false,
                     repetition,
-                    outlier && repetition == O5R5MeasurementProtocol.MeasuredRepetitions
-                        ? 1_000d
-                        : 10d));
+                    elapsedForRepetition(repetition)));
         }
 
         return samples;

@@ -21,6 +21,7 @@ $statePath = Join-Path ([IO.Path]::GetTempPath()) 'DBNotifier-PF-OBS-1-active.js
 $imageTag = 'postgres:16-alpine'
 $imageDigest = 'sha256:e013e867e712fec275706a6c51c966f0bb0c93cfa8f51000f85a15f9865a28cb'
 $pilotLabel = 'com.db-notifier.pf-obs-1'
+$requiredConsecutivePhysicalCampaigns = 2
 $run = $null
 $pendingRun = $null
 
@@ -211,7 +212,10 @@ function Start-Laboratory {
         connection = ''
         certificateDigest = ''
         evidencePath = (Join-Path $temporaryRoot 'pf-obs-1-evidence.json')
-        hmPath = (Join-Path $temporaryRoot 'hm-01-03.json')
+        hmPaths = @(
+            (Join-Path $temporaryRoot 'hm-01-03-run-1.json'),
+            (Join-Path $temporaryRoot 'hm-01-03-run-2.json')
+        )
         hostPid = $null
         browserPid = $null
         baseAddress = $null
@@ -290,14 +294,12 @@ function Invoke-Test([string]$Filter) {
     if ($LASTEXITCODE -ne 0) { throw "The PF-OBS-1 test filter failed: $Filter" }
 }
 
-# Runs the physical protocol and the live PostgreSQL Agent-to-Observer evidence path.
-function Invoke-PilotEvidence([object]$State) {
+# Runs the optional consecutive physical campaigns and the live PostgreSQL Agent-to-Observer evidence path.
+function Invoke-PilotEvidence([object]$State, [bool]$IncludePhysical) {
     & $dotnet build $hostProject --configuration Release --no-restore
     if ($LASTEXITCODE -ne 0) { throw 'The PF-OBS-1 sandbox host build failed.' }
 
-    $physicalRoot = Join-Path ([IO.Path]::GetTempPath()) ("DBNotifier-O5-R5-Physical-{0}" -f $State.runId)
-    New-Item -ItemType Directory -Path $physicalRoot | Out-Null
-    $physicalOutput = Join-Path $physicalRoot 'o5-r5-physical-campaign.json'
+    $physicalRoots = [Collections.Generic.List[string]]::new()
     $memory = (Get-CimInstance Win32_ComputerSystem).TotalPhysicalMemory
     $previous = @{
         marker = $env:DBNOTIFIER_O5_R5_B_PHYSICAL_TEST_ONLY
@@ -311,13 +313,24 @@ function Invoke-PilotEvidence([object]$State) {
         certificate = $env:DBNOTIFIER_PF_OBS1_CERTIFICATE_DIGEST
     }
     try {
-        & $dotnet $hostAssembly `
-            --activation 'pf-obs-1-physical-test-only' `
-            --output $physicalOutput `
-            --sdk '10.0.301' `
-            --installed-memory ([string]$memory)
-        if ($LASTEXITCODE -ne 0) { throw 'The dedicated PF-OBS-1 physical campaign failed.' }
-        Copy-Item -LiteralPath $physicalOutput -Destination $State.hmPath
+        if ($IncludePhysical) {
+            for ($attempt = 1; $attempt -le $requiredConsecutivePhysicalCampaigns; $attempt++) {
+                $physicalRoot = Join-Path ([IO.Path]::GetTempPath()) (
+                    "DBNotifier-O5-R5-Physical-{0}-{1}" -f $State.runId, $attempt)
+                New-Item -ItemType Directory -Path $physicalRoot | Out-Null
+                $physicalRoots.Add($physicalRoot)
+                $physicalOutput = Join-Path $physicalRoot 'o5-r5-physical-campaign.json'
+                & $dotnet $hostAssembly `
+                    --activation 'pf-obs-1-physical-test-only' `
+                    --output $physicalOutput `
+                    --sdk '10.0.301' `
+                    --installed-memory ([string]$memory)
+                if ($LASTEXITCODE -ne 0) {
+                    throw "PF-OBS-1 physical campaign $attempt failed; no replacement run is permitted."
+                }
+                Copy-Item -LiteralPath $physicalOutput -Destination $State.hmPaths[$attempt - 1]
+            }
+        }
 
         $env:DBNOTIFIER_PF_OBS1_TEST_ONLY = 'pf-obs-1-postgresql-observer-local-test'
         $env:DBNOTIFIER_PF_OBS1_CONNECTION = $State.connection
@@ -336,8 +349,10 @@ function Invoke-PilotEvidence([object]$State) {
         $env:DBNOTIFIER_PF_OBS1_OUTPUT = $previous.pilotOutput
         $env:DBNOTIFIER_PF_OBS1_IMAGE_DIGEST = $previous.image
         $env:DBNOTIFIER_PF_OBS1_CERTIFICATE_DIGEST = $previous.certificate
-        if (Test-Path -LiteralPath $physicalRoot) {
-            Remove-Item -LiteralPath $physicalRoot -Recurse -Force
+        foreach ($physicalRoot in $physicalRoots) {
+            if (Test-Path -LiteralPath $physicalRoot) {
+                Remove-Item -LiteralPath $physicalRoot -Recurse -Force
+            }
         }
     }
 }
@@ -347,7 +362,7 @@ function Invoke-ConsolidatedValidation([object]$State) {
     Invoke-Test 'FullyQualifiedName~PfObs1PilotTests|FullyQualifiedName~O5R2ControlPlaneSandboxTests|FullyQualifiedName~O5R3ObservabilitySandboxTests|FullyQualifiedName~O5R4'
     Invoke-DockerChecked @('restart', '--time', '5', $State.containerName) | Out-Null
     Wait-PilotHealthy $State.containerName
-    Invoke-PilotEvidence $State
+    Invoke-PilotEvidence $State $false
     Invoke-DockerChecked @('stop', '--time', '5', $State.containerName) | Out-Null
     $client = [Net.Sockets.TcpClient]::new()
     try {
@@ -468,7 +483,7 @@ if (Test-Path -LiteralPath $statePath) {
 try {
     $run = Start-Laboratory
     $pendingRun = $null
-    Invoke-PilotEvidence $run
+    Invoke-PilotEvidence $run $true
     if ($Action -eq 'Campaign') {
         Invoke-ConsolidatedValidation $run
         Write-Output "PF-OBS-1 campaign passed. Evidence: $($run.evidencePath)"
@@ -485,7 +500,7 @@ try {
             volumeName = $run.volumeName
             port = $run.port
             evidencePath = $run.evidencePath
-            hmPath = $run.hmPath
+            hmPaths = $run.hmPaths
             hostPid = $run.hostPid
             browserPid = $run.browserPid
             baseAddress = $run.baseAddress

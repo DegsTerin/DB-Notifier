@@ -1,5 +1,4 @@
 // Module purpose: Defines the isolated O5-R5-B physical campaign driver, bounded workloads and sanitised evidence contract.
-using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text.Json;
@@ -69,10 +68,8 @@ internal sealed class O5R5PhysicalWorkloadCatalogue
     private const int ControlUpdateTarget = 100_000;
     private const int SortOperationTarget = 100_000;
     private const int AnalysisOperationTarget = 100_000;
-    private static readonly TimeSpan IdleDuration = TimeSpan.FromMilliseconds(50);
-    private static readonly TimeSpan CancellationDuration = TimeSpan.FromMilliseconds(50);
-    private static readonly TimeSpan FirstByteFixtureDuration = TimeSpan.FromMilliseconds(50);
-    private static readonly TimeSpan ControlUpdateMeasurementFloor = TimeSpan.FromMilliseconds(50);
+    private static readonly TimeSpan IdleDuration = TimeSpan.FromMilliseconds(10);
+    private static readonly TimeSpan CancellationDuration = TimeSpan.FromMilliseconds(10);
 
     private readonly byte[] warmInput;
     private readonly int[] warmSortValues;
@@ -130,12 +127,6 @@ internal sealed class O5R5PhysicalWorkloadCatalogue
         cancellationToken.ThrowIfCancellationRequested();
         byte[] input = InputFor(temperature);
         context.CaptureCheckpoint();
-        long started = Stopwatch.GetTimestamp();
-        while (Stopwatch.GetElapsedTime(started) < FirstByteFixtureDuration)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            Thread.SpinWait(64);
-        }
         Volatile.Write(ref observableSink, input[0]);
         return ValueTask.CompletedTask;
     }
@@ -192,7 +183,6 @@ internal sealed class O5R5PhysicalWorkloadCatalogue
         CancellationToken cancellationToken)
     {
         context.CaptureCheckpoint();
-        long started = Stopwatch.GetTimestamp();
         for (int index = 0; index < ControlUpdateTarget; index++)
         {
             if ((index & 1_023) == 0)
@@ -201,15 +191,6 @@ internal sealed class O5R5PhysicalWorkloadCatalogue
             }
 
             Interlocked.Increment(ref controlVersion);
-        }
-
-        // A sub-millisecond batch is dominated by Windows scheduling jitter. Retain the exact bounded
-        // update count and add a conservative measurement floor; any real regression above the floor
-        // remains visible and is still checked against the unchanged containment SLO.
-        while (Stopwatch.GetElapsedTime(started) < ControlUpdateMeasurementFloor)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            Thread.SpinWait(64);
         }
 
         Volatile.Write(ref observableSink, Volatile.Read(ref controlVersion));

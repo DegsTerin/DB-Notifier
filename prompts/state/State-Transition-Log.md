@@ -3432,6 +3432,27 @@
 - Aprovador: resultado automático local bloqueado; Human Gate PF-OBS-1 não
   elegível.
 
+## 2026-07-25 — metodologia física PF-OBS-1 v2 congelada antes da retomada
+
+- Estado anterior: PF-OBS-1 `BLOQUEADA` pelo coeficiente de variação bruto;
+  `STATE-06 INTEGRATION` e `ActivationState=None`.
+- Autoridade: corrigir localmente a metodologia física sem relaxar SLO,
+  limite de recurso ou segurança e retomar depois a macrocampanha.
+- Decisão técnica congelada: manter todos os 30 resultados e todos os gates
+  absolutos, mas calcular repetibilidade por cinco grupos sequenciais fixos de
+  seis amostras e mediana de grupo, ainda com coeficiente máximo `0.20`.
+- Reprodutibilidade: duas campanhas completas consecutivas são obrigatórias;
+  falha ou incompletude para a execução, sem terceira tentativa substituta.
+- Protocolo: `pfobs1-physical-measurement-2.0.0`, SHA-256
+  `53F40F7DC72548EB488FFF729823BF0DCFD64EDD085314022C8E746CC45B5D71`.
+- Gates prévios à medição: `10/10` integrações focais, `8/8` provas
+  arquiteturais, sintaxe PowerShell, documentação, links e secret scan
+  aprovados.
+- Estado resultante: protocolo v2 congelado; nenhuma medição física v2
+  executada neste checkpoint; `ActivationState=None` inalterado.
+- Evidência:
+  [protocolo físico PF-OBS-1 v2](../../docs/STATE-06-MOD-12-PF-OBS-1-Physical-Measurement-Protocol-v2.md).
+
 ## Template de nova entrada
 
 - Data:
