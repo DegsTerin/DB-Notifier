@@ -1,10 +1,16 @@
 # Module purpose: Builds and audits the exact O4 Observer sandbox with owned loopback processes and deterministic cleanup.
 #Requires -Version 7.0
 [CmdletBinding()]
-param()
+param(
+    [string]$DotNetPath = '.dotnet\dotnet.exe',
+
+    [ValidateRange(60, 900)]
+    [int]$NodeTimeoutSeconds = 600
+)
 
 $ErrorActionPreference = 'Stop'
 $repositoryRoot = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
+Import-Module (Join-Path $PSScriptRoot 'DBNotifier.RunnerProcess.psm1') -Force
 $dashboardRoot = Join-Path $repositoryRoot 'src\DBNotifier.Dashboard.Web'
 $dashboardDist = Join-Path $dashboardRoot 'dist'
 $hostProject = Join-Path $repositoryRoot 'tests\DBNotifier.State06.ConsolidatedSandboxHost\DBNotifier.State06.ConsolidatedSandboxHost.csproj'
@@ -14,8 +20,13 @@ $runId = [Guid]::NewGuid()
 $temporaryRoot = Join-Path ([IO.Path]::GetTempPath()) ("DBNotifier-O4-Browser-{0}" -f $runId.ToString('N'))
 $hostSandboxRoot = Join-Path ([IO.Path]::GetTempPath()) ("DBNotifier-O4-{0}" -f $runId.ToString('N'))
 $previousFlag = [Environment]::GetEnvironmentVariable('VITE_DB_NOTIFIER_OBSERVER_SANDBOX', 'Process')
+$hostHandle = $null
+$browserHandle = $null
+$nodeHandle = $null
 $hostProcess = $null
 $browserProcess = $null
+$nodeProcess = $null
+$nodeEvidenceRelayed = $false
 
 # Resolves the already installed Chrome binary without downloading a replacement.
 function Find-Chrome {
@@ -38,6 +49,32 @@ function Get-LoopbackPort {
         return ([Net.IPEndPoint]$listener.LocalEndpoint).Port
     }
     finally { $listener.Stop() }
+}
+
+# Relays only the completed, sanitised JSON evidence emitted by the versioned Node auditor.
+function Write-CompletedNodeEvidence([string]$StandardOutputPath, [string]$StandardErrorPath) {
+    <#
+    .SYNOPSIS
+    Relays completed O4 auditor evidence before its owned temporary root is removed.
+
+    .PARAMETER StandardOutputPath
+    Completed standard-output evidence file.
+
+    .PARAMETER StandardErrorPath
+    Completed standard-error diagnostic file.
+
+    .OUTPUTS
+    Sanitised auditor JSON on standard output; diagnostics retain their standard-error channel.
+
+    .NOTES
+    The caller completes the shared process handle before invoking this function.
+    #>
+    if (Test-Path -LiteralPath $StandardOutputPath -PathType Leaf) {
+        Get-Content -LiteralPath $StandardOutputPath | ForEach-Object { Write-Output $_ }
+    }
+    if (Test-Path -LiteralPath $StandardErrorPath -PathType Leaf) {
+        Get-Content -LiteralPath $StandardErrorPath | ForEach-Object { [Console]::Error.WriteLine($_) }
+    }
 }
 
 # Stops only a process tree started by this runner.
@@ -81,6 +118,9 @@ function Remove-OwnedHostRoot([string]$Path, [Guid]$ExpectedRunId) {
     }
 }
 
+$resolvedDotNet = Resolve-DBNotifierRunnerExecutable -Candidate $DotNetPath -BaseDirectory $repositoryRoot
+$resolvedNpm = Resolve-DBNotifierRunnerExecutable -Candidate 'npm.cmd' -BaseDirectory $repositoryRoot
+$resolvedNode = Resolve-DBNotifierRunnerExecutable -Candidate 'node' -BaseDirectory $repositoryRoot
 $chrome = Find-Chrome
 $debugPort = Get-LoopbackPort
 New-Item -ItemType Directory -Path $temporaryRoot | Out-Null
@@ -89,20 +129,30 @@ $hostOut = Join-Path $temporaryRoot 'host.stdout.log'
 $hostError = Join-Path $temporaryRoot 'host.stderr.log'
 $browserOut = Join-Path $temporaryRoot 'browser.stdout.log'
 $browserError = Join-Path $temporaryRoot 'browser.stderr.log'
+$nodeOut = Join-Path $temporaryRoot 'node.stdout.log'
+$nodeError = Join-Path $temporaryRoot 'node.stderr.log'
 
 try {
     [Environment]::SetEnvironmentVariable('VITE_DB_NOTIFIER_OBSERVER_SANDBOX', 'local-test', 'Process')
-    & npm.cmd run build --prefix $dashboardRoot
+    & $resolvedNpm run toolchain:verify --prefix $dashboardRoot
+    if ($LASTEXITCODE -ne 0) { throw 'The pinned Dashboard toolchain verification failed.' }
+    & $resolvedNpm run build --prefix $dashboardRoot
     if ($LASTEXITCODE -ne 0) { throw 'The offline O4 Dashboard build failed.' }
-    & dotnet build $hostProject --configuration Release --no-restore
+    & $resolvedDotNet build $hostProject --configuration Release --no-restore
     if ($LASTEXITCODE -ne 0) { throw 'The offline O4 host build failed.' }
 
-    $hostProcess = Start-Process -FilePath 'dotnet.exe' -ArgumentList @(
-        $hostAssembly,
-        '--activation', 'o4-factual-observer-projection-sandbox',
-        '--dashboard-root', $dashboardDist,
-        '--run-id', $runId.ToString('D')
-    ) -WorkingDirectory $repositoryRoot -WindowStyle Hidden -PassThru -RedirectStandardOutput $hostOut -RedirectStandardError $hostError
+    $hostHandle = Start-DBNotifierRunnerProcess `
+        -FilePath $resolvedDotNet `
+        -ArgumentList @(
+            $hostAssembly,
+            '--activation', 'o4-factual-observer-projection-sandbox',
+            '--dashboard-root', $dashboardDist,
+            '--run-id', $runId.ToString('D')
+        ) `
+        -WorkingDirectory $repositoryRoot `
+        -StandardOutputPath $hostOut `
+        -StandardErrorPath $hostError
+    $hostProcess = $hostHandle.Process
 
     $ready = $null
     for ($attempt = 1; $attempt -le 80; $attempt++) {
@@ -125,23 +175,29 @@ try {
     if ($null -eq $ready) { throw 'The O4 host did not publish readiness within its budget.' }
 
     $proxy = "http://127.0.0.1:{0}" -f (Get-LoopbackPort)
-    $browserProcess = Start-Process -FilePath $chrome -ArgumentList @(
-        '--headless=new',
-        "--user-data-dir=$profile",
-        "--remote-debugging-port=$debugPort",
-        '--remote-debugging-address=127.0.0.1',
-        "--proxy-server=$proxy",
-        '--proxy-bypass-list=localhost;127.0.0.1;[::1]',
-        "--ignore-certificate-errors-spki-list=$($ready.spkiPin)",
-        '--disable-background-networking',
-        '--disable-component-update',
-        '--disable-default-apps',
-        '--disable-extensions',
-        '--no-first-run',
-        '--no-default-browser-check',
-        '--window-size=1440,900',
-        $ready.baseAddress
-    ) -WorkingDirectory $repositoryRoot -WindowStyle Hidden -PassThru -RedirectStandardOutput $browserOut -RedirectStandardError $browserError
+    $browserHandle = Start-DBNotifierRunnerProcess `
+        -FilePath $chrome `
+        -ArgumentList @(
+            '--headless=new',
+            "--user-data-dir=$profile",
+            "--remote-debugging-port=$debugPort",
+            '--remote-debugging-address=127.0.0.1',
+            "--proxy-server=$proxy",
+            '--proxy-bypass-list=localhost;127.0.0.1;[::1]',
+            "--ignore-certificate-errors-spki-list=$($ready.spkiPin)",
+            '--disable-background-networking',
+            '--disable-component-update',
+            '--disable-default-apps',
+            '--disable-extensions',
+            '--no-first-run',
+            '--no-default-browser-check',
+            '--window-size=1440,900',
+            $ready.baseAddress
+        ) `
+        -WorkingDirectory $repositoryRoot `
+        -StandardOutputPath $browserOut `
+        -StandardErrorPath $browserError
+    $browserProcess = $browserHandle.Process
 
     $cdp = "http://127.0.0.1:$debugPort"
     for ($attempt = 1; $attempt -le 80; $attempt++) {
@@ -161,15 +217,29 @@ try {
     }
     $env:DBNOTIFIER_O4_CDP_ENDPOINT = $cdp
     $env:DBNOTIFIER_O4_URL = $ready.baseAddress
-    & node $auditScript
-    if ($LASTEXITCODE -ne 0) { throw 'The O4 browser audit failed.' }
+    $nodeHandle = Start-DBNotifierRunnerProcess `
+        -FilePath $resolvedNode `
+        -ArgumentList @($auditScript) `
+        -WorkingDirectory $repositoryRoot `
+        -StandardOutputPath $nodeOut `
+        -StandardErrorPath $nodeError
+    $nodeProcess = $nodeHandle.Process
+    if (-not $nodeProcess.WaitForExit($NodeTimeoutSeconds * 1000)) {
+        throw 'The O4 Node/CDP audit exceeded its global deadline.'
+    }
+    $nodeExitCode = Complete-DBNotifierRunnerProcess -Handle $nodeHandle
+    Write-CompletedNodeEvidence -StandardOutputPath $nodeOut -StandardErrorPath $nodeError
+    $nodeEvidenceRelayed = $true
+    if ($nodeExitCode -ne 0) { throw 'The O4 browser audit failed.' }
 }
 finally {
     Remove-Item Env:DBNOTIFIER_O4_CDP_ENDPOINT -ErrorAction SilentlyContinue
     Remove-Item Env:DBNOTIFIER_O4_URL -ErrorAction SilentlyContinue
     [Environment]::SetEnvironmentVariable('VITE_DB_NOTIFIER_OBSERVER_SANDBOX', $previousFlag, 'Process')
+    if ($null -eq $nodeHandle -or -not [bool]$nodeHandle.Completed) {
+        Stop-OwnedTree $nodeProcess
+    }
     Stop-OwnedTree $browserProcess
-    Stop-OwnedTree $hostProcess
     Get-CimInstance Win32_Process | Where-Object {
         $_.CommandLine -and $_.CommandLine.Contains($profile, [StringComparison]::OrdinalIgnoreCase)
     } | ForEach-Object {
@@ -179,6 +249,25 @@ finally {
         }
         catch { }
     }
-    Remove-OwnedHostRoot $hostSandboxRoot $runId
-    Remove-OwnedRoot $temporaryRoot
+    Stop-OwnedTree $hostProcess
+    $cleanupFailures = [System.Collections.Generic.List[string]]::new()
+    foreach ($handle in @($nodeHandle, $browserHandle, $hostHandle)) {
+        if ($null -eq $handle) { continue }
+        try { Complete-DBNotifierRunnerProcess -Handle $handle | Out-Null }
+        catch { $cleanupFailures.Add($_.Exception.Message) }
+    }
+    if ($null -ne $nodeHandle -and -not $nodeEvidenceRelayed) {
+        try {
+            Write-CompletedNodeEvidence -StandardOutputPath $nodeOut -StandardErrorPath $nodeError
+            $nodeEvidenceRelayed = $true
+        }
+        catch { $cleanupFailures.Add($_.Exception.Message) }
+    }
+    try { Remove-OwnedHostRoot $hostSandboxRoot $runId }
+    catch { $cleanupFailures.Add($_.Exception.Message) }
+    try { Remove-OwnedRoot $temporaryRoot }
+    catch { $cleanupFailures.Add($_.Exception.Message) }
+    if ($cleanupFailures.Count -gt 0) {
+        throw "O4 runner cleanup failed: $($cleanupFailures -join ' ')"
+    }
 }

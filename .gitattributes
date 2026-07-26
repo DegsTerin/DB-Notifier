@@ -1,5 +1,7 @@
 * text=auto
 .gitattributes text eol=lf
+.editorconfig text eol=lf
+.gitignore text eol=lf
 
 *.ps1 text eol=lf
 *.psm1 text eol=lf
@@ -12,7 +14,12 @@
 *.md text eol=lf
 *.yml text eol=lf
 *.yaml text eol=lf
+*.js text eol=lf
+*.cjs text eol=lf
 *.mjs text eol=lf
+*.ts text eol=lf
+*.tsx text eol=lf
+*.py text eol=lf
 *.svg text eol=lf
 design-system/provider-icons/skill-icons/LICENSE text eol=lf
 src/DBNotifier.Dashboard.Web/public/provider-icons/SkillIcons.LICENSE.txt text eol=lf

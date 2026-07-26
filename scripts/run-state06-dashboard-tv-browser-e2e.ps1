@@ -3,11 +3,17 @@
 [CmdletBinding()]
 param(
     [ValidateSet('Chrome', 'Edge')]
-    [string]$BrowserProduct = 'Chrome'
+    [string]$BrowserProduct = 'Chrome',
+
+    [string]$DotNetPath = '.dotnet\dotnet.exe',
+
+    [ValidateRange(60, 900)]
+    [int]$NodeTimeoutSeconds = 600
 )
 
 $ErrorActionPreference = 'Stop'
 $repositoryRoot = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
+Import-Module (Join-Path $PSScriptRoot 'DBNotifier.RunnerProcess.psm1') -Force
 $dashboardRoot = Join-Path $repositoryRoot 'src\DBNotifier.Dashboard.Web'
 $dashboardDist = Join-Path $dashboardRoot 'dist'
 $hostProject = Join-Path $repositoryRoot 'tests\DBNotifier.DashboardTv.BrowserSandboxHost\DBNotifier.DashboardTv.BrowserSandboxHost.csproj'
@@ -19,6 +25,11 @@ $browserProcess = $null
 $debugPort = 0
 $hostBaseAddress = $null
 $previousBuildFlag = [Environment]::GetEnvironmentVariable('VITE_DB_NOTIFIER_TV_SANDBOX', 'Process')
+$hostHandle = $null
+$browserHandle = $null
+$nodeHandle = $null
+$nodeProcess = $null
+$nodeEvidenceRelayed = $false
 
 # Resolves only the explicitly selected installed browser and never downloads or silently substitutes a product.
 function Find-Browser([string]$Product) {
@@ -54,6 +65,32 @@ function Get-AvailableLoopbackPort {
     }
 }
 
+# Relays only the completed, sanitised JSON evidence emitted by the versioned Node auditor.
+function Write-CompletedNodeEvidence([string]$StandardOutputPath, [string]$StandardErrorPath) {
+    <#
+    .SYNOPSIS
+    Relays completed Dashboard TV auditor evidence before its owned temporary root is removed.
+
+    .PARAMETER StandardOutputPath
+    Completed standard-output evidence file.
+
+    .PARAMETER StandardErrorPath
+    Completed standard-error diagnostic file.
+
+    .OUTPUTS
+    Sanitised auditor JSON on standard output; diagnostics retain their standard-error channel.
+
+    .NOTES
+    The caller completes the shared process handle before invoking this function.
+    #>
+    if (Test-Path -LiteralPath $StandardOutputPath -PathType Leaf) {
+        Get-Content -LiteralPath $StandardOutputPath | ForEach-Object { Write-Output $_ }
+    }
+    if (Test-Path -LiteralPath $StandardErrorPath -PathType Leaf) {
+        Get-Content -LiteralPath $StandardErrorPath | ForEach-Object { [Console]::Error.WriteLine($_) }
+    }
+}
+
 # Waits for a local endpoint with bounded retries, fails immediately if its owning process exits and never follows an external fallback.
 function Wait-ForLoopbackEndpoint(
     [string]$Uri,
@@ -79,10 +116,13 @@ function Wait-ForLoopbackEndpoint(
     throw "The loopback endpoint did not become ready: $Uri"
 }
 
-# Stops only a process tree created by this runner and tolerates a process that has already exited.
-function Stop-OwnedProcessTree([System.Diagnostics.Process]$Process) {
+# Stops only a process tree created by this runner, waits for bounded exit and throws if cleanup cannot be proved.
+function Stop-OwnedProcessTree([System.Diagnostics.Process]$Process, [int]$TimeoutMilliseconds = 15000) {
     if ($null -eq $Process -or $Process.HasExited) { return }
     & taskkill.exe /PID $Process.Id /T /F 2>$null | Out-Null
+    if (-not $Process.WaitForExit($TimeoutMilliseconds)) {
+        throw "Owned process $($Process.Id) did not exit within the cleanup budget."
+    }
 }
 
 # Stops any verified Chromium child that still owns this runner's unique temporary profile after its parent exits.
@@ -105,6 +145,9 @@ function Remove-OwnedTemporaryRoot([string]$Path) {
     }
 }
 
+$resolvedDotNet = Resolve-DBNotifierRunnerExecutable -Candidate $DotNetPath -BaseDirectory $repositoryRoot
+$resolvedNpm = Resolve-DBNotifierRunnerExecutable -Candidate 'npm.cmd' -BaseDirectory $repositoryRoot
+$resolvedNode = Resolve-DBNotifierRunnerExecutable -Candidate 'node' -BaseDirectory $repositoryRoot
 $browser = Find-Browser $BrowserProduct
 $debugPort = Get-AvailableLoopbackPort
 New-Item -ItemType Directory -Path $temporaryRoot | Out-Null
@@ -113,28 +156,38 @@ $hostStdOut = Join-Path $temporaryRoot 'host.stdout.log'
 $hostStdErr = Join-Path $temporaryRoot 'host.stderr.log'
 $browserStdOut = Join-Path $temporaryRoot 'browser.stdout.log'
 $browserStdErr = Join-Path $temporaryRoot 'browser.stderr.log'
+$nodeStdOut = Join-Path $temporaryRoot 'node.stdout.log'
+$nodeStdErr = Join-Path $temporaryRoot 'node.stderr.log'
 
 try {
     [Environment]::SetEnvironmentVariable('VITE_DB_NOTIFIER_TV_SANDBOX', 'local-test', 'Process')
-    & npm.cmd run build --prefix $dashboardRoot
+    & $resolvedNpm run toolchain:verify --prefix $dashboardRoot
+    if ($LASTEXITCODE -ne 0) { throw 'The pinned Dashboard toolchain verification failed.' }
+    & $resolvedNpm run build --prefix $dashboardRoot
     if ($LASTEXITCODE -ne 0) { throw 'The exact local-test Dashboard build failed.' }
     if (-not (Test-Path -LiteralPath (Join-Path $dashboardDist 'index.html') -PathType Leaf)) {
         throw 'The local-test Dashboard build did not produce dist\index.html.'
     }
 
-    & dotnet build $hostProject --configuration Release --no-restore
+    & $resolvedDotNet build $hostProject --configuration Release --no-restore
     if ($LASTEXITCODE -ne 0) { throw 'The browser sandbox host build failed.' }
 
-    & dotnet $hostAssembly 2>$null | Out-Null
+    & $resolvedDotNet $hostAssembly 2>$null | Out-Null
     if ($LASTEXITCODE -ne 2) { throw 'The browser sandbox host did not reject missing activation arguments.' }
-    & dotnet $hostAssembly '--activation' 'not-authorised' '--dashboard-root' $dashboardDist 2>$null | Out-Null
+    & $resolvedDotNet $hostAssembly '--activation' 'not-authorised' '--dashboard-root' $dashboardDist 2>$null | Out-Null
     if ($LASTEXITCODE -ne 2) { throw 'The browser sandbox host did not reject an invalid activation value.' }
 
-    $hostProcess = Start-Process -FilePath 'dotnet.exe' -ArgumentList @(
-        $hostAssembly,
-        '--activation', 'local-test',
-        '--dashboard-root', $dashboardDist
-    ) -WorkingDirectory $repositoryRoot -WindowStyle Hidden -PassThru -RedirectStandardOutput $hostStdOut -RedirectStandardError $hostStdErr
+    $hostHandle = Start-DBNotifierRunnerProcess `
+        -FilePath $resolvedDotNet `
+        -ArgumentList @(
+            $hostAssembly,
+            '--activation', 'local-test',
+            '--dashboard-root', $dashboardDist
+        ) `
+        -WorkingDirectory $repositoryRoot `
+        -StandardOutputPath $hostStdOut `
+        -StandardErrorPath $hostStdErr
+    $hostProcess = $hostHandle.Process
 
     $ready = $null
     for ($attempt = 1; $attempt -le 80; $attempt++) {
@@ -165,41 +218,70 @@ try {
     $hostBaseAddress = $hostUri.GetLeftPart([UriPartial]::Authority)
     Write-Output "Browser sandbox host ready on exact HTTPS loopback: $hostBaseAddress"
 
-    $browserProcess = Start-Process -FilePath $browser -ArgumentList @(
-        '--headless=new',
-        '--disable-gpu',
-        '--disable-background-networking',
-        '--disable-component-update',
-        '--disable-default-apps',
-        '--disable-sync',
-        '--metrics-recording-only',
-        '--no-first-run',
-        '--no-default-browser-check',
-        '--no-pings',
-        '--no-proxy-server',
-        '--remote-debugging-address=127.0.0.1',
-        "--remote-debugging-port=$debugPort",
-        "--user-data-dir=$profilePath",
-        "--ignore-certificate-errors-spki-list=$($ready.spkiPin)",
-        '"--host-resolver-rules=MAP * ~NOTFOUND, EXCLUDE localhost, EXCLUDE 127.0.0.1"',
-        "$hostBaseAddress/#overview"
-    ) -WindowStyle Hidden -PassThru -RedirectStandardOutput $browserStdOut -RedirectStandardError $browserStdErr
+    $browserHandle = Start-DBNotifierRunnerProcess `
+        -FilePath $browser `
+        -ArgumentList @(
+            '--headless=new',
+            '--disable-gpu',
+            '--disable-background-networking',
+            '--disable-component-update',
+            '--disable-default-apps',
+            '--disable-sync',
+            '--metrics-recording-only',
+            '--no-first-run',
+            '--no-default-browser-check',
+            '--no-pings',
+            '--no-proxy-server',
+            '--remote-debugging-address=127.0.0.1',
+            "--remote-debugging-port=$debugPort",
+            "--user-data-dir=$profilePath",
+            "--ignore-certificate-errors-spki-list=$($ready.spkiPin)",
+            '--host-resolver-rules=MAP * ~NOTFOUND, EXCLUDE localhost, EXCLUDE 127.0.0.1',
+            "$hostBaseAddress/#overview"
+        ) `
+        -WorkingDirectory $repositoryRoot `
+        -StandardOutputPath $browserStdOut `
+        -StandardErrorPath $browserStdErr
+    $browserProcess = $browserHandle.Process
     Write-Output "Dedicated $BrowserProduct process started with an isolated ephemeral profile."
     Wait-ForLoopbackEndpoint "http://127.0.0.1:$debugPort/json/version" $browserProcess $browserStdErr
 
     $env:DBNOTIFIER_DASHBOARD_TV_BROWSER_CDP_ENDPOINT = "http://127.0.0.1:$debugPort"
     $env:DBNOTIFIER_DASHBOARD_TV_BROWSER_URL = $hostBaseAddress
-    & node $auditScript
-    if ($LASTEXITCODE -ne 0) { throw 'The Dashboard TV browser evidence audit failed.' }
+    $nodeHandle = Start-DBNotifierRunnerProcess `
+        -FilePath $resolvedNode `
+        -ArgumentList @($auditScript) `
+        -WorkingDirectory $repositoryRoot `
+        -StandardOutputPath $nodeStdOut `
+        -StandardErrorPath $nodeStdErr
+    $nodeProcess = $nodeHandle.Process
+    if (-not $nodeProcess.WaitForExit($NodeTimeoutSeconds * 1000)) {
+        throw 'The Dashboard TV Node/CDP audit exceeded its global deadline.'
+    }
+    $nodeExitCode = Complete-DBNotifierRunnerProcess -Handle $nodeHandle
+    Write-CompletedNodeEvidence -StandardOutputPath $nodeStdOut -StandardErrorPath $nodeStdErr
+    $nodeEvidenceRelayed = $true
+    if ($nodeExitCode -ne 0) { throw 'The Dashboard TV browser evidence audit failed.' }
 
     Write-Output "STATE-06 Dashboard TV browser E2E passed on $BrowserProduct using HTTPS loopback only."
 }
 finally {
     Remove-Item Env:DBNOTIFIER_DASHBOARD_TV_BROWSER_CDP_ENDPOINT, Env:DBNOTIFIER_DASHBOARD_TV_BROWSER_URL -ErrorAction SilentlyContinue
     [Environment]::SetEnvironmentVariable('VITE_DB_NOTIFIER_TV_SANDBOX', $previousBuildFlag, 'Process')
-    Stop-OwnedProcessTree $browserProcess
-    Stop-OwnedBrowserResidue $profilePath
-    Stop-OwnedProcessTree $hostProcess
+    $cleanupFailures = [System.Collections.Generic.List[string]]::new()
+    foreach ($cleanup in @(
+        {
+            if ($null -eq $nodeHandle -or -not [bool]$nodeHandle.Completed) {
+                Stop-OwnedProcessTree $nodeProcess
+            }
+        },
+        { Stop-OwnedProcessTree $browserProcess },
+        { Stop-OwnedBrowserResidue $profilePath },
+        { Stop-OwnedProcessTree $hostProcess }
+    )) {
+        try { & $cleanup }
+        catch { $cleanupFailures.Add($_.Exception.Message) }
+    }
     Start-Sleep -Milliseconds 250
 
     $ownedResidue = @(Get-CimInstance Win32_Process | Where-Object {
@@ -207,8 +289,24 @@ finally {
         ($_.CommandLine -and $_.CommandLine.Contains($hostAssembly, [StringComparison]::OrdinalIgnoreCase))
     })
     if ($ownedResidue.Count -gt 0) {
-        throw "The local browser E2E left $($ownedResidue.Count) verified project-owned process(es) after cleanup."
+        $cleanupFailures.Add("The local browser E2E left $($ownedResidue.Count) verified project-owned process(es) after cleanup.")
     }
 
-    Remove-OwnedTemporaryRoot $temporaryRoot
+    foreach ($handle in @($nodeHandle, $browserHandle, $hostHandle)) {
+        if ($null -eq $handle) { continue }
+        try { Complete-DBNotifierRunnerProcess -Handle $handle | Out-Null }
+        catch { $cleanupFailures.Add($_.Exception.Message) }
+    }
+    if ($null -ne $nodeHandle -and -not $nodeEvidenceRelayed) {
+        try {
+            Write-CompletedNodeEvidence -StandardOutputPath $nodeStdOut -StandardErrorPath $nodeStdErr
+            $nodeEvidenceRelayed = $true
+        }
+        catch { $cleanupFailures.Add($_.Exception.Message) }
+    }
+    try { Remove-OwnedTemporaryRoot $temporaryRoot }
+    catch { $cleanupFailures.Add($_.Exception.Message) }
+    if ($cleanupFailures.Count -gt 0) {
+        throw "Dashboard TV browser E2E cleanup failed: $($cleanupFailures -join ' ')"
+    }
 }

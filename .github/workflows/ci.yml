@@ -25,7 +25,6 @@ jobs:
       - uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4
         with:
           global-json-file: global.json
-      - run: dotnet restore DBNotifier.sln --locked-mode
       - name: Verify tracked .NET lockfiles and clean locked restore
         shell: powershell
         run: .\scripts\verify-dotnet-lockfiles.ps1 -DotNetPath dotnet
@@ -51,6 +50,9 @@ jobs:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           persist-credentials: false
+      - name: Verify Windows PowerShell-compatible script syntax
+        shell: cmd
+        run: powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File .\scripts\verify-script-syntax.ps1 -PowerShellOnly -LegacyCompatibleOnly
       - name: Run DB-Notifier legacy compatibility tests
         shell: cmd
         run: powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File .\scripts\run-legacy-tests.ps1
@@ -73,6 +75,18 @@ jobs:
           node-version: 24.18.0
           cache: npm
           cache-dependency-path: src/DBNotifier.Dashboard.Web/package-lock.json
+      - name: Verify PowerShell and Node script syntax
+        shell: pwsh
+        working-directory: .
+        run: ./scripts/verify-script-syntax.ps1
+      - name: Test the shell-free runner process boundary
+        shell: pwsh
+        working-directory: .
+        run: ./tests/DBNotifier.RunnerProcess.Tests.ps1
+      - name: Test the dynamic script-syntax gate
+        shell: pwsh
+        working-directory: .
+        run: ./tests/DBNotifier.ScriptSyntax.Tests.ps1
       - run: npm run toolchain:verify
       - run: npm ci
       - run: npm run brand:verify
@@ -138,7 +152,7 @@ jobs:
       - run: npm ci --prefix src/DBNotifier.Dashboard.Web
       - name: Run the bounded correlated STATE-06 sandbox
         shell: pwsh
-        run: .\scripts\run-state06-consolidated-e2e.ps1 -DiagnosticDirectory "${{ runner.temp }}\dbnotifier-state06-diagnostic"
+        run: .\scripts\run-state06-consolidated-e2e.ps1 -DotNetPath dotnet -DiagnosticDirectory "${{ runner.temp }}\dbnotifier-state06-diagnostic"
       - name: Upload sanitised STATE-06 failure evidence
         if: failure()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4

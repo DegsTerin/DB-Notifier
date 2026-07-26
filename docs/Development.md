@@ -43,6 +43,11 @@ The projects created in `STATE-01` began as infrastructure-only bootstrap code a
 
 Agent monitoring remains `false` in `src/DBNotifier.Agent.Worker/appsettings.json`. Enabling it requires an explicit non-empty Agent ID and may initialize/migrate the configured absolute SQLite path. Credential references use `windows-credential-manager` or `linux-secret-service`; no plaintext file/environment vault fallback exists.
 
+Local SQLite runtime files belong outside the worktree. Exact `.db`, `.sqlite`
+and `.sqlite3` names and their journal/WAL/SHM sidecars are ignored as a
+last-resort hygiene boundary; a deliberate versioned fixture requires an
+explicit narrow exception.
+
 Agent synchronization remains disabled by default. Observation synchronization may be configured only with the same Agent ID, an absolute HTTPS server address, bounded cadence/batch size, an exact Agent/provider-version inventory, and a valid client certificate with private key in the current identity's personal certificate store. Command polling has an independent `CommandPollingEnabled` switch but currently rejects startup with `command.polling_durable_protocol_unavailable`; durable request identifiers, sequences and acknowledgement replay must be implemented before this path becomes enableable. The Server still protects the receipt-only command endpoints through certificate enrolment and exact Agent route authorisation, but no Start/Stop/Restart executor or command attempt exists.
 
 Human API endpoints use the separate `HumanBearer` JWT scheme. Configure an absolute HTTPS OIDC authority and audience through `HumanAuthentication`; absent or invalid configuration fails closed. The JWT `sub` must map to an active platform user with a non-expired role assignment and the exact permission/scope. No password, signing key, token, or bootstrap administrator is stored in repository configuration.
@@ -126,6 +131,25 @@ All active projects target `net10.0` or an appropriate versioned .NET 10 Windows
 
 The unit-test coverage gate requires at least 70% line coverage and 45% branch coverage. An 80% line-coverage level is a risk-based directional target, not a replacement automatic gate; existing component floors must not be reduced without explicit authority, evidence and a governance record. The separate legacy Pester gate requires at least 25% command coverage. These are regression floors for the current bounded suites, not claims of complete behavioural coverage.
 
+## Script syntax checks
+
+The repository gate discovers tracked and unignored PowerShell and Node scripts
+dynamically. It parses PowerShell without executing it and uses the pinned Node
+runtime only for JavaScript syntax:
+
+```powershell
+pwsh -NoProfile -NonInteractive -File .\scripts\verify-script-syntax.ps1
+pwsh -NoProfile -NonInteractive -File .\tests\DBNotifier.ScriptSyntax.Tests.ps1
+pwsh -NoProfile -NonInteractive -File .\tests\DBNotifier.RunnerProcess.Tests.ps1
+powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass `
+  -File .\scripts\verify-script-syntax.ps1 -PowerShellOnly -LegacyCompatibleOnly
+```
+
+The Windows PowerShell command covers only scripts compatible with version
+5.1; scripts declaring PowerShell 7 remain in the primary gate. Syntax
+validation does not replace tests, type checking, linting or runtime
+validation.
+
 ## R4-B disposable PostgreSQL ownership laboratory
 
 The R4-B concurrency proof requires PowerShell 7, Docker Desktop and the exact PostgreSQL image already present
@@ -142,6 +166,22 @@ be proved, stop and report the boundary. A passing run proves only claim/lease/f
 dead-letter and ambiguous-side-effect behaviour for that disposable PostgreSQL 16 Alpine topology. It does not
 activate normal delivery, apply an operational migration or homologate PostgreSQL generally. See the
 [R4-B evidence report](STATE-06-Audit-Remediation-R4B-Report.md).
+
+## R-EGRESS/R-FENCE disposable PostgreSQL load campaign
+
+The multiprocess load runner requires PowerShell 7, the workspace-local .NET
+SDK, Docker Desktop and the exact pinned PostgreSQL image already present. It
+uses only GUID-labelled temporary resources and never pulls an image:
+
+```powershell
+pwsh -NoProfile -NonInteractive -File .\scripts\run-r-egress-postgresql-fence-lab.ps1
+```
+
+A passing run proves only the scoped Active/revocation/commit ordering and
+identity-fence regression in the controlled local topology. It does not apply
+an operational migration or grant fairness, SLO, homologation or provider
+support. See the
+[campaign report](STATE-06-R-EGRESS-R-FENCE-PostgreSql-Multiprocess-Load-Report.md).
 
 ## R-NET local DNS, PKI, IdP and PostgreSQL TLS campaign
 
@@ -196,21 +236,41 @@ npm run build
 npm audit --audit-level=high
 ```
 
+The O4 Observer browser audit uses the same owned-process boundary, an exact
+HTTPS loopback host and a dedicated Chrome profile:
+
+```powershell
+pwsh -NoProfile -NonInteractive -File .\scripts\run-o4-observer-browser-audit.ps1 `
+  -DotNetPath .\.dotnet\dotnet.exe
+```
+
 The separately authorised Dashboard TV browser composition gate uses only an already installed Chrome or Edge and never downloads a browser or package:
 
 ```powershell
-.\scripts\run-state06-dashboard-tv-browser-e2e.ps1 -BrowserProduct Chrome
+pwsh -NoProfile -NonInteractive -File .\scripts\run-state06-dashboard-tv-browser-e2e.ps1 `
+  -BrowserProduct Chrome -DotNetPath .\.dotnet\dotnet.exe
 ```
 
 It builds the exact local-test Dashboard, starts one temporary HTTPS loopback host, creates an isolated browser profile, observes the 30-second cadence plus the deterministic recovery matrix, rejects external HTTP origins and removes every owned process/profile at the end. This is local sandbox evidence, not browser homologation or an operational runtime command.
 
-Both modern browser runners declare `#Requires -Version 7.0` and must be started with `pwsh`. Windows PowerShell 5.1 rejects them before their parameter or process-creation body runs; it remains supported only for `scripts/run-legacy-tests.ps1` and the Pester legacy characterisation suite.
+All four browser runners declare `#Requires -Version 7.0`, resolve an explicit
+executable path, preserve every child-process argument boundary and capture
+stdout/stderr incrementally. Their `-DotNetPath` default is
+`.dotnet\dotnet.exe`; CI passes `dotnet` explicitly after `setup-dotnet`.
+Automated Node/CDP audits have a 600-second default global deadline; the
+visible presenter uses 900 seconds so its internal 12-minute review budget can
+finish before bounded cleanup.
+Windows PowerShell 5.1 rejects these runners before their parameter or
+process-creation body runs; it remains supported only for the legacy
+compatibility and syntax gates. The visible final-human-review runner remains
+reserved for an explicitly authorised human sample and is never invoked by
+the automatic syntax or process-helper tests.
 
 The separately authorised consolidated remediation harness correlates the already accepted STATE-06 sandboxes in one test-only run:
 
 ```powershell
 pwsh -NoProfile -NonInteractive -File .\scripts\run-state06-consolidated-e2e.ps1 `
-  -BrowserProduct Chrome
+  -BrowserProduct Chrome -DotNetPath .\.dotnet\dotnet.exe
 ```
 
 The runner builds only from already restored dependencies, creates one file-backed Agent SQLite root, one in-memory Server SQLite database, separate ephemeral Agent and human test identities, and a dedicated browser profile. It proves Agent replay, authoritative Dashboard reads, authenticated SignalR hints, one in-memory notification delivery, non-executable command journalling, granular central revocation, direct Server denial, local quarantine and cleanup. Its failure response and browser auditor expose only an allow-listed typed diagnostic. The companion integration matrix executes `R1`–`R7` with explicit barriers, controlled time, fencing and cancellation. The normal Agent Worker and Server API do not compose this host. The command path cannot create `CommandAttempt`, and this runner is remediation evidence rather than a rerun or approval of the Consolidated Quality Gate campaign.

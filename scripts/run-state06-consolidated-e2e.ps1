@@ -11,11 +11,14 @@ param(
     [ValidateRange(60, 900)]
     [int]$NodeTimeoutSeconds = 600,
 
-    [string]$DiagnosticDirectory
+    [string]$DiagnosticDirectory,
+
+    [string]$DotNetPath = '.dotnet\dotnet.exe'
 )
 
 $ErrorActionPreference = 'Stop'
 $repositoryRoot = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
+Import-Module (Join-Path $PSScriptRoot 'DBNotifier.RunnerProcess.psm1') -Force
 $dashboardRoot = Join-Path $repositoryRoot 'src\DBNotifier.Dashboard.Web'
 $dashboardDist = Join-Path $dashboardRoot 'dist'
 $hostProject = Join-Path $repositoryRoot 'tests\DBNotifier.State06.ConsolidatedSandboxHost\DBNotifier.State06.ConsolidatedSandboxHost.csproj'
@@ -30,6 +33,9 @@ $auditScript = Join-Path $repositoryRoot $(if ($humanRemediationMode) {
 })
 $temporaryRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("DBNotifier-State06-ConsolidatedE2E-{0}" -f [Guid]::NewGuid().ToString('N'))
 $runId = [Guid]::NewGuid()
+$hostHandle = $null
+$browserHandle = $null
+$nodeHandle = $null
 $hostProcess = $null
 $browserProcess = $null
 $nodeProcess = $null
@@ -187,6 +193,9 @@ function Remove-OwnedAgentRoots([string]$OwnedPrefix, [int]$TimeoutMilliseconds 
     }
 }
 
+$resolvedDotNet = Resolve-DBNotifierRunnerExecutable -Candidate $DotNetPath -BaseDirectory $repositoryRoot
+$resolvedNpm = Resolve-DBNotifierRunnerExecutable -Candidate 'npm.cmd' -BaseDirectory $repositoryRoot
+$resolvedNode = Resolve-DBNotifierRunnerExecutable -Candidate 'node' -BaseDirectory $repositoryRoot
 $browser = Find-Browser $BrowserProduct
 $debugPort = Get-AvailableLoopbackPort
 New-Item -ItemType Directory -Path $temporaryRoot | Out-Null
@@ -200,28 +209,36 @@ $nodeStdErr = Join-Path $temporaryRoot 'node.stderr.log'
 try {
     $stage = 'building-dashboard'
     [Environment]::SetEnvironmentVariable('VITE_DB_NOTIFIER_TV_SANDBOX', 'local-test', 'Process')
-    & npm.cmd run build --prefix $dashboardRoot
+    & $resolvedNpm run toolchain:verify --prefix $dashboardRoot
+    if ($LASTEXITCODE -ne 0) { throw 'The pinned Dashboard toolchain verification failed.' }
+    & $resolvedNpm run build --prefix $dashboardRoot
     if ($LASTEXITCODE -ne 0) { throw 'The existing offline Dashboard build failed.' }
     if (-not (Test-Path -LiteralPath (Join-Path $dashboardDist 'index.html') -PathType Leaf)) {
         throw 'The Dashboard build did not produce dist\index.html.'
     }
 
     $stage = 'building-host'
-    & dotnet build $hostProject --configuration Release --no-restore --disable-build-servers
+    & $resolvedDotNet build $hostProject --configuration Release --no-restore --disable-build-servers
     if ($LASTEXITCODE -ne 0) { throw 'The consolidated sandbox host build failed.' }
 
-    & dotnet $hostAssembly 2>$null | Out-Null
+    & $resolvedDotNet $hostAssembly 2>$null | Out-Null
     if ($LASTEXITCODE -ne 2) { throw 'The host did not reject missing activation arguments.' }
-    & dotnet $hostAssembly '--activation' 'not-authorised' '--dashboard-root' $dashboardDist 2>$null | Out-Null
+    & $resolvedDotNet $hostAssembly '--activation' 'not-authorised' '--dashboard-root' $dashboardDist 2>$null | Out-Null
     if ($LASTEXITCODE -ne 2) { throw 'The host did not reject an invalid activation value.' }
 
     $stage = 'starting-host'
-    $hostProcess = Start-Process -FilePath 'dotnet.exe' -ArgumentList @(
-        $hostAssembly,
-        '--activation', $activationMarker,
-        '--dashboard-root', $dashboardDist,
-        '--run-id', $runId.ToString('D')
-    ) -WorkingDirectory $repositoryRoot -WindowStyle Hidden -PassThru -RedirectStandardOutput $hostStdOut -RedirectStandardError $hostStdErr
+    $hostHandle = Start-DBNotifierRunnerProcess `
+        -FilePath $resolvedDotNet `
+        -ArgumentList @(
+            $hostAssembly,
+            '--activation', $activationMarker,
+            '--dashboard-root', $dashboardDist,
+            '--run-id', $runId.ToString('D')
+        ) `
+        -WorkingDirectory $repositoryRoot `
+        -StandardOutputPath $hostStdOut `
+        -StandardErrorPath $hostStdErr
+    $hostProcess = $hostHandle.Process
 
     $stage = 'waiting-for-host'
     $readiness = [System.Diagnostics.Stopwatch]::StartNew()
@@ -258,25 +275,31 @@ try {
     Write-Output "Consolidated test host ready on exact HTTPS loopback: $hostBaseAddress"
 
     $stage = 'starting-browser'
-    $browserProcess = Start-Process -FilePath $browser -ArgumentList @(
-        '--headless=new',
-        '--disable-gpu',
-        '--disable-background-networking',
-        '--disable-component-update',
-        '--disable-default-apps',
-        '--disable-sync',
-        '--metrics-recording-only',
-        '--no-first-run',
-        '--no-default-browser-check',
-        '--no-pings',
-        '--no-proxy-server',
-        '--remote-debugging-address=127.0.0.1',
-        "--remote-debugging-port=$debugPort",
-        "--user-data-dir=$profilePath",
-        "--ignore-certificate-errors-spki-list=$($ready.spkiPin)",
-        '"--host-resolver-rules=MAP * ~NOTFOUND, EXCLUDE localhost, EXCLUDE 127.0.0.1"',
-        "$hostBaseAddress/#overview"
-    ) -WindowStyle Hidden -PassThru -RedirectStandardOutput $browserStdOut -RedirectStandardError $browserStdErr
+    $browserHandle = Start-DBNotifierRunnerProcess `
+        -FilePath $browser `
+        -ArgumentList @(
+            '--headless=new',
+            '--disable-gpu',
+            '--disable-background-networking',
+            '--disable-component-update',
+            '--disable-default-apps',
+            '--disable-sync',
+            '--metrics-recording-only',
+            '--no-first-run',
+            '--no-default-browser-check',
+            '--no-pings',
+            '--no-proxy-server',
+            '--remote-debugging-address=127.0.0.1',
+            "--remote-debugging-port=$debugPort",
+            "--user-data-dir=$profilePath",
+            "--ignore-certificate-errors-spki-list=$($ready.spkiPin)",
+            '--host-resolver-rules=MAP * ~NOTFOUND, EXCLUDE localhost, EXCLUDE 127.0.0.1',
+            "$hostBaseAddress/#overview"
+        ) `
+        -WorkingDirectory $repositoryRoot `
+        -StandardOutputPath $browserStdOut `
+        -StandardErrorPath $browserStdErr
+    $browserProcess = $browserHandle.Process
     Write-Output "Dedicated $BrowserProduct started with an isolated ephemeral profile."
     $stage = 'waiting-for-browser'
     Wait-ForLoopbackEndpoint "http://127.0.0.1:$debugPort/json/version" $browserProcess $browserStdErr
@@ -285,8 +308,13 @@ try {
     $env:DBNOTIFIER_STATE06_URL = $hostBaseAddress
     $env:DBNOTIFIER_STATE06_RUN_ID = [string]$ready.runId
     $stage = 'running-node-audit'
-    $nodeHost = Get-Command node -CommandType Application -ErrorAction Stop | Select-Object -First 1
-    $nodeProcess = Start-Process -FilePath $nodeHost.Source -ArgumentList @($auditScript) -WorkingDirectory $repositoryRoot -WindowStyle Hidden -PassThru -RedirectStandardOutput $nodeStdOut -RedirectStandardError $nodeStdErr
+    $nodeHandle = Start-DBNotifierRunnerProcess `
+        -FilePath $resolvedNode `
+        -ArgumentList @($auditScript) `
+        -WorkingDirectory $repositoryRoot `
+        -StandardOutputPath $nodeStdOut `
+        -StandardErrorPath $nodeStdErr
+    $nodeProcess = $nodeHandle.Process
     if (-not $nodeProcess.WaitForExit($NodeTimeoutSeconds * 1000)) {
         throw 'The consolidated Node/CDP audit exceeded its global deadline.'
     }
@@ -336,6 +364,11 @@ finally {
     })
     if ($ownedResidue.Count -gt 0) {
         $cleanupFailures.Add("The consolidated runner left $($ownedResidue.Count) verified owned process(es) after cleanup.")
+    }
+    foreach ($handle in @($nodeHandle, $browserHandle, $hostHandle)) {
+        if ($null -eq $handle) { continue }
+        try { Complete-DBNotifierRunnerProcess -Handle $handle | Out-Null }
+        catch { $cleanupFailures.Add($_.Exception.Message) }
     }
     try { Remove-OwnedAgentRoots $ownedAgentRootPrefix }
     catch { $cleanupFailures.Add($_.Exception.Message) }
