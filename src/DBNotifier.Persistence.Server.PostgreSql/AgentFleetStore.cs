@@ -619,13 +619,19 @@ public sealed class AgentFleetStore(
         DateTimeOffset now,
         CancellationToken cancellationToken)
     {
-        AgentRevocationOutcome identityOutcome = await RevokeIdentityAsync(
-            subjectId,
-            agentId,
-            permissionCode,
-            reasonCode,
-            now,
-            cancellationToken).ConfigureAwait(false);
+        AgentRevocationOutcome identityOutcome;
+        using (IDisposable identityFence = await AgentIdentityTransactionFence
+            .EnterAsync(agentId, cancellationToken)
+            .ConfigureAwait(false))
+        {
+            identityOutcome = await RevokeIdentityAsync(
+                subjectId,
+                agentId,
+                permissionCode,
+                reasonCode,
+                now,
+                cancellationToken).ConfigureAwait(false);
+        }
         if (identityOutcome.Disposition is AgentRevocationDisposition.Denied or AgentRevocationDisposition.Conflict)
         {
             return identityOutcome;

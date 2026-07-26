@@ -65,6 +65,18 @@ POST /api/v1/agents/{agentId}/events:batch
 
 Input includes an envelope batch, first/last sequence, and local queue checkpoint. Response reports each accepted, duplicate, rejected, or retryable item plus the highest Agent sequence durably resolved as accepted evidence or a consumed terminal rejection.
 
+Accepted observation ingestion and principal Agent revocation share one transaction order on the authoritative Agent
+identity. The same process uses one per-Agent gate. In central PostgreSQL, ingestion also holds a
+`FOR NO KEY UPDATE` lock on the exact `agents` row until its serialisable transaction commits or rolls back; the
+principal revocation update conflicts with that lock. If ingestion owns the order first, it finishes before
+revocation can commit. If revocation commits first, the refused observation cannot commit a health sample or any
+effect attributable to that message. Consuming its gap under R-SEQ may then reconcile a successor sample that was
+already accepted before revocation; that historical acceptance does not extend authority to the refused message. A
+PostgreSQL serialisation conflict is re-evaluated fail-closed in a fresh transaction and may consume the inactive
+rejection under the same R-SEQ rules. Completing mTLS authentication before this transaction is only a prefilter, not
+continuing commit authority. This ordering contract does not claim equivalent fencing for heartbeat, assignment,
+command or certificate-batch workflows.
+
 Rules:
 
 - Duplicate IDs return the original acceptance identity.
@@ -72,7 +84,8 @@ Rules:
 - Sequence gaps are recorded and returned; later items may be accepted if policy permits, but the gap remains visible.
 - A validation or authorisation failure is terminal for its payload only after the Server durably consumes that exact
   sequence in the contiguous cursor. Consumption creates no health sample, instance state, canonical event, Server
-  outbox message or notification delivery.
+  outbox message or notification delivery attributable to the rejected payload; it may unlock contiguous projection
+  of successor samples accepted earlier.
 - A rejected sequence above an unresolved lower gap is returned as retryable until the missing prefix is resolved.
   Once consumed, replay is idempotently rejected and a different payload cannot be accepted retroactively into that
   resolved slot.

@@ -72,15 +72,16 @@ outbox_messages
 ### Inventory and Agent fleet
 
 - `agent_enrollment_tokens`: public token ID, exact scope, random salt and SHA-256 proof, explicit issue/expiry instants and one-time consumption/revocation state; the original token is never stored. The schema requires expiry after issuance but does not currently impose a maximum lifetime.
-- `agents`: unique installation identity, environment/platform/version, enrollment/revocation/last-seen state and concurrency token. The legacy certificate-thumbprint pointer remains only as a compatibility bridge.
+- `agents`: unique installation identity, environment/platform/version, enrollment/revocation/last-seen state and concurrency token. The exact principal row is also the durable PostgreSQL ordering point between accepted observation ingestion and principal revocation: ingestion holds a non-key-update lock through commit, while revocation updates the same row. The legacy certificate-thumbprint pointer remains only as a compatibility bridge.
 - `agent_certificates`: authoritative normalised thumbprint, public-key/CSR digests, validity, lifecycle, monotonic revocation and concurrency metadata; it stores neither certificate bodies nor private keys. After principal revocation commits, outstanding rows are reconciled in bounded transactions and their existing lifecycle state is the durable restart cursor.
 - `agent_capabilities`: versioned provider/platform claims, unique per Agent/capability combination.
 - `agent_heartbeats`: immutable process/connectivity evidence with unique message ID and per-Agent sequence, canonical payload digest, protocol range, queue state, Agent/server times and explicit gap evidence.
 - `agent_heartbeat_cursors`: highest accepted per-Agent heartbeat sequence and last message ID, retained independently of heartbeat-detail deletion for fail-closed replay protection.
 - `agent_observation_cursors`: highest contiguously resolved observation-stream sequence per Agent. A slot is resolved
   by an accepted `health_sample` or by a terminal rejection consumed under the same serialisable cursor boundary.
-  Consuming a rejection stores no health evidence or downstream effect; without a separate ledger or migration, the
-  cursor does not retain that rejection's message ID or reason.
+  Consuming a rejection stores no health evidence or downstream effect attributable to that rejected message. It may
+  make an already accepted successor sample contiguous and therefore eligible for projection. Without a separate
+  ledger or migration, the cursor does not retain that rejection's message ID or reason.
 - `database_instances`: provider-neutral inventory with `jsonb` endpoint/tags, separate credential references, assigned Agent, policy timings, archive time, concurrency token.
 
 Deleting an Agent or instance is restricted while durable evidence references it. Instance archival is explicit; it is not a history cascade.
@@ -89,7 +90,8 @@ Deleting an Agent or instance is restricted while durable evidence references it
 
 - `health_samples`: immutable observation evidence, unique message ID, indexed by instance/time and status/time.
 - `instance_observation_states`: last projected accepted observation per instance. A consumed rejection can advance
-  its Agent cursor but never updates this state.
+  its Agent cursor but never supplies the projected observation itself; closing the gap may unlock an update sourced
+  from a successor sample accepted earlier.
 - `events`: immutable canonical events linked optionally to instance, Agent, and source observation; indexed by type/time and correlation.
 - `incidents`: mutable operational aggregate with status/severity/open/ack/close times and concurrency token.
 - `maintenance_windows`: bounded start/end range with reason and creator.
@@ -148,4 +150,8 @@ durable. The stable publisher idempotency key is derived from the immutable mess
 - Agent Fleet leases coordinate only temporary local sandbox processes. They are not a distributed lock, service lease or authority to enable the ordinary Worker.
 - A new health sample cannot be inserted at or below an observation cursor position that was already resolved by a
   consumed rejection; this prevents unprojected retroactive evidence.
+- Accepted observation ingestion requires both `agents.state = 'Active'` and `revoked_at IS NULL` while holding the
+  principal-row transaction fence. If principal revocation wins the order, the refused observation can advance its
+  rejected cursor slot but cannot create a health sample or effect attributable to itself. R-SEQ may then project a
+  successor sample that was already accepted before revocation and had remained behind that gap.
 - A corrupt, future or incomplete Agent SQLite schema is refused by the sandbox guard without repair or silent recreation.

@@ -61,11 +61,25 @@ proprietários.
   gate global posterior.
 - R-SEQ está automaticamente `APROVADO` somente no escopo local validado. Uma
   rejeição terminal central agora consome o seu slot no cursor sem criar
-  amostra, estado, evento, outbox ou delivery; o Agent somente reconhece a
-  rejeição quando o high-water cobre a sequência. Rejeições exclusivamente
-  locais ou de request sem essa prova permanecem pendentes. Não houve
-  migration ou PostgreSQL operacional; a evidência proprietária está no
+  amostra ou efeito atribuível à rejeição; isso pode liberar a projeção de uma
+  sucessora aceita anteriormente. O Agent somente reconhece a rejeição quando
+  o high-water cobre a sequência. Rejeições exclusivamente locais ou de
+  request sem essa prova permanecem pendentes. Não houve migration ou
+  PostgreSQL operacional; a evidência proprietária está no
   [relatório R-SEQ](../../docs/STATE-06-R-SEQ-Rejected-Observation-Sequence-Remediation-Report.md).
+- R-EGRESS, por autoridade explícita deste lote, designa somente a corrida
+  entre leitura `Active`, revogação principal e commit da ingestão de
+  observações. O lote está automaticamente `APROVADO` no escopo local
+  validado: ingestão e revogação compartilham uma ordem por Agent, e a
+  observação que perde essa ordem não cria amostra nem efeito atribuível a
+  ela. O R-SEQ ainda pode projetar uma sucessora aceita antes da revogação e
+  retida atrás do gap recusado. PostgreSQL serializável real e Server
+  multiprocesso permanecem não testados; SSRF e política de network egress
+  não foram avaliados. O gate local não garante prioridade, fairness ou limite
+  próprio de espera e é adquirido pela revogação antes da decisão RBAC
+  definitiva; contenção e latência desse risco não foram testadas. A evidência
+  proprietária está no
+  [relatório R-EGRESS](../../docs/STATE-06-R-EGRESS-Observation-Ingestion-Revocation-Linearisation-Report.md).
 - R5 está tecnicamente aprovado, mas sua conformidade com a autoridade
   original permanece `REPROVADA` pelo restore bloqueado que consultou
   metadados NuGet fora do escopo; o incidente não foi reclassificado como

@@ -3929,3 +3929,62 @@
 - Evidências:
 - Riscos/ressalvas:
 - Aprovador:
+
+## 2026-07-25 — R-EGRESS lineariza ingestão de observações e revogação principal
+
+- Estado anterior: `STATE-06 INTEGRATION`, `ActivationState=None`; R-SEQ
+  encerrado localmente, mas a ingestão ainda podia ler `Active`, perder a
+  ordem para uma revogação principal e commitar efeitos de saúde depois.
+- Autoridade: execução integral e focal de R-EGRESS somente para a corrida
+  entre verificação de Agent ativo, revogação e commit da ingestão
+  autoritativa, sem aprovação intermediária.
+- Desambiguação: neste lote `R-EGRESS` designa exclusivamente essa corrida;
+  SSRF e política de network egress não foram avaliados nem encerrados.
+- Diagnóstico: transações serializáveis independentes protegiam o cursor e a
+  identidade em linhas diferentes; o gate anterior pertencia apenas à
+  ingestão e a consulta `Active` não bloqueava `agents`.
+- Implementação: um gate por Agent passou a ordenar ingestão, consumo R-SEQ e
+  revogação principal no processo. A ingestão PostgreSQL bloqueia a identidade
+  com `FOR NO KEY UPDATE` até commit/rollback, exige `State=Active` e
+  `RevokedAt=null` e reclassifica falha concorrente numa transação nova com a
+  ordem `identity lock → replay → rejeição`. SQLite permanece somente fallback
+  local exato; o caminho de ingestão aceita falha fechado para terceiro
+  provider.
+- Limite por mensagem: a observação que perde para a revogação não cria
+  amostra ou efeito próprio. O consumo R-SEQ do gap pode projetar uma sucessora
+  aceita antes da revogação, sempre com a proveniência dessa sucessora.
+- Regressões: as duas ordens concorrentes e o drift `Active + RevokedAt`
+  passaram `3/3`; proveniência/classificação passaram `2/2`; o guard
+  arquitetural passou `1/1`; sincronização/R-SEQ/revogação passaram `63/63`;
+  o E2E autoritativo existente passou `1/1`.
+- Gates: build Release com zero warnings/erros; suítes completas `413/413`
+  unitários, `124/124` integrações, `93/93` arquitetura e `10/10` WPF;
+  cobertura `82,11%` linhas e `54,30%` branches com `10/10` componentes;
+  format, documentação de código, links Markdown e secret scan aprovados.
+- Nota de execução: uma tentativa paralela teve `123/124` integrações por
+  prazo do diagnóstico não relacionado `WaitHandleCandidateIsTimelyAndCancellationAware`;
+  a suíte isolada passou `124/124`, e somente as execuções isoladas compõem os
+  totais finais.
+- Shutdown: nove helpers de build órfãos pertencentes ao workspace foram
+  encerrados após verificação de caminho e parentage; a auditoria
+  pós-validação terminou com zero processo, listener ou janela de produto
+  DB-Notifier, preservando a IDE do usuário.
+- Escopo negativo: zero dependência, migration, PostgreSQL operacional,
+  runtime externo, PM-3, SSRF/network egress, lifecycle, `ActivationState`,
+  push, PR ou deploy.
+- Ressalvas: o row lock PostgreSQL foi implementado e protegido por teste de
+  fonte, mas PostgreSQL real, SQLSTATE `40001`, multiprocesso e latência sob
+  carga não foram executados. O cursor de uma rejeição continua sem ledger de
+  motivo/`MessageId` por ausência de migration. O gate local não garante
+  prioridade, fairness ou limite próprio de espera e a revogação o adquire
+  antes do RBAC definitivo; contenção e latência desse risco não foram
+  testadas.
+- Estado resultante: R-EGRESS automaticamente `APROVADO` somente no escopo
+  local validado; `STATE-06 INTEGRATION` e `ActivationState=None` inalterados.
+- Evidência:
+  [relatório R-EGRESS](../../docs/STATE-06-R-EGRESS-Observation-Ingestion-Revocation-Linearisation-Report.md).
+- Próxima decisão: a aceitação focal do proprietário pode encerrar somente
+  este lote; qualquer PM-3, SSRF/network egress, PostgreSQL real, lifecycle,
+  ativação ou lote posterior exige autorização separada.
+- Aprovador: autoridade de execução concedida por Bruno; resultado automático
+  local, sem Human Gate ou transição inferidos.

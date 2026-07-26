@@ -1,5 +1,4 @@
 // Module purpose: Implements Server Observation Ingestion Store for central PostgreSQL persistence with transactional and authorisation boundaries.
-using System.Collections.Concurrent;
 using System.Data;
 using System.Data.Common;
 using System.Security.Cryptography;
@@ -24,7 +23,6 @@ public sealed class ServerObservationIngestionStore(
     private const int ReconciliationBatchSize = 1000;
     private const int MaximumReconciliationBatches = 10;
     private static readonly JsonSerializerOptions SerializerOptions = new(JsonSerializerDefaults.Web);
-    private static readonly ConcurrentDictionary<Guid, SemaphoreSlim> AgentGates = new();
 
     /// <inheritdoc />
     public async ValueTask<ObservationItemResult> IngestAsync(
@@ -35,19 +33,19 @@ public sealed class ServerObservationIngestionStore(
         // One in-process writer per Agent avoids competing cursor creation and preserves deterministic
         // sequence reconciliation. The serialisable transaction and PostgreSQL row lock provide the
         // corresponding cross-process boundary.
-        SemaphoreSlim gate = AgentGates.GetOrAdd(message.AgentId, static _ => new SemaphoreSlim(1, 1));
-        await gate.WaitAsync(cancellationToken).ConfigureAwait(false);
+        using IDisposable identityFence = await AgentIdentityTransactionFence
+            .EnterAsync(message.AgentId, cancellationToken)
+            .ConfigureAwait(false);
         try
         {
             return await IngestCoreAsync(message, receivedAt, cancellationToken).ConfigureAwait(false);
         }
         catch (Exception exception) when (exception is DbUpdateException or DbException)
         {
-            return await ClassifyAfterPersistenceFailureAsync(message, cancellationToken).ConfigureAwait(false);
-        }
-        finally
-        {
-            gate.Release();
+            return await ClassifyAfterPersistenceFailureAsync(
+                message,
+                receivedAt,
+                cancellationToken).ConfigureAwait(false);
         }
     }
 
@@ -69,8 +67,9 @@ public sealed class ServerObservationIngestionStore(
             throw new ArgumentException("Rejected observation error codes cannot exceed 100 characters.", nameof(errorCode));
         }
 
-        SemaphoreSlim gate = AgentGates.GetOrAdd(agentId, static _ => new SemaphoreSlim(1, 1));
-        await gate.WaitAsync(cancellationToken).ConfigureAwait(false);
+        using IDisposable identityFence = await AgentIdentityTransactionFence
+            .EnterAsync(agentId, cancellationToken)
+            .ConfigureAwait(false);
         try
         {
             return await ConsumeRejectedCoreAsync(
@@ -84,10 +83,6 @@ public sealed class ServerObservationIngestionStore(
         catch (Exception exception) when (exception is DbUpdateException or DbException)
         {
             return Retryable(messageId, "ingestion.persistence_unavailable");
-        }
-        finally
-        {
-            gate.Release();
         }
     }
 
@@ -139,16 +134,14 @@ public sealed class ServerObservationIngestionStore(
             .BeginTransactionAsync(IsolationLevel.Serializable, cancellationToken)
             .ConfigureAwait(false);
 
-        string? agentState = await context.Agents
-            .Where(row => row.AgentId == message.AgentId)
-            .Select(row => row.State)
-            .SingleOrDefaultAsync(cancellationToken)
+        RegisteredAgentRow? agent = await AgentIdentityTransactionFence
+            .LockIdentityAsync(context, message.AgentId, cancellationToken)
             .ConfigureAwait(false);
-        if (agentState is null)
+        if (agent is null)
         {
             return Rejected(message.MessageId, "agent.not_active");
         }
-        if (!string.Equals(agentState, "Active", StringComparison.Ordinal))
+        if (!string.Equals(agent.State, "Active", StringComparison.Ordinal) || agent.RevokedAt is not null)
         {
             return await ConsumeRejectedInTransactionAsync(
                 context,
@@ -263,13 +256,25 @@ public sealed class ServerObservationIngestionStore(
         catch (DbUpdateException)
         {
             await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
-            return await ClassifyAfterPersistenceFailureAsync(message, cancellationToken).ConfigureAwait(false);
+            return await ClassifyAfterPersistenceFailureAsync(
+                message,
+                receivedAt,
+                cancellationToken).ConfigureAwait(false);
         }
     }
 
-    /// <summary>Classifies a persistence race as a proved replay conflict or a retryable unavailable outcome.</summary>
+    /// <summary>
+    /// Re-establishes the durable identity fence in a fresh transaction and classifies a persistence race as a
+    /// proved replay, an inactive-Agent rejection consumed in that same transaction, or a retryable unavailable
+    /// outcome.
+    /// </summary>
+    /// <param name="message">Observation whose original transaction could not prove a commit.</param>
+    /// <param name="receivedAt">Authoritative receipt instant retained when consuming a post-revocation rejection.</param>
+    /// <param name="cancellationToken">Cancellation propagated from the ingestion request.</param>
+    /// <returns>A proved duplicate/conflict, a consumed inactive rejection, or a retryable persistence result.</returns>
     private async ValueTask<ObservationItemResult> ClassifyAfterPersistenceFailureAsync(
         ObservationSyncMessage message,
+        DateTimeOffset receivedAt,
         CancellationToken cancellationToken)
     {
         try
@@ -277,17 +282,52 @@ public sealed class ServerObservationIngestionStore(
             await using ServerDbContext verification = await contextFactory
                 .CreateDbContextAsync(cancellationToken)
                 .ConfigureAwait(false);
+            await using Microsoft.EntityFrameworkCore.Storage.IDbContextTransaction transaction =
+                await verification.Database
+                    .BeginTransactionAsync(IsolationLevel.Serializable, cancellationToken)
+                    .ConfigureAwait(false);
+
+            // Locking identity before checking durable samples makes the classification snapshot follow every
+            // accepted ingestion or revocation that already won the cross-process transaction order.
+            RegisteredAgentRow? agent = await AgentIdentityTransactionFence
+                .LockIdentityAsync(verification, message.AgentId, cancellationToken)
+                .ConfigureAwait(false);
             ObservationItemResult? concurrentResult = await ClassifyExistingAsync(
                 verification,
                 message,
                 cancellationToken).ConfigureAwait(false);
-            return concurrentResult ?? Retryable(message.MessageId, "ingestion.persistence_failed");
+            if (concurrentResult is not null)
+            {
+                await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
+                return concurrentResult;
+            }
+
+            if (agent is not null &&
+                (!string.Equals(agent.State, "Active", StringComparison.Ordinal) || agent.RevokedAt is not null))
+            {
+                // A PostgreSQL serialisation failure can be the safe result of principal revocation winning
+                // the row-lock race. Consume through the already fenced transaction so a concurrent accepted
+                // commit cannot appear between replay classification and rejection.
+                return await ConsumeRejectedInTransactionAsync(
+                    verification,
+                    transaction,
+                    message.AgentId,
+                    message.MessageId,
+                    message.Sequence,
+                    "agent.not_active",
+                    receivedAt,
+                    cancellationToken).ConfigureAwait(false);
+            }
+
+            await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
+            return Retryable(message.MessageId, "ingestion.persistence_failed");
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
             throw;
         }
-        catch (Exception exception) when (exception is DbException or InvalidOperationException)
+        catch (Exception exception) when (
+            exception is DbUpdateException or DbException or InvalidOperationException)
         {
             return Retryable(message.MessageId, "ingestion.persistence_unavailable");
         }
