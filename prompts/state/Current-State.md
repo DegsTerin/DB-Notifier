@@ -55,109 +55,59 @@ proprietários.
 - O ConfigMigrator permanece em .NET 10, com dry-run, rejeição de secrets e
   campos desconhecidos, backup, journal durável, recuperação determinística,
   rollback e revalidação.
-- Os lotes R0, R0-F1, R1, R2-A, R3, R4-A, R4-B, R5 e R7-A0 estão encerrados
-  somente nos seus escopos locais e bounded. R0-F1 resolveu a contradição
-  arquitetural específica que permanecia do R0; isso não declara verde um
-  gate global posterior.
-- A correção cursor-only de R-SEQ permanece automaticamente `APROVADA` somente
-  no seu escopo local validado. O complemento durável agora acrescenta a nona
-  migration Server, um corte inclusivo por Agent e
-  `rejected_observation_sequences`, que preserva `MessageId`, motivo sanitizado
-  e instante de consumo sem criar amostra ou efeito atribuível à rejeição.
-  Posições históricas anteriores ao corte não são reconstruídas; evidência
-  pós-corte ausente ou contraditória falha fechada como retryable. O laboratório
-  PostgreSQL descartável e loopback-only passou `1/1` para upgrade/backfill,
-  replay, `Down` protegido, rollback vazio, overflow guard e reaplicação usando
-  a imagem local fixada por
-  `sha256:e013e867e712fec275706a6c51c966f0bb0c93cfa8f51000f85a15f9865a28cb`.
-  Build Release terminou com zero warnings/erros; suítes .NET passaram
-  `507/507` unitários, `96/96` arquitetura, `125/125` integrações e `10/10`
-  WPF; o E2E focal passou `1/1`; cobertura atingiu `83,33%` de linhas e
-  `56,18%` de branches com `10/10` componentes obrigatórios. Formatação,
-  documentação de 406 arquivos de código, 772 links locais em 202 arquivos e
-  secret scan do worktree não ignorado mais histórico Git passaram. O Agent somente reconhece
-  a rejeição quando o high-water cobre a sequência; rejeições exclusivamente
-  locais ou de request sem essa prova permanecem pendentes. Nenhuma migration
-  foi aplicada a PostgreSQL existente ou operacional. As evidências
-  proprietárias são o
+- Os lotes R0, R0-F1, R1, R2-A, R3, R4-A, R4-B, R5, R6, R7-A0 e
+  R8 permanecem encerrados somente nos respetivos escopos locais. R5 está
+  tecnicamente aprovado, mas sua conformidade com a autoridade original
+  permanece `REPROVADA` pelo incidente NuGet não reclassificado. Os Human
+  Gates R6 e R8 permanecem `APROVADOS COM RESSALVAS`: as cinco condições
+  físicas R6, locked restore, freshness online de advisories, CI remota e a
+  repetição PostgreSQL própria de R8 continuam não testados naquele escopo;
+  quatro achados R8 permanecem classificados como `CONTIDO`. Laboratórios
+  focais posteriores não substituem essas evidências, e os resultados não
+  constituem homologação, runtime operacional ou autorização externa. As
+  fontes são os relatórios
+  [R5](../../docs/STATE-06-Audit-Remediation-R5-Report.md),
+  [Human Gate R6](../../docs/STATE-06-Audit-Remediation-R6-Human-Gate-Report.md),
+  [R8](../../docs/STATE-06-Audit-Remediation-R8-Report.md) e
+  [Human Gate R8](../../docs/STATE-06-Audit-Remediation-R8-Human-Gate-Report.md).
+- R-SEQ está automaticamente `APROVADO` somente no escopo local validado. A
+  nona migration Server estabelece um corte inclusivo por Agent e o ledger
+  `rejected_observation_sequences`, sem criar amostra ou efeito de saúde para
+  a rejeição consumida. Posições históricas não são reconstruídas; evidência
+  pós-corte ausente ou contraditória falha fechada como retryable, e o Agent
+  somente reconhece a rejeição quando o high-water autoritativo cobre sua
+  sequência. O laboratório PostgreSQL descartável passou, mas nenhuma
+  migration foi aplicada a PostgreSQL existente ou operacional. As fontes são
+  o
   [relatório R-SEQ original](../../docs/STATE-06-R-SEQ-Rejected-Observation-Sequence-Remediation-Report.md)
   e o
   [relatório do ledger durável](../../docs/STATE-06-R-SEQ-Durable-Rejection-Ledger-Report.md).
-- R-EGRESS designa somente a corrida entre leitura `Active`, revogação
-  principal e commit da ingestão de observações. O lote local foi
-  automaticamente `APROVADO` e depois expressamente aceito por Bruno nesse
-  escopo: ingestão e revogação compartilham uma ordem por Agent, e a observação
-  que perde essa ordem não cria amostra nem efeito atribuível a ela. A campanha
-  física complementar passou oito cenários em processos independentes contra
-  PostgreSQL descartável e loopback-only: sete relações de blocking,
-  `86` ocorrências por item de SQLSTATE `40001`, `106` disposições `Accepted`,
-  `27` `Rejected`, `68` `Retryable` com `68/68` convergências bounded e zero
-  deadlock, falha não classificada ou resíduo próprio. Os dois perfis `4 × 25`
-  concluíram `100/100` operações cada. O R-SEQ ainda pode projetar uma
-  sucessora aceita antes da revogação e retida atrás do gap recusado. R-EGRESS
-  não avaliou SSRF ou network egress no seu escopo histórico; o resultado
-  corrente dessa fronteira pertence ao R-NET descrito abaixo. A posição zero da
-  revogação nesta execução é apenas um fato observado: o gate continua sem
-  garantia de prioridade, fairness, starvation freedom, limite próprio de
-  espera, SLO ou suporte PostgreSQL operacional. As evidências proprietárias
-  são o
-  [relatório R-EGRESS](../../docs/STATE-06-R-EGRESS-Observation-Ingestion-Revocation-Linearisation-Report.md)
-  e o
-  [relatório da campanha física](../../docs/STATE-06-R-EGRESS-R-FENCE-PostgreSql-Multiprocess-Load-Report.md).
-- R-FENCE está automaticamente `APROVADO` somente como regressão local do gate
-  por Agent já implementado em R-EGRESS. Quatro testes determinísticos provam
-  cancelamento de waiter sem divisão/ABA, liberação após exceção, `Dispose`
-  idempotente e independência entre Agents. A campanha física complementar
-  passou crash do holder, cancelamento do waiter e isolamento entre Agents em
-  processos independentes. O lote não concede suporte PostgreSQL operacional
-  nem acrescenta garantias de fairness, prioridade, starvation freedom, timeout
-  próprio ou SLO. As evidências proprietárias são o
-  [relatório R-FENCE](../../docs/STATE-06-R-FENCE-Agent-Identity-Fence-Lifecycle-Regression-Report.md)
-  e o
-  [relatório da campanha física](../../docs/STATE-06-R-EGRESS-R-FENCE-PostgreSql-Multiprocess-Load-Report.md).
+- R-EGRESS foi aceito somente para a corrida entre leitura `Active`, revogação
+  principal e commit da ingestão; R-FENCE está automaticamente `APROVADO`
+  somente como regressão local do mesmo gate por Agent. A observação que perde
+  essa ordem não cria efeito próprio, embora R-SEQ ainda possa projetar uma
+  sucessora aceita antes da revogação e retida atrás do gap recusado. A
+  campanha PostgreSQL descartável multiprocesso passou, mas não concede
+  fairness, prioridade, starvation freedom, timeout próprio, SLO, homologação
+  ou suporte operacional. R-EGRESS não designa política de network egress;
+  essa fronteira pertence a R-NET. As fontes são os relatórios
+  [R-EGRESS](../../docs/STATE-06-R-EGRESS-Observation-Ingestion-Revocation-Linearisation-Report.md),
+  [R-FENCE](../../docs/STATE-06-R-FENCE-Agent-Identity-Fence-Lifecycle-Regression-Report.md)
+  e da
+  [campanha física](../../docs/STATE-06-R-EGRESS-R-FENCE-PostgreSql-Multiprocess-Load-Report.md).
 - R-NET está automaticamente `APROVADO` somente no escopo local validado.
-  Quatro políticas independentes e imutáveis agora exigem CIDR positivo e
-  porta exata para sincronização do Agent, monitorização por provider, OIDC
-  humano e PostgreSQL central. Toda resposta DNS é tratada atomicamente,
-  endereços proibidos vencem qualquer allowlist e sockets conectam somente a
-  IP aprovado, preservando o hostname original para TLS. Redirect, proxy,
-  credencial ambiental, download de certificado e revogação online implícita
-  foram recusados nos caminhos diretamente afetados. O legado PowerShell
-  tornou-se estritamente loopback e não resolve nomes remotos. A campanha
-  física controlada complementar passou `11/11` casos em cinco invocações:
-  resolvedor real de `localhost` e DNS controlado, cadeia PKI offline pelo
-  mecanismo do Windows, IdP HTTPS local e células PostgreSQL 16 TLS
-  sequenciais. Cada célula removeu rotas default, fixou o resolver efetivo em
-  loopback, conservou o listener somente local, executou PostgreSQL como
-  não-root com capacidades ativas zero/`NoNewPrivs=1` e apresentou o
-  certificado exato do cenário; os negativos de hostname, trust e revogação
-  passaram nos caminhos central e provider. Os construtores produtivos
-  permanecem em trust `System`; a
-  raiz sintética ficou restrita ao processo de teste, somente a CRL pública
-  exata foi temporariamente registrada em `CurrentUser\CA`, e o cleanup
-  comprovou zero resíduo. O gate completo passou `508/508` unitários,
-  `96/96` arquitetura, `137/137` integração comum, `10/10` WPF e cobertura
-  `83,37%` de linhas/`56,26%` de branches. DNS/PKI/IdP/PostgreSQL
+  Quatro políticas positivas por consumidor exigem CIDR e porta exatos,
+  recusam atomicamente respostas DNS proibidas, conectam somente a IP aprovado
+  preservando o hostname TLS e mantêm o legado PowerShell estritamente
+  loopback. A campanha local controlada de DNS, PKI, IdP e PostgreSQL TLS
+  passou; os construtores produtivos permanecem em trust `System` e o trust
+  sintético continua estritamente test-only. DNS/PKI/IdP/PostgreSQL
   operacionais, DNSSEC, trust provisionado, proxy, failover, HA,
-  cross-platform, desempenho e suporte público permanecem não homologados. As
-  evidências proprietárias são o
+  cross-platform, desempenho, provider homologado e suporte público continuam
+  não homologados. As fontes são o
   [relatório determinístico R-NET](../../docs/STATE-06-R-NET-Network-Egress-Remediation-Report.md)
   e o
   [relatório da campanha física](../../docs/STATE-06-R-NET-Local-DNS-PKI-IdP-PostgreSql-TLS-Homologation-Report.md).
-- O lote documental PM-3 alinhou a apresentação pública ao estado corrente,
-  rotulou o relatório de migração de prompts como evidência histórica e não
-  alterou autoridade, código, configuração, lifecycle ou ativação.
-- R5 está tecnicamente aprovado, mas sua conformidade com a autoridade
-  original permanece `REPROVADA` pelo restore bloqueado que consultou
-  metadados NuGet fora do escopo; o incidente não foi reclassificado como
-  autorizado. R6 e R8 estão automaticamente `APROVADOS`, com os respetivos
-  Human Gates `APROVADOS COM RESSALVAS`: as cinco condições físicas de R6
-  permanecem `NÃO TESTADAS`, e R8 encerrou 35 achados e manteve quatro como
-  `CONTIDO`. Locked restore, freshness online de advisories, CI remota e a
-  repetição do laboratório PostgreSQL própria de R8 permanecem não testados
-  naquele escopo; o laboratório focal de migration R-SEQ não substitui essas
-  evidências. Esses resultados não constituem homologação, runtime operacional
-  ou autorização externa.
 
 ## Composição normal e limites operacionais
 

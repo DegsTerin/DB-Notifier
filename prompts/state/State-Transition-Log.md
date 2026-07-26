@@ -4290,3 +4290,42 @@
   [relatório físico R-NET](../../docs/STATE-06-R-NET-Local-DNS-PKI-IdP-PostgreSql-TLS-Homologation-Report.md).
 - Aprovador: autoridade de execução concedida por Bruno; resultado automático
   local, sem Human Gate, lifecycle ou ativação inferidos.
+
+## 2026-07-26 — Estado corrente recomposto como snapshot factual compacto
+
+- Estado anterior: `STATE-06 INTEGRATION`, `ActivationState=None`; após o PM-2,
+  o estado corrente voltou a acumular métricas, hashes, topologias e narrativa
+  de execução dos lotes R-SEQ, R-EGRESS, R-FENCE, R-NET e PM-3, embora esses
+  fatos já estivessem preservados neste log append-only e nos relatórios
+  proprietários.
+- Autoridade: execução dos trabalhos locais restantes solicitada por Bruno,
+  limitada neste incremento à manutenção documental do corpus e sem ampliar
+  autoridade técnica, operacional ou externa.
+- Diagnóstico: `Current-State.md` havia crescido de 10.877 bytes e 180 linhas
+  após o PM-2 para 17.420 bytes e 269 linhas. O crescimento reintroduziu
+  evidência histórica detalhada num documento cuja responsabilidade é
+  apresentar somente o presente factual.
+- Alteração: o bloco R-* foi reduzido a quatro resumos correntes: disposição e
+  ressalvas do programa R0–R8; invariantes e limites R-SEQ; garantia focal e
+  limites R-EGRESS/R-FENCE; e política e limites R-NET. A narrativa PM-3 foi
+  removida do snapshot porque permanece preservada na entrada histórica
+  própria.
+- Preservação: comandos, contagens, cobertura, hashes, topologia, cleanup,
+  decisões, incidentes e limites retirados continuam íntegros nas entradas
+  históricas e nos relatórios proprietários. A conclusão transversal de que
+  laboratórios focais posteriores não substituem evidências não executadas no
+  escopo R8 permaneceu explícita no resumo corrente. Nenhum relatório
+  histórico foi reescrito.
+- Gates documentais: links locais, headings, referências do corpus, whitespace
+  e diff foram revalidados no estado resultante sem alvo quebrado.
+- Escopo negativo: zero alteração de código executável, configuração,
+  dependência, migration, runtime, lifecycle, Human Gate, `ActivationState`,
+  provider, suporte público ou ação externa.
+- Estado resultante: `STATE-06 INTEGRATION` e `ActivationState=None`
+  inalterados; `Current-State.md` voltou a distinguir presente factual de
+  evidência histórica detalhada.
+- Evidência:
+  [`Current-State.md`](Current-State.md) e
+  [changelog `4.1.1`](../system/Prompt-System-Change-Log.md).
+- Aprovador: autoridade de manutenção local concedida por Bruno; nenhuma
+  aprovação de lifecycle, Human Gate ou ativação foi inferida.

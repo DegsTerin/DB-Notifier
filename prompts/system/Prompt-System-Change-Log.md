@@ -2,9 +2,9 @@
 
 ## Versão atual
 
-- Versão: `4.1.0`
+- Versão: `4.1.1`
 - Data: 2026-07-26
-- Status: corpus consolidado com handoff compacto e autoridade arquitetural factual
+- Status: corpus consolidado com handoff e estado factual compactos
 - Escopo: 14 arquivos ativos
 
 A versão do corpus é independente da versão do software.
@@ -16,6 +16,21 @@ A versão do corpus é independente da versão do software.
 - PATCH: clareza, correção ou referência sem mudança de autoridade.
 
 Toda alteração atualiza este arquivo e, quando necessário, `../Start-Here.md`.
+
+## 4.1.1 — 2026-07-26
+
+- Recompõe `state/Current-State.md` como snapshot factual compacto após os
+  lotes R-SEQ, R-EGRESS, R-FENCE, R-NET e PM-3 terem reintroduzido narrativa
+  detalhada já pertencente ao log append-only e aos relatórios proprietários.
+- Substitui métricas, hashes, topologias, comandos e resultados por quatro
+  resumos correntes de disposição, invariantes e limites, preservando links
+  para cada evidência proprietária.
+- Mantém explícito que laboratórios focais posteriores não substituem
+  evidências não executadas no escopo R8 e que nenhum resultado local concede
+  homologação, runtime operacional ou autoridade externa.
+- Preserva integralmente o histórico, os 14 arquivos ativos, a precedência,
+  `STATE-06 INTEGRATION`, `ActivationState=None` e todas as fronteiras de
+  lifecycle, Human Gate, provider, suporte e ação externa.
 
 ## 4.1.0 — 2026-07-26
 
