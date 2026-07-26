@@ -1,6 +1,6 @@
 # Estado Atual
 
-Este documento é o snapshot factual vigente do workspace em 2026-07-25. Ele
+Este documento é o snapshot factual vigente do workspace em 2026-07-26. Ele
 não concede autoridade de execução. A evolução, os resultados substituídos e
 as decisões tomadas no seu contexto original permanecem no
 [`State-Transition-Log.md`](State-Transition-Log.md) e nos relatórios
@@ -69,8 +69,9 @@ proprietários.
   [relatório R-SEQ](../../docs/STATE-06-R-SEQ-Rejected-Observation-Sequence-Remediation-Report.md).
 - R-EGRESS, por autoridade explícita deste lote, designa somente a corrida
   entre leitura `Active`, revogação principal e commit da ingestão de
-  observações. O lote está automaticamente `APROVADO` no escopo local
-  validado: ingestão e revogação compartilham uma ordem por Agent, e a
+  observações. O lote foi automaticamente `APROVADO` e depois expressamente
+  aceito por Bruno somente no escopo local validado: ingestão e revogação
+  compartilham uma ordem por Agent, e a
   observação que perde essa ordem não cria amostra nem efeito atribuível a
   ela. O R-SEQ ainda pode projetar uma sucessora aceita antes da revogação e
   retida atrás do gap recusado. PostgreSQL serializável real e Server
@@ -80,6 +81,9 @@ proprietários.
   definitiva; contenção e latência desse risco não foram testadas. A evidência
   proprietária está no
   [relatório R-EGRESS](../../docs/STATE-06-R-EGRESS-Observation-Ingestion-Revocation-Linearisation-Report.md).
+- O lote documental PM-3 alinhou a apresentação pública ao estado corrente,
+  rotulou o relatório de migração de prompts como evidência histórica e não
+  alterou autoridade, código, configuração, lifecycle ou ativação.
 - R5 está tecnicamente aprovado, mas sua conformidade com a autoridade
   original permanece `REPROVADA` pelo restore bloqueado que consultou
   metadados NuGet fora do escopo; o incidente não foi reclassificado como

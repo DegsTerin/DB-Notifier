@@ -3988,3 +3988,30 @@
   ativação ou lote posterior exige autorização separada.
 - Aprovador: autoridade de execução concedida por Bruno; resultado automático
   local, sem Human Gate ou transição inferidos.
+
+## 2026-07-26 — Aceitação focal de R-EGRESS e consolidação pública PM-3
+
+- Estado anterior: `STATE-06 INTEGRATION`, `ActivationState=None`; R-EGRESS
+  automaticamente aprovado no escopo local, mas a aceitação posterior do
+  proprietário ainda não estava registrada no corpus.
+- Decisão: Bruno declarou exatamente `ACEITO O R-EGRESS exclusivamente no
+  escopo da corrida Active/revogação/commit da ingestão de observações, sem
+  autorizar SSRF ou política de network egress, PM-3, dependências, migrations,
+  runtime externo, lifecycle, ActivationState, push, PR, deploy ou qualquer
+  lote posterior.` Depois revogou somente a restrição contra lotes posteriores
+  e autorizou a execução sequencial dos lotes técnicos locais obrigatórios,
+  preservando as demais fronteiras declaradas.
+- Escopo PM-3: corrigir fatos públicos obsoletos sobre Design System e Human
+  Gates, encaminhar verdade presente ao estado corrente e rotular o relatório
+  de migração de prompts como evidência histórica, sem reescrever seus fatos.
+- Gates: baseline limpa; auditoria pública sem alegação indevida adicional de
+  suporte/homologação; `757` links locais em `198` arquivos Markdown aprovados;
+  caminhos e comandos públicos citados existentes.
+- Estado resultante: R-EGRESS aceito somente no escopo focal já validado; PM-3
+  concluído documentalmente; `STATE-06 INTEGRATION` e
+  `ActivationState=None` inalterados.
+- Riscos/ressalvas: links externos não foram consultados; políticas públicas
+  sem proprietário ou contacto factual não foram inventadas. SSRF/network
+  egress continua um lote técnico separado neste ponto histórico.
+- Aprovador: Bruno, exclusivamente nas fronteiras acima; nenhuma decisão de
+  lifecycle, Human Gate ou ativação foi inferida.
