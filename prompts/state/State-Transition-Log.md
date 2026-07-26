@@ -4329,3 +4329,37 @@
   [changelog `4.1.1`](../system/Prompt-System-Change-Log.md).
 - Aprovador: autoridade de manutenção local concedida por Bruno; nenhuma
   aprovação de lifecycle, Human Gate ou ativação foi inferida.
+
+## 2026-07-26 — R-D4-TIMING isola diagnóstico temporal de carga alheia
+
+- Estado anterior: `STATE-06 INTEGRATION`, `ActivationState=None`; a flutuação
+  preexistente de `WaitHandleCandidateIsTimelyAndCancellationAware` já havia
+  sido registrada em R-EGRESS e R-NET.
+- Autoridade: execução sequencial de todos os trabalhos técnicos locais ainda
+  obrigatórios, sem dependência, runtime externo, lifecycle, Human Gate,
+  ativação ou ação remota.
+- Diagnóstico: duas execuções da solução e uma execução da assembly
+  reproduziram `136/137` integrações porque o timer de `CancelAfter(10 ms)` não
+  sinalizou dentro do deadline congelado de `100 ms` sob concorrência das
+  demais coleções; o caso filtrado passou `1/1` em `28 ms`.
+- Alteração: uma coleção xUnit própria, marcada com
+  `DisableParallelization = true`, passou a isolar somente a classe de
+  diagnóstico O5/R5. Deadline, timer, `WaitHandle`, `Stopwatch`, cancelamento
+  externo e asserções permaneceram inalterados.
+- Resultado: build focal com zero warnings/erros, assembly de integração
+  `137/137`, solução completa `771/771`, formatação e documentação de `420`
+  fontes aprovadas; cobertura `83,41%` de linhas e `56,62%` de branches com
+  `10/10` componentes obrigatórios.
+- Limite: o isolamento elimina concorrência entre coleções da assembly, não
+  concede imunidade a saturação arbitrária do host, benchmark ou SLO. Eventual
+  interferência interprocesso exigirá processo/projeto dedicado, nunca
+  flexibilização silenciosa do deadline.
+- Escopo negativo: zero mudança de produto, dependência, configuração,
+  migration, runtime, R5 histórico, lifecycle, Human Gate, `ActivationState`,
+  push, pull request ou deploy.
+- Estado resultante: `STATE-06 INTEGRATION` e `ActivationState=None`
+  inalterados.
+- Evidência:
+  [relatório R-D4-TIMING](../../docs/STATE-06-R-D4-Timing-Diagnostic-Isolation-Report.md).
+- Aprovador: resultado automático local sob autoridade de manutenção de Bruno;
+  nenhuma aprovação de lifecycle, Human Gate ou ativação foi inferida.

@@ -4,7 +4,28 @@ using Xunit;
 
 namespace DBNotifier.IntegrationTests;
 
-/// <summary>Validates D4 diagnostics without executing an HM-01–HM-03 physical campaign.</summary>
+/// <summary>
+/// Defines the isolated xUnit collection used by the strict cancellation-timing diagnostic.
+/// </summary>
+/// <remarks>
+/// The 100-millisecond diagnostic must not compete with unrelated integration-test
+/// collections because unrelated test load would confound its isolated cancellation measurement.
+/// </remarks>
+[CollectionDefinition(Name, DisableParallelization = true)]
+public sealed class O5R5CancellationTimingGroup
+{
+    /// <summary>Identifies the non-parallel cancellation-timing collection.</summary>
+    public const string Name = "O5/R5 cancellation timing";
+}
+
+/// <summary>
+/// Validates D4 diagnostics without executing an HM-01–HM-03 physical campaign.
+/// </summary>
+/// <remarks>
+/// The class runs after parallel collections so the strict timing assertion measures the
+/// candidate rather than scheduler contention created by unrelated integration tests.
+/// </remarks>
+[Collection(O5R5CancellationTimingGroup.Name)]
 public sealed class O5R5CancellationWorkingSetDiagnosticsTests
 {
     /// <summary>Proves the predeclared canonical statement retains its exact authenticated identity.</summary>
