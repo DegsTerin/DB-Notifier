@@ -19,7 +19,8 @@ Compatibility code must forward to the canonical implementation, emit a deprecat
 
 ## Configuration compatibility
 
-- The canonical default uses display name `DB-Notifier` and `%LocalAppData%\DB-Notifier\logs\dbnotifier.log`.
+- The canonical visual default uses display name `DB Notifier`; the technical
+  storage path remains `%LocalAppData%\DB-Notifier\logs\dbnotifier.log`.
 - Existing PgNotifier JSON is still accepted when its path is passed explicitly through either entry point.
 - Legacy field names such as `pgIsReady` remain validated compatibility input for the versioned migrator and existing explicitly supplied legacy files; canonical generated and sample DB-Notifier configuration omits them.
 - Remote legacy entries remain parseable and migratable, but the compatibility runtime admits only the exact `localhost` alias or a loopback IP literal. A remote name or address is refused before DNS, `pg_isready` or TCP execution; remote monitoring belongs to the policy-bound Agent/provider architecture.

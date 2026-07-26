@@ -137,7 +137,7 @@ function New-DefaultConfiguration {
 
     return @{
         application = @{
-            displayName         = "DB-Notifier"
+            displayName         = "DB Notifier"
             intervalSeconds     = 5
             restartBadgeSeconds = 10
             startMinimized      = $true
@@ -289,7 +289,7 @@ function ConvertTo-NormalizedConfiguration {
     return [pscustomobject]@{
         ConfigPath    = [System.IO.Path]::GetFullPath($ConfigPath)
         Application   = [pscustomobject]@{
-            DisplayName         = [string](Get-Value -Object $application -Name "displayName" -DefaultValue "DB-Notifier")
+            DisplayName         = [string](Get-Value -Object $application -Name "displayName" -DefaultValue "DB Notifier")
             IntervalSeconds     = [Math]::Max(1, [int](Get-Value -Object $application -Name "intervalSeconds" -DefaultValue 5))
             RestartBadgeSeconds = [Math]::Max(1, [int](Get-Value -Object $application -Name "restartBadgeSeconds" -DefaultValue 10))
             StartMinimized      = [bool](Get-Value -Object $application -Name "startMinimized" -DefaultValue $true)
@@ -1834,7 +1834,7 @@ function Start-DBNotifierApplication {
         }
         catch {
         }
-        [System.Windows.Forms.MessageBox]::Show($message, "DB-Notifier - Fatal error", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Error) | Out-Null
+        [System.Windows.Forms.MessageBox]::Show($message, "DB Notifier - Fatal error", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Error) | Out-Null
     }
 }
 

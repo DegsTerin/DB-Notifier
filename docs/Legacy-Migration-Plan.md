@@ -241,7 +241,9 @@ The migration tool must:
 
 ## Naming and upgrade compatibility
 
-- New namespaces, projects, packages, executables, service names, log roots, and user-facing product text use `DBNotifier`/`DB-Notifier` from M1 onward.
+- New namespaces, projects, packages and technical identifiers use
+  `DBNotifier`; architecture prose, service names and storage roots use
+  `DB-Notifier`; user-facing visual text uses `DB Notifier`.
 - Existing `PgNotifier` paths and identifiers remain untouched while serving the rollback path.
 - The first compatible release reads/imports PgNotifier configuration but writes only DB-Notifier configuration.
 - Installer product codes and service identities must avoid accidental in-place replacement before the upgrade ADR defines it.

@@ -45,7 +45,13 @@ Describe "DB-Notifier legacy compatibility" {
 
     It "contains a valid sample configuration" {
         $configPath = Join-Path -Path $PSScriptRoot -ChildPath "..\examples\appsettings.sample.json"
-        { Get-Content -LiteralPath $configPath -Raw | ConvertFrom-Json } | Should Not Throw
+        $sample = Get-Content -LiteralPath $configPath -Raw | ConvertFrom-Json
+        $canonical = Get-Content -LiteralPath (Join-Path $PSScriptRoot "..\config\appsettings.json") -Raw | ConvertFrom-Json
+
+        $sample.application.displayName | Should Be "DB Notifier"
+        $canonical.application.displayName | Should Be "DB Notifier"
+        $sample.logging.logPath | Should Match 'DB-Notifier\\logs\\dbnotifier\.log$'
+        $canonical.logging.logPath | Should Match 'DB-Notifier\\logs\\dbnotifier\.log$'
     }
 
     It "loads JSON configuration with array values without recursion errors" {
@@ -268,7 +274,7 @@ Describe "DB-Notifier legacy compatibility" {
         $healthyColour = & $module { (Get-StateColour -StateKey "UP").ToArgb() }
         $context = @{
             Configuration = [pscustomobject]@{
-                Application = [pscustomobject]@{ DisplayName = "DB-Notifier" }
+                Application = [pscustomobject]@{ DisplayName = "DB Notifier" }
             }
             InstanceStates = @{
                 "transport-only" = [pscustomobject]@{ CurrentStateKey = "UP_TCP_ONLY" }
@@ -318,7 +324,7 @@ Describe "DB-Notifier legacy compatibility" {
         $context = @{
             Configuration = [pscustomobject]@{
                 Application = [pscustomobject]@{
-                    DisplayName = "DB-Notifier"
+                    DisplayName = "DB Notifier"
                     RestartBadgeSeconds = 30
                 }
             }

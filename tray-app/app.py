@@ -170,7 +170,7 @@ class DBNotifierTrayApp:
     def __init__(self):
         self.root = tk.Tk()
         self.root.withdraw()
-        self.root.title("DB-Notifier")
+        self.root.title("DB Notifier")
 
         self.popup: tk.Toplevel | None = None
         self.canvas: tk.Canvas | None = None
@@ -179,9 +179,9 @@ class DBNotifierTrayApp:
         self.tray_icon_image = load_official_icon(64, green=True)
 
         self.tray_icon = pystray.Icon(
-            "DB-Notifier",
+            "DBNotifier",
             self.tray_icon_image,
-            "DB-Notifier",
+            "DB Notifier",
             menu=Menu(
                 MenuItem("Show", self._tray_show, default=True, visible=False),
                 MenuItem("Exit", self._tray_exit),

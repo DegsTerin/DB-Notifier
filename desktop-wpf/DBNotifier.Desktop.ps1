@@ -130,11 +130,11 @@ $window.Add_MouseLeftButtonDown({
 })
 
 (Get-NamedElement -Window $window -Name "RestartButton").Add_Click({
-    [System.Windows.MessageBox]::Show("Restart service action selected.", "DB-Notifier") | Out-Null
+    [System.Windows.MessageBox]::Show("Restart service action selected.", "DB Notifier") | Out-Null
 })
 
 (Get-NamedElement -Window $window -Name "OpenLogButton").Add_Click({
-    [System.Windows.MessageBox]::Show("Open log action selected.", "DB-Notifier") | Out-Null
+    [System.Windows.MessageBox]::Show("Open log action selected.", "DB Notifier") | Out-Null
 })
 
 (Get-NamedElement -Window $window -Name "OpenConfigButton").Add_Click({

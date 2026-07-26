@@ -232,7 +232,7 @@ def draw_static(canvas: tk.Canvas, hover_index: int | None = None):
 
 def main():
     root = tk.Tk()
-    root.title("DB-Notifier Pixel Prototype")
+    root.title("DB Notifier Pixel Prototype")
     root.geometry(f"{WINDOW_W}x{WINDOW_H}")
     root.resizable(False, False)
     root.configure(bg=BG_TOP)
