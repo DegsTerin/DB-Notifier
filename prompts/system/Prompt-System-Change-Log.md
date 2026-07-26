@@ -2,9 +2,9 @@
 
 ## Versão atual
 
-- Versão: `4.0.2`
+- Versão: `4.1.0`
 - Data: 2026-07-26
-- Status: corpus consolidado com roteamento para o contrato local de network egress
+- Status: corpus consolidado com handoff compacto e autoridade arquitetural factual
 - Escopo: 14 arquivos ativos
 
 A versão do corpus é independente da versão do software.
@@ -16,6 +16,26 @@ A versão do corpus é independente da versão do software.
 - PATCH: clareza, correção ou referência sem mudança de autoridade.
 
 Toda alteração atualiza este arquivo e, quando necessário, `../Start-Here.md`.
+
+## 4.1.0 — 2026-07-26
+
+- Substitui o antigo handoff de seis categorias obrigatórias por uma resposta
+  compacta que começa pelo status, separa o concluído do restante para o alvo
+  solicitado e declara diretamente a ação do proprietário. Contagens de
+  lifecycle, ativação, macroetapas e decisões formais continuam disponíveis,
+  mas somente aparecem quando pertencem ao alvo ou são solicitadas.
+- Alinha o Prompt Mestre a esse contrato de comunicação sem alterar a
+  precedência, as autoridades temáticas ou os gates existentes.
+- Registra a stack aceita como obrigatória, distingue diretórios de providers
+  atuais do catálogo futuro e remove comando administrativo do pseudo-contrato
+  de `IDatabaseProvider`, preservando adaptadores, credenciais e identidades
+  separados conforme ADR-0006.
+- Distingue a declaração estática mínima de capability já implementada do
+  descriptor temporal observado ainda contratual. Nenhum timestamp,
+  prerequisite, heartbeat claim, suporte ou homologação foi inventado.
+- Mantém os 14 arquivos ativos, `STATE-06 INTEGRATION`,
+  `ActivationState=None` e todas as fronteiras de runtime, lifecycle e ação
+  externa.
 
 ## 4.0.2 — 2026-07-26
 

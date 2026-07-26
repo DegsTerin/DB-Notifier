@@ -77,9 +77,10 @@ factual.
   autoriza amend, rebase, push, pull request, release, publicação ou deploy.
 - As fases genéricas F0–F12 deste documento são práticas de engenharia
   mapeadas ao lifecycle DB-Notifier; elas não substituem `STATE-00`–`STATE-08`.
-- O handoff estruturado e a contagem de trabalho restante exigidos em
+- O handoff compacto e a contagem auditável do trabalho restante exigidos em
   `AGENTS.md` são a especialização obrigatória da orientação geral de
-  comunicação.
+  comunicação. Categorias de roadmap, lifecycle e ativação aparecem somente
+  quando pertencem ao alvo solicitado, evitando misturá-las com o lote atual.
 - Papéis virtuais apoiam análise e segregação de responsabilidades, mas nunca
   substituem o proprietário, uma revisão independente exigida ou um Human
   Gate.
@@ -1961,8 +1962,9 @@ Ao final:
 - liste validações executadas;
 - declare limitações e partes não testadas;
 - informe riscos ou pendências;
-- forneça sempre o próximo passo e a contagem de trabalho restante exigidos
-  por [`../../AGENTS.md`](../../AGENTS.md), declarando explicitamente quando
+- forneça sempre o status direto, o próximo passo e a contagem de trabalho
+  restante no formato compacto exigido por
+  [`../../AGENTS.md`](../../AGENTS.md), declarando explicitamente quando
   nenhuma ação do proprietário for necessária.
 
 Use o seguinte bloco de controle quando a tarefa tiver múltiplas etapas ou quando o proprietário o exigir:

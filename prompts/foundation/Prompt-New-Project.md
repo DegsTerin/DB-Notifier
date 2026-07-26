@@ -96,9 +96,9 @@ O Agent executa em background, realiza probes próximos das instâncias, mantém
 - Auditoria de login, segredo, configuração e comando administrativo.
 - Nenhuma connection string completa em log, UI, commit ou evidência.
 
-## Stack de referência
+## Stack obrigatória
 
-A baseline preferencial, sujeita a ADR, é:
+A baseline aceita nos ADRs e obrigatória para os projetos ativos é:
 
 - .NET 10 LTS/C# para Core, Agent, serviços e Desktop WPF durante todo o projeto.
 - ASP.NET Core e SignalR para API e atualizações em tempo real.

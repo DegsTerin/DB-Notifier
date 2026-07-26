@@ -14,7 +14,7 @@ Baseline aceita no Human Gate de `STATE-02 ARCHITECTURE`. ADR-0001 a ADR-0006 e 
 - Dados desconhecidos ou vencidos nunca aparecem como saudáveis.
 - O catálogo de providers é aberto: nenhum enum fechado ou lista compilada no núcleo limita os motores integráveis.
 
-## Componentes
+## Componentes atuais
 
 ```text
 src/
@@ -22,13 +22,6 @@ src/
   DBNotifier.Application/
   DBNotifier.Provider.Abstractions/
   DBNotifier.Providers.PostgreSql/
-  DBNotifier.Providers.MySql/
-  DBNotifier.Providers.SqlServer/
-  DBNotifier.Providers.Oracle/
-  DBNotifier.Providers.MongoDb/
-  DBNotifier.Providers.SapHana/
-  DBNotifier.Providers.Sqlite/
-  DBNotifier.Providers.<Engine>/
   DBNotifier.Infrastructure/
   DBNotifier.Persistence.Agent.Sqlite/
   DBNotifier.Persistence.Server.PostgreSql/
@@ -40,6 +33,11 @@ src/
 tests/
 ```
 
+Providers futuros seguem o padrão `DBNotifier.Providers.<Engine>/` somente
+depois do incremento e da homologação próprios. MySQL/MariaDB, SQL Server,
+Oracle, MongoDB, SAP HANA, SQLite e os demais catálogos planejados não possuem
+diretório nem implementação ativa por aparecerem no roadmap.
+
 Dependências apontam para dentro: Domain não conhece provider, driver, UI, API ou persistência. Application define casos de uso e portas. Infrastructure e interfaces implementam adaptadores.
 
 ## Provider SDK
@@ -49,18 +47,24 @@ Contrato conceitual mínimo:
 ```text
 IDatabaseProvider
   ProviderType
-  ValidateConfiguration
-  ProbeHealth
-  GetCapabilities
-  ExecuteAdministrativeCommand
-  NormalizeError
+  Version
+  ValidateEndpoint
+  ProbeAsync
+  Capabilities
 ```
 
-Cada provider declara capacidades, limitações, requisitos de privilégio e plataformas homologadas. Ausência de capacidade retorna `Unsupported`, nunca uma tentativa improvisada.
+Cada provider declara capacidades, limitações, requisitos de privilégio,
+plataformas e resultados normalizados dentro da sua própria implementação.
+Ausência de capacidade retorna `Unsupported`, nunca uma tentativa improvisada.
+O descriptor observado e temporal de capabilities continua um alvo contratual
+separado da declaração estática mínima hoje implementada.
 
 Novos providers são descobertos por registro/plugin versionado e possuem identificador estável, configuração não secreta tipada, referências de credencial, probes, capabilities, normalização de erro e fixtures próprios. Domain e Application não recebem condicionais por nome de engine. O objetivo de cobertura é universal, com entrega incremental e homologação independente por engine/versão/plataforma.
 
-Start, Stop e Restart podem usar SQL administrativo, utilitário nativo, API do fornecedor ou serviço do sistema operacional apenas por adaptador e política explícitos.
+Start, Stop e Restart podem usar SQL administrativo, utilitário nativo, API do
+fornecedor ou serviço do sistema operacional apenas por adaptadores
+administrativos tipados, credenciais, identidades e políticas separados de
+`IDatabaseProvider`.
 
 ## Modelo interno de dados
 
@@ -154,7 +158,7 @@ Regras determinísticas, análise estatística, correlação, base de conhecimen
 - Observabilidade inclui logs estruturados, métricas, traces e health checks reais.
 - Rollback separa binário, configuração, schema interno e protocolo.
 
-## Pacote arquitetural proposto
+## Pacote arquitetural aceito
 
 - ADR-0001 (`accepted`): .NET 10 LTS obrigatório em todos os projetos ativos, builds, testes, CI e implementação futura.
 - ADR-0002: cofre, referências opacas, identidade mTLS e provisionamento de Agent.

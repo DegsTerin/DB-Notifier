@@ -2,7 +2,12 @@
 
 ## Status
 
-Normative contracts accepted in `STATE-02`. `STATE-03` implemented their persistence subset, and the first `STATE-04` increment implements the provider type, health, error, credential-reference, capability, endpoint, and probe subset. Unlisted portions remain contractual targets rather than implementation claims.
+Normative contracts accepted in `STATE-02`. `STATE-03` implemented their
+persistence subset, and the first `STATE-04` increment implemented provider
+type, health, error, credential-reference, endpoint, probe and a minimal static
+provider-package capability declaration. The observed capability descriptor
+and heartbeat claim below remain contractual targets rather than implementation
+claims.
 
 ## Common envelope
 
@@ -143,6 +148,14 @@ CapabilityDescriptor
 ```
 
 `Supported` means implemented for the declared combination, not necessarily homologated for public support. Homologation is separate release metadata.
+
+The current Provider SDK exposes only static package-owned declarations with
+capability ID, state, platform scope and reason code. It does not yet emit this
+observed Agent claim, evaluate local prerequisites, transport a complete
+capability snapshot in heartbeat v1 or apply claim freshness to command
+admission. Those behaviours require a separately versioned Agent/API and
+persistence increment; a package declaration must not receive a fabricated
+`observedAt`.
 
 ## Administrative command
 
