@@ -53,7 +53,7 @@ agent_enrollment_tokens >── agents ──< agent_certificates
                               ├─< agent_capabilities
                               ├─< agent_heartbeats
                               ├── agent_heartbeat_cursors
-                              ├── agent_observation_cursors
+                              ├── agent_observation_cursors ──< rejected_observation_sequences
                               └─< database_instances ──< health_samples ──< events
                                           │                   └─< command_attempts
                                           ├── instance_observation_states
@@ -77,11 +77,16 @@ outbox_messages
 - `agent_capabilities`: versioned provider/platform claims, unique per Agent/capability combination.
 - `agent_heartbeats`: immutable process/connectivity evidence with unique message ID and per-Agent sequence, canonical payload digest, protocol range, queue state, Agent/server times and explicit gap evidence.
 - `agent_heartbeat_cursors`: highest accepted per-Agent heartbeat sequence and last message ID, retained independently of heartbeat-detail deletion for fail-closed replay protection.
-- `agent_observation_cursors`: highest contiguously resolved observation-stream sequence per Agent. A slot is resolved
-  by an accepted `health_sample` or by a terminal rejection consumed under the same serialisable cursor boundary.
-  Consuming a rejection stores no health evidence or downstream effect attributable to that rejected message. It may
-  make an already accepted successor sample contiguous and therefore eligible for projection. Without a separate
-  ledger or migration, the cursor does not retain that rejection's message ID or reason.
+- `agent_observation_cursors`: highest contiguously resolved observation-stream sequence per Agent plus the inclusive
+  `rejection_ledger_start_sequence`. A slot is resolved by an accepted `health_sample` or by a terminal rejection
+  consumed under the same serialisable cursor boundary. Existing cursors adopt the first sequence after their
+  pre-migration high-water mark as the ledger cutover; new cursors start at sequence one. This preserves historical
+  uncertainty without presenting reconstructed identifiers or reasons as fact.
+- `rejected_observation_sequences`: immutable protocol evidence keyed by Agent and sequence, with the rejected
+  message ID, stable sanitised error code and authoritative Server consumption time. Each row is restricted to its
+  owning observation cursor. It is not health evidence and cannot directly create instance state, an event, Server
+  outbox work or notification delivery. A consumed rejection may make an accepted successor sample contiguous and
+  therefore eligible for projection.
 - `database_instances`: provider-neutral inventory with `jsonb` endpoint/tags, separate credential references, assigned Agent, policy timings, archive time, concurrency token.
 
 Deleting an Agent or instance is restricted while durable evidence references it. Instance archival is explicit; it is not a history cascade.
@@ -148,8 +153,13 @@ durable. The stable publisher idempotency key is derived from the immutable mess
   no channel adapter; the disposable laboratory is not activation or general provider homologation.
 - Agent Fleet assignment persistence is configuration evidence only; it does not activate a provider, probe, scheduler or command path.
 - Agent Fleet leases coordinate only temporary local sandbox processes. They are not a distributed lock, service lease or authority to enable the ordinary Worker.
+- At or after an Agent's rejection-ledger cutover, a resolved slot must be represented by exactly one accepted
+  `health_sample` or one `rejected_observation_sequence`. Coexisting evidence or a covered slot with neither form is
+  retryable ledger inconsistency. Before the cutover, missing detail remains historical uncertainty and is classified
+  conservatively as a sequence conflict.
 - A new health sample cannot be inserted at or below an observation cursor position that was already resolved by a
-  consumed rejection; this prevents unprojected retroactive evidence.
+  consumed rejection; this prevents unprojected retroactive evidence. Replaying the original rejected message returns
+  its durable reason, while a different message in the same slot remains a sequence conflict.
 - Accepted observation ingestion requires both `agents.state = 'Active'` and `revoked_at IS NULL` while holding the
   principal-row transaction fence. If principal revocation wins the order, the refused observation can advance its
   rejected cursor slot but cannot create a health sample or effect attributable to itself. R-SEQ may then project a

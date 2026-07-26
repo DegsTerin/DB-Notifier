@@ -4104,3 +4104,57 @@
   [relatório R-NET](../../docs/STATE-06-R-NET-Network-Egress-Remediation-Report.md).
 - Aprovador: autoridade de execução concedida por Bruno; resultado automático
   local, sem Human Gate, lifecycle ou ativação inferidos.
+
+## 2026-07-26 — R-SEQ passa a preservar rejeições consumidas em ledger durável
+
+- Estado anterior: `STATE-06 INTEGRATION`, `ActivationState=None`; a correção
+  cursor-only de R-SEQ encerrava o gap sequencial, mas não retinha
+  centralmente `MessageId` ou motivo da rejeição consumida.
+- Autoridade: complemento técnico focal de R-SEQ limitado aos componentes
+  diretamente afetados, migration de código, regressões e documentação
+  proprietária, sem migration operacional, lifecycle, Human Gate, ativação ou
+  ação externa.
+- Diagnóstico: um ledger sem marco de corte confundiria posições históricas
+  não reconstruíveis com evidência pós-migration ausente. A retenção futura de
+  amostras aceitas também precisa preservar uma prova durável do slot antes de
+  qualquer purga.
+- Implementação: `agent_observation_cursors` ganhou um corte inclusivo por
+  Agent e `rejected_observation_sequences` passou a guardar Agent, sequência,
+  `MessageId`, motivo sanitizado e instante autoritativo de consumo. Rejeição
+  e cursor commitam na mesma transação serializável; replay do mesmo
+  slot/`MessageId` conserva o motivo original; evidência aceita/rejeitada
+  coexistente ou ausente após o corte falha fechada como retryable. Nenhuma
+  rejeição cria amostra, estado, evento, outbox ou delivery próprio.
+- Migration: `AddRejectedObservationSequenceLedger` tornou-se a nona migration
+  Server. Cursores existentes adotam `highest_contiguous_sequence + 1`, novos
+  cursores começam no slot um e nenhum fato histórico é sintetizado. O `Up`
+  recusa overflow do corte; o `Down` recusa apagar qualquer ledger não vazio.
+- Evidência PostgreSQL: laboratório descartável, limitado a loopback e usando
+  `postgres:16-alpine` fixado por
+  `sha256:e013e867e712fec275706a6c51c966f0bb0c93cfa8f51000f85a15f9865a28cb`
+  passou `1/1` para upgrade/backfill, consumo/replay, rollback protegido,
+  rollback vazio, overflow guard e reaplicação. O recurso próprio foi removido
+  sem resíduo; nenhum PostgreSQL existente, monitorado ou operacional foi
+  migrado.
+- Gates: build Release com zero warnings/erros; `507/507` unitários, `96/96`
+  arquitetura, `125/125` integrações na repetição completa, `10/10` WPF, E2E
+  focal `1/1` e laboratório de migration `1/1`; cobertura `83,33%` de linhas
+  e `56,18%` de branches com `10/10` componentes obrigatórios. A primeira
+  execução de integração teve um flake temporal O5/R5 não relacionado, que
+  passou isoladamente antes da repetição completa. Formatação, documentação de
+  406 arquivos de código, 772 links locais em 202 arquivos e secret scan do
+  worktree não ignorado mais histórico Git passaram.
+- Retenção: o ledger fica fora da retenção temporal ordinária. Purga futura de
+  amostra aceita após o corte exige tombstone durável ou ledger de resolução
+  equivalente, em lote separado.
+- Escopo negativo: zero migration operacional, runtime normal, lifecycle,
+  Human Gate, `ActivationState`, push, PR, deploy ou ação em banco monitorado.
+- Shutdown final: oito helpers MSBuild/Roslyn comprovadamente pertencentes ao
+  SDK local do workspace foram encerrados; restaram zero processo ou listener
+  DB-Notifier e zero contêiner R-SEQ, R-EGRESS ou R-NET.
+- Estado resultante: `STATE-06 INTEGRATION` e `ActivationState=None`
+  inalterados; nenhuma transição ou ativação foi inferida.
+- Evidência:
+  [relatório do ledger R-SEQ](../../docs/STATE-06-R-SEQ-Durable-Rejection-Ledger-Report.md).
+- Aprovador: autoridade de execução concedida por Bruno; a evidência focal não
+  constitui Human Gate, lifecycle ou ativação.

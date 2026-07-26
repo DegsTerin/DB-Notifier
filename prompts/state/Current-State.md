@@ -44,8 +44,8 @@ proprietários.
   infraestrutura, persistência, Agent, API, Desktop, Dashboard e testes
   conservam fronteiras próprias e dependências voltadas para dentro.
 - Agent usa SQLite somente para estado local autorizado; Server usa PostgreSQL
-  somente para persistência central. As 14 migrations atuais são seis do Agent
-  SQLite e oito do Server PostgreSQL. Nenhuma migration está aplicada a
+  somente para persistência central. As 15 migrations atuais são seis do Agent
+  SQLite e nove do Server PostgreSQL. Nenhuma migration está aplicada a
   PostgreSQL existente ou operacional.
 - O provider PostgreSQL implementa endpoint tipado, discovery de
   `pg_isready`, readiness, fallback TCP degradado, probe Npgsql autenticado e
@@ -59,14 +59,30 @@ proprietários.
   somente nos seus escopos locais e bounded. R0-F1 resolveu a contradição
   arquitetural específica que permanecia do R0; isso não declara verde um
   gate global posterior.
-- R-SEQ está automaticamente `APROVADO` somente no escopo local validado. Uma
-  rejeição terminal central agora consome o seu slot no cursor sem criar
-  amostra ou efeito atribuível à rejeição; isso pode liberar a projeção de uma
-  sucessora aceita anteriormente. O Agent somente reconhece a rejeição quando
-  o high-water cobre a sequência. Rejeições exclusivamente locais ou de
-  request sem essa prova permanecem pendentes. Não houve migration ou
-  PostgreSQL operacional; a evidência proprietária está no
-  [relatório R-SEQ](../../docs/STATE-06-R-SEQ-Rejected-Observation-Sequence-Remediation-Report.md).
+- A correção cursor-only de R-SEQ permanece automaticamente `APROVADA` somente
+  no seu escopo local validado. O complemento durável agora acrescenta a nona
+  migration Server, um corte inclusivo por Agent e
+  `rejected_observation_sequences`, que preserva `MessageId`, motivo sanitizado
+  e instante de consumo sem criar amostra ou efeito atribuível à rejeição.
+  Posições históricas anteriores ao corte não são reconstruídas; evidência
+  pós-corte ausente ou contraditória falha fechada como retryable. O laboratório
+  PostgreSQL descartável e loopback-only passou `1/1` para upgrade/backfill,
+  replay, `Down` protegido, rollback vazio, overflow guard e reaplicação usando
+  a imagem local fixada por
+  `sha256:e013e867e712fec275706a6c51c966f0bb0c93cfa8f51000f85a15f9865a28cb`.
+  Build Release terminou com zero warnings/erros; suítes .NET passaram
+  `507/507` unitários, `96/96` arquitetura, `125/125` integrações e `10/10`
+  WPF; o E2E focal passou `1/1`; cobertura atingiu `83,33%` de linhas e
+  `56,18%` de branches com `10/10` componentes obrigatórios. Formatação,
+  documentação de 406 arquivos de código, 772 links locais em 202 arquivos e
+  secret scan do worktree não ignorado mais histórico Git passaram. O Agent somente reconhece
+  a rejeição quando o high-water cobre a sequência; rejeições exclusivamente
+  locais ou de request sem essa prova permanecem pendentes. Nenhuma migration
+  foi aplicada a PostgreSQL existente ou operacional. As evidências
+  proprietárias são o
+  [relatório R-SEQ original](../../docs/STATE-06-R-SEQ-Rejected-Observation-Sequence-Remediation-Report.md)
+  e o
+  [relatório do ledger durável](../../docs/STATE-06-R-SEQ-Durable-Rejection-Ledger-Report.md).
 - R-EGRESS, por autoridade explícita deste lote, designa somente a corrida
   entre leitura `Active`, revogação principal e commit da ingestão de
   observações. O lote foi automaticamente `APROVADO` e depois expressamente
@@ -112,9 +128,10 @@ proprietários.
   Human Gates `APROVADOS COM RESSALVAS`: as cinco condições físicas de R6
   permanecem `NÃO TESTADAS`, e R8 encerrou 35 achados e manteve quatro como
   `CONTIDO`. Locked restore, freshness online de advisories, CI remota e a
-  repetição atual do laboratório PostgreSQL permanecem não testados no escopo
-  de R8. Esses resultados não constituem homologação, runtime operacional ou
-  autorização externa.
+  repetição do laboratório PostgreSQL própria de R8 permanecem não testados
+  naquele escopo; o laboratório focal de migration R-SEQ não substitui essas
+  evidências. Esses resultados não constituem homologação, runtime operacional
+  ou autorização externa.
 
 ## Composição normal e limites operacionais
 

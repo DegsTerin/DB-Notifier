@@ -234,7 +234,15 @@ public sealed class ServerObservationIngestionStore(
             cancellationToken).ConfigureAwait(false);
         if (message.Sequence <= cursor.HighestContiguousSequence)
         {
-            return Rejected(message.MessageId, "observation.sequence_conflict");
+            return message.Sequence < cursor.RejectionLedgerStartSequence
+                ? Rejected(message.MessageId, "observation.sequence_conflict")
+                : Retryable(message.MessageId, "ingestion.rejection_ledger_inconsistent");
+        }
+
+        if (cursor.HighestContiguousSequence == long.MaxValue ||
+            message.Sequence == long.MaxValue)
+        {
+            return Retryable(message.MessageId, "ingestion.sequence_exhausted");
         }
 
         context.HealthSamples.Add(ToHealthSample(message, receivedAt));
@@ -339,6 +347,12 @@ public sealed class ServerObservationIngestionStore(
         ObservationSyncMessage message,
         CancellationToken cancellationToken)
     {
+        RejectedObservationSequenceRow? rejectedSlot = await context.RejectedObservationSequences
+            .AsNoTracking()
+            .SingleOrDefaultAsync(
+                row => row.AgentId == message.AgentId && row.Sequence == message.Sequence,
+                cancellationToken)
+            .ConfigureAwait(false);
         HealthSampleRow[] existing = await context.HealthSamples
             .AsNoTracking()
             .Where(row =>
@@ -347,27 +361,62 @@ public sealed class ServerObservationIngestionStore(
                 (row.AgentId == message.AgentId && row.Sequence == message.Sequence))
             .ToArrayAsync(cancellationToken)
             .ConfigureAwait(false);
-        if (existing.Length == 0)
+        bool acceptedSlotExists = existing.Any(
+            row => row.AgentId == message.AgentId && row.Sequence == message.Sequence);
+        if (rejectedSlot is not null && acceptedSlotExists)
         {
-            return null;
+            return Retryable(message.MessageId, "ingestion.rejection_ledger_inconsistent");
         }
 
-        string payloadHash = ComputePayloadHash(message);
-        if (existing.Length == 1 &&
-            (existing[0].MessageId == message.MessageId || existing[0].ObservationId == message.ObservationId) &&
-            string.Equals(existing[0].PayloadHash, payloadHash, StringComparison.Ordinal))
+        if (rejectedSlot is not null)
         {
-            return new ObservationItemResult(message.MessageId, ObservationIngestionDisposition.Duplicate);
+            AgentObservationCursorRow? cursor = await context.AgentObservationCursors
+                .AsNoTracking()
+                .SingleOrDefaultAsync(
+                    row => row.AgentId == message.AgentId,
+                    cancellationToken)
+                .ConfigureAwait(false);
+            if (cursor is null ||
+                rejectedSlot.Sequence < cursor.RejectionLedgerStartSequence ||
+                rejectedSlot.Sequence > cursor.HighestContiguousSequence)
+            {
+                return Retryable(message.MessageId, "ingestion.rejection_ledger_inconsistent");
+            }
+
+            return rejectedSlot.MessageId == message.MessageId
+                ? Rejected(message.MessageId, rejectedSlot.ErrorCode)
+                : Rejected(message.MessageId, "observation.sequence_conflict");
         }
 
-        if (existing.Any(row => row.MessageId == message.MessageId || row.ObservationId == message.ObservationId))
+        if (existing.Length > 0)
         {
-            // A matching id with a different or unprovable legacy payload is terminal. Retrying it as
-            // a duplicate could silently accept tampered content.
-            return Rejected(message.MessageId, "observation.idempotency_conflict");
+            string payloadHash = ComputePayloadHash(message);
+            if (existing.Length == 1 &&
+                (existing[0].MessageId == message.MessageId || existing[0].ObservationId == message.ObservationId) &&
+                string.Equals(existing[0].PayloadHash, payloadHash, StringComparison.Ordinal))
+            {
+                return new ObservationItemResult(message.MessageId, ObservationIngestionDisposition.Duplicate);
+            }
+
+            if (existing.Any(row => row.MessageId == message.MessageId || row.ObservationId == message.ObservationId))
+            {
+                // A matching id with a different or unprovable legacy payload is terminal. Retrying it as
+                // a duplicate could silently accept tampered content.
+                return Rejected(message.MessageId, "observation.idempotency_conflict");
+            }
+
+            return Rejected(message.MessageId, "observation.sequence_conflict");
         }
 
-        return Rejected(message.MessageId, "observation.sequence_conflict");
+        bool rejectedMessageReplay = await context.RejectedObservationSequences
+            .AsNoTracking()
+            .AnyAsync(
+                row => row.AgentId == message.AgentId && row.MessageId == message.MessageId,
+                cancellationToken)
+            .ConfigureAwait(false);
+        return rejectedMessageReplay
+            ? Rejected(message.MessageId, "observation.idempotency_conflict")
+            : null;
     }
 
     /// <summary>
@@ -410,11 +459,65 @@ public sealed class ServerObservationIngestionStore(
             return Retryable(messageId, "ingestion.reconciliation_limit_reached");
         }
 
+        RejectedObservationSequenceRow? existingSlot = await context.RejectedObservationSequences
+            .AsNoTracking()
+            .SingleOrDefaultAsync(
+                row => row.AgentId == agentId && row.Sequence == sequence,
+                cancellationToken)
+            .ConfigureAwait(false);
+        HealthSampleRow? acceptedSlot = await context.HealthSamples
+            .AsNoTracking()
+            .SingleOrDefaultAsync(
+                row => row.AgentId == agentId && row.Sequence == sequence,
+                cancellationToken)
+            .ConfigureAwait(false);
+        if (existingSlot is not null && acceptedSlot is not null)
+        {
+            await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
+            return Retryable(messageId, "ingestion.rejection_ledger_inconsistent");
+        }
+
+        if (existingSlot is not null)
+        {
+            if (existingSlot.Sequence < cursor.RejectionLedgerStartSequence ||
+                existingSlot.Sequence > cursor.HighestContiguousSequence)
+            {
+                await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
+                return Retryable(messageId, "ingestion.rejection_ledger_inconsistent");
+            }
+
+            await context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+            await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
+            return existingSlot.MessageId == messageId
+                ? Rejected(messageId, existingSlot.ErrorCode)
+                : Rejected(messageId, "observation.sequence_conflict");
+        }
+
         if (sequence <= cursor.HighestContiguousSequence)
         {
             await context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
             await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
-            return Rejected(messageId, errorCode);
+            if (acceptedSlot is not null)
+            {
+                return Rejected(
+                    messageId,
+                    acceptedSlot.MessageId == messageId
+                        ? "observation.idempotency_conflict"
+                        : "observation.sequence_conflict");
+            }
+
+            // Pre-ledger cursor positions cannot be reconstructed safely. At or after the durable cutover, missing
+            // accepted and rejected evidence is ambiguous and must not be acknowledged as a historical fact.
+            return sequence < cursor.RejectionLedgerStartSequence
+                ? Rejected(messageId, "observation.sequence_conflict")
+                : Retryable(messageId, "ingestion.rejection_ledger_inconsistent");
+        }
+
+        if (cursor.HighestContiguousSequence == long.MaxValue ||
+            sequence == long.MaxValue)
+        {
+            await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
+            return Retryable(messageId, "ingestion.sequence_exhausted");
         }
 
         long nextSequence = cursor.HighestContiguousSequence + 1;
@@ -425,6 +528,28 @@ public sealed class ServerObservationIngestionStore(
             return Retryable(messageId, "ingestion.rejection_gap");
         }
 
+        bool messageIdentifierAlreadyUsed =
+            await context.HealthSamples
+                .AsNoTracking()
+                .AnyAsync(row => row.MessageId == messageId, cancellationToken)
+                .ConfigureAwait(false) ||
+            await context.RejectedObservationSequences
+                .AsNoTracking()
+                .AnyAsync(
+                    row => row.AgentId == agentId && row.MessageId == messageId,
+                    cancellationToken)
+                .ConfigureAwait(false);
+        string durableErrorCode = messageIdentifierAlreadyUsed
+            ? "observation.idempotency_conflict"
+            : errorCode;
+        context.RejectedObservationSequences.Add(new RejectedObservationSequenceRow
+        {
+            AgentId = agentId,
+            Sequence = sequence,
+            MessageId = messageId,
+            ErrorCode = durableErrorCode,
+            ConsumedAt = receivedAt,
+        });
         cursor.HighestContiguousSequence = sequence;
         cursor.UpdatedAt = receivedAt;
         cursor.ConcurrencyToken = Guid.NewGuid();
@@ -436,7 +561,7 @@ public sealed class ServerObservationIngestionStore(
         await context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
         await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
         return reconciliationComplete
-            ? Rejected(messageId, errorCode)
+            ? Rejected(messageId, durableErrorCode)
             : Retryable(messageId, "ingestion.reconciliation_limit_reached");
     }
 
@@ -591,6 +716,7 @@ public sealed class ServerObservationIngestionStore(
         {
             AgentId = agentId,
             HighestContiguousSequence = 0,
+            RejectionLedgerStartSequence = 1,
             UpdatedAt = now,
             ConcurrencyToken = Guid.NewGuid(),
         };

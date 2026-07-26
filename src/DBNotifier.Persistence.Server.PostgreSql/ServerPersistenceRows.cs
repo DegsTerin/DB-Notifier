@@ -138,11 +138,41 @@ public sealed class AgentObservationCursorRow
     /// <summary>Gets or sets the highest sequence resolved by an accepted observation or consumed terminal rejection.</summary>
     public long HighestContiguousSequence { get; set; }
 
+    /// <summary>
+    /// Gets or sets the first stream position for which terminal rejections are guaranteed to use the durable ledger.
+    /// </summary>
+    public long RejectionLedgerStartSequence { get; set; }
+
     /// <summary>Gets or sets the UTC instant of the latest contiguous resolution.</summary>
     public DateTimeOffset UpdatedAt { get; set; }
 
     /// <summary>Gets or sets the optimistic concurrency token for cursor updates.</summary>
     public Guid ConcurrencyToken { get; set; }
+}
+
+/// <summary>
+/// Stores the durable terminal-rejection evidence for one resolved Agent observation-stream position.
+/// </summary>
+/// <remarks>
+/// The row records protocol evidence only. It is not a health sample and cannot become instance state,
+/// a canonical event, an outbox message or a notification delivery.
+/// </remarks>
+public sealed class RejectedObservationSequenceRow
+{
+    /// <summary>Gets or sets the enrolled Agent that owns the rejected stream position.</summary>
+    public Guid AgentId { get; set; }
+
+    /// <summary>Gets or sets the positive per-Agent sequence that was terminally rejected.</summary>
+    public long Sequence { get; set; }
+
+    /// <summary>Gets or sets the Agent-provided message identifier retained for replay classification.</summary>
+    public Guid MessageId { get; set; }
+
+    /// <summary>Gets or sets the stable sanitised reason recorded when the sequence was consumed.</summary>
+    public required string ErrorCode { get; set; }
+
+    /// <summary>Gets or sets the authoritative UTC instant when the Server consumed the rejected sequence.</summary>
+    public DateTimeOffset ConsumedAt { get; set; }
 }
 
 /// <summary>

@@ -108,6 +108,8 @@ public sealed class MaintenanceDeliveryTests
         Guid instanceId = Guid.NewGuid();
         HealthSampleRow referenced = ServerObservation(instanceId, agentId, Now.AddDays(-31));
         HealthSampleRow disposable = ServerObservation(instanceId, agentId, Now.AddDays(-31));
+        referenced.Sequence = 1;
+        disposable.Sequence = 2;
         EventRecordRow eventRow = Event(referenced.ObservationId, instanceId, agentId);
         NotificationChannelRow channel = Channel();
         await using (ServerDbContext setup = new(options))
@@ -119,9 +121,18 @@ public sealed class MaintenanceDeliveryTests
             setup.AgentObservationCursors.Add(new AgentObservationCursorRow
             {
                 AgentId = agentId,
-                HighestContiguousSequence = 2,
+                HighestContiguousSequence = 3,
+                RejectionLedgerStartSequence = 1,
                 UpdatedAt = Now,
                 ConcurrencyToken = Guid.NewGuid(),
+            });
+            setup.RejectedObservationSequences.Add(new RejectedObservationSequenceRow
+            {
+                AgentId = agentId,
+                Sequence = 3,
+                MessageId = Guid.NewGuid(),
+                ErrorCode = "fixture.retained_rejection",
+                ConsumedAt = Now.AddDays(-31),
             });
             setup.Events.Add(eventRow);
             setup.AgentHeartbeats.Add(Heartbeat(agentId, Now.AddDays(-91)));
@@ -145,7 +156,8 @@ public sealed class MaintenanceDeliveryTests
         Assert.Equal(1, result.ServerOutboxTombstones);
         await using ServerDbContext verification = new(options);
         Assert.Equal(2, await verification.HealthSamples.CountAsync());
-        Assert.Equal(2, (await verification.AgentObservationCursors.SingleAsync()).HighestContiguousSequence);
+        Assert.Equal(3, (await verification.AgentObservationCursors.SingleAsync()).HighestContiguousSequence);
+        Assert.Single(await verification.RejectedObservationSequences.ToArrayAsync());
         Assert.Empty(await verification.AgentHeartbeats.ToArrayAsync());
         Assert.Empty(await verification.NotificationDeliveries.ToArrayAsync());
         Assert.Null((await verification.OutboxMessages.SingleAsync()).PublishedAt);

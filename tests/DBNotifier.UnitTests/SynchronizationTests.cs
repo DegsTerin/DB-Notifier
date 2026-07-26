@@ -613,11 +613,326 @@ public sealed class SynchronizationTests
         await using ServerDbContext verification = new(options);
         HealthSampleRow sample = await verification.HealthSamples.SingleAsync();
         Assert.Equal(2, sample.Sequence);
+        RejectedObservationSequenceRow ledger = await verification.RejectedObservationSequences.SingleAsync();
+        Assert.Equal(agentId, ledger.AgentId);
+        Assert.Equal(1, ledger.Sequence);
+        Assert.Equal(rejectedMessage.MessageId, ledger.MessageId);
+        Assert.Equal("observation.payload_invalid", ledger.ErrorCode);
+        Assert.Equal(Now, ledger.ConsumedAt);
         InstanceObservationStateRow state = await verification.InstanceObservationStates.SingleAsync();
         Assert.Equal(2, state.LastProcessedSequence);
         Assert.Equal("Connected", (await verification.Events.SingleAsync()).EventType);
         Assert.Single(await verification.OutboxMessages.ToArrayAsync());
         Assert.Empty(await verification.NotificationDeliveries.ToArrayAsync());
+    }
+
+    /// <summary>
+    /// Proves the durable rejection ledger owns the original reason, detects a conflicting slot identity and records
+    /// a repeated message identifier as a separate terminally resolved stream position.
+    /// </summary>
+    [Fact]
+    public async Task RejectedSequenceLedgerPreservesOriginalReasonAndConflictEvidence()
+    {
+        await using SqliteConnection connection = new("Data Source=:memory:");
+        await connection.OpenAsync();
+        DbContextOptions<ServerDbContext> options = new DbContextOptionsBuilder<ServerDbContext>()
+            .UseSqlite(connection)
+            .Options;
+        Guid agentId = Guid.NewGuid();
+        Guid messageId = Guid.NewGuid();
+        await using (ServerDbContext setup = new(options))
+        {
+            await setup.Database.EnsureCreatedAsync();
+            setup.Agents.Add(Agent(agentId));
+            await setup.SaveChangesAsync();
+        }
+
+        ServerObservationIngestionStore store = new(new TestServerContextFactory(options));
+        ObservationItemResult first = await store.ConsumeRejectedAsync(
+            agentId,
+            messageId,
+            1,
+            "fixture.original_rejection",
+            Now,
+            CancellationToken.None);
+        ObservationItemResult replay = await store.ConsumeRejectedAsync(
+            agentId,
+            messageId,
+            1,
+            "fixture.changed_rejection",
+            Now.AddSeconds(1),
+            CancellationToken.None);
+        ObservationItemResult conflictingSlot = await store.ConsumeRejectedAsync(
+            agentId,
+            Guid.NewGuid(),
+            1,
+            "fixture.conflicting_slot",
+            Now.AddSeconds(2),
+            CancellationToken.None);
+        ObservationItemResult repeatedMessage = await store.ConsumeRejectedAsync(
+            agentId,
+            messageId,
+            2,
+            "fixture.second_slot",
+            Now.AddSeconds(3),
+            CancellationToken.None);
+
+        Assert.Equal(ObservationIngestionDisposition.Rejected, first.Disposition);
+        Assert.Equal("fixture.original_rejection", first.ErrorCode);
+        Assert.Equal("fixture.original_rejection", replay.ErrorCode);
+        Assert.Equal("observation.sequence_conflict", conflictingSlot.ErrorCode);
+        Assert.Equal("observation.idempotency_conflict", repeatedMessage.ErrorCode);
+        Assert.Equal(2, await store.GetHighestContiguousSequenceAsync(agentId, CancellationToken.None));
+
+        await using ServerDbContext verification = new(options);
+        RejectedObservationSequenceRow[] ledger = await verification.RejectedObservationSequences
+            .OrderBy(row => row.Sequence)
+            .ToArrayAsync();
+        Assert.Equal(2, ledger.Length);
+        Assert.All(ledger, row => Assert.Equal(messageId, row.MessageId));
+        Assert.Equal("fixture.original_rejection", ledger[0].ErrorCode);
+        Assert.Equal(Now, ledger[0].ConsumedAt);
+        Assert.Equal("observation.idempotency_conflict", ledger[1].ErrorCode);
+        Assert.Equal(Now.AddSeconds(3), ledger[1].ConsumedAt);
+        Assert.Empty(await verification.HealthSamples.ToArrayAsync());
+        Assert.Empty(await verification.InstanceObservationStates.ToArrayAsync());
+        Assert.Empty(await verification.Events.ToArrayAsync());
+        Assert.Empty(await verification.OutboxMessages.ToArrayAsync());
+        Assert.Empty(await verification.NotificationDeliveries.ToArrayAsync());
+    }
+
+    /// <summary>Distinguishes a factual pre-ledger cursor from missing evidence after the durable cutover.</summary>
+    /// <param name="ledgerStart">Inclusive per-Agent ledger cutover stored with the cursor.</param>
+    /// <param name="expectedDisposition">Expected fail-closed replay classification.</param>
+    /// <param name="expectedErrorCode">Expected stable replay code.</param>
+    [Theory]
+    [InlineData(2L, ObservationIngestionDisposition.Rejected, "observation.sequence_conflict")]
+    [InlineData(1L, ObservationIngestionDisposition.Retryable, "ingestion.rejection_ledger_inconsistent")]
+    public async Task CoveredSequenceWithoutEvidenceHonoursLedgerCutover(
+        long ledgerStart,
+        ObservationIngestionDisposition expectedDisposition,
+        string expectedErrorCode)
+    {
+        await using SqliteConnection connection = new("Data Source=:memory:");
+        await connection.OpenAsync();
+        DbContextOptions<ServerDbContext> options = new DbContextOptionsBuilder<ServerDbContext>()
+            .UseSqlite(connection)
+            .Options;
+        Guid agentId = Guid.NewGuid();
+        Guid instanceId = Guid.NewGuid();
+        ObservationSyncMessage acceptedReplay = Message(agentId, instanceId, 1, "Healthy");
+        await using (ServerDbContext setup = new(options))
+        {
+            await setup.Database.EnsureCreatedAsync();
+            setup.Agents.Add(Agent(agentId));
+            setup.Instances.Add(Instance(instanceId, agentId));
+            setup.AgentObservationCursors.Add(new AgentObservationCursorRow
+            {
+                AgentId = agentId,
+                HighestContiguousSequence = 1,
+                RejectionLedgerStartSequence = ledgerStart,
+                UpdatedAt = Now,
+                ConcurrencyToken = Guid.NewGuid(),
+            });
+            await setup.SaveChangesAsync();
+        }
+
+        ServerObservationIngestionStore store = new(new TestServerContextFactory(options));
+        ObservationItemResult result = await store.ConsumeRejectedAsync(
+            agentId,
+            Guid.NewGuid(),
+            1,
+            "fixture.rejection",
+            Now.AddSeconds(1),
+            CancellationToken.None);
+        ObservationItemResult acceptedResult = await store.IngestAsync(
+            acceptedReplay,
+            Now.AddSeconds(1),
+            CancellationToken.None);
+
+        Assert.Equal(expectedDisposition, result.Disposition);
+        Assert.Equal(expectedErrorCode, result.ErrorCode);
+        Assert.Equal(expectedDisposition, acceptedResult.Disposition);
+        Assert.Equal(expectedErrorCode, acceptedResult.ErrorCode);
+        await using ServerDbContext verification = new(options);
+        Assert.Empty(await verification.RejectedObservationSequences.ToArrayAsync());
+        Assert.Empty(await verification.HealthSamples.ToArrayAsync());
+        Assert.Equal(1, (await verification.AgentObservationCursors.SingleAsync()).HighestContiguousSequence);
+    }
+
+    /// <summary>Fails closed when a rejection-ledger row exists ahead of the durable cursor.</summary>
+    [Fact]
+    public async Task RejectionLedgerEvidenceAheadOfCursorIsInconsistent()
+    {
+        await using SqliteConnection connection = new("Data Source=:memory:");
+        await connection.OpenAsync();
+        DbContextOptions<ServerDbContext> options = new DbContextOptionsBuilder<ServerDbContext>()
+            .UseSqlite(connection)
+            .Options;
+        Guid agentId = Guid.NewGuid();
+        Guid instanceId = Guid.NewGuid();
+        ObservationSyncMessage message = Message(agentId, instanceId, 1, "Healthy");
+        await using (ServerDbContext setup = new(options))
+        {
+            await setup.Database.EnsureCreatedAsync();
+            setup.Agents.Add(Agent(agentId));
+            setup.Instances.Add(Instance(instanceId, agentId));
+            setup.AgentObservationCursors.Add(new AgentObservationCursorRow
+            {
+                AgentId = agentId,
+                HighestContiguousSequence = 0,
+                RejectionLedgerStartSequence = 1,
+                UpdatedAt = Now,
+                ConcurrencyToken = Guid.NewGuid(),
+            });
+            setup.RejectedObservationSequences.Add(new RejectedObservationSequenceRow
+            {
+                AgentId = agentId,
+                Sequence = 1,
+                MessageId = message.MessageId,
+                ErrorCode = "fixture.impossible_rejection",
+                ConsumedAt = Now,
+            });
+            await setup.SaveChangesAsync();
+        }
+
+        ServerObservationIngestionStore store = new(new TestServerContextFactory(options));
+        ObservationItemResult acceptedPath = await store.IngestAsync(
+            message,
+            Now.AddSeconds(1),
+            CancellationToken.None);
+        ObservationItemResult rejectedPath = await store.ConsumeRejectedAsync(
+            agentId,
+            message.MessageId,
+            1,
+            "fixture.rejection",
+            Now.AddSeconds(1),
+            CancellationToken.None);
+
+        Assert.Equal(ObservationIngestionDisposition.Retryable, acceptedPath.Disposition);
+        Assert.Equal("ingestion.rejection_ledger_inconsistent", acceptedPath.ErrorCode);
+        Assert.Equal(ObservationIngestionDisposition.Retryable, rejectedPath.Disposition);
+        Assert.Equal("ingestion.rejection_ledger_inconsistent", rejectedPath.ErrorCode);
+        await using ServerDbContext verification = new(options);
+        Assert.Empty(await verification.HealthSamples.ToArrayAsync());
+        Assert.Equal(0, (await verification.AgentObservationCursors.SingleAsync()).HighestContiguousSequence);
+    }
+
+    /// <summary>Refuses the final signed 64-bit slot because no safe successor or ledger cutover can represent it.</summary>
+    [Fact]
+    public async Task MaximumSequenceFailsClosedWithoutDurableEffects()
+    {
+        await using SqliteConnection connection = new("Data Source=:memory:");
+        await connection.OpenAsync();
+        DbContextOptions<ServerDbContext> options = new DbContextOptionsBuilder<ServerDbContext>()
+            .UseSqlite(connection)
+            .Options;
+        Guid agentId = Guid.NewGuid();
+        Guid instanceId = Guid.NewGuid();
+        ObservationSyncMessage message = Message(agentId, instanceId, 1, "Healthy") with
+        {
+            Sequence = long.MaxValue,
+        };
+        await using (ServerDbContext setup = new(options))
+        {
+            await setup.Database.EnsureCreatedAsync();
+            setup.Agents.Add(Agent(agentId));
+            setup.Instances.Add(Instance(instanceId, agentId));
+            setup.AgentObservationCursors.Add(new AgentObservationCursorRow
+            {
+                AgentId = agentId,
+                HighestContiguousSequence = long.MaxValue - 1,
+                RejectionLedgerStartSequence = 1,
+                UpdatedAt = Now,
+                ConcurrencyToken = Guid.NewGuid(),
+            });
+            await setup.SaveChangesAsync();
+        }
+
+        ServerObservationIngestionStore store = new(new TestServerContextFactory(options));
+        ObservationItemResult acceptedPath = await store.IngestAsync(
+            message,
+            Now.AddSeconds(1),
+            CancellationToken.None);
+        ObservationItemResult rejectedPath = await store.ConsumeRejectedAsync(
+            agentId,
+            message.MessageId,
+            long.MaxValue,
+            "fixture.rejection",
+            Now.AddSeconds(1),
+            CancellationToken.None);
+
+        Assert.Equal(ObservationIngestionDisposition.Retryable, acceptedPath.Disposition);
+        Assert.Equal("ingestion.sequence_exhausted", acceptedPath.ErrorCode);
+        Assert.Equal(ObservationIngestionDisposition.Retryable, rejectedPath.Disposition);
+        Assert.Equal("ingestion.sequence_exhausted", rejectedPath.ErrorCode);
+        await using ServerDbContext verification = new(options);
+        Assert.Empty(await verification.HealthSamples.ToArrayAsync());
+        Assert.Empty(await verification.RejectedObservationSequences.ToArrayAsync());
+        Assert.Equal(
+            long.MaxValue - 1,
+            (await verification.AgentObservationCursors.SingleAsync()).HighestContiguousSequence);
+    }
+
+    /// <summary>Fails closed when accepted and rejected evidence coexist for the same Agent stream position.</summary>
+    [Fact]
+    public async Task AcceptedAndRejectedEvidenceForOneSlotIsInconsistent()
+    {
+        await using SqliteConnection connection = new("Data Source=:memory:");
+        await connection.OpenAsync();
+        DbContextOptions<ServerDbContext> options = new DbContextOptionsBuilder<ServerDbContext>()
+            .UseSqlite(connection)
+            .Options;
+        Guid agentId = Guid.NewGuid();
+        Guid instanceId = Guid.NewGuid();
+        ObservationSyncMessage accepted = Message(agentId, instanceId, 1, "Healthy");
+        await using (ServerDbContext setup = new(options))
+        {
+            await setup.Database.EnsureCreatedAsync();
+            setup.Agents.Add(Agent(agentId));
+            setup.Instances.Add(Instance(instanceId, agentId));
+            setup.AgentObservationCursors.Add(new AgentObservationCursorRow
+            {
+                AgentId = agentId,
+                HighestContiguousSequence = 1,
+                RejectionLedgerStartSequence = 1,
+                UpdatedAt = Now,
+                ConcurrencyToken = Guid.NewGuid(),
+            });
+            setup.HealthSamples.Add(StoredSample(accepted, Now));
+            setup.RejectedObservationSequences.Add(new RejectedObservationSequenceRow
+            {
+                AgentId = agentId,
+                Sequence = 1,
+                MessageId = accepted.MessageId,
+                ErrorCode = "fixture.impossible_rejection",
+                ConsumedAt = Now,
+            });
+            await setup.SaveChangesAsync();
+        }
+
+        ServerObservationIngestionStore store = new(new TestServerContextFactory(options));
+        ObservationItemResult rejectedPath = await store.ConsumeRejectedAsync(
+            agentId,
+            accepted.MessageId,
+            1,
+            "fixture.rejection",
+            Now.AddSeconds(1),
+            CancellationToken.None);
+        ObservationItemResult acceptedPath = await store.IngestAsync(
+            accepted,
+            Now.AddSeconds(1),
+            CancellationToken.None);
+
+        Assert.Equal(ObservationIngestionDisposition.Retryable, rejectedPath.Disposition);
+        Assert.Equal("ingestion.rejection_ledger_inconsistent", rejectedPath.ErrorCode);
+        Assert.Equal(ObservationIngestionDisposition.Retryable, acceptedPath.Disposition);
+        Assert.Equal("ingestion.rejection_ledger_inconsistent", acceptedPath.ErrorCode);
+        await using ServerDbContext verification = new(options);
+        Assert.Single(await verification.HealthSamples.ToArrayAsync());
+        Assert.Single(await verification.RejectedObservationSequences.ToArrayAsync());
+        Assert.Empty(await verification.InstanceObservationStates.ToArrayAsync());
+        Assert.Empty(await verification.Events.ToArrayAsync());
     }
 
     /// <summary>
@@ -669,6 +984,10 @@ public sealed class SynchronizationTests
         await using ServerDbContext verification = new(options);
         HealthSampleRow sample = await verification.HealthSamples.SingleAsync();
         Assert.Equal(1, sample.Sequence);
+        RejectedObservationSequenceRow ledger = await verification.RejectedObservationSequences.SingleAsync();
+        Assert.Equal(2, ledger.Sequence);
+        Assert.Equal(rejectedMessage.MessageId, ledger.MessageId);
+        Assert.Equal("observation.payload_invalid", ledger.ErrorCode);
         Assert.Equal(1, (await verification.InstanceObservationStates.SingleAsync()).LastProcessedSequence);
         Assert.Single(await verification.Events.ToArrayAsync());
     }
@@ -711,6 +1030,10 @@ public sealed class SynchronizationTests
         await using ServerDbContext verification = new(options);
         HealthSampleRow sample = await verification.HealthSamples.SingleAsync();
         Assert.Equal(2, sample.Sequence);
+        RejectedObservationSequenceRow ledger = await verification.RejectedObservationSequences.SingleAsync();
+        Assert.Equal(1, ledger.Sequence);
+        Assert.Equal(rejection.MessageId, ledger.MessageId);
+        Assert.Equal("observation.provider_mismatch", ledger.ErrorCode);
         Assert.Equal(2, (await verification.InstanceObservationStates.SingleAsync()).LastProcessedSequence);
         Assert.Single(await verification.Events.ToArrayAsync());
     }

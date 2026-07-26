@@ -16,6 +16,7 @@ These values are accepted design defaults from ADR-0004 for schema, index, capac
 | `audit_entries` | 24 months minimum | append-only; protected from ordinary retention worker deletion until a separately privileged archival process exists |
 | `notification_deliveries` | 12 months | preserve delivery evidence referenced by active incident/audit policy |
 | server `outbox_messages` | published + 7-day tombstone | unpublished rows never expire silently |
+| `rejected_observation_sequences` | lifetime of the Agent observation stream/cursor | no ordinary time-based deletion; preserve rejected-slot identity and reason until a separately authorised durable compaction exists |
 | catalog/RBAC/configuration | active + explicit archive policy | restrict deletion while evidence references it |
 
 ## Agent SQLite
@@ -36,12 +37,16 @@ These values are accepted design defaults from ADR-0004 for schema, index, capac
 - A failed retention batch is retryable and never blocks monitoring ingestion indefinitely.
 - Retention never touches monitored databases or external vault secrets.
 - Audit deletion/archival uses a separate privileged procedure; the application runtime role cannot update/delete audit rows.
+- Raw accepted samples at or after an Agent's rejection-ledger cutover cannot be deleted until a durable accepted-slot
+  tombstone or equivalent resolution ledger has been implemented. Otherwise a legitimate accepted slot would become
+  indistinguishable from missing post-cutover evidence.
 
 ## Implemented runtime controls
 
 - `AgentRetentionStore` and `ServerMaintenanceStore` select each retention class with parameterized time cutoffs and a maximum of 5,000 rows per class/cycle.
 - Agent and Server hosted workers are disabled by default; enabling retention still defaults to dry-run until `ApplyChanges` is explicitly set.
-- Central raw observations are eligible only when no event or command-attempt reference exists. Audit entries are never selected.
+- `ServerMaintenanceStore` currently preserves every central raw observation until the aggregate-before-delete
+  contract exists and never selects `rejected_observation_sequences`. Audit entries are also never selected.
 - Unacknowledged Agent outbox and unpublished Server outbox rows are never selected as tombstones.
 - This implementation does not evaluate organization-specific legal holds or backup completion. Production apply remains unauthorized until those integrations and the applicable Human Gate exist.
 
@@ -51,4 +56,7 @@ These values are accepted design defaults from ADR-0004 for schema, index, capac
   cursor of contiguously resolved slots, not the last displayed health. A local or request-level rejection without
   that cursor proof remains unacknowledged.
 - Central PostgreSQL: backup/PITR design must preserve catalog, commands, RBAC, audit, and outbox consistency.
+- Central PostgreSQL recovery must preserve each observation cursor, its rejection-ledger cutover and every retained
+  rejected-slot row atomically. A covered post-cutover slot with neither accepted nor rejected evidence fails closed
+  as retryable inconsistency rather than being acknowledged.
 - Restore tests in later phases validate schema version, migration history, idempotency records, and replay behavior before service resumes.

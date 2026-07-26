@@ -29,6 +29,7 @@ const timestampedMigrations = new Set([
   "src/DBNotifier.Persistence.Server.PostgreSql/Migrations/20260712025130_EnforceAgentObservationSequence.cs",
   "src/DBNotifier.Persistence.Server.PostgreSql/Migrations/20260716142357_HardenObservationReconciliation.cs",
   "src/DBNotifier.Persistence.Server.PostgreSql/Migrations/20260718013515_IntegrateAgentFleetIdentity.cs",
+  "src/DBNotifier.Persistence.Server.PostgreSql/Migrations/20260726110643_AddRejectedObservationSequenceLedger.cs",
 ]);
 
 /** Returns tracked and non-ignored new files so a source root cannot silently escape the documentation gate before staging. */

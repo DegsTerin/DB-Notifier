@@ -299,7 +299,7 @@ public sealed class PersistenceModelTests
             migrationScript);
 
         string[] migrations = context.Database.GetMigrations().ToArray();
-        Assert.Equal(8, migrations.Length);
+        Assert.Equal(9, migrations.Length);
         Assert.Contains("alert_rule_channel_bindings", migrationScript, StringComparison.Ordinal);
         Assert.Contains("notification.binding_unproven", migrationScript, StringComparison.Ordinal);
         Assert.Contains("SET state = 'Quarantined'", migrationScript, StringComparison.Ordinal);
@@ -318,6 +318,21 @@ public sealed class PersistenceModelTests
         Assert.DoesNotContain("DROP COLUMN", deliveryOwnershipRollback, StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain("UPDATE outbox_messages", deliveryOwnershipRollback, StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain("UPDATE notification_deliveries", deliveryOwnershipRollback, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("rejected_observation_sequences", migrationScript, StringComparison.Ordinal);
+        Assert.Contains("rejection_ledger_start_sequence", migrationScript, StringComparison.Ordinal);
+        Assert.Contains(
+            "SET rejection_ledger_start_sequence = highest_contiguous_sequence + 1",
+            migrationScript,
+            StringComparison.Ordinal);
+        Assert.Contains("ingestion.rejection_ledger_cutover_overflow", migrationScript, StringComparison.Ordinal);
+        Assert.Contains("ck_rejected_observation_error_code", migrationScript, StringComparison.Ordinal);
+        Assert.Contains("IX_rejected_observation_sequences_agent_id_message_id", migrationScript, StringComparison.Ordinal);
+        Assert.Contains("consumed_at", migrationScript, StringComparison.Ordinal);
+        Assert.DoesNotContain("IX_rejected_observation_sequences_consumed_at", migrationScript, StringComparison.Ordinal);
+        string rejectionLedgerRollback = migrator.GenerateScript(migrations[8], migrations[7]);
+        Assert.Contains("ingestion.rejection_ledger_downgrade_blocked", rejectionLedgerRollback, StringComparison.Ordinal);
+        Assert.Contains("DROP TABLE", rejectionLedgerRollback, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("rejected_observation_sequences", rejectionLedgerRollback, StringComparison.Ordinal);
         string commandTransportRollback = migrator.GenerateScript(migrations[5], migrations[4]);
         Assert.Contains("command_transport_journal", commandTransportRollback, StringComparison.Ordinal);
         Assert.Contains("agent_command_transport_cursors", commandTransportRollback, StringComparison.Ordinal);

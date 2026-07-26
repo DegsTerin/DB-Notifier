@@ -98,6 +98,15 @@ Rules:
 - A rejected sequence above an unresolved lower gap is returned as retryable until the missing prefix is resolved.
   Once consumed, replay is idempotently rejected and a different payload cannot be accepted retroactively into that
   resolved slot.
+- The Server retains each post-cutover consumed rejection as `agentId`, sequence, `messageId`, stable error code and
+  authoritative consumption time. Replaying the same slot and message returns the stored reason; another message in
+  that slot is a sequence conflict, and reuse of the message ID in another slot is an idempotency conflict.
+- Each Agent cursor records an inclusive rejection-ledger cutover. Existing cursors start immediately after their
+  pre-migration high-water mark, so earlier positions without retained detail remain conservative legacy sequence
+  conflicts. At or after the cutover, a cursor-covered slot with neither an accepted sample nor a rejection row, or
+  with both forms of evidence, is retryable `ingestion.rejection_ledger_inconsistent`.
+- The final signed 64-bit sequence value is refused as retryable `ingestion.sequence_exhausted`; consuming it would
+  leave no representable successor or safe cutover. No sample, ledger row or cursor advance is committed.
 - The Agent acknowledges a rejected outbox item only when the returned highest contiguous sequence covers it.
   Local payload refusals and request-level HTTP refusals provide no such proof, so they remain pending with bounded
   backoff instead of silently creating a Server gap. This pending item state is not authority to bypass the separate
@@ -188,6 +197,8 @@ For the implemented Agent Fleet slice, the `retryable` field is authoritative wh
 - Out-of-order/gapped sequence.
 - Terminal rejection followed by a valid observation in the same Agent stream.
 - Rejection above a lower gap, then replay after that prefix is resolved.
+- Durable rejection replay after the per-Agent ledger cutover, including the original reason.
+- Legacy replay before the cutover and fail-closed detection of missing or conflicting post-cutover evidence.
 - Local or request-level rejection without a covering Server high-water mark.
 - Revocation while Agent is connected.
 - API on `N`, Agent on `N-1`, and command requiring `N`.

@@ -330,6 +330,7 @@ public sealed class ObservationRevocationConcurrencyTests
             Assert.Equal(1, await context.OutboxMessages.CountAsync());
             Assert.Equal(0, await context.NotificationDeliveries.CountAsync());
             Assert.Equal(1, await context.AuditEntries.CountAsync(row => row.Action == "agent.revoke"));
+            Assert.Equal(0, await context.RejectedObservationSequences.CountAsync());
         }
 
         /// <summary>Verifies revocation-first rejection consumed only its sequence and created no accepted health effects.</summary>
@@ -351,6 +352,11 @@ public sealed class ObservationRevocationConcurrencyTests
             Assert.Equal(0, await context.OutboxMessages.CountAsync());
             Assert.Equal(0, await context.NotificationDeliveries.CountAsync());
             Assert.Equal(1, await context.AuditEntries.CountAsync(row => row.Action == "agent.revoke"));
+            RejectedObservationSequenceRow ledger = await context.RejectedObservationSequences
+                .AsNoTracking()
+                .SingleAsync();
+            Assert.Equal(1, ledger.Sequence);
+            Assert.Equal("agent.not_active", ledger.ErrorCode);
         }
 
         /// <summary>Verifies a drifted revoked identity consumed only its rejected sequence without accepted effects.</summary>
@@ -373,6 +379,11 @@ public sealed class ObservationRevocationConcurrencyTests
             Assert.Equal(0, await context.OutboxMessages.CountAsync());
             Assert.Equal(0, await context.NotificationDeliveries.CountAsync());
             Assert.Equal(0, await context.AuditEntries.CountAsync());
+            RejectedObservationSequenceRow ledger = await context.RejectedObservationSequences
+                .AsNoTracking()
+                .SingleAsync();
+            Assert.Equal(1, ledger.Sequence);
+            Assert.Equal("agent.not_active", ledger.ErrorCode);
         }
 
         /// <summary>Verifies a sequence-two sample is durable but unprojected while sequence one remains unresolved.</summary>
@@ -392,6 +403,7 @@ public sealed class ObservationRevocationConcurrencyTests
             Assert.Equal(0, await context.Events.CountAsync());
             Assert.Equal(0, await context.OutboxMessages.CountAsync());
             Assert.Equal(0, await context.NotificationDeliveries.CountAsync());
+            Assert.Equal(0, await context.RejectedObservationSequences.CountAsync());
         }
 
         /// <summary>
@@ -429,6 +441,12 @@ public sealed class ObservationRevocationConcurrencyTests
             Assert.Equal(1, await context.OutboxMessages.CountAsync());
             Assert.Equal(0, await context.NotificationDeliveries.CountAsync());
             Assert.Equal(1, await context.AuditEntries.CountAsync(row => row.Action == "agent.revoke"));
+            RejectedObservationSequenceRow ledger = await context.RejectedObservationSequences
+                .AsNoTracking()
+                .SingleAsync();
+            Assert.Equal(rejectedGap.MessageId, ledger.MessageId);
+            Assert.Equal(1, ledger.Sequence);
+            Assert.Equal("agent.not_active", ledger.ErrorCode);
         }
 
         /// <summary>Verifies replay classification preserved the accepted outcome instead of consuming a rejection.</summary>
@@ -448,6 +466,7 @@ public sealed class ObservationRevocationConcurrencyTests
                 .Where(row => row.AgentId == AgentId)
                 .Select(row => row.HighestContiguousSequence)
                 .SingleAsync());
+            Assert.Equal(0, await context.RejectedObservationSequences.CountAsync());
         }
 
         /// <summary>Releases any pending pause and closes the anchor retaining the in-memory database.</summary>
@@ -596,6 +615,7 @@ public sealed class ObservationRevocationConcurrencyTests
             {
                 AgentId = AgentId,
                 HighestContiguousSequence = 0,
+                RejectionLedgerStartSequence = 1,
                 UpdatedAt = Now,
                 ConcurrencyToken = Guid.NewGuid(),
             });

@@ -994,8 +994,11 @@ public sealed partial class AgentFleetApiEndToEndTests
             Assert.Equal("agent.not_active", revocationResult.ErrorCode);
             await AssertDashboardNotModifiedAsync(dashboardClient, reconciledEntityTag);
 
-            await local.AssertSyntheticObservationOutboxAsync();
-            await sandbox.AssertSyntheticObservationPipelineAsync(registration.AgentId, instanceId);
+            Guid rejectedMessageId = await local.AssertSyntheticObservationOutboxAsync();
+            await sandbox.AssertSyntheticObservationPipelineAsync(
+                registration.AgentId,
+                instanceId,
+                rejectedMessageId);
         }
         finally
         {
@@ -2212,7 +2215,8 @@ public sealed partial class AgentFleetApiEndToEndTests
         }
 
         /// <summary>Confirms the exact durable synthetic observations and terminal local outbox state across restarts.</summary>
-        public async Task AssertSyntheticObservationOutboxAsync()
+        /// <returns>The message identifier consumed as the rejected fifth observation.</returns>
+        public async Task<Guid> AssertSyntheticObservationOutboxAsync()
         {
             await using AgentDbContext context = new(options);
             AgentHealthObservationRow[] observations = await context.HealthObservations
@@ -2243,6 +2247,7 @@ public sealed partial class AgentFleetApiEndToEndTests
                 Assert.Equal("fixture-provider", row.ProviderType);
             });
             Assert.Equal(0, await context.InboxCommands.CountAsync());
+            return messages[^1].MessageId;
         }
 
         /// <summary>Reads only aggregate synthetic observation counts for the human-remediation evidence surface.</summary>
@@ -3587,7 +3592,11 @@ public sealed partial class AgentFleetApiEndToEndTests
         /// </summary>
         /// <param name="agentId">Revoked Agent whose first four observations were accepted and fifth sequence was consumed.</param>
         /// <param name="instanceId">Sole synthetic assignment projected to Dashboard TV.</param>
-        public async Task AssertSyntheticObservationPipelineAsync(Guid agentId, Guid instanceId)
+        /// <param name="rejectedMessageId">Message identifier consumed as the rejected fifth observation.</param>
+        public async Task AssertSyntheticObservationPipelineAsync(
+            Guid agentId,
+            Guid instanceId,
+            Guid rejectedMessageId)
         {
             await using AsyncServiceScope scope = application.Services.CreateAsyncScope();
             ServerDbContext context = scope.ServiceProvider.GetRequiredService<ServerDbContext>();
@@ -3599,6 +3608,9 @@ public sealed partial class AgentFleetApiEndToEndTests
                 .Where(row => row.AgentId == agentId)
                 .OrderBy(row => row.Sequence)
                 .ToArrayAsync();
+            RejectedObservationSequenceRow rejection = await context.RejectedObservationSequences
+                .AsNoTracking()
+                .SingleAsync(row => row.AgentId == agentId && row.Sequence == 5);
             InstanceObservationStateRow state = await context.InstanceObservationStates
                 .AsNoTracking()
                 .SingleAsync(row => row.InstanceId == instanceId);
@@ -3606,6 +3618,8 @@ public sealed partial class AgentFleetApiEndToEndTests
             Assert.Equal("Revoked", agent.State);
             Assert.Equal(5, cursor.HighestContiguousSequence);
             Assert.Equal(new long[] { 1, 2, 3, 4 }, samples.Select(row => row.Sequence));
+            Assert.Equal(rejectedMessageId, rejection.MessageId);
+            Assert.Equal("agent.not_active", rejection.ErrorCode);
             Assert.All(samples, sample =>
             {
                 Assert.Equal(nameof(EvidenceLevel.Synthetic), sample.EvidenceLevel);

@@ -28,6 +28,10 @@ public sealed class ServerDbContext(DbContextOptions<ServerDbContext> options) :
     /// <summary>Gets the durable per-Agent contiguous observation cursors.</summary>
     public DbSet<AgentObservationCursorRow> AgentObservationCursors => Set<AgentObservationCursorRow>();
 
+    /// <summary>Gets immutable protocol evidence for terminally rejected observation-stream positions.</summary>
+    public DbSet<RejectedObservationSequenceRow> RejectedObservationSequences =>
+        Set<RejectedObservationSequenceRow>();
+
     /// <summary>Gets the durable current reconciled state for each database instance.</summary>
     public DbSet<InstanceObservationStateRow> InstanceObservationStates => Set<InstanceObservationStateRow>();
     public DbSet<EventRecordRow> Events => Set<EventRecordRow>();
@@ -260,10 +264,36 @@ public sealed class ServerDbContext(DbContextOptions<ServerDbContext> options) :
         modelBuilder.Entity<AgentObservationCursorRow>(entity =>
         {
             entity.ToTable("agent_observation_cursors", table =>
-                table.HasCheckConstraint("ck_agent_observation_cursor_sequence", "highest_contiguous_sequence >= 0"));
+            {
+                table.HasCheckConstraint("ck_agent_observation_cursor_sequence", "highest_contiguous_sequence >= 0");
+                table.HasCheckConstraint(
+                    "ck_agent_observation_rejection_ledger_start",
+                    "rejection_ledger_start_sequence >= 1 AND " +
+                    "rejection_ledger_start_sequence <= highest_contiguous_sequence + 1");
+            });
             entity.HasKey(row => row.AgentId);
             entity.Property(row => row.ConcurrencyToken).IsConcurrencyToken();
             entity.HasOne<RegisteredAgentRow>().WithMany().HasForeignKey(row => row.AgentId).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<RejectedObservationSequenceRow>(entity =>
+        {
+            entity.ToTable("rejected_observation_sequences", table =>
+            {
+                table.HasCheckConstraint(
+                    "ck_rejected_observation_sequence",
+                    "sequence >= 1");
+                table.HasCheckConstraint(
+                    "ck_rejected_observation_error_code",
+                    "length(error_code) BETWEEN 1 AND 100");
+            });
+            entity.HasKey(row => new { row.AgentId, row.Sequence });
+            entity.Property(row => row.ErrorCode).HasMaxLength(100).IsRequired();
+            entity.HasIndex(row => new { row.AgentId, row.MessageId });
+            entity.HasOne<AgentObservationCursorRow>()
+                .WithMany()
+                .HasForeignKey(row => row.AgentId)
+                .OnDelete(DeleteBehavior.Restrict);
         });
 
         modelBuilder.Entity<InstanceObservationStateRow>(entity =>

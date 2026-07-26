@@ -46,15 +46,22 @@ Design-time factories select providers without storing connection strings. Migra
 6. For custom SQL, verify provider syntax, transactional behaviour, idempotent cleanup in Down, and least privilege.
 7. Generate scripts for initial→latest, previous→latest, latest→previous, and latest→zero where supported.
 8. Run SQLite migration tests against an ephemeral database and PostgreSQL script/model tests without a real target.
+   Use a disposable PostgreSQL laboratory only when it is separately authorised, pinned, isolated, bounded and
+   completely removed after the test.
 9. Run locked restore, build, tests, format, and dependency vulnerability audit.
 
 ## Current migration chain
 
+The current source chain contains six Agent SQLite migrations and nine Server PostgreSQL migrations:
+
 - Agent SQLite: `InitialAgentSchema` → `AddAgentStateConstraints` → `AddCommandCompatibilityEnvelope` →
-  `IntegrateAgentFleetClientState` → `HardenAgentFleetSandboxResilience`.
+  `IntegrateAgentFleetClientState` → `HardenAgentFleetSandboxResilience` →
+  `AddCommandTransportSafetySandbox`.
 - Server PostgreSQL: `InitialServerSchema` → `AddServerStateConstraints` →
   `EnforceAgentObservationSequence` → `HardenObservationReconciliation` →
-  `IntegrateAgentFleetIdentity`.
+  `IntegrateAgentFleetIdentity` → `AddCommandTransportSafetySandbox` →
+  `AddExplicitAlertRouting` → `AddDurableDeliveryOwnership` →
+  `AddRejectedObservationSequenceLedger`.
 
 The server initial migration adds an append-only trigger for `audit_entries`; Down removes the trigger/function before dropping tables.
 `EnforceAgentObservationSequence` makes each Agent observation sequence unique. `HardenObservationReconciliation`
@@ -98,6 +105,24 @@ inspected, but `Up`, backfill, serialisable races and `Down` were not executed a
 Agent Fleet E2E used SQLite `EnsureCreated`, which is not migration evidence. Migration source and offline
 scripts are not evidence that any real PostgreSQL store has been migrated.
 
+`AddRejectedObservationSequenceLedger` is the ninth Server PostgreSQL migration. It adds
+`rejection_ledger_start_sequence` to each Agent observation cursor and creates
+`rejected_observation_sequences`, keyed by Agent and sequence and restricted to the owning cursor. Existing
+cursors are backfilled to `highest_contiguous_sequence + 1`, so no historical message identity or rejection
+reason is invented; new cursors start at sequence one. The migration refuses the cutover when a legacy cursor
+is already at the `bigint` maximum. Its `Down` operation refuses to discard any retained rejection row with
+`ingestion.rejection_ledger_downgrade_blocked`; an empty ledger can be rolled back only with a compatible,
+stopped runtime and explicit authority.
+
+On 2026-07-26, the migration matrix passed `1/1` against a loopback-only disposable PostgreSQL 16 Alpine
+container pinned to
+`sha256:e013e867e712fec275706a6c51c966f0bb0c93cfa8f51000f85a15f9865a28cb`. The test proved the legacy
+cursor backfill, durable rejection replay with the original reason, protected `Down`, rollback after explicit
+fixture-ledger removal, cutover-overflow refusal and reapplication. The runner used a temporary random
+credential, a bounded tmpfs data directory, no image pull, an exact ownership label and complete owned-container
+cleanup. This is disposable local migration evidence only; no existing, operational or monitored PostgreSQL
+database was migrated.
+
 ## Rollback rules
 
 - Rollback target must be compatible with application/protocol and data written since upgrade.
@@ -105,4 +130,6 @@ scripts are not evidence that any real PostgreSQL store has been migrated.
 - Never use rollback to alter a monitored database.
 - Prefer forward-fix when Down would lose accepted data; record the decision and new migration.
 - SQLite rollback tests use an in-memory ephemeral database and validate latest→previous→zero.
-- PostgreSQL Down scripts are reviewed/generated offline; execution remains unproved and requires separate authority for a disposable PostgreSQL sandbox.
+- PostgreSQL Down scripts are reviewed/generated offline by default. Only the
+  `AddRejectedObservationSequenceLedger` latest→previous paths described above have physical disposable-lab
+  evidence; other PostgreSQL rollback paths remain unproved unless their owning report says otherwise.

@@ -313,6 +313,7 @@ public sealed class ReconciledLocalNotificationEndToEndTests
                     {
                         AgentId = agentId,
                         HighestContiguousSequence = 1,
+                        RejectionLedgerStartSequence = 1,
                         UpdatedAt = now,
                         ConcurrencyToken = Guid.NewGuid(),
                     });
