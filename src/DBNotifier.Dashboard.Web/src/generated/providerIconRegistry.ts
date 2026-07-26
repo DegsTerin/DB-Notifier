@@ -1,7 +1,7 @@
 /**
  * Generated from design-system/provider-icons/manifest.json. Do not edit manually.
-+ * The registry contains presentation assets only and makes no provider-support claim.
-+ */
+ * The registry contains presentation assets only and makes no provider-support claim.
+ */
 
 /** Theme-specific local assets for one exact provider identifier. */
 export interface ProviderIconAssets {

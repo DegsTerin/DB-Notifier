@@ -494,7 +494,7 @@ function writeGeneratedFile(outputPath, content) {
 function buildDashboardRegistry() {
   const entries = manifest.icons.map((icon) =>
     `  ${JSON.stringify(icon.providerType)}: Object.freeze({ lightPath: "/provider-icons/${icon.providerType}-light.svg", darkPath: "/provider-icons/${icon.providerType}-dark.svg" }),`);
-  return `/**\n * Generated from design-system/provider-icons/manifest.json. Do not edit manually.\n+ * The registry contains presentation assets only and makes no provider-support claim.\n+ */\n\n` +
+  return `/**\n * Generated from design-system/provider-icons/manifest.json. Do not edit manually.\n * The registry contains presentation assets only and makes no provider-support claim.\n */\n\n` +
     `/** Theme-specific local assets for one exact provider identifier. */\n` +
     `export interface ProviderIconAssets {\n  readonly lightPath: string;\n  readonly darkPath: string;\n}\n\n` +
     `/** Exact provider identifiers and their fixed local presentation assets. */\n` +
