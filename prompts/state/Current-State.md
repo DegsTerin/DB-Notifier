@@ -123,10 +123,27 @@ proprietários.
   IP aprovado, preservando o hostname original para TLS. Redirect, proxy,
   credencial ambiental, download de certificado e revogação online implícita
   foram recusados nos caminhos diretamente afetados. O legado PowerShell
-  tornou-se estritamente loopback e não resolve nomes remotos. IdP, PKI,
-  resolvedor, PostgreSQL, proxy, failover e tráfego real permanecem não
-  testados; a evidência proprietária está no
-  [relatório R-NET](../../docs/STATE-06-R-NET-Network-Egress-Remediation-Report.md).
+  tornou-se estritamente loopback e não resolve nomes remotos. A campanha
+  física controlada complementar passou `11/11` casos em cinco invocações:
+  resolvedor real de `localhost` e DNS controlado, cadeia PKI offline pelo
+  mecanismo do Windows, IdP HTTPS local e células PostgreSQL 16 TLS
+  sequenciais. Cada célula removeu rotas default, fixou o resolver efetivo em
+  loopback, conservou o listener somente local, executou PostgreSQL como
+  não-root com capacidades ativas zero/`NoNewPrivs=1` e apresentou o
+  certificado exato do cenário; os negativos de hostname, trust e revogação
+  passaram nos caminhos central e provider. Os construtores produtivos
+  permanecem em trust `System`; a
+  raiz sintética ficou restrita ao processo de teste, somente a CRL pública
+  exata foi temporariamente registrada em `CurrentUser\CA`, e o cleanup
+  comprovou zero resíduo. O gate completo passou `508/508` unitários,
+  `96/96` arquitetura, `137/137` integração comum, `10/10` WPF e cobertura
+  `83,37%` de linhas/`56,26%` de branches. DNS/PKI/IdP/PostgreSQL
+  operacionais, DNSSEC, trust provisionado, proxy, failover, HA,
+  cross-platform, desempenho e suporte público permanecem não homologados. As
+  evidências proprietárias são o
+  [relatório determinístico R-NET](../../docs/STATE-06-R-NET-Network-Egress-Remediation-Report.md)
+  e o
+  [relatório da campanha física](../../docs/STATE-06-R-NET-Local-DNS-PKI-IdP-PostgreSql-TLS-Homologation-Report.md).
 - O lote documental PM-3 alinhou a apresentação pública ao estado corrente,
   rotulou o relatório de migração de prompts como evidência histórica e não
   alterou autoridade, código, configuração, lifecycle ou ativação.

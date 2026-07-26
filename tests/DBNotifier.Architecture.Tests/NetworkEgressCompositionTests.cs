@@ -64,7 +64,9 @@ public sealed class NetworkEgressCompositionTests
         Assert.DoesNotContain("ConnectAsync(endpoint.Host", readiness, StringComparison.Ordinal);
         Assert.Contains("PostgreSqlNetworkEgress", authenticated, StringComparison.Ordinal);
         Assert.Contains(".ResolveAsync(networkAuthorizer", authenticated, StringComparison.Ordinal);
-        Assert.Contains("ConfigureSslOptions(options, network.OriginalHost)", authenticated, StringComparison.Ordinal);
+        Assert.Contains("ConfigureSslOptions(", authenticated, StringComparison.Ordinal);
+        Assert.Contains("network.OriginalHost,", authenticated, StringComparison.Ordinal);
+        Assert.Contains("serverChainPolicyFactory));", authenticated, StringComparison.Ordinal);
         Assert.Contains("Resolve-AuthorisedNetworkDestination", legacy, StringComparison.Ordinal);
         Assert.Contains("-Address $destination.Address", legacy, StringComparison.Ordinal);
         Assert.Contains("$destination.Address,", legacy, StringComparison.Ordinal);

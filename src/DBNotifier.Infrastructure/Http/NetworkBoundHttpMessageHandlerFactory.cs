@@ -14,12 +14,16 @@ public sealed class NetworkBoundHttpMessageHandlerFactory
 {
     private readonly INetworkEgressAuthorizer authorizer;
     private readonly INetworkStreamConnector connector;
+    private readonly Func<X509ChainPolicy> serverChainPolicyFactory;
 
     /// <summary>Creates the production factory with direct operating-system sockets.</summary>
     /// <param name="authorizer">Local destination authority invoked for every new physical connection.</param>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="authorizer"/> is null.</exception>
     public NetworkBoundHttpMessageHandlerFactory(INetworkEgressAuthorizer authorizer)
-        : this(authorizer, new SystemNetworkStreamConnector())
+        : this(
+            authorizer,
+            new SystemNetworkStreamConnector(),
+            OfflineCertificateChainPolicy.CreateServerAuthentication)
     {
     }
 
@@ -29,11 +33,30 @@ public sealed class NetworkBoundHttpMessageHandlerFactory
     internal NetworkBoundHttpMessageHandlerFactory(
         INetworkEgressAuthorizer authorizer,
         INetworkStreamConnector connector)
+        : this(
+            authorizer,
+            connector,
+            OfflineCertificateChainPolicy.CreateServerAuthentication)
+    {
+    }
+
+    /// <summary>Creates a factory with deterministic socket and certificate-policy seams for local tests.</summary>
+    /// <param name="authorizer">Local destination authority.</param>
+    /// <param name="connector">Connector that receives only policy-approved IP addresses.</param>
+    /// <param name="serverChainPolicyFactory">
+    /// Creates one fresh server-certificate policy per independently disposable handler.
+    /// </param>
+    internal NetworkBoundHttpMessageHandlerFactory(
+        INetworkEgressAuthorizer authorizer,
+        INetworkStreamConnector connector,
+        Func<X509ChainPolicy> serverChainPolicyFactory)
     {
         ArgumentNullException.ThrowIfNull(authorizer);
         ArgumentNullException.ThrowIfNull(connector);
+        ArgumentNullException.ThrowIfNull(serverChainPolicyFactory);
         this.authorizer = authorizer;
         this.connector = connector;
+        this.serverChainPolicyFactory = serverChainPolicyFactory;
     }
 
     /// <summary>Creates one independently disposable handler bound to an exact local egress policy.</summary>
@@ -52,7 +75,8 @@ public sealed class NetworkBoundHttpMessageHandlerFactory
 
         SslClientAuthenticationOptions sslOptions = new()
         {
-            CertificateChainPolicy = OfflineCertificateChainPolicy.CreateServerAuthentication(),
+            CertificateChainPolicy = serverChainPolicyFactory() ??
+                throw new InvalidOperationException("The TLS policy factory returned no policy."),
         };
         if (clientCertificate is not null)
         {

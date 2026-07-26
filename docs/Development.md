@@ -142,6 +142,33 @@ dead-letter and ambiguous-side-effect behaviour for that disposable PostgreSQL 1
 activate normal delivery, apply an operational migration or homologate PostgreSQL generally. See the
 [R4-B evidence report](STATE-06-Audit-Remediation-R4B-Report.md).
 
+## R-NET local DNS, PKI, IdP and PostgreSQL TLS campaign
+
+The conditional R-NET campaign requires PowerShell 7, the workspace-local
+.NET SDK, Docker Desktop and the exact pinned PostgreSQL image already
+available locally. It creates synthetic certificates and credentials under a
+restricted ACL, uses a process-local custom trust seam, registers only the
+exact temporary CRL in the current user's CA cache, runs PostgreSQL cells
+sequentially and removes every owned resource:
+
+```powershell
+pwsh -NoProfile -NonInteractive -File .\scripts\run-r-net-local-homologation.ps1
+```
+
+Do not pull an image, install a root certificate or accept a protected Windows
+trust prompt to satisfy this gate. The runner takes an exclusive lock, removes
+default routes from every cell, proves a loopback-only effective listener and
+recovers only exact signed CRL artefacts and labelled Docker residue left by a
+previous interrupted run. The effective resolver file must contain only the
+runner's loopback destination, external routes must be absent and PostgreSQL
+must retain zero effective/permitted/inheritable/ambient capability with
+`NoNewPrivs=1`. If the image, Docker, route/DNS/listener/capability boundary,
+exact CRL registration/recovery or cleanup cannot be proved, stop and report
+the boundary. A passing run proves only the controlled local matrix in the
+[R-NET homologation report](STATE-06-R-NET-Local-DNS-PKI-IdP-PostgreSql-TLS-Homologation-Report.md);
+it does not change production system trust, configure an operational IdP,
+apply a migration or homologate PostgreSQL/provider support generally.
+
 ## Legacy checks
 
 ```powershell

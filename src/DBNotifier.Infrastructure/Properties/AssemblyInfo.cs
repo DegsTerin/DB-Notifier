@@ -1,4 +1,5 @@
-// Module purpose: Implements Assembly Info as an outer adapter behind application or provider contracts.
+// Module purpose: Grants test assemblies access to internal infrastructure seams without widening product APIs.
 using System.Runtime.CompilerServices;
 
+[assembly: InternalsVisibleTo("DBNotifier.IntegrationTests")]
 [assembly: InternalsVisibleTo("DBNotifier.UnitTests")]

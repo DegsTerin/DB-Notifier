@@ -152,9 +152,13 @@ public sealed class ProviderNetworkEgressIntegrationTests
         Assert.True(policy.DisableCertificateDownloads);
         Assert.Equal(X509RevocationMode.Offline, policy.RevocationMode);
         Assert.Equal(X509RevocationFlag.EntireChain, policy.RevocationFlag);
+        Assert.Equal(X509VerificationFlags.NoFlag, policy.VerificationFlags);
+        Assert.Equal(X509ChainTrustMode.System, policy.TrustMode);
+        Assert.Empty(policy.CustomTrustStore);
         Assert.Contains(
             policy.ApplicationPolicy.Cast<System.Security.Cryptography.Oid>(),
             oid => oid.Value == "1.3.6.1.5.5.7.3.1");
+        Assert.Null(options.RemoteCertificateValidationCallback);
     }
 
     /// <summary>Proves an existing Unix-domain socket path remains local and never invokes network authorisation.</summary>

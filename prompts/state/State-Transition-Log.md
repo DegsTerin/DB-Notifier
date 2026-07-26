@@ -4216,3 +4216,77 @@
   [relatório físico R-EGRESS/R-FENCE](../../docs/STATE-06-R-EGRESS-R-FENCE-PostgreSql-Multiprocess-Load-Report.md).
 - Aprovador: autoridade de execução concedida por Bruno; resultado automático
   local, sem Human Gate, lifecycle ou ativação inferidos.
+
+## 2026-07-26 — R-NET passa homologação física local de DNS, PKI, IdP e PostgreSQL TLS
+
+- Estado anterior: `STATE-06 INTEGRATION`, `ActivationState=None`; R-NET
+  possuía política produtiva e evidência determinística, mas o resolvedor do
+  sistema, o mecanismo de cadeia/revogação, o backchannel IdP e PostgreSQL TLS
+  ainda não tinham uma campanha física local conjunta.
+- Autoridade: lote condicional local R-NET em fixtures controladas de DNS,
+  PKI, IdP e PostgreSQL TLS, com shutdown, implementação, testes, cobertura,
+  documentação e commit focal; sem download, dependência, dado/credencial
+  real, infraestrutura remota, migration operacional, lifecycle, Human Gate,
+  ativação, push, PR ou deploy.
+- Implementação: os três consumidores TLS diretamente afetados ganharam uma
+  seam `internal` de fábrica de política de cadeia para integração. Todos os
+  construtores públicos e a composição produtiva continuam em trust `System`,
+  revogação `Offline`, `EntireChain`, `NoFlag`, ServerAuth, downloads
+  desabilitados e `CustomTrustStore` vazio. Nenhum callback permissivo ou
+  configuração produtiva de trust foi acrescentado.
+- PKI: a CA sintética permaneceu ausente de `CurrentUser\Root`. Somente sua
+  CRL pública exata foi registrada temporariamente em `CurrentUser\CA` e
+  removida ao final. Tentativas preliminares que acionaram aviso protegido do
+  Windows foram recusadas, sem aceitar ou automatizar o diálogo; `certutil`
+  silencioso também falhou fechado. A repetição aprovada evitou integralmente
+  o Root store.
+- DNS/IdP: o resolvedor do sistema admitiu somente respostas loopback para
+  `localhost`; DNS controlado provou recusa atômica de metadata, nova admissão
+  e IP pinning. Discovery/JWKS/JWT HTTPS local retornou `200` no caso válido e
+  `401` para redirect, origem cruzada, issuer, audience e chave incorretos,
+  com zero hit nos destinos recusados.
+- PostgreSQL: quatro células 16 Alpine descartáveis foram executadas
+  sequencialmente na imagem local fixada por
+  `sha256:e013e867e712fec275706a6c51c966f0bb0c93cfa8f51000f85a15f9865a28cb`,
+  sem pull, volume ou migration. A bridge própria desabilitou masquerade e
+  comunicação entre contêineres; cada célula removeu rotas default, substituiu
+  o resolver efetivo por loopback, recusou resolução `.invalid`, executou
+  PostgreSQL como não-root com capacidades ativas zero/`NoNewPrivs=1` e expôs
+  um listener Windows somente em `127.0.0.1`. Foram provados o SHA-256 exato do
+  certificado servido, PostgreSQL 16, `VerifyFull`, `pg_stat_ssl`, provider
+  `Healthy`, senha incorreta distinta, hostname/raiz/revogação/CRL recusados
+  nos caminhos central e provider e negativa de política antes do transporte.
+- Endurecimento de cleanup: um lock exclusivo impede campanhas concorrentes.
+  O preflight recupera somente Docker com labels/nome/run ID exatos e CRL cujo
+  par público preservado possui subject esperado e assinatura válida; falha
+  controlada de remoção preserva esse artefacto. Crash não cooperativo não foi
+  injetado na campanha final.
+- Campanha final: `11/11` casos em cinco invocações bounded; build Release de
+  `19` projetos com zero warnings/erros; `508/508` unitários, `96/96`
+  arquitetura, `137/137` integração comum e `10/10` WPF; cobertura `83,37%`
+  de linhas e `56,26%` de branches com `10/10` componentes presentes.
+  Formatação, parser, PSScriptAnalyzer, documentação de `415` fontes,
+  inventário estático de `19/19` lockfiles, `792` links Markdown locais em
+  `204` arquivos e secret scan do worktree não ignorado mais histórico Git
+  passaram. Locked restore e freshness online de advisories não foram
+  executados porque download e infraestrutura externa estavam proibidos.
+- Cleanup da campanha e auditoria externa: processos/listeners próprios `=0`,
+  contêineres/redes/volumes próprios `=0`, diretórios/logs temporários `=0`,
+  certificados sintéticos em `CurrentUser\Root`, `CA` e `My` `=0`, CRL
+  própria `=0`.
+- Shutdown final: zero processo ou listener DB-Notifier, zero helper do SDK
+  local do workspace e zero recurso R-NET. O único processo `dotnet`
+  remanescente foi comprovado por PID, executável e linha de comando como o
+  build host da extensão C# do VS Code em `C:\Program Files\dotnet` e foi
+  preservado por não pertencer ao runtime do projeto.
+- Limites: a evidência não prova DNSSEC, DNS/PKI/IdP/PostgreSQL operacional,
+  Root/enterprise trust provisioning, CRL/OCSP operacional, provider
+  homologado, proxy, failover, HA, cross-platform, performance, disponibilidade
+  ou suporte público. `CustomRootTrust` permanece estritamente test-only.
+- Estado resultante: `STATE-06 INTEGRATION` e `ActivationState=None`
+  inalterados; o resultado automático não constitui Human Gate, lifecycle ou
+  ativação.
+- Evidência:
+  [relatório físico R-NET](../../docs/STATE-06-R-NET-Local-DNS-PKI-IdP-PostgreSql-TLS-Homologation-Report.md).
+- Aprovador: autoridade de execução concedida por Bruno; resultado automático
+  local, sem Human Gate, lifecycle ou ativação inferidos.

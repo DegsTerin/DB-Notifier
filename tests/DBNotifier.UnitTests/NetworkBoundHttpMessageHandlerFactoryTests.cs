@@ -30,7 +30,11 @@ public sealed class NetworkBoundHttpMessageHandlerFactoryTests
         Assert.True(policy.DisableCertificateDownloads);
         Assert.Equal(X509RevocationMode.Offline, policy.RevocationMode);
         Assert.Equal(X509RevocationFlag.EntireChain, policy.RevocationFlag);
+        Assert.Equal(X509VerificationFlags.NoFlag, policy.VerificationFlags);
+        Assert.Equal(X509ChainTrustMode.System, policy.TrustMode);
+        Assert.Empty(policy.CustomTrustStore);
         Assert.Contains(policy.ApplicationPolicy.Cast<Oid>(), oid => oid.Value == "1.3.6.1.5.5.7.3.1");
+        Assert.Null(handler.SslOptions.RemoteCertificateValidationCallback);
     }
 
     [Fact]
@@ -155,6 +159,8 @@ public sealed class NetworkBoundHttpMessageHandlerFactoryTests
             Assert.Equal(X509RevocationMode.Offline, policy.RevocationMode);
             Assert.Equal(X509RevocationFlag.EntireChain, policy.RevocationFlag);
             Assert.Equal(X509VerificationFlags.NoFlag, policy.VerificationFlags);
+            Assert.Equal(X509ChainTrustMode.System, policy.TrustMode);
+            Assert.Empty(policy.CustomTrustStore);
         });
         Assert.Contains(server.ApplicationPolicy.Cast<Oid>(), oid => oid.Value == "1.3.6.1.5.5.7.3.1");
         Assert.Contains(client.ApplicationPolicy.Cast<Oid>(), oid => oid.Value == "1.3.6.1.5.5.7.3.2");

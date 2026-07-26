@@ -11,11 +11,33 @@ namespace DBNotifier.Providers.PostgreSql;
 /// Executes the fixed authenticated PostgreSQL health query with hostname-verifying TLS, certificate revocation
 /// checking, bounded timeouts and no pooling or connection-string persistence.
 /// </summary>
-/// <param name="networkAuthorizer">Local authority that resolves and admits the exact monitoring destination.</param>
-public sealed class NpgsqlAuthenticatedExecutor(
-    INetworkEgressAuthorizer networkAuthorizer) : IPostgreSqlAuthenticatedExecutor
+public sealed class NpgsqlAuthenticatedExecutor : IPostgreSqlAuthenticatedExecutor
 {
     private const string HealthQuery = "SELECT 1";
+    private readonly INetworkEgressAuthorizer networkAuthorizer;
+    private readonly Func<X509ChainPolicy> serverChainPolicyFactory;
+
+    /// <summary>Creates the production executor with the shared offline system-trust policy.</summary>
+    /// <param name="networkAuthorizer">Local authority that resolves and admits the exact monitoring destination.</param>
+    public NpgsqlAuthenticatedExecutor(INetworkEgressAuthorizer networkAuthorizer)
+        : this(
+            networkAuthorizer,
+            OfflineCertificateChainPolicy.CreateServerAuthentication)
+    {
+    }
+
+    /// <summary>Creates an executor with an isolated certificate-policy seam for controlled local tests.</summary>
+    /// <param name="networkAuthorizer">Local authority that resolves and admits the exact monitoring destination.</param>
+    /// <param name="serverChainPolicyFactory">Creates one fresh server-certificate policy per TLS connection.</param>
+    internal NpgsqlAuthenticatedExecutor(
+        INetworkEgressAuthorizer networkAuthorizer,
+        Func<X509ChainPolicy> serverChainPolicyFactory)
+    {
+        ArgumentNullException.ThrowIfNull(networkAuthorizer);
+        ArgumentNullException.ThrowIfNull(serverChainPolicyFactory);
+        this.networkAuthorizer = networkAuthorizer;
+        this.serverChainPolicyFactory = serverChainPolicyFactory;
+    }
 
     /// <summary>Executes one authenticated <c>SELECT 1</c> probe using the leased monitoring credential.</summary>
     /// <param name="endpoint">Validated PostgreSQL endpoint requiring <c>verify-full</c> TLS.</param>
@@ -74,7 +96,10 @@ public sealed class NpgsqlAuthenticatedExecutor(
                 _ => password,
                 (_, _) => ValueTask.FromResult(password));
             dataSourceBuilder.UseSslClientAuthenticationOptionsCallback(
-                options => ConfigureSslOptions(options, network.OriginalHost));
+                options => ConfigureSslOptions(
+                    options,
+                    network.OriginalHost,
+                    serverChainPolicyFactory));
             await using NpgsqlDataSource dataSource = dataSourceBuilder.Build();
             await using NpgsqlConnection connection = await dataSource
                 .OpenConnectionAsync(deadline.Token)
@@ -116,13 +141,28 @@ public sealed class NpgsqlAuthenticatedExecutor(
     /// <exception cref="ArgumentException">Thrown when <paramref name="originalHost"/> is absent.</exception>
     internal static void ConfigureSslOptions(
         SslClientAuthenticationOptions options,
-        string originalHost)
+        string originalHost) =>
+        ConfigureSslOptions(
+            options,
+            originalHost,
+            OfflineCertificateChainPolicy.CreateServerAuthentication);
+
+    /// <summary>Applies the original host and one independently created certificate-chain policy.</summary>
+    /// <param name="options">TLS options created by Npgsql for the IP-pinned connection.</param>
+    /// <param name="originalHost">Original validated hostname retained solely for TLS server identity.</param>
+    /// <param name="serverChainPolicyFactory">Creates one fresh policy for this physical connection.</param>
+    private static void ConfigureSslOptions(
+        SslClientAuthenticationOptions options,
+        string originalHost,
+        Func<X509ChainPolicy> serverChainPolicyFactory)
     {
         ArgumentNullException.ThrowIfNull(options);
         ArgumentException.ThrowIfNullOrWhiteSpace(originalHost);
+        ArgumentNullException.ThrowIfNull(serverChainPolicyFactory);
         options.TargetHost = originalHost;
         options.CertificateRevocationCheckMode = X509RevocationMode.Offline;
-        options.CertificateChainPolicy = OfflineCertificateChainPolicy.CreateServerAuthentication();
+        options.CertificateChainPolicy = serverChainPolicyFactory() ??
+            throw new InvalidOperationException("The TLS policy factory returned no policy.");
     }
 
     /// <summary>Converts one positive provider deadline into Npgsql's bounded whole-second contract.</summary>

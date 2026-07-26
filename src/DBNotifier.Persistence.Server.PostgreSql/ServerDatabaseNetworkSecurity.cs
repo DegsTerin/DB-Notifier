@@ -35,6 +35,7 @@ public sealed class NetworkBoundServerDbContextFactory :
     private readonly INetworkEgressAuthorizer authorizer;
     private readonly ValidatedServerDatabaseConfiguration? configuration;
     private readonly Lazy<Task<NpgsqlDataSource>> dataSource;
+    private readonly Func<X509ChainPolicy> serverChainPolicyFactory;
     private int disposed;
 
     /// <summary>Initialises a central context factory without resolving DNS or opening a connection.</summary>
@@ -44,9 +45,26 @@ public sealed class NetworkBoundServerDbContextFactory :
     public NetworkBoundServerDbContextFactory(
         string? connectionString,
         INetworkEgressAuthorizer authorizer)
+        : this(
+            connectionString,
+            authorizer,
+            OfflineCertificateChainPolicy.CreateServerAuthentication)
+    {
+    }
+
+    /// <summary>Initialises a central context factory with an isolated certificate-policy seam for local tests.</summary>
+    /// <param name="connectionString">Potential central PostgreSQL connection string from the host configuration.</param>
+    /// <param name="authorizer">Immutable network-egress authority used once before data-source construction.</param>
+    /// <param name="serverChainPolicyFactory">Creates one fresh server-certificate policy per TLS connection.</param>
+    internal NetworkBoundServerDbContextFactory(
+        string? connectionString,
+        INetworkEgressAuthorizer authorizer,
+        Func<X509ChainPolicy> serverChainPolicyFactory)
     {
         ArgumentNullException.ThrowIfNull(authorizer);
+        ArgumentNullException.ThrowIfNull(serverChainPolicyFactory);
         this.authorizer = authorizer;
+        this.serverChainPolicyFactory = serverChainPolicyFactory;
         configuration = TryValidate(connectionString, out ValidatedServerDatabaseConfiguration? validated)
             ? validated
             : null;
@@ -101,13 +119,28 @@ public sealed class NetworkBoundServerDbContextFactory :
     /// <param name="originalHost">Original DNS name or IP literal whose certificate identity must be proved.</param>
     internal static void ApplyTlsPolicy(
         SslClientAuthenticationOptions options,
-        string originalHost)
+        string originalHost) =>
+        ApplyTlsPolicy(
+            options,
+            originalHost,
+            OfflineCertificateChainPolicy.CreateServerAuthentication);
+
+    /// <summary>Applies the original host and one independently created certificate-chain policy.</summary>
+    /// <param name="options">Fresh Npgsql TLS options for one connection.</param>
+    /// <param name="originalHost">Original DNS name or IP literal whose certificate identity must be proved.</param>
+    /// <param name="serverChainPolicyFactory">Creates one fresh policy for this physical connection.</param>
+    private static void ApplyTlsPolicy(
+        SslClientAuthenticationOptions options,
+        string originalHost,
+        Func<X509ChainPolicy> serverChainPolicyFactory)
     {
         ArgumentNullException.ThrowIfNull(options);
         ArgumentException.ThrowIfNullOrWhiteSpace(originalHost);
+        ArgumentNullException.ThrowIfNull(serverChainPolicyFactory);
         options.TargetHost = originalHost;
         options.CertificateRevocationCheckMode = X509RevocationMode.Offline;
-        options.CertificateChainPolicy = OfflineCertificateChainPolicy.CreateServerAuthentication();
+        options.CertificateChainPolicy = serverChainPolicyFactory() ??
+            throw new InvalidOperationException("The TLS policy factory returned no policy.");
     }
 
     /// <summary>Validates static connection settings without resolving, connecting, logging or returning secrets.</summary>
@@ -195,7 +228,10 @@ public sealed class NetworkBoundServerDbContextFactory :
         };
         NpgsqlDataSourceBuilder builder = new(pinned.ConnectionString);
         builder.UseSslClientAuthenticationOptionsCallback(
-            options => ApplyTlsPolicy(options, configuration.OriginalHost));
+            options => ApplyTlsPolicy(
+                options,
+                configuration.OriginalHost,
+                serverChainPolicyFactory));
         return builder.Build();
     }
 

@@ -188,15 +188,36 @@ health.
 
 ## Validation boundary
 
-Local deterministic tests can prove parsing, allow/deny precedence, mixed DNS
+Local deterministic tests prove parsing, allow/deny precedence, mixed DNS
 refusal, rebinding resistance, redirect refusal, pinned socket arguments and
-TLS option construction. They do not homologate:
+TLS option construction. The separately authorised
+[controlled local R-NET campaign](../STATE-06-R-NET-Local-DNS-PKI-IdP-PostgreSql-TLS-Homologation-Report.md)
+also proves:
 
-- a real DNS resolver or DNSSEC;
-- an IdP metadata/JWKS service;
-- an operating-system trust store or revocation cache;
-- a real PostgreSQL TLS endpoint;
-- proxy, failover or high-availability behaviour;
-- production availability or performance.
+- the Windows system resolver for `localhost`, plus controlled mixed-answer
+  refusal and fresh admission after an answer change;
+- actual local HTTPS discovery, JWKS retrieval and JWT validation, including
+  redirect, cross-origin, issuer, audience and signing-key refusal;
+- the operating-system chain engine with exact process-local custom-root
+  trust, a temporary exact `CurrentUser\CA` CRL and valid, wrong-name,
+  wrong-EKU, revoked, untrusted and missing-CRL cases;
+- central and provider paths against sequential disposable PostgreSQL 16 TLS
+  cells, including `VerifyFull`, `pg_stat_ssl`, authentication failure,
+  certificate failure and pre-transport policy denial. Each cell had no
+  default route, used an exact loopback-only effective resolver, ran
+  PostgreSQL as non-root with zero active capabilities and `NoNewPrivs=1`,
+  and exposed an effective Windows listener only on IPv4 loopback.
 
-Those claims require separately authorised operational evidence.
+Production constructors still use system trust; no custom root or trust
+override became runtime configuration. The campaign does not homologate:
+
+- non-loopback or operational DNS, DNSSEC, corporate resolver/cache behaviour
+  or temporal rebinding outside the fixture;
+- operating-system Root or enterprise-trust provisioning, operational
+  CA/CRL/OCSP rotation or externally managed PKI;
+- a corporate IdP;
+- an operational or provider-homologated PostgreSQL topology;
+- proxy, failover, high availability, cross-platform behaviour, production
+  availability or performance.
+
+Those stronger claims require separately authorised operational evidence.

@@ -111,7 +111,10 @@ public sealed class ServerDatabaseNetworkSecurityTests
         Assert.NotNull(options.CertificateChainPolicy);
         Assert.True(options.CertificateChainPolicy.DisableCertificateDownloads);
         Assert.Equal(X509RevocationMode.Offline, options.CertificateChainPolicy.RevocationMode);
+        Assert.Equal(X509RevocationFlag.EntireChain, options.CertificateChainPolicy.RevocationFlag);
         Assert.Equal(X509VerificationFlags.NoFlag, options.CertificateChainPolicy.VerificationFlags);
+        Assert.Equal(X509ChainTrustMode.System, options.CertificateChainPolicy.TrustMode);
+        Assert.Empty(options.CertificateChainPolicy.CustomTrustStore);
         Assert.Contains(
             options.CertificateChainPolicy.ApplicationPolicy.Cast<Oid>(),
             usage => usage.Value == "1.3.6.1.5.5.7.3.1");
