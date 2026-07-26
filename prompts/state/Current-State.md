@@ -81,6 +81,14 @@ proprietários.
   definitiva; contenção e latência desse risco não foram testadas. A evidência
   proprietária está no
   [relatório R-EGRESS](../../docs/STATE-06-R-EGRESS-Observation-Ingestion-Revocation-Linearisation-Report.md).
+- R-FENCE está automaticamente `APROVADO` somente como regressão local do
+  lifecycle do gate por Agent já implementado em R-EGRESS. Quatro testes
+  determinísticos provam cancelamento de waiter sem divisão/ABA, liberação
+  após exceção, `Dispose` idempotente e independência entre Agents. O lote não
+  mudou comportamento produtivo, persistência, API pública ou composição e
+  não acrescenta garantias de fairness, prioridade ou timeout próprio. A
+  evidência proprietária está no
+  [relatório R-FENCE](../../docs/STATE-06-R-FENCE-Agent-Identity-Fence-Lifecycle-Regression-Report.md).
 - O lote documental PM-3 alinhou a apresentação pública ao estado corrente,
   rotulou o relatório de migração de prompts como evidência histórica e não
   alterou autoridade, código, configuração, lifecycle ou ativação.

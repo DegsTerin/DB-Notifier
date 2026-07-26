@@ -15,7 +15,7 @@ internal static class AgentIdentityTransactionFence
 
     /// <summary>Enters the process-local portion of the identity transaction fence for one exact Agent.</summary>
     /// <param name="agentId">Agent whose identity-dependent transaction is about to begin.</param>
-    /// <param name="cancellationToken">Cancellation observed while waiting for the bounded owner.</param>
+    /// <param name="cancellationToken">Cancellation observed while waiting for the current owner.</param>
     /// <returns>A lease that releases the exact gate once the owning transaction has completed or failed.</returns>
     /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="agentId"/> is empty.</exception>
     internal static async ValueTask<IDisposable> EnterAsync(

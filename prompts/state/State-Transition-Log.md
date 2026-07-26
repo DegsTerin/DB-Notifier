@@ -4015,3 +4015,31 @@
   egress continua um lote técnico separado neste ponto histórico.
 - Aprovador: Bruno, exclusivamente nas fronteiras acima; nenhuma decisão de
   lifecycle, Human Gate ou ativação foi inferida.
+
+## 2026-07-26 — R-FENCE fecha regressões do lifecycle do gate por Agent
+
+- Estado anterior: `STATE-06 INTEGRATION`, `ActivationState=None`; R-EGRESS
+  aceito no seu escopo focal, com o lifecycle do gate interno coberto apenas
+  indiretamente pelas ordens funcionais de ingestão e revogação.
+- Autoridade: execução sequencial dos lotes técnicos locais obrigatórios, sem
+  pausas intermediárias e sem ampliar as fronteiras proibidas.
+- Diagnóstico: cancelamento de waiter, liberação excepcional, descarte
+  repetido e independência entre Agents eram propriedades implementadas, mas
+  ainda não possuíam regressões determinísticas diretas.
+- Implementação: acesso interno concedido exclusivamente ao assembly de
+  testes; quatro regressões diretas adicionadas; comentário XML inexato sobre
+  um owner “bounded” corrigido. Nenhum algoritmo ou contrato produtivo mudou.
+- Gates: regressões focais `4/4`; suíte unitária completa `417/417`; build
+  Release da solução com zero warnings/erros; cobertura `82,12%` de linhas e
+  `54,31%` de branches, com `10/10` componentes obrigatórios.
+- Escopo negativo: zero dependência, migration, runtime externo, PostgreSQL
+  operacional, lifecycle, Human Gate, `ActivationState`, push, PR ou deploy.
+- Estado resultante: R-FENCE automaticamente `APROVADO` somente no escopo
+  local de regressão; `STATE-06 INTEGRATION` e `ActivationState=None`
+  inalterados.
+- Riscos/ressalvas: PostgreSQL real, multiprocesso, fairness, prioridade,
+  timeout próprio e latência sob carga permanecem não testados.
+- Evidência:
+  [relatório R-FENCE](../../docs/STATE-06-R-FENCE-Agent-Identity-Fence-Lifecycle-Regression-Report.md).
+- Aprovador: autoridade de execução concedida por Bruno; resultado automático
+  local, sem Human Gate, lifecycle ou ativação inferidos.
