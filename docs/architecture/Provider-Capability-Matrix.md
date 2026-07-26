@@ -2,7 +2,10 @@
 
 ## Status vocabulary
 
-- `Legacy observed`: present in the PowerShell compatibility implementation; not DB-Notifier provider support.
+- `Current compatibility`: present in the current PowerShell compatibility
+  runtime; not DB-Notifier provider support.
+- `Historical legacy observed`: present in the 2026-07-11 discovery snapshot
+  but removed or superseded in the current compatibility runtime.
 - `Planned`: architecture/contract defined but not implemented.
 - `Unsupported`: deliberate no-attempt result for the stated scope.
 - `Not evaluated`: no implementation or homologation evidence.
@@ -10,19 +13,19 @@
 
 ## PostgreSQL baseline
 
-| Capability | Local Windows legacy | Remote legacy | Target PostgreSQL provider | Homologation |
+| Capability | Current local compatibility | Current remote compatibility | Target PostgreSQL provider | Homologation |
 |---|---|---|---|---|
 | Validate non-secret endpoint config | Partial legacy normalization | Partial legacy normalization | Implemented first increment; unit-tested | None |
-| Discover Windows PostgreSQL services | Legacy observed via CIM/registry | N/A | Planned Windows discovery adapter | None |
-| Provider readiness via `pg_isready` | Legacy observed | Legacy observed | Implemented adapter; no live DB evidence | None |
-| TCP reachability fallback | Legacy observed; must be `Degraded` | Legacy observed; must be `Degraded` | Implemented; transport-only maps to `Degraded` | None |
-| Authenticated health probe | Not implemented | Not implemented | Implemented Npgsql/TLS adapter; fake-only evidence | None |
-| Authentication failure classification | Not reliable | Not reliable | Implemented canonical mapping; fake-only evidence | None |
+| Discover Windows PostgreSQL services | Current compatibility via CIM/registry | N/A | Planned Windows discovery adapter | None |
+| Provider readiness via `pg_isready` | Current compatibility; loopback only | Unsupported; refused before DNS, process or socket use | Implemented adapter with deterministic fixtures; no homologation | None |
+| TCP reachability fallback | Current compatibility; loopback-only transport evidence maps to `Degraded` | Unsupported; refused before DNS or socket use | Implemented; transport-only maps to `Degraded` | None |
+| Authenticated health probe | Not implemented | Not implemented | Implemented Npgsql/TLS adapter; deterministic tests and controlled local PostgreSQL 16/TLS evidence | None |
+| Authentication failure classification | Not implemented | Not implemented | Implemented canonical mapping; deterministic and controlled local trust, hostname and revocation evidence | None |
 | Latency measurement | Process duration not canonicalized | Process duration not canonicalized | Implemented for readiness duration | None |
 | Version discovery | Not implemented | Not implemented | Planned | None |
 | Core metrics | Not implemented | Not implemented | Planned incrementally | None |
 | Event/history persistence | Not implemented | Not implemented | Implemented for canonical health transitions and central event/outbox persistence | None |
-| Start/Stop/Restart Windows service | Legacy observed in code; not exercised in discovery | Unsupported | Planned separate admin adapter | None |
+| Start/Stop/Restart Windows service | Unsupported in the current compatibility runtime; historical discovery only | Unsupported | Planned separate admin adapter | None |
 | SQL/native administrative operations | Unsupported | Unsupported | Unsupported until separate capability ADR/evidence | None |
 | Offline Agent outbox | Not implemented | Not implemented | Implemented: transactional sink, ordered dispatch/ack, tombstones and bounded retry | None |
 

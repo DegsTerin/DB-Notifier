@@ -1,12 +1,19 @@
 # Auditoria de Rastreabilidade de Solicitações
 
+> **Escopo histórico.** Esta matriz cobre as solicitações consolidadas até
+> 2026-07-17 e o baseline `STATE-05` descrito abaixo. Lotes `STATE-06`, PM e
+> remediações posteriores pertencem ao
+> [`Current-State.md`](../prompts/state/Current-State.md), ao
+> [`State-Transition-Log.md`](../prompts/state/State-Transition-Log.md) e aos
+> respetivos relatórios proprietários.
+
 ## Resultado
 
 Esta auditoria consolida as solicitações feitas na sessão de evolução visual, acessibilidade e governança do DB-Notifier até 2026-07-17 e incorpora as decisões humanas recebidas até essa data. O cruzamento original foi realizado contra os 60 arquivos Markdown que existiam no commit-base `9069942`, o histórico Git, a implementação React/WPF, os testes automatizados e os runners de auditoria; as atualizações posteriores preservam a mesma matriz proprietária.
 
 Foram identificadas 70 unidades de requisito rastreáveis. A reauditoria de `REQ-050` não cria uma unidade duplicada: ela decompõe a cobertura pública do MySQL Notifier em 25 resultados funcionais `MN-*` e quatro invariantes de qualidade `MN-Q*`, todos com fonte, disposição clean-room, evidência atual, fase proprietária e condição de saída. `REQ-067` cobre a matriz local de transições, `REQ-068` a ordem de Tab das grades WPF, `REQ-069` o shutdown preflight permanente e `REQ-070` a remediação das ressalvas e pendências correntes de `STATE-05`. Após esta atualização, toda solicitação consolidada possui documento proprietário ou evidência histórica identificada. Isso não significa que todas estejam implementadas ou humanamente aprovadas: a matriz preserva separadamente requisitos atendidos, decisões substituídas, integrações futuras, limitações intencionais e amostras humanas pendentes.
 
-O estado permanece `STATE-05 FRONTEND_IMPLEMENTATION`, com Human Gate `APROVADO` por decisão formal substitutiva de Bruno em 2026-07-17. A decisão anterior `APROVADO COM RESSALVAS` continua preservada como histórico. Esta auditoria não altera um estado do ciclo de vida e a decisão humana não autoriza `STATE-06`, `STATE-07`, integração externa, controle de serviço ou homologação de provider.
+No corte desta auditoria, o estado era `STATE-05 FRONTEND_IMPLEMENTATION`, com Human Gate `APROVADO` por decisão formal substitutiva de Bruno em 2026-07-17. A decisão anterior `APROVADO COM RESSALVAS` continua preservada como histórico. Esta auditoria não altera um estado do ciclo de vida e a decisão humana não autoriza `STATE-06`, `STATE-07`, integração externa, controle de serviço ou homologação de provider.
 
 ### Reconhecimento humano do inventário
 

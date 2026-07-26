@@ -1,5 +1,16 @@
 # Proposta STATE-06 — Remediação test-only das amostras humanas bloqueadas
 
+> **Proposta histórica executada e superada.** A implementação está no
+> [relatório de remediação](STATE-06-Final-Human-Samples-Test-Only-Evidence-Remediation-Report.md);
+> a sequência posterior está nos relatórios da
+> [segunda remediação](STATE-06-Final-Human-Samples-Second-Test-Only-Remediation-Report.md),
+> da
+> [repetição final](STATE-06-Final-Human-Samples-Second-Post-Remediation-Repetition-Report.md)
+> e do
+> [Human Gate final](STATE-06-Final-Human-Gate-Report.md). O texto abaixo
+> preserva a autoridade e o diagnóstico existentes quando a proposta foi
+> escrita.
+
 ## Status e autoridade
 
 - Data: 2026-07-20.
