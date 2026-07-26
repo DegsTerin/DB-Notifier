@@ -36,7 +36,7 @@ proprietários.
 
 ## Baseline técnica
 
-- A solução contém 18 projetos .NET 10, com targets `net10.0` ou
+- A solução contém 19 projetos .NET 10, com targets `net10.0` ou
   `net10.0-windows10.0.22621.0`; os hosts de sandbox em `tests/` não pertencem
   à composição normal. O Dashboard usa React e TypeScript; o cliente Windows
   usa WPF.
@@ -83,29 +83,38 @@ proprietários.
   [relatório R-SEQ original](../../docs/STATE-06-R-SEQ-Rejected-Observation-Sequence-Remediation-Report.md)
   e o
   [relatório do ledger durável](../../docs/STATE-06-R-SEQ-Durable-Rejection-Ledger-Report.md).
-- R-EGRESS, por autoridade explícita deste lote, designa somente a corrida
-  entre leitura `Active`, revogação principal e commit da ingestão de
-  observações. O lote foi automaticamente `APROVADO` e depois expressamente
-  aceito por Bruno somente no escopo local validado: ingestão e revogação
-  compartilham uma ordem por Agent, e a
-  observação que perde essa ordem não cria amostra nem efeito atribuível a
-  ela. O R-SEQ ainda pode projetar uma sucessora aceita antes da revogação e
-  retida atrás do gap recusado. PostgreSQL serializável real e Server
-  multiprocesso permanecem não testados. R-EGRESS não avaliou SSRF ou
-  network egress no seu escopo histórico; o resultado corrente dessa fronteira
-  pertence ao R-NET descrito abaixo. O gate local não garante prioridade,
-  fairness ou limite próprio de espera e é adquirido pela revogação antes da
-  decisão RBAC definitiva; contenção e latência desse risco não foram testadas.
-  A evidência proprietária está no
-  [relatório R-EGRESS](../../docs/STATE-06-R-EGRESS-Observation-Ingestion-Revocation-Linearisation-Report.md).
-- R-FENCE está automaticamente `APROVADO` somente como regressão local do
-  lifecycle do gate por Agent já implementado em R-EGRESS. Quatro testes
-  determinísticos provam cancelamento de waiter sem divisão/ABA, liberação
-  após exceção, `Dispose` idempotente e independência entre Agents. O lote não
-  mudou comportamento produtivo, persistência, API pública ou composição e
-  não acrescenta garantias de fairness, prioridade ou timeout próprio. A
-  evidência proprietária está no
-  [relatório R-FENCE](../../docs/STATE-06-R-FENCE-Agent-Identity-Fence-Lifecycle-Regression-Report.md).
+- R-EGRESS designa somente a corrida entre leitura `Active`, revogação
+  principal e commit da ingestão de observações. O lote local foi
+  automaticamente `APROVADO` e depois expressamente aceito por Bruno nesse
+  escopo: ingestão e revogação compartilham uma ordem por Agent, e a observação
+  que perde essa ordem não cria amostra nem efeito atribuível a ela. A campanha
+  física complementar passou oito cenários em processos independentes contra
+  PostgreSQL descartável e loopback-only: sete relações de blocking,
+  `86` ocorrências por item de SQLSTATE `40001`, `106` disposições `Accepted`,
+  `27` `Rejected`, `68` `Retryable` com `68/68` convergências bounded e zero
+  deadlock, falha não classificada ou resíduo próprio. Os dois perfis `4 × 25`
+  concluíram `100/100` operações cada. O R-SEQ ainda pode projetar uma
+  sucessora aceita antes da revogação e retida atrás do gap recusado. R-EGRESS
+  não avaliou SSRF ou network egress no seu escopo histórico; o resultado
+  corrente dessa fronteira pertence ao R-NET descrito abaixo. A posição zero da
+  revogação nesta execução é apenas um fato observado: o gate continua sem
+  garantia de prioridade, fairness, starvation freedom, limite próprio de
+  espera, SLO ou suporte PostgreSQL operacional. As evidências proprietárias
+  são o
+  [relatório R-EGRESS](../../docs/STATE-06-R-EGRESS-Observation-Ingestion-Revocation-Linearisation-Report.md)
+  e o
+  [relatório da campanha física](../../docs/STATE-06-R-EGRESS-R-FENCE-PostgreSql-Multiprocess-Load-Report.md).
+- R-FENCE está automaticamente `APROVADO` somente como regressão local do gate
+  por Agent já implementado em R-EGRESS. Quatro testes determinísticos provam
+  cancelamento de waiter sem divisão/ABA, liberação após exceção, `Dispose`
+  idempotente e independência entre Agents. A campanha física complementar
+  passou crash do holder, cancelamento do waiter e isolamento entre Agents em
+  processos independentes. O lote não concede suporte PostgreSQL operacional
+  nem acrescenta garantias de fairness, prioridade, starvation freedom, timeout
+  próprio ou SLO. As evidências proprietárias são o
+  [relatório R-FENCE](../../docs/STATE-06-R-FENCE-Agent-Identity-Fence-Lifecycle-Regression-Report.md)
+  e o
+  [relatório da campanha física](../../docs/STATE-06-R-EGRESS-R-FENCE-PostgreSql-Multiprocess-Load-Report.md).
 - R-NET está automaticamente `APROVADO` somente no escopo local validado.
   Quatro políticas independentes e imutáveis agora exigem CIDR positivo e
   porta exata para sincronização do Agent, monitorização por provider, OIDC

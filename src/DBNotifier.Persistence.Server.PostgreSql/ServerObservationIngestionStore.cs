@@ -40,7 +40,7 @@ public sealed class ServerObservationIngestionStore(
         {
             return await IngestCoreAsync(message, receivedAt, cancellationToken).ConfigureAwait(false);
         }
-        catch (Exception exception) when (exception is DbUpdateException or DbException)
+        catch (Exception exception) when (ContainsPersistenceFailure(exception))
         {
             return await ClassifyAfterPersistenceFailureAsync(
                 message,
@@ -80,7 +80,7 @@ public sealed class ServerObservationIngestionStore(
                 receivedAt,
                 cancellationToken).ConfigureAwait(false);
         }
-        catch (Exception exception) when (exception is DbUpdateException or DbException)
+        catch (Exception exception) when (ContainsPersistenceFailure(exception))
         {
             return Retryable(messageId, "ingestion.persistence_unavailable");
         }
@@ -261,13 +261,35 @@ public sealed class ServerObservationIngestionStore(
                 ? new ObservationItemResult(message.MessageId, ObservationIngestionDisposition.Accepted)
                 : Retryable(message.MessageId, "ingestion.reconciliation_limit_reached");
         }
-        catch (DbUpdateException)
+        catch (Exception exception) when (ContainsPersistenceFailure(exception))
         {
-            await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
+            await RollbackFailedTransactionAsync(transaction, cancellationToken).ConfigureAwait(false);
             return await ClassifyAfterPersistenceFailureAsync(
                 message,
                 receivedAt,
                 cancellationToken).ConfigureAwait(false);
+        }
+    }
+
+    /// <summary>
+    /// Requests rollback after a proved persistence failure without allowing an already-completed provider
+    /// transaction to replace the original failure before fresh classification.
+    /// </summary>
+    /// <param name="transaction">Transaction that raised or propagated the persistence failure.</param>
+    /// <param name="cancellationToken">Cancellation that must still interrupt an active rollback.</param>
+    /// <returns>A task completing when rollback succeeds or the provider proves the transaction is already unusable.</returns>
+    private static async Task RollbackFailedTransactionAsync(
+        Microsoft.EntityFrameworkCore.Storage.IDbContextTransaction transaction,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
+        }
+        catch (InvalidOperationException) when (!cancellationToken.IsCancellationRequested)
+        {
+            // PostgreSQL can complete or invalidate the EF transaction while reporting a failed serialisable commit.
+            // Fresh classification owns the authoritative follow-up transaction and never reuses this instance.
         }
     }
 
@@ -334,11 +356,35 @@ public sealed class ServerObservationIngestionStore(
         {
             throw;
         }
-        catch (Exception exception) when (
-            exception is DbUpdateException or DbException or InvalidOperationException)
+        catch (Exception exception) when (ContainsPersistenceFailure(exception))
         {
             return Retryable(message.MessageId, "ingestion.persistence_unavailable");
         }
+    }
+
+    /// <summary>
+    /// Identifies direct or wrapped persistence failures without converting cancellation or an unrelated wrapper into
+    /// retry authority.
+    /// </summary>
+    /// <param name="exception">Failure raised by the provider, EF or an enclosing execution boundary.</param>
+    /// <returns>
+    /// <see langword="true"/> only when the exception chain contains a database persistence failure and no
+    /// cancellation.
+    /// </returns>
+    private static bool ContainsPersistenceFailure(Exception exception)
+    {
+        bool persistenceFailureFound = false;
+        for (Exception? current = exception; current is not null; current = current.InnerException)
+        {
+            if (current is OperationCanceledException)
+            {
+                return false;
+            }
+
+            persistenceFailureFound |= current is DbUpdateException or DbException;
+        }
+
+        return persistenceFailureFound;
     }
 
     /// <summary>Compares identifiers and payload hashes so only exact replay is accepted as a duplicate.</summary>

@@ -4158,3 +4158,61 @@
   [relatório do ledger R-SEQ](../../docs/STATE-06-R-SEQ-Durable-Rejection-Ledger-Report.md).
 - Aprovador: autoridade de execução concedida por Bruno; a evidência focal não
   constitui Human Gate, lifecycle ou ativação.
+
+## 2026-07-26 — R-EGRESS/R-FENCE passa campanha física PostgreSQL multiprocesso endurecida
+
+- Estado anterior: `STATE-06 INTEGRATION`, `ActivationState=None`; R-EGRESS e
+  R-FENCE possuíam evidência determinística local, mas PostgreSQL real
+  descartável, processos independentes, SQLSTATE `40001` e carga concorrente
+  ainda não tinham evidência física proprietária.
+- Autoridade: Bruno autorizou a execução sequencial de todos os lotes técnicos
+  locais ainda obrigatórios, incluindo shutdown, implementação, testes,
+  cobertura e documentação, sem novas dependências, migration operacional,
+  runtime ou ação externa, lifecycle, Human Gate, ativação, push, PR ou deploy.
+- Diagnóstico e correção produtiva: a primeira campanha expôs um SQLSTATE
+  `40001` encapsulado por `InvalidOperationException`. O store passou a
+  reconhecer somente cadeias que contêm `DbUpdateException` ou `DbException`,
+  sem capturar `InvalidOperationException` arbitrária nem cancelamento. A
+  regressão focal preserva essa fronteira.
+- Endurecimento test-only: cada item de carga passou a atribuir `40001` pelo
+  seu próprio delta, impedindo contaminação por ocorrência anterior do mesmo
+  processo. O cleanup passou a tentar todos os filhos, acumular falhas para
+  nova tentativa e varrer host, marcador e token exclusivos do runner antes
+  de concluir ausência de resíduo.
+- Campanha física: o resumo fechado `schemaVersion=2` passou `8/8` cenários
+  contra `postgres:16-alpine` fixado por
+  `sha256:e013e867e712fec275706a6c51c966f0bb0c93cfa8f51000f85a15f9865a28cb`.
+  Foram observadas sete relações blocker/waiter exatas, `86` ocorrências de
+  SQLSTATE `40001`, `106` disposições `Accepted`, `27` `Rejected`, `68`
+  `Retryable` e `68/68` convergências bounded, com zero deadlock ou falha não
+  classificada.
+- Carga mesmo Agent: `100/100` operações, `38` ocorrências de `40001`, zero
+  `Retryable`, máximo de três sessões bloqueadas, p50 `105,4391 ms`, p95
+  `334,8821 ms`, p99 `4.195,9385 ms`, máximo `4.239,3057 ms` e throughput
+  observado `11,3550 ops/s`.
+- Carga Agents distintos: `100/100` operações, `45` ocorrências de `40001`,
+  `67` `Retryable`, máximo de uma sessão bloqueada, p50 `127,4807 ms`, p95
+  `275,6282 ms`, p99 `3.474,3736 ms`, máximo `5.364,1133 ms` e throughput
+  observado `11,6109 ops/s`.
+- Gates: build Release focal com zero warnings/erros; `508/508` unitários,
+  `96/96` arquitetura, `126/126` integração e `10/10` WPF; cobertura `83,35%`
+  de linhas e `56,27%` de branches com `10/10` componentes obrigatórios;
+  `dotnet format`, parser PowerShell, PSScriptAnalyzer, documentação de `411`
+  fontes comment-capable, `781` links locais em `203` arquivos Markdown e
+  secret scan do worktree não ignorado mais histórico Git aprovados.
+- Cleanup: `containers=0`, `networks=0`, `volumes=0`, diretórios temporários
+  próprios `=0`, processos DB-Notifier `=0` e listeners DB-Notifier `=0`.
+- Shutdown documental final: sete nós MSBuild reutilizáveis, todos comprovados
+  pelo PID, caminho do SDK local e modo de nó, foram encerrados. A repetição
+  terminou com zero processo ou listener do workspace.
+- Limites: a posição registrada da revogação foi zero, mas isso não estabelece
+  prioridade. A execução não prova SLO, fairness, starvation freedom, limite
+  próprio de espera, PostgreSQL operacional, homologação ou suporte público.
+  Nenhuma migration foi aplicada a banco existente, monitorado ou operacional.
+- Estado resultante: `STATE-06 INTEGRATION` e `ActivationState=None`
+  inalterados; o resultado automático não constitui Human Gate, transição de
+  lifecycle ou ativação.
+- Evidência:
+  [relatório físico R-EGRESS/R-FENCE](../../docs/STATE-06-R-EGRESS-R-FENCE-PostgreSql-Multiprocess-Load-Report.md).
+- Aprovador: autoridade de execução concedida por Bruno; resultado automático
+  local, sem Human Gate, lifecycle ou ativação inferidos.

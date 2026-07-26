@@ -86,6 +86,22 @@ rejection under the same R-SEQ rules. Completing mTLS authentication before this
 continuing commit authority. This ordering contract does not claim equivalent fencing for heartbeat, assignment,
 command or certificate-batch workflows.
 
+### Physical multiprocess evidence campaign
+
+The [R-EGRESS/R-FENCE PostgreSQL multiprocess and load campaign](../STATE-06-R-EGRESS-R-FENCE-PostgreSql-Multiprocess-Load-Report.md)
+passed all eight scenarios through independent child processes against one disposable PostgreSQL instance bound only
+to loopback. Parent/child coordination used named pipes created with `PipeOptions.CurrentUserOnly`; the synthetic
+database credential did not enter child arguments, inherited child environment, logs or retained artefacts.
+
+The campaign retained seven exact blocker/waiter observations through `pg_blocking_pids()`, `86` per-operation
+SQLSTATE `40001` occurrences with fail-closed persistence-failure reclassification, holder-crash recovery, waiter
+cancellation, Agent isolation and fixed `4 × 25` same-Agent and distinct-Agent profiles. All `68` retryable
+classifications converged within the bounded harness; deadlocks, unclassified failures and owned residue were zero.
+Any schema preparation belonged only to the disposable fixture and was not an operational migration. The recorded
+latency and throughput
+characterise only that machine, image, fixture and execution; they establish no SLO, fairness, priority or operational
+PostgreSQL support.
+
 Rules:
 
 - Duplicate IDs return the original acceptance identity.
@@ -201,6 +217,11 @@ For the implemented Agent Fleet slice, the `retryable` field is authoritative wh
 - Legacy replay before the cutover and fail-closed detection of missing or conflicting post-cutover evidence.
 - Local or request-level rejection without a covering Server high-water mark.
 - Revocation while Agent is connected.
+- Independent-process ingestion-first and revocation-first PostgreSQL orderings, with exact blocker/waiter
+  relationships proved through `pg_blocking_pids()` rather than inferred from elapsed time, passed in the bounded
+  physical campaign.
+- Holder-crash recovery, waiter cancellation, Agent isolation and bounded `4 × 25` same-Agent and distinct-Agent
+  PostgreSQL characterisation passed in that campaign; these scenarios establish no SLO, fairness or priority.
 - API on `N`, Agent on `N-1`, and command requiring `N`.
 - Command expires before retrieval, after acknowledgement, and during a non-cancellable adapter operation.
 - SignalR loss/reconnect with command polling recovery.

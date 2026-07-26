@@ -141,6 +141,26 @@ public sealed class ObservationRevocationConcurrencyTests
         await fixture.AssertAcceptedReplayWonInactiveClassificationAsync(accepted);
     }
 
+    /// <summary>
+    /// Proves an execution-boundary wrapper around a persistence failure still enters fresh inactive-Agent
+    /// reclassification and durably consumes only the rejected sequence.
+    /// </summary>
+    [Fact]
+    public async Task WrappedPersistenceFailureReclassifiesAsDurableInactiveRejection()
+    {
+        await using ConcurrencyFixture fixture = await ConcurrencyFixture.CreateAsync(
+            PauseTarget.ObservationCursorCreation,
+            armPause: false);
+        ObservationSyncMessage rejected = fixture.CreateMessage(sequence: 1);
+        fixture.ArmWrappedFailureThenRevocation();
+
+        ObservationItemResult result = await fixture.IngestAsync(rejected);
+
+        Assert.Equal(ObservationIngestionDisposition.Rejected, result.Disposition);
+        Assert.Equal("agent.not_active", result.ErrorCode);
+        await fixture.AssertWrappedFailureBecameDurableRejectionAsync(rejected);
+    }
+
     /// <summary>Owns one shared in-memory Server database and the two stores participating in the race.</summary>
     private sealed class ConcurrencyFixture : IAsyncDisposable
     {
@@ -296,6 +316,22 @@ public sealed class ObservationRevocationConcurrencyTests
                 if (ordinal == 2)
                 {
                     CommitAcceptedReplayThenRevocation(message);
+                }
+            };
+        }
+
+        /// <summary>
+        /// Arranges an execution wrapper around the first persistence failure and revokes authority before the fresh
+        /// classification context is created.
+        /// </summary>
+        internal void ArmWrappedFailureThenRevocation()
+        {
+            Pause.ArmWrappedFailure();
+            contextFactory.BeforeContextCreated = ordinal =>
+            {
+                if (ordinal == 2)
+                {
+                    CommitRevocationWithoutAudit();
                 }
             };
         }
@@ -469,6 +505,38 @@ public sealed class ObservationRevocationConcurrencyTests
             Assert.Equal(0, await context.RejectedObservationSequences.CountAsync());
         }
 
+        /// <summary>
+        /// Verifies wrapped persistence-failure reclassification consumed one inactive rejection without accepted
+        /// health or audit effects.
+        /// </summary>
+        /// <param name="rejected">Exact message whose rejected stream position must be durable.</param>
+        /// <returns>A task completing after the complete durable matrix has been checked.</returns>
+        internal async Task AssertWrappedFailureBecameDurableRejectionAsync(
+            ObservationSyncMessage rejected)
+        {
+            await using ServerDbContext context = new(options);
+            RegisteredAgentRow agent = await context.Agents.AsNoTracking().SingleAsync(
+                row => row.AgentId == AgentId);
+            Assert.Equal("Revoked", agent.State);
+            Assert.NotNull(agent.RevokedAt);
+            Assert.Equal(1, await context.AgentObservationCursors
+                .Where(row => row.AgentId == AgentId)
+                .Select(row => row.HighestContiguousSequence)
+                .SingleAsync());
+            RejectedObservationSequenceRow ledger = await context.RejectedObservationSequences
+                .AsNoTracking()
+                .SingleAsync();
+            Assert.Equal(rejected.MessageId, ledger.MessageId);
+            Assert.Equal(1, ledger.Sequence);
+            Assert.Equal("agent.not_active", ledger.ErrorCode);
+            Assert.Equal(0, await context.HealthSamples.CountAsync());
+            Assert.Equal(0, await context.InstanceObservationStates.CountAsync());
+            Assert.Equal(0, await context.Events.CountAsync());
+            Assert.Equal(0, await context.OutboxMessages.CountAsync());
+            Assert.Equal(0, await context.NotificationDeliveries.CountAsync());
+            Assert.Equal(0, await context.AuditEntries.CountAsync());
+        }
+
         /// <summary>Releases any pending pause and closes the anchor retaining the in-memory database.</summary>
         /// <returns>A task that completes after the anchor connection has closed.</returns>
         public async ValueTask DisposeAsync()
@@ -628,6 +696,17 @@ public sealed class ObservationRevocationConcurrencyTests
             context.SaveChanges();
         }
 
+        /// <summary>Commits only synthetic revoked authority before a fresh post-failure classification context.</summary>
+        private void CommitRevocationWithoutAudit()
+        {
+            using ServerDbContext context = new(options);
+            RegisteredAgentRow agent = context.Agents.Single(row => row.AgentId == AgentId);
+            agent.State = "Revoked";
+            agent.RevokedAt = Now.AddSeconds(1);
+            agent.ConcurrencyToken = Guid.NewGuid();
+            context.SaveChanges();
+        }
+
         /// <summary>Invokes the canonical private hash implementation so the simulated replay is byte-for-byte exact.</summary>
         /// <param name="message">Message whose replay-significant fields are hashed.</param>
         /// <returns>The production hexadecimal SHA-256 payload hash.</returns>
@@ -661,6 +740,7 @@ public sealed class ObservationRevocationConcurrencyTests
             new(TaskCreationOptions.RunContinuationsAsynchronously);
         private int armed;
         private int failInsteadOfPause;
+        private int wrapFailure;
 
         /// <summary>Arms the interceptor after schema creation and seed persistence have completed.</summary>
         internal void Arm() => Interlocked.Exchange(ref armed, 1);
@@ -670,6 +750,13 @@ public sealed class ObservationRevocationConcurrencyTests
         {
             Interlocked.Exchange(ref failInsteadOfPause, 1);
             Interlocked.Exchange(ref armed, 1);
+        }
+
+        /// <summary>Arms one persistence failure inside the execution wrapper observed in physical PostgreSQL.</summary>
+        internal void ArmWrappedFailure()
+        {
+            Interlocked.Exchange(ref wrapFailure, 1);
+            ArmFailure();
         }
 
         /// <summary>Waits for the selected transaction to reach its pre-write boundary.</summary>
@@ -690,7 +777,16 @@ public sealed class ObservationRevocationConcurrencyTests
             {
                 if (Interlocked.Exchange(ref failInsteadOfPause, 0) == 1)
                 {
-                    throw new DbUpdateException("Synthetic R-EGRESS persistence failure.");
+                    DbUpdateException persistenceFailure =
+                        new("Synthetic R-EGRESS persistence failure.");
+                    if (Interlocked.Exchange(ref wrapFailure, 0) == 1)
+                    {
+                        throw new InvalidOperationException(
+                            "Synthetic execution wrapper.",
+                            persistenceFailure);
+                    }
+
+                    throw persistenceFailure;
                 }
 
                 reached.TrySetResult();

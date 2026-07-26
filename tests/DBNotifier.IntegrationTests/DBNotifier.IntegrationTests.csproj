@@ -27,5 +27,7 @@
     <ProjectReference Include="..\..\src\DBNotifier.Server.Api\DBNotifier.Server.Api.csproj" />
     <ProjectReference Include="..\DBNotifier.AgentFleet.SandboxHost\DBNotifier.AgentFleet.SandboxHost.csproj"
                       ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\DBNotifier.ServerConcurrency.SandboxHost\DBNotifier.ServerConcurrency.SandboxHost.csproj"
+                      ReferenceOutputAssembly="false" />
   </ItemGroup>
 </Project>
