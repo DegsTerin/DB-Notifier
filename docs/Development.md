@@ -32,6 +32,7 @@ tests/
   DBNotifier.Desktop.Wpf.Tests/
   DBNotifier.Architecture.Tests/
   DBNotifier.IntegrationTests/
+  DBNotifier.ServerConcurrency.SandboxHost/
   DBNotifier.AgentFleet.SandboxHost/
   DBNotifier.DashboardTv.BrowserSandboxHost/
   DBNotifier.State06.ConsolidatedSandboxHost/

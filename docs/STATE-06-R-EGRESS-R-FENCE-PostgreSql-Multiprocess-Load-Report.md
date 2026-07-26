@@ -77,6 +77,22 @@ compartilhado:
 O runner comprovou a identidade de cada recurso antes de encerrá-lo ou removê-lo e preservou Docker Desktop, IDE,
 browser, bancos e processos alheios.
 
+## Reprodução local delimitada
+
+O runner proprietário é
+`scripts/run-r-egress-postgresql-fence-lab.ps1`. Ele exige PowerShell 7,
+o SDK local já provisionado, Docker Desktop e a imagem PostgreSQL fixada já
+presente; nunca deve fazer pull para satisfazer a campanha:
+
+```powershell
+pwsh -NoProfile -NonInteractive -File .\scripts\run-r-egress-postgresql-fence-lab.ps1
+```
+
+O comando cria somente recursos descartáveis identificados pelo próprio
+`runId`. Um bloqueio de pré-requisito, ownership ou cleanup reprova a campanha;
+o comando não autoriza migration operacional, PostgreSQL existente ou suporte
+de produto.
+
 ## Prova física de blocking
 
 Antes de liberar cada holder, o coordenador deve consultar `pg_blocking_pids()` a partir de uma sessão de observação
