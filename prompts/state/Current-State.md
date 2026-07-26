@@ -59,6 +59,13 @@ proprietários.
   somente nos seus escopos locais e bounded. R0-F1 resolveu a contradição
   arquitetural específica que permanecia do R0; isso não declara verde um
   gate global posterior.
+- R-SEQ está automaticamente `APROVADO` somente no escopo local validado. Uma
+  rejeição terminal central agora consome o seu slot no cursor sem criar
+  amostra, estado, evento, outbox ou delivery; o Agent somente reconhece a
+  rejeição quando o high-water cobre a sequência. Rejeições exclusivamente
+  locais ou de request sem essa prova permanecem pendentes. Não houve
+  migration ou PostgreSQL operacional; a evidência proprietária está no
+  [relatório R-SEQ](../../docs/STATE-06-R-SEQ-Rejected-Observation-Sequence-Remediation-Report.md).
 - R5 está tecnicamente aprovado, mas sua conformidade com a autoridade
   original permanece `REPROVADA` pelo restore bloqueado que consultou
   metadados NuGet fora do escopo; o incidente não foi reclassificado como

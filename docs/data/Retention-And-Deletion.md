@@ -23,7 +23,7 @@ These values are accepted design defaults from ADR-0004 for schema, index, capac
 | Data | Design default | Bound |
 |---|---:|---|
 | local health observations | 7 days | also constrained by configured maximum rows/bytes |
-| acknowledged outbox | 24-hour tombstone | only after server contiguous acknowledgement |
+| acknowledged outbox | 24-hour tombstone | only after the Server contiguous cursor covers the accepted, duplicate or terminally rejected sequence |
 | unacknowledged outbox | until acknowledged | hard age/size limit emits explicit overflow/degraded event; never silently reports healthy |
 | terminal inbox commands | 30 days | preserve idempotency key/result through maximum server retry window |
 | assignments/checkpoints/registration | while active | replace atomically; keep last-known-valid config |
@@ -47,6 +47,8 @@ These values are accepted design defaults from ADR-0004 for schema, index, capac
 
 ## Recovery objectives for modeling
 
-- Agent SQLite: rebuildable from central config plus retained local outbox; target RPO is acknowledged server cursor, not last displayed health.
+- Agent SQLite: rebuildable from central config plus retained local outbox; target RPO is the acknowledged Server
+  cursor of contiguously resolved slots, not the last displayed health. A local or request-level rejection without
+  that cursor proof remains unacknowledged.
 - Central PostgreSQL: backup/PITR design must preserve catalog, commands, RBAC, audit, and outbox consistency.
 - Restore tests in later phases validate schema version, migration history, idempotency records, and replay behavior before service resumes.

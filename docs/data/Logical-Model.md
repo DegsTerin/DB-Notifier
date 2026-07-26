@@ -53,9 +53,11 @@ agent_enrollment_tokens >── agents ──< agent_certificates
                               ├─< agent_capabilities
                               ├─< agent_heartbeats
                               ├── agent_heartbeat_cursors
+                              ├── agent_observation_cursors
                               └─< database_instances ──< health_samples ──< events
-                                          │                   │                 │
-                                          ├─< incidents       └─< command_attempts
+                                          │                   └─< command_attempts
+                                          ├── instance_observation_states
+                                          ├─< incidents
                                           ├─< maintenance_windows
                                           └─< administrative_commands ──< command_attempts
 
@@ -75,6 +77,10 @@ outbox_messages
 - `agent_capabilities`: versioned provider/platform claims, unique per Agent/capability combination.
 - `agent_heartbeats`: immutable process/connectivity evidence with unique message ID and per-Agent sequence, canonical payload digest, protocol range, queue state, Agent/server times and explicit gap evidence.
 - `agent_heartbeat_cursors`: highest accepted per-Agent heartbeat sequence and last message ID, retained independently of heartbeat-detail deletion for fail-closed replay protection.
+- `agent_observation_cursors`: highest contiguously resolved observation-stream sequence per Agent. A slot is resolved
+  by an accepted `health_sample` or by a terminal rejection consumed under the same serialisable cursor boundary.
+  Consuming a rejection stores no health evidence or downstream effect; without a separate ledger or migration, the
+  cursor does not retain that rejection's message ID or reason.
 - `database_instances`: provider-neutral inventory with `jsonb` endpoint/tags, separate credential references, assigned Agent, policy timings, archive time, concurrency token.
 
 Deleting an Agent or instance is restricted while durable evidence references it. Instance archival is explicit; it is not a history cascade.
@@ -82,6 +88,8 @@ Deleting an Agent or instance is restricted while durable evidence references it
 ### Monitoring history and operations
 
 - `health_samples`: immutable observation evidence, unique message ID, indexed by instance/time and status/time.
+- `instance_observation_states`: last projected accepted observation per instance. A consumed rejection can advance
+  its Agent cursor but never updates this state.
 - `events`: immutable canonical events linked optionally to instance, Agent, and source observation; indexed by type/time and correlation.
 - `incidents`: mutable operational aggregate with status/severity/open/ack/close times and concurrency token.
 - `maintenance_windows`: bounded start/end range with reason and creator.
@@ -138,4 +146,6 @@ durable. The stable publisher idempotency key is derived from the immutable mess
   no channel adapter; the disposable laboratory is not activation or general provider homologation.
 - Agent Fleet assignment persistence is configuration evidence only; it does not activate a provider, probe, scheduler or command path.
 - Agent Fleet leases coordinate only temporary local sandbox processes. They are not a distributed lock, service lease or authority to enable the ordinary Worker.
+- A new health sample cannot be inserted at or below an observation cursor position that was already resolved by a
+  consumed rejection; this prevents unprojected retroactive evidence.
 - A corrupt, future or incomplete Agent SQLite schema is refused by the sandbox guard without repair or silent recreation.

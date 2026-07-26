@@ -11,12 +11,15 @@ using Microsoft.EntityFrameworkCore;
 namespace DBNotifier.Persistence.Server.PostgreSql;
 
 /// <summary>
-/// Persists authenticated Agent observations and reconciles each Agent's contiguous sequence into canonical
-/// instance state, events and outbox records under serialisable and in-process concurrency boundaries.
+/// Persists authenticated Agent observations, consumes identifiable terminal rejections and reconciles each Agent's
+/// contiguous stream into canonical instance state, events and outbox records under serialisable and in-process
+/// concurrency boundaries.
 /// </summary>
 /// <param name="contextFactory">Factory for isolated central persistence contexts.</param>
 public sealed class ServerObservationIngestionStore(
-    IDbContextFactory<ServerDbContext> contextFactory) : IObservationIngestionStore
+    IDbContextFactory<ServerDbContext> contextFactory) :
+    IObservationIngestionStore,
+    IRejectedObservationSequenceStore
 {
     private const int ReconciliationBatchSize = 1000;
     private const int MaximumReconciliationBatches = 10;
@@ -48,6 +51,81 @@ public sealed class ServerObservationIngestionStore(
         }
     }
 
+    /// <inheritdoc />
+    public async ValueTask<ObservationItemResult> ConsumeRejectedAsync(
+        Guid agentId,
+        Guid messageId,
+        long sequence,
+        string errorCode,
+        DateTimeOffset receivedAt,
+        CancellationToken cancellationToken)
+    {
+        ArgumentOutOfRangeException.ThrowIfEqual(agentId, Guid.Empty);
+        ArgumentOutOfRangeException.ThrowIfEqual(messageId, Guid.Empty);
+        ArgumentOutOfRangeException.ThrowIfLessThan(sequence, 1);
+        ArgumentException.ThrowIfNullOrWhiteSpace(errorCode);
+        if (errorCode.Length > 100)
+        {
+            throw new ArgumentException("Rejected observation error codes cannot exceed 100 characters.", nameof(errorCode));
+        }
+
+        SemaphoreSlim gate = AgentGates.GetOrAdd(agentId, static _ => new SemaphoreSlim(1, 1));
+        await gate.WaitAsync(cancellationToken).ConfigureAwait(false);
+        try
+        {
+            return await ConsumeRejectedCoreAsync(
+                agentId,
+                messageId,
+                sequence,
+                errorCode,
+                receivedAt,
+                cancellationToken).ConfigureAwait(false);
+        }
+        catch (Exception exception) when (exception is DbUpdateException or DbException)
+        {
+            return Retryable(messageId, "ingestion.persistence_unavailable");
+        }
+        finally
+        {
+            gate.Release();
+        }
+    }
+
+    /// <summary>Consumes one rejected sequence inside a serialisable transaction when the Agent is durably known.</summary>
+    private async ValueTask<ObservationItemResult> ConsumeRejectedCoreAsync(
+        Guid agentId,
+        Guid messageId,
+        long sequence,
+        string errorCode,
+        DateTimeOffset receivedAt,
+        CancellationToken cancellationToken)
+    {
+        await using ServerDbContext context = await contextFactory
+            .CreateDbContextAsync(cancellationToken)
+            .ConfigureAwait(false);
+        await using Microsoft.EntityFrameworkCore.Storage.IDbContextTransaction transaction = await context.Database
+            .BeginTransactionAsync(IsolationLevel.Serializable, cancellationToken)
+            .ConfigureAwait(false);
+
+        bool knownAgent = await context.Agents
+            .AnyAsync(row => row.AgentId == agentId, cancellationToken)
+            .ConfigureAwait(false);
+        if (!knownAgent)
+        {
+            return Retryable(messageId, "ingestion.rejection_agent_unknown");
+        }
+
+        return await ConsumeRejectedInTransactionAsync(
+            context,
+            transaction,
+            agentId,
+            messageId,
+            sequence,
+            errorCode,
+            receivedAt,
+            cancellationToken).ConfigureAwait(false);
+    }
+
     /// <summary>Persists and reconciles one validated message inside a serialisable central transaction.</summary>
     private async ValueTask<ObservationItemResult> IngestCoreAsync(
         ObservationSyncMessage message,
@@ -61,12 +139,26 @@ public sealed class ServerObservationIngestionStore(
             .BeginTransactionAsync(IsolationLevel.Serializable, cancellationToken)
             .ConfigureAwait(false);
 
-        bool activeAgent = await context.Agents
-            .AnyAsync(row => row.AgentId == message.AgentId && row.State == "Active", cancellationToken)
+        string? agentState = await context.Agents
+            .Where(row => row.AgentId == message.AgentId)
+            .Select(row => row.State)
+            .SingleOrDefaultAsync(cancellationToken)
             .ConfigureAwait(false);
-        if (!activeAgent)
+        if (agentState is null)
         {
             return Rejected(message.MessageId, "agent.not_active");
+        }
+        if (!string.Equals(agentState, "Active", StringComparison.Ordinal))
+        {
+            return await ConsumeRejectedInTransactionAsync(
+                context,
+                transaction,
+                message.AgentId,
+                message.MessageId,
+                message.Sequence,
+                "agent.not_active",
+                receivedAt,
+                cancellationToken).ConfigureAwait(false);
         }
 
         string? assignedProvider = await context.Instances
@@ -79,12 +171,28 @@ public sealed class ServerObservationIngestionStore(
             .ConfigureAwait(false);
         if (assignedProvider is null)
         {
-            return Rejected(message.MessageId, "observation.instance_not_assigned");
+            return await ConsumeRejectedInTransactionAsync(
+                context,
+                transaction,
+                message.AgentId,
+                message.MessageId,
+                message.Sequence,
+                "observation.instance_not_assigned",
+                receivedAt,
+                cancellationToken).ConfigureAwait(false);
         }
 
         if (!string.Equals(assignedProvider, message.ProviderType, StringComparison.Ordinal))
         {
-            return Rejected(message.MessageId, "observation.provider_mismatch");
+            return await ConsumeRejectedInTransactionAsync(
+                context,
+                transaction,
+                message.AgentId,
+                message.MessageId,
+                message.Sequence,
+                "observation.provider_mismatch",
+                receivedAt,
+                cancellationToken).ConfigureAwait(false);
         }
 
         ObservationItemResult? existingResult = await ClassifyExistingAsync(
@@ -111,9 +219,19 @@ public sealed class ServerObservationIngestionStore(
                 {
                     return Retryable(message.MessageId, "ingestion.reconciliation_limit_reached");
                 }
+
+                return existingResult;
             }
 
-            return existingResult;
+            return await ConsumeRejectedInTransactionAsync(
+                context,
+                transaction,
+                message.AgentId,
+                message.MessageId,
+                message.Sequence,
+                existingResult.ErrorCode ?? "observation.conflict",
+                receivedAt,
+                cancellationToken).ConfigureAwait(false);
         }
 
         AgentObservationCursorRow cursor = await GetOrCreateCursorAsync(
@@ -121,6 +239,11 @@ public sealed class ServerObservationIngestionStore(
             message.AgentId,
             receivedAt,
             cancellationToken).ConfigureAwait(false);
+        if (message.Sequence <= cursor.HighestContiguousSequence)
+        {
+            return Rejected(message.MessageId, "observation.sequence_conflict");
+        }
+
         context.HealthSamples.Add(ToHealthSample(message, receivedAt));
 
         try
@@ -207,10 +330,80 @@ public sealed class ServerObservationIngestionStore(
         return Rejected(message.MessageId, "observation.sequence_conflict");
     }
 
-    /// <summary>Reads the durable highest contiguous sequence accepted for one Agent.</summary>
+    /// <summary>
+    /// Resolves stored contiguous samples before consuming exactly the next rejected stream position in the same
+    /// transaction, without creating raw health evidence for the rejection.
+    /// </summary>
+    /// <param name="context">Central persistence context participating in the serialisable transaction.</param>
+    /// <param name="transaction">Transaction that owns the cursor lock and commit.</param>
+    /// <param name="agentId">Durably known Agent whose stream position is being resolved.</param>
+    /// <param name="messageId">Rejected message identifier returned to the Agent.</param>
+    /// <param name="sequence">Positive rejected stream sequence.</param>
+    /// <param name="errorCode">Stable terminal reason returned after durable consumption.</param>
+    /// <param name="receivedAt">Authoritative Server receipt instant.</param>
+    /// <param name="cancellationToken">Cancellation propagated from the ingestion request.</param>
+    /// <returns>A terminal rejection after durable consumption, or a retryable result while a lower gap remains.</returns>
+    private static async ValueTask<ObservationItemResult> ConsumeRejectedInTransactionAsync(
+        ServerDbContext context,
+        Microsoft.EntityFrameworkCore.Storage.IDbContextTransaction transaction,
+        Guid agentId,
+        Guid messageId,
+        long sequence,
+        string errorCode,
+        DateTimeOffset receivedAt,
+        CancellationToken cancellationToken)
+    {
+        AgentObservationCursorRow cursor = await GetOrCreateCursorAsync(
+            context,
+            agentId,
+            receivedAt,
+            cancellationToken).ConfigureAwait(false);
+        bool reconciliationComplete = await ReconcileContiguousAsync(
+            context,
+            cursor,
+            receivedAt,
+            cancellationToken).ConfigureAwait(false);
+        if (!reconciliationComplete)
+        {
+            await context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+            await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
+            return Retryable(messageId, "ingestion.reconciliation_limit_reached");
+        }
+
+        if (sequence <= cursor.HighestContiguousSequence)
+        {
+            await context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+            await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
+            return Rejected(messageId, errorCode);
+        }
+
+        long nextSequence = cursor.HighestContiguousSequence + 1;
+        if (sequence != nextSequence)
+        {
+            await context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+            await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
+            return Retryable(messageId, "ingestion.rejection_gap");
+        }
+
+        cursor.HighestContiguousSequence = sequence;
+        cursor.UpdatedAt = receivedAt;
+        cursor.ConcurrencyToken = Guid.NewGuid();
+        reconciliationComplete = await ReconcileContiguousAsync(
+            context,
+            cursor,
+            receivedAt,
+            cancellationToken).ConfigureAwait(false);
+        await context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+        await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
+        return reconciliationComplete
+            ? Rejected(messageId, errorCode)
+            : Retryable(messageId, "ingestion.reconciliation_limit_reached");
+    }
+
+    /// <summary>Reads the highest Agent sequence durably resolved as an accepted observation or terminal rejection.</summary>
     /// <param name="agentId">Authenticated Agent whose acknowledgement cursor is requested.</param>
     /// <param name="cancellationToken">Cancellation propagated from the synchronisation request.</param>
-    /// <returns>The highest reconciled sequence, or zero when the Agent has no cursor.</returns>
+    /// <returns>The highest contiguously resolved sequence, or zero when the Agent has no cursor.</returns>
     public async ValueTask<long> GetHighestContiguousSequenceAsync(
         Guid agentId,
         CancellationToken cancellationToken)
@@ -327,7 +520,7 @@ public sealed class ServerObservationIngestionStore(
         }));
     }
 
-    /// <summary>Locks or creates the durable per-Agent reconciliation cursor inside the active transaction.</summary>
+    /// <summary>Locks or creates the durable per-Agent stream-resolution cursor inside the active transaction.</summary>
     private static async ValueTask<AgentObservationCursorRow> GetOrCreateCursorAsync(
         ServerDbContext context,
         Guid agentId,

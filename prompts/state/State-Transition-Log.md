@@ -3875,6 +3875,49 @@
   qualquer diagnóstico, mudança metodológica ou futura campanha física.
 - Aprovador: Bruno; nenhum lifecycle gate ou ativação inferido.
 
+## 2026-07-25 — R-SEQ corrige progressão após rejeição terminal
+
+- Estado anterior: `STATE-06 INTEGRATION`, `ActivationState=None`; uma
+  rejeição terminal podia ser reconhecida localmente sem resolver o seu slot
+  no cursor central e bloquear a projeção das sequências posteriores.
+- Autoridade: diagnóstico final e correção focal de R-SEQ, componentes
+  diretamente afetados, regressões e documentação técnica proprietária, sem
+  migration, runtime externo, lifecycle ou ativação.
+- Diagnóstico: validação sem persistência, reconhecimento local incondicional
+  de `Rejected` e reconciliação exclusiva por `health_samples` formavam o gap
+  permanente. A limitação histórica de 2026-07-19 foi preservada sem
+  reescrita.
+- Implementação: o cursor existente passou a representar slots contíguos
+  resolvidos por amostra aceita ou rejeição consumida. O consumo ocorre sob o
+  mesmo gate e transação serializável, não cria evidência de saúde e
+  reconcilia sucessores válidos já armazenados. Rejeição acima de gap
+  permanece retryable, e sequência já resolvida não aceita inserção
+  retroativa.
+- Barreira local: o dispatcher somente reconhece `Rejected` quando
+  `HighestContiguousSequence` cobre o envelope. Payload local ou HTTP `4xx`
+  sem prova autoritativa permanece pendente em backoff.
+- Gates: build Release da solução com zero avisos/erros; `52/52` regressões de
+  sincronização; `1/1` E2E focal; suítes completas `408/408` unitários,
+  `124/124` integrações, `92/92` arquitetura e `10/10` WPF; cobertura
+  `82,09%` linhas e `54,26%` branches com `10/10` componentes obrigatórios;
+  format, documentação de código, links Markdown e secret scan aprovados.
+- Ressalvas: sem migration, o cursor não retém centralmente o `MessageId` nem
+  o motivo da rejeição; gaps históricos não são reconstruídos; recusas
+  exclusivamente locais/request-level exigem correção ou intervenção; a
+  janela concorrente de `R-EGRESS` e PostgreSQL serializável real não foram
+  avaliados.
+- Escopo negativo: zero dependência, migration, PostgreSQL operacional,
+  runtime externo, PM-3, R-EGRESS, lifecycle, ActivationState, push, PR ou
+  deploy.
+- Estado resultante: R-SEQ automaticamente `APROVADO` somente no escopo
+  local, `STATE-06 INTEGRATION` e `ActivationState=None` inalterados.
+- Evidência:
+  [relatório R-SEQ](../../docs/STATE-06-R-SEQ-Rejected-Observation-Sequence-Remediation-Report.md).
+- Próxima decisão: qualquer correção R-EGRESS, migration, runtime,
+  lifecycle, ativação ou lote posterior exige autorização separada.
+- Aprovador: autoridade de execução concedida por Bruno; resultado automático
+  local, sem Human Gate ou transição inferidos.
+
 ## Template de nova entrada
 
 - Data:

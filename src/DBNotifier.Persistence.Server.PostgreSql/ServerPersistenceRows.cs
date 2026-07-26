@@ -124,7 +124,7 @@ public sealed class HealthSampleRow
 }
 
 /// <summary>
-/// Stores the durable contiguous observation checkpoint for one enrolled Agent.
+/// Stores the durable contiguous stream-resolution checkpoint for one enrolled Agent.
 /// </summary>
 /// <remarks>
 /// The checkpoint is independent of raw observation retention so reconciliation never infers progress
@@ -135,10 +135,10 @@ public sealed class AgentObservationCursorRow
     /// <summary>Gets or sets the enrolled Agent that owns the sequence stream.</summary>
     public Guid AgentId { get; set; }
 
-    /// <summary>Gets or sets the highest sequence reconciled without a preceding gap.</summary>
+    /// <summary>Gets or sets the highest sequence resolved by an accepted observation or consumed terminal rejection.</summary>
     public long HighestContiguousSequence { get; set; }
 
-    /// <summary>Gets or sets the UTC instant of the latest reconciliation.</summary>
+    /// <summary>Gets or sets the UTC instant of the latest contiguous resolution.</summary>
     public DateTimeOffset UpdatedAt { get; set; }
 
     /// <summary>Gets or sets the optimistic concurrency token for cursor updates.</summary>

@@ -91,6 +91,36 @@ public interface IObservationIngestionStore
         CancellationToken cancellationToken);
 }
 
+/// <summary>
+/// Durably consumes an authenticated Agent stream position that contains a terminally rejected observation,
+/// without converting the rejected payload into health evidence.
+/// </summary>
+public interface IRejectedObservationSequenceStore
+{
+    /// <summary>
+    /// Attempts to consume one rejected sequence and reconcile any valid contiguous observations already stored after it.
+    /// </summary>
+    /// <param name="agentId">Authenticated Agent stream that owns the sequence.</param>
+    /// <param name="messageId">Rejected message identifier returned to the Agent.</param>
+    /// <param name="sequence">Positive Agent stream sequence to consume.</param>
+    /// <param name="errorCode">Stable terminal validation or authorisation code.</param>
+    /// <param name="receivedAt">Authoritative Server receipt time.</param>
+    /// <param name="cancellationToken">Cancellation propagated from the ingestion request.</param>
+    /// <returns>
+    /// A rejected result only when the sequence is durably consumed, or a retryable result while a lower gap or
+    /// persistence failure prevents that proof.
+    /// </returns>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown when an identifier is empty or the sequence is not positive.</exception>
+    /// <exception cref="ArgumentException">Thrown when the stable error code is empty or exceeds its contract bound.</exception>
+    ValueTask<ObservationItemResult> ConsumeRejectedAsync(
+        Guid agentId,
+        Guid messageId,
+        long sequence,
+        string errorCode,
+        DateTimeOffset receivedAt,
+        CancellationToken cancellationToken);
+}
+
 /// <summary>Dispatches one bounded local Agent outbox batch and applies only unambiguous response classifications.</summary>
 /// <param name="agentId">Exact enrolled Agent whose stream is being dispatched.</param>
 /// <param name="outboxStore">Durable local outbox boundary.</param>
@@ -139,12 +169,26 @@ public sealed class AgentOutboxDispatchRunner(
         {
             foreach (AgentOutboxEnvelope message in pending)
             {
-                completeResults.Add(returned.TryGetValue(message.MessageId, out ObservationItemResult? result)
-                    ? result
-                    : new ObservationItemResult(
+                ObservationItemResult result = returned.TryGetValue(
                     message.MessageId,
-                    ObservationIngestionDisposition.Retryable,
-                    "sync.response_missing"));
+                    out ObservationItemResult? returnedResult)
+                    ? returnedResult!
+                    : new ObservationItemResult(
+                        message.MessageId,
+                        ObservationIngestionDisposition.Retryable,
+                        "sync.response_missing");
+                if (result.Disposition == ObservationIngestionDisposition.Rejected &&
+                    message.Sequence > response.HighestContiguousSequence)
+                {
+                    // A local or request-level rejection cannot release the durable outbox until the Server
+                    // high-water mark proves that the rejected stream position was consumed.
+                    result = new ObservationItemResult(
+                        message.MessageId,
+                        ObservationIngestionDisposition.Retryable,
+                        "sync.rejection_unconfirmed");
+                }
+
+                completeResults.Add(result);
             }
         }
 
@@ -188,8 +232,9 @@ public sealed class AgentOutboxDispatchRunner(
 }
 
 /// <summary>
-/// Validates bounded Agent observation batches before delegating each canonical message to the durable ingestion store.
-/// Future evidence beyond the clock-skew policy is rejected terminally, while old offline backlog remains admissible.
+/// Validates bounded Agent observation batches, delegates canonical messages and asks capable stores to consume
+/// identifiable terminal rejections durably. Future evidence beyond the clock-skew policy is rejected terminally,
+/// while old offline backlog remains admissible.
 /// </summary>
 /// <param name="store">Durable server-side observation ingestion boundary.</param>
 /// <param name="timeProvider">Authoritative server clock used to timestamp receipt and enforce future skew.</param>
@@ -231,10 +276,26 @@ public sealed class ObservationBatchIngestor(
             string? validationError = Validate(request.AgentId, message, receivedAt, batchMessageIds);
             if (validationError is not null)
             {
-                results.Add(new ObservationItemResult(
+                ObservationItemResult rejection = new(
                     message.MessageId,
                     ObservationIngestionDisposition.Rejected,
-                    validationError));
+                    validationError);
+                if (validationError != "observation.message_id_invalid" &&
+                    message.Sequence > 0 &&
+                    store is IRejectedObservationSequenceStore rejectionStore)
+                {
+                    rejection = await rejectionStore
+                        .ConsumeRejectedAsync(
+                            request.AgentId,
+                            message.MessageId,
+                            message.Sequence,
+                            validationError,
+                            receivedAt,
+                            cancellationToken)
+                        .ConfigureAwait(false);
+                }
+
+                results.Add(rejection);
                 continue;
             }
 

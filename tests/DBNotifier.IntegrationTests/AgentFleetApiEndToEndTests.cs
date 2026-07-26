@@ -3582,8 +3582,10 @@ public sealed partial class AgentFleetApiEndToEndTests
             Assert.Equal(0, await context.NotificationDeliveries.CountAsync());
         }
 
-        /// <summary>Confirms contiguous reconciliation, retained synthetic provenance and zero operational effects.</summary>
-        /// <param name="agentId">Revoked Agent whose first four observations were accepted.</param>
+        /// <summary>
+        /// Confirms contiguous stream resolution, retained accepted provenance and zero effects from the rejected fifth item.
+        /// </summary>
+        /// <param name="agentId">Revoked Agent whose first four observations were accepted and fifth sequence was consumed.</param>
         /// <param name="instanceId">Sole synthetic assignment projected to Dashboard TV.</param>
         public async Task AssertSyntheticObservationPipelineAsync(Guid agentId, Guid instanceId)
         {
@@ -3602,7 +3604,7 @@ public sealed partial class AgentFleetApiEndToEndTests
                 .SingleAsync(row => row.InstanceId == instanceId);
 
             Assert.Equal("Revoked", agent.State);
-            Assert.Equal(4, cursor.HighestContiguousSequence);
+            Assert.Equal(5, cursor.HighestContiguousSequence);
             Assert.Equal(new long[] { 1, 2, 3, 4 }, samples.Select(row => row.Sequence));
             Assert.All(samples, sample =>
             {
@@ -4138,7 +4140,9 @@ public sealed partial class AgentFleetApiEndToEndTests
     /// <summary>Applies the fixture-owned revocation barrier without changing the production ingestion store.</summary>
     private sealed class PausingObservationIngestionStore(
         IObservationIngestionStore inner,
-        ObservationIngestionPause pause) : IObservationIngestionStore
+        ObservationIngestionPause pause) :
+        IObservationIngestionStore,
+        IRejectedObservationSequenceStore
     {
         /// <inheritdoc />
         public async ValueTask<ObservationItemResult> IngestAsync(
@@ -4149,6 +4153,32 @@ public sealed partial class AgentFleetApiEndToEndTests
             await pause.PauseIfSelectedAsync(message.Sequence, cancellationToken);
             ObservationItemResult result = await inner.IngestAsync(message, receivedAt, cancellationToken);
             pause.RecordResult(message.Sequence, result);
+            return result;
+        }
+
+        /// <inheritdoc />
+        public async ValueTask<ObservationItemResult> ConsumeRejectedAsync(
+            Guid agentId,
+            Guid messageId,
+            long sequence,
+            string errorCode,
+            DateTimeOffset receivedAt,
+            CancellationToken cancellationToken)
+        {
+            await pause.PauseIfSelectedAsync(sequence, cancellationToken);
+            ObservationItemResult result = inner is IRejectedObservationSequenceStore rejectionStore
+                ? await rejectionStore.ConsumeRejectedAsync(
+                    agentId,
+                    messageId,
+                    sequence,
+                    errorCode,
+                    receivedAt,
+                    cancellationToken)
+                : new ObservationItemResult(
+                    messageId,
+                    ObservationIngestionDisposition.Retryable,
+                    "ingestion.rejection_store_unavailable");
+            pause.RecordResult(sequence, result);
             return result;
         }
 

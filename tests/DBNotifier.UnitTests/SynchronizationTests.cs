@@ -140,6 +140,48 @@ public sealed class SynchronizationTests
         Assert.Equal("sync.response_invalid", applied.ErrorCode);
     }
 
+    /// <summary>Proves that a rejection without a covering Server high-water mark remains retryable locally.</summary>
+    [Fact]
+    public async Task DispatchRunnerRetriesRejectedItemWithoutContiguousServerProof()
+    {
+        AgentOutboxMessageRow row = Outbox(1);
+        InMemoryOutboxStore store = new(row);
+        AgentOutboxDispatchRunner runner = new(
+            Guid.NewGuid(),
+            store,
+            new RejectedResponseTransport(0),
+            new FixedTimeProvider(Now));
+
+        AgentOutboxDispatchResult result = await runner.RunOnceAsync(50);
+
+        Assert.Equal(0, result.AcknowledgedCount);
+        Assert.Equal(1, result.RetryableCount);
+        ObservationItemResult applied = Assert.Single(store.AppliedResults);
+        Assert.Equal(ObservationIngestionDisposition.Retryable, applied.Disposition);
+        Assert.Equal("sync.rejection_unconfirmed", applied.ErrorCode);
+    }
+
+    /// <summary>Proves that a rejection becomes terminal only after the Server high-water mark covers its sequence.</summary>
+    [Fact]
+    public async Task DispatchRunnerAcknowledgesRejectedItemAfterContiguousServerProof()
+    {
+        AgentOutboxMessageRow row = Outbox(1);
+        InMemoryOutboxStore store = new(row);
+        AgentOutboxDispatchRunner runner = new(
+            Guid.NewGuid(),
+            store,
+            new RejectedResponseTransport(1),
+            new FixedTimeProvider(Now));
+
+        AgentOutboxDispatchResult result = await runner.RunOnceAsync(50);
+
+        Assert.Equal(1, result.AcknowledgedCount);
+        Assert.Equal(0, result.RetryableCount);
+        ObservationItemResult applied = Assert.Single(store.AppliedResults);
+        Assert.Equal(ObservationIngestionDisposition.Rejected, applied.Disposition);
+        Assert.Equal("observation.payload_invalid", applied.ErrorCode);
+    }
+
     [Fact]
     public async Task ServerIngestionIsIdempotentAndCreatesCanonicalEventsAndAlertDeliveries()
     {
@@ -513,6 +555,164 @@ public sealed class SynchronizationTests
         Assert.Equal(ObservationIngestionDisposition.Rejected, rejected.Disposition);
         Assert.Equal("observation.observed_at_future", rejected.ErrorCode);
         Assert.Equal(0, store.IngestCalls);
+    }
+
+    /// <summary>
+    /// Proves that a terminal validation rejection closes its stream slot, releases a stored successor and remains
+    /// idempotent without creating health evidence.
+    /// </summary>
+    [Fact]
+    public async Task RejectedValidationSequenceReleasesStoredSuccessorWithoutHealthEvidence()
+    {
+        await using SqliteConnection connection = new("Data Source=:memory:");
+        await connection.OpenAsync();
+        DbContextOptions<ServerDbContext> options = new DbContextOptionsBuilder<ServerDbContext>()
+            .UseSqlite(connection)
+            .Options;
+        Guid agentId = Guid.NewGuid();
+        Guid instanceId = Guid.NewGuid();
+        await using (ServerDbContext setup = new(options))
+        {
+            await setup.Database.EnsureCreatedAsync();
+            setup.Agents.Add(Agent(agentId));
+            setup.Instances.Add(Instance(instanceId, agentId));
+            await setup.SaveChangesAsync();
+        }
+
+        ServerObservationIngestionStore store = new(new TestServerContextFactory(options));
+        ObservationBatchIngestor ingestor = new(store, new FixedTimeProvider(Now));
+        Assert.Equal(
+            ObservationIngestionDisposition.Accepted,
+            (await store.IngestAsync(
+                Message(agentId, instanceId, 2, "Healthy"),
+                Now,
+                CancellationToken.None)).Disposition);
+        ObservationSyncMessage rejectedMessage = Message(agentId, instanceId, 1, "Healthy") with
+        {
+            AttemptCount = 0,
+        };
+
+        ObservationBatchResult rejected = await ingestor.HandleAsync(
+            new ObservationBatchRequest(agentId, [rejectedMessage]));
+        ObservationBatchResult replay = await ingestor.HandleAsync(
+            new ObservationBatchRequest(agentId, [rejectedMessage]));
+        ObservationBatchResult retroactive = await ingestor.HandleAsync(
+            new ObservationBatchRequest(agentId, [Message(agentId, instanceId, 1, "Timeout")]));
+
+        ObservationItemResult rejectedItem = Assert.Single(rejected.Items);
+        Assert.Equal(ObservationIngestionDisposition.Rejected, rejectedItem.Disposition);
+        Assert.Equal("observation.payload_invalid", rejectedItem.ErrorCode);
+        Assert.Equal(2, rejected.HighestContiguousSequence);
+        Assert.Equal(ObservationIngestionDisposition.Rejected, Assert.Single(replay.Items).Disposition);
+        Assert.Equal(2, replay.HighestContiguousSequence);
+        ObservationItemResult retroactiveItem = Assert.Single(retroactive.Items);
+        Assert.Equal(ObservationIngestionDisposition.Rejected, retroactiveItem.Disposition);
+        Assert.Equal("observation.sequence_conflict", retroactiveItem.ErrorCode);
+        Assert.Equal(2, retroactive.HighestContiguousSequence);
+
+        await using ServerDbContext verification = new(options);
+        HealthSampleRow sample = await verification.HealthSamples.SingleAsync();
+        Assert.Equal(2, sample.Sequence);
+        InstanceObservationStateRow state = await verification.InstanceObservationStates.SingleAsync();
+        Assert.Equal(2, state.LastProcessedSequence);
+        Assert.Equal("Connected", (await verification.Events.SingleAsync()).EventType);
+        Assert.Single(await verification.OutboxMessages.ToArrayAsync());
+        Assert.Empty(await verification.NotificationDeliveries.ToArrayAsync());
+    }
+
+    /// <summary>
+    /// Proves that a rejected sequence above a lower gap remains retryable until the missing prefix is reconciled.
+    /// </summary>
+    [Fact]
+    public async Task RejectedSequenceAboveGapRemainsRetryableUntilPrefixArrives()
+    {
+        await using SqliteConnection connection = new("Data Source=:memory:");
+        await connection.OpenAsync();
+        DbContextOptions<ServerDbContext> options = new DbContextOptionsBuilder<ServerDbContext>()
+            .UseSqlite(connection)
+            .Options;
+        Guid agentId = Guid.NewGuid();
+        Guid instanceId = Guid.NewGuid();
+        await using (ServerDbContext setup = new(options))
+        {
+            await setup.Database.EnsureCreatedAsync();
+            setup.Agents.Add(Agent(agentId));
+            setup.Instances.Add(Instance(instanceId, agentId));
+            await setup.SaveChangesAsync();
+        }
+
+        ServerObservationIngestionStore store = new(new TestServerContextFactory(options));
+        ObservationBatchIngestor ingestor = new(store, new FixedTimeProvider(Now));
+        ObservationSyncMessage rejectedMessage = Message(agentId, instanceId, 2, "Healthy") with
+        {
+            AttemptCount = 0,
+        };
+
+        ObservationBatchResult beforePrefix = await ingestor.HandleAsync(
+            new ObservationBatchRequest(agentId, [rejectedMessage]));
+        ObservationBatchResult prefix = await ingestor.HandleAsync(
+            new ObservationBatchRequest(agentId, [Message(agentId, instanceId, 1, "Healthy")]));
+        ObservationBatchResult afterPrefix = await ingestor.HandleAsync(
+            new ObservationBatchRequest(agentId, [rejectedMessage]));
+
+        ObservationItemResult beforePrefixItem = Assert.Single(beforePrefix.Items);
+        Assert.Equal(ObservationIngestionDisposition.Retryable, beforePrefixItem.Disposition);
+        Assert.Equal("ingestion.rejection_gap", beforePrefixItem.ErrorCode);
+        Assert.Equal(0, beforePrefix.HighestContiguousSequence);
+        Assert.Equal(ObservationIngestionDisposition.Accepted, Assert.Single(prefix.Items).Disposition);
+        Assert.Equal(1, prefix.HighestContiguousSequence);
+        ObservationItemResult afterPrefixItem = Assert.Single(afterPrefix.Items);
+        Assert.Equal(ObservationIngestionDisposition.Rejected, afterPrefixItem.Disposition);
+        Assert.Equal("observation.payload_invalid", afterPrefixItem.ErrorCode);
+        Assert.Equal(2, afterPrefix.HighestContiguousSequence);
+
+        await using ServerDbContext verification = new(options);
+        HealthSampleRow sample = await verification.HealthSamples.SingleAsync();
+        Assert.Equal(1, sample.Sequence);
+        Assert.Equal(1, (await verification.InstanceObservationStates.SingleAsync()).LastProcessedSequence);
+        Assert.Single(await verification.Events.ToArrayAsync());
+    }
+
+    /// <summary>Proves that a provider-mismatch rejection releases an already stored valid successor.</summary>
+    [Fact]
+    public async Task ProviderMismatchRejectionReleasesStoredSuccessor()
+    {
+        await using SqliteConnection connection = new("Data Source=:memory:");
+        await connection.OpenAsync();
+        DbContextOptions<ServerDbContext> options = new DbContextOptionsBuilder<ServerDbContext>()
+            .UseSqlite(connection)
+            .Options;
+        Guid agentId = Guid.NewGuid();
+        Guid instanceId = Guid.NewGuid();
+        await using (ServerDbContext setup = new(options))
+        {
+            await setup.Database.EnsureCreatedAsync();
+            setup.Agents.Add(Agent(agentId));
+            setup.Instances.Add(Instance(instanceId, agentId));
+            await setup.SaveChangesAsync();
+        }
+
+        ServerObservationIngestionStore store = new(new TestServerContextFactory(options));
+        Assert.Equal(
+            ObservationIngestionDisposition.Accepted,
+            (await store.IngestAsync(
+                Message(agentId, instanceId, 2, "Healthy"),
+                Now,
+                CancellationToken.None)).Disposition);
+
+        ObservationItemResult rejection = await store.IngestAsync(
+            Message(agentId, instanceId, 1, "Healthy") with { ProviderType = "mysql" },
+            Now.AddSeconds(1),
+            CancellationToken.None);
+
+        Assert.Equal(ObservationIngestionDisposition.Rejected, rejection.Disposition);
+        Assert.Equal("observation.provider_mismatch", rejection.ErrorCode);
+        Assert.Equal(2, await store.GetHighestContiguousSequenceAsync(agentId, CancellationToken.None));
+        await using ServerDbContext verification = new(options);
+        HealthSampleRow sample = await verification.HealthSamples.SingleAsync();
+        Assert.Equal(2, sample.Sequence);
+        Assert.Equal(2, (await verification.InstanceObservationStates.SingleAsync()).LastProcessedSequence);
+        Assert.Single(await verification.Events.ToArrayAsync());
     }
 
     [Fact]
@@ -1116,6 +1316,59 @@ public sealed class SynchronizationTests
         Assert.Equal("sync.transport_timeout", item.ErrorCode);
     }
 
+    /// <summary>Proves that a local unsupported payload cannot acknowledge its sequence without Server cursor proof.</summary>
+    [Fact]
+    public async Task DispatchRunnerRetainsLocallyRejectedHttpPayload()
+    {
+        AgentOutboxMessageRow row = Outbox(1);
+        row.MessageType = "unsupported.observation.v1";
+        InMemoryOutboxStore store = new(row);
+        using HttpClient httpClient = new(new InvalidJsonHttpHandler());
+        HttpObservationBatchTransport transport = new(
+            httpClient,
+            new Uri("https://server.example.test/"),
+            "0.1.0");
+        AgentOutboxDispatchRunner runner = new(
+            Guid.NewGuid(),
+            store,
+            transport,
+            new FixedTimeProvider(Now));
+
+        AgentOutboxDispatchResult result = await runner.RunOnceAsync(50);
+
+        Assert.Equal(0, result.AcknowledgedCount);
+        Assert.Equal(1, result.RetryableCount);
+        ObservationItemResult applied = Assert.Single(store.AppliedResults);
+        Assert.Equal(ObservationIngestionDisposition.Retryable, applied.Disposition);
+        Assert.Equal("sync.rejection_unconfirmed", applied.ErrorCode);
+    }
+
+    /// <summary>Proves that a request-level HTTP rejection cannot acknowledge observations absent Server cursor proof.</summary>
+    [Fact]
+    public async Task DispatchRunnerRetainsRequestLevelHttpRejection()
+    {
+        AgentOutboxMessageRow row = Outbox(1);
+        InMemoryOutboxStore store = new(row);
+        using HttpClient httpClient = new(new StatusHttpHandler(HttpStatusCode.BadRequest));
+        HttpObservationBatchTransport transport = new(
+            httpClient,
+            new Uri("https://server.example.test/"),
+            "0.1.0");
+        AgentOutboxDispatchRunner runner = new(
+            Guid.NewGuid(),
+            store,
+            transport,
+            new FixedTimeProvider(Now));
+
+        AgentOutboxDispatchResult result = await runner.RunOnceAsync(50);
+
+        Assert.Equal(0, result.AcknowledgedCount);
+        Assert.Equal(1, result.RetryableCount);
+        ObservationItemResult applied = Assert.Single(store.AppliedResults);
+        Assert.Equal(ObservationIngestionDisposition.Retryable, applied.Disposition);
+        Assert.Equal("sync.rejection_unconfirmed", applied.ErrorCode);
+    }
+
     [Fact]
     public void SynchronizationConfigurationRejectsNonHttpsServer()
     {
@@ -1416,6 +1669,24 @@ public sealed class SynchronizationTests
             ValueTask.FromResult(new ObservationBatchResult([], 0));
     }
 
+    /// <summary>Returns one terminal rejection with a caller-selected Server high-water mark.</summary>
+    private sealed class RejectedResponseTransport(long highestContiguousSequence) : IObservationBatchTransport
+    {
+        /// <inheritdoc />
+        public ValueTask<ObservationBatchResult> SendAsync(
+            Guid agentId,
+            IReadOnlyList<AgentOutboxEnvelope> messages,
+            CancellationToken cancellationToken) =>
+            ValueTask.FromResult(new ObservationBatchResult(
+                [
+                    new(
+                        messages[0].MessageId,
+                        ObservationIngestionDisposition.Rejected,
+                        "observation.payload_invalid"),
+                ],
+                highestContiguousSequence));
+    }
+
     /// <summary>Returns contradictory duplicate results to exercise the dispatcher's fail-closed response boundary.</summary>
     private sealed class AmbiguousResponseTransport : IObservationBatchTransport
     {
@@ -1534,5 +1805,15 @@ public sealed class SynchronizationTests
             HttpRequestMessage request,
             CancellationToken cancellationToken) =>
             Task.FromException<HttpResponseMessage>(new TaskCanceledException("Fixture timeout."));
+    }
+
+    /// <summary>Returns one caller-selected non-success HTTP status without an ingestion response body.</summary>
+    private sealed class StatusHttpHandler(HttpStatusCode statusCode) : HttpMessageHandler
+    {
+        /// <inheritdoc />
+        protected override Task<HttpResponseMessage> SendAsync(
+            HttpRequestMessage request,
+            CancellationToken cancellationToken) =>
+            Task.FromResult(new HttpResponseMessage(statusCode));
     }
 }

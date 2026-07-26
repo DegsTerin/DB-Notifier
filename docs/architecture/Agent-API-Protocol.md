@@ -63,14 +63,23 @@ POST /api/v1/agents/{agentId}/observations:batch
 POST /api/v1/agents/{agentId}/events:batch
 ```
 
-Input includes an envelope batch, first/last sequence, and local queue checkpoint. Response reports each accepted, duplicate, rejected, or retryable item plus highest contiguous sequence.
+Input includes an envelope batch, first/last sequence, and local queue checkpoint. Response reports each accepted, duplicate, rejected, or retryable item plus the highest Agent sequence durably resolved as accepted evidence or a consumed terminal rejection.
 
 Rules:
 
 - Duplicate IDs return the original acceptance identity.
 - A partial batch does not force retry of accepted items.
 - Sequence gaps are recorded and returned; later items may be accepted if policy permits, but the gap remains visible.
-- Validation failures are terminal for that item; transient server failures are retryable with bounded exponential backoff and jitter.
+- A validation or authorisation failure is terminal for its payload only after the Server durably consumes that exact
+  sequence in the contiguous cursor. Consumption creates no health sample, instance state, canonical event, Server
+  outbox message or notification delivery.
+- A rejected sequence above an unresolved lower gap is returned as retryable until the missing prefix is resolved.
+  Once consumed, replay is idempotently rejected and a different payload cannot be accepted retroactively into that
+  resolved slot.
+- The Agent acknowledges a rejected outbox item only when the returned highest contiguous sequence covers it.
+  Local payload refusals and request-level HTTP refusals provide no such proof, so they remain pending with bounded
+  backoff instead of silently creating a Server gap. This pending item state is not authority to bypass the separate
+  retry policy for authentication, authorisation or incompatible protocol failures.
 - Agent retains an acknowledged tombstone/checkpoint long enough to survive response loss.
 
 ## Read-only assignment reconciliation
@@ -155,6 +164,9 @@ For the implemented Agent Fleet slice, the `retryable` field is authoritative wh
 - Agent offline across multiple policy/config versions.
 - Duplicate batch after response loss.
 - Out-of-order/gapped sequence.
+- Terminal rejection followed by a valid observation in the same Agent stream.
+- Rejection above a lower gap, then replay after that prefix is resolved.
+- Local or request-level rejection without a covering Server high-water mark.
 - Revocation while Agent is connected.
 - API on `N`, Agent on `N-1`, and command requiring `N`.
 - Command expires before retrieval, after acknowledgement, and during a non-cancellable adapter operation.
