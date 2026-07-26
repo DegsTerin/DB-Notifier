@@ -10,6 +10,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 
 namespace DBNotifier.UnitTests;
 
+/// <summary>Exercises the Agent runtime's persistence, scheduling and fail-closed startup option boundaries.</summary>
 public sealed class AgentRuntimeTests
 {
     [Fact]
@@ -168,6 +169,93 @@ public sealed class AgentRuntimeTests
     public void AgentDatabasePathMustBeAbsoluteWhenConfigured()
     {
         Assert.Throws<InvalidOperationException>(() => AgentWorkerOptions.ResolveDatabasePath("relative/agent.db"));
+    }
+
+    /// <summary>Proves dormant monitoring values do not activate validation or require an Agent identity.</summary>
+    [Fact]
+    public void DormantAgentOptionsRemainInert()
+    {
+        AgentWorkerOptions options = new()
+        {
+            MonitoringEnabled = false,
+            AgentId = Guid.Empty,
+            CycleIntervalSeconds = 0,
+        };
+
+        options.ValidateForStartup(synchronisationEnabled: false);
+    }
+
+    /// <summary>Proves both active Agent paths require one explicit non-empty identity.</summary>
+    /// <param name="monitoringEnabled">Whether monitoring is the activating path.</param>
+    /// <param name="synchronisationEnabled">Whether synchronisation is the activating path.</param>
+    [Theory]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    [InlineData(true, true)]
+    public void ActiveAgentPathsRequireIdentity(bool monitoringEnabled, bool synchronisationEnabled)
+    {
+        AgentWorkerOptions options = new()
+        {
+            MonitoringEnabled = monitoringEnabled,
+            AgentId = Guid.Empty,
+        };
+
+        InvalidOperationException exception = Assert.Throws<InvalidOperationException>(
+            () => options.ValidateForStartup(synchronisationEnabled));
+
+        Assert.Contains("AgentId", exception.Message, StringComparison.Ordinal);
+    }
+
+    /// <summary>Proves enabled monitoring accepts only the inclusive cadence policy.</summary>
+    /// <param name="cycleIntervalSeconds">Candidate monitoring cadence.</param>
+    /// <param name="isValid">Whether the cadence lies inside the inclusive policy.</param>
+    [Theory]
+    [InlineData(0, false)]
+    [InlineData(1, true)]
+    [InlineData(300, true)]
+    [InlineData(301, false)]
+    public void MonitoringCadenceIsValidatedAtStartup(int cycleIntervalSeconds, bool isValid)
+    {
+        AgentWorkerOptions options = new()
+        {
+            MonitoringEnabled = true,
+            AgentId = Guid.NewGuid(),
+            CycleIntervalSeconds = cycleIntervalSeconds,
+        };
+
+        Exception? exception = Record.Exception(() => options.ValidateForStartup(synchronisationEnabled: false));
+
+        Assert.Equal(isValid, exception is null);
+    }
+
+    /// <summary>Proves retention bounds are dormant until enabled and then enforced before host construction.</summary>
+    /// <param name="enabled">Whether retention is active.</param>
+    /// <param name="intervalMinutes">Candidate retention cadence.</param>
+    /// <param name="maximumRows">Candidate bounded batch size.</param>
+    /// <param name="isValid">Whether the complete option set is admissible.</param>
+    [Theory]
+    [InlineData(false, 0, 0, true)]
+    [InlineData(true, 0, 1, false)]
+    [InlineData(true, 1, 1, true)]
+    [InlineData(true, 1440, 5000, true)]
+    [InlineData(true, 1441, 5000, false)]
+    [InlineData(true, 60, 5001, false)]
+    public void RetentionBoundsAreValidatedAtStartup(
+        bool enabled,
+        int intervalMinutes,
+        int maximumRows,
+        bool isValid)
+    {
+        AgentRetentionOptions options = new()
+        {
+            Enabled = enabled,
+            IntervalMinutes = intervalMinutes,
+            MaximumRowsPerClass = maximumRows,
+        };
+
+        Exception? exception = Record.Exception(options.ValidateForStartup);
+
+        Assert.Equal(isValid, exception is null);
     }
 
     private static AgentInstanceAssignmentRow Assignment(

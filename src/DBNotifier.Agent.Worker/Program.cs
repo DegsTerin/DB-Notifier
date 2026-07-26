@@ -23,11 +23,13 @@ builder.Configuration.GetSection(AgentWorkerOptions.SectionName).Bind(workerOpti
 AgentSynchronizationOptions synchronizationOptions = new();
 builder.Configuration.GetSection(AgentSynchronizationOptions.SectionName).Bind(synchronizationOptions);
 synchronizationOptions.ValidateCommandPollingForStartup();
+workerOptions.ValidateForStartup(synchronizationOptions.Enabled);
 AgentFleetClientOptions agentFleetClientOptions = new();
 builder.Configuration.GetSection(AgentFleetClientOptions.SectionName).Bind(agentFleetClientOptions);
 agentFleetClientOptions.ValidateForStartup();
 AgentRetentionOptions retentionOptions = new();
 builder.Configuration.GetSection(AgentRetentionOptions.SectionName).Bind(retentionOptions);
+retentionOptions.ValidateForStartup();
 NetworkEgressOptions networkEgressOptions = new();
 builder.Configuration.GetSection(NetworkEgressOptions.SectionName).Bind(networkEgressOptions);
 NetworkEgressPolicySet networkEgressPolicies = NetworkEgressPolicySet.Compile(networkEgressOptions);

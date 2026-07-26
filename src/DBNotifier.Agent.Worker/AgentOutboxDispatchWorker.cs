@@ -6,6 +6,16 @@ using Microsoft.Extensions.Logging;
 
 namespace DBNotifier.Agent.Worker;
 
+/// <summary>
+/// Dispatches the durable Agent observation outbox only through the explicitly enabled synchronisation boundary.
+/// </summary>
+/// <param name="agentOptions">Agent identity and monitoring options.</param>
+/// <param name="synchronizationOptions">Independent outbound synchronisation options.</param>
+/// <param name="storeInitializer">Lazy owner of the Agent SQLite schema.</param>
+/// <param name="outboxStore">Durable ordered observation source.</param>
+/// <param name="transport">Authenticated bounded observation transport.</param>
+/// <param name="timeProvider">Clock used for retry cadence.</param>
+/// <param name="logger">Sanitised worker logger.</param>
 public sealed partial class AgentOutboxDispatchWorker(
     AgentWorkerOptions agentOptions,
     AgentSynchronizationOptions synchronizationOptions,
@@ -15,6 +25,7 @@ public sealed partial class AgentOutboxDispatchWorker(
     TimeProvider timeProvider,
     ILogger<AgentOutboxDispatchWorker> logger) : BackgroundService
 {
+    /// <inheritdoc />
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         if (!synchronizationOptions.Enabled)
@@ -23,7 +34,7 @@ public sealed partial class AgentOutboxDispatchWorker(
             return;
         }
 
-        ArgumentOutOfRangeException.ThrowIfEqual(agentOptions.AgentId, Guid.Empty);
+        agentOptions.ValidateForStartup(synchronisationEnabled: true);
         _ = synchronizationOptions.ValidateAndGetServerBaseAddress();
         await storeInitializer.InitializeAsync(stoppingToken).ConfigureAwait(false);
         AgentOutboxDispatchRunner runner = new(

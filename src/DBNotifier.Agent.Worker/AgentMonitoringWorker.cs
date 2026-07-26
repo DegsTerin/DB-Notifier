@@ -6,6 +6,16 @@ using Microsoft.Extensions.Logging;
 
 namespace DBNotifier.Agent.Worker;
 
+/// <summary>
+/// Runs bounded provider monitoring only after startup options and local state have passed their owning boundaries.
+/// </summary>
+/// <param name="options">Fail-closed Agent monitoring options.</param>
+/// <param name="storeInitializer">Lazy owner of the Agent SQLite schema.</param>
+/// <param name="assignmentSource">Read-only source of due monitoring assignments.</param>
+/// <param name="probeHandler">Provider-neutral monitoring use case.</param>
+/// <param name="observationSink">Transactional observation and outbox sink.</param>
+/// <param name="timeProvider">Clock used for cadence and observed durations.</param>
+/// <param name="logger">Sanitised worker logger.</param>
 public sealed partial class AgentMonitoringWorker(
     AgentWorkerOptions options,
     AgentStoreInitializer storeInitializer,
@@ -15,6 +25,7 @@ public sealed partial class AgentMonitoringWorker(
     TimeProvider timeProvider,
     ILogger<AgentMonitoringWorker> logger) : BackgroundService
 {
+    /// <inheritdoc />
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         if (!options.MonitoringEnabled)
@@ -23,7 +34,7 @@ public sealed partial class AgentMonitoringWorker(
             return;
         }
 
-        ValidateOptions();
+        options.ValidateForStartup(synchronisationEnabled: false);
         await storeInitializer.InitializeAsync(stoppingToken).ConfigureAwait(false);
         MonitoringCycleRunner runner = new(
             options.AgentId,
@@ -57,19 +68,6 @@ public sealed partial class AgentMonitoringWorker(
             }
 
             await Task.Delay(cycleInterval, timeProvider, stoppingToken).ConfigureAwait(false);
-        }
-    }
-
-    private void ValidateOptions()
-    {
-        if (options.AgentId == Guid.Empty)
-        {
-            throw new InvalidOperationException("A non-empty AgentId is required when monitoring is enabled.");
-        }
-
-        if (options.CycleIntervalSeconds is < 1 or > 300)
-        {
-            throw new InvalidOperationException("Agent cycle interval must be between 1 and 300 seconds.");
         }
     }
 

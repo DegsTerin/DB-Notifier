@@ -6,19 +6,45 @@ using Microsoft.Extensions.Logging;
 
 namespace DBNotifier.Agent.Worker;
 
+/// <summary>Defines opt-in, dry-run-by-default retention policy for local Agent state.</summary>
 public sealed class AgentRetentionOptions
 {
+    /// <summary>Gets the configuration section containing local retention options.</summary>
     public const string SectionName = "DBNotifier:Retention";
 
+    /// <summary>Gets or sets whether the retention worker may initialise and execute.</summary>
     public bool Enabled { get; set; }
 
+    /// <summary>Gets or sets whether eligible rows may be deleted instead of reported only.</summary>
     public bool ApplyChanges { get; set; }
 
+    /// <summary>Gets or sets the bounded retention cadence in minutes.</summary>
     public int IntervalMinutes { get; set; } = 60;
 
+    /// <summary>Gets or sets the maximum rows processed per retained data class.</summary>
     public int MaximumRowsPerClass { get; set; } = 1000;
+
+    /// <summary>Validates enabled retention bounds before the host is built.</summary>
+    /// <exception cref="InvalidOperationException">
+    /// Thrown when enabled cadence or batch size lies outside the local policy.
+    /// </exception>
+    public void ValidateForStartup()
+    {
+        if (Enabled && (IntervalMinutes is < 1 or > 1440 || MaximumRowsPerClass is < 1 or > 5000))
+        {
+            throw new InvalidOperationException("Agent retention cadence or batch size is outside policy.");
+        }
+    }
 }
 
+/// <summary>
+/// Applies or previews bounded local retention only after the opt-in configuration and store are valid.
+/// </summary>
+/// <param name="options">Opt-in retention policy.</param>
+/// <param name="initializer">Lazy owner of the Agent SQLite schema.</param>
+/// <param name="store">Bounded local retention store.</param>
+/// <param name="timeProvider">Clock used for retention cut-offs and cadence.</param>
+/// <param name="logger">Sanitised worker logger.</param>
 public sealed partial class AgentRetentionWorker(
     AgentRetentionOptions options,
     AgentStoreInitializer initializer,
@@ -26,6 +52,7 @@ public sealed partial class AgentRetentionWorker(
     TimeProvider timeProvider,
     ILogger<AgentRetentionWorker> logger) : BackgroundService
 {
+    /// <inheritdoc />
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         if (!options.Enabled)
@@ -34,7 +61,7 @@ public sealed partial class AgentRetentionWorker(
             return;
         }
 
-        Validate();
+        options.ValidateForStartup();
         await initializer.InitializeAsync(stoppingToken).ConfigureAwait(false);
         TimeSpan interval = TimeSpan.FromMinutes(options.IntervalMinutes);
         while (!stoppingToken.IsCancellationRequested)
@@ -64,14 +91,6 @@ public sealed partial class AgentRetentionWorker(
             }
 
             await Task.Delay(interval, timeProvider, stoppingToken).ConfigureAwait(false);
-        }
-    }
-
-    private void Validate()
-    {
-        if (options.IntervalMinutes is < 1 or > 1440 || options.MaximumRowsPerClass is < 1 or > 5000)
-        {
-            throw new InvalidOperationException("Agent retention cadence or batch size is outside policy.");
         }
     }
 
