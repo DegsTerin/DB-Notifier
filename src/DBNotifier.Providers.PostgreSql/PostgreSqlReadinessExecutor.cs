@@ -2,7 +2,9 @@
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Globalization;
+using System.Net;
 using System.Net.Sockets;
+using DBNotifier.Provider.Abstractions;
 
 namespace DBNotifier.Providers.PostgreSql;
 
@@ -12,9 +14,11 @@ namespace DBNotifier.Providers.PostgreSql;
 /// </summary>
 /// <param name="discovery">Approved-root executable discovery boundary.</param>
 /// <param name="transportProbe">TCP fallback that never asserts authenticated database health.</param>
+/// <param name="networkAuthorizer">Local authority that resolves and admits the exact monitoring destination.</param>
 public sealed class PostgreSqlReadinessExecutor(
     IPostgreSqlExecutableDiscovery discovery,
-    IPostgreSqlTransportProbe transportProbe) : IPostgreSqlReadinessExecutor
+    IPostgreSqlTransportProbe transportProbe,
+    INetworkEgressAuthorizer networkAuthorizer) : IPostgreSqlReadinessExecutor
 {
     /// <summary>Executes one provider readiness probe or a clearly labelled TCP-only fallback.</summary>
     /// <param name="endpoint">Validated endpoint containing no connection string or secret.</param>
@@ -43,6 +47,19 @@ public sealed class PostgreSqlReadinessExecutor(
         }
 
         endpoint = endpoint with { PgIsReadyPath = discovered.ExecutablePath! };
+        PostgreSqlNetworkResolution network = await PostgreSqlNetworkEgress
+            .ResolveAsync(networkAuthorizer, endpoint, cancellationToken)
+            .ConfigureAwait(false);
+        if (!network.IsApproved)
+        {
+            return new PostgreSqlReadinessResult(
+                PostgreSqlReadinessState.InvalidConfiguration,
+                "network-egress",
+                stopwatch.Elapsed,
+                network.FailureCode);
+        }
+
+        endpoint = network.Endpoint;
         try
         {
             ProcessStartInfo startInfo = CreateStartInfo(endpoint, timeout);
@@ -114,15 +131,15 @@ public sealed class PostgreSqlReadinessExecutor(
         Stopwatch stopwatch,
         CancellationToken cancellationToken)
     {
-        PostgreSqlTransportState state = await transportProbe.ProbeAsync(endpoint, timeout, cancellationToken)
+        PostgreSqlTransportResult result = await transportProbe.ProbeAsync(endpoint, timeout, cancellationToken)
             .ConfigureAwait(false);
-        return new PostgreSqlReadinessResult(state switch
+        return new PostgreSqlReadinessResult(result.State switch
         {
             PostgreSqlTransportState.Reachable => PostgreSqlReadinessState.TransportReachable,
             PostgreSqlTransportState.NoResponse => PostgreSqlReadinessState.NoResponse,
             PostgreSqlTransportState.TimedOut => PostgreSqlReadinessState.TimedOut,
             _ => PostgreSqlReadinessState.InvalidConfiguration,
-        }, "tcp", stopwatch.Elapsed);
+        }, "tcp", stopwatch.Elapsed, result.ErrorCode);
     }
 
     /// <summary>Kills the complete synthetic or provider utility tree and waits independently for confirmed exit.</summary>
@@ -194,39 +211,105 @@ public sealed class PostgreSqlReadinessExecutor(
     }
 }
 
-/// <summary>Checks bounded socket reachability only and never promotes it to provider readiness or health.</summary>
+/// <summary>
+/// Checks bounded socket reachability only, after resolving the exact endpoint through local egress policy,
+/// and never promotes transport evidence to provider readiness or health.
+/// </summary>
 public sealed class TcpPostgreSqlTransportProbe : IPostgreSqlTransportProbe
 {
+    private readonly INetworkEgressAuthorizer networkAuthorizer;
+    private readonly IPostgreSqlTcpConnector connector;
+
+    /// <summary>Creates the production TCP probe over direct operating-system sockets.</summary>
+    /// <param name="networkAuthorizer">Local authority that returns only approved physical IP addresses.</param>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="networkAuthorizer"/> is null.</exception>
+    public TcpPostgreSqlTransportProbe(INetworkEgressAuthorizer networkAuthorizer)
+        : this(networkAuthorizer, new PostgreSqlTcpConnector())
+    {
+    }
+
+    /// <summary>Creates a TCP probe with an injected connector for deterministic network-free tests.</summary>
+    /// <param name="networkAuthorizer">Local destination authority.</param>
+    /// <param name="connector">Connector that accepts only an already approved IP address.</param>
+    internal TcpPostgreSqlTransportProbe(
+        INetworkEgressAuthorizer networkAuthorizer,
+        IPostgreSqlTcpConnector connector)
+    {
+        ArgumentNullException.ThrowIfNull(networkAuthorizer);
+        ArgumentNullException.ThrowIfNull(connector);
+        this.networkAuthorizer = networkAuthorizer;
+        this.connector = connector;
+    }
+
     /// <summary>Attempts one direct TCP connection to a non-socket endpoint within the supplied deadline.</summary>
     /// <param name="endpoint">Validated host and port.</param>
     /// <param name="timeout">Positive transport deadline.</param>
     /// <param name="cancellationToken">Caller cancellation distinct from timeout.</param>
     /// <returns>Reachable, no-response, timed-out or invalid transport evidence.</returns>
-    public async ValueTask<PostgreSqlTransportState> ProbeAsync(
+    public async ValueTask<PostgreSqlTransportResult> ProbeAsync(
         PostgreSqlEndpoint endpoint,
         TimeSpan timeout,
         CancellationToken cancellationToken)
     {
+        ArgumentNullException.ThrowIfNull(endpoint);
+        ArgumentOutOfRangeException.ThrowIfLessThanOrEqual(timeout, TimeSpan.Zero);
         if (endpoint.Host.StartsWith('/'))
         {
-            return PostgreSqlTransportState.Invalid;
+            return new(PostgreSqlTransportState.Invalid);
+        }
+
+        PostgreSqlNetworkResolution network = await PostgreSqlNetworkEgress
+            .ResolveAsync(networkAuthorizer, endpoint, cancellationToken)
+            .ConfigureAwait(false);
+        if (!network.IsApproved || network.ApprovedAddress is null)
+        {
+            return new(PostgreSqlTransportState.Invalid, network.FailureCode);
         }
 
         using CancellationTokenSource deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         deadline.CancelAfter(timeout);
-        using TcpClient client = new();
         try
         {
-            await client.ConnectAsync(endpoint.Host, endpoint.Port, deadline.Token).ConfigureAwait(false);
-            return PostgreSqlTransportState.Reachable;
+            await connector
+                .ConnectAsync(network.ApprovedAddress, endpoint.Port, deadline.Token)
+                .ConfigureAwait(false);
+            return new(PostgreSqlTransportState.Reachable);
         }
         catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
         {
-            return PostgreSqlTransportState.TimedOut;
+            return new(PostgreSqlTransportState.TimedOut);
         }
         catch (SocketException)
         {
-            return PostgreSqlTransportState.NoResponse;
+            return new(PostgreSqlTransportState.NoResponse);
         }
+    }
+}
+
+/// <summary>Connects directly to one already authorised PostgreSQL IP address without performing DNS.</summary>
+internal interface IPostgreSqlTcpConnector
+{
+    /// <summary>Opens and closes one bounded TCP connection to the supplied physical endpoint.</summary>
+    /// <param name="address">Policy-approved IP address.</param>
+    /// <param name="port">Validated PostgreSQL destination port.</param>
+    /// <param name="cancellationToken">Bounded connection cancellation.</param>
+    /// <returns>A task that completes only after the connection was established and disposed.</returns>
+    ValueTask ConnectAsync(
+        IPAddress address,
+        int port,
+        CancellationToken cancellationToken);
+}
+
+/// <summary>Implements direct PostgreSQL transport probing with one short-lived operating-system socket.</summary>
+internal sealed class PostgreSqlTcpConnector : IPostgreSqlTcpConnector
+{
+    /// <inheritdoc />
+    public async ValueTask ConnectAsync(
+        IPAddress address,
+        int port,
+        CancellationToken cancellationToken)
+    {
+        using TcpClient client = new(address.AddressFamily);
+        await client.ConnectAsync(address, port, cancellationToken).ConfigureAwait(false);
     }
 }

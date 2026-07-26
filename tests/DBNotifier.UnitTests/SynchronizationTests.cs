@@ -1316,6 +1316,34 @@ public sealed class SynchronizationTests
         Assert.Equal("sync.transport_timeout", item.ErrorCode);
     }
 
+    /// <summary>Proves every redirect is retained as retryable and never becomes a terminal acknowledgement.</summary>
+    /// <param name="statusCode">Redirect status returned by the fixed Server endpoint.</param>
+    [Theory]
+    [InlineData(HttpStatusCode.MovedPermanently)]
+    [InlineData(HttpStatusCode.Found)]
+    [InlineData(HttpStatusCode.SeeOther)]
+    [InlineData(HttpStatusCode.TemporaryRedirect)]
+    [InlineData(HttpStatusCode.PermanentRedirect)]
+    public async Task HttpTransportRefusesRedirectsAsRetryable(HttpStatusCode statusCode)
+    {
+        AgentOutboxMessageRow row = Outbox(1);
+        using HttpClient httpClient = new(new StatusHttpHandler(statusCode));
+        HttpObservationBatchTransport transport = new(
+            httpClient,
+            new Uri("https://server.example.test/"),
+            "0.1.0");
+
+        ObservationBatchResult result = await transport.SendAsync(
+            Guid.Parse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"),
+            [Envelope(row)],
+            CancellationToken.None);
+
+        ObservationItemResult item = Assert.Single(result.Items);
+        Assert.Equal(ObservationIngestionDisposition.Retryable, item.Disposition);
+        Assert.Equal("sync.redirect_refused", item.ErrorCode);
+        Assert.Equal(0, result.HighestContiguousSequence);
+    }
+
     /// <summary>Proves that a local unsupported payload cannot acknowledge its sequence without Server cursor proof.</summary>
     [Fact]
     public async Task DispatchRunnerRetainsLocallyRejectedHttpPayload()

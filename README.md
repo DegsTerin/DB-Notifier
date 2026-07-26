@@ -38,7 +38,7 @@ tests/DBNotifier.Legacy.Tests.ps1
 packaging/inno/DBNotifier.iss
 ```
 
-It monitors local or remote PostgreSQL endpoints with `pg_isready.exe` and falls back to a TCP reachability check that is presented only as unproved transport evidence. The legacy client contains no Start, Stop, or Restart executor; these administrative capabilities remain `Unsupported` until their governed contract and homologation are complete.
+It monitors only loopback PostgreSQL endpoints with `pg_isready.exe` and falls back to a loopback TCP reachability check that is presented only as unproved transport evidence. Remote legacy entries remain parseable for compatibility and migration, but the compatibility runtime refuses them before DNS, process or socket execution; governed remote monitoring belongs to the Agent/provider path. The legacy client contains no Start, Stop, or Restart executor; these administrative capabilities remain `Unsupported` until their governed contract and homologation are complete.
 
 Deprecated `PgNotifier` entry points remain only as compatibility shims. They forward to the DB-Notifier implementation, emit a deprecation warning, and preserve explicit legacy configuration paths without overwriting them.
 

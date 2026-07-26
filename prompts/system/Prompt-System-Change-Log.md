@@ -2,9 +2,9 @@
 
 ## Versão atual
 
-- Versão: `4.0.1`
-- Data: 2026-07-25
-- Status: corpus DB-Notifier consolidado após a incorporação do Prompt Mestre
+- Versão: `4.0.2`
+- Data: 2026-07-26
+- Status: corpus consolidado com roteamento para o contrato local de network egress
 - Escopo: 14 arquivos ativos
 
 A versão do corpus é independente da versão do software.
@@ -16,6 +16,19 @@ A versão do corpus é independente da versão do software.
 - PATCH: clareza, correção ou referência sem mudança de autoridade.
 
 Toda alteração atualiza este arquivo e, quando necessário, `../Start-Here.md`.
+
+## 4.0.2 — 2026-07-26
+
+- Encaminha a regra temática de SSRF do proprietário
+  `governance/Security-And-Access.md` para o contrato normativo local de CIDR,
+  porta, DNS, pinning, redirects e PKI offline em
+  `docs/architecture/Network-Egress-Policy.md`.
+- Preserva `Start-Here.md`, a matriz PM-1, a precedência, os 14 arquivos
+  ativos e todas as autoridades existentes; o documento arquitetural detalha
+  a implementação, mas não concede runtime, conexão externa, lifecycle,
+  Human Gate ou ativação.
+- Registra a conclusão técnica local de R-NET sem alterar
+  `STATE-06 INTEGRATION` ou `ActivationState=None`.
 
 ## 4.0.1 — 2026-07-25
 

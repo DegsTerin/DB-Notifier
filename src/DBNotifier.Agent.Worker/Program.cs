@@ -5,6 +5,7 @@ using DBNotifier.Application.Monitoring;
 using DBNotifier.Application.Operations;
 using DBNotifier.Application.Security;
 using DBNotifier.Application.Synchronization;
+using DBNotifier.Infrastructure.Http;
 using DBNotifier.Infrastructure.Security;
 using DBNotifier.Infrastructure.Synchronization;
 using DBNotifier.Persistence.Agent.Sqlite;
@@ -27,6 +28,27 @@ builder.Configuration.GetSection(AgentFleetClientOptions.SectionName).Bind(agent
 agentFleetClientOptions.ValidateForStartup();
 AgentRetentionOptions retentionOptions = new();
 builder.Configuration.GetSection(AgentRetentionOptions.SectionName).Bind(retentionOptions);
+NetworkEgressOptions networkEgressOptions = new();
+builder.Configuration.GetSection(NetworkEgressOptions.SectionName).Bind(networkEgressOptions);
+NetworkEgressPolicySet networkEgressPolicies = NetworkEgressPolicySet.Compile(networkEgressOptions);
+Uri synchronizationBaseAddress = synchronizationOptions.Enabled
+    ? synchronizationOptions.ValidateAndGetServerBaseAddress()
+    : new Uri("https://disabled.invalid/", UriKind.Absolute);
+if (synchronizationOptions.Enabled)
+{
+    networkEgressPolicies.Require(
+        NetworkEgressPolicyIds.AgentSynchronization,
+        synchronizationBaseAddress.Port);
+}
+if (workerOptions.MonitoringEnabled &&
+    !networkEgressPolicies.Contains(NetworkEgressPolicyIds.ProviderMonitoring))
+{
+    throw new InvalidOperationException(NetworkEgressFailureCodes.PolicyUnavailable);
+}
+
+INetworkEgressAuthorizer networkEgressAuthorizer = new NetworkEgressAuthorizer(networkEgressPolicies);
+NetworkBoundHttpMessageHandlerFactory networkHttpFactory =
+    new(networkEgressAuthorizer);
 string databasePath = AgentWorkerOptions.ResolveDatabasePath(workerOptions.DatabasePath);
 string connectionString = new SqliteConnectionStringBuilder
 {
@@ -39,6 +61,9 @@ builder.Services.AddSingleton(workerOptions);
 builder.Services.AddSingleton(synchronizationOptions);
 builder.Services.AddSingleton(agentFleetClientOptions);
 builder.Services.AddSingleton(retentionOptions);
+builder.Services.AddSingleton(networkEgressPolicies);
+builder.Services.AddSingleton(networkEgressAuthorizer);
+builder.Services.AddSingleton(networkHttpFactory);
 builder.Services.AddDbContextFactory<AgentDbContext>(options => options.UseSqlite(connectionString));
 builder.Services.AddSingleton(services => new AgentStoreInitializer(
     services.GetRequiredService<IDbContextFactory<AgentDbContext>>(),
@@ -61,16 +86,14 @@ builder.Services.AddSingleton<ICredentialVaultAdapter, LinuxSecretServiceVaultAd
 builder.Services.AddSingleton<ICredentialVault>(services =>
     new CompositeCredentialVault(services.GetServices<ICredentialVaultAdapter>()));
 builder.Services.AddSingleton(_ =>
-    new HttpClient(CreateSynchronizationHandler(synchronizationOptions))
+    new HttpClient(CreateSynchronizationHandler(synchronizationOptions, networkHttpFactory))
     {
         Timeout = TimeSpan.FromSeconds(30),
     });
 builder.Services.AddSingleton<IObservationBatchTransport>(services =>
     new HttpObservationBatchTransport(
         services.GetRequiredService<HttpClient>(),
-        synchronizationOptions.Enabled
-            ? synchronizationOptions.ValidateAndGetServerBaseAddress()
-            : new Uri("https://disabled.invalid/", UriKind.Absolute),
+        synchronizationBaseAddress,
         synchronizationOptions.AgentVersion));
 builder.Services.AddSingleton<ProbeInstanceHandler>();
 builder.Services.AddHostedService<AgentMonitoringWorker>();
@@ -80,12 +103,19 @@ builder.Services.AddHostedService<AgentRetentionWorker>();
 using IHost host = builder.Build();
 await host.RunAsync();
 
-static HttpClientHandler CreateSynchronizationHandler(AgentSynchronizationOptions options)
+/// <summary>
+/// Creates the fail-closed synchronization handler and selects one locally current client certificate
+/// without invoking platform certificate-chain validation during store lookup.
+/// </summary>
+static SocketsHttpHandler CreateSynchronizationHandler(
+    AgentSynchronizationOptions options,
+    NetworkBoundHttpMessageHandlerFactory handlerFactory)
 {
-    HttpClientHandler handler = new() { CheckCertificateRevocationList = true };
+    ArgumentNullException.ThrowIfNull(options);
+    ArgumentNullException.ThrowIfNull(handlerFactory);
     if (!options.Enabled)
     {
-        return handler;
+        return handlerFactory.Create(NetworkEgressPolicyIds.AgentSynchronization);
     }
 
     _ = options.ValidateAndGetServerBaseAddress();
@@ -94,15 +124,22 @@ static HttpClientHandler CreateSynchronizationHandler(AgentSynchronizationOption
     X509Certificate2Collection certificates = store.Certificates.Find(
         X509FindType.FindByThumbprint,
         options.ClientCertificateThumbprint!,
-        validOnly: true);
-    X509Certificate2? certificate = certificates
+        validOnly: false);
+    DateTimeOffset now = DateTimeOffset.UtcNow;
+    X509Certificate2[] eligibleCertificates = certificates
         .OfType<X509Certificate2>()
-        .SingleOrDefault(candidate => candidate.HasPrivateKey);
-    if (certificate is null)
+        .Where(candidate =>
+            candidate.HasPrivateKey &&
+            now >= candidate.NotBefore.ToUniversalTime() &&
+            now <= candidate.NotAfter.ToUniversalTime())
+        .ToArray();
+    if (eligibleCertificates.Length != 1)
     {
-        throw new InvalidOperationException("The configured Agent client certificate is unavailable or invalid.");
+        throw new InvalidOperationException(
+            "The configured Agent client certificate is unavailable, ambiguous or outside its validity period.");
     }
 
-    handler.ClientCertificates.Add(certificate);
-    return handler;
+    return handlerFactory.Create(
+        NetworkEgressPolicyIds.AgentSynchronization,
+        eligibleCertificates[0]);
 }

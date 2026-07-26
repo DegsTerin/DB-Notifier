@@ -70,10 +70,12 @@ public enum PostgreSqlReadinessState
 /// <param name="State">Canonical provider readiness state.</param>
 /// <param name="Method">Stable evidence method such as <c>pg_isready</c> or <c>tcp</c>.</param>
 /// <param name="Duration">Measured probe duration.</param>
+/// <param name="ErrorCode">Optional sanitised configuration failure code when no probe was attempted.</param>
 public sealed record PostgreSqlReadinessResult(
     PostgreSqlReadinessState State,
     string Method,
-    TimeSpan Duration);
+    TimeSpan Duration,
+    string? ErrorCode = null);
 
 /// <summary>Executes PostgreSQL readiness checks behind the isolated provider boundary.</summary>
 public interface IPostgreSqlReadinessExecutor
@@ -112,12 +114,19 @@ public interface IPostgreSqlTransportProbe
     /// <param name="endpoint">Validated PostgreSQL endpoint.</param>
     /// <param name="timeout">Positive transport deadline.</param>
     /// <param name="cancellationToken">Caller cancellation propagated to socket work.</param>
-    /// <returns>Reachability-only evidence.</returns>
-    ValueTask<PostgreSqlTransportState> ProbeAsync(
+    /// <returns>Reachability-only evidence with an optional sanitised configuration failure.</returns>
+    ValueTask<PostgreSqlTransportResult> ProbeAsync(
         PostgreSqlEndpoint endpoint,
         TimeSpan timeout,
         CancellationToken cancellationToken);
 }
+
+/// <summary>Contains one transport-only result without disclosing its destination.</summary>
+/// <param name="State">Canonical TCP reachability state.</param>
+/// <param name="ErrorCode">Optional sanitised configuration failure code when no socket was opened.</param>
+public sealed record PostgreSqlTransportResult(
+    PostgreSqlTransportState State,
+    string? ErrorCode = null);
 
 /// <summary>Describes a fixed-query PostgreSQL result obtained with a monitoring credential.</summary>
 public enum PostgreSqlAuthenticatedState
@@ -134,6 +143,9 @@ public enum PostgreSqlAuthenticatedState
     /// <summary>The authenticated probe exceeded its deadline.</summary>
     TimedOut,
 
+    /// <summary>The configured destination was not authorised, so no connection was attempted.</summary>
+    InvalidConfiguration,
+
     /// <summary>The probe completed without conclusive health evidence.</summary>
     Failed,
 }
@@ -141,9 +153,11 @@ public enum PostgreSqlAuthenticatedState
 /// <summary>Contains one canonical authenticated PostgreSQL probe outcome.</summary>
 /// <param name="State">Canonical authenticated state.</param>
 /// <param name="Duration">Measured connection and fixed-query duration.</param>
+/// <param name="ErrorCode">Optional sanitised configuration failure code when no probe was attempted.</param>
 public sealed record PostgreSqlAuthenticatedResult(
     PostgreSqlAuthenticatedState State,
-    TimeSpan Duration);
+    TimeSpan Duration,
+    string? ErrorCode = null);
 
 /// <summary>Executes fixed authenticated PostgreSQL probes without exposing provider details to the neutral core.</summary>
 public interface IPostgreSqlAuthenticatedExecutor

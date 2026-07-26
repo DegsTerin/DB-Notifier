@@ -90,6 +90,7 @@ Infrastructure / Providers / Agent / API / Desktop
 - [Canonical contracts](Canonical-Contracts.md)
 - [Agent/API protocol](Agent-API-Protocol.md)
 - [Threat model](Threat-Model.md)
+- [Network egress policy](Network-Egress-Policy.md)
 - [Provider capability matrix](Provider-Capability-Matrix.md)
 - [AIOps/AI guardrails](AIOps-Architecture-Guardrails.md)
 - [AIOps trust governance and resource envelope](AIOps-Trust-Governance-And-Resource-Envelope.md) (reviewed documentary contract supporting accepted ADR-0007; no implementation authority)

@@ -75,11 +75,12 @@ proprietários.
   observação que perde essa ordem não cria amostra nem efeito atribuível a
   ela. O R-SEQ ainda pode projetar uma sucessora aceita antes da revogação e
   retida atrás do gap recusado. PostgreSQL serializável real e Server
-  multiprocesso permanecem não testados; SSRF e política de network egress
-  não foram avaliados. O gate local não garante prioridade, fairness ou limite
-  próprio de espera e é adquirido pela revogação antes da decisão RBAC
-  definitiva; contenção e latência desse risco não foram testadas. A evidência
-  proprietária está no
+  multiprocesso permanecem não testados. R-EGRESS não avaliou SSRF ou
+  network egress no seu escopo histórico; o resultado corrente dessa fronteira
+  pertence ao R-NET descrito abaixo. O gate local não garante prioridade,
+  fairness ou limite próprio de espera e é adquirido pela revogação antes da
+  decisão RBAC definitiva; contenção e latência desse risco não foram testadas.
+  A evidência proprietária está no
   [relatório R-EGRESS](../../docs/STATE-06-R-EGRESS-Observation-Ingestion-Revocation-Linearisation-Report.md).
 - R-FENCE está automaticamente `APROVADO` somente como regressão local do
   lifecycle do gate por Agent já implementado em R-EGRESS. Quatro testes
@@ -89,6 +90,18 @@ proprietários.
   não acrescenta garantias de fairness, prioridade ou timeout próprio. A
   evidência proprietária está no
   [relatório R-FENCE](../../docs/STATE-06-R-FENCE-Agent-Identity-Fence-Lifecycle-Regression-Report.md).
+- R-NET está automaticamente `APROVADO` somente no escopo local validado.
+  Quatro políticas independentes e imutáveis agora exigem CIDR positivo e
+  porta exata para sincronização do Agent, monitorização por provider, OIDC
+  humano e PostgreSQL central. Toda resposta DNS é tratada atomicamente,
+  endereços proibidos vencem qualquer allowlist e sockets conectam somente a
+  IP aprovado, preservando o hostname original para TLS. Redirect, proxy,
+  credencial ambiental, download de certificado e revogação online implícita
+  foram recusados nos caminhos diretamente afetados. O legado PowerShell
+  tornou-se estritamente loopback e não resolve nomes remotos. IdP, PKI,
+  resolvedor, PostgreSQL, proxy, failover e tráfego real permanecem não
+  testados; a evidência proprietária está no
+  [relatório R-NET](../../docs/STATE-06-R-NET-Network-Egress-Remediation-Report.md).
 - O lote documental PM-3 alinhou a apresentação pública ao estado corrente,
   rotulou o relatório de migração de prompts como evidência histórica e não
   alterou autoridade, código, configuração, lifecycle ou ativação.

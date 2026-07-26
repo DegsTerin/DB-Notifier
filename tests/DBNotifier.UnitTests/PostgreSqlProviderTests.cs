@@ -1,6 +1,7 @@
 // Module purpose: Verifies PostgreSQL provider boundaries and protects the documented project contract.
 using System.Diagnostics;
 using System.Globalization;
+using System.Net;
 using DBNotifier.Application.Security;
 using DBNotifier.Domain;
 using DBNotifier.Provider.Abstractions;
@@ -266,7 +267,8 @@ public sealed class PostgreSqlProviderTests
     {
         PostgreSqlReadinessExecutor executor = new(
             new StubDiscovery(PostgreSqlExecutableDiscoveryState.NotFound),
-            new StubTransportProbe(transportState));
+            new StubTransportProbe(transportState),
+            new StubNetworkEgressAuthorizer());
 
         PostgreSqlReadinessResult result = await executor.ExecuteAsync(
             PostgreSqlEndpoint.FromProviderEndpoint(Endpoint()), TimeSpan.FromSeconds(2), CancellationToken.None);
@@ -280,7 +282,9 @@ public sealed class PostgreSqlProviderTests
     {
         StubTransportProbe transport = new(PostgreSqlTransportState.Reachable);
         PostgreSqlReadinessExecutor executor = new(
-            new StubDiscovery(PostgreSqlExecutableDiscoveryState.Invalid), transport);
+            new StubDiscovery(PostgreSqlExecutableDiscoveryState.Invalid),
+            transport,
+            new StubNetworkEgressAuthorizer());
 
         PostgreSqlReadinessResult result = await executor.ExecuteAsync(
             PostgreSqlEndpoint.FromProviderEndpoint(Endpoint()), TimeSpan.FromSeconds(2), CancellationToken.None);
@@ -382,14 +386,16 @@ public sealed class PostgreSqlProviderTests
     }
 
     [Theory]
-    [InlineData(PostgreSqlAuthenticatedState.Healthy, HealthStatus.Healthy)]
-    [InlineData(PostgreSqlAuthenticatedState.AuthenticationFailed, HealthStatus.AuthFailed)]
-    [InlineData(PostgreSqlAuthenticatedState.Unavailable, HealthStatus.Unavailable)]
-    [InlineData(PostgreSqlAuthenticatedState.TimedOut, HealthStatus.Timeout)]
-    [InlineData(PostgreSqlAuthenticatedState.Failed, HealthStatus.Unknown)]
+    [InlineData(PostgreSqlAuthenticatedState.Healthy, HealthStatus.Healthy, EvidenceLevel.ProviderAuthenticated)]
+    [InlineData(PostgreSqlAuthenticatedState.AuthenticationFailed, HealthStatus.AuthFailed, EvidenceLevel.ProviderAuthenticated)]
+    [InlineData(PostgreSqlAuthenticatedState.Unavailable, HealthStatus.Unavailable, EvidenceLevel.ProviderAuthenticated)]
+    [InlineData(PostgreSqlAuthenticatedState.TimedOut, HealthStatus.Timeout, EvidenceLevel.ProviderAuthenticated)]
+    [InlineData(PostgreSqlAuthenticatedState.InvalidConfiguration, HealthStatus.Unknown, EvidenceLevel.Unknown)]
+    [InlineData(PostgreSqlAuthenticatedState.Failed, HealthStatus.Unknown, EvidenceLevel.ProviderAuthenticated)]
     public async Task AuthenticatedProbeMapsWithoutExposingCredential(
         PostgreSqlAuthenticatedState authenticatedState,
-        HealthStatus expectedStatus)
+        HealthStatus expectedStatus,
+        EvidenceLevel expectedEvidence)
     {
         PostgreSqlDatabaseProvider provider = new(
             new StubExecutor(PostgreSqlReadinessState.Accepting),
@@ -401,7 +407,7 @@ public sealed class PostgreSqlProviderTests
             CancellationToken.None);
 
         Assert.Equal(expectedStatus, result.Status);
-        Assert.Equal(EvidenceLevel.ProviderAuthenticated, result.EvidenceLevel);
+        Assert.Equal(expectedEvidence, result.EvidenceLevel);
         Assert.DoesNotContain("not-serialized", result.Error?.SafeMessage ?? string.Empty, StringComparison.Ordinal);
     }
 
@@ -447,14 +453,25 @@ public sealed class PostgreSqlProviderTests
     {
         public int CallCount { get; private set; }
 
-        public ValueTask<PostgreSqlTransportState> ProbeAsync(
+        /// <inheritdoc />
+        public ValueTask<PostgreSqlTransportResult> ProbeAsync(
             PostgreSqlEndpoint endpoint,
             TimeSpan timeout,
             CancellationToken cancellationToken)
         {
             CallCount++;
-            return ValueTask.FromResult(state);
+            return ValueTask.FromResult(new PostgreSqlTransportResult(state));
         }
+    }
+
+    /// <summary>Approves one deterministic loopback address without performing DNS or opening a socket.</summary>
+    private sealed class StubNetworkEgressAuthorizer : INetworkEgressAuthorizer
+    {
+        /// <inheritdoc />
+        public ValueTask<NetworkEgressResolution> ResolveAndAuthoriseAsync(
+            NetworkEgressRequest request,
+            CancellationToken cancellationToken) =>
+            ValueTask.FromResult(NetworkEgressResolution.Approved([IPAddress.Loopback]));
     }
 
     private sealed class DiscoveryFileSystem(

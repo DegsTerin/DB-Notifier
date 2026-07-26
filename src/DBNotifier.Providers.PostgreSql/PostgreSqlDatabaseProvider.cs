@@ -158,7 +158,10 @@ public sealed class PostgreSqlDatabaseProvider(
                 HealthStatus.Unknown,
                 EvidenceLevel.Unknown,
                 result,
-                Error("postgresql.probe_invalid", ErrorCategory.Configuration, Retryability.AfterConfigurationChange,
+                Error(
+                    result.ErrorCode ?? "postgresql.probe_invalid",
+                    ErrorCategory.Configuration,
+                    Retryability.AfterConfigurationChange,
                     "The PostgreSQL readiness probe could not be attempted with the configured endpoint."),
                 ["probe-not-attempted"]),
             PostgreSqlReadinessState.TimedOut => CreateResult(
@@ -221,6 +224,17 @@ public sealed class PostgreSqlDatabaseProvider(
                 Error("postgresql.authenticated_timeout", ErrorCategory.Timeout, Retryability.Backoff,
                     "The authenticated PostgreSQL probe exceeded its deadline."),
                 []),
+            PostgreSqlAuthenticatedState.InvalidConfiguration => new ProviderProbeResult(
+                HealthStatus.Unknown,
+                EvidenceLevel.Unknown,
+                "network-egress",
+                result.Duration,
+                Error(
+                    result.ErrorCode ?? "postgresql.probe_invalid",
+                    ErrorCategory.Configuration,
+                    Retryability.AfterConfigurationChange,
+                    "The PostgreSQL authenticated probe could not be attempted with the configured endpoint."),
+                ["probe-not-attempted"]),
             PostgreSqlAuthenticatedState.Failed => new ProviderProbeResult(
                 HealthStatus.Unknown,
                 EvidenceLevel.ProviderAuthenticated,

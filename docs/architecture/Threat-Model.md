@@ -37,7 +37,9 @@ Critical assets:
 
 | Boundary/threat | Example | Required controls | Verification |
 |---|---|---|---|
-| Endpoint SSRF | User config points Agent/server to metadata/internal service | provider endpoint schema, allow/deny CIDR policy, DNS/IP revalidation, no server-side probe to monitored DB | negative endpoint tests, DNS rebinding scenario |
+| Endpoint SSRF | User config points Agent/server to metadata/internal service | provider endpoint schema, immutable positive CIDR/port policy, deny precedence, atomic DNS-answer validation, IP-pinned connection and no API-side probe to monitored databases | deterministic CIDR, mixed-answer, metadata and DNS-rebinding regressions; see [Network egress policy](Network-Egress-Policy.md) |
+| HTTP redirect or OIDC-origin escape | A configured endpoint or discovery document redirects identity/payload traffic to another origin | no automatic redirect/proxy/ambient credentials, exact OIDC origin, bounded JSON response and fresh policy admission for every physical socket | redirect, cross-origin, response-size/media-type and pinned-connector regressions |
+| Certificate-validation egress | TLS chain construction retrieves attacker-selected AIA, CRL or OCSP locations outside policy | offline cached revocation, certificate downloads disabled, exact server/client authentication EKU and no `NoCheck` fallback | TLS-option and certificate-profile regressions; operational trust/revocation availability remains unproved |
 | Native command injection | Host/service/path/extra args become shell text | typed process arguments, no shell, allowlisted executable discovery, provider-owned validation | metacharacter/path tests, static review |
 | SQL injection/unsafe probe | Free-form SQL enters provider | fixed/typed provider operations, parameters, no LLM/user SQL executor | provider contract tests |
 | Agent impersonation | Stolen token/certificate publishes false health | one-time enrollment, mTLS, non-exportable key, revocation, scope binding, anomaly/audit | cloned Agent/revocation tests |

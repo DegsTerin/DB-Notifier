@@ -61,11 +61,15 @@ public sealed record ServerReadinessResult(bool IsReady, string? Code);
 /// <summary>
 /// Validates non-secret central database configuration, connectivity and schema under one hard readiness deadline.
 /// </summary>
-/// <param name="configuration">Server configuration used only to prove a syntactically bounded connection setting.</param>
+/// <param name="configuration">Fallback configuration used only by isolated callers without the production factory.</param>
 /// <param name="database">Central persistence readiness boundary.</param>
+/// <param name="databaseConfiguration">
+/// Production network-bound configuration state; null retains the isolated compatibility seam.
+/// </param>
 public sealed class ServerReadinessProbe(
     IConfiguration configuration,
-    IServerReadinessDatabase database)
+    IServerReadinessDatabase database,
+    IServerDatabaseConfigurationReadiness? databaseConfiguration = null)
 {
     private static readonly TimeSpan MaximumDuration = TimeSpan.FromSeconds(5);
 
@@ -75,8 +79,9 @@ public sealed class ServerReadinessProbe(
     /// <exception cref="OperationCanceledException">Thrown only when the request caller cancels the check.</exception>
     public async ValueTask<ServerReadinessResult> CheckAsync(CancellationToken cancellationToken)
     {
-        string? connectionString = configuration.GetConnectionString("ServerDatabase");
-        if (!HasValidNonSecretShape(connectionString))
+        bool configurationIsValid = databaseConfiguration?.IsConfiguredAndValid ??
+            HasValidNonSecretShape(configuration.GetConnectionString("ServerDatabase"));
+        if (!configurationIsValid)
         {
             return new ServerReadinessResult(false, "server.readiness.configuration_invalid");
         }

@@ -11,6 +11,8 @@ Selected normative, current and historical documents:
 - [`STATE-00-Discovery-Report.md`](STATE-00-Discovery-Report.md): checks, findings, limitations and the original Human Gate record, now retrospectively ratified by the current addendum.
 - [`Development.md`](Development.md): `STATE-01` scaffold, tool baseline, checks, and onboarding.
 - [`Code-Documentation-Standards.md`](Code-Documentation-Standards.md): project-wide British English documentation policy, review requirements, automated gate, and narrow format exceptions.
+- [`architecture/Network-Egress-Policy.md`](architecture/Network-Egress-Policy.md): immutable CIDR/port admission, DNS revalidation, IP pinning, redirect refusal and offline no-download certificate policy for explicit outbound connections.
+- [`STATE-06-R-NET-Network-Egress-Remediation-Report.md`](STATE-06-R-NET-Network-Egress-Remediation-Report.md): local R-NET diagnosis, implementation matrix, deterministic evidence and retained operational boundaries.
 - [`MOD-12-Observer-Foundation-Report.md`](MOD-12-Observer-Foundation-Report.md): inactive, local and non-mutating AIOps Observer foundation, requirement coverage, verification and independent promotion boundaries.
 - [`design/DB-Notifier-Design-System.md`](design/DB-Notifier-Design-System.md): official modern enterprise visual language, shared tokens, explicit Light/Dark architecture, component contracts and STATE-05 re-audit criteria.
 - [`STATE-05-Design-System-Implementation-Report.md`](STATE-05-Design-System-Implementation-Report.md): canonical token/schema foundation, deterministic CSS/XAML generation, theme contracts, verification and remaining implementation increments.

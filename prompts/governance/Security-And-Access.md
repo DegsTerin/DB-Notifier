@@ -18,7 +18,7 @@
 - Agent ↔ sistema operacional/utilitário nativo
 - Aplicação ↔ cofre de secrets
 
-Avaliar SSRF em endpoints configuráveis, command injection em utilitários, impersonation de Agent, replay de comando, exfiltração de secrets e abuso de controle administrativo.
+Avaliar SSRF em endpoints configuráveis, command injection em utilitários, impersonation de Agent, replay de comando, exfiltração de secrets e abuso de controle administrativo. O contrato normativo de CIDR/porta, DNS, pinning, redirects e PKI offline está em [`Network-Egress-Policy.md`](../../docs/architecture/Network-Egress-Policy.md).
 
 ## Autenticação humana
 

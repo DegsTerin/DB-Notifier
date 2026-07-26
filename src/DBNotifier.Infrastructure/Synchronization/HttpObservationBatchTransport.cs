@@ -131,6 +131,15 @@ public sealed class HttpObservationBatchTransport : IObservationBatchTransport
                 return new ObservationBatchResult(localResults, 0);
             }
 
+            if (IsRedirect(response.StatusCode))
+            {
+                localResults.AddRange(valid.Select(message => new ObservationItemResult(
+                    message.MessageId,
+                    ObservationIngestionDisposition.Retryable,
+                    "sync.redirect_refused")));
+                return new ObservationBatchResult(localResults, 0);
+            }
+
             ObservationIngestionDisposition disposition = IsRetryable(response.StatusCode)
                 ? ObservationIngestionDisposition.Retryable
                 : ObservationIngestionDisposition.Rejected;
@@ -201,6 +210,15 @@ public sealed class HttpObservationBatchTransport : IObservationBatchTransport
         }
     }
 
+    /// <summary>Identifies every redirect response so observation data is retained without following another origin.</summary>
+    /// <param name="statusCode">HTTP status returned by the fixed synchronisation endpoint.</param>
+    /// <returns><see langword="true"/> for any 3xx response.</returns>
+    private static bool IsRedirect(HttpStatusCode statusCode) =>
+        (int)statusCode is >= 300 and <= 399;
+
+    /// <summary>Determines whether a non-redirect Server failure is safe to retry without terminal acknowledgement.</summary>
+    /// <param name="statusCode">HTTP status returned by the fixed synchronisation endpoint.</param>
+    /// <returns><see langword="true"/> for timeout, throttling or Server failure statuses.</returns>
     private static bool IsRetryable(HttpStatusCode statusCode) =>
         statusCode == HttpStatusCode.RequestTimeout ||
         statusCode == HttpStatusCode.TooManyRequests ||

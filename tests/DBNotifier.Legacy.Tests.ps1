@@ -423,6 +423,76 @@ Describe "DB-Notifier legacy compatibility" {
         }
     }
 
+    It "permits only pinned loopback destinations through the legacy monitoring surface" {
+        $modulePath = Join-Path -Path $PSScriptRoot -ChildPath "..\src\modules\DBNotifier\DBNotifier.psm1"
+        Import-Module $modulePath -Force
+        $module = Get-Module DBNotifier
+
+        $localhost = & $module {
+            Resolve-AuthorisedNetworkDestination -HostName "localhost" -Port 5432
+        }
+        $mappedLoopback = & $module {
+            Resolve-AuthorisedNetworkDestination -HostName "::ffff:127.0.0.1" -Port 5432
+        }
+        $remote = & $module {
+            Resolve-AuthorisedNetworkDestination -HostName "db.example.local" -Port 5432
+        }
+        $metadata = & $module {
+            Resolve-AuthorisedNetworkDestination -HostName "169.254.169.254" -Port 80
+        }
+        $invalidPort = & $module {
+            Resolve-AuthorisedNetworkDestination -HostName "localhost" -Port 70000
+        }
+
+        $localhost.IsApproved | Should Be $true
+        $localhost.Address | Should Be "127.0.0.1"
+        $mappedLoopback.IsApproved | Should Be $true
+        $mappedLoopback.Address | Should Be "127.0.0.1"
+        $remote.IsApproved | Should Be $false
+        $remote.FailureCode | Should Be "network.address_denied"
+        $metadata.IsApproved | Should Be $false
+        $invalidPort.IsApproved | Should Be $false
+        $invalidPort.FailureCode | Should Be "network.destination_invalid"
+    }
+
+    It "refuses a denied legacy destination before TCP or pg_isready execution" {
+        $modulePath = Join-Path -Path $PSScriptRoot -ChildPath "..\src\modules\DBNotifier\DBNotifier.psm1"
+        Import-Module $modulePath -Force
+        Mock Test-TcpPort -ModuleName DBNotifier {
+            throw "TCP must not run for a denied destination."
+        }
+        Mock Invoke-ProcessWithTimeout -ModuleName DBNotifier {
+            throw "pg_isready must not run for a denied destination."
+        }
+        $context = @{
+            PgIsReadyPath = "C:\Program Files\PostgreSQL\18\bin\pg_isready.exe"
+            Configuration = [pscustomobject]@{
+                PgIsReady = [pscustomobject]@{
+                    TimeoutSeconds = 5
+                    RetryCount = 1
+                    RetryDelayMs = 1
+                    ExtraArguments = @()
+                }
+            }
+        }
+        $instance = [pscustomobject]@{
+            HostName = "metadata.invalid"
+            Port = 5432
+        }
+
+        $module = Get-Module DBNotifier
+        $result = & $module {
+            param($Context, $Instance)
+            Test-PgInstanceReady -Context $Context -Instance $Instance
+        } $context $instance
+
+        $result.IsReady | Should Be $false
+        $result.Method | Should Be "policy"
+        $result.Message | Should Be "Network destination is not authorised."
+        Assert-MockCalled Test-TcpPort -ModuleName DBNotifier -Times 0 -Exactly
+        Assert-MockCalled Invoke-ProcessWithTimeout -ModuleName DBNotifier -Times 0 -Exactly
+    }
+
     It "keeps the deprecated PgNotifier module entry point available" {
         $manifestPath = Join-Path -Path $PSScriptRoot -ChildPath "..\src\modules\PgNotifier\PgNotifier.psd1"
         $manifest = Test-ModuleManifest -Path $manifestPath

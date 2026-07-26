@@ -1,5 +1,8 @@
 // Module purpose: Executes bounded authenticated PostgreSQL probes inside the isolated provider; the core remains engine-neutral.
 using System.Diagnostics;
+using System.Net.Security;
+using System.Security.Cryptography.X509Certificates;
+using DBNotifier.Provider.Abstractions;
 using Npgsql;
 
 namespace DBNotifier.Providers.PostgreSql;
@@ -8,7 +11,9 @@ namespace DBNotifier.Providers.PostgreSql;
 /// Executes the fixed authenticated PostgreSQL health query with hostname-verifying TLS, certificate revocation
 /// checking, bounded timeouts and no pooling or connection-string persistence.
 /// </summary>
-public sealed class NpgsqlAuthenticatedExecutor : IPostgreSqlAuthenticatedExecutor
+/// <param name="networkAuthorizer">Local authority that resolves and admits the exact monitoring destination.</param>
+public sealed class NpgsqlAuthenticatedExecutor(
+    INetworkEgressAuthorizer networkAuthorizer) : IPostgreSqlAuthenticatedExecutor
 {
     private const string HealthQuery = "SELECT 1";
 
@@ -34,6 +39,18 @@ public sealed class NpgsqlAuthenticatedExecutor : IPostgreSqlAuthenticatedExecut
         }
 
         Stopwatch stopwatch = Stopwatch.StartNew();
+        PostgreSqlNetworkResolution network = await PostgreSqlNetworkEgress
+            .ResolveAsync(networkAuthorizer, endpoint, cancellationToken)
+            .ConfigureAwait(false);
+        if (!network.IsApproved)
+        {
+            return new PostgreSqlAuthenticatedResult(
+                PostgreSqlAuthenticatedState.InvalidConfiguration,
+                stopwatch.Elapsed,
+                network.FailureCode);
+        }
+
+        endpoint = network.Endpoint;
         string password = new(credential.Secret.Span);
         NpgsqlConnectionStringBuilder connectionString = new()
         {
@@ -45,7 +62,7 @@ public sealed class NpgsqlAuthenticatedExecutor : IPostgreSqlAuthenticatedExecut
             Timeout = TimeoutSeconds(timeout),
             CommandTimeout = TimeoutSeconds(timeout),
             SslMode = SslMode.VerifyFull,
-            CheckCertificateRevocation = true,
+            CheckCertificateRevocation = false,
         };
 
         using CancellationTokenSource deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
@@ -56,6 +73,8 @@ public sealed class NpgsqlAuthenticatedExecutor : IPostgreSqlAuthenticatedExecut
             dataSourceBuilder.UsePasswordProvider(
                 _ => password,
                 (_, _) => ValueTask.FromResult(password));
+            dataSourceBuilder.UseSslClientAuthenticationOptionsCallback(
+                options => ConfigureSslOptions(options, network.OriginalHost));
             await using NpgsqlDataSource dataSource = dataSourceBuilder.Build();
             await using NpgsqlConnection connection = await dataSource
                 .OpenConnectionAsync(deadline.Token)
@@ -87,6 +106,28 @@ public sealed class NpgsqlAuthenticatedExecutor : IPostgreSqlAuthenticatedExecut
         }
     }
 
+    /// <summary>
+    /// Preserves the original hostname for SNI and identity verification while preventing certificate downloads
+    /// or online revocation traffic.
+    /// </summary>
+    /// <param name="options">TLS options created by Npgsql for the IP-pinned connection.</param>
+    /// <param name="originalHost">Original validated hostname retained solely for TLS server identity.</param>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="options"/> is null.</exception>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="originalHost"/> is absent.</exception>
+    internal static void ConfigureSslOptions(
+        SslClientAuthenticationOptions options,
+        string originalHost)
+    {
+        ArgumentNullException.ThrowIfNull(options);
+        ArgumentException.ThrowIfNullOrWhiteSpace(originalHost);
+        options.TargetHost = originalHost;
+        options.CertificateRevocationCheckMode = X509RevocationMode.Offline;
+        options.CertificateChainPolicy = OfflineCertificateChainPolicy.CreateServerAuthentication();
+    }
+
+    /// <summary>Converts one positive provider deadline into Npgsql's bounded whole-second contract.</summary>
+    /// <param name="timeout">Positive provider deadline.</param>
+    /// <returns>A whole-second timeout between one and 300.</returns>
     private static int TimeoutSeconds(TimeSpan timeout)
     {
         double seconds = Math.Ceiling(timeout.TotalSeconds);

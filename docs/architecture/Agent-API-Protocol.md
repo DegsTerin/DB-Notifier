@@ -2,6 +2,15 @@
 
 Observation batching and the receipt-only command polling/ack subset were implemented in `STATE-04`. The restricted `STATE-06` Agent Fleet increments implement HTTPS enrollment with an unavailable-by-default issuer, normalised certificate revocation, heartbeat and complete read-only assignments. A sandbox-only Agent-side coordinator consumes enrollment, heartbeat and assignment routes through bounded HTTPS transport, but the ordinary Worker cannot activate that client. Event batching, operational assignment activation/acknowledgement, certificate rotation, command execution/result and SignalR remain conceptual targets.
 
+Ordinary observation synchronisation remains disabled by default and now
+requires the independent `agent-synchronization` policy defined by the
+[network egress contract](Network-Egress-Policy.md). The HTTP client does not
+follow redirects or use an ambient proxy, cookie or credential. Every new
+physical connection revalidates all DNS answers and connects directly to an
+approved IP; the original Server hostname remains authoritative for SNI and
+certificate-name validation. A redirect is retryable retention evidence and
+never an acknowledgement that removes an observation from the Agent outbox.
+
 ## Transport and trust
 
 - HTTPS/TLS is mandatory; production certificate validation cannot be disabled.

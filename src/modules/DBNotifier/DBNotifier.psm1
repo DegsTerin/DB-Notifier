@@ -685,17 +685,133 @@ function Invoke-ProcessWithTimeout {
     }
 }
 
-function Test-TcpPort {
+<#
+.SYNOPSIS
+Resolves one legacy monitoring destination through the compatibility egress policy.
+
+.DESCRIPTION
+The legacy shim deliberately permits loopback literals and the exact localhost
+alias only. It performs no DNS lookup, so an untrusted remote name cannot create
+DNS or database traffic through the compatibility surface.
+
+.PARAMETER HostName
+Configured host name or IP literal.
+
+.PARAMETER Port
+Configured database port.
+
+.OUTPUTS
+A sanitised approval result containing only a pinned loopback address or a
+stable failure code.
+#>
+function Resolve-AuthorisedNetworkDestination {
     [CmdletBinding()]
     param(
         [string]$HostName,
+        [object]$Port
+    )
+
+    $parsedPort = 0
+    if (-not [int]::TryParse(
+        [string]$Port,
+        [System.Globalization.NumberStyles]::None,
+        [System.Globalization.CultureInfo]::InvariantCulture,
+        [ref]$parsedPort) -or
+        $parsedPort -lt 1 -or
+        $parsedPort -gt 65535) {
+        return [pscustomobject]@{
+            IsApproved = $false
+            Address    = $null
+            Port       = 0
+            FailureCode = "network.destination_invalid"
+        }
+    }
+
+    $candidate = if ($null -eq $HostName) { "" } else { $HostName.Trim() }
+    if ([string]::Equals($candidate, "localhost", [System.StringComparison]::OrdinalIgnoreCase)) {
+        return [pscustomobject]@{
+            IsApproved = $true
+            Address    = "127.0.0.1"
+            Port       = $parsedPort
+            FailureCode = $null
+        }
+    }
+
+    $address = $null
+    if (-not [System.Net.IPAddress]::TryParse($candidate, [ref]$address)) {
+        return [pscustomobject]@{
+            IsApproved = $false
+            Address    = $null
+            Port       = $parsedPort
+            FailureCode = "network.address_denied"
+        }
+    }
+
+    if ($address.IsIPv4MappedToIPv6) {
+        $address = $address.MapToIPv4()
+    }
+
+    if (-not [System.Net.IPAddress]::IsLoopback($address)) {
+        return [pscustomobject]@{
+            IsApproved = $false
+            Address    = $null
+            Port       = $parsedPort
+            FailureCode = "network.address_denied"
+        }
+    }
+
+    return [pscustomobject]@{
+        IsApproved = $true
+        Address    = $address.ToString()
+        Port       = $parsedPort
+        FailureCode = $null
+    }
+}
+
+<#
+.SYNOPSIS
+Probes one already authorised and pinned loopback TCP endpoint.
+
+.DESCRIPTION
+Accepts only an IP literal approved by the legacy loopback-only policy. Host
+names and non-loopback addresses fail before a socket is created.
+
+.PARAMETER Address
+Pinned loopback IP literal.
+
+.PARAMETER Port
+Approved TCP port.
+
+.PARAMETER TimeoutSeconds
+Bounded connection wait.
+
+.OUTPUTS
+A sanitised transport-only readiness result.
+#>
+function Test-TcpPort {
+    [CmdletBinding()]
+    param(
+        [string]$Address,
         [int]$Port,
         [int]$TimeoutSeconds = 3
     )
 
+    $parsedAddress = $null
+    if ($Port -lt 1 -or
+        $Port -gt 65535 -or
+        -not [System.Net.IPAddress]::TryParse($Address, [ref]$parsedAddress) -or
+        $parsedAddress.IsIPv4MappedToIPv6 -or
+        -not [System.Net.IPAddress]::IsLoopback($parsedAddress)) {
+        return [pscustomobject]@{
+            IsReady = $false
+            TimedOut = $false
+            Message = "Network destination is not authorised."
+        }
+    }
+
     $client = New-Object System.Net.Sockets.TcpClient
     try {
-        $async = $client.BeginConnect($HostName, $Port, $null, $null)
+        $async = $client.BeginConnect($parsedAddress, $Port, $null, $null)
         if (-not $async.AsyncWaitHandle.WaitOne([Math]::Max(1, $TimeoutSeconds) * 1000, $false)) {
             return [pscustomobject]@{ IsReady = $false; TimedOut = $true; Message = "TCP timeout" }
         }
@@ -718,8 +834,24 @@ function Test-PgInstanceReady {
         [Parameter(Mandatory)][pscustomobject]$Instance
     )
 
+    $destination = Resolve-AuthorisedNetworkDestination `
+        -HostName $Instance.HostName `
+        -Port $Instance.Port
+    if (-not $destination.IsApproved) {
+        return [pscustomobject]@{
+            IsReady  = $false
+            TimedOut = $false
+            ExitCode = -1
+            Message  = "Network destination is not authorised."
+            Method   = "policy"
+        }
+    }
+
     if ([string]::IsNullOrWhiteSpace($Context.PgIsReadyPath)) {
-        $tcp = Test-TcpPort -HostName $Instance.HostName -Port $Instance.Port -TimeoutSeconds $Context.Configuration.PgIsReady.TimeoutSeconds
+        $tcp = Test-TcpPort `
+            -Address $destination.Address `
+            -Port $destination.Port `
+            -TimeoutSeconds $Context.Configuration.PgIsReady.TimeoutSeconds
         return [pscustomobject]@{
             IsReady  = [bool]$tcp.IsReady
             TimedOut = [bool]$tcp.TimedOut
@@ -729,7 +861,14 @@ function Test-PgInstanceReady {
         }
     }
 
-    $arguments = @("-h", $Instance.HostName, "-p", [string]$Instance.Port, "-t", [string]$Context.Configuration.PgIsReady.TimeoutSeconds) + @($Context.Configuration.PgIsReady.ExtraArguments)
+    $arguments = @(
+        "-h",
+        $destination.Address,
+        "-p",
+        [string]$destination.Port,
+        "-t",
+        [string]$Context.Configuration.PgIsReady.TimeoutSeconds
+    ) + @($Context.Configuration.PgIsReady.ExtraArguments)
     $attempt = 0
     $result = $null
 

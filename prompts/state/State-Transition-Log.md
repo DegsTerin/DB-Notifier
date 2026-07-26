@@ -4043,3 +4043,64 @@
   [relatório R-FENCE](../../docs/STATE-06-R-FENCE-Agent-Identity-Fence-Lifecycle-Regression-Report.md).
 - Aprovador: autoridade de execução concedida por Bruno; resultado automático
   local, sem Human Gate, lifecycle ou ativação inferidos.
+
+## 2026-07-26 — R-NET fecha a fronteira local de network egress
+
+- Estado anterior: `STATE-06 INTEGRATION`, `ActivationState=None`; PM-3 e
+  R-FENCE encerrados, enquanto os caminhos explícitos de saída ainda não
+  possuíam uma autoridade comum de destino, DNS, pinning e PKI offline.
+- Autoridade: Bruno revogou a restrição anterior contra lotes posteriores e
+  autorizou a identificação e execução sequencial de todos os lotes técnicos
+  locais obrigatórios, sem pausas intermediárias, preservando a proibição de
+  novas dependências, migrations operacionais, runtime ou ação externa,
+  lifecycle, Human Gates, `ActivationState`, push, PR e deploy.
+- Diagnóstico: sincronização HTTP podia herdar redirect, proxy e resolução do
+  handler; `pg_isready`, TCP e Npgsql recebiam hostname; OIDC e PostgreSQL
+  central não compartilhavam uma política positiva; a validação de
+  certificados permitia tentativa online; e o shim PowerShell admitia host
+  remoto. A ameaça estava documentada, mas os consumidores não possuíam uma
+  autoridade local única que entregasse somente IP aprovado.
+- Implementação: quatro políticas imutáveis por consumidor compilam
+  allowlists CIDR, denylists prioritárias, portas e limites de DNS. Respostas
+  mistas, metadata, link-local, multicast, unspecified, broadcast, escopo IPv6
+  e endereços fora da lista são recusados atomicamente. HTTP reautoriza cada
+  socket físico, não usa redirect, proxy, cookie ou credencial ambiental e
+  conecta ao IP aprovado. Provider, Agent, OIDC e PostgreSQL central retêm o
+  hostname original apenas para SNI e identidade TLS. Cadeias usam revogação
+  offline e downloads desabilitados. O legado ficou limitado a loopback sem
+  DNS remoto.
+- Gates: `78/78` regressões focais; build Release com zero warnings/erros;
+  `501/501` unitários, `124/124` integrações, `96/96` arquitetura e `10/10`
+  WPF; cobertura `82,41%` de linhas e `55,89%` de branches com `10/10`
+  componentes; Pester `34` aprovados, um skip condicional previsto e
+  `35,17%` de cobertura de comandos; format e documentação de código
+  aprovados; `768` links locais em `201` arquivos e secret scan do worktree
+  mais histórico Git aprovados; JSON alterado válido; zero manifest de
+  dependência ou migration alterado.
+- Nota de execução: a primeira suíte de integração produziu `123/124` porque
+  o diagnóstico temporal O5 preexistente
+  `WaitHandleCandidateIsTimelyAndCancellationAware` falhou sob carga local.
+  O caso passou isoladamente e a repetição completa passou `124/124`; nenhuma
+  mudança R-NET toca esse diagnóstico. Um guard arquitetural intermediário
+  detectou leitura HTTP direta no OIDC, que foi substituída pelo leitor JSON
+  compartilhado e limitado antes do resultado final `96/96`, que inclui três
+  guards adicionais da composição normal.
+- Escopo negativo: zero dependência, migration, runtime de produto, DNS/IdP,
+  PKI/PostgreSQL operacional, acesso de rede, lifecycle, Human Gate,
+  `ActivationState`, push, PR ou deploy.
+- Shutdown final: sete nós MSBuild e um `VBCSCompiler` órfãos, todos
+  comprovadamente executados pelo SDK local do workspace, foram encerrados. A
+  verificação terminou com zero processo, listener ou janela de produto; a
+  janela da IDE do utilizador foi preservada.
+- Ressalvas: a revogação offline depende de material local atual; o trust
+  continua pertencendo ao sistema operacional; a conexão PostgreSQL central
+  fixa o primeiro IP aprovado até restart; cada conexão HTTP física reavalia
+  DNS, mas um socket pooled válido pode ser reutilizado; falha de certificado
+  no handshake precede auditoria HTTP; proxy, failover e comportamento real
+  sob carga não foram homologados.
+- Estado resultante: R-NET automaticamente `APROVADO` somente no escopo local
+  validado; `STATE-06 INTEGRATION` e `ActivationState=None` inalterados.
+- Evidência:
+  [relatório R-NET](../../docs/STATE-06-R-NET-Network-Egress-Remediation-Report.md).
+- Aprovador: autoridade de execução concedida por Bruno; resultado automático
+  local, sem Human Gate, lifecycle ou ativação inferidos.

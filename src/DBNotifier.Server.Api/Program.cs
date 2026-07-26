@@ -6,6 +6,8 @@ using DBNotifier.Application.Access;
 using DBNotifier.Application.AgentFleet;
 using DBNotifier.Application.Operations;
 using DBNotifier.Application.Synchronization;
+using DBNotifier.Infrastructure.Http;
+using DBNotifier.Infrastructure.Security;
 using DBNotifier.Persistence.Server.PostgreSql;
 using DBNotifier.Provider.Abstractions;
 using DBNotifier.Server.Api;
@@ -17,18 +19,30 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.AspNetCore.Server.Kestrel.Https;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 ServerOperationsOptions serverOperationsOptions = new();
 builder.Configuration.GetSection(ServerOperationsOptions.SectionName).Bind(serverOperationsOptions);
 serverOperationsOptions.ValidateForStartup();
+NetworkEgressOptions networkEgressOptions = new();
+builder.Configuration.GetSection(NetworkEgressOptions.SectionName).Bind(networkEgressOptions);
+NetworkEgressPolicySet networkEgressPolicies = NetworkEgressPolicySet.Compile(networkEgressOptions);
+INetworkEgressAuthorizer networkEgressAuthorizer = new NetworkEgressAuthorizer(networkEgressPolicies);
+NetworkBoundHttpMessageHandlerFactory networkHandlerFactory =
+    new(networkEgressAuthorizer);
 builder.WebHost.ConfigureKestrel(options =>
 {
     options.Limits.MaxRequestBodySize = 1_048_576;
     options.ConfigureHttpsDefaults(httpsOptions =>
-        httpsOptions.ClientCertificateMode = ClientCertificateMode.AllowCertificate);
+    {
+        httpsOptions.ClientCertificateMode = ClientCertificateMode.AllowCertificate;
+        httpsOptions.OnAuthenticate = (_, authenticationOptions) =>
+            InboundAgentTlsSecurity.Apply(authenticationOptions);
+    });
 });
+builder.Services.AddSingleton(networkEgressPolicies);
+builder.Services.AddSingleton(networkEgressAuthorizer);
+builder.Services.AddSingleton(networkHandlerFactory);
 builder.Services.AddProblemDetails();
 builder.Services.AddDormantObserverControlPlane();
 bool dashboardTvSandboxEnabled = builder.Services.AddDashboardTvSandbox(
@@ -70,8 +84,13 @@ builder.Services.AddRateLimiter(options =>
                 AutoReplenishment = true,
             }));
 });
-builder.Services.AddDbContextFactory<ServerDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("ServerDatabase")));
+builder.Services.AddSingleton(services => new NetworkBoundServerDbContextFactory(
+    builder.Configuration.GetConnectionString("ServerDatabase"),
+    services.GetRequiredService<INetworkEgressAuthorizer>()));
+builder.Services.AddSingleton<IDbContextFactory<ServerDbContext>>(services =>
+    services.GetRequiredService<NetworkBoundServerDbContextFactory>());
+builder.Services.AddSingleton<IServerDatabaseConfigurationReadiness>(services =>
+    services.GetRequiredService<NetworkBoundServerDbContextFactory>());
 builder.Services.AddSingleton<IServerReadinessDatabase, EfServerReadinessDatabase>();
 builder.Services.AddSingleton<ServerReadinessProbe>();
 builder.Services.AddSingleton(TimeProvider.System);
@@ -107,122 +126,16 @@ builder.Services
     .AddScheme<AuthenticationSchemeOptions, PublicEndpointAuthenticationHandler>(
         ApiSecurityDefaults.PublicEndpointAuthenticationScheme,
         _ => { })
-    .AddCertificate(options =>
-    {
-        options.AllowedCertificateTypes = CertificateTypes.Chained;
-        options.ValidateCertificateUse = true;
-        options.ValidateValidityPeriod = true;
-        options.RevocationMode = X509RevocationMode.Online;
-        options.Events = new CertificateAuthenticationEvents
-        {
-            OnCertificateValidated = async context =>
-            {
-                try
-                {
-                    AgentCertificateIdentityValidator validator = context.HttpContext.RequestServices
-                        .GetRequiredService<AgentCertificateIdentityValidator>();
-                    Guid? agentId = await validator
-                        .ValidateAsync(context.ClientCertificate, context.HttpContext.RequestAborted)
-                        .ConfigureAwait(false);
-                    if (agentId is null)
-                    {
-                        AuthenticationAuditWriter audit = context.HttpContext.RequestServices
-                            .GetRequiredService<AuthenticationAuditWriter>();
-                        await audit.TryWriteAsync(
-                            new AuthenticationAuditEvent(
-                                "Agent",
-                                "unresolved",
-                                context.Scheme.Name,
-                                "Denied",
-                                "authentication.agent_not_enrolled"),
-                            context.HttpContext.RequestAborted).ConfigureAwait(false);
-                        context.Fail("The Agent certificate is not enrolled or active.");
-                        return;
-                    }
-
-                    ClaimsIdentity identity = new(
-                        [new Claim(AgentIdentityClaimTypes.AgentId, agentId.Value.ToString("D"))],
-                        context.Scheme.Name);
-                    context.Principal = new ClaimsPrincipal(identity);
-                    AuthenticationAuditWriter successAudit = context.HttpContext.RequestServices
-                        .GetRequiredService<AuthenticationAuditWriter>();
-                    await successAudit.TryWriteAsync(
-                        new AuthenticationAuditEvent(
-                            "Agent",
-                            agentId.Value.ToString("D"),
-                            context.Scheme.Name,
-                            "Succeeded",
-                            "authentication.agent_certificate_valid"),
-                        context.HttpContext.RequestAborted).ConfigureAwait(false);
-                    context.Success();
-                }
-                catch (OperationCanceledException) when (context.HttpContext.RequestAborted.IsCancellationRequested)
-                {
-                    context.Fail("Agent certificate validation was cancelled.");
-                }
-                catch (Exception exception) when (exception is not OutOfMemoryException)
-                {
-                    AuthenticationAuditWriter unavailableAudit = context.HttpContext.RequestServices
-                        .GetRequiredService<AuthenticationAuditWriter>();
-                    await unavailableAudit.TryWriteAsync(
-                        new AuthenticationAuditEvent(
-                            "Agent",
-                            "unresolved",
-                            context.Scheme.Name,
-                            "Unknown",
-                            "authentication.agent_validation_unavailable"),
-                        context.HttpContext.RequestAborted).ConfigureAwait(false);
-                    context.Fail("Agent certificate validation is unavailable.");
-                }
-            },
-            OnAuthenticationFailed = async context =>
-            {
-                AuthenticationAuditWriter audit = context.HttpContext.RequestServices
-                    .GetRequiredService<AuthenticationAuditWriter>();
-                await audit.TryWriteAsync(
-                    new AuthenticationAuditEvent(
-                        "Agent",
-                        "unresolved",
-                        context.Scheme.Name,
-                        "Failed",
-                        "authentication.agent_certificate_invalid"),
-                    context.HttpContext.RequestAborted).ConfigureAwait(false);
-            },
-        };
-    })
+    .AddScheme<AuthenticationSchemeOptions, AgentCertificateAuthenticationHandler>(
+        CertificateAuthenticationDefaults.AuthenticationScheme,
+        _ => { })
     .AddJwtBearer(HumanAuthenticationDefaults.Scheme, options =>
     {
-        string? authority = builder.Configuration["HumanAuthentication:Authority"];
-        if (!string.IsNullOrWhiteSpace(authority))
-        {
-            if (!Uri.TryCreate(authority, UriKind.Absolute, out Uri? authorityUri) ||
-                authorityUri.Scheme != Uri.UriSchemeHttps ||
-                !string.IsNullOrEmpty(authorityUri.UserInfo) ||
-                !string.IsNullOrEmpty(authorityUri.Query) ||
-                !string.IsNullOrEmpty(authorityUri.Fragment))
-            {
-                throw new InvalidOperationException(
-                    "Human authentication authority must be an absolute HTTPS URI without user info, query, or fragment.");
-            }
-
-            options.Authority = authorityUri.AbsoluteUri.TrimEnd('/');
-        }
-
-        string? audience = builder.Configuration["HumanAuthentication:Audience"];
-        options.Audience = string.IsNullOrWhiteSpace(audience) ? null : audience;
-        options.RequireHttpsMetadata = true;
-        options.MapInboundClaims = false;
-        options.SaveToken = false;
-        options.TokenValidationParameters = new TokenValidationParameters
-        {
-            ValidateIssuer = true,
-            ValidateAudience = true,
-            ValidateLifetime = true,
-            ValidateIssuerSigningKey = true,
-            ClockSkew = TimeSpan.FromMinutes(1),
-            NameClaimType = "name",
-            RoleClaimType = "role",
-        };
+        HumanOidcNetworkSecurity.Configure(
+            options,
+            builder.Configuration,
+            networkEgressPolicies,
+            networkHandlerFactory);
         options.Events = new JwtBearerEvents
         {
             OnTokenValidated = async context =>

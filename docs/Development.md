@@ -46,6 +46,34 @@ Agent synchronization remains disabled by default. Observation synchronization m
 
 Human API endpoints use the separate `HumanBearer` JWT scheme. Configure an absolute HTTPS OIDC authority and audience through `HumanAuthentication`; absent or invalid configuration fails closed. The JWT `sub` must map to an active platform user with a non-expired role assignment and the exact permission/scope. No password, signing key, token, or bootstrap administrator is stored in repository configuration.
 
+Every outbound connection in the normal Agent, provider and Server composition
+is also subject to the
+[network egress policy](architecture/Network-Egress-Policy.md). Configuration
+is compiled once from `DBNotifier:NetworkEgress:Policies`; each enabled
+consumer requires its own positive CIDR and exact-port policy. Monitoring and
+synchronisation remain disabled with an empty policy set. Enabling them
+requires `provider-monitoring` and `agent-synchronization`, respectively.
+Configuring OIDC requires `human-identity`, while configured central
+PostgreSQL requires `server-database`. Isolated loopback sandboxes and dormant
+transports absent from normal composition retain their existing activation
+barriers; any future normal composition must adopt this policy before it can
+receive runtime authority.
+
+The shared HTTP boundary disables redirects, proxies, cookies, ambient
+credentials and automatic decompression. Each new physical socket resolves
+again, validates every DNS answer and connects to an approved IP while
+retaining the original hostname for TLS identity. The Server accepts only one
+central PostgreSQL TCP host with `SSL Mode=VerifyFull`,
+`Check Certificate Revocation=true` and unsafe diagnostics/trust bypasses
+disabled. The connection is pinned when its process-local data source is first
+created; DNS rotation requires a controlled restart.
+
+TLS chain construction uses offline cached revocation evidence with
+certificate downloads disabled. A missing local trust or revocation proof
+therefore fails closed; the repository does not fetch or provision that
+material. This local behaviour is security containment, not evidence that an
+IdP, PKI or PostgreSQL deployment is operational.
+
 After endpoint routing, the API selects certificate authentication only for Agent policies and `HumanBearer` only for human policies before applying identity-aware quotas. Public or unrecognised endpoints use a no-op authentication scheme, so an invalid bearer header on `/health/live` cannot trigger token validation or authentication-audit persistence. `/health/live` reports process liveness only. `/health/ready` applies a five-second bound and returns only sanitised status/reason fields after checking the non-secret shape of central configuration, central PostgreSQL connectivity and exact compiled/applied migration compatibility; it never reports a connection string or provider exception.
 
 Agent retention and Server retention are separately opt-in, with dry-run defaults. Server outbox and notification delivery remain disabled and now reject startup with `server.delivery_durable_lease_unavailable`; no external publisher, channel adapter or unsafe multi-worker delivery path is enableable until transactional claim/lease and idempotency are implemented. Raw server observations are preserved until an aggregate-before-delete contract exists.
