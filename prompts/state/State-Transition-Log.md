@@ -7,6 +7,9 @@
 - Registrar apenas transições ou decisões reais.
 - Evidências devem existir e estar sanitizadas.
 - Relatório, auditoria ou recomendação não alteram estado sozinhos.
+- Toda “Próxima decisão” ou “Próxima ação” pertence ao contexto histórico da
+  entrada em que foi registrada; somente `Current-State.md` informa a situação
+  e os limites vigentes.
 
 ## 2026-07-11 — Entrada inicial
 

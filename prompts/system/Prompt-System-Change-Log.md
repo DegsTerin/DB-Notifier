@@ -2,9 +2,9 @@
 
 ## Versão atual
 
-- Versão: `4.0.0`
+- Versão: `4.0.1`
 - Data: 2026-07-25
-- Status: corpus DB-Notifier com Prompt Mestre incorporado
+- Status: corpus DB-Notifier consolidado após a incorporação do Prompt Mestre
 - Escopo: 14 arquivos ativos
 
 A versão do corpus é independente da versão do software.
@@ -16,6 +16,34 @@ A versão do corpus é independente da versão do software.
 - PATCH: clareza, correção ou referência sem mudança de autoridade.
 
 Toda alteração atualiza este arquivo e, quando necessário, `../Start-Here.md`.
+
+## 4.0.1 — 2026-07-25
+
+- Reduz `state/Current-State.md` de 126.885 para 10.877 bytes e substitui a
+  cronologia acumulada por um único snapshot factual: `STATE-06 INTEGRATION`,
+  `ActivationState=None`, composição normal, capacidades inativas, limites
+  correntes e decisões que ainda exigem autoridade própria.
+- Preserva antes da redução todos os fatos retirados: as 102 referências do
+  documento anterior resolvem para 87 alvos locais existentes, e a auditoria
+  linha a linha confirmou a presença da narrativa restante no log append-only
+  ou no relatório proprietário. Nenhum backfill histórico foi necessário.
+- Declara no cabeçalho do log que campos de próxima decisão ou ação são
+  históricos no contexto da entrada e nunca substituem o estado vigente.
+- Distingue auditoria isolada de uma solicitação que já autorize, de forma
+  separada e inequívoca, um lote posterior de implementação, sem permitir
+  ampliação automática de escopo.
+- Torna explícito que `ActivationState=None` precede os modos MOD-12 e que
+  `OBSERVER` é o primeiro modo ativável, não o estado atual.
+- Subordina localmente a precedência genérica do Prompt Mestre ao
+  `Start-Here.md`, alinha seu próximo passo ao handoff obrigatório de
+  `AGENTS.md` e renomeia o pseudoestado de tarefa para `WORK_STATUS`, evitando
+  colisão com `STATE-00`–`STATE-08`.
+- Registra sem retroagir versões que D1–D5 já estavam preservados no
+  `State-Transition-Log.md` e nos relatórios proprietários, embora não tivessem
+  recebido entradas próprias neste changelog antes da versão `4.0.0`.
+- Não altera código, configuração, dependências, runtime, lifecycle,
+  `ActivationState`, documentação pública, autorização externa ou estado de
+  qualquer gate técnico ou humano.
 
 ## 4.0.0 — 2026-07-25
 

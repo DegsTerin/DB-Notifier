@@ -301,6 +301,11 @@ Priorize, nesta ordem:
 
 ## 2. Hierarquia de instruções
 
+No DB-Notifier, esta seção é uma baseline genérica de descoberta. A precedência
+exclusiva do projeto está em [`../Start-Here.md`](../Start-Here.md); a lista
+abaixo não a reordena e não dispensa segurança, proteção de dados,
+autorizações externas ou gates de lifecycle.
+
 Antes de analisar, modificar ou criar arquivos:
 
 1. localize o `AGENTS.md` mais próximo;
@@ -1956,7 +1961,9 @@ Ao final:
 - liste validações executadas;
 - declare limitações e partes não testadas;
 - informe riscos ou pendências;
-- forneça próximo passo apenas quando houver continuidade útil.
+- forneça sempre o próximo passo e a contagem de trabalho restante exigidos
+  por [`../../AGENTS.md`](../../AGENTS.md), declarando explicitamente quando
+  nenhuma ação do proprietário for necessária.
 
 Use o seguinte bloco de controle quando a tarefa tiver múltiplas etapas ou quando o proprietário o exigir:
 
@@ -1969,7 +1976,7 @@ Lote atual: [N]
 Total de lotes: [N]
 Lotes concluídos: [N]
 Lotes restantes: [N]
-STATE: [DISCOVERY | ANALYSIS | PLANNING | WAITING_APPROVAL | IMPLEMENTING | VALIDATING | BLOCKED | COMPLETE]
+WORK_STATUS: [DISCOVERY | ANALYSIS | PLANNING | WAITING_APPROVAL | IMPLEMENTING | VALIDATING | BLOCKED | COMPLETE]
 Conclusão aproximada: [N%]
 Próxima ação recomendada: [AÇÃO OU “Nenhuma”]
 Próximo comando ou prompt: [COMANDO/PROMPT PRONTO OU “Não aplicável”]
@@ -1978,7 +1985,7 @@ Próximo comando ou prompt: [COMANDO/PROMPT PRONTO OU “Não aplicável”]
 Para respostas simples, use uma versão compacta para evitar ruído:
 
 ```text
-STATE: COMPLETE
+WORK_STATUS: COMPLETE
 Etapas: 1/1
 Próxima ação: Nenhuma
 ```

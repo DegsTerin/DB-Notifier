@@ -171,7 +171,10 @@ Feedback pode alimentar avaliação e novo treinamento offline. Nunca altera dir
 - `ASSISTANT`: prepara planos e executa somente após aprovação exigida.
 - `CONTROLLED_AUTOMATION`: executa apenas operações tipadas, homologadas e previamente autorizadas por política.
 
-O modo inicial obrigatório é `OBSERVER`. A promoção entre modos é explícita, por ambiente e escopo, após Quality Gate e Human Gate.
+`ActivationState=None` precede qualquer modo e não é um modo operacional. O
+primeiro modo ativável é `OBSERVER`. A transição de `None` para `OBSERVER` e
+toda promoção posterior são explícitas, por ambiente e escopo, após Quality
+Gate e Human Gate próprios.
 
 ## Segurança e governança de modelos
 

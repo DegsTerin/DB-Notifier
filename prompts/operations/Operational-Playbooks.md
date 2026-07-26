@@ -40,7 +40,11 @@ Quando usar: pedido explícito de revisão ponta a ponta.
 7. Classificar cada achado como Crítico, Alto, Médio ou Baixo e informar arquivo/localização, categoria, descrição técnica, evidência ou reprodução, impacto atual e futuro, causa e correção recomendada.
 8. Produzir resumo executivo, estado geral, lista de achados, riscos, melhorias, prioridade de correção e plano de ação sugerido, distinguindo observado, inferido, não testado e bloqueado.
 
-Auditoria não autoriza correção. Não alterar arquivos durante o diagnóstico nem avançar o ciclo de vida; apresentar primeiro os achados e aguardar aprovação específica antes de implementar qualquer remediação.
+Auditoria isolada não autoriza correção. Não alterar arquivos durante o
+diagnóstico nem avançar o ciclo de vida. Se a solicitação atual já separar e
+autorizar inequivocamente um lote de implementação, concluir e apresentar o
+diagnóstico antes de executar somente esse lote; caso contrário, aguardar
+aprovação específica antes de qualquer remediação.
 
 ## Dashboard
 
