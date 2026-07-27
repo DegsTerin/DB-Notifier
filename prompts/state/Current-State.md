@@ -1,6 +1,6 @@
 # Estado Atual
 
-Este documento é o snapshot factual vigente do workspace em 2026-07-26. Ele
+Este documento é o snapshot factual vigente do workspace em 2026-07-27. Ele
 não concede autoridade de execução. A evolução, os resultados substituídos e
 as decisões tomadas no seu contexto original permanecem no
 [`State-Transition-Log.md`](State-Transition-Log.md) e nos relatórios
@@ -28,7 +28,11 @@ proprietários.
   [ADR-0007](../../docs/architecture/ADR-0007-AIOps-Trust-Distribution-And-Resource-Admission.md)
   está `accepted` somente como decisão arquitetural. A
   [proposta `STATE-06 → STATE-07`](../../docs/STATE-06-To-STATE-07-Transition-Proposal.md)
-  permanece documental e não executa a própria transição.
+  está `INVALIDADA PARA EXECUÇÃO` na baseline corrente porque mudanças
+  técnicas posteriores invalidaram sua avaliação de elegibilidade. Ela
+  permanece somente como registro histórico e não pode fundamentar uma
+  transição; qualquer reconsideração exige nova proposta documental e
+  revalidação proporcional sob autoridade separada.
 - O estado de ativação de MOD-12 é `ActivationState=None`. `OBSERVER`,
   `ADVISOR`, `ASSISTANT` e `CONTROLLED_AUTOMATION` permanecem inativos.
 - O gate de ativação `None → Observer` e uma transição de lifecycle são
@@ -36,6 +40,13 @@ proprietários.
 
 ## Baseline técnica
 
+- A baseline Git reconciliada é
+  `ff0adc76166d82d01542aa091e15dd39e7ff3fa1`, de 2026-07-27. Seu commit mais
+  recente altera somente o lockfile do Dashboard, atualizando as resoluções
+  de desenvolvimento de `postcss` de `8.5.17` para `8.5.23` e de `nanoid` de
+  `3.3.15` para `3.3.16`; ele não altera lifecycle, `ActivationState` ou
+  código-fonte. A ancestralidade dos gates históricos permanece presente, mas
+  não constitui revalidação da elegibilidade de saída na baseline atual.
 - A solução contém 19 projetos .NET 10, com targets `net10.0` ou
   `net10.0-windows10.0.22621.0`; os hosts de sandbox em `tests/` não pertencem
   à composição normal. O Dashboard usa React e TypeScript; o cliente Windows
@@ -213,7 +224,8 @@ proprietários.
   explícita; o bloqueio corrente não pode ser contornado por mudança de
   lifecycle.
 - Qualquer transição para `STATE-07` exige decisão de lifecycle própria. O
-  Human Gate de 2026-07-20, a proposta documental e os gates de lotes
-  posteriores não executam essa transição.
+  Human Gate de 2026-07-20 e os gates de lotes posteriores não executam essa
+  transição. A proposta documental antiga foi invalidada para execução na
+  baseline `ff0adc7` e não pode ser reutilizada como autorização.
 - Produção, PostgreSQL operacional, provider homologado, runtime externo,
   publicação, deploy e ação administrativa real continuam não autorizados.

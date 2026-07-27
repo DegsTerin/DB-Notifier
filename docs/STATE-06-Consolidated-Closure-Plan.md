@@ -304,7 +304,7 @@ Resultados possíveis:
 
 O Human Gate não será inferido a partir das aceitações dos incrementos. Bruno deverá receber um único resumo que identifique o relatório automático consolidado, as amostras repetidas, as limitações e a decisão exata solicitada.
 
-**Status factual atual:** a [campanha das seis amostras](STATE-06-Final-Human-Samples-Report.md) começou com quatro aprovações e dois bloqueios. Depois de duas remediações test-only e repetições separadamente autorizadas, as seis amostras receberam decisões individuais `APROVADA`. Bruno aceitou o relatório final `10a8249`, autorizou separadamente a abertura documental e decidiu o [Human Gate final](STATE-06-Final-Human-Gate-Report.md) como `APROVADO COM RESSALVAS`, exclusivamente para `STATE-06`. O workspace continua em `STATE-06 INTEGRATION`; a transição para `STATE-07` permanece pendente e não autorizada.
+**Status factual atual:** a [campanha das seis amostras](STATE-06-Final-Human-Samples-Report.md) começou com quatro aprovações e dois bloqueios. Depois de duas remediações test-only e repetições separadamente autorizadas, as seis amostras receberam decisões individuais `APROVADA`. Bruno aceitou o relatório final `10a8249`, autorizou separadamente a abertura documental e decidiu o [Human Gate final](STATE-06-Final-Human-Gate-Report.md) como `APROVADO COM RESSALVAS`, exclusivamente para `STATE-06`. O workspace continua em `STATE-06 INTEGRATION`; a transição para `STATE-07` permanece não autorizada. A proposta de transição produzida em 2026-07-20 foi posteriormente invalidada para execução na baseline `ff0adc7` porque mudanças técnicas posteriores tornaram sua avaliação de elegibilidade obsoleta.
 
 ### Amostras humanas propostas
 
@@ -367,7 +367,10 @@ Nenhuma execução é autorizada pelo plano em si. Autorizações separadas conc
 8. campanha inicial das amostras executada: quatro aprovadas e duas bloqueadas;
 9. remediações test-only, aceitações e repetição final concluídas; as seis amostras possuem decisões individuais `APROVADA` e a proposta documental do Human Gate final está pronta;
 10. abertura documental, resumo único e decisão do Human Gate concluídos: `APROVADO COM RESSALVAS` exclusivamente para `STATE-06`;
-11. proposta documental da transição para `STATE-07` concluída; transição formal ainda depende de decisão posterior e separada.
+11. proposta documental histórica da transição para `STATE-07` concluída e
+    depois invalidada para execução na baseline `ff0adc7`; qualquer
+    reconsideração exige nova proposta documental e decisão posterior e
+    separada.
 
 O texto abaixo é preservado como o texto histórico que autorizou o Incremento 1; ele já foi usado e não deve ser repetido como nova autorização:
 

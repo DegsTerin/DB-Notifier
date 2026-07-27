@@ -1,8 +1,21 @@
 # Proposta de transição formal — STATE-06 para STATE-07
 
+> **INVALIDADA PARA EXECUÇÃO EM 2026-07-27.** Esta proposta foi produzida na
+> baseline histórica do commit `45fb3d3` e dependia da ausência de mudança
+> técnica posterior aos gates então avaliados. A baseline corrente
+> `ff0adc76166d82d01542aa091e15dd39e7ff3fa1` contém `118` commits posteriores
+> ao registro factual `96cf248`, com mudanças técnicas, migrations e
+> dependências. Portanto, o critério de entrada 2 não está satisfeito, o texto
+> de autorização anteriormente oferecido foi revogado e este documento
+> permanece somente como evidência histórica. Nenhum lifecycle,
+> `ActivationState`, gate histórico ou runtime foi alterado por esta
+> invalidação.
+
 ## Status e autoridade
 
 - Data: 2026-07-20.
+- Validade executiva atual: `INVALIDADA`; proibido reutilizar esta proposta ou
+  seu antigo texto de autorização para promover a baseline `ff0adc7`.
 - Estado atual mantido: `STATE-06 INTEGRATION`.
 - Estado proposto: `STATE-07 TESTING_HOMOLOGATION`.
 - Quality Gate consolidado do `STATE-06`: `APROVADO` com limitações.
@@ -15,9 +28,13 @@
 
 Bruno autorizou exclusivamente esta proposta documental. Ela descreve a mudança formal de fase, o handoff e as fronteiras da próxima etapa. Não altera `Current-State.md` para `STATE-07`, não cria autorização operacional e não concede acesso a provider, banco, credencial, rede ou infraestrutura.
 
-## Resultado em linguagem simples
+## Resultado histórico em linguagem simples
 
-O `STATE-06` concluiu seus gates: a integração em sandbox foi aprovada automaticamente, as seis amostras humanas foram aprovadas e o Human Gate final foi aprovado com ressalvas. Isso torna o projeto elegível para entrar na fase seguinte.
+Na baseline então avaliada, o `STATE-06` concluiu seus gates: a integração em
+sandbox foi aprovada automaticamente, as seis amostras humanas foram aprovadas
+e o Human Gate final foi aprovado com ressalvas. Isso sustentava a
+elegibilidade histórica descrita por esta proposta, mas não prova elegibilidade
+na baseline corrente.
 
 A transição para `STATE-07` mudará somente a fase oficial de trabalho. Ela não transformará os dados sintéticos em prova de produção, não homologará PostgreSQL ou qualquer outro provider e não permitirá iniciar testes reais sem nova autorização.
 
@@ -105,6 +122,12 @@ Conforme o Lifecycle, `STATE-07 TESTING_HOMOLOGATION` tem como objetivo validar 
 A presença de um engine no roadmap não o coloca automaticamente na matriz executada. Uma combinação somente poderá ser chamada de homologada depois de passar seus critérios específicos.
 
 ## Critérios de entrada para a transição formal
+
+**Aplicabilidade atual:** `INVALIDADA`. Embora a baseline corrente preserve a
+ancestralidade dos commits citados, houve mudança técnica material posterior.
+O critério 2 abaixo não está satisfeito e os demais critérios não foram
+reavaliados para `ff0adc7`. Esta constatação não reclassifica retroativamente
+os gates históricos.
 
 A transição somente poderá ser registrada quando:
 
@@ -196,7 +219,7 @@ Esta proposta estará completa quando:
 6. fornecer um handoff verificável e provider-neutral;
 7. apresentar uma única autorização futura sem executar a transição.
 
-## Verificação documental desta proposta
+## Verificação documental histórica desta proposta
 
 - documentação de código: aprovada para `284` arquivos comment-capable;
 - links Markdown: `514` links locais em `114` arquivos aprovados;
@@ -204,16 +227,33 @@ Esta proposta estará completa quando:
 - escopo exclusivo de seis documentos e `git diff --check`: aprovados;
 - build, testes, runtime, browser e acesso externo: `NÃO APLICÁVEIS` e não executados nesta atividade documental.
 
-## Decisão futura de Bruno
+## Decisão futura de Bruno — revogada
 
-Se Bruno concordar com esta proposta e desejar efetuar a transição formal em atividade posterior, poderá enviar exatamente:
+O texto de autorização que esta seção oferecia foi revogado em 2026-07-27 e
+foi deliberadamente retirado da versão corrente para impedir reutilização
+indevida. Ele permanece preservado no histórico Git do commit `45fb3d3`.
+Copiá-lo, parafraseá-lo ou responder a esta proposta não autoriza transição.
 
-> AUTORIZO exclusivamente a transição formal do DB-Notifier de STATE-06 INTEGRATION para STATE-07 TESTING_HOMOLOGATION no commit corrente informado no hand-off, cuja ancestralidade deverá conter a baseline automática `84217c6`, o relatório automático aceito `2c1e05f`, o relatório humano aceito `10a8249`, a proposta do Human Gate `1a27dca` e o registro do Human Gate aprovado com ressalvas `96cf248`. A atividade fica limitada a shutdown preflight, inspeção read-only de elegibilidade, atualização factual de Current-State, State-Transition-Log, handoff e índices estritamente necessários, gates documentais e commit local. Esta transição não autoriza build, testes, runtime, browser, WPF, Docker, acesso externo, provider ou banco real, credenciais, implementação, correção, homologação, deploy, MOD-12, promoção adicional ou ação operacional. Qualquer campanha ou plano executável de STATE-07 exigirá autorização posterior e separada. Se a baseline divergir, a transição deverá permanecer BLOQUEADA.
-
-Essa decisão futura autorizará somente a mudança formal de fase. Ela não homologará qualquer provider e não iniciará atividades técnicas do `STATE-07`.
+Uma eventual reconsideração exigirá primeiro uma nova proposta exclusivamente
+documental baseada na verdade factual vigente, com auditoria proporcional das
+mudanças posteriores e decisão separada. Nem esta invalidação nem a elaboração
+futura dessa proposta autorizam a transição por si mesmas.
 
 ## Próxima atividade
 
-Nenhuma transição está autorizada por este documento. Bruno deverá revisar principalmente `Baseline factual de saída`, `Ressalvas herdadas obrigatórias`, `Critérios de entrada`, `Efeito documental`, `Fora de escopo absoluto` e `Riscos e condições de parada`.
+Nenhuma transição está autorizada por este documento e nenhuma ação é exigida
+de Bruno para concluir sua invalidação. Se desejar reconsiderar futuramente a
+passagem para `STATE-07`, Bruno deverá autorizar separadamente uma nova
+proposta documental reconciliada com a baseline então corrente.
 
-Se concordar, poderá copiar exatamente o texto da seção `Decisão futura de Bruno`. Se desejar alterações, deverá indicar somente os pontos documentais a corrigir.
+## Verificação documental da invalidação
+
+- documentação de código: aprovada para `420` arquivos comment-capable;
+- links Markdown: `808` links locais em `206` arquivos aprovados;
+- secret scan do worktree não ignorado e do histórico Git disponível:
+  aprovado;
+- escopo exclusivo de cinco documentos rastreados e `git diff --check`:
+  aprovados; o arquivo preexistente não rastreado
+  `Project-Recovery-Instructions.md` foi preservado sem leitura ou alteração;
+- build, testes, runtime, browser e acesso externo: `NÃO APLICÁVEIS` e não
+  executados neste incremento exclusivamente documental.

@@ -4363,3 +4363,53 @@
   [relatório R-D4-TIMING](../../docs/STATE-06-R-D4-Timing-Diagnostic-Isolation-Report.md).
 - Aprovador: resultado automático local sob autoridade de manutenção de Bruno;
   nenhuma aprovação de lifecycle, Human Gate ou ativação foi inferida.
+
+## 2026-07-27 — Baseline ff0adc7 reconciliada e proposta STATE-06 → STATE-07 invalidada
+
+- Estado anterior: `STATE-06 INTEGRATION`, `ActivationState=None`; a proposta
+  de transição criada no commit `45fb3d3` permanecia documental, não
+  autorizante e ainda continha um texto histórico de autorização futura
+  baseado na elegibilidade avaliada em 2026-07-20.
+- Autoridade: Bruno autorizou exclusivamente um incremento documental para
+  reconciliar a baseline `ff0adc7`, atualizar a verdade factual e os registros
+  aplicáveis, invalidar a proposta antiga para execução e executar os gates
+  documentais pertinentes, sem código-fonte, lifecycle, `ActivationState`,
+  infraestrutura externa, runtime operacional ou commit.
+- Baseline observada: `HEAD` em
+  `ff0adc76166d82d01542aa091e15dd39e7ff3fa1`; os commits `84217c6`,
+  `2c1e05f`, `10a8249`, `1a27dca`, `96cf248` e `45fb3d3` permanecem ancestrais.
+  Entre `96cf248` e `ff0adc7` existem `118` commits e `412` caminhos alterados,
+  incluindo `254` caminhos de fonte ou configuração executável, oito
+  manifests/lockfiles e sete arquivos sob `Migrations/` do Server PostgreSQL.
+  A ancestralidade histórica não substitui a revalidação dessa mudança
+  material.
+- Último commit: `ff0adc7` altera somente
+  `src/DBNotifier.Dashboard.Web/package-lock.json`, atualizando as resoluções
+  de desenvolvimento de `postcss` `8.5.17 → 8.5.23` e `nanoid`
+  `3.3.15 → 3.3.16`. Nenhum código-fonte, lifecycle ou `ActivationState` foi
+  alterado por esse commit.
+- Decisão documental: a proposta antiga foi marcada
+  `INVALIDADA PARA EXECUÇÃO`; seu texto copiável de autorização foi revogado e
+  retirado da versão corrente. O critério que exigia ausência de mudança
+  técnica posterior não está satisfeito em `ff0adc7`. Os gates históricos
+  permanecem preservados nas respectivas baselines, mas não são
+  reclassificados nem tratados como elegibilidade corrente.
+- Worktree preexistente: `Project-Recovery-Instructions.md` já estava
+  não rastreado no início e foi preservado sem leitura ou alteração.
+- Gates documentais: documentação de código aprovada para `420` fontes
+  comment-capable; `808` links Markdown locais em `206` arquivos aprovados;
+  secret scan do worktree não ignorado e do histórico Git disponível
+  aprovado; escopo limitado a cinco documentos rastreados e
+  `git diff --check` aprovados. Build, testes e runtime de produto são
+  `NÃO APLICÁVEIS` e não foram executados.
+- Escopo negativo: zero alteração de código-fonte, lifecycle,
+  `ActivationState`, dependência, lockfile, migration, runtime operacional,
+  infraestrutura externa, provider, banco, credencial, deploy, push, PR ou
+  commit.
+- Estado resultante: `STATE-06 INTEGRATION` e `ActivationState=None`
+  inalterados; não existe proposta executável corrente para a transição
+  `STATE-06 → STATE-07`.
+- Próxima condição: qualquer reconsideração futura exige autorização separada
+  para uma nova proposta exclusivamente documental, reconciliada com a
+  baseline então vigente e com revalidação proporcional das mudanças
+  posteriores. Essa proposta futura também não executará a transição.
