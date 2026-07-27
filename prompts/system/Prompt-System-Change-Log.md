@@ -2,9 +2,9 @@
 
 ## Versão atual
 
-- Versão: `5.0.0`
+- Versão: `5.1.0`
 - Data: 2026-07-27
-- Status: commit local final automático por incremento concluído
+- Status: sanitização obrigatória de identificadores reais de hosts
 - Escopo: 14 arquivos ativos
 
 A versão do corpus é independente da versão do software.
@@ -16,6 +16,18 @@ A versão do corpus é independente da versão do software.
 - PATCH: clareza, correção ou referência sem mudança de autoridade.
 
 Toda alteração atualiza este arquivo e, quando necessário, `../Start-Here.md`.
+
+## 5.1.0 — 2026-07-27
+
+- Proíbe nomes reais de computadores, hosts, estações de trabalho ou
+  dispositivos em nomes e conteúdos de arquivos do projeto, incluindo
+  configuração, logs, evidências, caches, capturas, artefatos gerados e cópias
+  de conflito de sincronização.
+- Exige substituir esses identificadores por placeholders estáveis e
+  sanitizados antes de preservar o artefato no workspace.
+- Registra a remoção direcionada dos resíduos de cache ignorados encontrados
+  nesta auditoria, sem alterar código, configuração do produto, lifecycle,
+  `ActivationState`, runtime ou autoridade externa.
 
 ## 5.0.0 — 2026-07-27
 

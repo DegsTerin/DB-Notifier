@@ -64,6 +64,7 @@ Resolve conflicts using the precedence in `prompts/Start-Here.md`. A current exp
 - Monitoring credentials, database-administration credentials, operating-system service identities, cloud control-plane identities, human identities, and Agent identities are separate.
 - Store secrets only through approved operating-system, corporate, workload, or cloud secret stores. Persist opaque references, never plaintext secret material.
 - Never place connection strings, passwords, tokens, private keys, full certificates, or secret values in code, configuration, UI, logs, exceptions, tests, screenshots, reports, commits, or chat output.
+- Never place a real computer, host, workstation, or device name in any project file name or file content, including configuration, logs, evidence, caches, screenshots, generated artefacts, and synchronisation-conflict copies. Replace it with a stable sanitised placeholder such as `<host>` before retaining the artefact in the workspace.
 - Sanitise evidence while retaining enough information to reproduce the result.
 - Administrative Start, Stop, or Restart requires an implemented and homologated capability, exact permission and scope, explicit confirmation and reason, authenticated replay-resistant transport, idempotency, expiry/timeout, audit, and a post-action probe.
 - Do not deploy, publish, run a remote migration, install external software, control a real database/service, rotate credentials, or mutate external infrastructure without the required specific authority and lifecycle permission.
