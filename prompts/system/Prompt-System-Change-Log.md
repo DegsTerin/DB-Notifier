@@ -2,9 +2,9 @@
 
 ## Versão atual
 
-- Versão: `4.1.1`
-- Data: 2026-07-26
-- Status: corpus consolidado com handoff e estado factual compactos
+- Versão: `5.0.0`
+- Data: 2026-07-27
+- Status: commit local final automático por incremento concluído
 - Escopo: 14 arquivos ativos
 
 A versão do corpus é independente da versão do software.
@@ -16,6 +16,26 @@ A versão do corpus é independente da versão do software.
 - PATCH: clareza, correção ou referência sem mudança de autoridade.
 
 Toda alteração atualiza este arquivo e, quando necessário, `../Start-Here.md`.
+
+## 5.0.0 — 2026-07-27
+
+- Substitui a autorização pontual de commit por autorização permanente para
+  que toda tarefa, atividade ou ação concluída que altere arquivos rastreados
+  termine com um commit local focal antes do hand-off.
+- Define o incremento coerente concluído como fronteira de commit, evitando
+  commits ruidosos para comandos, inspeções, checks ou passos internos
+  parciais e permitindo commits separados quando uma solicitação conclui
+  escopos independentemente revisáveis.
+- Impede o commit automático quando o usuário o proíbe explicitamente, não há
+  alteração rastreada, o trabalho está materialmente incompleto ou bloqueado,
+  a validação aplicável falha ou o commit incluiria trabalho alheio, resíduos
+  gerados ou secrets.
+- Preserva Conventional Commits, revisão do staged diff,
+  `git diff --cached --check`, escopo focal e reporte do identificador.
+- Mantém amend, rebase, force-push, push, publicação, PR, merge, release e
+  deploy dependentes de autorização explícita própria.
+- Não altera `STATE-06 INTEGRATION`, `ActivationState=None`, lifecycle, gates,
+  runtime, provider, infraestrutura ou produto.
 
 ## 4.1.1 — 2026-07-26
 

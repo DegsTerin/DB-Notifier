@@ -163,9 +163,11 @@ Resolve conflicts using the precedence in `prompts/Start-Here.md`. A current exp
 
 - Inspect `git status` and the relevant diff before editing and again before committing.
 - Keep changes scoped. Preserve and exclude unrelated user edits, environment drift, logs, caches, generated build output, installers, binaries, and secrets.
-- Create a focused local commit only when the user explicitly authorises it or the current request unequivocally includes it. When authorised, use Conventional Commits in the form `<type>(<scope>): <description>` and include only the related, validated increment.
+- Every completed user-authorised task, activity or action that changes tracked repository files must end with a focused local commit before the final hand-off. This standing instruction authorises that local commit without requiring a separate request. Use Conventional Commits in the form `<type>(<scope>): <description>` and include only the related, validated increment.
+- Treat a coherent completed increment as the commit boundary. Internal commands, inspections, checks and partial implementation steps are not separate commit-worthy actions. When one request completes multiple independently reviewable increments, preserve them in separate focused commits when that improves traceability.
+- Do not create the automatic final commit when the current user explicitly prohibits a commit, no tracked change exists, the work remains materially incomplete or blocked, applicable validation failed, or the only available commit would include unrelated work, generated residue or secrets. Report the exact exception instead of committing an unsafe state.
 - Review the staged diff and run `git diff --cached --check` plus applicable validations before committing.
-- Authorisation for a local commit does not authorise amend, rebase, force-push, push, publish, merge, release, deployment, or opening a pull request; each requires its corresponding explicit authority.
+- Standing authorisation for a local final commit does not authorise amend, rebase, force-push, push, publish, merge, release, deployment, or opening a pull request; each requires its corresponding explicit authority.
 - Report the commit identifier and validation outcome in the final hand-off.
 
 ## Maintaining these instructions
