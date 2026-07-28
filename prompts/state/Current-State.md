@@ -212,6 +212,14 @@ proprietários.
   Duas repetições do prefixo V3 exato e duas de cada controle preservaram
   `704/704` amostras, mas não reproduziram o excesso histórico; nenhuma causa
   foi atribuída e nenhuma correção especulativa foi aplicada.
+- O rebaseline pós-formatação
+  [PF-OBS-1-D6 está `BLOQUEADO`](../../docs/STATE-06-MOD-12-PF-OBS-1-D6-Post-Format-Non-Intrusive-Rebaseline-Report.md).
+  A primeira execução não publicou evidência durável porque o writer tentou
+  mover o arquivo temporário antes de fechar o stream. O defeito foi corrigido
+  e coberto por regressão, mas a execução não foi substituída, a segunda não
+  começou e nenhum braço externo ou controle D5 foi executado. Não existe
+  classificação válida de reprodução; duas novas execuções completas exigem
+  autoridade explícita.
 - PF-OBS-1 e O5 permanecem sem aprovação. A causa do pico físico residual,
   corpus e ambiente piloto representativos, calibração operacional,
   homologação exata da célula e owners materiais continuam pendentes.

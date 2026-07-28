@@ -406,6 +406,61 @@ public sealed class O5R5MeasurementReadinessIsolationTests
             StringComparison.Ordinal);
     }
 
+    /// <summary>
+    /// Verifies D6 restores the original four summaries, adds no in-process diagnostic captures and
+    /// remains absent from normal composition.
+    /// </summary>
+    [Fact]
+    public void D6RebaselinePreservesTheUnobservedV3PrefixAndRemainsIsolated()
+    {
+        string diagnostics = Read(
+            "tests",
+            "DBNotifier.IntegrationTests",
+            "O5R5PostFormatNonIntrusiveRebaseline.cs");
+        string driver = Read(
+            "tests",
+            "DBNotifier.IntegrationTests",
+            "O5R5PhysicalCampaignDriver.cs");
+        string protocol = Read(
+            "docs",
+            "STATE-06-MOD-12-PF-OBS-1-D6-Post-Format-Non-Intrusive-Rebaseline-Protocol.md");
+        string sourceTree = string.Join(
+            "\n",
+            Directory
+                .EnumerateFiles(
+                    Path.Combine(RepositoryRoot(), "src"),
+                    "*.cs",
+                    SearchOption.AllDirectories)
+                .Select(File.ReadAllText));
+
+        Assert.Contains(
+            "pf-obs-1-d6-post-format-non-intrusive-test-only",
+            diagnostics,
+            StringComparison.Ordinal);
+        Assert.Contains(
+            "5B1ED90AC9238B57F94AF923434589A0F0E22925EE98DFB753DCF392A209A845",
+            diagnostics,
+            StringComparison.Ordinal);
+        Assert.Contains(
+            "`5B1ED90AC9238B57F94AF923434589A0F0E22925EE98DFB753DCF392A209A845`",
+            protocol,
+            StringComparison.Ordinal);
+        Assert.Contains(
+            "driver.CreateScenarios().Take(O5R5D6Protocol.ExpectedSampleCount)",
+            diagnostics,
+            StringComparison.Ordinal);
+        Assert.Contains("runner.Summarise(", diagnostics, StringComparison.Ordinal);
+        Assert.DoesNotContain("VirtualQueryEx", diagnostics, StringComparison.Ordinal);
+        Assert.DoesNotContain("GetProcessMemoryInfo", diagnostics, StringComparison.Ordinal);
+        Assert.DoesNotContain("CaptureCommittedRegions", diagnostics, StringComparison.Ordinal);
+        Assert.DoesNotContain("O5R5D6", sourceTree, StringComparison.Ordinal);
+        Assert.DoesNotContain(
+            "pf-obs-1-d6-post-format-non-intrusive-test-only",
+            sourceTree,
+            StringComparison.Ordinal);
+        Assert.Equal(2, CountOccurrences(driver, "GC.Collect("));
+    }
+
     /// <summary>Verifies failed physical evidence is committed before exit handling and temporary cleanup.</summary>
     [Fact]
     public void FailedPhysicalEvidenceIsRetainedBeforeCleanup()

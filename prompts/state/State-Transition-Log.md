@@ -4413,3 +4413,60 @@
   para uma nova proposta exclusivamente documental, reconciliada com a
   baseline então vigente e com revalidação proporcional das mudanças
   posteriores. Essa proposta futura também não executará a transição.
+
+## 2026-07-28 — PF-OBS-1-D6 interrompido sem evidência física durável
+
+- Estado anterior: `STATE-06 INTEGRATION`, `ActivationState=None`; D5
+  humanamente aceito como `BLOQUEADO`, PF-OBS-1 e O5 sem aprovação e nenhuma
+  rebaseline válida no ambiente pós-formatação.
+- Autoridade: registrar o ambiente sanitizado, pré-registrar e implementar um
+  D6 local, sintético e test-only e executar exatamente duas repetições
+  não observadas do prefixo V3. Observação externa e repetição comparativa de
+  D5 ficavam condicionadas à reprodução do excesso em ambas.
+- Protocolo:
+  `pfobs1-d6-post-format-non-intrusive-rebaseline-1.0.0`, SHA-256
+  `5B1ED90AC9238B57F94AF923434589A0F0E22925EE98DFB753DCF392A209A845`,
+  dependente do V3 imutável
+  `60C7559F42960878B03269A1A6AAE40C944DE2DC805D8C7A73A2EF2274C2395A`.
+  O prefixo contém `158` cenários, os quatro resumos V3 originais em suas
+  posições temporais e zero captura intraprocesso adicional.
+- Ambiente sanitizado: Windows `10.0.26200` X64, processo X64, SDK
+  `10.0.302`, runtime `Microsoft.NETCore.App 10.0.10`, oito processadores
+  lógicos, `16.963.534.848 bytes` de memória física e frequência monotônica
+  de `10.000.000 ticks/s`; nenhuma identidade de máquina foi retida.
+- Incidente: a primeira execução não observada chegou à publicação, mas saiu
+  com `o5r5d6.failed:IOException`. O writer tentou mover o arquivo temporário
+  enquanto o stream write-through ainda estava aberto; o cleanup removeu o
+  temporário e nenhum JSON durável permaneceu.
+- Disposição fail-closed: sem relatório durável, contagem, completude,
+  reprodução e causa não foram inferidas. A tentativa não foi substituída, a
+  segunda execução não começou e observação externa e controle D5 não foram
+  executados.
+- Correção: o stream passou a ser fechado em escopo explícito antes do move
+  atômico e uma regressão reproduz a publicação e a ausência de `.tmp`. O
+  protocolo, o V3, seus limites, workloads e duas coletas preexistentes
+  permaneceram inalterados.
+- Gates: `4/4` testes focais D6, `141/141` integrações, `1/1` arquitetura
+  focal, `97/97` arquitetura completa e build Release da solução com zero
+  avisos/erros passaram com `--no-restore`; format/analyzers, documentação de
+  `422` fontes, `811` links locais em `207` arquivos e secret scan também
+  passaram.
+- Incidente de validação: um comando combinado ultrapassou sua janela de
+  `60 s` sem conclusão e não foi classificado como passe ou falha. O inventário
+  encontrou zero helper proprietário residual; os gates foram repetidos
+  separadamente e concluíram com sucesso.
+- Escopo negativo: zero dependência, download, PostgreSQL, provider, dado
+  operacional, campanha HM-01–HM-03, Observer, `ActivationState`, lifecycle,
+  deploy, push ou pull request.
+- Cleanup: os roots temporário e de retenção vazios foram removidos; zero
+  processo, listener ou artefacto D6 permaneceu.
+- Estado resultante: PF-OBS-1-D6 `BLOQUEADO`, PF-OBS-1 e O5 continuam sem
+  aprovação, `STATE-06 INTEGRATION` permanece vigente e
+  `ActivationState=None` permanece imutável.
+- Evidência:
+  [relatório PF-OBS-1-D6](../../docs/STATE-06-MOD-12-PF-OBS-1-D6-Post-Format-Non-Intrusive-Rebaseline-Report.md).
+- Próxima condição: nova autoridade explícita para duas execuções D6
+  não observadas completas; somente reprodução em ambas poderá liberar os
+  braços condicionais já definidos.
+- Aprovador: Bruno autorizou a tentativa física limitada; nenhum resultado,
+  Human Gate, lifecycle ou ativação foi inferido.
