@@ -4920,3 +4920,66 @@
   autorização explícita separada que cite a versão e o digest exatos.
 - Aprovador: elaboração documental autorizada explicitamente pelo usuário;
   nenhuma aprovação técnica, Human Gate, lifecycle ou ativação inferida.
+
+## 2026-07-28 — PF-OBS-1-D8 concluído com early gate intermitente
+
+- Estado anterior: proposta D8 congelada e autorizada para implementação e
+  exatamente duas tentativas; D5, D6, D7, PF-OBS-1 e O5 `BLOQUEADOS`,
+  D7-R1 `D7-R1.NOT_REPRODUCED`, `STATE-06 INTEGRATION` e
+  `ActivationState=None`.
+- Autoridade: implementar e executar exclusivamente a proposta
+  `pfobs1-d8-exact-prefix-completion-reconciliation-1.0.0`, SHA-256
+  `208DA70A8D638E50E2951DECDA83414B9E1F7CF4AFF957D09C1EAA2A8B1B8814`,
+  com gates D8-0/D8-1 e duas tentativas D8-U fixas, sem substituição.
+- D8-0: aprovado; proposta, identidades V3/D5/D6/D7/D7-R1, seis documentos
+  proprietários e 15 JSONs predecessores conferidos antes de editar; zero
+  processo, listener ou root D8.
+- Implementação: identidade, envelope, writer atómico, measured child,
+  supervisor, validador independente de prefixo/stop e classificadores
+  isolados em testes; normal `src/` permaneceu sem D8.
+- D8-1: aprovado; build Release sem restore, prefixo `158/4`, quatro early
+  stops, target stop, campos JSON reais, falhas de schema, limites, paths,
+  argumentos, atomicidade, cleanup e isolamento passaram. Testes focais
+  `24/24`, integração completa `168/168`, arquitetura focal `17/17`,
+  arquitetura completa `100/100` e documentação de 429 fontes passaram.
+- Execução D8-U:
+  `858686567bea41298adf05465f17c850`, host SHA-256
+  `D603A2B181903B54A928CAAE92F5F4554B8415FFDA195242BD814ECB7D6352C1`.
+  Run 1 foi admissível como `TargetStop`, com `150/158` amostras, `4/4`
+  resumos e `Cancellation/Cold` measured repetition 5 em `2.797.568` contra
+  `786.432 bytes`. Run 2 foi admissível como `EarlyGateStop`, com `35/158`
+  amostras, `1/4` resumos e coeficiente `FirstByte/Cold`
+  `0,20075118542700426` contra `0,2`.
+- Classificação automática: uma tentativa target-eligible e uma falha exata
+  pre-target produzem `D8.EARLY_GATE_INTERMITTENT`. A árvore não classifica
+  recorrência de working set.
+- Evidência: relatórios de `125.856` e `32.546` bytes, SHA-256
+  `3052C870635DC511014778F070803E775F28CAD31131DD0FB422BF22122D992A` e
+  `377785DF4D703B3C67FC72D8017B20DF2F188866FB1EEF5315D090E842F926D5`,
+  retidos separadamente; os 15 predecessores foram reverificados sem mudança.
+- Incidente não físico: o preflight embutido antes da segunda tentativa
+  contou o próprio comando PowerShell como possível resíduo e parou antes do
+  launch. A inspeção separada por PID, caminho e parentagem mostrou zero
+  resíduo e destino run 2 ausente; a única tentativa run 2 foi então
+  executada. Nenhuma tentativa foi substituída.
+- Validação final: format aprovado; documentação de 429 fontes, 839 links
+  locais em 216 arquivos, secret scan e diff aprovados. Uma falha de
+  compilação e uma asserção focal sintética foram corrigidas antes dos
+  processos físicos; os gates completos posteriores passaram.
+- Cleanup: root temporário, siblings `.tmp`/`.measured.json`, processos e
+  listeners D8 zerados após retenção.
+- Escopo negativo: zero alteração V3/D5/D6/D7/D7-R1, workload, failure ou
+  threshold; zero instrumentação intraprocesso, observação externa, controle
+  D5, HM-01–HM-03, dependência/restore/download, PostgreSQL, provider/dado
+  operacional, Observer, `ActivationState`, lifecycle, deploy, push ou pull
+  request.
+- Estado resultante: D8 tecnicamente
+  `D8.EARLY_GATE_INTERMITTENT`; PF-OBS-1 e O5 permanecem `BLOQUEADOS`;
+  `STATE-06 INTEGRATION` e `ActivationState=None` permanecem inalterados.
+- Evidência proprietária:
+  [relatório PF-OBS-1-D8](../../docs/STATE-06-MOD-12-PF-OBS-1-D8-Exact-Prefix-Completion-Reconciliation-Report.md).
+- Próxima condição: Human Gate D8 limitado a aceitar ou rejeitar o relatório
+  automático com ressalvas explícitas. Qualquer novo diagnóstico físico ou
+  causal requer proposta e autoridade separadas.
+- Aprovador: implementação e execução limitadas autorizadas explicitamente
+  pelo usuário; nenhum Human Gate, lifecycle ou ativação inferido.
