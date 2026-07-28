@@ -214,12 +214,13 @@ proprietários.
   foi atribuída e nenhuma correção especulativa foi aplicada.
 - O rebaseline pós-formatação
   [PF-OBS-1-D6 está `BLOQUEADO`](../../docs/STATE-06-MOD-12-PF-OBS-1-D6-Post-Format-Non-Intrusive-Rebaseline-Report.md).
-  A primeira execução não publicou evidência durável porque o writer tentou
-  mover o arquivo temporário antes de fechar o stream. O defeito foi corrigido
-  e coberto por regressão, mas a execução não foi substituída, a segunda não
-  começou e nenhum braço externo ou controle D5 foi executado. Não existe
-  classificação válida de reprodução; duas novas execuções completas exigem
-  autoridade explícita.
+  O defeito anterior do writer foi corrigido e coberto por regressão. Na
+  retomada explicitamente autorizada, o primeiro processo parou em `35/158`
+  amostras e `1/4` resumos: `FirstByte/Cold` excedeu o coeficiente de
+  repetibilidade V3 (`0,22923232701994542` contra `0,2`). `Cancellation/Cold`
+  não foi alcançado, a segunda execução não começou e nenhum braço externo ou
+  controle D5 foi executado. O resultado não reproduz nem refuta o excesso de
+  working set.
 - PF-OBS-1 e O5 permanecem sem aprovação. A causa do pico físico residual,
   corpus e ambiente piloto representativos, calibração operacional,
   homologação exata da célula e owners materiais continuam pendentes.

@@ -4,6 +4,21 @@
 
 PF-OBS-1-D6 is `BLOCKED`.
 
+The explicitly authorised resumption also stopped fail-closed. Its first fresh
+process completed the `35` `FirstByte/Cold` samples and produced the first
+original V3 summary, but that summary exceeded the unchanged repeatability
+coefficient limit: `0.22923232701994542` observed against the inclusive `0.2`
+limit. The prefix therefore stopped at `35/158` samples and `1/4` summaries
+before reaching `Cancellation/Cold`.
+
+The second unobserved process was not started. The failure neither reproduces
+nor disproves the historical working-set excess because the relevant phase was
+not reached. The conditional external-observation arm and historical D5
+comparison remain unexecuted.
+
+The paragraphs below preserve the earlier evidence-publication incident that
+made this fresh authority necessary.
+
 The first authorised unobserved process reached evidence publication, but the
 atomic writer raised `IOException` because it attempted to move its temporary
 file before closing the write-through stream. The writer then removed the
@@ -97,6 +112,54 @@ The failed attempt consumed the first execution allowed by the exact
 authorisation. Starting a replacement or run 2 would have silently changed
 the authorised two-execution procedure, so execution stopped.
 
+## Authorised resumption
+
+Bruno explicitly authorised two new complete D6 executions after the evidence
+writer correction, retaining the frozen D6 and V3 protocols and every original
+limit. The resumption baseline was branch `main`, commit
+`8383f78699a1857856eaae785277ee39b70438c4`, with a clean worktree and no
+DB-Notifier process, window or owned listener.
+
+The Release sandbox host was rebuilt with SDK `10.0.302`, `--no-restore`,
+disabled build servers and shared compilation disabled. Its SHA-256 before the
+physical attempt was
+`09379824363CD6FCEC1053FAB20200AA19D6F54CD3D4DA50D92B485B2EA34A63`.
+
+Unobserved run 1 started at `2026-07-28T12:27:52.8369709Z` in a fresh process
+and stopped `43.588 ms` later after the first original summary failed:
+
+| Fact | Retained result |
+|---|---:|
+| Complete samples | `35/158` |
+| Original summaries | `1/4` |
+| Phase / temperature | `FirstByte/Cold` |
+| Warm-up / measured samples | `5/30` |
+| Repeatability basis | `FirstByteFixedWindowElapsed` |
+| Observed coefficient | `0.22923232701994542` |
+| Inclusive coefficient limit | `0.2` |
+| Stable failure code | `o5r5d1.threshold.repeatability-coefficient` |
+| `Cancellation/Cold` reached | no |
+| Working-set excess classified | no |
+
+The fail-closed report declares the unchanged D6 and V3 digests,
+`ActivationState=None`, `Complete=false` and
+`WorkingSetExcessReproduced=false`. The last value means only that no retained
+failure met the working-set reproduction predicate before the stop; it is not
+evidence that `Cancellation/Cold` would have passed.
+
+The sanitised evidence was retained as
+`artifacts/pf-obs-1-d6/67b02229cf5246fb93d5230d29c494ea/unobserved-run-1.json`:
+
+- size: `29,778 bytes`;
+- SHA-256:
+  `9E6578AE516524DC12E73B9F848303C1DDD3AF9614A53A6E2CBB95D2B3F36952`;
+- prohibited host, user and repository-path values: absent;
+- temporary source root: removed after retention.
+
+The immutable summary failure is a D6 stop condition. Run 2 was not started,
+no replacement was attempted and the conditional arms were not authorised by
+the reproduction gate.
+
 ## Validation
 
 | Check | Result |
@@ -115,6 +178,14 @@ the authorised two-execution procedure, so execution stopped.
 | PostgreSQL, provider or operational data | not used |
 | External observation and D5 comparison | not executed |
 | HM-01–HM-03 campaign | not executed |
+| Resumption Release host build with `--no-restore` | passed, zero warnings/errors |
+| Resumption D6 focal integration tests | passed, `4/4` |
+| Resumption D6 architecture isolation | passed, `1/1` |
+| Resumption unobserved run 1 | fail-closed, `35/158` samples and `1/4` summaries |
+| Resumption unobserved run 2 | not executed |
+| Resumption code-documentation gate | passed, `422` comment-capable sources |
+| Resumption Markdown-link gate | passed, `812` local links in `207` files |
+| Resumption secret scan and diff check | passed |
 
 An initial combined formatting and documentation command exceeded its
 60-second command window before producing a result. A process inventory found
@@ -138,11 +209,13 @@ contains no D6 reference, and every report remains non-authorising with
 
 ## Consequence
 
-D6 remains incomplete and technically `BLOCKED`. The corrected implementation
-is ready, but no valid physical rebaseline result exists.
+D6 remains incomplete and technically `BLOCKED`. The corrected evidence writer
+is proved, but the resumed prefix could not pass the first original V3 summary,
+so no valid post-format working-set rebaseline exists.
 
-A fresh explicit authority is required for two complete unobserved D6
-executions. Only if both reproduce the unchanged excess may the already
-defined external-observation arm and historical D5 comparison proceed. Such
-authority would not approve PF-OBS-1, O5, Observer activation or a lifecycle
-transition.
+Any investigation of the newly observed `FirstByte/Cold` repeatability failure,
+another D6 attempt or a methodological change requires separate explicit
+authority. The conditional external-observation arm and historical D5
+comparison remain unavailable unless two complete unobserved runs first
+reproduce the unchanged working-set excess. No result approves PF-OBS-1, O5,
+Observer activation or a lifecycle transition.

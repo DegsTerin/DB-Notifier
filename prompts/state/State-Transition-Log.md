@@ -4470,3 +4470,54 @@
   braços condicionais já definidos.
 - Aprovador: Bruno autorizou a tentativa física limitada; nenhum resultado,
   Human Gate, lifecycle ou ativação foi inferido.
+
+## 2026-07-28 — Retomada PF-OBS-1-D6 bloqueada no primeiro resumo V3
+
+- Estado anterior: PF-OBS-1-D6 `BLOQUEADO` pela falha de publicação da
+  evidência, writer corrigido e testado, PF-OBS-1 e O5 sem aprovação,
+  `STATE-06 INTEGRATION` e `ActivationState=None`.
+- Autoridade: duas novas execuções completas do prefixo V3 exato em processos
+  novos e sem instrumentação intraprocesso adicional; somente reprodução do
+  excesso em ambas liberaria duas observações externas e D5 histórico como
+  controle.
+- Baseline: branch `main`, commit
+  `8383f78699a1857856eaae785277ee39b70438c4`, worktree limpa, SDK
+  `10.0.302`, zero processo, janela ou listener DB-Notifier. O host Release
+  SHA-256
+  `09379824363CD6FCEC1053FAB20200AA19D6F54CD3D4DA50D92B485B2EA34A63`
+  foi compilado com zero avisos/erros, `--no-restore`, build servers
+  desabilitados e compilação compartilhada desabilitada.
+- Execução: o primeiro processo novo reteve `35/158` amostras e o primeiro dos
+  quatro resumos originais. O resumo `FirstByte/Cold`, com cinco warm-ups e
+  trinta medições, excedeu o coeficiente de repetibilidade inclusivo:
+  `0,22923232701994542` observado contra limite `0,2`, código
+  `o5r5d1.threshold.repeatability-coefficient`.
+- Disposição fail-closed: o prefixo parou antes de `Cancellation/Cold`; o
+  resultado não reproduz nem refuta o excesso histórico de working set. A
+  segunda execução não começou, nenhuma substituição ocorreu e os braços de
+  observação externa e controle D5 não foram executados.
+- Evidência: relatório sanitizado de `29.778 bytes`, SHA-256
+  `9E6578AE516524DC12E73B9F848303C1DDD3AF9614A53A6E2CBB95D2B3F36952`,
+  retido sob
+  `artifacts/pf-obs-1-d6/67b02229cf5246fb93d5230d29c494ea/`;
+  identidade de host, usuário e caminho do repositório ausentes.
+- Gates: build focal Release aprovado com zero avisos/erros; testes focais D6
+  `4/4` e arquitetura de isolamento `1/1` aprovados. Um comando combinado
+  excedeu `60 s` depois desses dois primeiros resultados e antes da
+  arquitetura; inventário confirmou zero helper residual e o teste de
+  arquitetura passou separadamente. Documentação de `422` fontes, `812` links
+  locais em `207` arquivos, secret scan e diff também passaram.
+- Cleanup: root temporário da execução removido; zero processo ou listener
+  DB-Notifier permaneceu. O artefacto sanitizado retido é evidência, não
+  runtime, provider, suporte ou ativação.
+- Escopo negativo: zero PostgreSQL, dado/provider operacional, dependência,
+  download, alteração V3, campanha HM-01–HM-03 completa, Observer,
+  `ActivationState`, lifecycle, deploy, push ou pull request.
+- Estado resultante: PF-OBS-1-D6, PF-OBS-1 e O5 permanecem `BLOQUEADOS`;
+  `STATE-06 INTEGRATION` e `ActivationState=None` permanecem inalterados.
+- Evidência proprietária:
+  [relatório PF-OBS-1-D6](../../docs/STATE-06-MOD-12-PF-OBS-1-D6-Post-Format-Non-Intrusive-Rebaseline-Report.md).
+- Próxima condição: investigação de repetibilidade de `FirstByte/Cold`, nova
+  tentativa D6 ou mudança metodológica exige autoridade explícita separada.
+- Aprovador: execução limitada autorizada por Bruno; nenhum Human Gate,
+  lifecycle ou ativação inferido.
