@@ -4966,6 +4966,11 @@
   locais em 216 arquivos, secret scan e diff aprovados. Uma falha de
   compilação e uma asserção focal sintética foram corrigidas antes dos
   processos físicos; os gates completos posteriores passaram.
+- Entrega concorrente: o commit JOSE `ef6b28a` consumiu o índice compartilhado
+  que já continha os arquivos D8; o índice local obsoleto de `d045864`
+  registrou mudanças inversas, e `2655f98` restaurou os mesmos arquivos D8
+  validados. Nenhum amend, rebase ou rewrite foi executado; a árvore líquida,
+  os testes e a evidência permaneceram corretos.
 - Cleanup: root temporário, siblings `.tmp`/`.measured.json`, processos e
   listeners D8 zerados após retenção.
 - Escopo negativo: zero alteração V3/D5/D6/D7/D7-R1, workload, failure ou

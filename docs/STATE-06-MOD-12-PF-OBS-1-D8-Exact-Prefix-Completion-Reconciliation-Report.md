@@ -180,6 +180,15 @@ separate pre-launch false positive before run 2 is recorded in the D8-U
 section because it affected sequencing, although it did not start or consume
 an attempt.
 
+During final delivery, a concurrent JOSE documentation activity committed the
+shared index as `ef6b28a` while the D8 files were staged, so that commit also
+contained the D8 implementation and report. The subsequently stale local
+index made `d045864` record the D8 state update together with inverse D8 file
+changes. No amend, rebase or history rewrite was performed. Corrective commit
+`2655f98` restored the exact already validated D8 files; the resulting tree
+and final gates match this report. This affects commit atomicity only, not the
+two physical attempts, retained evidence or product state.
+
 ## Evidence retention, sanitisation and cleanup
 
 The two final D8 reports are retained locally below:
