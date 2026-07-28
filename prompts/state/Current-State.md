@@ -232,14 +232,17 @@ proprietários.
   contractualmente incompletas: a classificação D7-U não foi admitida e o
   braço externo permaneceu proibido. Nenhuma causa foi atribuída.
 - O lote corretivo
-  [PF-OBS-1-D7-R1 foi concluído como `D7-R1.NOT_REPRODUCED`](../../docs/STATE-06-MOD-12-PF-OBS-1-D7-R1-Summary-Count-Contract-Rerun-Report.md).
+  [PF-OBS-1-D7-R1 foi concluído como `D7-R1.NOT_REPRODUCED`](../../docs/STATE-06-MOD-12-PF-OBS-1-D7-R1-Summary-Count-Contract-Rerun-Report.md)
+  e o seu
+  [Human Gate foi `APROVADO COM RESSALVAS`](../../docs/STATE-06-MOD-12-PF-OBS-1-D7-R1-Human-Gate-Report.md).
   Três envelopes R1-U admissíveis preservaram `35/35` amostras e `1/1`
   resumo; os coeficientes `0,02148452314834982`, `0,0096634992433091` e
   `0,012714703648847817` ficaram abaixo do limite V3 inalterado de `0,2`.
   Com `0/3` falhas, R1-E permaneceu proibido. Os três relatórios D7 históricos
   continuam byte a byte, bloqueados e excluídos da classificação R1. O
-  resultado comprova não recorrência somente no lote R1; nenhuma causa foi
-  atribuída.
+  resultado e a aceitação humana comprovam não recorrência somente no lote
+  R1; nenhuma amostra humana adicional estava prevista, nenhuma causa foi
+  atribuída e nenhum gate adjacente foi aprovado.
 - PF-OBS-1 e O5 permanecem sem aprovação. A causa do pico físico residual,
   corpus e ambiente piloto representativos, calibração operacional,
   homologação exata da célula e owners materiais continuam pendentes.

@@ -4779,3 +4779,43 @@
   diagnóstico requer autoridade explícita separada.
 - Aprovador: execução limitada autorizada explicitamente pelo usuário; nenhum
   Human Gate, lifecycle ou ativação inferido.
+
+## 2026-07-28 — Human Gate PF-OBS-1-D7-R1 aprovado com ressalvas
+
+- Estado anterior: PF-OBS-1-D7-R1 tecnicamente concluído como
+  `D7-R1.NOT_REPRODUCED`, com Human Gate pendente; D7, D6, PF-OBS-1 e O5
+  `BLOQUEADOS`, `STATE-06 INTEGRATION` e `ActivationState=None`.
+- Evidência revista:
+  [relatório automático PF-OBS-1-D7-R1](../../docs/STATE-06-MOD-12-PF-OBS-1-D7-R1-Summary-Count-Contract-Rerun-Report.md),
+  implementado no commit
+  `deef15122cd42989f87debbfdb2a8789bb056279`.
+- Resultado automático aceito: três relatórios R1-U admissíveis, `35/35`
+  amostras e `1/1` resumo em cada processo, `0/3` falhas exatas e
+  `D7-R1.NOT_REPRODUCED`; o braço R1-E permaneceu proibido.
+- Amostra humana: nenhuma amostra adicional estava prevista pelo protocolo
+  D7-R1; nenhuma amostra física foi inferida ou acrescentada no registro.
+- Decisão: Human Gate PF-OBS-1-D7-R1 `APROVADO COM RESSALVAS`.
+- Ressalvas reconhecidas: D7 e D6 permanecem historicamente bloqueados;
+  nenhuma causa foi atribuída; PF-OBS-1, O5, Observer, `ActivationState` e
+  lifecycle não foram aprovados.
+- Escopo negativo: a decisão não reclassifica D7/D6, não autoriza novo
+  diagnóstico, D6, controles D5, HM-01–HM-03, PostgreSQL, provider, dado
+  operacional, Observer, ativação, lifecycle, runtime, deploy, publicação,
+  push ou pull request.
+- Gates documentais: documentação aprovada para `427` fontes
+  comment-capable; `824` links Markdown locais em `212` arquivos aprovados;
+  secret scan do worktree não ignorado e do histórico Git disponível e
+  `git diff --check` aprovados. Build, testes e runtime de produto não foram
+  repetidos porque este registro altera somente documentação.
+- Alteração executada: somente documentação; nenhum source, teste, runtime,
+  configuração executável, dependência ou evidência retida foi alterado.
+- Estado resultante: D7-R1 permanece tecnicamente
+  `D7-R1.NOT_REPRODUCED` e está humanamente `APROVADO COM RESSALVAS`; D7, D6,
+  PF-OBS-1 e O5 permanecem `BLOQUEADOS`; `STATE-06 INTEGRATION` e
+  `ActivationState=None` permanecem inalterados.
+- Evidência proprietária:
+  [relatório do Human Gate PF-OBS-1-D7-R1](../../docs/STATE-06-MOD-12-PF-OBS-1-D7-R1-Human-Gate-Report.md).
+- Próxima condição: qualquer diagnóstico, campanha física, continuação
+  PF-OBS-1, ativação Observer ou transição de lifecycle requer autoridade
+  explícita separada e os gates aplicáveis.
+- Aprovador: Bruno, por decisão explícita em 2026-07-28.
