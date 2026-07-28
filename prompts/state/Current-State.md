@@ -132,6 +132,13 @@ proprietários.
   catálogo e sandboxes explicitamente guardados. Não há IdP, PKI, certificado,
   chave, vault, canal de notificação, provider registry operacional, database
   target ou infraestrutura real configurada.
+- A
+  [proposta de capacidade JOSE completa](../../docs/STATE-06-JOSE-Complete-Capability-Proposal.md)
+  e o
+  [ADR-0008](../../docs/architecture/ADR-0008-JOSE-Cryptographic-Profiles-And-Key-Lifecycle.md)
+  estão disponíveis somente como documentação; o ADR permanece `proposed`.
+  Não há JWE, emissão JWS própria, ciclo de chaves operacional, IdP,
+  vault/KMS/HSM ou lote JOSE autorizado para implementação.
 - Não há loader dinâmico nem carregamento ou distribuição operacional de
   provider packages, instalador, assinatura, update channel ou entrega
   operacional. `REQ-050` permanece `PARCIAL`: a matriz clean-room existe, mas

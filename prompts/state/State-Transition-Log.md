@@ -4702,6 +4702,48 @@
 - Aprovador: elaboração documental autorizada explicitamente pelo usuário;
   nenhuma aprovação técnica, Human Gate, lifecycle ou ativação inferida.
 
+## 2026-07-28 — Proposta documental de capacidade JOSE completa
+
+- Estado anterior: a Server API validava JWT/JWS humano externo por OIDC e
+  JWKS sob egress limitado; não havia JWE, emissão JOSE própria, ciclo de
+  chaves operacional, IdP ou KMS/HSM/vault configurado.
+- Autoridade: elaborar uma proposta para incluir JOSE completo na
+  documentação, desenvolvimento, arquitetura e infraestrutura do projeto.
+  A solicitação não autorizou implementação, dependência, migration, runtime,
+  infraestrutura externa, chave, deployment ou transição.
+- Definição proposta: cobertura integral e testável de JWS, JWE, JWK/JWKS,
+  JWA, JWT, serializações Compact/Flattened/General, nested/detached,
+  algoritmo, header, key type e lifecycle, com cada entrada aplicável
+  classificada como `Adopted`, `Safely adapted`, `Rejected` ou `Scheduled`.
+  Completude não significa habilitar algoritmos inseguros.
+- Arquitetura: Domain e providers permanecem independentes; Application
+  possuiria finalidade/perfis/ports; Infrastructure possuiria adapters de
+  biblioteca e custodiantes; Server API faria composição explícita; Agent
+  continuaria em mTLS; Dashboard dependeria de fluxo OIDC separado.
+- Segurança: perfis mutuamente exclusivos por finalidade, allowlists,
+  recusa de `none`, `RSA1_5`, URLs de chave recebidas e compression baseline;
+  separação sign/verify/encrypt/decrypt; referências opacas; rotação,
+  revogação, compromisso e auditoria sem token, plaintext ou chave.
+- Sequência futura: oito lotes `JOSE-0` a `JOSE-7`, desde decisão documental
+  e spike de biblioteca até JWS, JWK/JWKS, JWE, integração, infraestrutura,
+  homologação e release. Cada lote exige autoridade e gates próprios.
+- ADR: criado
+  [ADR-0008](../../docs/architecture/ADR-0008-JOSE-Cryptographic-Profiles-And-Key-Lifecycle.md)
+  com status `proposed`; nenhuma decisão arquitetural foi aceita por
+  inferência.
+- Evidência proprietária:
+  [proposta STATE-06 JOSE](../../docs/STATE-06-JOSE-Complete-Capability-Proposal.md).
+- Execução observada: somente documentação; nenhum source, teste,
+  configuração executável, dependency, restore/download, migration, IdP,
+  chave, vault/KMS/HSM, banco, serviço, runtime, deploy, push ou pull request.
+- Estado resultante: `STATE-06 INTEGRATION` permanece; ADR-0008 e todos os
+  lotes JOSE permanecem não autorizados para implementação; nenhuma
+  homologação ou capacidade operacional foi inferida.
+- Próxima condição: revisão humana desta proposta e, se aceita, autorização
+  separada e limitada de `JOSE-0`.
+- Aprovador: elaboração da proposta autorizada explicitamente pelo usuário;
+  nenhuma aprovação técnica, Human Gate ou lifecycle inferida.
+
 ## 2026-07-28 — PF-OBS-1-D7-R1 concluído sem reprodução da falha D6
 
 - Estado anterior: proposta D7-R1 congelada, D7 e D6 `BLOQUEADOS`,

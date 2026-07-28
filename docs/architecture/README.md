@@ -87,6 +87,7 @@ Infrastructure / Providers / Agent / API / Desktop
 - [ADR-0005 — Packaging, signing, and updates](ADR-0005-Packaging-Signing-And-Updates.md)
 - [ADR-0006 — Provider capability and administrative control](ADR-0006-Provider-Capabilities-And-Control.md)
 - [ADR-0007 — AIOps trust distribution and resource admission](ADR-0007-AIOps-Trust-Distribution-And-Resource-Admission.md) (`accepted`; implementation not authorised)
+- [ADR-0008 — JOSE cryptographic profiles and key lifecycle](ADR-0008-JOSE-Cryptographic-Profiles-And-Key-Lifecycle.md) (`proposed`; no implementation or infrastructure authorised)
 - [Canonical contracts](Canonical-Contracts.md)
 - [Agent/API protocol](Agent-API-Protocol.md)
 - [Threat model](Threat-Model.md)
