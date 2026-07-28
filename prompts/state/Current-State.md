@@ -1,6 +1,6 @@
 # Estado Atual
 
-Este documento é o snapshot factual vigente do workspace em 2026-07-27. Ele
+Este documento é o snapshot factual vigente do workspace em 2026-07-28. Ele
 não concede autoridade de execução. A evolução, os resultados substituídos e
 as decisões tomadas no seu contexto original permanecem no
 [`State-Transition-Log.md`](State-Transition-Log.md) e nos relatórios
@@ -231,6 +231,13 @@ proprietários.
   alterar ou substituir evidência, mas as três execuções são
   contractualmente incompletas: a classificação D7-U não foi admitida e o
   braço externo permaneceu proibido. Nenhuma causa foi atribuída.
+- Existe somente uma
+  [proposta documental PF-OBS-1-D7-R1](../../docs/STATE-06-MOD-12-PF-OBS-1-D7-R1-Summary-Count-Contract-Rerun-Proposal.md)
+  para um lote corretivo independente. Ela preserva byte a byte e exclui da
+  nova classificação os três relatórios D7 bloqueados, exige um gate real de
+  serialização/round trip para as duas contagens e propõe três processos R1-U
+  novos, com dois R1-E condicionais a pelo menos duas falhas admissíveis. A
+  proposta não autoriza implementação, build, teste ou execução física.
 - PF-OBS-1 e O5 permanecem sem aprovação. A causa do pico físico residual,
   corpus e ambiente piloto representativos, calibração operacional,
   homologação exata da célula e owners materiais continuam pendentes.

@@ -4641,3 +4641,63 @@
   diagnóstico físico ou campanha requer autoridade explícita separada.
 - Aprovador: execução limitada autorizada explicitamente pelo usuário; nenhum
   Human Gate, lifecycle ou ativação inferido.
+
+## 2026-07-28 — Proposta documental PF-OBS-1-D7-R1 congelada sem execução
+
+- Estado anterior: PF-OBS-1-D7 `BLOQUEADO` por três relatórios físicos sem os
+  campos explícitos `expectedSummaryCount` e `completedSummaryCount`;
+  implementação corrigida e validada sem nova execução; PF-OBS-1-D6,
+  PF-OBS-1 e O5 `BLOQUEADOS`, `STATE-06 INTEGRATION` e
+  `ActivationState=None`.
+- Autoridade: exclusivamente elaborar a proposta documental D7-R1 para uma
+  repetição corretiva; implementação adicional, execução física, alteração de
+  thresholds, dependência/download, PostgreSQL, provider/dado operacional,
+  Observer, `ActivationState`, lifecycle, deploy, push e pull request
+  proibidos.
+- Baseline: branch `main`, commit
+  `558658160282f35c60f7e4e8fa09c672a2115e6b`, worktree limpa e shutdown
+  preflight com zero processo, listener ou root temporário D7.
+- Proposta:
+  `pfobs1-d7-r1-summary-count-contract-rerun-1.0.0`, SHA-256
+  `4FD5E92E4674BF93DF102DCFC564614E7D417C400292324A76E45011AE39F5C5`,
+  dependente dos digests D7, V3 e D6 inalterados.
+- Preservação: os três relatórios D7 permanecem byte a byte, separados e
+  excluídos de qualquer classificação R1; tamanhos `31.467`, `31.430` e
+  `31.473` bytes e respectivos hashes
+  `AB48D99C1688EB3FC163DBAD59D4E393739B04BF1C82AB59C9239A5B180E2C85`,
+  `0087DFAA4E7E014A7C037E1887C879A4A9C5501F1228280962854ED62224066F`
+  e
+  `7E167AFEBBC01F8DF4551A12CFD6036F2CD2156A0D92EF73E3DD80C9212D00C2`
+  reconfirmados.
+- Gate futuro: um envelope e identidade próprios R1 devem provar por
+  serialização UTF-8 real, round trip tipado e validação independente os
+  campos camel-case e valores de contagem completos/incompletos; reflexão
+  isolada é insuficiente.
+- Sequência futura: após gates R1-0 e R1-1, exatamente três processos R1-U
+  novos e sem substituição; somente três relatórios admissíveis entram na
+  classificação. Exatamente dois R1-E ficam condicionados a pelo menos duas
+  falhas R1-U admissíveis.
+- Limites: V3, D6, algoritmo medido D7, threshold `0,20`, grupos, amostras,
+  resumos e dois `GC.Collect` preexistentes permanecem congelados; zero
+  instrumentação intraprocesso, polling, tracing, ETW/EventPipe,
+  debugger/profiler, prioridade, afinidade, mudança do host ou atribuição
+  causal.
+- Execução observada nesta atividade: nenhuma implementação, build, teste de
+  produto, processo físico, observação externa, restore, download,
+  PostgreSQL, provider, runtime, Observer, `ActivationState`, lifecycle ou
+  ação remota.
+- Gates documentais: digest canônico recalculado e aprovado; três hashes e
+  tamanhos predecessores aprovados; documentação de `425` fontes
+  comment-capable, `818` links Markdown locais em `210` arquivos, secret scan
+  do worktree não ignorado e histórico disponível e `git diff --check`
+  aprovados.
+- Estado resultante: proposta D7-R1 disponível, mas não autorizada para
+  implementação ou execução; D7, D6, PF-OBS-1 e O5 permanecem `BLOQUEADOS`;
+  `STATE-06 INTEGRATION` e `ActivationState=None` inalterados.
+- Evidência proprietária:
+  [proposta PF-OBS-1-D7-R1](../../docs/STATE-06-MOD-12-PF-OBS-1-D7-R1-Summary-Count-Contract-Rerun-Proposal.md).
+- Próxima condição: uma autoridade explícita separada deve citar exatamente a
+  versão e o digest D7-R1 antes de qualquer implementação, build, teste ou
+  execução.
+- Aprovador: elaboração documental autorizada explicitamente pelo usuário;
+  nenhuma aprovação técnica, Human Gate, lifecycle ou ativação inferida.
