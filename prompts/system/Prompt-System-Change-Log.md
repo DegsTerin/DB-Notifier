@@ -2,9 +2,9 @@
 
 ## Versão atual
 
-- Versão: `5.1.0`
-- Data: 2026-07-27
-- Status: sanitização obrigatória de identificadores reais de hosts
+- Versão: `6.0.0`
+- Data: 2026-07-28
+- Status: commit local obrigatório para todo estado de hand-off rastreado
 - Escopo: 14 arquivos ativos
 
 A versão do corpus é independente da versão do software.
@@ -16,6 +16,26 @@ A versão do corpus é independente da versão do software.
 - PATCH: clareza, correção ou referência sem mudança de autoridade.
 
 Toda alteração atualiza este arquivo e, quando necessário, `../Start-Here.md`.
+
+## 6.0.0 — 2026-07-28
+
+- Estende a obrigação permanente de commit local focal a toda modificação,
+  tarefa, atividade ou ação autorizada que altere arquivos rastreados,
+  inclusive quando o resultado entregue é parcial, bloqueado ou falha.
+- Remove bloqueio, incompletude material e falha de validação da lista de
+  motivos suficientes para omitir o commit; esses estados devem ser
+  versionados com sua evidência e limitação factuais, sem serem apresentados
+  como aprovados.
+- Mantém somente três impedimentos estritos: proibição explícita corrente,
+  ausência de mudança rastreada ou impossibilidade de isolar com segurança o
+  incremento de trabalho alheio, resíduo gerado ou secret.
+- Preserva o incremento coerente de hand-off como fronteira, sem criar commits
+  para comandos, inspeções e passos internos individuais.
+- Preserva Conventional Commits, staged diff, gates proporcionais e a
+  proibição de amend, rebase, push, pull request, merge, release, publicação
+  ou deploy sem autoridade própria.
+- Não altera produto, `STATE-06 INTEGRATION`, `ActivationState=None`,
+  lifecycle, gates, runtime, provider ou infraestrutura.
 
 ## 5.1.0 — 2026-07-27
 

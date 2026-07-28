@@ -73,10 +73,12 @@ autorização permanente e os limites do commit local final pertencem a
   linhas e `45%` de branches. `80%` de linhas é meta orientativa baseada em
   risco, não novo gate automático. Nenhum piso por componente pode ser
   reduzido implicitamente.
-- Toda tarefa, atividade ou ação concluída que altere arquivos rastreados
-  termina com commit local focal conforme a autorização permanente e as
-  exceções de `AGENTS.md`. O commit usa Conventional Commits e não autoriza
-  amend, rebase, push, pull request, release, publicação ou deploy.
+- Toda modificação, tarefa, atividade ou ação autorizada que altere arquivos
+  rastreados termina com commit local focal conforme a autorização permanente
+  e as exceções estritas de `AGENTS.md`, inclusive quando o resultado é
+  parcial, bloqueado ou falha com estado seguro e isolável. O commit usa
+  Conventional Commits e não autoriza amend, rebase, push, pull request,
+  release, publicação ou deploy.
 - As fases genéricas F0–F12 deste documento são práticas de engenharia
   mapeadas ao lifecycle DB-Notifier; elas não substituem `STATE-00`–`STATE-08`.
 - O handoff compacto e a contagem auditável do trabalho restante exigidos em
@@ -108,7 +110,7 @@ Legenda:
 | 5 | Equipes e papéis | `ADAPTADO` | Papéis e RACI são ativados conforme a tarefa; catálogos de cargos e orientação de carreira são `INFORMATIVO`. |
 | 6 | Agentes de IA | `ADAPTADO` | Usar apenas quando a plataforma permitir e houver ganho material, com escopo independente, evidência e integração central. |
 | 7 | Descoberta do projeto | `JÁ GOVERNADO` | `AGENTS.md` e `Operational-Playbooks.md` governam inventário, fluxo, dependências, CI, risco e amostragem explícita. |
-| 8 | Modos e autorização | `ADAPTADO` | Análise, revisão, planejamento, implementação, refatoração e entrega preservam seus limites; `AGENTS.md` concede autoridade permanente somente para o commit local final de trabalho concluído e validado. |
+| 8 | Modos e autorização | `ADAPTADO` | Análise, revisão, planejamento, implementação, refatoração e entrega preservam seus limites; `AGENTS.md` concede autoridade permanente somente para o commit local final do estado de hand-off rastreado, inclusive quando parcial, bloqueado ou falho. |
 | 9 | Ciclo F0–F12 | `ADAPTADO` | O mapeamento abaixo preserva `STATE-00`–`STATE-08` como a única máquina de estados. |
 | 10 | Arquitetura e design | `JÁ GOVERNADO` | Arquitetura da solução, ADRs e baseline .NET 10/React/WPF prevalecem sobre exemplos genéricos. |
 | 11 | Desenvolvimento por camada | `JÁ GOVERNADO` | Arquitetura, Design System e segurança são proprietários de Web, API, Desktop e integrações; mobile exige requisito futuro. |
@@ -783,8 +785,9 @@ Para alterações estruturais, produza uma síntese de:
 
 ### 8.6 Entrega e publicação
 
-O commit local final de cada trabalho concluído segue a autorização permanente,
-as validações e as exceções de `AGENTS.md`. Push, PR, release, deploy,
+O commit local final de cada estado de hand-off rastreado segue a autorização
+permanente, as validações e as exceções estritas de `AGENTS.md`, inclusive
+quando o resultado é parcial, bloqueado ou falho. Push, PR, release, deploy,
 migrações produtivas, mensagens externas e alterações de infraestrutura
 exigem autorização explícita ou devem estar inequivocamente incluídos no
 pedido.
@@ -1716,12 +1719,15 @@ Tipos usuais:
 
 Cada commit deve ser coerente, revisável e conter somente alterações relacionadas. Não reescreva o trabalho do proprietário sem autorização.
 
-No DB-Notifier, toda tarefa, atividade ou ação concluída que altere arquivos
-rastreados termina com um commit local focal antes do hand-off, sem solicitar
-autoridade adicional. Aplicam-se as fronteiras de incremento e as exceções de
-segurança, bloqueio, validação, ausência de mudança e proibição explícita
-definidas em `AGENTS.md`. Essa autoridade permanente não se estende a amend,
-rebase, push, pull request, merge, release, publicação ou deploy.
+No DB-Notifier, toda modificação, tarefa, atividade ou ação autorizada que
+altere arquivos rastreados termina com um commit local focal antes do hand-off,
+sem solicitar autoridade adicional, inclusive quando o resultado é parcial,
+bloqueado ou falha. O estado deve permanecer seguro, isolável e descrito
+factualmente. Somente ausência de mudança rastreada, proibição explícita
+corrente ou impossibilidade de isolar conteúdo alheio, resíduo gerado ou
+secret aplica as exceções estritas de `AGENTS.md`. Essa autoridade permanente
+não se estende a amend, rebase, push, pull request, merge, release, publicação
+ou deploy.
 
 ### 20.2 Versionamento
 
@@ -2017,7 +2023,8 @@ Nunca:
 - oculte limitações;
 - declare sucesso com testes falhando;
 - desative controle de segurança apenas para contornar um erro;
-- omita o commit local final exigido por `AGENTS.md` sem uma exceção aplicável;
+- omita o commit local final exigido por `AGENTS.md` apenas porque o resultado
+  está parcial, bloqueado ou com validação falha;
 - faça amend, rebase, push, merge, release ou deploy sem autorização
   correspondente;
 - substitua uma solução existente apenas por preferência pessoal.
