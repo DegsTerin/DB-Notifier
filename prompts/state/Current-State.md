@@ -243,6 +243,16 @@ proprietários.
   resultado e a aceitação humana comprovam não recorrência somente no lote
   R1; nenhuma amostra humana adicional estava prevista, nenhuma causa foi
   atribuída e nenhum gate adjacente foi aprovado.
+- A
+  [proposta documental PF-OBS-1-D8](../../docs/STATE-06-MOD-12-PF-OBS-1-D8-Exact-Prefix-Completion-Reconciliation-Proposal.md)
+  reconcilia D5, D6, D7 e D7-R1 e congela somente um futuro diagnóstico de
+  conclusão do prefixo V3 exato. A versão
+  `pfobs1-d8-exact-prefix-completion-reconciliation-1.0.0`, SHA-256
+  `208DA70A8D638E50E2951DECDA83414B9E1F7CF4AFF957D09C1EAA2A8B1B8814`,
+  propõe duas tentativas novas não observadas de até `158` amostras e quatro
+  resumos, sem instrumentação adicional. Ela não autoriza implementação,
+  build, teste ou processo físico e não altera nenhuma classificação
+  histórica.
 - PF-OBS-1 e O5 permanecem sem aprovação. A causa do pico físico residual,
   corpus e ambiente piloto representativos, calibração operacional,
   homologação exata da célula e owners materiais continuam pendentes.

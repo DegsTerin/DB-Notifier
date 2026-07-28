@@ -4819,3 +4819,62 @@
   PF-OBS-1, ativação Observer ou transição de lifecycle requer autoridade
   explícita separada e os gates aplicáveis.
 - Aprovador: Bruno, por decisão explícita em 2026-07-28.
+
+## 2026-07-28 — Proposta documental PF-OBS-1-D8 reconciliada sem execução
+
+- Estado anterior: D7-R1 `D7-R1.NOT_REPRODUCED` e humanamente
+  `APROVADO COM RESSALVAS`; D5, D6, D7, PF-OBS-1 e O5 permaneciam
+  `BLOQUEADOS`, `STATE-06 INTEGRATION` e `ActivationState=None`.
+- Autoridade: exclusivamente reconciliar documentalmente D5, D6, D7 e D7-R1
+  e definir pergunta diagnóstica, admissibilidade, stop rules e árvore de
+  decisão D8. Implementação, execução física, V3/thresholds,
+  dependência/download, PostgreSQL, provider/dado operacional, Observer,
+  `ActivationState`, lifecycle, deploy, push e pull request permaneceram
+  proibidos.
+- Baseline: branch `main`, commit
+  `1b6066893296e5e2bd4e37b34bfba4472eed6ede`, worktree limpa, SDK
+  `10.0.302` e shutdown preflight com zero processo ou listener próprio.
+- Reconciliação: D5 alcançou o prefixo com capturas adicionais, mas não
+  reproduziu o excesso; D6 removeu essas capturas, porém parou em
+  `FirstByte/Cold` antes de `Cancellation/Cold`; D7 observou três coeficientes
+  baixos em evidência contractualmente incompleta; D7-R1 classificou
+  validamente `0/3` falhas como `D7-R1.NOT_REPRODUCED`.
+- Lacuna isolada: nenhum processo pós-formatação, não observado e
+  contractualmente admissível completou o prefixo V3 exato até
+  `Cancellation/Cold` measured repetition 13.
+- Proposta:
+  `pfobs1-d8-exact-prefix-completion-reconciliation-1.0.0`, SHA-256
+  `208DA70A8D638E50E2951DECDA83414B9E1F7CF4AFF957D09C1EAA2A8B1B8814`.
+- Sequência futura proposta: gates D8-0/D8-1 e exatamente duas tentativas
+  D8-U novas, não observadas, com até `158` amostras e quatro resumos V3. Um
+  valid-early-stop na primeira tentativa ainda permite a segunda
+  pré-registada; um relatório inválido bloqueia a sequência sem substituição.
+- Árvore futura: evidência inválida bloqueia interpretação; early stops
+  admissíveis distinguem intermittence, repetição ou divergência; somente
+  dois resultados target-eligible — prefixo completo sem excesso ou target
+  stop exato em `Cancellation/Cold` — classificam working set como
+  `0/2 NOT_REPRODUCED`, `1/2 INTERMITTENT` ou `2/2 REPEATED`.
+- Preservação: as 15 evidências locais D5/D6/D7/D7-R1 e os seis documentos
+  proprietários foram encontrados com tamanhos e hashes exatos. Nenhuma
+  evidência histórica foi alterada, renomeada, regenerada, substituída ou
+  contada como D8.
+- Execução observada nesta atividade: nenhuma implementação, build, teste de
+  produto, processo físico, observação externa, controle D5, HM-01–HM-03,
+  restore, download, PostgreSQL, provider, runtime, Observer,
+  `ActivationState`, lifecycle ou ação remota.
+- Gates documentais: digest canônico D8 aprovado; 15 evidências predecessoras
+  e seis documentos proprietários conferidos; documentação aprovada para
+  `427` fontes comment-capable; `832` links Markdown locais em `213` arquivos,
+  secret scan do worktree não ignorado e do histórico Git disponível e
+  `git diff --check` aprovados.
+- Estado resultante: proposta D8 disponível, mas não autorizada para
+  implementação ou execução; D5, D6, D7, PF-OBS-1 e O5 permanecem
+  `BLOQUEADOS`; D7-R1 permanece `D7-R1.NOT_REPRODUCED` e humanamente
+  `APROVADO COM RESSALVAS`; `STATE-06 INTEGRATION` e
+  `ActivationState=None` permanecem inalterados.
+- Evidência proprietária:
+  [proposta PF-OBS-1-D8](../../docs/STATE-06-MOD-12-PF-OBS-1-D8-Exact-Prefix-Completion-Reconciliation-Proposal.md).
+- Próxima condição: implementação, gates estáticos ou processos D8 exigem
+  autorização explícita separada que cite a versão e o digest exatos.
+- Aprovador: elaboração documental autorizada explicitamente pelo usuário;
+  nenhuma aprovação técnica, Human Gate, lifecycle ou ativação inferida.
