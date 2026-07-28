@@ -4988,3 +4988,50 @@
   causal requer proposta e autoridade separadas.
 - Aprovador: implementação e execução limitadas autorizadas explicitamente
   pelo usuário; nenhum Human Gate, lifecycle ou ativação inferido.
+
+## 2026-07-28 — Human Gate PF-OBS-1-D8 aprovado com ressalvas
+
+- Estado anterior: PF-OBS-1-D8 tecnicamente concluído como
+  `D8.EARLY_GATE_INTERMITTENT`, com Human Gate pendente; recorrência do
+  working set não classificada, PF-OBS-1 e O5 `BLOQUEADOS`,
+  `STATE-06 INTEGRATION` e `ActivationState=None`.
+- Evidência revista:
+  [relatório automático PF-OBS-1-D8](../../docs/STATE-06-MOD-12-PF-OBS-1-D8-Exact-Prefix-Completion-Reconciliation-Report.md),
+  commit final `f7fe56196b97dda6b378a1cf56babf7168b480c2`, `10.792` bytes e
+  SHA-256
+  `64A21CF0CA314C3228632C1AE075C13B1E900C094D537355B1E025A77E024046`.
+- Resultado automático aceito: run 1 admissível como `TargetStop` em
+  `150/158` amostras e `4/4` resumos; run 2 admissível como
+  `EarlyGateStop` em `35/158` amostras e `1/4` resumo; classificação
+  `D8.EARLY_GATE_INTERMITTENT`.
+- Decisão humana exata: `HUMAN GATE DO PF-OBS-1-D8: APROVADO COM RESSALVAS
+  — revisei o relatório automático PF-OBS-1-D8 e aceito a classificação
+  D8.EARLY_GATE_INTERMITTENT. Reconheço que a recorrência do working set não
+  foi classificada, nenhuma causa foi atribuída e PF-OBS-1, O5, Observer,
+  ActivationState e lifecycle não foram aprovados.`
+- Decisão: Human Gate PF-OBS-1-D8 `APROVADO COM RESSALVAS`.
+- Ressalvas preservadas: a recorrência do working set permanece não
+  classificada; nenhuma causa foi atribuída; D5, D6, D7 e D7-R1 não foram
+  reclassificados; PF-OBS-1, O5, Observer, `ActivationState` e lifecycle não
+  foram aprovados.
+- Escopo negativo: a decisão não autoriza novo diagnóstico, execução física,
+  observação externa, controle D5, HM-01–HM-03, dependência/restore/download,
+  PostgreSQL, provider/dado operacional, runtime, Observer, ativação,
+  lifecycle, deploy, publicação, push ou pull request.
+- Alteração executada: somente documentação; zero source, teste, runtime,
+  configuração executável, dependência ou evidência retida alterada.
+- Gates documentais: shutdown preflight, integridade do relatório automático,
+  documentação de 429 fontes, 843 links locais em 217 arquivos, secret scan
+  e diff aprovados. Build, testes e runtime não foram repetidos porque o
+  registro é exclusivamente documental.
+- Estado resultante: D8 permanece tecnicamente
+  `D8.EARLY_GATE_INTERMITTENT` e está humanamente
+  `APROVADO COM RESSALVAS`; PF-OBS-1 e O5 permanecem `BLOQUEADOS`;
+  `STATE-06 INTEGRATION` e `ActivationState=None` permanecem inalterados.
+- Evidência proprietária:
+  [relatório do Human Gate PF-OBS-1-D8](../../docs/STATE-06-MOD-12-PF-OBS-1-D8-Human-Gate-Report.md).
+- Próxima condição: se investigação adicional for desejada, elaborar
+  documentalmente uma proposta D9 separadamente autorizada, limitada à
+  intermitência `FirstByte/Cold` observada em D8, antes de implementação ou
+  execução física.
+- Aprovador: Bruno, por decisão explícita em 2026-07-28.

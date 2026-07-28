@@ -252,6 +252,9 @@ proprietários.
   atribuída e nenhum gate adjacente foi aprovado.
 - O diagnóstico
   [PF-OBS-1-D8 foi concluído como `D8.EARLY_GATE_INTERMITTENT`](../../docs/STATE-06-MOD-12-PF-OBS-1-D8-Exact-Prefix-Completion-Reconciliation-Report.md).
+  Seu
+  [Human Gate foi `APROVADO COM RESSALVAS`](../../docs/STATE-06-MOD-12-PF-OBS-1-D8-Human-Gate-Report.md),
+  aceitando somente essa classificação automática.
   As duas tentativas novas foram admissíveis e não observadas. A primeira
   reteve um target stop exato em `Cancellation/Cold`, measured repetition 5,
   com `150/158` amostras, `4/4` resumos e working set de `2.797.568 bytes`
@@ -260,7 +263,8 @@ proprietários.
   `0,20075118542700426` contra `0,2`. A árvore D8 não entrou numa
   classificação de recorrência do working set porque somente `1/2`
   tentativas foi target-eligible. Nenhuma causa foi atribuída; observação
-  externa, controles D5 e HM-01–HM-03 permaneceram proibidos.
+  externa, controles D5 e HM-01–HM-03 permaneceram proibidos. A aceitação
+  humana não aprovou PF-OBS-1, O5, Observer, `ActivationState` ou lifecycle.
 - PF-OBS-1 e O5 permanecem sem aprovação. A causa do pico físico residual,
   corpus e ambiente piloto representativos, calibração operacional,
   homologação exata da célula e owners materiais continuam pendentes.
