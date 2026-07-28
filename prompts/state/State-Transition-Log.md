@@ -4521,3 +4521,50 @@
   tentativa D6 ou mudança metodológica exige autoridade explícita separada.
 - Aprovador: execução limitada autorizada por Bruno; nenhum Human Gate,
   lifecycle ou ativação inferido.
+
+## 2026-07-28 — Proposta documental PF-OBS-1-D7 definida sem execução
+
+- Estado anterior: PF-OBS-1-D6 `BLOQUEADO` no primeiro resumo V3,
+  `FirstByte/Cold` com coeficiente `0,22923232701994542` contra `0,2`,
+  `Cancellation/Cold` não alcançado, PF-OBS-1 e O5 sem aprovação,
+  `STATE-06 INTEGRATION` e `ActivationState=None`.
+- Autoridade: exclusivamente elaborar uma proposta documental D7, preservando
+  integralmente V3 e seus limites; implementação, código, thresholds,
+  dependências, PostgreSQL, providers, execução física, Observer,
+  `ActivationState`, lifecycle, deploy, push e pull request proibidos.
+- Baseline: branch `main`, commit
+  `f556969564028862fec2001f8fb3e0076ae92f7c`, worktree limpa e shutdown
+  preflight com zero processo, janela ou listener DB-Notifier.
+- Proposta:
+  `pfobs1-d7-first-byte-cold-repeatability-diagnostic-1.0.0`, SHA-256
+  `7FE2D4FD524713ACE02E152210BBA411B97277012DBCF1982D6EBD07D28F60DF`,
+  dependente dos digests V3 e D6 imutáveis.
+- Desenho futuro: gate estático; três processos novos não observados com
+  precondição V3, `5 + 30` amostras `FirstByte/Cold` e resumo original;
+  recomputação externa apenas para integridade; duas observações adicionais
+  before/after permitidas somente se pelo menos dois dos três resumos
+  repetirem a falha.
+- Limites metodológicos: zero captura intraprocesso, seleção, substituição,
+  polling, tracing, ETW/EventPipe, debugger/profiler, prioridade, afinidade,
+  power-plan ou coleta adicional. Associação externa permanece descritiva e
+  não autoriza atribuição causal.
+- Classificações propostas: `D7.NOT_REPRODUCED` para `0/3`,
+  `D7.INTERMITTENT` para `1/3`, `D7.REPEATED` para `2/3` e
+  `D7.REPEATED_CONSECUTIVELY` para `3/3`; braço externo separado em
+  `0/2`, `1/2` ou `2/2`.
+- Execução observada: nenhuma. Zero arquivo de código/configuração,
+  dependência, build, teste, runner, processo físico, PostgreSQL, provider,
+  Observer, `ActivationState`, lifecycle ou ação remota foi alterado ou
+  executado.
+- Gates documentais: documentação de `422` fontes comment-capable e `814`
+  links locais em `208` arquivos aprovados; secret scan do worktree não
+  ignorado e histórico disponível e `git diff --check` aprovados.
+- Estado resultante: proposta PF-OBS-1-D7 disponível, mas não autorizada para
+  implementação ou execução; PF-OBS-1-D6, PF-OBS-1 e O5 permanecem
+  `BLOQUEADOS`, `STATE-06 INTEGRATION` e `ActivationState=None` inalterados.
+- Evidência:
+  [proposta PF-OBS-1-D7](../../docs/STATE-06-MOD-12-PF-OBS-1-D7-FirstByte-Cold-Repeatability-Diagnostic-Proposal.md).
+- Próxima condição: decisão explícita separada deve citar a versão e o digest
+  D7 antes de qualquer implementação ou execução.
+- Aprovador: elaboração documental autorizada por Bruno; nenhuma aprovação
+  técnica, Human Gate, lifecycle ou ativação inferida.

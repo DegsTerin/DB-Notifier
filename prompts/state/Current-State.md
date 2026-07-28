@@ -221,6 +221,12 @@ proprietários.
   não foi alcançado, a segunda execução não começou e nenhum braço externo ou
   controle D5 foi executado. O resultado não reproduz nem refuta o excesso de
   working set.
+- Existe somente uma
+  [proposta documental PF-OBS-1-D7](../../docs/STATE-06-MOD-12-PF-OBS-1-D7-FirstByte-Cold-Repeatability-Diagnostic-Proposal.md)
+  para investigar a repetibilidade de `FirstByte/Cold`. Ela preserva V3 e D6,
+  propõe três processos não observados e condiciona duas observações externas
+  à reprodução em pelo menos dois, mas não autoriza implementação, build,
+  teste ou execução física.
 - PF-OBS-1 e O5 permanecem sem aprovação. A causa do pico físico residual,
   corpus e ambiente piloto representativos, calibração operacional,
   homologação exata da célula e owners materiais continuam pendentes.
