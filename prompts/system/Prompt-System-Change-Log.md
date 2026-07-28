@@ -2,9 +2,9 @@
 
 ## Versão atual
 
-- Versão: `6.0.0`
+- Versão: `6.1.0`
 - Data: 2026-07-28
-- Status: commit local obrigatório para todo estado de hand-off rastreado
+- Status: próximo passo e próxima etapa obrigatórios em todo hand-off
 - Escopo: 14 arquivos ativos
 
 A versão do corpus é independente da versão do software.
@@ -16,6 +16,23 @@ A versão do corpus é independente da versão do software.
 - PATCH: clareza, correção ou referência sem mudança de autoridade.
 
 Toda alteração atualiza este arquivo e, quando necessário, `../Start-Here.md`.
+
+## 6.1.0 — 2026-07-28
+
+- Torna obrigatórios e separados, no encerramento de todo hand-off, os campos
+  `Próximo passo` e `Próxima etapa`.
+- Define `Próximo passo` como a única ação imediata recomendada ou autorizada,
+  com objetivo e eventual autoridade ou gate exigido antes da execução.
+- Define `Próxima etapa` como o lote técnico, gate formal, macroetapa ou
+  lifecycle `STATE` que sucede o próximo passo, sempre com condição de
+  entrada explícita.
+- Exige declarar quando a etapa ainda não está autorizada ou quando o estado
+  corrente deve permanecer inalterado; nomear a etapa nunca concede
+  autoridade implícita.
+- Preserva o status direto, a contagem auditável do trabalho restante e a
+  ação exata do proprietário no mesmo contrato compacto.
+- Não altera produto, `STATE-06 INTEGRATION`, `ActivationState=None`,
+  lifecycle, gates, runtime, provider ou infraestrutura.
 
 ## 6.0.0 — 2026-07-28
 

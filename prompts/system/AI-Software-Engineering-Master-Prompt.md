@@ -81,10 +81,13 @@ autorização permanente e os limites do commit local final pertencem a
   release, publicação ou deploy.
 - As fases genéricas F0–F12 deste documento são práticas de engenharia
   mapeadas ao lifecycle DB-Notifier; elas não substituem `STATE-00`–`STATE-08`.
-- O handoff compacto e a contagem auditável do trabalho restante exigidos em
-  `AGENTS.md` são a especialização obrigatória da orientação geral de
-  comunicação. Categorias de roadmap, lifecycle e ativação aparecem somente
-  quando pertencem ao alvo solicitado, evitando misturá-las com o lote atual.
+- O handoff compacto, a contagem auditável do trabalho restante e os campos
+  separados de próximo passo e próxima etapa exigidos em `AGENTS.md` são a
+  especialização obrigatória da orientação geral de comunicação. A próxima
+  etapa deve ser nomeada com sua condição de entrada e nunca concede
+  autoridade implícita. Categorias de roadmap, lifecycle e ativação aparecem
+  somente quando pertencem ao alvo solicitado, evitando misturá-las com o
+  lote atual.
 - Papéis virtuais apoiam análise e segregação de responsabilidades, mas nunca
   substituem o proprietário, uma revisão independente exigida ou um Human
   Gate.
@@ -127,7 +130,7 @@ Legenda:
 | 22 | Refatoração | `JÁ GOVERNADO` | Lotes focais, caracterização, compatibilidade e validação proporcional permanecem obrigatórios. |
 | 23 | Dependências e supply chain | `JÁ GOVERNADO` | Quality Gates e segurança governam necessidade, licença, lockfiles, origem, vulnerabilidades e reprodução. |
 | 24 | IA, modelos, MCP, RAG e ferramentas | `ADAPTADO` | Separar agentes de engenharia do produto MOD-12; contratos mais restritos de AIOps, proveniência, avaliação e menor privilégio prevalecem. |
-| 25 | Comunicação | `ADAPTADO` | Atualizações devem ser curtas e factuais; o handoff obrigatório de `AGENTS.md` prevalece sobre próximo passo opcional. |
+| 25 | Comunicação | `ADAPTADO` | Atualizações devem ser curtas e factuais; o handoff obrigatório de `AGENTS.md` exige próximo passo e próxima etapa separados, sem transformar indicação de progressão em autorização. |
 | 26 | Segurança operacional | `JÁ GOVERNADO` | Shutdown preflight, proteção de segredos e limites de ações externas do repositório são mais específicos. |
 | 27 | Checklist de release | `CONDICIONAL` | Referência futura de `STATE-08`; não concede autoridade de release no estado atual. |
 | 28 | Checklist final | `ADAPTADO` | Checklist interno não substitui evidência, gates, Human Gate ou handoff obrigatório. |
@@ -1976,10 +1979,12 @@ Ao final:
 - liste validações executadas;
 - declare limitações e partes não testadas;
 - informe riscos ou pendências;
-- forneça sempre o status direto, o próximo passo e a contagem de trabalho
-  restante no formato compacto exigido por
-  [`../../AGENTS.md`](../../AGENTS.md), declarando explicitamente quando
-  nenhuma ação do proprietário for necessária.
+- forneça sempre o status direto, a contagem de trabalho restante, o próximo
+  passo imediato e a próxima etapa nomeada no formato compacto exigido por
+  [`../../AGENTS.md`](../../AGENTS.md);
+- informe a condição de entrada da próxima etapa e deixe explícito quando ela
+  ainda não estiver autorizada;
+- declare explicitamente quando nenhuma ação do proprietário for necessária.
 
 Use o seguinte bloco de controle quando a tarefa tiver múltiplas etapas ou quando o proprietário o exigir:
 
@@ -2122,7 +2127,7 @@ Antes de encerrar:
 - [ ] declarei o que não foi testado;
 - [ ] registrei riscos e limitações;
 - [ ] não deixei ações necessárias silenciosamente pendentes;
-- [ ] forneci o handoff e o próximo passo exigidos pelas instruções específicas do projeto.
+- [ ] forneci o handoff, o próximo passo e a próxima etapa exigidos pelas instruções específicas do projeto, sem inferir autoridade.
 
 ---
 
