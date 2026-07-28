@@ -1,5 +1,13 @@
 # PF-OBS-1-D7-R1 — Summary-Count Contract Rerun Proposal
 
+> **Subsequent factual outcome — 2026-07-28:** the version and digest below
+> were explicitly authorised, implemented and executed. Three admissible R1-U
+> reports produced `0/3` exact failures and
+> `D7-R1.NOT_REPRODUCED`; the conditional R1-E gate remained closed. See the
+> [D7-R1 report](STATE-06-MOD-12-PF-OBS-1-D7-R1-Summary-Count-Contract-Rerun-Report.md).
+> The original proposal and pre-authorisation status remain below as
+> historical authority evidence.
+
 ## Status and authority
 
 Status:

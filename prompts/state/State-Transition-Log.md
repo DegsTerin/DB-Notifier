@@ -4701,3 +4701,81 @@
   execução.
 - Aprovador: elaboração documental autorizada explicitamente pelo usuário;
   nenhuma aprovação técnica, Human Gate, lifecycle ou ativação inferida.
+
+## 2026-07-28 — PF-OBS-1-D7-R1 concluído sem reprodução da falha D6
+
+- Estado anterior: proposta D7-R1 congelada, D7 e D6 `BLOQUEADOS`,
+  implementação D7 corrigida sem nova execução, PF-OBS-1 e O5
+  `BLOQUEADOS`, `STATE-06 INTEGRATION` e `ActivationState=None`.
+- Autoridade: implementar identidade, envelope, writer, supervisor e
+  regressões R1 test-only; executar R1-0/R1-1 e, após aprovação, exatamente
+  três R1-U novos; dois R1-E somente perante três relatórios admissíveis e
+  pelo menos duas falhas; preservar D7, sanitizar, reter, limpar, documentar e
+  criar commit local.
+- Baseline: branch `main`, commit
+  `d981dad9400e3932ad0a365c828eea3e7e4da562`, worktree limpa, SDK
+  `10.0.302` e shutdown preflight com zero processo, listener ou root
+  temporário R1.
+- Contrato:
+  `pfobs1-d7-r1-summary-count-contract-rerun-1.0.0`, SHA-256
+  `4FD5E92E4674BF93DF102DCFC564614E7D417C400292324A76E45011AE39F5C5`;
+  digests D7, V3 e D6 inalterados.
+- R1-0: aprovado; proposta, baseline, zero code drift desde a correção e os
+  três tamanhos/hashes D7 predecessores foram comprovados antes de editar.
+- Implementação: identidade/envelope R1 próprios, raw UTF-8 count validation,
+  round trip tipado, validator D7 reutilizado, writer atómico, markers medido
+  e supervisor, classificadores e regressões isolados em testes; zero
+  composição normal.
+- R1-1: aprovado; shapes completo/incompleto, nomes e valores JSON reais,
+  missing/duplicate/string/negative/excessive/inconsistent, paths, publicação,
+  argumentos, blocked external, isolamento e hashes passaram. Algoritmo D7 e
+  driver V3 mantiveram SHA-256
+  `A9DA5EEB6768E28189FCF4E0B7A3897FFA46F295C579B870E261681A588F3CEC`
+  e
+  `BC2134B417AD57286AF7A2E2D000779C77508BBAC2F204F227B16A2FED26EAC2`.
+- Execução R1-U:
+  `164c0af6ff7a4e0caac7fd9200979e1c`, host SHA-256
+  `B8CC33E3AAD30EA9E2914DF33C2823A7BBE4EFC52F4281A9678C6D3E9D1FED64`;
+  três processos novos com envelopes admissíveis, `35/35` amostras, `1/1`
+  resumo e coeficientes `0,02148452314834982`, `0,0096634992433091` e
+  `0,012714703648847817`.
+- Classificação automática: `0/3` falhas,
+  `D7-R1.NOT_REPRODUCED`; R1-E permaneceu proibido. Zero processo externo,
+  snapshot, D6, controle D5 ou HM-01–HM-03 foi executado.
+- Evidência R1: três JSONs sanitizados com `31.902`, `31.659` e `31.609`
+  bytes e SHA-256
+  `C333382C490CD8095EDCE4BBB5A8068D0B463DA9EE2DE82F4B3676989D313C35`,
+  `0498D268B14515EAE1C54A0F43D9CFC047F1FF1B95F5EC20D84E482D6A858F46`
+  e
+  `FE4351BEBF18B171674E642F267216AC45322CF7B1CA367F3F79625CDD32EDF3`
+  retidos separadamente; os três predecessores D7 foram reverificados
+  byte a byte depois da execução.
+- Validação: build da solução sem warning/erro, focal R1 `8/8`, arquitetura
+  focal `1/1`, integração completa final `156/156`, arquitetura completa
+  `99/99`, format, documentação de `427` fontes comment-capable, `820` links
+  locais em `211` arquivos, secrets e diff aprovados.
+- Incidentes não físicos: primeiro focal `5/7` por dois fixtures sintéticos
+  sem work-rate, corrigidos antes de qualquer run; primeiro full
+  `150/155` pela corrida legada de `Console.Out`, cinco testes aprovados
+  isoladamente e passes completos posteriores `155/155` e `156/156`.
+  Duas tentativas de remoção foram recusadas pela política antes de executar;
+  uma checagem read-only intermediária terminou sem resultado e sem mutação;
+  a validação completa foi repetida e o root exato removido via API .NET. Uma
+  verificação read-only posterior omitiu espaços no cmdlet de listeners,
+  emitiu erro não terminante e foi repetida corretamente sem mutação.
+- Cleanup: zero sibling `.tmp`/`.measured.json`, processo, listener ou root
+  temporário R1; artefactos D7 e R1 retidos permanecem separados.
+- Escopo negativo: zero reparo/substituição D7, alteração V3/D6/algoritmo
+  medido D7/threshold, instrumentação intraprocesso, observação externa,
+  dependência/restore/download, PostgreSQL, provider/dado operacional, D6,
+  controles D5, HM-01–HM-03, Observer, `ActivationState`, lifecycle, deploy,
+  push ou pull request.
+- Estado resultante: D7-R1 concluído como `D7-R1.NOT_REPRODUCED`; D7, D6,
+  PF-OBS-1 e O5 permanecem `BLOQUEADOS`; `STATE-06 INTEGRATION` e
+  `ActivationState=None` permanecem inalterados.
+- Evidência proprietária:
+  [relatório PF-OBS-1-D7-R1](../../docs/STATE-06-MOD-12-PF-OBS-1-D7-R1-Summary-Count-Contract-Rerun-Report.md).
+- Próxima condição: qualquer Human Gate, retomada D6/PF-OBS-1 ou novo
+  diagnóstico requer autoridade explícita separada.
+- Aprovador: execução limitada autorizada explicitamente pelo usuário; nenhum
+  Human Gate, lifecycle ou ativação inferido.

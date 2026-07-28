@@ -68,6 +68,20 @@ internal static class Program
 
         if (args.Length >= 2 &&
             string.Equals(args[0], "--activation", StringComparison.Ordinal) &&
+            string.Equals(args[1], "pf-obs-1-d7-r1-measured-test-only", StringComparison.Ordinal))
+        {
+            return await O5R5D7R1MeasuredProcess.RunAsync(args);
+        }
+
+        if (args.Length >= 2 &&
+            string.Equals(args[0], "--activation", StringComparison.Ordinal) &&
+            string.Equals(args[1], "pf-obs-1-d7-r1-supervisor-test-only", StringComparison.Ordinal))
+        {
+            return await O5R5D7R1SupervisorProcess.RunAsync(args);
+        }
+
+        if (args.Length >= 2 &&
+            string.Equals(args[0], "--activation", StringComparison.Ordinal) &&
             string.Equals(args[1], "o1-durable-trust-resource-sandbox", StringComparison.Ordinal))
         {
             return await O1SandboxProcess.RunAsync(args);

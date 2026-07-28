@@ -528,6 +528,80 @@ public sealed class O5R5MeasurementReadinessIsolationTests
         Assert.Equal(2, CountOccurrences(driver, "GC.Collect("));
     }
 
+    /// <summary>
+    /// Verifies R1 wraps the unchanged D7 algorithm, requires real serialised counts and remains
+    /// absent from normal composition.
+    /// </summary>
+    [Fact]
+    public void D7R1AddsOnlyDistinctTestEvidenceAroundTheFrozenD7Algorithm()
+    {
+        string rerun = Read(
+            "tests",
+            "DBNotifier.IntegrationTests",
+            "O5R5FirstByteColdRepeatabilityRerun.cs");
+        string tests = Read(
+            "tests",
+            "DBNotifier.IntegrationTests",
+            "O5R5FirstByteColdRepeatabilityRerunTests.cs");
+        string host = Read(
+            "tests",
+            "DBNotifier.State06.ConsolidatedSandboxHost",
+            "Program.cs");
+        string proposal = Read(
+            "docs",
+            "STATE-06-MOD-12-PF-OBS-1-D7-R1-Summary-Count-Contract-Rerun-Proposal.md");
+        string sourceTree = string.Join(
+            "\n",
+            Directory
+                .EnumerateFiles(
+                    Path.Combine(RepositoryRoot(), "src"),
+                    "*.cs",
+                    SearchOption.AllDirectories)
+                .Select(File.ReadAllText));
+
+        Assert.Contains("pf-obs-1-d7-r1-measured-test-only", host, StringComparison.Ordinal);
+        Assert.Contains("pf-obs-1-d7-r1-supervisor-test-only", host, StringComparison.Ordinal);
+        Assert.Contains(
+            "4FD5E92E4674BF93DF102DCFC564614E7D417C400292324A76E45011AE39F5C5",
+            rerun,
+            StringComparison.Ordinal);
+        Assert.Contains(
+            "`4FD5E92E4674BF93DF102DCFC564614E7D417C400292324A76E45011AE39F5C5`",
+            proposal,
+            StringComparison.Ordinal);
+        Assert.Contains("O5R5D7MeasuredRunner runner = new(source)", rerun, StringComparison.Ordinal);
+        Assert.DoesNotContain("class O5R5D7MeasuredRunner", rerun, StringComparison.Ordinal);
+        Assert.Contains("expectedSummaryCount", rerun, StringComparison.Ordinal);
+        Assert.Contains("completedSummaryCount", rerun, StringComparison.Ordinal);
+        Assert.Contains("JsonDocument.Parse(bytes)", tests, StringComparison.Ordinal);
+        Assert.Contains("O5R5D7R1EvidenceWriter.Deserialise(bytes)", tests, StringComparison.Ordinal);
+        Assert.DoesNotContain("GetSystemTimes", rerun, StringComparison.Ordinal);
+        Assert.DoesNotContain("GlobalMemoryStatusEx", rerun, StringComparison.Ordinal);
+        Assert.DoesNotContain("GetProcessMemoryInfo", rerun, StringComparison.Ordinal);
+        Assert.DoesNotContain("Thread.Sleep", rerun, StringComparison.Ordinal);
+        Assert.DoesNotContain("PeriodicTimer", rerun, StringComparison.Ordinal);
+        Assert.DoesNotContain("EventPipe", rerun, StringComparison.Ordinal);
+        Assert.DoesNotContain("TraceEvent", rerun, StringComparison.Ordinal);
+        Assert.DoesNotContain("PriorityClass", rerun, StringComparison.Ordinal);
+        Assert.DoesNotContain("ProcessorAffinity", rerun, StringComparison.Ordinal);
+        Assert.DoesNotContain("PowerSetActiveScheme", rerun, StringComparison.Ordinal);
+        Assert.DoesNotContain("GC.Collect(", rerun, StringComparison.Ordinal);
+        Assert.DoesNotContain("O5R5D7R1", sourceTree, StringComparison.Ordinal);
+        Assert.DoesNotContain("pf-obs-1-d7-r1", sourceTree, StringComparison.Ordinal);
+        Assert.Equal(
+            "A9DA5EEB6768E28189FCF4E0B7A3897FFA46F295C579B870E261681A588F3CEC",
+            FileDigest(
+                "tests",
+                "DBNotifier.IntegrationTests",
+                "O5R5FirstByteColdRepeatabilityDiagnostic.cs"));
+        Assert.Equal(
+            "BC2134B417AD57286AF7A2E2D000779C77508BBAC2F204F227B16A2FED26EAC2",
+            FileDigest(
+                "tests",
+                "DBNotifier.IntegrationTests",
+                "O5R5PhysicalCampaignDriver.cs"));
+    }
+
     /// <summary>Verifies failed physical evidence is committed before exit handling and temporary cleanup.</summary>
     [Fact]
     public void FailedPhysicalEvidenceIsRetainedBeforeCleanup()
@@ -598,6 +672,14 @@ public sealed class O5R5MeasurementReadinessIsolationTests
     /// <returns>The complete file content.</returns>
     private static string Read(params string[] path) =>
         File.ReadAllText(Path.Combine([RepositoryRoot(), .. path]));
+
+    /// <summary>Calculates one repository file SHA-256 without altering the source.</summary>
+    /// <param name="path">Repository-relative path components.</param>
+    /// <returns>An upper-case hexadecimal SHA-256 digest.</returns>
+    private static string FileDigest(params string[] path) =>
+        Convert.ToHexString(
+            System.Security.Cryptography.SHA256.HashData(
+                File.ReadAllBytes(Path.Combine([RepositoryRoot(), .. path]))));
 
     /// <summary>Counts exact non-overlapping source occurrences.</summary>
     /// <param name="source">Complete source text.</param>

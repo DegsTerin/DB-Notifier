@@ -231,13 +231,15 @@ proprietários.
   alterar ou substituir evidência, mas as três execuções são
   contractualmente incompletas: a classificação D7-U não foi admitida e o
   braço externo permaneceu proibido. Nenhuma causa foi atribuída.
-- Existe somente uma
-  [proposta documental PF-OBS-1-D7-R1](../../docs/STATE-06-MOD-12-PF-OBS-1-D7-R1-Summary-Count-Contract-Rerun-Proposal.md)
-  para um lote corretivo independente. Ela preserva byte a byte e exclui da
-  nova classificação os três relatórios D7 bloqueados, exige um gate real de
-  serialização/round trip para as duas contagens e propõe três processos R1-U
-  novos, com dois R1-E condicionais a pelo menos duas falhas admissíveis. A
-  proposta não autoriza implementação, build, teste ou execução física.
+- O lote corretivo
+  [PF-OBS-1-D7-R1 foi concluído como `D7-R1.NOT_REPRODUCED`](../../docs/STATE-06-MOD-12-PF-OBS-1-D7-R1-Summary-Count-Contract-Rerun-Report.md).
+  Três envelopes R1-U admissíveis preservaram `35/35` amostras e `1/1`
+  resumo; os coeficientes `0,02148452314834982`, `0,0096634992433091` e
+  `0,012714703648847817` ficaram abaixo do limite V3 inalterado de `0,2`.
+  Com `0/3` falhas, R1-E permaneceu proibido. Os três relatórios D7 históricos
+  continuam byte a byte, bloqueados e excluídos da classificação R1. O
+  resultado comprova não recorrência somente no lote R1; nenhuma causa foi
+  atribuída.
 - PF-OBS-1 e O5 permanecem sem aprovação. A causa do pico físico residual,
   corpus e ambiente piloto representativos, calibração operacional,
   homologação exata da célula e owners materiais continuam pendentes.
