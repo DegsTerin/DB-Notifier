@@ -1,5 +1,15 @@
 # PF-OBS-1-D7 — FirstByte/Cold Repeatability Diagnostic Proposal
 
+> **Subsequent factual outcome — 2026-07-28:** the version and digest below
+> were explicitly authorised, implemented and executed. All three D7-U
+> processes completed without the V3 summary failure, but their evidence
+> omitted the two explicit summary-count fields and D7 was therefore
+> `BLOCKED` before classification. The conditional D7-E arm was prohibited.
+> See the
+> [D7 diagnostic report](STATE-06-MOD-12-PF-OBS-1-D7-FirstByte-Cold-Repeatability-Diagnostic-Report.md).
+> The original proposal and its pre-authorisation status are preserved below
+> as historical authority evidence.
+
 ## Status and authority
 
 Status: `PROPOSED — NOT AUTHORISED FOR IMPLEMENTATION OR EXECUTION`.

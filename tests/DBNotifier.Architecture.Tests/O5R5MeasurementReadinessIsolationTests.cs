@@ -461,6 +461,73 @@ public sealed class O5R5MeasurementReadinessIsolationTests
         Assert.Equal(2, CountOccurrences(driver, "GC.Collect("));
     }
 
+    /// <summary>
+    /// Verifies D7 preserves the first V3 group, keeps external snapshots in the supervisor and
+    /// remains absent from normal composition.
+    /// </summary>
+    [Fact]
+    public void D7RepeatabilityDiagnosticPreservesV3AndSeparatesExternalObservation()
+    {
+        string measured = Read(
+            "tests",
+            "DBNotifier.IntegrationTests",
+            "O5R5FirstByteColdRepeatabilityDiagnostic.cs");
+        string supervisor = Read(
+            "tests",
+            "DBNotifier.IntegrationTests",
+            "O5R5FirstByteColdRepeatabilitySupervisor.cs");
+        string driver = Read(
+            "tests",
+            "DBNotifier.IntegrationTests",
+            "O5R5PhysicalCampaignDriver.cs");
+        string proposal = Read(
+            "docs",
+            "STATE-06-MOD-12-PF-OBS-1-D7-FirstByte-Cold-Repeatability-Diagnostic-Proposal.md");
+        string sourceTree = string.Join(
+            "\n",
+            Directory
+                .EnumerateFiles(
+                    Path.Combine(RepositoryRoot(), "src"),
+                    "*.cs",
+                    SearchOption.AllDirectories)
+                .Select(File.ReadAllText));
+
+        Assert.Contains("pf-obs-1-d7-measured-test-only", measured, StringComparison.Ordinal);
+        Assert.Contains("pf-obs-1-d7-supervisor-test-only", supervisor, StringComparison.Ordinal);
+        Assert.Contains(
+            "7FE2D4FD524713ACE02E152210BBA411B97277012DBCF1982D6EBD07D28F60DF",
+            measured,
+            StringComparison.Ordinal);
+        Assert.Contains(
+            "`7FE2D4FD524713ACE02E152210BBA411B97277012DBCF1982D6EBD07D28F60DF`",
+            proposal,
+            StringComparison.Ordinal);
+        Assert.Contains(
+            "driver.CreateScenarios().Take(O5R5D7Protocol.ExpectedSampleCount)",
+            measured,
+            StringComparison.Ordinal);
+        Assert.Contains("runner.Summarise(samples)", measured, StringComparison.Ordinal);
+        Assert.DoesNotContain("GetSystemTimes", measured, StringComparison.Ordinal);
+        Assert.DoesNotContain("GlobalMemoryStatusEx", measured, StringComparison.Ordinal);
+        Assert.DoesNotContain("GetProcessMemoryInfo", measured, StringComparison.Ordinal);
+        Assert.Contains("GetSystemTimes", supervisor, StringComparison.Ordinal);
+        Assert.Contains("GlobalMemoryStatusEx", supervisor, StringComparison.Ordinal);
+        Assert.Contains("QueryProcessCycleTime", supervisor, StringComparison.Ordinal);
+        Assert.Contains("GetProcessMemoryInfo", supervisor, StringComparison.Ordinal);
+        Assert.DoesNotContain("Thread.Sleep", supervisor, StringComparison.Ordinal);
+        Assert.DoesNotContain("PeriodicTimer", supervisor, StringComparison.Ordinal);
+        Assert.DoesNotContain("EventPipe", supervisor, StringComparison.Ordinal);
+        Assert.DoesNotContain("TraceEvent", supervisor, StringComparison.Ordinal);
+        Assert.DoesNotContain("PriorityClass", supervisor, StringComparison.Ordinal);
+        Assert.DoesNotContain("ProcessorAffinity", supervisor, StringComparison.Ordinal);
+        Assert.DoesNotContain("PowerSetActiveScheme", supervisor, StringComparison.Ordinal);
+        Assert.DoesNotContain("GC.Collect(", measured, StringComparison.Ordinal);
+        Assert.DoesNotContain("GC.Collect(", supervisor, StringComparison.Ordinal);
+        Assert.DoesNotContain("O5R5D7", sourceTree, StringComparison.Ordinal);
+        Assert.DoesNotContain("pf-obs-1-d7", sourceTree, StringComparison.Ordinal);
+        Assert.Equal(2, CountOccurrences(driver, "GC.Collect("));
+    }
+
     /// <summary>Verifies failed physical evidence is committed before exit handling and temporary cleanup.</summary>
     [Fact]
     public void FailedPhysicalEvidenceIsRetainedBeforeCleanup()

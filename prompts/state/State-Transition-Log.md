@@ -4568,3 +4568,76 @@
   D7 antes de qualquer implementação ou execução.
 - Aprovador: elaboração documental autorizada por Bruno; nenhuma aprovação
   técnica, Human Gate, lifecycle ou ativação inferida.
+
+## 2026-07-28 — PF-OBS-1-D7 bloqueado por schema físico incompleto
+
+- Estado anterior: proposta D7 disponível, PF-OBS-1-D6 `BLOQUEADO` no
+  primeiro resumo V3, PF-OBS-1 e O5 sem aprovação,
+  `STATE-06 INTEGRATION` e `ActivationState=None`.
+- Autoridade: implementação test-only isolada, gate estático, exatamente três
+  processos D7-U novos e, somente perante pelo menos duas falhas, exatamente
+  dois processos D7-E com snapshots externos before/after allow-listed;
+  testes, evidência sanitizada, cleanup, documentação e commit local.
+- Baseline: branch `main`, commit
+  `a29e2d99b9d19f9cbc0a8e7b9901dd532d09803f`, worktree limpa e shutdown
+  preflight sem processo, janela, notification-area instance ou listener
+  DB-Notifier.
+- Contrato executado:
+  `pfobs1-d7-first-byte-cold-repeatability-diagnostic-1.0.0`, SHA-256
+  `7FE2D4FD524713ACE02E152210BBA411B97277012DBCF1982D6EBD07D28F60DF`,
+  V3 e D6 preservados pelos seus digests imutáveis.
+- Implementação: measured child sem contador D7 intraprocesso, supervisor
+  como único launcher, seleção original dos primeiros `35` cenários V3,
+  resumo original único, recomputação de integridade independente, writer
+  atómico restrito e braço externo condicional isolado do produto.
+- Gate estático inicial: digests, grupo `FirstByte/Cold` `5 + 30`, ordem,
+  resumo, isolamento de `src/`, captura externa apenas no supervisor e
+  ausências metodológicas passaram, mas o gate não verificava os campos
+  explícitos `expectedSummaryCount` e `completedSummaryCount`.
+- D7-U observado: três processos com `35/35` amostras, objeto de resumo
+  aprovado, integridade binária exata e coeficientes
+  `0,024460739425192193`, `0,010868664937096893` e
+  `0,011026690622714398`; os três JSONs omitiram as duas contagens de resumo
+  obrigatórias e são contractualmente incompletos.
+- Correção posterior: os dois campos, sua validação no supervisor e sua
+  regressão estrutural foram acrescentados sem alterar a evidência retida,
+  substituir run ou iniciar novo processo físico.
+- Classificação automática: não admitida; D7 `BLOQUEADO` pelo stop rule de
+  relatório incompleto. O braço externo permaneceu proibido. Zero processo
+  D7-E, snapshot externo ou controle D5 foi executado.
+- Comparação: o excesso D6 `0,22923232701994542` não se repetiu nesta
+  amostra. Nenhuma causa de scheduler, runtime, garbage collector, hardware
+  ou carga do host foi atribuída.
+- Validação: build da solução sem warning ou erro; testes focais D7 `7/7`,
+  arquitetura focal `1/1`, integração completa final `148/148` e arquitetura
+  completa `98/98` aprovados. A primeira suíte de integração paralela aprovou
+  `146/148`; os dois testes legados O3A/O3B que competem pelo `Console.Out`
+  global passaram isoladamente `1/1` e `1/1`, e a repetição integral final
+  passou, classificando o incidente como interferência de concorrência
+  preexistente, não regressão D7. Gates finais de formatação, documentação,
+  links, secrets e diff aprovados.
+- Incidentes: a primeira compilação encontrou dois diagnósticos nullable no
+  parser novo e não iniciou runner; a correção passou. Um hash audit anterior
+  à medição tentou usar a variável PowerShell reservada `$Host`, não produziu
+  hash, root ou processo e foi repetido corretamente sem consumir ou
+  substituir run.
+- Evidência: execução
+  `0939b6560d2c4556ad781be9d9e3b376`, três JSON finais sanitizados retidos
+  localmente sob `artifacts/pf-obs-1-d7/`; hashes e tamanhos fixados no
+  relatório proprietário.
+- Cleanup: root temporário exato removido, zero sibling `.tmp` ou
+  `.measured.json`, processo, listener ou root temporário D7 residual.
+- Escopo negativo: zero alteração V3/D6/threshold, substituição de run,
+  instrumentação intraprocesso, polling, tracing, ETW/EventPipe,
+  debugger/profiler, dependência/download, PostgreSQL, provider/dado
+  operacional, campanha HM-01–HM-03, Observer, `ActivationState`, lifecycle,
+  deploy, push ou pull request.
+- Estado resultante: D7, PF-OBS-1-D6, PF-OBS-1 e O5 permanecem
+  `BLOQUEADOS`;
+  `STATE-06 INTEGRATION` e `ActivationState=None` permanecem inalterados.
+- Evidência proprietária:
+  [relatório PF-OBS-1-D7](../../docs/STATE-06-MOD-12-PF-OBS-1-D7-FirstByte-Cold-Repeatability-Diagnostic-Report.md).
+- Próxima condição: qualquer repetição física D7, investigação causal, novo
+  diagnóstico físico ou campanha requer autoridade explícita separada.
+- Aprovador: execução limitada autorizada por Bruno; nenhum Human Gate,
+  lifecycle ou ativação inferido.

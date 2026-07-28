@@ -221,12 +221,16 @@ proprietários.
   não foi alcançado, a segunda execução não começou e nenhum braço externo ou
   controle D5 foi executado. O resultado não reproduz nem refuta o excesso de
   working set.
-- Existe somente uma
-  [proposta documental PF-OBS-1-D7](../../docs/STATE-06-MOD-12-PF-OBS-1-D7-FirstByte-Cold-Repeatability-Diagnostic-Proposal.md)
-  para investigar a repetibilidade de `FirstByte/Cold`. Ela preserva V3 e D6,
-  propõe três processos não observados e condiciona duas observações externas
-  à reprodução em pelo menos dois, mas não autoriza implementação, build,
-  teste ou execução física.
+- O diagnóstico
+  [PF-OBS-1-D7 está `BLOQUEADO`](../../docs/STATE-06-MOD-12-PF-OBS-1-D7-FirstByte-Cold-Repeatability-Diagnostic-Report.md).
+  Três processos novos preservaram `35/35` amostras e o objeto de resumo V3;
+  os coeficientes `0,024460739425192193`, `0,010868664937096893` e
+  `0,011026690622714398` ficaram abaixo do limite inalterado de `0,2`.
+  Porém, os JSONs omitiram os campos explícitos de contagem de resumo exigidos
+  pelo contrato. A implementação e o gate estático foram corrigidos sem
+  alterar ou substituir evidência, mas as três execuções são
+  contractualmente incompletas: a classificação D7-U não foi admitida e o
+  braço externo permaneceu proibido. Nenhuma causa foi atribuída.
 - PF-OBS-1 e O5 permanecem sem aprovação. A causa do pico físico residual,
   corpus e ambiente piloto representativos, calibração operacional,
   homologação exata da célula e owners materiais continuam pendentes.
