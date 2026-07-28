@@ -3,7 +3,7 @@
 ## Supported setup baseline
 
 - Git with the default branch `main`.
-- .NET 10 LTS SDK `10.0.301` selected without roll-forward through `global.json` and installed locally in the ignored `.dotnet/` directory for this workspace.
+- .NET 10 LTS SDK `10.0.302` selected without roll-forward through `global.json` and installed locally in the ignored `.dotnet/` directory for this workspace.
 - Windows is required to run the WPF Desktop and the renamed DB-Notifier compatibility application. The Desktop uses the versioned `net10.0-windows10.0.22621.0` TFM while retaining Windows 10 version 1809 (`10.0.17763.0`) as its declared minimum platform.
 - Node.js `24.18.0` with npm `11.16.0` is used for the Dashboard scaffold; both are declared in `package.json`, and dependencies are locked in `package-lock.json`.
 - PowerShell `7.0` or later (`pwsh`) is required by modern browser and consolidated STATE-06 sandbox runners.
