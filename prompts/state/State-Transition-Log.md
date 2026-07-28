@@ -5035,3 +5035,62 @@
   intermitência `FirstByte/Cold` observada em D8, antes de implementação ou
   execução física.
 - Aprovador: Bruno, por decisão explícita em 2026-07-28.
+
+## 2026-07-28 — Proposta JOSE revisada para a versão 1.1.0
+
+- Estado anterior: a proposta JOSE inicial e ADR-0008 estavam documentados,
+  com o ADR `proposed`, sem lote, dependência, runtime, infraestrutura ou
+  homologação JOSE adicional autorizados.
+- Autoridade: solicitação explícita do usuário para revisar a proposta; a
+  solicitação não aprovou `JOSE-0`, ADR, spike, implementação, IdP,
+  chave/certificado, vault/KMS/HSM, migration, serviço externo, deploy,
+  lifecycle ou MOD-12.
+- Baseline técnica imediatamente anterior:
+  `46746c72983888c27d741b25775a21adebc29ccb`.
+- Revisão normativa: núcleo/extensões/perfis foram separados; RFCs
+  8037/8812/9864/9964, RFC 9700 aplicável, RFC 9068 condicional e snapshots
+  IANA JOSE/JWT Claims entraram na cobertura. `AKP`/ML-DSA foram reconhecidos
+  como normativos e permanecem `Scheduled + RuntimeDisabled`; material
+  private/symmetric, mesmo publicado em RFC, continua proibido em testes,
+  repositório e evidência.
+- Revisão arquitetural: JOSE foi confinado ao boundary Security/Identity;
+  Domain/Application não possuem formato, algoritmo, key descriptor ou tipo
+  IdentityModel. Portas externas são semânticas por caso, sem endpoint
+  genérico de sign/decrypt. ADRs 0002/0003/0004/0005/0007 e seus módulos
+  permanecem autoridades próprias.
+- Revisão de identidade, chaves e infraestrutura: identidade humana
+  `(issuer, subject)`, BFF/SPA, access token/ID token, RBAC, sessão/revogação,
+  CEKs efêmeras, cerimônias separadas de assinatura/criptografia, authority
+  denial-dominant de key lifecycle, JWKS bounded e novos egress consumers
+  candidatos foram especificados sem criar configuração operacional.
+- Revisão de dados/governança: profile snapshot imutável, ativação monotônica,
+  matriz de handling, audit MOD-11 canônico, IDs `JOSE-REQ-*`/`JOSE-T*`,
+  facts separados de roadmap/implementação/homologação/runtime/suporte e claim
+  público somente após `STATE-08` foram incorporados.
+- Sequência corrigida:
+  `JOSE-0 → JOSE-1 → JOSE-D1 → {JOSE-2, JOSE-3A/3B} → JOSE-4 → JOSE-5 → JOSE-6 → JOSE-7`.
+  `JOSE-0` prepara a decisão, `JOSE-1` mede um spike test-only autorizado
+  separadamente e somente `JOSE-D1` pode aceitar ADR-0008; esse checkpoint não
+  é Human Gate de lifecycle.
+- ADR: ADR-0008 foi revisto para revision `1.1` e permanece `proposed`.
+- Revisões independentes: segurança, arquitetura e delivery foram verificadas
+  em passes somente leitura; os achados foram incorporados sem execução ou
+  mutação externa.
+- Execução observada: somente Markdown; zero source, configuração executável,
+  dependency/restore/download, migration, IdP, chave, vault/KMS/HSM, banco,
+  serviço, runtime, deploy, push ou pull request.
+- Gates finais: links Markdown, documentação de código, secret scan e diff
+  aprovados. Build e testes de produto não foram executados porque o escopo é
+  exclusivamente documental.
+- Estado resultante: `STATE-06 INTEGRATION` permanece; ADR-0008, `JOSE-0`,
+  `JOSE-1`, `JOSE-D1` e todos os lotes de implementação permanecem não
+  autorizados; nenhuma capacidade operacional foi inferida e nenhum claim foi
+  autorizado.
+- Evidência proprietária:
+  [proposta JOSE revisada](../../docs/STATE-06-JOSE-Complete-Capability-Proposal.md)
+  e
+  [ADR-0008 revision 1.1](../../docs/architecture/ADR-0008-JOSE-Cryptographic-Profiles-And-Key-Lifecycle.md).
+- Próxima condição: revisão humana desta proposta e, se aceita, autorização
+  separada e limitada de `JOSE-0` usando o texto nela fornecido.
+- Aprovador: revisão documental autorizada explicitamente pelo usuário;
+  nenhuma decisão técnica, Human Gate ou progressão de lifecycle inferida.

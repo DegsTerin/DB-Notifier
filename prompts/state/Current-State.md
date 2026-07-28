@@ -136,9 +136,12 @@ proprietários.
   [proposta de capacidade JOSE completa](../../docs/STATE-06-JOSE-Complete-Capability-Proposal.md)
   e o
   [ADR-0008](../../docs/architecture/ADR-0008-JOSE-Cryptographic-Profiles-And-Key-Lifecycle.md)
-  estão disponíveis somente como documentação; o ADR permanece `proposed`.
+  estão revistos como proposta `1.1.0`/ADR revision `1.1`, disponíveis somente
+  como documentação. O ADR permanece `proposed`; `JOSE-0`, `JOSE-1`,
+  `JOSE-D1` e todos os lotes de implementação permanecem não autorizados.
   Não há JWE, emissão JWS própria, ciclo de chaves operacional, IdP,
-  vault/KMS/HSM ou lote JOSE autorizado para implementação.
+  vault/KMS/HSM ou capacidade JOSE no runtime além do relying-party JWT/JWKS
+  já descrito.
 - Não há loader dinâmico nem carregamento ou distribuição operacional de
   provider packages, instalador, assinatura, update channel ou entrega
   operacional. `REQ-050` permanece `PARCIAL`: a matriz clean-room existe, mas
