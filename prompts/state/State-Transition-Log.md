@@ -4639,5 +4639,5 @@
   [relatório PF-OBS-1-D7](../../docs/STATE-06-MOD-12-PF-OBS-1-D7-FirstByte-Cold-Repeatability-Diagnostic-Report.md).
 - Próxima condição: qualquer repetição física D7, investigação causal, novo
   diagnóstico físico ou campanha requer autoridade explícita separada.
-- Aprovador: execução limitada autorizada por Bruno; nenhum Human Gate,
-  lifecycle ou ativação inferido.
+- Aprovador: execução limitada autorizada explicitamente pelo usuário; nenhum
+  Human Gate, lifecycle ou ativação inferido.

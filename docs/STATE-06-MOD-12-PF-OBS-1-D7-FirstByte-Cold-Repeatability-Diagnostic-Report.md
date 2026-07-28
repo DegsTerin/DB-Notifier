@@ -20,9 +20,8 @@ lifecycle progression.
 
 ## Authority and baseline
 
-- Authority: Bruno's explicit authorisation of the implementation, static
-  gate, three unobserved processes and only conditionally two external
-  processes.
+- Authority: explicit user authorisation of the implementation, static gate,
+  three unobserved processes and only conditionally two external processes.
 - Frozen proposal:
   `pfobs1-d7-first-byte-cold-repeatability-diagnostic-1.0.0`.
 - Frozen proposal SHA-256:
