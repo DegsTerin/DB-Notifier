@@ -5094,3 +5094,91 @@
   separada e limitada de `JOSE-0` usando o texto nela fornecido.
 - Aprovador: revisão documental autorizada explicitamente pelo usuário;
   nenhuma decisão técnica, Human Gate ou progressão de lifecycle inferida.
+
+## 2026-07-28 — JOSE-0 Architecture, Security and Coverage Design preparado
+
+- Estado anterior: proposta JOSE `1.1.0` e ADR-0008 revision `1.1`
+  documentados, com ADR `proposed`; `JOSE-0`, `JOSE-1`, `JOSE-D1`,
+  implementação e infraestrutura não autorizados.
+- Autoridade: autorização explícita e exclusiva para o lote documental
+  `STATE-06 JOSE-0`, limitado a preparar sem aceitar ADR-0008; definir
+  profiles, targets e safety caps provisórios; capturar/classificar os
+  snapshots IANA JOSE/JWT Claims; produzir maps
+  ownership/trust/data/egress, threat model `JOSE-T*`, matriz
+  `JOSE-REQ-*` e planos de teste/migração/rollback. Código, dependências,
+  migrations, runtime, IdP/login real, chaves, vault/KMS/HSM, serviços
+  externos operacionais, deploy, lifecycle, `JOSE-1` e MOD-12 permaneceram
+  proibidos.
+- Preflight: zero processo, janela, listener, runtime, Dashboard/browser
+  dedicado pertencente ao DB-Notifier; worktree limpo e baseline
+  `6d0bbdc68c5c080d11fccd7a6fcd540908440903`. Nenhum database engine,
+  browser comum, IDE ou processo alheio foi encerrado.
+- Proposta/decisão: proposta revista para `1.2.0`; ADR-0008 revision `1.2`
+  permanece `proposed`, sem aceite. Targets/caps são hipóteses mensuráveis;
+  somente um futuro `JOSE-D1`, depois de `JOSE-1` separadamente autorizado,
+  poderá congelar valores.
+- Profiles: cinco candidatos — human access token inbound, JWS core, JWS
+  detached, JWE core e nested JWT conformance — todos `NotImplemented`,
+  `NotTested`, `NotHomologated`, `RuntimeDisabled` e `NotAdvertised`.
+- Cobertura: os nove registries IANA JOSE com `Last Updated 2026-05-22`
+  produziram `155/155 = 33 Adopted + 44 SafelyAdapted + 78 Rejected`; JWT
+  Claims com `Last Updated 2026-07-20` produziu
+  `163/163 = 8 + 14 + 141`. Total `318/318 = 41 + 58 + 219`, zero
+  `Unreviewed`, duplicado, ausente ou extra.
+- Evidência: dez corpos CSV oficiais exatos foram preservados num ZIP
+  reversível codificado em Base64, `10.146` bytes, SHA-256
+  `f3fcf5a876beb5e06b5d00e7a4affcf74f036d3826539e4f8c5a89e2177d22ad`;
+  os dez hashes de entry foram confirmados. Datas/horas de entry são campos
+  ZIP/DOS sem offset UTC; os hashes, não uma projeção timezone, definem a
+  identidade do archive. A única comunicação externa foi leitura HTTPS das
+  fontes públicas IANA/RFC necessária ao lote documental; nenhum consumer ou
+  serviço operacional foi registrado ou integrado.
+- Arquitetura/segurança: ownership, trust, data e egress maps, key lifecycle,
+  cinco profiles, limites, `JOSE-T01`–`JOSE-T17` e
+  `JOSE-REQ-001`–`JOSE-REQ-012` foram preparados. Os 14 Test IDs planejados
+  ligam-se integralmente à matriz; testes de spike/produto não foram
+  executados.
+- Lacunas atuais preservadas: o relying party JWT/JWKS não declara
+  allowlists explícitas de algoritmo/tipo; identidade e unicidade persistida
+  usam somente `subject`; audit histórico usa `ActorId` textual
+  subject-derived. A migração candidata não infere issuer, não reescreve
+  audit append-only e proíbe fallback subject-only depois do cutover
+  composto/multi-issuer.
+- Egress: as quatro policies atuais permanecem intactas.
+  `human-identity-backchannel`, `server-key-custody` e
+  `server-workload-identity` são somente candidatos não compilados,
+  configurados ou autorizados; nenhuma identidade, credencial, endpoint ou
+  infraestrutura foi selecionada.
+- Revisões independentes: inventários JOSE/JWT Claims, arquitetura/autoridade
+  e safety caps foram revistos somente leitura. Correções trataram
+  classificação `SafelyAdapted`, audit/migração, caps por objeto, credencial
+  workload, timestamp ZIP/DOS, egress e rastreabilidade; os rechecks finais
+  encontraram zero P0 e zero P1.
+- Escopo negativo: zero source, configuração executável, dependency,
+  migration, schema, runtime, IdP/login, material de chave/certificado,
+  vault/KMS/HSM/STS, serviço operacional, deploy, publicação, lifecycle,
+  `JOSE-1`, `JOSE-D1`, decisão ADR ou mudança/ativação MOD-12. Decision
+  packets foram excluídos porque a autorização final não os incluiu.
+- Gates documentais: archive e 10/10 entry hashes; cobertura mecânica
+  `318/318`; 12/12 requisitos, 17/17 threats e 14/14 Test IDs; 886 links
+  locais em 221 arquivos; documentação de 429 fontes; secret scan e diff
+  aprovados. Build, testes de produto e runtime não foram executados porque
+  o lote é exclusivamente documental.
+- Estado resultante: `STATE-06 INTEGRATION` e
+  `MOD-12 ActivationState=None` permanecem inalterados; pacote `JOSE-0`
+  preparado para revisão humana, sem aceitar ADR-0008 nem conceder qualquer
+  autoridade posterior.
+- Evidência proprietária:
+  [relatório JOSE-0](../../docs/STATE-06-JOSE-0-Architecture-Security-And-Coverage-Design-Report.md),
+  [profile técnico](../../docs/architecture/JOSE-Security-Profile-And-Key-Lifecycle.md),
+  [matriz IANA](../../docs/architecture/JOSE-IANA-Registry-Coverage.md),
+  [proposta `1.2.0`](../../docs/STATE-06-JOSE-Complete-Capability-Proposal.md)
+  e
+  [ADR-0008 revision `1.2`](../../docs/architecture/ADR-0008-JOSE-Cryptographic-Profiles-And-Key-Lifecycle.md).
+- Próxima condição: revisão humana do pacote apenas para aceitá-lo como
+  preparação documental ou devolvê-lo com ressalvas. `JOSE-1`, `JOSE-D1`,
+  qualquer implementação/infraestrutura e qualquer lifecycle continuam a
+  exigir autoridade explícita separada.
+- Aprovador: elaboração `JOSE-0` autorizada explicitamente pelo usuário;
+  nenhuma aprovação técnica, Human Gate, decisão ADR, lifecycle ou ativação
+  inferida.

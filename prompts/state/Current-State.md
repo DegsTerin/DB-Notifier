@@ -136,12 +136,22 @@ proprietários.
   [proposta de capacidade JOSE completa](../../docs/STATE-06-JOSE-Complete-Capability-Proposal.md)
   e o
   [ADR-0008](../../docs/architecture/ADR-0008-JOSE-Cryptographic-Profiles-And-Key-Lifecycle.md)
-  estão revistos como proposta `1.1.0`/ADR revision `1.1`, disponíveis somente
-  como documentação. O ADR permanece `proposed`; `JOSE-0`, `JOSE-1`,
-  `JOSE-D1` e todos os lotes de implementação permanecem não autorizados.
-  Não há JWE, emissão JWS própria, ciclo de chaves operacional, IdP,
-  vault/KMS/HSM ou capacidade JOSE no runtime além do relying-party JWT/JWKS
-  já descrito.
+  estão revistos como proposta `1.2.0`/ADR revision `1.2`. O ADR permanece
+  `proposed`. O lote exclusivamente documental `JOSE-0` foi autorizado e
+  produziu o
+  [pacote de Architecture, Security and Coverage Design](../../docs/STATE-06-JOSE-0-Architecture-Security-And-Coverage-Design-Report.md):
+  cinco profiles e safety caps provisórios, mapas de
+  ownership/trust/data/egress, `JOSE-T01`–`JOSE-T17`,
+  `JOSE-REQ-001`–`JOSE-REQ-012`, planos de teste/migração/rollback e
+  classificação `318/318` das entradas IANA JOSE/JWT Claims, com zero
+  `Unreviewed`. Os gates documentais automáticos e os rechecks independentes
+  passaram, com zero P0/P1 residual. Tudo permanece documental, não aceito,
+  `NotImplemented`, `NotHomologated`, `RuntimeDisabled` e `NotAdvertised`; a
+  revisão humana do pacote continua separada. `JOSE-1`, `JOSE-D1`, todos os lotes de
+  implementação e todos os decision packets permanecem não autorizados ou
+  fora do escopo. Não há JWE, emissão JWS própria, ciclo de chaves
+  operacional, IdP, vault/KMS/HSM ou capacidade JOSE no runtime além do
+  relying-party JWT/JWKS já descrito.
 - Não há loader dinâmico nem carregamento ou distribuição operacional de
   provider packages, instalador, assinatura, update channel ou entrega
   operacional. `REQ-050` permanece `PARCIAL`: a matriz clean-room existe, mas
@@ -276,6 +286,10 @@ proprietários.
 
 - Qualquer novo diagnóstico, mudança metodológica ou campanha física requer
   autorização explícita e separada.
+- `JOSE-1`, `JOSE-D1`, aceitação do ADR-0008 e qualquer código, dependência,
+  migration, login/IdP, chave, custodiante, egress candidate, infraestrutura,
+  homologação ou profile JOSE operacional exigem decisões explícitas e
+  separadas. A revisão humana de `JOSE-0` não concede essas autoridades.
 - Qualquer ativação `None → Observer` exige os gates próprios e uma decisão
   explícita; o bloqueio corrente não pode ser contornado por mudança de
   lifecycle.

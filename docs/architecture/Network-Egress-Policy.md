@@ -221,3 +221,38 @@ override became runtime configuration. The campaign does not homologate:
   availability or performance.
 
 Those stronger claims require separately authorised operational evidence.
+
+## JOSE-0 candidate egress map
+
+The following entries are documentary candidates from `JOSE-0`; they are not
+registered policies, configured consumers, endpoints or implementation
+authority. Normal composition still recognises only the four policies listed
+in [Policy model](#policy-model). No operational or candidate IdP, STS,
+vault, KMS, HSM, credential, key or integration service was selected or
+contacted. The authorised read-only capture of public IANA/RFC documentary
+sources was not a normal-composition identity/custody flow and registered no
+egress consumer.
+
+| Candidate consumer | Candidate owner and purpose | Preconfigured target authority | Permitted data shape | Denied behaviour | Decision dependency |
+|---|---|---|---|---|---|
+| `human-identity-backchannel` | Server Identity/BFF owner; future token exchange, introspection or revocation only if a browser/session design selects them | administratively fixed IdP and exact operation origins admitted through a separately configured pinned HTTPS connector | bounded protocol-specific request/response with exact credential, audience, scope, timeout and retry rules | token/caller URL, redirects, cross-origin escape, proxy, ambient credentials, cookies, decompression or reuse as discovery/JWKS authority | separate candidate; current `human-identity` remains unchanged for discovery and public JWKS |
+| `server-key-custody` | Security/platform owner; an artefact-specific private sign, unwrap or decrypt operation through an opaque key reference | one separately homologated custodian adapter, operation endpoint and private network policy per environment | bounded digest/envelope and operation metadata; bounded result with no exportable private or symmetric key | generic cryptographic oracle, caller-selected endpoint/key/profile, key export, ambient SDK transport, fallback endpoint, IMDS and telemetry escape | requires accepted ADR-0008, an authorised use case, `JOSE-3B`, R-NET review and custodian homologation |
+| `server-workload-identity` | Platform owner; acquire a narrowly scoped workload credential only when the selected custodian topology requires it | one administratively configured STS/workload-identity endpoint and exact audience/scope | bounded protocol request/response under the owning identity profile | default credential chain, ambient cloud identity, caller-selected scope/audience, cross-environment token and reuse as human or Agent identity | optional; requires a separate identity/R-NET decision and is absent when the custodian does not need it |
+
+These candidates are separate because public identity trust, private key
+operations and workload credential bootstrap have different data, scopes,
+failure modes and accountable owners. They must not share credentials or
+silently reuse the current `human-identity` policy.
+
+Runtime registry refresh from IANA is prohibited. Registry snapshots are
+controlled documentary inputs, not an application egress flow. Token
+headers, claims, payloads, JWK members, exceptions and custodian responses
+cannot introduce a host, scheme, port, proxy, failover target or credential
+source.
+
+The complete provisional ownership/trust/data map and numeric response/cache
+bounds are in
+[JOSE Security Profile and Key Lifecycle](JOSE-Security-Profile-And-Key-Lifecycle.md).
+Any future promotion of a candidate requires its own authorised change,
+configuration schema, compatibility plan, negative zero-hit evidence and
+exact topology homologation. `JOSE-0` grants none of them.

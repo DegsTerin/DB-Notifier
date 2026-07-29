@@ -2,10 +2,11 @@
 
 - Status: proposed
 - Date: 2026-07-28
-- Revision: 1.1
+- Revision: 1.2
 - Owners: security, identity, platform, data and affected module architecture
 - Decision authority: explicit architecture and security decision `JOSE-D1`
 - Implementation status: not authorised
+- JOSE-0 status: documentary design prepared for review; not accepted
 
 ## Context
 
@@ -16,10 +17,32 @@ does not process every core serialisation, provide JWE, issue product-owned
 JWS artefacts, operate a key lifecycle, host an IdP, or use a homologated
 vault, KMS or HSM.
 
+The observed baseline also does not configure explicit accepted JWT
+algorithms or token types at its validation boundary, and the canonical human
+principal/persistence model identifies a person by `subject_id` rather than
+the collision-resistant `(issuer, subject)` pair proposed here. These are
+recorded gaps, not evidence of exploitation or authority to change the
+runtime.
+
 JOSE spans processing formats, algorithms, key representation and application
 profiles. A library feature, IANA registration, roadmap item, test harness,
 homologation result, runtime switch, authorisation and public support claim are
 different facts. Treating them as one status would overstate current support.
+
+The authorised `JOSE-0` documentary package is prepared in:
+
+- [JOSE Security Profile and Key Lifecycle](JOSE-Security-Profile-And-Key-Lifecycle.md),
+  which defines provisional profiles, targets, absolute safety caps and
+  ownership/trust/data/egress maps;
+- [JOSE IANA Registry Coverage](JOSE-IANA-Registry-Coverage.md), which
+  classifies the pinned JOSE and JWT Claims snapshots; and
+- the
+  [JOSE-0 design report](../STATE-06-JOSE-0-Architecture-Security-And-Coverage-Design-Report.md),
+  which owns requirement traceability and the future test, migration and
+  rollback plans.
+
+Those documents prepare this ADR without accepting it. They introduce no
+dependency, migration, runtime, external service, key or lifecycle change.
 
 Human identity, Agent enrolment, durable commands, package updates,
 confidential envelopes and MOD-12 also have different owners and accepted
@@ -93,13 +116,13 @@ public/non-secret inputs and sanitised expected outputs from RFC 7520, RFC
 8037 and RFC 9964 may be retained; unsafe or legacy examples prove parsing or
 refusal, not runtime enablement.
 
-The IANA JOSE registries and IANA JWT Claims registry will be captured as
+The IANA JOSE registries and IANA JWT Claims registry are captured as
 reproducible snapshots with URL, official `Last Updated` value, acquisition
-time, bytes and SHA-256. The snapshot observed for this revision reports
-`Last Updated: 2026-05-22` and includes the RFC 9964 `AKP` key type and
-`ML-DSA-44`, `ML-DSA-65` and `ML-DSA-87` algorithms. New or changed entries
-default to `Unreviewed + RuntimeDisabled`; runtime never queries IANA to make
-policy.
+time, bytes and SHA-256. The snapshots prepared for this revision report
+`Last Updated: 2026-05-22` for JOSE and `2026-07-20` for JWT Claims. The JOSE
+snapshot includes the RFC 9964 `AKP` key type and `ML-DSA-44`, `ML-DSA-65`
+and `ML-DSA-87` algorithms. New or changed entries default to
+`Unreviewed + RuntimeDisabled`; runtime never queries IANA to make policy.
 
 RFC 9700 and RFC 9068 become normative only for an adopted OAuth/JWT access
 token use. OAuth browser guidance that has not completed RFC publication,
@@ -172,7 +195,9 @@ The final allowlists remain subject to feasibility and homologation.
 Each key version is bound to one algorithm, purpose, tenant/environment and
 direction. A migration such as `RS256` to `PS256` does not silently reuse the
 same RSA pair. Exact RSA modulus/exponent, PSS parameters, curves, ECDSA
-encoding and invalid-key tests are frozen in `JOSE-0`.
+encoding and invalid-key-test candidates are proposed in `JOSE-0`.
+`JOSE-1`, if separately authorised, measures the candidates; only
+`JOSE-D1` may freeze accepted values.
 
 RFC 7638 thumbprints identify public key material; they do not prove
 provenance, tenant, purpose or lifecycle version.
@@ -291,12 +316,14 @@ OIDC discovery does not grant arbitrary JWKS-origin authority. Any different
 origin must be administratively preconfigured. Token-provided URLs and caller
 input never create egress.
 
-The current R-NET policy has no KMS/HSM/vault consumer. `JOSE-0` must propose
-separate stable consumers such as `server-key-custody` and, only if required,
-`server-workload-identity`; neither may reuse `human-identity`. Endpoint,
-CIDR, port, DNS, TLS hostname, redirects, proxy, failover/private endpoint,
-credential bootstrap, scopes, payloads, timeout, retries and telemetry must be
-fixed per topology.
+The current R-NET policy has no KMS/HSM/vault consumer. `JOSE-0` proposes the
+non-registered candidates `human-identity-backchannel`,
+`server-key-custody` and, only if required,
+`server-workload-identity`; none changes the four current policy identifiers
+or may silently reuse `human-identity`. Endpoint, CIDR, port, DNS, TLS
+hostname, redirects, proxy, failover/private endpoint, credential bootstrap,
+scopes, payloads, timeout, retries and telemetry must be fixed per topology
+before any candidate can be promoted.
 
 Cloud SDK transport must be injected through the admitted R-NET connector.
 Ambient endpoint, proxy, credential-chain and telemetry fallback is denied.
@@ -348,10 +375,11 @@ aggregation/sampling to prevent audit flooding.
 
 ## Delivery and decision sequence
 
-`JOSE-0` is documentary. It prepares provisional profiles, registry
-snapshots, conservative target limits and absolute safety caps for the spike,
-ownership, trust/data/egress maps, traceable requirements and threats while
-this ADR remains `proposed`.
+`JOSE-0` is documentary. Its review package now prepares provisional
+profiles, pinned registry snapshots, conservative target limits and absolute
+safety caps for a possible spike, ownership/trust/data/egress maps, traceable
+requirements and threats while this ADR remains `proposed`. Preparing or
+reviewing that package is not acceptance.
 
 `JOSE-1` is a separately authorised test-only .NET 10 feasibility spike. It
 must measure all six core serialisations, library behaviour and `N-1/N/N+1`
@@ -398,8 +426,9 @@ database controls and MOD-12 trust have distinct owners and guarantees.
 
 This ADR may move from `proposed` to `accepted` only at `JOSE-D1`, when:
 
-- `JOSE-0` provides complete owner/use-case, standards, registry, trust,
-  data, egress, requirement and threat maps without a critical unknown;
+- the `JOSE-0` review confirms the prepared owner/use-case, standards,
+  registry, trust, data, egress, requirement and threat maps without a
+  critical unknown;
 - the IANA JOSE and JWT Claims snapshots have no `Unreviewed` or otherwise
   unclassified entry;
 - `JOSE-1` proves a safe .NET 10 path for all six core serialisations without

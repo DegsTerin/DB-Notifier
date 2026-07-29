@@ -32,6 +32,9 @@ Critical assets:
 12. Future signers ↔ untrusted trust-bundle publisher/transport ↔ host trust coordinator.
 13. Future host trust coordinator ↔ durable checkpoint owner ↔ independent auditor/reconciler.
 14. Bounded telemetry/corpus source ↔ future resource admission coordinator ↔ pure MOD-12 verifier/evaluator.
+15. External human issuer/discovery/JWKS ↔ Server Security and Identity boundary ↔ mapped Application principal.
+16. Trusted product composition ↔ JOSE security boundary ↔ preconfigured public-trust or private-key-operation adapter.
+17. Artefact producer/data owner ↔ protected JWS/JWE representation ↔ authorised consumer, persistence and canonical audit.
 
 ## Threats and required controls
 
@@ -64,6 +67,50 @@ Critical assets:
 | Downgrade | Attacker installs vulnerable Agent | minimum version policy, signed manifest, schema/protocol compatibility | downgrade test |
 | Prompt injection | Retrieved document asks LLM to execute/exfiltrate | treat content as data, sanitization, provenance, structured output, no direct executor | adversarial eval/red team |
 | Data poisoning | Fake history biases recommendations | source identity/quality, immutable provenance, approval, offline governed training | poisoned-fixture eval |
+
+## JOSE-0 provisional cryptographic threats
+
+This section is the documentary `JOSE-0` design output. It records candidate
+controls and future verification vectors; it is not an implementation,
+penetration-test result, operational profile or acceptance of
+[ADR-0008](ADR-0008-JOSE-Cryptographic-Profiles-And-Key-Lifecycle.md).
+The current runtime adds none of boundaries 16–17 and retains only the
+existing bounded relying-party JWT/JWKS path at boundary 15. Therefore no new
+operational exposure is introduced by this section, while the existing
+algorithm/type and human-subject mapping gaps remain explicit.
+
+The owning provisional profiles, numeric safety caps, ownership/trust/data
+maps and key lifecycle are defined in
+[JOSE Security Profile and Key Lifecycle](JOSE-Security-Profile-And-Key-Lifecycle.md).
+Requirement traceability and the complete registry inventory are recorded in
+the [JOSE-0 design report](../STATE-06-JOSE-0-Architecture-Security-And-Coverage-Design-Report.md)
+and [IANA coverage matrix](JOSE-IANA-Registry-Coverage.md).
+
+| ID | Boundary and threat | Candidate control and enforcement owner | Future negative verification | Current residual status |
+|---|---|---|---|---|
+| `JOSE-T01` | Algorithm downgrade, RSA/HMAC confusion or cross-JWT substitution at boundaries 15–16 | `JOSE-REQ-001/004`: Server composition selects a purpose-specific profile before parsing; the Security boundary enforces exclusive algorithm, key-type and `typ` allowlists | Cross-profile token, `alg=none`, symmetric/asymmetric confusion and wrong `typ`; `JOSE-2/5` | Controls are unimplemented; a compromised issuer remains residual even after implementation |
+| `JOSE-T02` | Duplicate JSON members, protected/unprotected header smuggling, attacker-controlled `kid` lookup or parser-cost amplification at boundaries 15–17 | `JOSE-REQ-002`: bounded strict parsing, disjoint header buckets, opaque lookup and admission before cryptographic work; Security boundary | Duplicate/Unicode/malformed inputs and every encoded/decoded, depth, node and cardinality `N-1/N/N+1` boundary; `JOSE-1/2/4` | Controls and measured limits are unimplemented; denial of service inside an accepted budget remains residual |
+| `JOSE-T03` | SSRF through `jku`/`x5u`, attacker-supplied JWK/JWKS, or unknown-`kid` refresh amplification at boundary 15 | `JOSE-REQ-007`: only preconfigured R-NET consumers and trust sources; one eligible candidate; single-flight, rate-limited refresh and negative cache; egress connector and trust resolver | Token URLs, embedded key material, random `kid`, redirect/origin escape, response bounds and zero-hit destinations; `JOSE-3/6` | No new consumer is configured; issuer outage and trust-source compromise remain residual |
+| `JOSE-T04` | Browser bearer theft, ID-token substitution, issuer/subject collision or cross-tenant principal mapping at boundary 15 | `JOSE-REQ-008`: separate BFF/session decision, access-token semantics, canonical `(issuer, subject)` identity and server-side RBAC; Identity/MOD-11 owners | XSS/CSRF/mix-up, ID token at API, same `sub` under two issuers, tenant mismatch, logout/session invalidation; `JOSE-5A/B/C` | Current storage is keyed by `subject_id` only; migration and browser identity remain undecided |
+| `JOSE-T05` | Generic signing/decryption oracle or misuse by a caller at boundary 16 | `JOSE-REQ-001/006`: artefact-specific semantic ports, caller-independent profile/key selection, RBAC, quota and custodian policy; Server composition and Security boundary | Caller-provided payload schema, profile, key or recipient; uniform error and quota tests; `JOSE-2/4/5` | No signing/decryption port exists; misuse by a legitimately authorised future principal remains residual |
+| `JOSE-T06` | Signature stripping, duplicate signer or favourable partial quorum at boundary 17 | `JOSE-REQ-002/004`: protected signer roster, explicit all/quorum rule and unique admitted signers; Security boundary and artefact owner | Missing, reordered, duplicated, invalid or mixed-profile signatures with no favourable partial result; `JOSE-2` | Multi-signature is test-only and unimplemented; correlated custodian failure remains residual |
+| `JOSE-T07` | Recipient stripping, reordering or per-recipient header tampering at boundary 17 | `JOSE-REQ-005`: protected/AAD-bound roster, one trusted profile and no recipient-selected trust; Security boundary and artefact owner | Remove/reorder/duplicate recipient and alter `alg`, `kid`, `epk`, `apu` or `apv`; `JOSE-4` | General JWE is test-only and unimplemented; visible recipient metadata remains residual |
+| `JOSE-T08` | GCM IV or CEK reuse across concurrency, restart, rollback or exhaustion at boundary 16 | `JOSE-REQ-005`: fresh CEK per wrapped-key JWE, approved generator, per-key byte/invocation budget and fail-closed fencing where a counter is selected; key custodian and Security boundary | Parallel instances, restart, state rollback, maximum bytes/invocations and exhausted reservation; `JOSE-4/6` | No JWE producer exists; the accepted probabilistic or coordinated strategy remains a `JOSE-D1` decision |
+| `JOSE-T09` | KMS confused deputy, ambient credential/bootstrap escape or SDK transport outside R-NET at boundary 16 | `JOSE-REQ-006/007`: separate least-privilege operation identity, opaque reference, injected admitted transport and denied ambient endpoint/proxy/IMDS/telemetry fallback; platform/security owners | Wrong purpose/key/operation, default credential chain, proxy/env endpoint, IMDS and unadmitted socket zero-hit; `JOSE-3/6` | No custodian consumer, credential or external service is configured; future custodian outage remains residual |
+| `JOSE-T10` | Profile/key rollback, split-brain or policy-store tampering at boundary 16 | `JOSE-REQ-004/006/009`: immutable reviewed snapshot, digest, monotonic revision/checkpoint, denial-dominant state, fencing and canonical audit; profile and data owners | Lower/equal-divergent revision, concurrent activation, database restore and custodian divergence; `JOSE-3/5` | Profile store and lifecycle are unimplemented; extraordinary recovery authority remains undecided |
+| `JOSE-T11` | Signing/encryption rotation race, stale trust cache or key compromise at boundaries 15–17 | `JOSE-REQ-006`: separate publish-before-sign and decrypt-before-encrypt ceremonies, bounded overlap, emergency denylist, cache invalidation and independent recovery; security/custodian owners | Stale cache, old ciphertext, mid-rotation failure, compromised-key tabletop and recovery rollback; `JOSE-3/6/7` | No operational key exists; artefacts issued before future compromise detection remain residual |
+| `JOSE-T12` | Replay or cross-tenant, environment, purpose, audience or direction confusion at boundaries 15–17 | `JOSE-REQ-004/008/009`: exact contextual binding, lifetime and purpose-bound digest/idempotency store where required; Application, Identity and data owners | Duplicate, expired, cross-scope and validation-to-commit race; `JOSE-2/5` | No new replay store exists; the future validation/commit window requires transactional evidence |
+| `JOSE-T13` | Audit flooding, secret/claim leakage or opaque-locator disclosure before Application admission | `JOSE-REQ-006/009`: canonical MOD-11 audit intent, stable sanitised codes, bounded aggregation/sampling and canary scanning; Security/MOD-11 owners | High-rate invalid inputs plus token, plaintext, ciphertext, key, claim and locator canaries in logs/traces/reports; `JOSE-3/5/7` | No JOSE event source is active; future sampling deliberately trades per-event granularity for boundedness |
+| `JOSE-T14` | IdP/custodian outage, stale last-known-good trust or unsafe recovery at boundaries 15–16 | `JOSE-REQ-007`: bounded freshness, emergency denylist precedence, atomic refresh, fail-closed recovery and owned runbook; trust resolver/custodian owners | Timeout, malformed/oversized response, stale/future cache, denylist conflict, outage and recovery; `JOSE-3/6` | Existing human JWKS behaviour is not the proposed complete profile; secure refusal can reduce availability |
+| `JOSE-T15` | Library regression/supply-chain compromise or oversized ML-DSA/key material exhausting resources | `JOSE-REQ-002/003/011`: approved dependency only, locked restore, provenance/licence/advisory/SBOM review and algorithm-specific hard caps; platform/security/CI owners | Differential corpus, oversized key/signature, dependency substitution and advisory-response drill; `JOSE-1/7` | No dependency is added by `JOSE-0`; a future dependency zero-day remains residual |
+| `JOSE-T16` | Information leakage through object length, protected header or recipient metadata at boundary 17 | `JOSE-REQ-005/009`: data minimisation, explicit classification/retention and optional bounded protocol-level padding only for a justified use; data and artefact owners | Comparative traffic/size analysis, retained-object inspection and padding boundary tests; `JOSE-4/5` | JWE is unimplemented; ciphertext size and allowed metadata remain observable without a separately approved padding protocol |
+| `JOSE-T17` | JOSE is incorrectly treated as a substitute for mTLS, durable protocol semantics, package signing, MOD-12 authority, RBAC, approval or a lifecycle Human Gate | `JOSE-REQ-010/012`: owning ADR/module remains authoritative and every status axis stays independent; architecture/lifecycle owners | Dependency-boundary, compatibility, authority and factual-claim review for every use case; `JOSE-0/5` | The separation is documented but not implementation evidence; multiple security layers retain independent operational complexity |
+
+Future acceptance must prove each applicable vector against the exact profile,
+platform, issuer/custodian, topology, algorithm and operation. A favourable
+partial or test-only result cannot close a threat for another profile. No
+`JOSE-T*` entry authorises `JOSE-1`, product code, an IdP, a key, a custodian,
+network egress, deployment, MOD-12 activation or lifecycle progression.
 
 ## MOD-12 pre-runtime trust and resource threats
 

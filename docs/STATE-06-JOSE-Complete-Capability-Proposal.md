@@ -3,22 +3,32 @@
 ## Status e autoridade
 
 - Data: 2026-07-28
-- Versão da proposta: `jose-complete-capability-proposal-1.1.0`
+- Versão da proposta: `jose-complete-capability-proposal-1.2.0`
 - Substitui: versão inicial registrada no commit
   `ef6b28a12cd5547e64549c1335c7f82420388ced`
 - Lifecycle atual: `STATE-06 INTEGRATION`
 - Status: `PROPOSTA DOCUMENTAL — NÃO AUTORIZADA PARA IMPLEMENTAÇÃO`
-- Baseline técnica imediatamente anterior à revisão: commit
+- Baseline técnica imediatamente anterior à revisão `1.1.0`: commit
   `46746c72983888c27d741b25775a21adebc29ccb`
+- Baseline observada no início do lote `JOSE-0`: commit
+  `6d0bbdc68c5c080d11fccd7a6fcd540908440903`
 - ADR associado:
   [ADR-0008 — JOSE Cryptographic Profiles and Key Lifecycle](architecture/ADR-0008-JOSE-Cryptographic-Profiles-And-Key-Lifecycle.md),
-  com status `proposed`
+  revision `1.2`, com status `proposed`
+- `JOSE-0`: autorizado exclusivamente como desenho documental; pacote
+  preparado para revisão, sem aceite do ADR
 
-Esta atividade autoriza somente a elaboração e integração documental desta
-proposta. Ela não autoriza código, configuração executável, dependência,
-restore/download, migration, IdP, login operacional, chave, certificado,
-vault, KMS, HSM, banco, serviço externo, runtime, deploy, publicação,
-transição de lifecycle ou alteração do estado de ativação do MOD-12.
+A autorização posterior e mais específica de `JOSE-0` permitiu somente o
+desenho documental descrito no
+[relatório JOSE-0](STATE-06-JOSE-0-Architecture-Security-And-Coverage-Design-Report.md),
+no
+[profile técnico](architecture/JOSE-Security-Profile-And-Key-Lifecycle.md) e
+na
+[matriz IANA](architecture/JOSE-IANA-Registry-Coverage.md).
+Ela não aceita esta proposta nem o ADR e não autoriza código, configuração
+executável, dependência, migration, IdP, login operacional, chave,
+certificado, vault, KMS, HSM, banco, serviço externo, runtime, deploy,
+publicação, transição de lifecycle, `JOSE-1` ou ativação do MOD-12.
 
 ## Resumo executivo
 
@@ -138,11 +148,12 @@ Referências primárias:
 [registros JOSE da IANA](https://www.iana.org/assignments/jose/jose.xhtml)
 e [registro de claims JWT da IANA](https://www.iana.org/assignments/jwt/jwt.xhtml).
 
-O snapshot IANA usado por `JOSE-0` deverá registrar URL, campo `Last Updated`,
-data/hora de aquisição, bytes e SHA-256. Em 2026-07-28, a fonte oficial
-consultada informa `Last Updated: 2026-05-22`; esse fato é somente uma
-referência para a revisão e deverá ser reconfirmado no gate autorizado. Uma
-entrada nova ou alterada depois do snapshot assume
+Os snapshots IANA usados por `JOSE-0` registram URL, campo `Last Updated`,
+data/hora de aquisição, bytes e SHA-256 na
+[matriz de cobertura](architecture/JOSE-IANA-Registry-Coverage.md). As fontes
+oficiais capturadas informam `Last Updated: 2026-05-22` para JOSE e
+`2026-07-20` para JWT Claims. Uma entrada nova ou alterada depois desses
+hashes assume
 `Unreviewed + RuntimeDisabled` até nova análise; o runtime nunca consulta a
 IANA para decidir política. `AKP`, `ML-DSA-44`, `ML-DSA-65` e `ML-DSA-87`
 já pertencem a esse snapshot e não podem ser tratados como drafts. Parâmetros
@@ -405,8 +416,9 @@ será criado somente por organização estética.
 Cada key version fica ligada a um único algoritmo, finalidade, tenant/ambiente
 e direção. Migração `RS256 → PS256` não reutiliza silenciosamente o mesmo par
 RSA; qualquer exceção exigiria prova criptográfica e decisão explícita.
-`JOSE-0` congela modulus/exponent RSA, parâmetros PSS, curvas, encoding ECDSA
-e testes de chave inválida.
+`JOSE-0` propõe candidatos para modulus/exponent RSA, parâmetros PSS, curvas,
+encoding ECDSA e testes de chave inválida. `JOSE-1`, se vier a ser autorizado,
+mede esses candidatos; somente `JOSE-D1` poderá congelar os valores aceitos.
 
 ### Criptografia
 
@@ -577,22 +589,23 @@ nunca autoriza dual-write indefinido.
 
 ### Egress de identidade e custódia
 
-`JOSE-0` deverá produzir uma matriz por custodiante/topologia antes de qualquer
-SDK ou workload identity. Os consumer IDs candidatos abaixo não existem no
-runtime e só podem ser criados por revisão própria de R-NET:
+`JOSE-0` produziu uma matriz candidata antes de qualquer SDK ou workload
+identity. Os novos consumer IDs abaixo não existem no runtime e só podem ser
+criados por revisão própria de R-NET:
 
 | Consumer ID | Finalidade exclusiva | Estado e limite |
 |---|---|---|
-| `human-identity` | OIDC discovery/JWKS atuais; token endpoint/introspection somente após extensão explícita | existente e limitado; nunca reutilizado para KMS |
+| `human-identity` | OIDC discovery/JWKS atuais | existente e inalterado; nunca reutilizado para token endpoint, KMS ou STS |
+| `human-identity-backchannel` | eventual token exchange/introspection/revocation do BFF | candidato, não autorizado; consumer, origem, credencial e protocolo separados |
 | `server-key-custody` | operações data-plane e metadados públicos do KMS/HSM/vault | proposto, não autorizado |
 | `server-workload-identity` | bootstrap STS/workload identity quando indispensável | proposto, não autorizado; não implica acesso a IMDS |
 
-Para cada linha serão fixados endpoints, CIDRs, portas, DNS, TLS hostname,
-private endpoint/failover, redirects, proxy, credencial/bootstrap, scopes,
-payloads, timeout, retries, telemetria e owner. SDK deve aceitar transporte
-injetado e submetido ao conector pinned do R-NET; fallback de endpoint,
-credential chain, proxy, redirect ou telemetria ambiente é recusado. Um
-adapter incapaz de provar essa fronteira é rejeitado.
+Para cada candidato ainda precisarão ser fixados endpoints, CIDRs, portas,
+DNS, TLS hostname, private endpoint/failover, redirects, proxy,
+credencial/bootstrap, scopes, payloads, timeout, retries, telemetria e owner.
+SDK deve aceitar transporte injetado e submetido ao conector pinned do R-NET;
+fallback de endpoint, credential chain, proxy, redirect ou telemetria ambiente
+é recusado. Um adapter incapaz de provar essa fronteira é rejeitado.
 
 O hard deny atual a metadata/link-local permanece. Qualquer necessidade de
 IMDS exige ADR e gate R-NET separados, extremamente limitados, e nunca relaxa
@@ -672,7 +685,7 @@ chain.
 
 | Lote | Dependência | Owner de fase | Saída obrigatória e condição de saída |
 |---|---|---|---|
-| `JOSE-0` | proposta `1.1.0` aceita para preparação | correção de arquitetura/segurança/dados pertencente a `STATE-02`, executada sem sair de `STATE-06` | ADR-0008 ainda `proposed`; requisitos, profiles e safety caps provisórios, snapshots/matrizes IANA JOSE/JWT Claims sem `Unreviewed`, ownership, trust/data/egress map e threat model sem lacuna crítica |
+| `JOSE-0` | autorização documental explícita recebida para preparar a proposta `1.2.0`, sem aceitá-la | correção de arquitetura/segurança/dados pertencente a `STATE-02`, executada sem sair de `STATE-06` | pacote preparado para revisão; ADR-0008 ainda `proposed`; requisitos, profiles e safety caps provisórios, snapshots/matrizes IANA JOSE/JWT Claims sem `Unreviewed`, ownership, trust/data/egress map e threat model sem lacuna crítica |
 | `JOSE-1` | `JOSE-0` aprovado e spike autorizado separadamente | correção de feasibility/dependência pertencente a `STATE-01/02/04`, executada sem sair de `STATE-06` | spike test-only .NET 10, corpus público/sanitizado rastreável aos RFCs 7520/8037/9964, chaves efémeras, seis serializações/capacidades medidas, matriz de dependência/SBOM e boundary sem tipo concreto no núcleo |
 | `JOSE-2` | `JOSE-D1` aceita ADR-0008 | desenvolvimento corretivo de `STATE-04`, integrado em `STATE-06` | JWS Compact/Flattened/General, detached, multi-signature e JWT inbound hardening em sandbox; nenhum producer operacional |
 | `JOSE-3` | `JOSE-D1`; interfaces exigidas por `JOSE-2/4` | `STATE-03/04`, integrado em `STATE-06` | `3A`: JWK/JWKS público, thumbprint, seleção/cache/refresh; `3B`: key operations/custódia, lifecycle e migrations não produtivas somente quando autorizadas |
@@ -740,9 +753,9 @@ SPDX ou CycloneDX é
 validada contra dependências/lockfiles. Thresholds de latência, memória,
 throughput e falha serão numéricos por profile antes de homologação.
 
-## Documentação a incorporar após aprovação
+## Documentação preparada e mudanças futuras após aprovação
 
-| Documento | Mudança proposta |
+| Documento | Estado `JOSE-0` ou mudança futura |
 |---|---|
 | `AGENTS.md` | regra permanente curta somente se a política JOSE for aceita como norma do projeto |
 | `prompts/foundation/Solution-Architecture-Document.md` | trust boundaries, componentes e responsabilidades |
@@ -757,9 +770,9 @@ throughput e falha serão numéricos por profile antes de homologação.
 | ADR-0005 | packages/updates; assinatura de plataforma continua prevalente |
 | ADR-0007 e documentos AIOps | somente se MOD-12 adotar um codec JOSE sob nova decisão |
 | ADR-0008 | decisão guarda-chuva, alternativas, boundaries e consequências |
-| `docs/architecture/JOSE-Security-Profile-And-Key-Lifecycle.md` | uma única autoridade normativa de profile+key lifecycle, pois security/identity/platform são os mesmos owners; split futuro exige owner/audience/lifecycle distintos e ADR |
-| `docs/architecture/Threat-Model.md` | ameaças JOSE e control owners |
-| `docs/architecture/Network-Egress-Policy.md` | consumer IDs, IdP/JWKS/STS/KMS endpoints e proibição de URL recebida |
+| `docs/architecture/JOSE-Security-Profile-And-Key-Lifecycle.md` | candidato `JOSE-0` já preparado, ainda não aceito; só poderá tornar-se autoridade normativa de profile+key lifecycle após a decisão própria |
+| `docs/architecture/Threat-Model.md` | `JOSE-T*` e control owners preparados como riscos/controles candidatos, não implementação |
+| `docs/architecture/Network-Egress-Policy.md` | candidate appendix sem registrar consumer; endpoints IdP/JWKS/STS/KMS permanecem decisão futura |
 | `docs/architecture/Canonical-Contracts.md` | contratos públicos somente quando aprovados |
 | `docs/data/README.md`, `Logical-Model.md`, `Retention-And-Deletion.md`, `Migration-Runbook.md` | autoridade do profile, metadata/replay/ciphertext, retenção, migration e rollback |
 | matriz `JOSE-REQ-*` | requirement → RFC/IANA → caso/módulo → threat → ADR/doc → lote → teste/evidência → gate |
@@ -769,8 +782,8 @@ throughput e falha serão numéricos por profile antes de homologação.
 A documentação normativa será atualizada junto do lote dono; não será
 preenchida antecipadamente como se a capacidade estivesse implementada.
 `Security-And-Access.md` permanece a autoridade temática de segurança. O novo
-documento técnico detalha somente o contrato JOSE aceito e não cria política,
-lifecycle ou audit paralelos.
+documento técnico detalha somente o candidato JOSE ainda não aceito e não
+cria política, lifecycle ou audit paralelos.
 
 ## Requisitos e threat model rastreáveis
 
@@ -975,39 +988,37 @@ passou” ou “JWT funciona” não satisfazem nenhum aceite amplo.
 
 ## Decisões humanas necessárias
 
-Antes de `JOSE-0`, o proprietário precisa apenas:
+O proprietário autorizou `JOSE-0` sem aceitar a proposta ou o ADR. A revisão
+humana imediata deve apenas aceitar ou devolver o pacote documental
+preparatório. Ela não decide ainda os casos de produto, BFF/SPA,
+identidade/provisioning/RBAC, ambientes, custodiantes, topologia externa ou
+infraestrutura.
 
-1. aceitar como candidata a definição de completude baseada em cobertura,
-   conformance harness e suporte operacional separado; e
-2. autorizar o lote exclusivamente documental `JOSE-0`.
+Decision packets não fazem parte do lote executado: embora aparecessem no
+texto sugerido pela revisão anterior, foram omitidos da autorização final e
+permanecem fora do escopo.
 
-`JOSE-0` produzirá decision packets com recomendação, evidência, impacto,
-owner e gate para: casos além do relying party humano; arquitetura BFF/SPA;
-identidade/provisioning/RBAC; ambientes/escopos; classe de custodiante;
-topologia R-NET; autoridade de profile/persistência; e budgets numéricos.
-Essas escolhas não precisam ser antecipadas agora.
+`JOSE-1` continua proibido e exige autorização separada para um eventual
+spike. Somente depois da evidência desse lote poderá `JOSE-D1` solicitar uma
+decisão explícita sobre ADR-0008. Cada caso de produto, infraestrutura
+externa, homologação e release continua com autoridade própria. Nenhuma
+decisão é inferida desta revisão.
 
-Depois de `JOSE-0`, `JOSE-1` exige autorização separada para o spike. Depois
-da evidência de `JOSE-1`, `JOSE-D1` solicita uma decisão explícita sobre
-ADR-0008. Cada caso de produto, infraestrutura externa, homologação e release
-continua com autoridade própria. Nenhuma decisão é inferida desta revisão.
+## Autorização recebida para JOSE-0
 
-## Autorização sugerida para o próximo passo
-
-Caso a proposta seja aceita para preparar a decisão arquitetural, a
-autorização segura e limitada é:
+O escopo efetivamente executado é o texto posterior e mais restrito fornecido
+pelo proprietário:
 
 ```text
 AUTORIZO exclusivamente o lote documental STATE-06 JOSE-0 — Architecture,
 Security and Coverage Design, limitado a preparar — sem aceitar — o
-ADR-0008; definir profiles, targets e safety caps provisórios; capturar e classificar os
-snapshots IANA JOSE/JWT Claims; produzir ownership/trust/data/egress maps,
-threat model JOSE-T*, matriz JOSE-REQ-*, decision packets e planos de
-teste/migração/rollback. ADR-0008 deve permanecer proposed. Permanecem
-proibidos código, dependências, restore/download, migrations, runtime,
-IdP/login real, chave/certificado, vault/KMS/HSM, banco/serviço externo,
-deploy, publicação, transição de lifecycle, JOSE-1 e ativação MOD-12.
+ADR-0008; definir profiles, targets e safety caps provisórios; capturar e
+classificar os snapshots IANA JOSE/JWT Claims; produzir ownership/trust/data/
+egress maps, threat model JOSE-T*, matriz JOSE-REQ-* e planos de teste,
+migração e rollback. Permanecem proibidos código, dependências, migrations,
+runtime, IdP/login real, chaves, vault/KMS/HSM, serviços externos, deploy,
+transição de lifecycle, JOSE-1 e ativação MOD-12.
 ```
 
-Essa autorização não serve para desenvolvimento, spike ou infraestrutura;
-esses escopos exigem textos separados depois da entrega `JOSE-0`.
+Essa autorização não serve para desenvolvimento, spike ou infraestrutura e
+não altera `STATE-06 INTEGRATION`.
