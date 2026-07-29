@@ -2,7 +2,37 @@
 
 Templates não representam execução nem aprovação até serem preenchidos com evidências reais.
 
-## Handoff de fase
+## Contrato mínimo de handoff governado
+
+Aplicar a todo handoff conforme a autoridade
+[`Conversation-Coordination-Prompt.md`](../../Conversation-Coordination-Prompt.md).
+Os nomes e a ordem dos campos são normativos:
+
+```text
+Status:
+Completed:
+Remaining for this target:
+Next step:
+Next stage:
+Your action now:
+Conversation action: CONTINUE_CURRENT/START_NEW/RETURN_TO_EXISTING
+Conversation target:
+Suggested title:
+Conversation reason:
+Exact next message:
+Parallel work: SEQUENTIAL_ONLY/PARALLEL_OPTIONAL/PARALLEL_RECOMMENDED
+Parallel plan:
+Exact parallel messages:
+```
+
+Templates podem conter placeholders; uma instância real deve substituí-los por
+conteúdo completo. Quando nenhuma mensagem for exigida, usar
+`Exact next message: None — no message is required`. Para trabalho sequencial,
+`Parallel plan` começa por `None —` com a razão concreta e
+`Exact parallel messages` usa
+`None — parallel work is not recommended`.
+
+## Complemento de handoff de fase
 
 - Estado encerrado:
 - Estado recomendado:
@@ -17,11 +47,76 @@ Templates não representam execução nem aprovação até serem preenchidos com
 - Pré-condições da próxima fase:
 - Auditoria automática:
 - Human Gate:
-- Próxima ação do usuário:
 - Passos ordenados e local de execução:
 - Resultado esperado:
 - Restrições ou cuidados:
 - Evidência/resposta que o usuário deve retornar:
+
+## Plano de trabalho paralelo
+
+- Conversa coordenadora e label confirmado pelo proprietário ou identificador canônico fornecido pela plataforma:
+- Versão do corpus:
+- Commit/hash da baseline:
+- Estado/gate/lote:
+- Autoridade e escopo negativo:
+- Lanes numeradas, objetivo e resultado esperado:
+- Dependências congeladas e acíclicas:
+- Ownership exclusivo de paths:
+- Ownership exclusivo de artefatos lógicos:
+- Ownership exclusivo de recursos mutáveis:
+- Inputs compartilhados somente leitura:
+- Arquivos, recursos e ações proibidos por lane:
+- Branch/worktree por writer e autoridade correspondente:
+- Isolamento de portas, processos, bancos, índices, temporários, caches e outputs:
+- Checks e evidências por lane:
+- Condições de parada:
+- Mensagem completa de início por lane:
+- Formato de retorno:
+- Ordem determinística de integração:
+- Checks locais por integração:
+- Checks transversais:
+- Fallback sequencial:
+
+## Mensagem de início de uma worker
+
+```text
+Projeto:
+Workspace:
+Lane:
+Conversation label:
+Conversa coordenadora confirmada:
+Baseline:
+Estado/gate/lote:
+Autoridade existente:
+Objetivo exclusivo:
+Pré-condições:
+Dependências congeladas:
+Escrita exclusiva permitida ou read-only:
+Inputs somente leitura:
+Arquivos e ações proibidos:
+Checks:
+Output esperado:
+Condições de parada:
+Ordem de integração:
+Formato da mensagem de retorno:
+```
+
+## Retorno de uma worker
+
+- Lane e conversation label:
+- Baseline efetivamente usada:
+- Status da lane:
+- Candidato produzido:
+- Arquivos e paths tocados:
+- Artefatos lógicos e recursos mutáveis tocados:
+- Checks, resultados e evidências:
+- Limitações e riscos:
+- Condições de parada acionadas:
+- Dependências ou autoridade ainda pendentes:
+- Mensagem exata de retorno à coordenadora:
+
+Uma worker entrega somente um candidato. Ela não declara conclusão do lote,
+estado, gate ou projeto e não atualiza memória ou decisões permanentes.
 
 ## Relatório de execução
 

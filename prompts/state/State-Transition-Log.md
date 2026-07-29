@@ -5454,3 +5454,70 @@
 - Aprovador: elaboração documental autorizada explicitamente por Bruno;
   nenhuma aprovação técnica, Quality Gate, Human Gate, ativação ou progressão
   inferida.
+
+## 2026-07-29 — Governança de coordenação de conversas incorporada
+
+- Estado anterior: `STATE-06 INTEGRATION`, elegibilidade `NÃO REAVALIADA`,
+  `MOD-12 ActivationState=None`, corpus de instruções `6.1.0` com 14 arquivos
+  ativos e nenhum workflow paralelo de escrita autorizado para o lote.
+- Autoridade humana exata:
+  `APROVO o plano documental apresentado e AUTORIZO exclusivamente a
+  incorporação sequencial da política de coordenação de conversas nos 10
+  ficheiros enumerados, incluindo os checks locais proporcionais e o commit
+  local focal exigido pelo repositório. Não autorizo branches, worktrees,
+  merge, rebase, push, código, build, runtime, ações externas, alteração de
+  ADR, Human Gate, ActivationState ou lifecycle.`
+- Observação do proprietário: prevenir e interromper erro, conflito ou falha no
+  fluxo de desenvolvimento sem prometer infalibilidade absoluta.
+- Preflight: zero processo e zero listener pertencente ao DB-Notifier. A
+  inspeção complementar confirmou zero processo Docker, serviço Docker parado
+  e endpoint do contexto ativo inexistente; nenhum processo, serviço, database
+  engine, browser, IDE ou recurso alheio foi encerrado ou alterado.
+- Baseline: `938c2d22b444b434363d4c87ab13c3a2b2c9d8e3`; a fonte não rastreada foi
+  preservada antes da adaptação pelo SHA-256
+  `0019950242314908762CAD3E2AEA01C122023E3867885289E04FB3A70CA912D4`.
+- Decisão documental: incorporar `Conversation-Coordination-Prompt.md` no
+  próprio local como autoridade temática única, revisão `1.0.0`, e evoluir o
+  corpus para `6.2.0` com 15 arquivos ativos. `Governance.md` permanece
+  proprietário da autoridade, execução controlada e lifecycle.
+- Controles: roteamento e paralelismo usam enums fechados; todo handoff contém
+  mensagem exata; cada path, artefato lógico e recurso mutável possui um único
+  writer; overlap, baseline incerta, dependência instável, decisão pendente ou
+  isolamento insuficiente acionam parada e fallback sequencial.
+- Git e isolamento: Git existente e commit local final não autorizam branch,
+  worktree, merge ou rebase. Sem workflow de escrita paralela especificamente
+  autorizado e worktrees isolados, conversas simultâneas permanecem read-only
+  e toda escrita ocorre sequencialmente na coordenadora.
+- Custódia: integração, estado, histórico, changelog, ADRs, relatórios e
+  decisões de gate e apresentação de Human Gates pertencem à coordenadora, sem
+  lhe conceder autoridade para decidir, ativar ou promover.
+- Escopo documental: `Conversation-Coordination-Prompt.md`, `AGENTS.md`,
+  `prompts/Start-Here.md`, `prompts/governance/Governance.md`,
+  `prompts/governance/Quality-Gates.md`,
+  `prompts/templates/Templates.md`,
+  `prompts/system/AI-Software-Engineering-Master-Prompt.md`,
+  `prompts/system/Prompt-System-Change-Log.md`,
+  `prompts/state/Current-State.md` e este log append-only.
+- Gates: whitelist `10/10`, UTF-8/LF/newline final/trailing whitespace `10/10`,
+  campos de handoff `14/14`, enums `3 + 3`, autoridade, versão/estado,
+  placeholders reais, identificador de host e limites Git aprovados; `935`
+  links locais em `224` arquivos, documentação de `429` fontes, secret scan e
+  diff aprovados. A revisão semântica independente bloqueou inicialmente duas
+  ambiguidades — identificação da coordenadora interna e precedência temática
+  —, ambas corrigidas; o recheck confirmou os seis critérios do proprietário
+  sem achado bloqueante. O primeiro staged diff continha somente os dez
+  arquivos autorizados e passou `git diff --cached --check`; esta atualização
+  factual foi incluída na repetição integral do gate antes do commit.
+- Escopo negativo: zero branch, worktree, merge, rebase, push, source,
+  configuração executável, dependência, build, teste de produto, runtime, ação
+  externa, alteração ou decisão de ADR, Human Gate, ativação, homologação,
+  deploy, publicação ou transição de lifecycle.
+- Estado resultante: `STATE-06 INTEGRATION`, elegibilidade `NÃO REAVALIADA`,
+  `MOD-12 ActivationState=None`, ADRs, Human Gates, produto e autoridade
+  externa permanecem inalterados.
+- Evidências proprietárias:
+  [autoridade de coordenação](../../Conversation-Coordination-Prompt.md),
+  [changelog do corpus](../system/Prompt-System-Change-Log.md) e
+  [estado factual](Current-State.md).
+- Aprovador: Bruno, por autorização explícita limitada à incorporação
+  documental sequencial; nenhuma autoridade adjacente inferida.

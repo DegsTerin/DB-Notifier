@@ -51,6 +51,57 @@ Banner de sucesso, compilação isolada ou ausência de erro aparente não prova
 
 Auditoria não corrige silenciosamente falhas, não inventa evidência e não promove estado.
 
+## Gate de coordenação de conversas e paralelismo
+
+Aplicar este gate a todo handoff governado e a qualquer plano com múltiplas
+conversas, conforme
+[`Conversation-Coordination-Prompt.md`](../../Conversation-Coordination-Prompt.md).
+
+1. Confirmar que `Conversation action` contém somente
+   `CONTINUE_CURRENT`, `START_NEW` ou `RETURN_TO_EXISTING`.
+2. Confirmar que `Parallel work` contém somente `SEQUENTIAL_ONLY`,
+   `PARALLEL_OPTIONAL` ou `PARALLEL_RECOMMENDED`.
+3. Validar todos os campos obrigatórios, mensagens completas e ausência de
+   placeholders em instâncias reais.
+4. Confirmar label da coordenadora fornecido pelo proprietário ou identificador
+   canônico fornecido pela plataforma, versão do corpus e commit/hash da
+   baseline quando existente; somente label do proprietário habilita
+   `RETURN_TO_EXISTING`, e nunca se aceita conversa inventada ou alegadamente
+   aberta pelo agente.
+5. Comprovar dependências congeladas e acíclicas, inputs compartilhados
+   somente leitura e ownership exclusivo de paths, artefatos lógicos e recursos
+   mutáveis.
+6. Confirmar zero writers sobrepostos. Ownership de diretório exclui writers
+   concorrentes em qualquer descendente.
+7. Sem workflow Git paralelo especificamente autorizado e worktrees isolados
+   próprios, comprovar que todas as conversas simultâneas permaneceram
+   read-only e que a escrita foi sequencial na coordenadora.
+8. Quando houver escrita paralela autorizada, verificar branch própria e
+   worktree isolado próprio por writer, write sets disjuntos e isolamento
+   aplicável de portas, processos, bancos, índices, temporários, caches e
+   outputs.
+9. Confirmar arquivos e ações proibidos, condições objetivas de parada,
+   fallback sequencial e preservação da última baseline validada sem descarte
+   de trabalho.
+10. Confirmar que workers não integraram outras lanes, não atualizaram estado,
+    histórico ou changelog, não alteraram ou aceitaram ADR, não promoveram
+    lifecycle ou ativação e não solicitaram ou confirmaram Human Gate.
+11. Confirmar que cada worker entregou somente um candidato com arquivos,
+    artefatos, recursos, checks, evidências, limitações e riscos.
+12. Verificar integração determinística de uma entrega por vez, checks locais
+    após cada integração e checks transversais sobre o resultado combinado.
+13. Confirmar que estado, histórico, changelog, ADRs, relatórios e decisões de
+    gate e Human Gates permaneceram sob custódia exclusiva da coordenadora.
+14. Confirmar que custódia não foi tratada como autoridade decisória e que
+    nenhuma ação externa, operação Git, lifecycle ou ativação foi inferida.
+15. Confirmar que eventual Human Gate foi apresentado somente depois da
+    integração, auditoria consolidada e amostras humanas aplicáveis.
+
+Qualquer overlap, baseline incerta, isolamento insuficiente, decisão pendente
+ou ampliação de autoridade reprova ou bloqueia o plano paralelo e força
+`SEQUENTIAL_ONLY`. O gate avalia a coordenação; não aprova ADR, Human Gate,
+lifecycle, ativação, produto ou ação externa.
+
 ## Verificações específicas por fase
 
 | Estado | Verificações adicionais |

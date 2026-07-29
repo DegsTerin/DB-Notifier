@@ -47,6 +47,25 @@ proprietários.
   homologação JOSE, ativação, suporte público e release conservam fases e
   decisões próprias.
 
+## Sistema de instruções e coordenação
+
+- O corpus vigente é `6.2.0`, com 15 arquivos ativos. A
+  [Coordenação de Conversas e Trabalho Paralelo Seguro](../../Conversation-Coordination-Prompt.md),
+  revisão `1.0.0`, é a autoridade temática de roteamento, handoff,
+  paralelismo, ownership exclusivo e integração coordenada.
+- Uma única conversa coordenadora conserva escopo, baseline e integração e
+  mantém sob sua custódia estado, histórico, changelog, ADRs, relatórios e
+  decisões de gate e apresentação de Human Gates. Essa custódia não transfere
+  a decisão humana ou arquitetural nem concede autoridade de lifecycle,
+  ativação, operação Git ou ação externa.
+- Nenhum workflow de escrita paralela com branches e worktrees isolados está
+  autorizado neste snapshot. Conversas simultâneas permanecem read-only e toda
+  escrita ocorre sequencialmente na coordenadora; a existência de Git e a
+  autorização do commit local final não ampliam esse limite.
+- A adoção desta governança não altera `STATE-06 INTEGRATION`, elegibilidade,
+  `MOD-12 ActivationState=None`, ADRs, Human Gates, produto, runtime ou
+  autoridade externa.
+
 ## Baseline técnica
 
 - A última árvore executável inventariada é

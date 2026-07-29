@@ -12,13 +12,17 @@ Agentes que operam no repositório começam também por [`../AGENTS.md`](../AGEN
 2. [`state/Current-State.md`](state/Current-State.md): situação factual do workspace.
 3. [`governance/Governance.md`](governance/Governance.md): autoridade, estados e regras de execução.
 4. [`system/AI-Software-Engineering-Master-Prompt.md`](system/AI-Software-Engineering-Master-Prompt.md): leitura obrigatória para projeto novo, auditoria ampla, reorganização material ou trabalho transversal; em ajuste focal, aplicar a síntese permanente de `AGENTS.md` e abrir a seção temática roteada quando necessária.
-5. Abrir somente os demais documentos temáticos necessários à tarefa.
+5. [`../Conversation-Coordination-Prompt.md`](../Conversation-Coordination-Prompt.md):
+   leitura obrigatória antes de todo handoff governado e antes de avaliar ou
+   iniciar trabalho com múltiplas conversas.
+6. Abrir somente os demais documentos temáticos necessários à tarefa.
 
 ## Roteamento
 
 | Necessidade | Documento |
 |---|---|
 | Instruções permanentes e comportamento operacional de agentes | `../AGENTS.md` |
+| Roteamento de conversas, handoff, paralelismo seguro, ownership e integração coordenada | `../Conversation-Coordination-Prompt.md` |
 | Método geral de engenharia, papéis virtuais, proporcionalidade, modos de trabalho e matriz de adoção | `system/AI-Software-Engineering-Master-Prompt.md` |
 | Visão, escopo e objetivos | `foundation/Prompt-New-Project.md` |
 | Arquitetura, dados, providers e módulos | `foundation/Solution-Architecture-Document.md` |
@@ -49,9 +53,10 @@ Em caso de conflito, aplicar nesta ordem:
 6. Visão do produto, governança e lifecycle canônico.
 7. Decisões explícitas da matriz PM-1, que substituem instruções preexistentes
    nos conflitos que a própria matriz resolve.
-8. Autoridade temática específica de arquitetura, segurança, qualidade, dados,
-   Design System ou ADR aceito para itens classificados como `JÁ GOVERNADO` ou
-   para a especialização descrita em um item `ADAPTADO`.
+8. Autoridade temática específica de coordenação de conversas em
+   `../Conversation-Coordination-Prompt.md`, arquitetura, segurança, qualidade,
+   dados, Design System ou ADR aceito para itens classificados como
+   `JÁ GOVERNADO` ou para a especialização descrita em um item `ADAPTADO`.
 9. Baseline genérica do Prompt Mestre onde não houver especialização.
 10. Playbook selecionado.
 11. Templates, evidência histórica e convenções inferidas.
@@ -66,6 +71,10 @@ Conflitos que ampliem materialmente o escopo, exijam ação externa irreversíve
 - Separar credenciais de monitoramento das credenciais administrativas.
 - Preservar mudanças preexistentes e limitar alterações ao escopo autorizado.
 - Antes de iniciar cada nova ação técnica autorizada sobre o código, workspace ou produto, aplicar o shutdown preflight obrigatório definido em `../AGENTS.md` e detalhado em `operations/Operational-Playbooks.md`. Conversa, pergunta, explicação ou status sem ação técnica não dispara encerramento.
+- Aplicar `../Conversation-Coordination-Prompt.md` a todo handoff e trabalho com
+  múltiplas conversas. Sem workflow Git de escrita paralela especificamente
+  autorizado e worktrees isolados, conversas simultâneas permanecem read-only
+  e toda escrita ocorre sequencialmente na coordenadora.
 - Documentar código e configuração exclusivamente em inglês britânico (`en-GB`), conforme `../docs/Code-Documentation-Standards.md`, mantendo comentários concisos e sincronizados.
 - Aplicar `../docs/design/DB-Notifier-Design-System.md` a todo frontend novo ou alterado; não criar temas, tokens ou componentes paralelos fora do contrato oficial.
 - Consultar o estado antes de executar uma fase ou playbook.
@@ -73,9 +82,12 @@ Conflitos que ampliem materialmente o escopo, exijam ação externa irreversíve
 
 ## Estrutura ativa
 
-O corpus contém 14 arquivos ativos. O Prompt Mestre incorporado tem autoridade
-transversal distinta: preserva a baseline geral e encaminha especializações
-aos documentos proprietários, sem criar um lifecycle paralelo. Um novo arquivo
-só deve ser criado quando o conteúdo tiver autoridade, ciclo de vida ou público
-diferente dos documentos existentes. Caso contrário, adicionar uma seção ao
-documento temático apropriado.
+O corpus contém 15 arquivos ativos. A autoridade especializada de coordenação
+de conversas possui escopo e público próprios, enquanto `Governance.md`
+permanece proprietário da autoridade, execução controlada e lifecycle. O
+Prompt Mestre incorporado conserva autoridade transversal distinta: preserva a
+baseline geral e encaminha especializações aos documentos proprietários, sem
+criar um lifecycle paralelo. Um novo arquivo só deve ser criado quando o
+conteúdo tiver autoridade, ciclo de vida ou público diferente dos documentos
+existentes. Caso contrário, adicionar uma seção ao documento temático
+apropriado.

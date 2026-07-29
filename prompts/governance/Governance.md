@@ -8,6 +8,12 @@ sua matriz de adoção; este documento permanece proprietário da autoridade,
 execução controlada e estados canônicos. Nenhum documento histórico ou
 template altera o estado do projeto.
 
+A
+[`Coordenação de Conversas e Trabalho Paralelo Seguro`](../../Conversation-Coordination-Prompt.md)
+é a autoridade temática especializada de roteamento entre conversas,
+paralelismo, ownership e integração. Ela não altera a autoridade, os estados ou
+os gates definidos aqui.
+
 ## Estados canônicos
 
 1. `STATE-00 DISCOVERY_MIGRATION`
@@ -104,17 +110,26 @@ Bloqueio não autoriza salto de estado.
 - Relatórios: evidência de uma execução específica.
 - `../system/Prompt-System-Change-Log.md`: evolução deste corpus.
 
-## Trabalho multiagente
+## Coordenação de conversas e trabalho multiagente
 
-Usar somente quando a plataforma permitir e houver ganho material de
-independência, especialização ou paralelismo. O uso de agentes não amplia o
-escopo já autorizado nem concede autoridade de edição, runtime ou ação externa.
+Aplicar integralmente
+[`Conversation-Coordination-Prompt.md`](../../Conversation-Coordination-Prompt.md)
+sempre que houver handoff entre conversas ou avaliação de trabalho paralelo.
+Esta seção preserva somente os invariantes transversais:
 
-- Um integrador mantém escopo, estado e decisões.
-- Subtarefas devem ser independentes e ter ownership claro.
-- Agentes não recebem secrets nem executam ações administrativas reais.
-- Resultados passam por integração e validação central.
-- Edits concorrentes no mesmo arquivo devem ser evitados.
+- Uma única conversa coordenadora mantém escopo, baseline e integração.
+- Nenhum arquivo, artefato lógico ou recurso mutável pode ter writers
+  sobrepostos.
+- Sem workflow Git de escrita paralela especificamente autorizado e worktrees
+  isolados, conversas simultâneas permanecem read-only e toda escrita ocorre
+  sequencialmente na coordenadora.
+- Estado, histórico, changelog, ADRs, relatórios e decisões de gate e Human
+  Gates permanecem sob custódia exclusiva da coordenadora.
+- Custódia não concede autoridade para decidir ADR, Human Gate, lifecycle,
+  ativação, ação externa ou operação Git não autorizada.
+- O uso de workers não amplia escopo, runtime, acesso a secrets ou autoridade
+  externa; cada resultado é somente candidato sujeito a integração e validação
+  central.
 
 ## Guard rails absolutos
 

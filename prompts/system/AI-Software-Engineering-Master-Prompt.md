@@ -39,6 +39,8 @@ temática. A aplicação especializada pertence aos seguintes documentos:
   contratos e limites específicos de MOD-12;
 - [`../governance/Governance.md`](../governance/Governance.md):
   autoridade e execução controlada;
+- [`../../Conversation-Coordination-Prompt.md`](../../Conversation-Coordination-Prompt.md):
+  roteamento de conversas, paralelismo seguro, ownership e integração;
 - [`../governance/Lifecycle.md`](../governance/Lifecycle.md): estados
   canônicos;
 - [`../governance/Quality-Gates.md`](../governance/Quality-Gates.md):
@@ -83,14 +85,19 @@ autorização permanente e os limites do commit local final pertencem a
   mapeadas ao lifecycle DB-Notifier; elas não substituem `STATE-00`–`STATE-08`.
 - O handoff compacto, a contagem auditável do trabalho restante e os campos
   separados de próximo passo e próxima etapa exigidos em `AGENTS.md` são a
-  especialização obrigatória da orientação geral de comunicação. A próxima
-  etapa deve ser nomeada com sua condição de entrada e nunca concede
-  autoridade implícita. Categorias de roadmap, lifecycle e ativação aparecem
-  somente quando pertencem ao alvo solicitado, evitando misturá-las com o
-  lote atual.
+  especialização obrigatória da orientação geral de comunicação. O roteamento
+  de conversa, a classificação de paralelismo e as mensagens exatas pertencem
+  a `Conversation-Coordination-Prompt.md`. A próxima etapa deve ser nomeada com
+  sua condição de entrada e nunca concede autoridade implícita. Categorias de
+  roadmap, lifecycle e ativação aparecem somente quando pertencem ao alvo
+  solicitado, evitando misturá-las com o lote atual.
 - Papéis virtuais apoiam análise e segregação de responsabilidades, mas nunca
   substituem o proprietário, uma revisão independente exigida ou um Human
   Gate.
+- Trabalho paralelo exige ownership exclusivo e integração central conforme a
+  autoridade de coordenação. Sem workflow Git de escrita paralela
+  especificamente autorizado e worktrees isolados, conversas simultâneas
+  permanecem read-only.
 
 ### Matriz normativa de adoção
 
@@ -111,7 +118,7 @@ Legenda:
 | 3 | Parâmetros do projeto | `ADAPTADO` | O DB-Notifier já é estabelecido; parâmetros factuais vêm da visão, do estado corrente e dos ADRs, sem placeholders paralelos. |
 | 4 | Escala e proporcionalidade | `ADOTADO` | Profundidade, evidência e segregação são proporcionais ao risco, sem remover controles obrigatórios. |
 | 5 | Equipes e papéis | `ADAPTADO` | Papéis e RACI são ativados conforme a tarefa; catálogos de cargos e orientação de carreira são `INFORMATIVO`. |
-| 6 | Agentes de IA | `ADAPTADO` | Usar apenas quando a plataforma permitir e houver ganho material, com escopo independente, evidência e integração central. |
+| 6 | Agentes de IA | `ADAPTADO` | Usar apenas quando a plataforma permitir e houver ganho material; `Conversation-Coordination-Prompt.md` especializa roteamento, single-writer, isolamento, workers e integração central. |
 | 7 | Descoberta do projeto | `JÁ GOVERNADO` | `AGENTS.md` e `Operational-Playbooks.md` governam inventário, fluxo, dependências, CI, risco e amostragem explícita. |
 | 8 | Modos e autorização | `ADAPTADO` | Análise, revisão, planejamento, implementação, refatoração e entrega preservam seus limites; `AGENTS.md` concede autoridade permanente somente para o commit local final do estado de hand-off rastreado, inclusive quando parcial, bloqueado ou falho. |
 | 9 | Ciclo F0–F12 | `ADAPTADO` | O mapeamento abaixo preserva `STATE-00`–`STATE-08` como a única máquina de estados. |
@@ -125,12 +132,12 @@ Legenda:
 | 17 | DevOps, plataforma e ambientes | `ADAPTADO` | Práticas entram no estado proprietário; publicação, IaC, assinatura, SBOM e deploy continuam condicionados ao lifecycle e à autoridade específica. |
 | 18 | Observabilidade e operação | `JÁ GOVERNADO` | Arquitetura, Quality Gates e MOD-12 governam logs, métricas, traces, health, incidentes e sanitização. |
 | 19 | Documentação | `ADAPTADO` | Manter a taxonomia existente, uma fonte por assunto, links válidos e história separada; não criar a árvore genérica por imitação. |
-| 20 | Git, GitHub e versionamento | `ADAPTADO` | Adotar Conventional Commits e commit local final automático conforme `AGENTS.md`; branch, PR, push, release e ação remota continuam sem autoridade implícita. |
+| 20 | Git, GitHub e versionamento | `ADAPTADO` | Adotar Conventional Commits e commit local final automático conforme `AGENTS.md`; escrita paralela exige workflow, branches e worktrees especificamente autorizados, enquanto PR, merge, rebase, push, release e ação remota continuam sem autoridade implícita. |
 | 21 | Revisão de código | `ADOTADO` | Priorizar achados acionáveis por severidade, com localização, cenário, impacto, recomendação, evidência e confiança. |
 | 22 | Refatoração | `JÁ GOVERNADO` | Lotes focais, caracterização, compatibilidade e validação proporcional permanecem obrigatórios. |
 | 23 | Dependências e supply chain | `JÁ GOVERNADO` | Quality Gates e segurança governam necessidade, licença, lockfiles, origem, vulnerabilidades e reprodução. |
 | 24 | IA, modelos, MCP, RAG e ferramentas | `ADAPTADO` | Separar agentes de engenharia do produto MOD-12; contratos mais restritos de AIOps, proveniência, avaliação e menor privilégio prevalecem. |
-| 25 | Comunicação | `ADAPTADO` | Atualizações devem ser curtas e factuais; o handoff obrigatório de `AGENTS.md` exige próximo passo e próxima etapa separados, sem transformar indicação de progressão em autorização. |
+| 25 | Comunicação | `ADAPTADO` | Atualizações devem ser curtas e factuais; `AGENTS.md` e `Conversation-Coordination-Prompt.md` governam o handoff, o roteamento, o paralelismo e as mensagens exatas sem transformar indicação de progressão em autorização. |
 | 26 | Segurança operacional | `JÁ GOVERNADO` | Shutdown preflight, proteção de segredos e limites de ações externas do repositório são mais específicos. |
 | 27 | Checklist de release | `CONDICIONAL` | Referência futura de `STATE-08`; não concede autoridade de release no estado atual. |
 | 28 | Checklist final | `ADAPTADO` | Checklist interno não substitui evidência, gates, Human Gate ou handoff obrigatório. |
@@ -677,7 +684,11 @@ Essas funções permitem aproveitar experiência operacional e, ao mesmo tempo, 
 
 ## 6. Modelo operacional para agentes de IA
 
-Quando a plataforma permitir múltiplos agentes, distribua trabalho apenas quando houver ganho real de independência, especialização ou paralelismo.
+Quando a plataforma permitir múltiplos agentes, distribua trabalho apenas
+quando houver ganho real de independência, especialização ou paralelismo e
+aplique integralmente a autoridade
+[`Conversation-Coordination-Prompt.md`](../../Conversation-Coordination-Prompt.md).
+Os papéis abaixo não concedem autoridade automática de escrita.
 
 Papéis possíveis:
 
@@ -697,7 +708,8 @@ Papéis possíveis:
 Regras:
 
 1. atribua a cada agente um escopo delimitado e um resultado esperado;
-2. evite dois agentes editando os mesmos arquivos simultaneamente;
+2. nunca atribua writers sobrepostos ao mesmo arquivo, artefato lógico ou
+   recurso mutável;
 3. compartilhe somente o contexto necessário;
 4. mantenha uma fonte única para decisões e estado;
 5. exija evidências: arquivos, linhas, comandos, testes ou documentação oficial;
@@ -988,6 +1000,11 @@ Para cada incremento:
 10. integrar somente com gates aprovados.
 
 Gate: incremento integrado, testado, documentado e potencialmente entregável.
+
+No DB-Notifier, integrar um candidato autorizado de uma lane na baseline
+coordenada não constitui Human Gate nem transição de lifecycle. A integração
+segue `Conversation-Coordination-Prompt.md`; qualquer gate ou progressão
+continua dependente da auditoria consolidada e da decisão proprietária.
 
 ### Fase 7 — Verificação e validação
 
@@ -2127,7 +2144,7 @@ Antes de encerrar:
 - [ ] declarei o que não foi testado;
 - [ ] registrei riscos e limitações;
 - [ ] não deixei ações necessárias silenciosamente pendentes;
-- [ ] forneci o handoff, o próximo passo e a próxima etapa exigidos pelas instruções específicas do projeto, sem inferir autoridade.
+- [ ] forneci o handoff, o próximo passo, a próxima etapa, o roteamento da conversa e a classificação de paralelismo exigidos pelas instruções específicas do projeto, sem inferir autoridade.
 
 ---
 

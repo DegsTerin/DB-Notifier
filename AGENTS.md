@@ -28,6 +28,9 @@ Resolve conflicts using the precedence in `prompts/Start-Here.md`. A current exp
   - `Next step`: state the single immediate recommended or authorised action, its objective and any authority or gate required before execution. State `None` only when no further project action is known or applicable.
   - `Next stage`: name the technical lot, formal gate, macro stage or lifecycle `STATE` that follows the next step, and state its entry condition. If progression is not authorised or the current stage must remain unchanged, say so explicitly; identifying a next stage never grants or implies authority to enter it.
   - `Your action now`: state `None` when no user action is required. Otherwise give the exact action, expected result, applicable boundary and one self-contained response or command block ready to copy and paste.
+- Apply the governed [`Conversation Coordination and Safe Parallel Work`](Conversation-Coordination-Prompt.md) contract to every hand-off. Append `Conversation action`, `Conversation target`, `Suggested title`, `Conversation reason`, `Exact next message`, `Parallel work`, `Parallel plan`, and `Exact parallel messages` in its exact order. Use only its canonical routing and parallelism values, and never leave placeholders in a real hand-off.
+- Permit only one writer for each path, logical artefact, contract, schema, migration, lockfile, manifest, mutable data set, port, process, runtime, external resource, or other shared mutable boundary. Without a specifically authorised parallel-write Git workflow and isolated worktrees, concurrent conversations remain read-only and all writing is sequential in the coordinating conversation.
+- Keep integration, current state, history, instruction changelog, ADR custody, gate reports and Human Gate presentation in the single coordinating conversation. Custody never grants authority to decide an ADR or Human Gate, advance lifecycle or activation, perform an unauthorised Git operation, or take an external action.
 - Include separate counts for formal decisions, macro stages, lifecycle `STATE`s or product activation only when one of them is part of the user's requested target or the user explicitly asks for that view. Never mix those categories with technical lots, and never make the user decode a broad roadmap to learn whether the current task finished.
 - Calculate every reported remaining-work count after the activity just completed. Name counted items so the number is auditable without inference. Use `minimum N` only when future findings can add work and identify those additions separately. If an exact count is not knowable, write `undetermined`, explain why, and never guess.
 
@@ -113,6 +116,7 @@ Resolve conflicts using the precedence in `prompts/Start-Here.md`. A current exp
 
 - `AGENTS.md`: primary permanent, reusable instructions for repository agents.
 - `prompts/Start-Here.md`: authoritative routing, precedence, and entry to the detailed instruction corpus.
+- `Conversation-Coordination-Prompt.md`: thematic authority for conversation routing, safe parallel work, exclusive ownership and coordinated integration.
 - `prompts/foundation/`: product vision, solution architecture, and AIOps/AI direction.
 - `prompts/governance/`: lifecycle, authority, quality gates, and security/access rules.
 - `prompts/state/Current-State.md`: present factual state only.

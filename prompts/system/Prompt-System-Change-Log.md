@@ -2,10 +2,10 @@
 
 ## Versão atual
 
-- Versão: `6.1.0`
-- Data: 2026-07-28
-- Status: próximo passo e próxima etapa obrigatórios em todo hand-off
-- Escopo: 14 arquivos ativos
+- Versão: `6.2.0`
+- Data: 2026-07-29
+- Status: coordenação de conversas e paralelismo seguro governados
+- Escopo: 15 arquivos ativos
 
 A versão do corpus é independente da versão do software.
 
@@ -16,6 +16,39 @@ A versão do corpus é independente da versão do software.
 - PATCH: clareza, correção ou referência sem mudança de autoridade.
 
 Toda alteração atualiza este arquivo e, quando necessário, `../Start-Here.md`.
+
+## 6.2.0 — 2026-07-29
+
+- Incorpora no próprio local `Conversation-Coordination-Prompt.md`, revisão
+  `1.0.0`, como autoridade temática única de roteamento entre conversas,
+  handoff, paralelismo seguro, ownership exclusivo e integração coordenada. A
+  fonte anterior à adaptação foi preservada por SHA-256
+  `0019950242314908762CAD3E2AEA01C122023E3867885289E04FB3A70CA912D4`.
+- Adota os enums `CONTINUE_CURRENT`, `START_NEW` e `RETURN_TO_EXISTING` para
+  roteamento e `SEQUENTIAL_ONLY`, `PARALLEL_OPTIONAL` e
+  `PARALLEL_RECOMMENDED` para classificação independente do paralelismo.
+- Exige mensagem exata pronta para copiar, label confirmado para retorno,
+  reconciliação de contexto retomado com a baseline vigente e ausência de
+  placeholders em handoffs e mensagens reais.
+- Substitui a orientação genérica de evitar conflito por um único writer para
+  cada path, artefato lógico, contrato e recurso mutável, com stop conditions,
+  fallback sequencial e proibição de last-write-wins ou descarte de trabalho
+  alheio.
+- Determina que, sem workflow Git de escrita paralela especificamente
+  autorizado e worktrees isolados, conversas simultâneas permanecem read-only
+  e toda escrita ocorre sequencialmente na conversa coordenadora. Git existente
+  e commit local final não autorizam branch, worktree, merge ou rebase.
+- Reserva integração, estado, histórico, changelog, ADRs, relatórios e decisões
+  de gate e apresentação de Human Gates à coordenadora, sem lhe conceder
+  autoridade decisória sobre ADR, Human Gate, lifecycle, ativação, operação Git
+  ou ação externa.
+- Integra o contrato nos templates e Quality Gates e encaminha a especialização
+  por `AGENTS.md`, `Start-Here.md`, `Governance.md` e a matriz de adoção do
+  Prompt Mestre. O corpus passa de 14 para 15 arquivos ativos.
+- Não altera código, configuração executável, dependência, build, teste,
+  runtime, ADR, Human Gate, `STATE-06 INTEGRATION`,
+  `MOD-12 ActivationState=None`, lifecycle, provider, suporte, infraestrutura
+  ou autoridade externa.
 
 ## 6.1.0 — 2026-07-28
 
