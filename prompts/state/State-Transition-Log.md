@@ -5285,3 +5285,72 @@
 - Aprovador: elaboração documental autorizada explicitamente por Bruno;
   nenhuma aprovação técnica, Human Gate, ativação ou progressão de lifecycle
   inferida.
+
+## 2026-07-29 — Fechamentos MOD-12 e JOSE definidos como pré-condições estratégicas
+
+- Estado anterior: `STATE-06 INTEGRATION`, elegibilidade `NÃO REAVALIADA`,
+  proposta reconciliada no commit `04db659`, MOD-12
+  `ActivationState=None`, O5/PF-OBS sem aprovação, JOSE-0 apenas documental e
+  ADR-0008 `proposed`.
+- Autoridade: revisão exclusivamente documental da proposta
+  `STATE-06 → STATE-07` para estabelecer como pré-condição estratégica a
+  conclusão dos escopos de integração `STATE-06` de MOD-12 e JOSE. Código,
+  build, testes, runtime, downloads, acesso externo, dependências, `JOSE-1`,
+  `D9`, ativação MOD-12 e transição de lifecycle permaneceram não
+  autorizados.
+- Preflight: zero processo, listener ou janela pertencente ao DB-Notifier;
+  branch `main`, worktree limpa e baseline administrativa
+  `04db6594e192dec822fbd326c792eec4f3a37714`. Nenhum database engine,
+  browser comum, IDE ou processo alheio foi encerrado.
+- Baselines: `9512dc1` permanece a última árvore executável inventariada;
+  `04db659` é seu descendente documental direto e a baseline administrativa
+  imediatamente anterior a esta revisão. Nenhuma delas é a futura baseline
+  técnica depois dos fechamentos.
+- Diretriz estratégica: a revalidação consolidada de saída somente poderá ser
+  proposta depois de concluídos e aprovados os dois escopos de integração. A
+  diretriz não altera o lifecycle canônico e não autoriza os lotes que define;
+  sua delimitação detalhada permanece preparada e pendente de revisão.
+- MOD-12 no `STATE-06`: o fechamento proposto revalida O1–O4 e um único E2E
+  product-owned Agent → Server → MOD-12 → API/UI, com adapters/activation
+  guard reais exercidos por harness sintético, sem implementação paralela,
+  com zero worker/I/O em `ActivationState=None`, zero LLM, recomendação,
+  plano, comando ou automação.
+- MOD-12 posterior: PF-OBS, O5, corpus representativo, calibração, célula
+  exata, segurança/red team, carga e recuperação permanecem no handoff
+  bloqueante de homologação/ativação de `STATE-07`. `D9` permanece diagnóstico
+  opcional, não autorizado e não automático. Rollout por modo pertence a
+  `STATE-08`.
+- JOSE no `STATE-06`: o fechamento proposto percorre `JOSE-1`, `JOSE-D1`,
+  `JOSE-2`, `JOSE-3A`, `JOSE-3B` quando aplicável, `JOSE-4` e os sublotes
+  `JOSE-5` selecionados. `JOSE-1` mede cinco profiles candidatos e seis
+  serializações; `JOSE-D1` congela o conjunto aceito, sem mínimo técnico
+  pré-julgado. Cada lote conserva gate proprietário, integração bounded e
+  nenhum claim operacional.
+- JOSE posterior: `JOSE-6`, provisionamento não produtivo e homologação exata
+  pertencem a `STATE-07`; `JOSE-7`, release e claim público pertencem a
+  `STATE-08`.
+- Matriz: acrescentados `PC-M12-01`–`04` e `PC-JOSE-01`–`05`; `RV-01`,
+  `RV-10`, `RV-11`, critérios de elegibilidade, condições de parada,
+  autoridades futuras e plano inicial de `STATE-07` foram reconciliados com
+  a nova ordem.
+- Escopo documental: proposta reconciliada, snapshot factual, entrada
+  append-only e índice. A proposta histórica invalidada permaneceu
+  inalterada.
+- Revisão: boundaries MOD-12, sequência JOSE e coerência da estratégia
+  receberam passes independentes somente leitura, sem edição ou execução.
+- Gates executáveis: validators de documentação, code-doc gate, secret/host
+  scan, build, testes e runtime `NÃO EXECUTADOS`, porque não integraram a
+  autoridade limitada deste lote. Nenhum resultado técnico foi inferido.
+- Estado resultante: `STATE-06 INTEGRATION`, elegibilidade `NÃO REAVALIADA`,
+  transição `NÃO AUTORIZADA`, `MOD-12 ActivationState=None`, O5/PF-OBS sem
+  aprovação e ADR-0008 `proposed` permanecem inalterados.
+- Evidência proprietária:
+  [proposta reconciliada revisada](../../docs/STATE-06-To-STATE-07-Transition-Revalidation-Proposal.md)
+  e [estado factual](Current-State.md).
+- Próxima condição: revisão humana desta proposta revisada. Seu aceite não
+  autorizará execução; um plano de fechamento MOD-12, `JOSE-1`, cada lote
+  técnico, a revalidação, as amostras humanas, o Human Gate e a transição
+  continuarão a exigir autoridades próprias.
+- Aprovador: diretriz estratégica e elaboração documental autorizadas
+  explicitamente por Bruno; nenhuma aprovação técnica, ativação, homologação
+  ou progressão de lifecycle inferida.

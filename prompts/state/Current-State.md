@@ -30,22 +30,31 @@ proprietários.
   [proposta histórica `STATE-06 → STATE-07`](../../docs/STATE-06-To-STATE-07-Transition-Proposal.md)
   permanece `INVALIDADA PARA EXECUÇÃO`. A
   [nova proposta reconciliada](../../docs/STATE-06-To-STATE-07-Transition-Revalidation-Proposal.md)
-  está apenas `PREPARADA`, com elegibilidade `NÃO REAVALIADA`; ela inventaria
-  as mudanças posteriores e define uma matriz proporcional, mas não autoriza
-  revalidação técnica, Human Gate ou transição.
+  foi revisada para incorporar a diretriz estratégica de concluir os escopos
+  de integração `STATE-06` de MOD-12 e JOSE antes da revalidação consolidada
+  de saída. A diretriz de alto nível está estabelecida; a delimitação
+  detalhada `PC-M12`/`PC-JOSE` está `PREPARADA` e `PENDENTE DE REVISÃO`.
+  A proposta continua não autorizante, com elegibilidade `NÃO REAVALIADA`.
 - O estado de ativação de MOD-12 é `ActivationState=None`. `OBSERVER`,
   `ADVISOR`, `ASSISTANT` e `CONTROLLED_AUTOMATION` permanecem inativos.
 - O gate de ativação `None → Observer` e uma transição de lifecycle são
   decisões independentes. Nenhuma delas pode ser inferida da outra.
+- A pré-condição estratégica não exige AIOps ou JOSE operacionalmente
+  completos antes de `STATE-07`: exige somente os escopos integrados,
+  bounded, verificáveis e fail-closed pertencentes ao `STATE-06`. MOD-12 O5,
+  homologação JOSE, ativação, suporte público e release conservam fases e
+  decisões próprias.
 
 ## Baseline técnica
 
-- A baseline técnica pré-lote examinada é
+- A última árvore executável inventariada é
   `9512dc1de15619eadd9d2e8e6b5476bb77a13abd`, de 2026-07-28. Ela estava na
   branch `main`, com worktree limpa, e contém como ancestrais `84217c6`,
-  `2c1e05f`, `1a27dca`, `96cf248`, `ff0adc7` e `3c13d57`. A reconciliação
-  documental de 2026-07-29 parte dessa árvore e permanece restrita aos quatro
-  documentos inventariados; isso não constitui revalidação técnica.
+  `2c1e05f`, `1a27dca`, `96cf248`, `ff0adc7` e `3c13d57`. A baseline
+  administrativa imediatamente anterior à revisão estratégica é
+  `04db6594e192dec822fbd326c792eec4f3a37714`, descendente direto que alterou
+  somente os quatro documentos da reconciliação. Nenhuma das duas constitui
+  a futura baseline técnica depois dos fechamentos MOD-12/JOSE.
 - Entre a baseline examinada pelo Human Gate final `1a27dca` e `9512dc1`
   existem `143` commits, `440` caminhos alterados, `90.922` inserções e
   `2.993` remoções. O intervalo inclui `126` caminhos em `src/`, `127` em
@@ -165,6 +174,12 @@ proprietários.
   decision packets permanecem não autorizados ou fora do escopo. Não há JWE,
   emissão JWS própria, ciclo de chaves operacional, IdP, vault/KMS/HSM ou
   capacidade JOSE no runtime além do relying-party JWT/JWKS já descrito.
+- A diretriz estratégica de 2026-07-29 tornou o futuro fechamento
+  `JOSE STATE-06 INTEGRATION SCOPE COMPLETE` pré-condição da revalidação de
+  saída. O escopo proposto percorre `JOSE-1`, `JOSE-D1` e os lotes
+  `JOSE-2/3/4/5` aplicáveis, todos sob decisões separadas; não antecipa
+  `JOSE-6`/homologação de `STATE-07`, `JOSE-7`/release de `STATE-08` ou
+  qualquer autoridade executiva.
 - Não há loader dinâmico nem carregamento ou distribuição operacional de
   provider packages, instalador, assinatura, update channel ou entrega
   operacional. `REQ-050` permanece `PARCIAL`: a matriz clean-room existe, mas
@@ -294,25 +309,35 @@ proprietários.
 - PF-OBS-1 e O5 permanecem sem aprovação. A causa do pico físico residual,
   corpus e ambiente piloto representativos, calibração operacional,
   homologação exata da célula e owners materiais continuam pendentes.
+- A diretriz estratégica de 2026-07-29 tornou o futuro fechamento
+  `MOD-12 STATE-06 INTEGRATION SCOPE COMPLETE` pré-condição da revalidação de
+  saída. A delimitação preparada exige revalidar O1–O4 num único boundary
+  product-owned, com adapters/activation guard reais exercidos por harness
+  sintético, sem implementação test-only paralela e com zero worker/I/O em
+  `ActivationState=None`. PF-OBS, O5 e D9 não são reclassificados nem
+  executados: permanecem no handoff de homologação/ativação de `STATE-07`,
+  com D9 opcional e dependente de autorização própria.
 
 ## Decisões que exigem nova autoridade
 
 - Qualquer novo diagnóstico, mudança metodológica ou campanha física requer
-  autorização explícita e separada.
+  autorização explícita e separada. `D9` não foi autorizado nem transformado
+  em pré-condição automática.
 - `JOSE-1`, `JOSE-D1`, aceitação do ADR-0008 e qualquer código, dependência,
   migration, login/IdP, chave, custodiante, egress candidate, infraestrutura,
   homologação ou profile JOSE operacional exigem decisões explícitas e
-  separadas. O aceite humano limitado de `JOSE-0` não concede essas
-  autoridades.
+  separadas. A nova direção torna o fechamento integrado `JOSE-1`–`JOSE-5`
+  aplicável uma pré-condição futura, mas o aceite humano limitado de `JOSE-0`
+  não concede nenhuma dessas autoridades.
 - Qualquer ativação `None → Observer` exige os gates próprios e uma decisão
-  explícita; o bloqueio corrente não pode ser contornado por mudança de
-  lifecycle.
+  explícita. O fechamento sintético MOD-12 no `STATE-06` não aprova O5, e o
+  bloqueio de ativação não pode ser contornado por mudança de lifecycle.
 - Qualquer transição para `STATE-07` exige decisão de lifecycle própria. A
-  nova proposta preparada recomenda, sem criar autoridade ou requisito
-  vigente, revalidação técnica, novas amostras humanas e um Human Gate de
-  revalidação antes dessa decisão; sua aceitação e aplicabilidade continuam
-  pendentes. O Human Gate de 2026-07-20 e os gates posteriores permanecem
-  históricos nos seus escopos. A proposta antiga está invalidada, e a nova
-  não concede nenhuma autoridade.
+  estratégia vigente exige antes dela os fechamentos de integração STATE-06
+  de MOD-12 e JOSE, a revalidação consolidada da baseline resultante, novas
+  amostras humanas e um Human Gate de revalidação. Cada item exige autoridade
+  própria. O Human Gate de 2026-07-20 e os gates posteriores permanecem
+  históricos nos seus escopos; a proposta antiga está invalidada, e a nova
+  não concede autoridade executiva.
 - Produção, PostgreSQL operacional, provider homologado, runtime externo,
   publicação, deploy e ação administrativa real continuam não autorizados.
