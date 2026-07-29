@@ -326,12 +326,23 @@ proprietários.
   reclassificados nem executados: permanecem no handoff de
   homologação/ativação de `STATE-07`, com D9 opcional e dependente de
   autorização própria.
+- O
+  [plano documental de fechamento MOD-12](../../docs/STATE-06-MOD-12-Integration-Closure-Plan.md)
+  foi preparado em 2026-07-29 sobre a baseline administrativa `2a59548` e
+  está `PENDENTE DE REVISÃO`. Ele ordena o trabalho futuro como
+  `PC-M12-02 → PC-M12-03 → PC-M12-01 → PC-M12-04` e o decompõe em
+  `M12-IC1`–`M12-IC6`. Nenhum desses lotes, gate ou amostra humana está
+  autorizado; o plano não altera qualquer resultado técnico.
 
 ## Decisões que exigem nova autoridade
 
 - Qualquer novo diagnóstico, mudança metodológica ou campanha física requer
   autorização explícita e separada. `D9` não foi autorizado nem transformado
   em pré-condição automática.
+- O plano `M12-IC1`–`M12-IC6` está somente preparado para revisão documental.
+  Seu eventual aceite não autorizará código, build, testes, runtime, amostras
+  humanas ou classificação de fechamento; cada autoridade permanece
+  separada.
 - `JOSE-1`, `JOSE-D1`, aceitação do ADR-0008 e qualquer código, dependência,
   migration, login/IdP, chave, custodiante, egress candidate, infraestrutura,
   homologação ou profile JOSE operacional exigem decisões explícitas e

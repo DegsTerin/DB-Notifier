@@ -316,6 +316,12 @@ externo, ativação ou decisão.
 | `PC-M12-03` | revalidar trust, quarantine, fencing, budgets, deadline, cancellation, isolamento, cleanup e os estados factuais `Unknown`, `Stale` e `InsufficientEvidence` | nenhum resultado parcial, stale ou probabilístico concede autoridade |
 | `PC-M12-04` | produzir Quality Gate e revisão humana proporcionais, com relatório que classifique o escopo como `MOD-12 STATE-06 INTEGRATION SCOPE COMPLETE` | boundary/guard product-owned presentes; composição normal continua dormente/fail-closed, com zero hosted worker, scheduling ou I/O em `ActivationState=None`, sem LLM, recomendação, plano, comando ou automação |
 
+O
+[plano documental de fechamento MOD-12](STATE-06-MOD-12-Integration-Closure-Plan.md)
+decompõe esses requisitos nos lotes futuros `M12-IC1`–`M12-IC6` e está
+`PREPARADO` e `PENDENTE DE REVISÃO`. Ele não autoriza qualquer lote técnico,
+gate, amostra humana, ativação ou lifecycle.
+
 O claim máximo permitido antes de `STATE-07` será: **“candidato Observer
 integrado e revalidado em sandbox sintético; composição normal mantida
 dormente e fail-closed, com `ActivationState=None`; pronto para
@@ -500,23 +506,25 @@ Cada passo para ao concluir e não concede o seguinte:
 
 1. **Revisar a delimitação documental `PC-M12`/`PC-JOSE`: CONCLUÍDO.** O
    aceite foi exclusivamente como diretriz documental e não aprovou execução.
-2. **Autorizar um plano de fechamento MOD-12 STATE-06** e, depois, cada
-   remediação, integração, Quality Gate ou amostra humana que esse plano
-   delimitar.
-3. **Autorizar `JOSE-1`**; revisar sua evidência em `JOSE-D1`; somente depois
+2. **Elaborar o plano de fechamento MOD-12 STATE-06: CONCLUÍDO
+   DOCUMENTALMENTE.** O plano está pendente de revisão.
+3. **Revisar e aceitar, ressalvar, devolver ou rejeitar o plano MOD-12.**
+4. **Autorizar separadamente `M12-IC1`–`M12-IC5`, as amostras `M12-IC6` e a
+   decisão de fechamento**, sem inferir uma autoridade da anterior.
+5. **Autorizar `JOSE-1`**; revisar sua evidência em `JOSE-D1`; somente depois
    autorizar separadamente `JOSE-2`, `JOSE-3A`, `JOSE-3B` se aplicável,
    `JOSE-4` e os sublotes `JOSE-5` selecionados.
-4. **Registrar os dois fechamentos de integração STATE-06** sem ativação,
+6. **Registrar os dois fechamentos de integração STATE-06** sem ativação,
    homologação ou claim operacional.
-5. **Autorizar a revalidação técnica automática consolidada**, com baseline,
+7. **Autorizar a revalidação técnica automática consolidada**, com baseline,
    comandos, runtime local, downloads/rede e laboratórios delimitados.
-6. **Autorizar as seis amostras humanas novas**, somente se o relatório
+8. **Autorizar as seis amostras humanas novas**, somente se o relatório
    automático permitir.
-7. **Decidir o Human Gate de revalidação do STATE-06**, depois do resumo
+9. **Decidir o Human Gate de revalidação do STATE-06**, depois do resumo
    informado.
-8. **Autorizar a transição documental `STATE-06 → STATE-07`**, em decisão
+10. **Autorizar a transição documental `STATE-06 → STATE-07`**, em decisão
    separada.
-9. **Já em STATE-07, autorizar uma proposta de plano mestre de homologação.**
+11. **Já em STATE-07, autorizar uma proposta de plano mestre de homologação.**
 
 Os programas MOD-12 e JOSE podem ter lotes sequenciais ou independentes
 somente quando ownership, arquivos, recursos e gates não se sobrepuserem. Esta

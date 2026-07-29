@@ -5401,3 +5401,56 @@
   `STATE-06`, também sob autorização própria.
 - Aprovador: Bruno, por decisão explícita em 2026-07-29, limitada à diretriz
   documental `PC-M12`/`PC-JOSE`.
+
+## 2026-07-29 — Plano documental de fechamento MOD-12 STATE-06 preparado
+
+- Estado anterior: `STATE-06 INTEGRATION`, elegibilidade `NÃO REAVALIADA`,
+  delimitação `PC-M12`/`PC-JOSE` aceita somente como diretriz documental,
+  MOD-12 `ActivationState=None`, O5/PF-OBS sem aprovação e nenhum lote de
+  fechamento autorizado.
+- Autoridade humana exata:
+  `AUTORIZO exclusivamente um lote documental para elaborar o plano de
+  fechamento MOD-12 STATE-06 conforme PC-M12-01–04. Não autorizo código,
+  build, testes, runtime, downloads, acesso externo, dependências, D9, O5,
+  PF-OBS, ativação MOD-12, JOSE-1 nem transição de lifecycle.`
+- Preflight: a primeira leitura limitada pelo sandbox não obteve acesso ao
+  inventário CIM e não foi usada como evidência. A inspeção local completa,
+  somente leitura e autorizada em seguida confirmou zero processo, listener
+  ou janela pertencente ao DB-Notifier, branch `main`, worktree limpa e
+  baseline `2a59548788bb6cbe6f88bbf531bd953b718165d8`. Nenhum database engine,
+  browser comum, IDE ou processo alheio foi encerrado.
+- Inventário factual: os commits revistos de O1, O2-A, O2-B, O3-A, O3-B,
+  O4/O4-UI1, O5-R2 e O5-R3 são ancestrais da baseline. Seus relatórios e
+  Human Gates permanecem proveniência nos escopos históricos, não aprovação
+  corrente. A orquestração O1–O4 continua maioritariamente test-owned e não
+  existe ainda o único caminho product-owned exigido por `PC-M12-02`.
+- Plano: criado
+  [o plano de fechamento MOD-12](../../docs/STATE-06-MOD-12-Integration-Closure-Plan.md),
+  com seis lotes futuros `M12-IC1`–`M12-IC6`, ordem técnica
+  `PC-M12-02 → PC-M12-03 → PC-M12-01 → PC-M12-04`, matriz de
+  rastreabilidade, critérios mensuráveis, stop conditions, rollback, cleanup,
+  claims e handoff.
+- Autoridades: o plano prevê mínimo oito decisões futuras — revisão do plano,
+  cinco autoridades `M12-IC1`–`IC5`, autoridade das amostras `M12-IC6` e
+  decisão do fechamento. Remediações acrescentam autoridades; nenhuma é
+  concedida por este registro.
+- Escopo documental: novo plano, proposta reconciliada, snapshot factual,
+  entrada append-only e índice. Nenhum relatório ou Human Gate histórico foi
+  reescrito.
+- Escopo negativo: zero source, teste, configuração executável, dependency,
+  migration/schema, build, runtime, download, acesso externo, D9, O5,
+  PF-OBS/HM, JOSE, ativação, homologação, deploy, publicação ou lifecycle.
+- Revisão: boundaries O1/O2, O3/O4 e governança/autoridade receberam passes
+  independentes somente leitura. Validators de documentação, secret/host
+  scan, build, testes e runtime não foram executados porque não integraram a
+  autoridade deste lote.
+- Estado resultante: `STATE-06 INTEGRATION`, elegibilidade `NÃO REAVALIADA`,
+  MOD-12 `ActivationState=None`, O5 `BLOQUEADO`, PF-OBS/HM sem aprovação,
+  D9 não autorizado e lifecycle inalterado. O plano está `PREPARADO` e
+  `PENDENTE DE REVISÃO`; nenhum `PC-M12` foi classificado como satisfeito.
+- Próxima condição: revisão humana somente do plano, para aceitá-lo como
+  direção documental, ressalvá-lo, devolvê-lo ou rejeitá-lo. Mesmo um aceite
+  sem ressalvas não autorizará `M12-IC1`.
+- Aprovador: elaboração documental autorizada explicitamente por Bruno;
+  nenhuma aprovação técnica, Quality Gate, Human Gate, ativação ou progressão
+  inferida.
