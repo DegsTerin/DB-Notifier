@@ -5354,3 +5354,50 @@
 - Aprovador: diretriz estratégica e elaboração documental autorizadas
   explicitamente por Bruno; nenhuma aprovação técnica, ativação, homologação
   ou progressão de lifecycle inferida.
+
+## 2026-07-29 — Delimitação PC-M12/PC-JOSE aceita somente como diretriz documental
+
+- Estado anterior: `STATE-06 INTEGRATION`, elegibilidade `NÃO REAVALIADA`,
+  proposta revisada no commit `db62377`, delimitação detalhada
+  `PC-M12`/`PC-JOSE` pendente de revisão, MOD-12 `ActivationState=None`,
+  O5/PF-OBS sem aprovação e ADR-0008 `proposed`.
+- Decisão humana exata:
+  `REVISEI a proposta revisada STATE-06 → STATE-07 e ACEITO a delimitação
+  PC-M12 e PC-JOSE exclusivamente como diretriz documental de fechamento da
+  integração STATE-06. Esta decisão não autoriza código, build, testes,
+  runtime, downloads, acesso externo, dependências, JOSE-1, D9, ativação
+  MOD-12 nem transição de lifecycle.`
+- Efeito: revisão humana da delimitação documental encerrada como `ACEITA
+  EXCLUSIVAMENTE COMO DIRETRIZ DOCUMENTAL DE FECHAMENTO DA INTEGRAÇÃO
+  STATE-06`. Nenhuma condição `PC-M12` ou `PC-JOSE` foi classificada como
+  tecnicamente satisfeita, aprovada ou executada.
+- Preflight do registro: baseline
+  `db62377e5d762e7ee334e7bf0e7309a0ab5c4b9b`, branch `main`, worktree limpa
+  e zero processo, listener ou janela pertencente ao DB-Notifier. Nenhum
+  database engine, browser comum, IDE ou processo alheio foi encerrado.
+- Alteração executada: somente status e memória factual da proposta,
+  `Current-State`, histórico append-only e índice documental. A proposta
+  histórica invalidada e a árvore executável `9512dc1` permaneceram
+  inalteradas.
+- Escopo negativo: zero source, configuração executável, dependência,
+  migration/schema, build, teste, runtime, download, acesso externo,
+  `JOSE-1`, `JOSE-D1`, decisão ADR, `D9`, O5/PF-OBS, ativação MOD-12,
+  homologação, deploy, publicação ou transição de lifecycle.
+- Verificação do registro: somente inspeções locais Git/textuais, conferência
+  da whitelist documental e higiene do diff. Validators de documentação,
+  secret/host scan, build, testes e runtime não foram executados porque não
+  integraram a autoridade deste lote.
+- Estado resultante: `STATE-06 INTEGRATION`, elegibilidade `NÃO REAVALIADA`,
+  transição `NÃO AUTORIZADA`, MOD-12 `ActivationState=None`, O5/PF-OBS sem
+  aprovação e ADR-0008 `proposed` permanecem inalterados. A aceitação não é
+  Quality Gate, Human Gate, `JOSE-D1`, ativação ou autorização executiva.
+- Evidência proprietária:
+  [proposta reconciliada revisada](../../docs/STATE-06-To-STATE-07-Transition-Revalidation-Proposal.md)
+  e [estado factual](Current-State.md).
+- Próxima condição: qualquer plano de fechamento MOD-12, `JOSE-1`, lote
+  técnico, revalidação, amostra humana, Human Gate ou transição requer nova
+  autoridade explícita e separada. Pela sequência aceita, o próximo passo
+  recomendado é somente um plano documental de fechamento MOD-12
+  `STATE-06`, também sob autorização própria.
+- Aprovador: Bruno, por decisão explícita em 2026-07-29, limitada à diretriz
+  documental `PC-M12`/`PC-JOSE`.

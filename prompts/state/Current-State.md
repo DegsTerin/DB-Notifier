@@ -32,9 +32,11 @@ proprietários.
   [nova proposta reconciliada](../../docs/STATE-06-To-STATE-07-Transition-Revalidation-Proposal.md)
   foi revisada para incorporar a diretriz estratégica de concluir os escopos
   de integração `STATE-06` de MOD-12 e JOSE antes da revalidação consolidada
-  de saída. A diretriz de alto nível está estabelecida; a delimitação
-  detalhada `PC-M12`/`PC-JOSE` está `PREPARADA` e `PENDENTE DE REVISÃO`.
-  A proposta continua não autorizante, com elegibilidade `NÃO REAVALIADA`.
+  de saída. A delimitação detalhada `PC-M12`/`PC-JOSE` foi aceita em
+  2026-07-29 exclusivamente como diretriz documental de fechamento da
+  integração `STATE-06`. A proposta continua não autorizante, com todos os
+  itens técnicos pendentes de autoridades próprias e elegibilidade `NÃO
+  REAVALIADA`.
 - O estado de ativação de MOD-12 é `ActivationState=None`. `OBSERVER`,
   `ADVISOR`, `ASSISTANT` e `CONTROLLED_AUTOMATION` permanecem inativos.
 - O gate de ativação `None → Observer` e uma transição de lifecycle são
@@ -51,10 +53,13 @@ proprietários.
   `9512dc1de15619eadd9d2e8e6b5476bb77a13abd`, de 2026-07-28. Ela estava na
   branch `main`, com worktree limpa, e contém como ancestrais `84217c6`,
   `2c1e05f`, `1a27dca`, `96cf248`, `ff0adc7` e `3c13d57`. A baseline
-  administrativa imediatamente anterior à revisão estratégica é
+  administrativa da primeira reconciliação é
   `04db6594e192dec822fbd326c792eec4f3a37714`, descendente direto que alterou
-  somente os quatro documentos da reconciliação. Nenhuma das duas constitui
-  a futura baseline técnica depois dos fechamentos MOD-12/JOSE.
+  somente os quatro documentos da reconciliação. A revisão estratégica
+  aceita somente como diretriz documental está em
+  `db62377e5d762e7ee334e7bf0e7309a0ab5c4b9b`, descendente documental direto
+  de `04db659`. Nenhuma dessas referências constitui a futura baseline técnica
+  depois dos fechamentos MOD-12/JOSE.
 - Entre a baseline examinada pelo Human Gate final `1a27dca` e `9512dc1`
   existem `143` commits, `440` caminhos alterados, `90.922` inserções e
   `2.993` remoções. O intervalo inclui `126` caminhos em `src/`, `127` em
@@ -179,7 +184,9 @@ proprietários.
   saída. O escopo proposto percorre `JOSE-1`, `JOSE-D1` e os lotes
   `JOSE-2/3/4/5` aplicáveis, todos sob decisões separadas; não antecipa
   `JOSE-6`/homologação de `STATE-07`, `JOSE-7`/release de `STATE-08` ou
-  qualquer autoridade executiva.
+  qualquer autoridade executiva. A delimitação `PC-JOSE-01`–`05` foi aceita
+  somente como direção documental; `JOSE-1`, `JOSE-D1` e os lotes posteriores
+  continuam não autorizados.
 - Não há loader dinâmico nem carregamento ou distribuição operacional de
   provider packages, instalador, assinatura, update channel ou entrega
   operacional. `REQ-050` permanece `PARCIAL`: a matriz clean-room existe, mas
@@ -311,12 +318,14 @@ proprietários.
   homologação exata da célula e owners materiais continuam pendentes.
 - A diretriz estratégica de 2026-07-29 tornou o futuro fechamento
   `MOD-12 STATE-06 INTEGRATION SCOPE COMPLETE` pré-condição da revalidação de
-  saída. A delimitação preparada exige revalidar O1–O4 num único boundary
+  saída. A delimitação `PC-M12-01`–`04`, aceita somente como direção
+  documental, exige no futuro revalidar O1–O4 num único boundary
   product-owned, com adapters/activation guard reais exercidos por harness
   sintético, sem implementação test-only paralela e com zero worker/I/O em
-  `ActivationState=None`. PF-OBS, O5 e D9 não são reclassificados nem
-  executados: permanecem no handoff de homologação/ativação de `STATE-07`,
-  com D9 opcional e dependente de autorização própria.
+  `ActivationState=None`. Nenhum lote foi autorizado. PF-OBS, O5 e D9 não são
+  reclassificados nem executados: permanecem no handoff de
+  homologação/ativação de `STATE-07`, com D9 opcional e dependente de
+  autorização própria.
 
 ## Decisões que exigem nova autoridade
 
@@ -326,9 +335,10 @@ proprietários.
 - `JOSE-1`, `JOSE-D1`, aceitação do ADR-0008 e qualquer código, dependência,
   migration, login/IdP, chave, custodiante, egress candidate, infraestrutura,
   homologação ou profile JOSE operacional exigem decisões explícitas e
-  separadas. A nova direção torna o fechamento integrado `JOSE-1`–`JOSE-5`
-  aplicável uma pré-condição futura, mas o aceite humano limitado de `JOSE-0`
-  não concede nenhuma dessas autoridades.
+  separadas. A direção documental aceita torna o fechamento integrado
+  `JOSE-1`–`JOSE-5` aplicável uma pré-condição futura, mas nem o aceite da
+  delimitação nem o aceite humano limitado de `JOSE-0` concedem qualquer
+  dessas autoridades.
 - Qualquer ativação `None → Observer` exige os gates próprios e uma decisão
   explícita. O fechamento sintético MOD-12 no `STATE-06` não aprova O5, e o
   bloqueio de ativação não pode ser contornado por mudança de lifecycle.

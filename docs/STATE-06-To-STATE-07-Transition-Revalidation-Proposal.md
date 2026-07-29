@@ -1,9 +1,8 @@
 # Proposta reconciliada de revalidação — STATE-06 para STATE-07
 
-> **PROPOSTA PREPARATÓRIA REVISADA. A CONCLUSÃO DOS ESCOPOS DE INTEGRAÇÃO
-> STATE-06 DE MOD-12 E JOSE É PRÉ-CONDIÇÃO ESTRATÉGICA. IMPLEMENTAÇÃO,
-> REVALIDAÇÃO TÉCNICA, HUMAN GATE E TRANSIÇÃO NÃO EXECUTADOS NEM
-> AUTORIZADOS.**
+> **DELIMITAÇÃO PC-M12/PC-JOSE ACEITA SOMENTE COMO DIRETRIZ DOCUMENTAL DE
+> FECHAMENTO DA INTEGRAÇÃO STATE-06. IMPLEMENTAÇÃO, REVALIDAÇÃO TÉCNICA,
+> HUMAN GATE E TRANSIÇÃO NÃO EXECUTADOS NEM AUTORIZADOS.**
 
 ## Status e autoridade
 
@@ -16,6 +15,9 @@
 - Baseline administrativa imediatamente anterior a esta revisão: commit
   `04db6594e192dec822fbd326c792eec4f3a37714`, descendente documental direto
   de `9512dc1`, branch `main`, worktree limpa no preflight.
+- Baseline administrativa da proposta revisada pelo proprietário: commit
+  `db62377e5d762e7ee334e7bf0e7309a0ab5c4b9b`, descendente documental direto
+  de `04db659`, branch `main`, worktree limpa no preflight deste registro.
 - Baseline do Human Gate final histórico: commit
   `1a27dca393f00bc683235d7f8898dcc86f5841e0`.
 - Registro factual daquele Human Gate: commit
@@ -30,21 +32,23 @@
 - Pré-condição estratégica estabelecida pelo proprietário: concluir e aprovar
   os escopos de integração `STATE-06` de MOD-12 e JOSE antes da revalidação
   consolidada que poderá sustentar uma futura decisão de transição.
-- Status da delimitação detalhada `PC-M12`/`PC-JOSE`: `PREPARADA` e
-  `PENDENTE DE REVISÃO`; a diretriz de alto nível não aceita antecipadamente
-  esta matriz nem autoriza executá-la.
+- Status da delimitação detalhada `PC-M12`/`PC-JOSE`: `ACEITA
+  EXCLUSIVAMENTE COMO DIRETRIZ DOCUMENTAL DE FECHAMENTO DA INTEGRAÇÃO
+  STATE-06`; nenhum item técnico da matriz foi autorizado ou executado.
 
 O lote documental anterior reconciliou o estado factual com `9512dc1`,
-inventariou as mudanças posteriores aos gates e produziu esta proposta no
-commit `04db659`. O proprietário autorizou agora exclusivamente sua revisão
-documental para estabelecer a conclusão dos escopos de integração `STATE-06`
-de MOD-12 e JOSE como pré-condição estratégica da passagem para `STATE-07`.
-Não autorizou código, build, testes, runtime, downloads, acesso externo,
-dependências, `JOSE-1`, `D9`, ativação do MOD-12 ou transição de lifecycle.
+inventariou as mudanças posteriores aos gates e produziu a primeira versão
+desta proposta no commit `04db659`. A revisão que delimitou `PC-M12` e
+`PC-JOSE` foi entregue no commit `db62377`. O proprietário revisou essa
+versão e aceitou a delimitação somente como diretriz documental de fechamento
+da integração `STATE-06`. Não autorizou código, build, testes, runtime,
+downloads, acesso externo, dependências, `JOSE-1`, `D9`, ativação do MOD-12
+ou transição de lifecycle.
 
-O commit que entregar esta revisão documental será descendente de `04db659`.
+O commit que registrar esta decisão documental será descendente de
+`db62377`.
 Ele somente poderá ser tratado como uma futura baseline administrativa se o
-seu delta contra `04db659` estiver restrito a estes quatro caminhos:
+seu delta contra `db62377` estiver restrito a estes quatro caminhos:
 
 1. `docs/STATE-06-To-STATE-07-Transition-Revalidation-Proposal.md`;
 2. `docs/README.md`;
@@ -53,6 +57,22 @@ seu delta contra `04db659` estiver restrito a estes quatro caminhos:
 
 Qualquer outro caminho, mudança concorrente ou delta técnico exige novo
 inventário antes de uma futura revalidação.
+
+## Decisão humana sobre a delimitação
+
+Em 2026-07-29, Bruno registrou a seguinte decisão:
+
+> REVISEI a proposta revisada STATE-06 → STATE-07 e ACEITO a delimitação
+> PC-M12 e PC-JOSE exclusivamente como diretriz documental de fechamento da
+> integração STATE-06. Esta decisão não autoriza código, build, testes,
+> runtime, downloads, acesso externo, dependências, JOSE-1, D9, ativação
+> MOD-12 nem transição de lifecycle.
+
+O efeito desta decisão limita-se a encerrar a revisão humana da delimitação
+documental `PC-M12`/`PC-JOSE`. Ela não classifica qualquer condição como
+tecnicamente satisfeita, não reavalia a elegibilidade, não decide ADR-0008 ou
+`JOSE-D1`, não aprova O5/PF-OBS, não ativa MOD-12 e não concede autoridade
+para o passo seguinte.
 
 ## Relação com a proposta histórica
 
@@ -111,7 +131,7 @@ Esta proposta roteia esses escopos; não os substitui.
 
 ## Baselines e proveniência
 
-| Âncora | Papel histórico | Relação observada com `04db659` |
+| Âncora | Papel histórico | Relação observada com `db62377` |
 |---|---|---|
 | `84217c64312a024ec4f286adfe4872184a21849c` | baseline da campanha automática consolidada do STATE-06 | ancestral |
 | `2c1e05fd8ad4dec2174682fee66aafbd92efc6ee` | registro e aceite daquela campanha automática | ancestral |
@@ -119,12 +139,14 @@ Esta proposta roteia esses escopos; não os substitui.
 | `96cf2488679c2b8b2abcccf8d6473d07c8c8d823` | registro factual do Human Gate final | ancestral |
 | `ff0adc76166d82d01542aa091e15dd39e7ff3fa1` | baseline técnica da reconciliação anterior | ancestral |
 | `3c13d57fd71e8c51469cf29bf70b3ac2d4de6002` | invalidação executiva da proposta histórica na baseline `ff0adc7` | ancestral |
-| `9512dc1de15619eadd9d2e8e6b5476bb77a13abd` | última árvore executável inventariada | ancestral direto |
+| `9512dc1de15619eadd9d2e8e6b5476bb77a13abd` | última árvore executável inventariada | ancestral técnico anterior aos dois commits documentais |
 | `04db6594e192dec822fbd326c792eec4f3a37714` | reconciliação e proposta imediatamente anteriores a esta revisão | baseline administrativa pré-revisão |
+| `db62377e5d762e7ee334e7bf0e7309a0ab5c4b9b` | revisão que delimitou `PC-M12` e `PC-JOSE` | baseline administrativa revista e aceita somente como diretriz documental |
 
-A ancestralidade preserva proveniência. `04db659` alterou somente os quatro
-documentos da whitelist e não revalidou a árvore executável; nenhuma dessas
-relações prova que resultados antigos continuam válidos depois das mudanças.
+A ancestralidade preserva proveniência. `04db659` e `db62377` alteraram
+somente os quatro documentos da whitelist nos respetivos lotes e não
+revalidaram a árvore executável; nenhuma dessas relações prova que resultados
+antigos continuam válidos depois das mudanças.
 
 ## Método e limites do inventário
 
@@ -279,9 +301,11 @@ repetida sob autoridade própria ou classificada `BLOQUEADA`; nunca
 
 ## Pré-condições estratégicas detalhadas
 
-Todos os itens desta seção estão `PENDENTES DE AUTORIZAÇÃO`. Eles definem a
-ordem e o critério de saída; não autorizam implementação, spike, diagnóstico,
-build, teste, runtime, dependência, acesso externo, ativação ou decisão.
+A delimitação desta seção está `ACEITA EXCLUSIVAMENTE COMO DIRETRIZ
+DOCUMENTAL`. Todos os seus itens técnicos continuam `PENDENTES DE
+AUTORIZAÇÃO`: eles definem a ordem e o critério de saída, mas não autorizam
+implementação, spike, diagnóstico, build, teste, runtime, dependência, acesso
+externo, ativação ou decisão.
 
 ### Fechamento de integração do MOD-12
 
@@ -474,7 +498,8 @@ topologia ou operação.
 
 Cada passo para ao concluir e não concede o seguinte:
 
-1. **Revisar e aceitar ou devolver esta proposta documental revisada.**
+1. **Revisar a delimitação documental `PC-M12`/`PC-JOSE`: CONCLUÍDO.** O
+   aceite foi exclusivamente como diretriz documental e não aprovou execução.
 2. **Autorizar um plano de fechamento MOD-12 STATE-06** e, depois, cada
    remediação, integração, Quality Gate ou amostra humana que esse plano
    delimitar.
@@ -555,6 +580,8 @@ Esta proposta:
 - inventaria as mudanças posteriores aos gates sem declará-las revalidadas;
 - incorpora como pré-condição estratégica o fechamento dos escopos de
   integração STATE-06 de MOD-12 e JOSE;
+- registra que a delimitação `PC-M12`/`PC-JOSE` foi aceita exclusivamente
+  como diretriz documental, sem autoridade técnica ou de lifecycle;
 - separa integração de MOD-12 de O5/ativação e integração JOSE de
   JOSE-6/JOSE-7;
 - define uma matriz proporcional e condições de parada;
