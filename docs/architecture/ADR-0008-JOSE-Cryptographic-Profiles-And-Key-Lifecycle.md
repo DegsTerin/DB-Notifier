@@ -6,7 +6,7 @@
 - Owners: security, identity, platform, data and affected module architecture
 - Decision authority: explicit architecture and security decision `JOSE-D1`
 - Implementation status: not authorised
-- JOSE-0 status: documentary design prepared for review; not accepted
+- JOSE-0 status: accepted only as documentary preparation; ADR not accepted
 
 ## Context
 
@@ -43,6 +43,9 @@ The authorised `JOSE-0` documentary package is prepared in:
 
 Those documents prepare this ADR without accepting it. They introduce no
 dependency, migration, runtime, external service, key or lifecycle change.
+The owner subsequently accepted the package exclusively as documentary
+preparation. That limited review does not approve a profile or numeric value,
+meet `JOSE-D1`, accept this ADR or authorise `JOSE-1` or any implementation.
 
 Human identity, Agent enrolment, durable commands, package updates,
 confidential envelopes and MOD-12 also have different owners and accepted

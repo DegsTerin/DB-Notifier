@@ -5182,3 +5182,49 @@
 - Aprovador: elaboração `JOSE-0` autorizada explicitamente pelo usuário;
   nenhuma aprovação técnica, Human Gate, decisão ADR, lifecycle ou ativação
   inferida.
+
+## 2026-07-28 — Pacote JOSE-0 aceito somente como preparação documental
+
+- Estado anterior: pacote `JOSE-0` tecnicamente concluído, gates documentais
+  aprovados e revisão humana pendente; ADR-0008 revision `1.2` permanecia
+  `proposed`; `JOSE-1`, implementação, infraestrutura, lifecycle e MOD-12
+  não autorizados.
+- Decisão humana exata:
+  `REVISEI o pacote STATE-06 JOSE-0 e ACEITO-O exclusivamente como preparação
+  documental. Esta decisão não aceita o ADR-0008, não autoriza JOSE-1, código,
+  dependências, migrations, runtime, IdP/login, chaves, custódia,
+  infraestrutura, deploy, lifecycle ou ativação MOD-12.`
+- Decisão: pacote `JOSE-0` `ACEITO EXCLUSIVAMENTE COMO PREPARAÇÃO
+  DOCUMENTAL`. O aceite não é `JOSE-D1`, não aceita proposta/ADR, não torna
+  profile, cap, algoritmo, threat, egress candidate, migration ou plano
+  normativo e não concede autoridade posterior.
+- Preflight do registro: baseline
+  `7cbcd0cec4e35715cf9d3e9f4567b2d2c2915f55`, worktree limpa e zero
+  processo, janela ou listener pertencente ao DB-Notifier. Nenhum runtime,
+  database engine, browser comum, IDE ou processo alheio foi encerrado.
+- Alteração executada: somente status e histórico documental do pacote,
+  proposta, ADR, profile técnico, índice arquitetural e estado factual.
+  Inventários, hashes, classificações, requisitos, threats, caps e planos
+  técnicos permaneceram inalterados.
+- Gates do registro: 888 links locais em 221 arquivos, documentação de 429
+  fontes, secret scan, diff e staged diff aprovados. Build, testes de produto
+  e runtime não foram executados porque a alteração é exclusivamente
+  documental.
+- Escopo negativo: zero source, configuração executável, dependência,
+  migration/schema, runtime, IdP/login, material de chave/certificado,
+  custódia/vault/KMS/HSM/STS, serviço operacional, infraestrutura, deploy,
+  publicação, lifecycle, `JOSE-1`, `JOSE-D1`, aceite ADR ou mudança/ativação
+  MOD-12.
+- Estado resultante: `STATE-06 INTEGRATION`,
+  `MOD-12 ActivationState=None` e ADR-0008 `proposed` permanecem
+  inalterados. A revisão humana do pacote preparatório está concluída;
+  nenhuma etapa posterior foi iniciada.
+- Evidência proprietária:
+  [relatório JOSE-0](../../docs/STATE-06-JOSE-0-Architecture-Security-And-Coverage-Design-Report.md)
+  e
+  [ADR-0008](../../docs/architecture/ADR-0008-JOSE-Cryptographic-Profiles-And-Key-Lifecycle.md).
+- Próxima condição: `JOSE-1` permanece sem autorização. Qualquer interesse
+  futuro no spike, em `JOSE-D1`, implementação, infraestrutura ou lifecycle
+  exige nova autoridade explícita e separada.
+- Aprovador: Bruno, por decisão explícita em 2026-07-28, limitada à
+  preparação documental.

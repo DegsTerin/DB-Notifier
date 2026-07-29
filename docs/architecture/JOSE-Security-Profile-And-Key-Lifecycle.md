@@ -2,7 +2,8 @@
 
 ## Status, authority and boundary
 
-- Status: `JOSE-0 REVIEW CANDIDATE — NOT ACCEPTED`
+- Status:
+  `JOSE-0 DOCUMENTARY PREPARATION ACCEPTED — NOT NORMATIVE OR IMPLEMENTED`
 - Document version: `jose-security-profile-0.1.0`
 - Date: 2026-07-28
 - Lifecycle position: `STATE-06 INTEGRATION`
@@ -18,6 +19,10 @@ algorithm posture, target and safety cap below is provisional input to a
 separately authorised `JOSE-1` feasibility spike. Only the later `JOSE-D1`
 architecture and security decision may accept the ADR and freeze measured
 limits.
+
+The owner has accepted this package exclusively as documentary preparation.
+That review does not accept this technical candidate, any profile, algorithm,
+cap or lifecycle rule as normative and does not authorise `JOSE-1`.
 
 This document does not authorise source code, executable configuration,
 dependencies, restore, migrations, a runtime, a real IdP or login, keys,

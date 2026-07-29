@@ -15,8 +15,8 @@
 - ADR associado:
   [ADR-0008 — JOSE Cryptographic Profiles and Key Lifecycle](architecture/ADR-0008-JOSE-Cryptographic-Profiles-And-Key-Lifecycle.md),
   revision `1.2`, com status `proposed`
-- `JOSE-0`: autorizado exclusivamente como desenho documental; pacote
-  preparado para revisão, sem aceite do ADR
+- `JOSE-0`: pacote aceito exclusivamente como preparação documental; proposta
+  e ADR não aceitos
 
 A autorização posterior e mais específica de `JOSE-0` permitiu somente o
 desenho documental descrito no
@@ -685,8 +685,8 @@ chain.
 
 | Lote | Dependência | Owner de fase | Saída obrigatória e condição de saída |
 |---|---|---|---|
-| `JOSE-0` | autorização documental explícita recebida para preparar a proposta `1.2.0`, sem aceitá-la | correção de arquitetura/segurança/dados pertencente a `STATE-02`, executada sem sair de `STATE-06` | pacote preparado para revisão; ADR-0008 ainda `proposed`; requisitos, profiles e safety caps provisórios, snapshots/matrizes IANA JOSE/JWT Claims sem `Unreviewed`, ownership, trust/data/egress map e threat model sem lacuna crítica |
-| `JOSE-1` | `JOSE-0` aprovado e spike autorizado separadamente | correção de feasibility/dependência pertencente a `STATE-01/02/04`, executada sem sair de `STATE-06` | spike test-only .NET 10, corpus público/sanitizado rastreável aos RFCs 7520/8037/9964, chaves efémeras, seis serializações/capacidades medidas, matriz de dependência/SBOM e boundary sem tipo concreto no núcleo |
+| `JOSE-0` | autorização documental explícita recebida para preparar a proposta `1.2.0`, sem aceitá-la | correção de arquitetura/segurança/dados pertencente a `STATE-02`, executada sem sair de `STATE-06` | pacote aceito somente como preparação documental; ADR-0008 ainda `proposed`; requisitos, profiles e safety caps provisórios, snapshots/matrizes IANA JOSE/JWT Claims sem `Unreviewed`, ownership, trust/data/egress map e threat model sem lacuna crítica |
+| `JOSE-1` | pacote `JOSE-0` aceito apenas como preparação documental e spike autorizado separadamente | correção de feasibility/dependência pertencente a `STATE-01/02/04`, executada sem sair de `STATE-06` | spike test-only .NET 10, corpus público/sanitizado rastreável aos RFCs 7520/8037/9964, chaves efémeras, seis serializações/capacidades medidas, matriz de dependência/SBOM e boundary sem tipo concreto no núcleo |
 | `JOSE-2` | `JOSE-D1` aceita ADR-0008 | desenvolvimento corretivo de `STATE-04`, integrado em `STATE-06` | JWS Compact/Flattened/General, detached, multi-signature e JWT inbound hardening em sandbox; nenhum producer operacional |
 | `JOSE-3` | `JOSE-D1`; interfaces exigidas por `JOSE-2/4` | `STATE-03/04`, integrado em `STATE-06` | `3A`: JWK/JWKS público, thumbprint, seleção/cache/refresh; `3B`: key operations/custódia, lifecycle e migrations não produtivas somente quando autorizadas |
 | `JOSE-4` | `JOSE-D1` + `JOSE-3A`; `JOSE-3B` para chave não efémera; `JOSE-2` para nested JWT | desenvolvimento corretivo de `STATE-04`, integrado em `STATE-06` | JWE Compact/Flattened/General, AAD, multi-recipient e nested JWT em sandbox interoperável |
@@ -770,7 +770,7 @@ throughput e falha serão numéricos por profile antes de homologação.
 | ADR-0005 | packages/updates; assinatura de plataforma continua prevalente |
 | ADR-0007 e documentos AIOps | somente se MOD-12 adotar um codec JOSE sob nova decisão |
 | ADR-0008 | decisão guarda-chuva, alternativas, boundaries e consequências |
-| `docs/architecture/JOSE-Security-Profile-And-Key-Lifecycle.md` | candidato `JOSE-0` já preparado, ainda não aceito; só poderá tornar-se autoridade normativa de profile+key lifecycle após a decisão própria |
+| `docs/architecture/JOSE-Security-Profile-And-Key-Lifecycle.md` | candidato `JOSE-0` aceito apenas como preparação documental, não como autoridade normativa; só poderá tornar-se autoridade de profile+key lifecycle após a decisão própria |
 | `docs/architecture/Threat-Model.md` | `JOSE-T*` e control owners preparados como riscos/controles candidatos, não implementação |
 | `docs/architecture/Network-Egress-Policy.md` | candidate appendix sem registrar consumer; endpoints IdP/JWKS/STS/KMS permanecem decisão futura |
 | `docs/architecture/Canonical-Contracts.md` | contratos públicos somente quando aprovados |
@@ -988,11 +988,10 @@ passou” ou “JWT funciona” não satisfazem nenhum aceite amplo.
 
 ## Decisões humanas necessárias
 
-O proprietário autorizou `JOSE-0` sem aceitar a proposta ou o ADR. A revisão
-humana imediata deve apenas aceitar ou devolver o pacote documental
-preparatório. Ela não decide ainda os casos de produto, BFF/SPA,
-identidade/provisioning/RBAC, ambientes, custodiantes, topologia externa ou
-infraestrutura.
+O proprietário autorizou `JOSE-0` sem aceitar a proposta ou o ADR e depois
+aceitou o pacote exclusivamente como preparação documental. Essa decisão não
+decide os casos de produto, BFF/SPA, identidade/provisioning/RBAC, ambientes,
+custodiantes, topologia externa ou infraestrutura.
 
 Decision packets não fazem parte do lote executado: embora aparecessem no
 texto sugerido pela revisão anterior, foram omitidos da autorização final e
@@ -1022,3 +1021,17 @@ transição de lifecycle, JOSE-1 e ativação MOD-12.
 
 Essa autorização não serve para desenvolvimento, spike ou infraestrutura e
 não altera `STATE-06 INTEGRATION`.
+
+## Decisão humana posterior sobre o pacote JOSE-0
+
+```text
+REVISEI o pacote STATE-06 JOSE-0 e ACEITO-O exclusivamente como preparação
+documental. Esta decisão não aceita o ADR-0008, não autoriza JOSE-1, código,
+dependências, migrations, runtime, IdP/login, chaves, custódia,
+infraestrutura, deploy, lifecycle ou ativação MOD-12.
+```
+
+O aceite fecha somente a revisão humana do pacote preparatório. Todos os
+profiles, caps, algoritmos, egress candidates, planos e decisões técnicas
+continuam provisórios; ADR-0008 permanece `proposed`; `JOSE-1` e qualquer
+ação posterior continuam sem autoridade.

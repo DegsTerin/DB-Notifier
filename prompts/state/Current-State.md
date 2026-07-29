@@ -145,13 +145,14 @@ proprietários.
   `JOSE-REQ-001`–`JOSE-REQ-012`, planos de teste/migração/rollback e
   classificação `318/318` das entradas IANA JOSE/JWT Claims, com zero
   `Unreviewed`. Os gates documentais automáticos e os rechecks independentes
-  passaram, com zero P0/P1 residual. Tudo permanece documental, não aceito,
-  `NotImplemented`, `NotHomologated`, `RuntimeDisabled` e `NotAdvertised`; a
-  revisão humana do pacote continua separada. `JOSE-1`, `JOSE-D1`, todos os lotes de
-  implementação e todos os decision packets permanecem não autorizados ou
-  fora do escopo. Não há JWE, emissão JWS própria, ciclo de chaves
-  operacional, IdP, vault/KMS/HSM ou capacidade JOSE no runtime além do
-  relying-party JWT/JWKS já descrito.
+  passaram, com zero P0/P1 residual. O proprietário revisou e aceitou o pacote
+  exclusivamente como preparação documental. Profiles, caps e decisões
+  permanecem provisórios, não normativos, `NotImplemented`, `NotHomologated`,
+  `RuntimeDisabled` e `NotAdvertised`; a decisão não aceita a proposta ou
+  ADR-0008. `JOSE-1`, `JOSE-D1`, todos os lotes de implementação e todos os
+  decision packets permanecem não autorizados ou fora do escopo. Não há JWE,
+  emissão JWS própria, ciclo de chaves operacional, IdP, vault/KMS/HSM ou
+  capacidade JOSE no runtime além do relying-party JWT/JWKS já descrito.
 - Não há loader dinâmico nem carregamento ou distribuição operacional de
   provider packages, instalador, assinatura, update channel ou entrega
   operacional. `REQ-050` permanece `PARCIAL`: a matriz clean-room existe, mas
@@ -289,7 +290,8 @@ proprietários.
 - `JOSE-1`, `JOSE-D1`, aceitação do ADR-0008 e qualquer código, dependência,
   migration, login/IdP, chave, custodiante, egress candidate, infraestrutura,
   homologação ou profile JOSE operacional exigem decisões explícitas e
-  separadas. A revisão humana de `JOSE-0` não concede essas autoridades.
+  separadas. O aceite humano limitado de `JOSE-0` não concede essas
+  autoridades.
 - Qualquer ativação `None → Observer` exige os gates próprios e uma decisão
   explícita; o bloqueio corrente não pode ser contornado por mudança de
   lifecycle.

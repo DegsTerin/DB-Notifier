@@ -7,7 +7,7 @@
 - Lote: `JOSE-0`
 - Natureza: exclusivamente documental
 - Status técnico do lote:
-  `CONCLUÍDO — PACOTE DOCUMENTAL PREPARADO; REVISÃO HUMANA PENDENTE`
+  `CONCLUÍDO — ACEITO EXCLUSIVAMENTE COMO PREPARAÇÃO DOCUMENTAL`
 - ADR associado:
   [ADR-0008](architecture/ADR-0008-JOSE-Cryptographic-Profiles-And-Key-Lifecycle.md),
   revision `1.2`, status `proposed`
@@ -45,6 +45,31 @@ Antes da primeira ação técnica:
 
 Nenhum database engine, browser comum, IDE ou processo alheio foi encerrado.
 Nenhum runtime foi iniciado durante o lote.
+
+## Revisão humana limitada do pacote
+
+Em 2026-07-28, o proprietário registrou a seguinte decisão:
+
+```text
+REVISEI o pacote STATE-06 JOSE-0 e ACEITO-O exclusivamente como preparação
+documental. Esta decisão não aceita o ADR-0008, não autoriza JOSE-1, código,
+dependências, migrations, runtime, IdP/login, chaves, custódia,
+infraestrutura, deploy, lifecycle ou ativação MOD-12.
+```
+
+Resultado: o pacote `JOSE-0` está humanamente aceito somente como preparação
+documental. A decisão não torna profiles, caps, algoritmos, threats, egress
+candidates, migrações ou planos normativos/operacionais; não satisfaz
+`JOSE-D1`; não aceita a proposta ou ADR-0008; e não concede autoridade para
+qualquer lote posterior.
+
+Antes de registrar esta decisão, o novo shutdown preflight observou:
+
+- `HEAD`:
+  `7cbcd0cec4e35715cf9d3e9f4567b2d2c2915f55`;
+- worktree limpa;
+- processos, janelas e listeners pertencentes ao DB-Notifier: `0/0/0`; e
+- nenhum runtime ou serviço alheio encerrado.
 
 ## Entregáveis
 
@@ -441,15 +466,17 @@ Os rechecks finais encontraram zero P0 e zero P1 depois de:
 | Archive e entry hashes | reconstrução ZIP em memória | `APROVADO` — 10/10 entries e hashes |
 | Cobertura mecânica | comparação CSV ↔ matriz/grupos | `APROVADO` — JOSE 155/155, JWT 163/163, total 318/318 e zero delta |
 | Rastreabilidade | IDs requirement/threat/test | `APROVADO` — 12/12 requisitos, 17/17 threats e 14/14 Test IDs ligados |
-| Links Markdown | `node scripts/verify-markdown-links.mjs` | `APROVADO` — 886 links locais em 221 arquivos |
+| Links Markdown | `node scripts/verify-markdown-links.mjs` | `APROVADO` — 888 links locais em 221 arquivos |
 | Code documentation gate | `node scripts/verify-code-documentation.mjs` | `APROVADO` — 429 fontes comment-capable |
 | Secret scan | `./scripts/verify-secrets.ps1` | `APROVADO` — worktree não ignorado e histórico Git disponível |
 | Diff | `git diff --check` e staged diff review | `APROVADO` |
+| Revisão humana do pacote | decisão explícita de 2026-07-28 | `ACEITO EXCLUSIVAMENTE COMO PREPARAÇÃO DOCUMENTAL`; ADR/lotes/autoridades inalterados |
 | Build/test/runtime | fora do escopo documental | `NÃO APLICÁVEL`; não executado |
 
 Os gates automáticos documentais passaram. O identificador do commit local
-focal será informado no hand-off. Revisão humana do pacote permanece
-separada. Nada neste relatório aceita ADR-0008 ou autoriza `JOSE-1`.
+focal foi `7cbcd0cec4e35715cf9d3e9f4567b2d2c2915f55`. A revisão humana do pacote
+foi concluída separadamente e limitada à preparação documental. Nada neste
+relatório aceita ADR-0008 ou autoriza `JOSE-1`.
 
 ## Limitações e riscos residuais
 
@@ -470,8 +497,8 @@ separada. Nada neste relatório aceita ADR-0008 ou autoriza `JOSE-1`.
 
 - `STATE-06 INTEGRATION`: inalterado.
 - ADR-0008: `proposed`.
-- `JOSE-0`: pacote documental e Quality Gate automático concluídos; revisão
-  humana do pacote preparatório permanece pendente e não aceita o ADR.
+- `JOSE-0`: pacote documental e Quality Gate automático concluídos; pacote
+  aceito humanamente apenas como preparação documental.
 - `JOSE-1`: não autorizado.
 - `JOSE-D1`: não executado; ADR não aceito.
 - Código/dependências/migrations/runtime/IdP/chaves/vault/KMS/HSM/deploy:
