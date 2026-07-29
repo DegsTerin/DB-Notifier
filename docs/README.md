@@ -45,7 +45,8 @@ Selected normative, current and historical documents:
 - [`STATE-06-Final-Human-Samples-Second-Post-Remediation-Repetition-Report.md`](STATE-06-Final-Human-Samples-Second-Post-Remediation-Repetition-Report.md): final human repetition evidence for the approved Agent loss/recovery/replay and current `unknown` versus `stale` samples, including bounded terminal exits and complete cleanup.
 - [`STATE-06-Final-Human-Gate-Proposal.md`](STATE-06-Final-Human-Gate-Proposal.md): historical documentary eligibility, evidence summary, mandatory limitations and single-state decision protocol that preceded the completed final `STATE-06` Human Gate.
 - [`STATE-06-Final-Human-Gate-Report.md`](STATE-06-Final-Human-Gate-Report.md): factual record of the final STATE-06 Human Gate approved with explicit reservations, without promotion or lifecycle transition.
-- [`STATE-06-To-STATE-07-Transition-Proposal.md`](STATE-06-To-STATE-07-Transition-Proposal.md): historical documentary handoff whose executable use was invalidated at baseline `ff0adc7`; its former authorisation text is revoked, and any future transition proposal requires separate authority and current revalidation.
+- [`STATE-06-To-STATE-07-Transition-Proposal.md`](STATE-06-To-STATE-07-Transition-Proposal.md): historical documentary handoff whose executable use was invalidated at baseline `ff0adc7`; its former authorisation text remains revoked and it is not a current authority.
+- [`STATE-06-To-STATE-07-Transition-Revalidation-Proposal.md`](STATE-06-To-STATE-07-Transition-Revalidation-Proposal.md): current non-authorising reconciliation against the pre-lot technical baseline `9512dc1`, including the post-gate change inventory, proportional revalidation matrix, stop conditions and independent authority sequence; eligibility remains unassessed and the lifecycle remains `STATE-06`.
 
 The governing instruction corpus starts at [`../prompts/Start-Here.md`](../prompts/Start-Here.md).
 

@@ -5228,3 +5228,60 @@
   exige nova autoridade explícita e separada.
 - Aprovador: Bruno, por decisão explícita em 2026-07-28, limitada à
   preparação documental.
+
+## 2026-07-29 — Baseline 9512dc1 reconciliada e nova proposta de revalidação preparada
+
+- Estado anterior: `STATE-06 INTEGRATION`, proposta histórica de transição
+  `INVALIDADA PARA EXECUÇÃO`, elegibilidade corrente não reavaliada,
+  `MOD-12 ActivationState=None` e ADR-0008 `proposed`.
+- Autoridade: lote exclusivamente documental autorizado para reconciliar o
+  estado factual com `9512dc1`, inventariar mudanças posteriores aos gates e
+  elaborar uma nova proposta `STATE-06 → STATE-07` com matriz de revalidação
+  proporcional. Build, testes, runtime, downloads, acesso externo, source,
+  dependências, `JOSE-1`, `D9`, ativação MOD-12 e transição de lifecycle
+  permaneceram proibidos.
+- Preflight: zero processo, janela ou listener pertencente ao DB-Notifier;
+  branch `main`, worktree limpa e baseline
+  `9512dc1de15619eadd9d2e8e6b5476bb77a13abd`. Nenhum database engine,
+  browser comum, IDE ou processo alheio foi encerrado.
+- Ancestralidade: `84217c6`, `2c1e05f`, `1a27dca`, `96cf248`, `ff0adc7` e
+  `3c13d57` foram confirmados como ancestrais de `9512dc1`. Essa cadeia
+  preserva proveniência e não revalida a elegibilidade.
+- Delta principal: `1a27dca..9512dc1` contém `143` commits, `440` caminhos,
+  `90.922` inserções e `2.993` remoções, incluindo `126` caminhos em `src/`,
+  `127` em `tests/`, `25` em `scripts/` e três mudanças de schema Server.
+- Delta desde a reconciliação anterior: `ff0adc7..9512dc1` contém `24`
+  commits, `41` caminhos, `11.507` inserções e `50` remoções. Não há mudança
+  em `src/`, migration ou package/lockfile nesse intervalo, mas há `11`
+  caminhos C# test-only, atualização do SDK por `global.json`, evolução dos
+  harnesses D6–D8, JOSE-0 e governança.
+- Famílias inventariadas: R0–R8; R-SEQ; R-EGRESS/R-FENCE; R-NET; migrations;
+  Agent/tooling/supply chain; Web/WPF/acessibilidade; MOD-12 O1–D8; JOSE-0 e
+  governança. Os gates locais permanecem válidos somente nos seus escopos e
+  não se agregam automaticamente como gate de lifecycle.
+- Proposta: criado um documento novo e não autorizante com `RV-01`–`RV-13`,
+  `RV-H01`, novos IDs humanos `S06-RV-HG-001`–`006`, regras de reutilização,
+  ressalvas, condições de parada e seis autoridades futuras independentes. A
+  proposta antiga permanece histórica, inalterada e invalidada.
+- Escopo documental: nova proposta, snapshot factual, entrada append-only e
+  índice documental. A árvore executável `9512dc1` não foi alterada; o commit
+  de entrega é somente administrativo e documental.
+- Revisão: inventário Git, classificação funcional e desenho da matriz
+  receberam passes independentes somente leitura. Links acrescentados tiveram
+  a existência dos seus alvos confirmada e a higiene de diff foi aprovada.
+- Gates executáveis: validators de documentação, code-doc gate, secret/host
+  scan, build, testes e runtime `NÃO EXECUTADOS`, porque não integraram a
+  autoridade limitada deste lote. Nenhum resultado técnico foi inferido.
+- Estado resultante: `STATE-06 INTEGRATION`, elegibilidade `NÃO REAVALIADA`,
+  transição `NÃO AUTORIZADA`, `MOD-12 ActivationState=None` e ADR-0008
+  `proposed` permanecem inalterados.
+- Evidência proprietária:
+  [proposta reconciliada](../../docs/STATE-06-To-STATE-07-Transition-Revalidation-Proposal.md)
+  e [estado factual](Current-State.md).
+- Próxima condição: revisão humana somente desta proposta. Se ela for aceita,
+  a revalidação técnica ainda exigirá nova autoridade explícita, e as amostras
+  humanas, o Human Gate de revalidação e a transição exigirão decisões
+  posteriores separadas.
+- Aprovador: elaboração documental autorizada explicitamente por Bruno;
+  nenhuma aprovação técnica, Human Gate, ativação ou progressão de lifecycle
+  inferida.
