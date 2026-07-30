@@ -26,7 +26,7 @@ Agentes que operam no repositório começam também por [`../AGENTS.md`](../AGEN
 |---|---|
 | Instruções permanentes e comportamento operacional de agentes | `../AGENTS.md` |
 | Comunicação com o proprietário, idioma dos artefatos, conteúdo existente, convenções externas e separação da interface | `governance/Language-Policy.md` |
-| Roteamento de conversas, handoff, paralelismo seguro, ownership e integração coordenada | `governance/Conversation-Coordination-Prompt.md` |
+| Roteamento de conversas, handoff, recomendação de raciocínio do Codex, paralelismo seguro, ownership e integração coordenada | `governance/Conversation-Coordination-Prompt.md` |
 | Método geral de engenharia, papéis virtuais, proporcionalidade, modos de trabalho e matriz de adoção | `system/AI-Software-Engineering-Master-Prompt.md` |
 | Visão, escopo e objetivos | `foundation/Prompt-New-Project.md` |
 | Arquitetura, dados, providers e módulos | `foundation/Solution-Architecture-Document.md` |
@@ -86,6 +86,12 @@ Conflitos que ampliem materialmente o escopo, exijam ação externa irreversíve
   múltiplas conversas. Sem workflow Git de escrita paralela especificamente
   autorizado e worktrees isolados, conversas simultâneas permanecem read-only
   e toda escrita ocorre sequencialmente na coordenadora.
+- Em cada handoff, recomendar em `Sua ação agora` exatamente um nível de
+  raciocínio do Codex para a próxima interação, com justificativa específica.
+  Usar o menor esforço suficiente, repetir a recomendação nas mensagens
+  auxiliares e definir um nível por lane nos planos paralelos. A sugestão não
+  comprova configuração aplicada, não substitui Quality Gate ou revisão humana
+  e não amplia roteamento, paralelismo, ownership, autoridade ou lifecycle.
 - Documentar código e configuração exclusivamente em inglês britânico (`en-GB`), conforme `../docs/Code-Documentation-Standards.md`, mantendo comentários concisos e sincronizados.
 - Aplicar `../docs/design/DB-Notifier-Design-System.md` a todo frontend novo ou alterado; não criar temas, tokens ou componentes paralelos fora do contrato oficial.
 - Consultar o estado antes de executar uma fase ou playbook.

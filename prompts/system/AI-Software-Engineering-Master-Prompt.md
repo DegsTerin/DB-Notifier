@@ -43,7 +43,8 @@ temática. A aplicação especializada pertence aos seguintes documentos:
 - [`../governance/Governance.md`](../governance/Governance.md):
   autoridade e execução controlada;
 - [`../governance/Conversation-Coordination-Prompt.md`](../governance/Conversation-Coordination-Prompt.md):
-  roteamento de conversas, paralelismo seguro, ownership e integração;
+  roteamento de conversas, recomendação de raciocínio do Codex, paralelismo
+  seguro, ownership e integração;
 - [`../governance/Lifecycle.md`](../governance/Lifecycle.md): estados
   canônicos;
 - [`../governance/Quality-Gates.md`](../governance/Quality-Gates.md):
@@ -90,10 +91,13 @@ autorização permanente e os limites do commit local final pertencem a
 - O handoff compacto, a contagem auditável do trabalho restante e os campos
   separados de próximo passo e próxima etapa exigidos em `AGENTS.md` são a
   especialização obrigatória da orientação geral de comunicação. O roteamento
-  de conversa, a classificação de paralelismo e as mensagens exatas pertencem
-  a `Conversation-Coordination-Prompt.md`, enquanto rótulos, valores,
+  de conversa, a recomendação do menor raciocínio do Codex suficiente para a
+  próxima interação, a classificação de paralelismo e as mensagens exatas
+  pertencem a `Conversation-Coordination-Prompt.md`, enquanto rótulos, valores,
   orientações e mensagens apresentados ao proprietário usam `pt-BR` conforme
-  `Language-Policy.md`. A próxima etapa deve ser nomeada com sua condição de
+  `Language-Policy.md`. A recomendação de raciocínio é consultiva, deve ser
+  reavaliada por conversa e lane e não comprova configuração aplicada nem
+  concede autoridade. A próxima etapa deve ser nomeada com sua condição de
   entrada e nunca concede autoridade implícita. Categorias de roadmap,
   lifecycle e ativação aparecem somente quando pertencem ao alvo solicitado,
   evitando misturá-las com o lote atual.
@@ -143,7 +147,7 @@ Legenda:
 | 22 | Refatoração | `JÁ GOVERNADO` | Lotes focais, caracterização, compatibilidade e validação proporcional permanecem obrigatórios. |
 | 23 | Dependências e supply chain | `JÁ GOVERNADO` | Quality Gates e segurança governam necessidade, licença, lockfiles, origem, vulnerabilidades e reprodução. |
 | 24 | IA, modelos, MCP, RAG e ferramentas | `ADAPTADO` | Separar agentes de engenharia do produto MOD-12; contratos mais restritos de AIOps, proveniência, avaliação e menor privilégio prevalecem. |
-| 25 | Comunicação | `ADAPTADO` | Atualizações ao proprietário usam `pt-BR` conforme `Language-Policy.md`; `AGENTS.md` e `Conversation-Coordination-Prompt.md` governam o handoff, o roteamento, o paralelismo e as mensagens exatas sem transformar indicação de progressão em autorização. |
+| 25 | Comunicação | `ADAPTADO` | Atualizações ao proprietário usam `pt-BR` conforme `Language-Policy.md`; `AGENTS.md` e `Conversation-Coordination-Prompt.md` governam o handoff, o roteamento, a recomendação de raciocínio por conversa e lane, o paralelismo e as mensagens exatas sem transformar sugestão de configuração ou indicação de progressão em autorização. |
 | 26 | Segurança operacional | `JÁ GOVERNADO` | Shutdown preflight, proteção de segredos e limites de ações externas do repositório são mais específicos. |
 | 27 | Checklist de release | `CONDICIONAL` | Referência futura de `STATE-08`; não concede autoridade de release no estado atual. |
 | 28 | Checklist final | `ADAPTADO` | Checklist interno não substitui evidência, gates, Human Gate ou handoff obrigatório. |
@@ -2163,7 +2167,7 @@ Antes de encerrar:
 - [ ] registrei riscos e limitações;
 - [ ] não deixei ações necessárias silenciosamente pendentes;
 - [ ] comuniquei ao proprietário em `pt-BR` e apliquei a Política de Idioma aos artefatos;
-- [ ] forneci o handoff, o próximo passo, a próxima etapa, o roteamento da conversa e a classificação de paralelismo exigidos pelas instruções específicas do projeto, sem inferir autoridade.
+- [ ] forneci o handoff, o próximo passo, a próxima etapa, o roteamento da conversa, a recomendação de raciocínio e a classificação de paralelismo exigidos pelas instruções específicas do projeto, sem alegar configuração aplicada nem inferir autoridade.
 
 ---
 

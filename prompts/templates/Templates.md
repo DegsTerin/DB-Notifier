@@ -18,7 +18,7 @@ Concluído (`Completed`):
 Restante para este objetivo (`Remaining for this target`):
 Próximo passo (`Next step`):
 Próxima etapa (`Next stage`):
-Sua ação agora (`Your action now`):
+Sua ação agora (`Your action now`): Raciocínio recomendado do Codex: <nível> (`<identificador técnico>`). Motivo: <razão específica>. <orientação para copiar e enviar a mensagem pronta, resultado esperado e limite aplicável>
 Ação da conversa (`Conversation action`):
 Destino da conversa (`Conversation target`):
 Título sugerido (`Suggested title`):
@@ -33,6 +33,14 @@ Mensagens paralelas exatas (`Exact parallel messages`):
 `CONTINUE_CURRENT`, `START_NEW` ou `RETURN_TO_EXISTING`.
 `Trabalho paralelo` (`Parallel work`) aceita somente `SEQUENTIAL_ONLY`,
 `PARALLEL_OPTIONAL` ou `PARALLEL_RECOMMENDED`.
+
+`Sua ação agora` começa com exatamente um nível do catálogo `Leve` (`low`),
+`Médio` (`medium`), `Alto` (`high`), `Extra alto` (`xhigh`), `Máximo` (`max`)
+ou `Ultra` (`ultra`), seguido de uma razão específica para a próxima
+interação. Usar o menor esforço suficiente, reavaliar a recomendação a cada
+handoff e não declarar seleção, aplicação ou disponibilidade sem evidência da
+superfície, do modelo e da conta vigentes. A recomendação é consultiva e não
+altera roteamento, paralelismo, autoridade, ownership, gates ou lifecycle.
 
 Templates podem conter placeholders; uma instância real deve substituí-los por
 conteúdo completo. Todo handoff real, inclusive quando concluído, parcial ou
@@ -91,7 +99,9 @@ Para trabalho sequencial,
 - Referência da base (`commit`/hash):
 - Estado/validação/lote:
 - Autoridade e escopo negativo:
+- Raciocínio recomendado para a coordenadora e razão:
 - Frentes numeradas (`lanes`), objetivo e resultado esperado:
+- Raciocínio recomendado e razão por frente:
 - Dependências congeladas e acíclicas:
 - Propriedade exclusiva de caminhos:
 - Propriedade exclusiva de artefatos lógicos:
@@ -110,6 +120,13 @@ Para trabalho sequencial,
 - Alternativa sequencial (`fallback`):
 
 ## Mensagem de início de uma conversa auxiliar
+
+Antes dos 19 campos existentes, inserir a seguinte frase de preâmbulo não
+canônica, que não cria campo adicional:
+
+```text
+Para esta lane, recomenda-se usar o raciocínio <nível> (`<identificador técnico>`) do Codex porque <razão específica>.
+```
 
 ```text
 Projeto:

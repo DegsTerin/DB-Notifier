@@ -2,9 +2,9 @@
 
 ## Versão atual
 
-- Versão: `6.4.0`
-- Data: 2026-07-29
-- Status: mensagem exata pronta para copiar obrigatória em todo handoff
+- Versão: `6.5.0`
+- Data: 2026-07-30
+- Status: recomendação de raciocínio do Codex obrigatória por conversa
 - Escopo: 16 arquivos ativos
 
 A versão do corpus é independente da versão do software.
@@ -16,6 +16,42 @@ A versão do corpus é independente da versão do software.
 - PATCH: clareza, correção ou referência sem mudança de autoridade.
 
 Toda alteração atualiza este arquivo e, quando necessário, `../Start-Here.md`.
+
+## 6.5.0 — 2026-07-30
+
+- Atualiza `Conversation-Coordination-Prompt.md` para a revisão `1.3.0`,
+  preservando exatamente os 14 campos canônicos do handoff, os 19 campos da
+  mensagem auxiliar, suas ordens e os enums fechados de roteamento e
+  paralelismo.
+- Adota o catálogo consultivo `Leve` (`low`), `Médio` (`medium`), `Alto`
+  (`high`), `Extra alto` (`xhigh`), `Máximo` (`max`) e `Ultra` (`ultra`), com
+  mapeamento para os nomes apresentados nas superfícies gráficas do Codex e
+  orientação proporcional por complexidade e decomposição.
+- Exige que `Your action now` comece com exatamente uma recomendação e uma
+  razão específica para a próxima interação. Planos paralelos definem um nível
+  para a coordenadora e para cada lane; mensagens auxiliares repetem a
+  recomendação numa frase de preâmbulo não canônica antes dos 19 campos
+  existentes, sem criar campo adicional.
+- Determina o menor esforço suficiente, reavaliação a cada handoff e fallback
+  proporcional quando a disponibilidade depender da superfície, do modelo ou
+  da conta. A recomendação nunca comprova que o nível foi disponibilizado,
+  selecionado ou aplicado; maior esforço pode aumentar tempo e consumo de
+  tokens sem garantir melhor resultado.
+- Mantém raciocínio, roteamento e paralelismo como dimensões independentes.
+  `Ultra` não cria trabalho paralelo autorizado, `PARALLEL_RECOMMENDED` não
+  exige `Ultra` e nenhum nível altera ownership, preflight, autoridade,
+  Quality Gate, revisão humana, ADR, Human Gate, `ActivationState` ou
+  lifecycle.
+- Integra a orientação em `AGENTS.md`, `Start-Here.md`, `Governance.md`,
+  templates, Quality Gates e matriz PM-1, e registra a mudança no estado,
+  changelog e histórico append-only sem criar nova autoridade temática ou novo
+  arquivo ativo.
+- Mantém 16 arquivos ativos, a Política de Idioma na revisão `1.0.0`, a
+  versão-fonte `2.0.0` do Prompt Mestre, `STATE-06 INTEGRATION`, elegibilidade
+  `NÃO REAVALIADA` e `MOD-12 ActivationState=None`.
+- Não aceita nem autoriza o plano de fechamento MOD-12, `M12-IC1`, código,
+  build, execução do produto, interface, ação externa, ADR, Human Gate,
+  ativação ou transição de lifecycle.
 
 ## 6.4.0 — 2026-07-29
 

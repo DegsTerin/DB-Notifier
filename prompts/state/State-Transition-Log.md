@@ -5671,3 +5671,82 @@
 - Aprovador: Bruno, por autorização explícita limitada à alteração documental
   sequencial, validações locais e commit focal; nenhuma autoridade adjacente
   inferida.
+
+## 2026-07-30 — Recomendação de raciocínio do Codex incorporada por conversa
+
+- Estado anterior: `STATE-06 INTEGRATION`, elegibilidade `NÃO REAVALIADA`,
+  `MOD-12 ActivationState=None`, corpus de instruções `6.4.0` com 16 arquivos
+  ativos, revisão `1.2.0` da autoridade de coordenação e baseline limpa no
+  commit `1002fe21e7f3b36efe2f3e7167c8455b467625c0`.
+- Autoridade humana exata:
+  `Incluir na documentação a orientação, sugestão na de qual raciocinio do
+  Codex usar em cada conversa: Leve, Médio, Alto, Extra alto, Máximo ou Ultra.`
+- Limite interpretativo: o pedido autoriza exclusivamente a evolução
+  documental dessa orientação. Ele não aceita o plano de fechamento MOD-12,
+  não autoriza `M12-IC1` e não decide ADR, Human Gate, `ActivationState`,
+  lifecycle ou ação externa.
+- Preflight e baseline: branch `main`, HEAD
+  `1002fe21e7f3b36efe2f3e7167c8455b467625c0`, index, worktree e inventário de
+  untracked limpos antes da edição. Zero processo, serviço, listener, janela,
+  instância de notification area ou browser dedicado pertencente ao
+  DB-Notifier; o serviço Docker estava parado. Nenhum processo, serviço,
+  database engine, browser, IDE ou recurso alheio foi encerrado ou alterado.
+- Base oficial: a matriz foi reconciliada com a documentação oficial vigente
+  de [configuração de modelos do Codex](https://learn.chatgpt.com/docs/models)
+  e de
+  [subagentes do Codex](https://learn.chatgpt.com/docs/agent-configuration/subagents).
+  A disponibilidade permanece dependente da superfície, do modelo e da conta.
+- Decisão documental: atualizar
+  `Conversation-Coordination-Prompt.md` para a revisão `1.3.0` e o corpus para
+  `6.5.0`, mantendo 16 arquivos ativos, a Política de Idioma na revisão
+  `1.0.0` e a versão-fonte `2.0.0` do Prompt Mestre. Como os 14 campos do
+  handoff, os 19 campos auxiliares e os enums existentes permanecem
+  compatíveis, aplica-se evolução `MINOR`, não mudança estrutural `MAJOR`.
+- Catálogo adotado: `Leve` (`Light`/`low`), `Médio` (`Medium`/`medium`),
+  `Alto` (`High`/`high`), `Extra alto` (`Extra High`/`xhigh`), `Máximo`
+  (`Max`/`max`) e `Ultra` (`Ultra`/`ultra`). `Máximo` atende o problema
+  excepcionalmente difícil e indivisível; `Ultra` atende a tarefa grande,
+  complexa e decomponível em frentes independentes com ganho material.
+- Contrato preservado: `Your action now` começa com exatamente uma
+  recomendação, identificador técnico e razão específica para a próxima
+  interação. Planos paralelos definem a recomendação da coordenadora e de cada
+  lane. A mensagem auxiliar usa uma frase de preâmbulo explicitamente não
+  canônica e depois mantém seus 19 campos, sem criar um 20º campo.
+- Guard rails: usar o menor esforço suficiente e reavaliar a recomendação a
+  cada handoff. Nenhum nível comprova disponibilidade, seleção ou aplicação,
+  garante melhor resultado, cria paralelismo, permite writer concorrente ou
+  amplia escopo, autoridade, ownership, Git, runtime, preflight, Quality Gate,
+  revisão humana, ADR, Human Gate, `ActivationState` ou lifecycle.
+- Escopo documental: `AGENTS.md`, `prompts/Start-Here.md`,
+  `prompts/governance/Governance.md`,
+  `prompts/governance/Conversation-Coordination-Prompt.md`,
+  `prompts/governance/Quality-Gates.md`,
+  `prompts/templates/Templates.md`,
+  `prompts/system/AI-Software-Engineering-Master-Prompt.md`,
+  `prompts/system/Prompt-System-Change-Log.md`,
+  `prompts/state/Current-State.md` e este log append-only.
+- Gates preliminares: `git diff --check`, handoff `14/14`, mensagem auxiliar
+  `19/19`, catálogo e mappings `6/6`, revisão `1.3.0`, corpus `6.5.0`, `963`
+  links locais em `225` arquivos, documentação de `429` fontes e secret scan
+  aprovados. A primeira revisão semântica independente bloqueou a possível
+  leitura do preâmbulo como 20º campo e a ausência ainda intencional deste
+  registro; o primeiro ponto foi corrigido e o recheck confirmou `PASS` sem
+  novo bloqueio. Uma segunda revisão independente também confirmou `PASS`.
+  A repetição integral dos gates inclui este registro e precede o commit focal.
+- Autoridade Git: a instrução permanente do repositório exige um commit local
+  focal para esta alteração rastreada. `amend`, branch, worktree, merge,
+  rebase, push, publicação e ação remota permanecem sem autoridade.
+- Escopo negativo: zero código, configuração executável, dependência, build,
+  teste de produto, execução do produto, interface, ação externa, aceitação do
+  plano MOD-12, `M12-IC1`, ADR, Human Gate, `ActivationState`, ativação,
+  homologação ou transição de lifecycle.
+- Estado resultante: `STATE-06 INTEGRATION`, elegibilidade `NÃO REAVALIADA`,
+  `MOD-12 ActivationState=None`, plano de fechamento MOD-12 `PREPARADO` e
+  `PENDENTE DE REVISÃO`, ADRs, Human Gates, produto, interface e autoridade
+  externa permanecem inalterados.
+- Evidências proprietárias:
+  [autoridade de coordenação](../governance/Conversation-Coordination-Prompt.md),
+  [changelog do corpus](../system/Prompt-System-Change-Log.md) e
+  [estado factual](Current-State.md).
+- Aprovador: Bruno, por pedido explícito desta orientação documental; nenhuma
+  autoridade adjacente foi inferida.

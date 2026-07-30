@@ -17,8 +17,8 @@ altera autoridade, execução, estados ou gates definidos aqui.
 A
 [`Coordenação de Conversas e Trabalho Paralelo Seguro`](Conversation-Coordination-Prompt.md)
 é a autoridade temática especializada de roteamento entre conversas,
-paralelismo, ownership e integração. Ela não altera a autoridade, os estados ou
-os gates definidos aqui.
+recomendação de raciocínio do Codex, paralelismo, ownership e integração. Ela
+não altera a autoridade, os estados ou os gates definidos aqui.
 
 ## Estados canônicos
 
@@ -124,6 +124,10 @@ sempre que houver handoff entre conversas ou avaliação de trabalho paralelo.
 Esta seção preserva somente os invariantes transversais:
 
 - Uma única conversa coordenadora mantém escopo, baseline e integração.
+- Cada handoff recomenda exatamente um nível de raciocínio do Codex para a
+  próxima interação e cada lane recebe recomendação própria. A recomendação é
+  consultiva, não comprova a configuração aplicada e não altera autoridade,
+  roteamento, paralelismo, ownership, gates ou lifecycle.
 - Nenhum arquivo, artefato lógico ou recurso mutável pode ter writers
   sobrepostos.
 - Sem workflow Git de escrita paralela especificamente autorizado e worktrees

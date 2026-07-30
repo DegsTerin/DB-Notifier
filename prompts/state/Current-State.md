@@ -1,6 +1,6 @@
 # Estado Atual
 
-Este documento é o snapshot factual vigente do workspace em 2026-07-29. Ele
+Este documento é o snapshot factual vigente do workspace em 2026-07-30. Ele
 não concede autoridade de execução. A evolução, os resultados substituídos e
 as decisões tomadas no seu contexto original permanecem no
 [`State-Transition-Log.md`](State-Transition-Log.md) e nos relatórios
@@ -49,15 +49,16 @@ proprietários.
 
 ## Sistema de instruções e coordenação
 
-- O corpus vigente é `6.4.0`, com 16 arquivos ativos. A
+- O corpus vigente é `6.5.0`, com 16 arquivos ativos. A
   [Política de Idioma](../governance/Language-Policy.md), revisão `1.0.0`, é a
   autoridade temática única para comunicação com o proprietário, idioma dos
   artefatos, preservação de conteúdo existente, convenções externas e
   separação do idioma da interface.
 - A
   [Coordenação de Conversas e Trabalho Paralelo Seguro](../governance/Conversation-Coordination-Prompt.md),
-  revisão `1.2.0`, é a autoridade temática de roteamento, handoff,
-  paralelismo, ownership exclusivo e integração coordenada. As duas
+  revisão `1.3.0`, é a autoridade temática de roteamento, handoff,
+  recomendação de raciocínio do Codex, paralelismo, ownership exclusivo e
+  integração coordenada. As duas
   autoridades ficam em `prompts/governance/`; `Governance.md` conserva
   autoridade, execução controlada e lifecycle.
 - Comunicação com o proprietário usa `pt-BR`. Novos artefatos independentes
@@ -73,6 +74,15 @@ proprietários.
   mensagem pronta não constitui decisão antes de ser enviada nem presume
   aprovação, Human Gate, ADR, `ActivationState`, lifecycle, operação Git ou
   ação externa.
+- Todo handoff preserva os 14 campos existentes e começa `Your action now` com
+  exatamente uma recomendação para a próxima interação: `Leve` (`low`),
+  `Médio` (`medium`), `Alto` (`high`), `Extra alto` (`xhigh`), `Máximo`
+  (`max`) ou `Ultra` (`ultra`), acompanhada de uma razão específica. A escolha
+  usa o menor esforço suficiente, é reavaliada por conversa e lane e não
+  comprova disponibilidade, seleção ou aplicação. Os planos paralelos indicam
+  um nível para a coordenadora e para cada lane; mensagens auxiliares repetem a
+  orientação numa frase de preâmbulo não canônica antes dos 19 campos
+  preservados, sem criar campo adicional.
 - Uma única conversa coordenadora conserva escopo, baseline e integração e
   mantém sob sua custódia estado, histórico, changelog, ADRs, relatórios e
   decisões de gate e apresentação de Human Gates. Essa custódia não transfere

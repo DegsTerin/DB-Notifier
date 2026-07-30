@@ -1,9 +1,9 @@
 # DB-Notifier — Coordenação de Conversas e Trabalho Paralelo Seguro
 
 - Status: autoridade temática normativa
-- Revisão: `1.2.0`
+- Revisão: `1.3.0`
 - Versão de introdução no corpus: `6.2.0`
-- Versão desta revisão no corpus: `6.4.0`
+- Versão desta revisão no corpus: `6.5.0`
 - Projeto: `DB-Notifier`
 - Workspace: raiz confirmada do repositório ou do worktree atribuído à conversa
 
@@ -19,8 +19,9 @@ Este documento é a autoridade temática única para:
 2. decidir quando iniciar uma nova conversa;
 3. decidir quando retornar a uma conversa anterior confirmada;
 4. fornecer sempre a mensagem exata que o proprietário deverá enviar;
-5. classificar se várias conversas podem trabalhar simultaneamente;
-6. impedir que o paralelismo autorizado produza writers sobrepostos,
+5. recomendar o nível de raciocínio do Codex adequado a cada conversa;
+6. classificar se várias conversas podem trabalhar simultaneamente;
+7. impedir que o paralelismo autorizado produza writers sobrepostos,
    sobrescrita, integração ambígua ou mudança fora de autoridade.
 
 [`Governance.md`](Governance.md)
@@ -163,6 +164,56 @@ Plano paralelo (`Parallel plan`):
 Mensagens paralelas exatas (`Exact parallel messages`):
 ```
 
+### Recomendação obrigatória de raciocínio do Codex
+
+Em todo handoff real, `Sua ação agora` (`Your action now`) deverá começar com
+exatamente uma recomendação para a próxima interação, no seguinte formato:
+
+```text
+Raciocínio recomendado do Codex: <nível> (`<identificador técnico>`). Motivo: <razão específica>.
+```
+
+Usar somente o catálogo abaixo:
+
+| Nível apresentado ao proprietário | Nome em superfícies gráficas do Codex | `model_reasoning_effort` | Uso orientativo |
+|---|---|---|---|
+| `Leve` | `Light` | `low` | Tarefa rápida, determinística e bem delimitada, como consulta factual estável, status, encerramento seguro ou inspeção focal de baixo risco. |
+| `Médio` | `Medium` | `medium` | Opção equilibrada para a maioria das tarefas focais, com requisitos claros, algum planejamento e validação moderada. |
+| `Alto` | `High` | `high` | Implementação, diagnóstico ou revisão não trivial, com lógica complexa, múltiplos componentes, premissas ou edge cases relevantes. |
+| `Extra alto` | `Extra High` | `xhigh` | Trabalho difícil, longo ou multietapas, como integração, segurança, arquitetura ou auditoria que exija várias fontes, trade-offs e rechecagem. |
+| `Máximo` | `Max` | `max` | Problema excepcionalmente difícil tratado como uma única tarefa, quando profundidade importa mais que tempo ou tokens e não há decomposição independente útil. |
+| `Ultra` | `Ultra` | `ultra` | Tarefa grande e complexa divisível em frentes significativas e independentes, quando subagentes trazem ganho material e a superfície, o modelo e a conta são elegíveis. |
+
+Selecionar o menor esforço suficiente para o objetivo seguinte. Maior esforço
+pode aumentar tempo e consumo de tokens e não garante, por si só, melhor
+resultado. Reavaliar o nível a cada handoff; não transportar automaticamente a
+recomendação da conversa atual para outra conversa ou lane.
+
+A disponibilidade dos níveis depende da superfície, do modelo e da conta. Não
+afirmar que um nível está disponível, selecionado ou aplicado sem evidência da
+superfície vigente. Quando a opção ideal puder estar indisponível, declarar na
+mesma orientação um fallback proporcional, sem transformar uma faixa de níveis
+em recomendação principal.
+
+A recomendação é consultiva e independente de `Conversation action`, `Parallel
+work`, escopo, autoridade, ownership, preflight, Quality Gates, revisão humana,
+ADR, Human Gate, `ActivationState` e lifecycle. `Ultra` não cria trabalho
+paralelo autorizado, e `PARALLEL_RECOMMENDED` não exige `Ultra`. Sob
+`SEQUENTIAL_ONLY`, nenhuma escolha permite writers concorrentes; eventuais
+subagentes permanecem somente leitura e a integração continua central quando
+essas atividades forem permitidas.
+
+Em plano paralelo, indicar separadamente o nível da coordenadora e de cada
+lane. Cada mensagem governada de conversa auxiliar deverá repetir, antes dos 19
+campos existentes, a recomendação e a razão específicas daquela lane em uma
+frase de preâmbulo não canônica, que não cria campo adicional.
+
+Esta matriz aplica a orientação oficial de usar o menor esforço suficiente e
+preserva a distinção entre profundidade individual e decomposição com
+subagentes. Referências oficiais vigentes na adoção:
+[configuração de modelos do Codex](https://learn.chatgpt.com/docs/models) e
+[subagentes do Codex](https://learn.chatgpt.com/docs/agent-configuration/subagents).
+
 `Próxima mensagem exata` (`Exact next message`) deve conter sempre uma única
 mensagem completa, específica, preenchida, em `pt-BR` e pronta para o
 proprietário copiar e enviar literalmente na conversa indicada. Essa obrigação
@@ -179,7 +230,8 @@ A mensagem deverá ser coerente com `Próximo passo` (`Next step`),
 `Sua ação agora` (`Your action now`), `Ação da conversa`
 (`Conversation action`) e `Destino da conversa` (`Conversation target`).
 `Sua ação agora` deverá orientar o proprietário a copiar e enviar essa
-mensagem e explicar o resultado esperado.
+mensagem e explicar o resultado esperado, depois da recomendação de raciocínio
+obrigatória.
 
 Uma mensagem pronta para copiar não constitui decisão do proprietário antes de
 ser efetivamente enviada e nunca presume, fabrica ou amplia aprovação,
@@ -215,17 +267,19 @@ Um plano paralelo deverá possuir:
    ou hash;
 3. lanes ou workstreams numerados;
 4. objetivo e resultado esperado de cada lane;
-5. dependências congeladas, acíclicas e explicitadas;
-6. ownership exclusivo de paths, artefatos lógicos e recursos mutáveis;
-7. inputs compartilhados somente leitura;
-8. arquivos, recursos e ações proibidos para cada lane;
-9. checks e evidências esperadas;
-10. condições objetivas de parada;
-11. mensagem completa para iniciar cada conversa worker;
-12. mensagem de retorno pronta para copiar à coordenadora;
-13. ordem determinística de integração;
-14. checks transversais após a integração;
-15. fallback explícito para execução sequencial.
+5. nível de raciocínio recomendado para a coordenadora e para cada lane, com
+   razão específica;
+6. dependências congeladas, acíclicas e explicitadas;
+7. ownership exclusivo de paths, artefatos lógicos e recursos mutáveis;
+8. inputs compartilhados somente leitura;
+9. arquivos, recursos e ações proibidos para cada lane;
+10. checks e evidências esperadas;
+11. condições objetivas de parada;
+12. mensagem completa para iniciar cada conversa worker;
+13. mensagem de retorno pronta para copiar à coordenadora;
+14. ordem determinística de integração;
+15. checks transversais após a integração;
+16. fallback explícito para execução sequencial.
 
 Sem identificação confiável da coordenadora, baseline estável, ownership
 exclusivo ou fallback sequencial, o trabalho é `SEQUENTIAL_ONLY`. Somente um
@@ -344,7 +398,15 @@ proprietário.
 
 ## 10. Mensagens governadas de conversa auxiliar
 
-Cada mensagem paralela exata (`Exact parallel message`) real deverá conter:
+Cada mensagem paralela exata (`Exact parallel message`) real deverá começar
+pela seguinte frase de preâmbulo não canônica, preenchida sem placeholders:
+
+```text
+Para esta lane, recomenda-se usar o raciocínio <nível> (`<identificador técnico>`) do Codex porque <razão específica>.
+```
+
+Essa frase não é um campo do contrato. Em seguida, a mensagem deverá conter os
+19 campos existentes:
 
 ```text
 Projeto:

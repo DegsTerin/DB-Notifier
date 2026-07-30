@@ -105,52 +105,68 @@ conversas, conforme
    `PARALLEL_OPTIONAL` ou `PARALLEL_RECOMMENDED`.
 3. Validar os 14 campos obrigatórios e sua ordem, rótulos em `pt-BR`, chaves
    canônicas preservadas e ausência de placeholders em instâncias reais.
-4. Confirmar que `Exact next message` contém sempre uma única mensagem
+4. Confirmar que `Your action now` começa com exatamente uma recomendação para
+   a próxima interação: `Leve` (`low`), `Médio` (`medium`), `Alto` (`high`),
+   `Extra alto` (`xhigh`), `Máximo` (`max`) ou `Ultra` (`ultra`), seguida de
+   uma razão concreta. Reprovar valor vazio, `None`, faixa de níveis,
+   identificador divergente ou recomendação transportada sem reavaliação.
+5. Confirmar escolha do menor esforço suficiente, fallback proporcional quando
+   a disponibilidade for incerta e ausência de alegação não comprovada de que
+   o nível está disponível, selecionado ou aplicado. A recomendação não pode
+   ampliar roteamento, paralelismo, escopo, autoridade, ownership, preflight,
+   gate, ADR, Human Gate, `ActivationState` ou lifecycle.
+6. Confirmar que `Exact next message` contém sempre uma única mensagem
    completa, específica, preenchida, em `pt-BR` e pronta para copiar e enviar
    literalmente na conversa indicada, inclusive em resultado concluído,
    parcial ou bloqueado e quando nenhuma ação adicional de projeto for
    conhecida.
-5. Reprovar valor vazio, placeholder, lista de alternativas, sugestão abstrata
+7. Reprovar valor vazio, placeholder, lista de alternativas, sugestão abstrata
    ou ``Não se aplica (`None`) — nenhuma mensagem é necessária`` em
    `Exact next message`. Confirmar coerência com `Next step`,
    `Your action now`, `Conversation action` e `Conversation target`.
-6. Confirmar que a mensagem pronta não presume, fabrica ou amplia aprovação,
+8. Confirmar que a mensagem pronta não presume, fabrica ou amplia aprovação,
    Human Gate, ADR, `ActivationState`, lifecycle, operação Git ou ação externa.
    Decisão formal pendente deve receber pedido de apresentação ou revisão do
    pacote decisório, salvo resultado já escolhido inequivocamente pelo
    proprietário no contexto vigente.
-7. Confirmar label da coordenadora fornecido pelo proprietário ou identificador
+9. Confirmar label da coordenadora fornecido pelo proprietário ou identificador
    canônico fornecido pela plataforma, versão do corpus e commit/hash da
    baseline quando existente; somente label do proprietário habilita
    `RETURN_TO_EXISTING`, e nunca se aceita conversa inventada ou alegadamente
    aberta pelo agente.
-8. Comprovar dependências congeladas e acíclicas, inputs compartilhados
-   somente leitura e ownership exclusivo de paths, artefatos lógicos e recursos
-   mutáveis.
-9. Confirmar zero writers sobrepostos. Ownership de diretório exclui writers
-   concorrentes em qualquer descendente.
-10. Sem workflow Git paralelo especificamente autorizado e worktrees isolados
-   próprios, comprovar que todas as conversas simultâneas permaneceram
-   read-only e que a escrita foi sequencial na coordenadora.
-11. Quando houver escrita paralela autorizada, verificar branch própria e
-   worktree isolado próprio por writer, write sets disjuntos e isolamento
-   aplicável de portas, processos, bancos, índices, temporários, caches e
-   outputs.
-12. Confirmar arquivos e ações proibidos, condições objetivas de parada,
-   fallback sequencial e preservação da última baseline validada sem descarte
-   de trabalho.
-13. Confirmar que workers não integraram outras lanes, não atualizaram estado,
+10. Comprovar dependências congeladas e acíclicas, inputs compartilhados
+    somente leitura e ownership exclusivo de paths, artefatos lógicos e recursos
+    mutáveis.
+11. Confirmar zero writers sobrepostos. Ownership de diretório exclui writers
+    concorrentes em qualquer descendente.
+12. Sem workflow Git paralelo especificamente autorizado e worktrees isolados
+    próprios, comprovar que todas as conversas simultâneas permaneceram
+    read-only e que a escrita foi sequencial na coordenadora.
+13. Quando houver escrita paralela autorizada, verificar branch própria e
+    worktree isolado próprio por writer, write sets disjuntos e isolamento
+    aplicável de portas, processos, bancos, índices, temporários, caches e
+    outputs.
+14. Confirmar arquivos e ações proibidos, condições objetivas de parada,
+    fallback sequencial e preservação da última baseline validada sem descarte
+    de trabalho.
+15. Confirmar que o plano paralelo declara um nível e uma razão para a
+    coordenadora e para cada lane, e que cada mensagem auxiliar repete sua
+    recomendação numa frase de preâmbulo não canônica antes dos 19 campos
+    existentes, sem criar um 20º campo. `Ultra` não cria
+    `PARALLEL_RECOMMENDED`; `PARALLEL_RECOMMENDED` não exige `Ultra`; e
+    `SEQUENTIAL_ONLY` continua soberano sobre writers e recursos mutáveis.
+16. Confirmar que workers não integraram outras lanes, não atualizaram estado,
     histórico ou changelog, não alteraram ou aceitaram ADR, não promoveram
     lifecycle ou ativação e não solicitaram ou confirmaram Human Gate.
-14. Confirmar que cada worker entregou somente um candidato com arquivos,
+17. Confirmar que cada worker entregou somente um candidato com arquivos,
     artefatos, recursos, checks, evidências, limitações e riscos.
-15. Verificar integração determinística de uma entrega por vez, checks locais
+18. Verificar integração determinística de uma entrega por vez, checks locais
     após cada integração e checks transversais sobre o resultado combinado.
-16. Confirmar que estado, histórico, changelog, ADRs, relatórios e decisões de
+19. Confirmar que estado, histórico, changelog, ADRs, relatórios e decisões de
     gate e Human Gates permaneceram sob custódia exclusiva da coordenadora.
-17. Confirmar que custódia não foi tratada como autoridade decisória e que
+20. Confirmar que custódia não foi tratada como autoridade decisória e que
     nenhuma ação externa, operação Git, lifecycle ou ativação foi inferida.
-18. Confirmar que eventual Human Gate foi apresentado somente depois da
+21. Confirmar que eventual Human Gate foi apresentado somente depois da
     integração, auditoria consolidada e amostras humanas aplicáveis.
 
 Qualquer overlap, baseline incerta, isolamento insuficiente, decisão pendente
