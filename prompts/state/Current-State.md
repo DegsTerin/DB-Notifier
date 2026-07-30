@@ -49,14 +49,14 @@ proprietários.
 
 ## Sistema de instruções e coordenação
 
-- O corpus vigente é `6.3.0`, com 16 arquivos ativos. A
+- O corpus vigente é `6.4.0`, com 16 arquivos ativos. A
   [Política de Idioma](../governance/Language-Policy.md), revisão `1.0.0`, é a
   autoridade temática única para comunicação com o proprietário, idioma dos
   artefatos, preservação de conteúdo existente, convenções externas e
   separação do idioma da interface.
 - A
   [Coordenação de Conversas e Trabalho Paralelo Seguro](../governance/Conversation-Coordination-Prompt.md),
-  revisão `1.1.0`, é a autoridade temática de roteamento, handoff,
+  revisão `1.2.0`, é a autoridade temática de roteamento, handoff,
   paralelismo, ownership exclusivo e integração coordenada. As duas
   autoridades ficam em `prompts/governance/`; `Governance.md` conserva
   autoridade, execução controlada e lifecycle.
@@ -65,6 +65,14 @@ proprietários.
   idioma estabelecido de cada arquivo; convenções externas permanecem
   inalteradas. Nenhuma migração linguística geral ou alteração de locale da
   interface está autorizada.
+- Todo handoff, concluído, parcial ou bloqueado, fornece uma única mensagem
+  completa, específica, preenchida, em `pt-BR` e pronta para copiar e enviar na
+  conversa indicada. `Exact next message` não aceita `None`, placeholder ou
+  alternativas; quando não houver ação adicional de projeto, a mensagem
+  confirma ou encerra com segurança e declara não autorizar nova ação. Uma
+  mensagem pronta não constitui decisão antes de ser enviada nem presume
+  aprovação, Human Gate, ADR, `ActivationState`, lifecycle, operação Git ou
+  ação externa.
 - Uma única conversa coordenadora conserva escopo, baseline e integração e
   mantém sob sua custódia estado, histórico, changelog, ADRs, relatórios e
   decisões de gate e apresentação de Human Gates. Essa custódia não transfere

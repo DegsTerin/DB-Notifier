@@ -2,9 +2,9 @@
 
 ## Versão atual
 
-- Versão: `6.3.0`
+- Versão: `6.4.0`
 - Data: 2026-07-29
-- Status: política de idioma e coordenação governadas em `prompts/governance/`
+- Status: mensagem exata pronta para copiar obrigatória em todo handoff
 - Escopo: 16 arquivos ativos
 
 A versão do corpus é independente da versão do software.
@@ -16,6 +16,36 @@ A versão do corpus é independente da versão do software.
 - PATCH: clareza, correção ou referência sem mudança de autoridade.
 
 Toda alteração atualiza este arquivo e, quando necessário, `../Start-Here.md`.
+
+## 6.4.0 — 2026-07-29
+
+- Atualiza `Conversation-Coordination-Prompt.md` para a revisão `1.2.0` e
+  preserva exatamente os 14 campos, sua ordem e os enums fechados de
+  roteamento e paralelismo.
+- Torna `Exact next message` obrigatório em todo handoff concluído, parcial ou
+  bloqueado, inclusive quando nenhuma ação adicional de projeto for conhecida.
+  O campo contém uma única mensagem completa, específica, preenchida, em
+  `pt-BR` e pronta para o proprietário copiar e enviar literalmente na conversa
+  indicada.
+- Remove de `Exact next message` a exceção
+  ``Não se aplica (`None`) — nenhuma mensagem é necessária`` e proíbe valor
+  vazio, placeholder, alternativas ou sugestão abstrata em uma instância real.
+  Quando não houver próxima ação de projeto, exige confirmação ou encerramento
+  seguro que declare não autorizar nova ação.
+- Exige coerência entre `Next step`, `Your action now`, `Conversation action`,
+  `Conversation target` e a mensagem pronta. `Your action now` orienta a cópia
+  e o envio e informa o resultado esperado e o limite aplicável.
+- Determina que uma mensagem pronta não representa decisão antes de ser
+  enviada e não pode presumir, fabricar ou ampliar aprovação, Human Gate, ADR,
+  `ActivationState`, lifecycle, operação Git ou ação externa. Decisões formais
+  pendentes continuam sujeitas à apresentação e revisão do pacote decisório.
+- Integra a regra em `AGENTS.md`, templates e Quality Gates e registra a
+  alteração no estado e histórico, sem criar autoridade temática duplicada.
+- Mantém 16 arquivos ativos, a Política de Idioma na revisão `1.0.0`, a
+  versão-fonte `2.0.0` do Prompt Mestre, `STATE-06 INTEGRATION`, elegibilidade
+  `NÃO REAVALIADA` e `MOD-12 ActivationState=None`.
+- Não altera nem autoriza código, build, execução do produto, interface, ação
+  externa, ADR, Human Gate, ativação ou transição de lifecycle.
 
 ## 6.3.0 — 2026-07-29
 

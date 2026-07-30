@@ -104,40 +104,53 @@ conversas, conforme
 2. Confirmar que `Parallel work` contém somente `SEQUENTIAL_ONLY`,
    `PARALLEL_OPTIONAL` ou `PARALLEL_RECOMMENDED`.
 3. Validar os 14 campos obrigatórios e sua ordem, rótulos em `pt-BR`, chaves
-   canônicas preservadas, mensagens completas em `pt-BR` e ausência de
-   placeholders em instâncias reais.
-4. Confirmar label da coordenadora fornecido pelo proprietário ou identificador
+   canônicas preservadas e ausência de placeholders em instâncias reais.
+4. Confirmar que `Exact next message` contém sempre uma única mensagem
+   completa, específica, preenchida, em `pt-BR` e pronta para copiar e enviar
+   literalmente na conversa indicada, inclusive em resultado concluído,
+   parcial ou bloqueado e quando nenhuma ação adicional de projeto for
+   conhecida.
+5. Reprovar valor vazio, placeholder, lista de alternativas, sugestão abstrata
+   ou ``Não se aplica (`None`) — nenhuma mensagem é necessária`` em
+   `Exact next message`. Confirmar coerência com `Next step`,
+   `Your action now`, `Conversation action` e `Conversation target`.
+6. Confirmar que a mensagem pronta não presume, fabrica ou amplia aprovação,
+   Human Gate, ADR, `ActivationState`, lifecycle, operação Git ou ação externa.
+   Decisão formal pendente deve receber pedido de apresentação ou revisão do
+   pacote decisório, salvo resultado já escolhido inequivocamente pelo
+   proprietário no contexto vigente.
+7. Confirmar label da coordenadora fornecido pelo proprietário ou identificador
    canônico fornecido pela plataforma, versão do corpus e commit/hash da
    baseline quando existente; somente label do proprietário habilita
    `RETURN_TO_EXISTING`, e nunca se aceita conversa inventada ou alegadamente
    aberta pelo agente.
-5. Comprovar dependências congeladas e acíclicas, inputs compartilhados
+8. Comprovar dependências congeladas e acíclicas, inputs compartilhados
    somente leitura e ownership exclusivo de paths, artefatos lógicos e recursos
    mutáveis.
-6. Confirmar zero writers sobrepostos. Ownership de diretório exclui writers
+9. Confirmar zero writers sobrepostos. Ownership de diretório exclui writers
    concorrentes em qualquer descendente.
-7. Sem workflow Git paralelo especificamente autorizado e worktrees isolados
+10. Sem workflow Git paralelo especificamente autorizado e worktrees isolados
    próprios, comprovar que todas as conversas simultâneas permaneceram
    read-only e que a escrita foi sequencial na coordenadora.
-8. Quando houver escrita paralela autorizada, verificar branch própria e
+11. Quando houver escrita paralela autorizada, verificar branch própria e
    worktree isolado próprio por writer, write sets disjuntos e isolamento
    aplicável de portas, processos, bancos, índices, temporários, caches e
    outputs.
-9. Confirmar arquivos e ações proibidos, condições objetivas de parada,
+12. Confirmar arquivos e ações proibidos, condições objetivas de parada,
    fallback sequencial e preservação da última baseline validada sem descarte
    de trabalho.
-10. Confirmar que workers não integraram outras lanes, não atualizaram estado,
+13. Confirmar que workers não integraram outras lanes, não atualizaram estado,
     histórico ou changelog, não alteraram ou aceitaram ADR, não promoveram
     lifecycle ou ativação e não solicitaram ou confirmaram Human Gate.
-11. Confirmar que cada worker entregou somente um candidato com arquivos,
+14. Confirmar que cada worker entregou somente um candidato com arquivos,
     artefatos, recursos, checks, evidências, limitações e riscos.
-12. Verificar integração determinística de uma entrega por vez, checks locais
+15. Verificar integração determinística de uma entrega por vez, checks locais
     após cada integração e checks transversais sobre o resultado combinado.
-13. Confirmar que estado, histórico, changelog, ADRs, relatórios e decisões de
+16. Confirmar que estado, histórico, changelog, ADRs, relatórios e decisões de
     gate e Human Gates permaneceram sob custódia exclusiva da coordenadora.
-14. Confirmar que custódia não foi tratada como autoridade decisória e que
+17. Confirmar que custódia não foi tratada como autoridade decisória e que
     nenhuma ação externa, operação Git, lifecycle ou ativação foi inferida.
-15. Confirmar que eventual Human Gate foi apresentado somente depois da
+18. Confirmar que eventual Human Gate foi apresentado somente depois da
     integração, auditoria consolidada e amostras humanas aplicáveis.
 
 Qualquer overlap, baseline incerta, isolamento insuficiente, decisão pendente

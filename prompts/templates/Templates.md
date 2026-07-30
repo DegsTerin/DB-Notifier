@@ -35,9 +35,25 @@ Mensagens paralelas exatas (`Exact parallel messages`):
 `PARALLEL_OPTIONAL` ou `PARALLEL_RECOMMENDED`.
 
 Templates podem conter placeholders; uma instância real deve substituí-los por
-conteúdo completo. Quando nenhuma mensagem for exigida, usar
-``Próxima mensagem exata (`Exact next message`): Não se aplica (`None`) —
-nenhuma mensagem é necessária``. Para trabalho sequencial,
+conteúdo completo. Todo handoff real, inclusive quando concluído, parcial ou
+bloqueado, deve preencher `Próxima mensagem exata` (`Exact next message`) com
+uma única mensagem completa, específica, em `pt-BR` e pronta para copiar e
+enviar literalmente na conversa indicada.
+
+`Próxima mensagem exata` nunca aceita valor vazio, placeholder, alternativas ou
+``Não se aplica (`None`) — nenhuma mensagem é necessária``. Quando nenhuma
+ação adicional de projeto for conhecida, fornecer uma mensagem segura de
+confirmação ou encerramento que declare não autorizar nova ação. A mensagem
+deve corresponder a `Próximo passo`, `Sua ação agora`, `Ação da conversa` e
+`Destino da conversa`.
+
+A mensagem pronta não representa decisão antes de ser enviada. Ela não pode
+presumir ou fabricar aprovação, Human Gate, ADR, `ActivationState`, lifecycle,
+operação Git ou ação externa. Uma decisão formal pendente recebe mensagem para
+apresentação ou revisão do pacote decisório, salvo quando o proprietário já
+tiver escolhido inequivocamente seu resultado no contexto vigente.
+
+Para trabalho sequencial,
 `Plano paralelo` (`Parallel plan`) começa por
 ``Não se aplica (`None`) —`` com a razão concreta e
 `Mensagens paralelas exatas` (`Exact parallel messages`) usa

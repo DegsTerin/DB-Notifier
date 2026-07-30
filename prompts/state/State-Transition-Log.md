@@ -5596,3 +5596,78 @@
 - Aprovador: Bruno, por autorização explícita limitada à movimentação e
   incorporação documental sequencial sem Git; nenhuma autoridade adjacente
   inferida.
+
+## 2026-07-29 — Mensagem pronta para copiar tornada obrigatória em todo handoff
+
+- Estado anterior: `STATE-06 INTEGRATION`, elegibilidade `NÃO REAVALIADA`,
+  `MOD-12 ActivationState=None`, corpus de instruções `6.3.0` com 16 arquivos
+  ativos, revisão `1.1.0` da autoridade de coordenação e baseline limpa no
+  commit `d30b901a63150b9785dae43713a3259302dd5009`.
+- Autoridade humana exata:
+  `APROVO o plano documental apresentado e AUTORIZO exclusivamente alterar
+  sequencialmente AGENTS.md,
+  prompts/governance/Conversation-Coordination-Prompt.md,
+  prompts/templates/Templates.md, prompts/governance/Quality-Gates.md,
+  prompts/system/Prompt-System-Change-Log.md,
+  prompts/state/Current-State.md e prompts/state/State-Transition-Log.md para
+  tornar obrigatório que todo encerramento forneça uma mensagem completa,
+  específica, em pt-BR e pronta para eu copiar e enviar na conversa indicada.
+  A mensagem deverá ser fornecida mesmo quando o objetivo estiver concluído,
+  parcial ou bloqueado e nunca poderá presumir ou fabricar aprovação, Human
+  Gate, ADR, ActivationState, lifecycle, operação Git ou ação externa.
+  AUTORIZO o preflight obrigatório, as validações documentais locais
+  proporcionais e um commit local focal com a mensagem docs(governance):
+  require copy-ready next messages. NÃO AUTORIZO amend, branch, worktree,
+  merge, rebase, push, código, build, execução do produto, alteração da
+  interface, ação externa, ADR, Human Gate, ActivationState ou lifecycle.`
+- Preflight e baseline: zero processo, listener ou janela pertencente ao
+  DB-Notifier; serviço Docker parado e endpoint ausente; branch `main`, árvore
+  limpa e HEAD
+  `d30b901a63150b9785dae43713a3259302dd5009`. Nenhum processo ou recurso alheio
+  foi encerrado ou alterado.
+- Decisão documental: atualizar a autoridade de coordenação para a revisão
+  `1.2.0` e evoluir o corpus para `6.4.0`, mantendo 16 arquivos ativos, a
+  Política de Idioma na revisão `1.0.0` e a versão-fonte `2.0.0` do Prompt
+  Mestre.
+- Política adotada: todo handoff concluído, parcial ou bloqueado contém uma
+  única mensagem completa, específica, preenchida, em `pt-BR` e pronta para o
+  proprietário copiar e enviar literalmente na conversa indicada. A obrigação
+  permanece quando nenhuma ação adicional de projeto for conhecida.
+- Contrato preservado: continuam exatamente 14 campos, na mesma ordem, e os
+  enums fechados de roteamento e paralelismo. Somente `Exact next message`
+  deixa de aceitar valor vazio, placeholder, alternativas ou
+  ``Não se aplica (`None`) — nenhuma mensagem é necessária``; os usos
+  governados de `None` nos campos de título e paralelismo permanecem
+  inalterados.
+- Limite decisório: a mensagem pronta não representa decisão antes de ser
+  enviada e não presume, fabrica ou amplia aprovação, Human Gate, ADR,
+  `ActivationState`, lifecycle, operação Git ou ação externa. Decisão formal
+  pendente recebe pedido de apresentação ou revisão do pacote decisório, salvo
+  resultado já escolhido inequivocamente pelo proprietário no contexto
+  vigente.
+- Escopo documental: `AGENTS.md`,
+  `prompts/governance/Conversation-Coordination-Prompt.md`,
+  `prompts/templates/Templates.md`,
+  `prompts/governance/Quality-Gates.md`,
+  `prompts/system/Prompt-System-Change-Log.md`,
+  `prompts/state/Current-State.md` e este log append-only.
+- Gates anteriores a este registro: escopo preliminar `6/6`, `git diff
+  --check`, UTF-8/LF/newline final/trailing whitespace, contrato de handoff
+  `14/14`, revisão `1.2.0`, corpus `6.4.0` e preservação dos limites decisórios
+  aprovados. A validação final inclui este registro e precede o commit focal.
+- Autoridade Git limitada: somente o commit local focal
+  `docs(governance): require copy-ready next messages` está autorizado.
+  `amend`, branch, worktree, merge, rebase e push permanecem proibidos.
+- Escopo negativo: zero código, build, execução do produto, interface, ação
+  externa, ADR, Human Gate, `ActivationState`, ativação ou transição de
+  lifecycle.
+- Estado resultante: `STATE-06 INTEGRATION`, elegibilidade `NÃO REAVALIADA`,
+  `MOD-12 ActivationState=None`, ADRs, Human Gates, produto, interface e
+  autoridade externa permanecem inalterados.
+- Evidências proprietárias:
+  [autoridade de coordenação](../governance/Conversation-Coordination-Prompt.md),
+  [changelog do corpus](../system/Prompt-System-Change-Log.md) e
+  [estado factual](Current-State.md).
+- Aprovador: Bruno, por autorização explícita limitada à alteração documental
+  sequencial, validações locais e commit focal; nenhuma autoridade adjacente
+  inferida.

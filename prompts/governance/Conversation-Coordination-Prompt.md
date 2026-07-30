@@ -1,9 +1,9 @@
 # DB-Notifier — Coordenação de Conversas e Trabalho Paralelo Seguro
 
 - Status: autoridade temática normativa
-- Revisão: `1.1.0`
+- Revisão: `1.2.0`
 - Versão de introdução no corpus: `6.2.0`
-- Versão desta revisão no corpus: `6.3.0`
+- Versão desta revisão no corpus: `6.4.0`
 - Projeto: `DB-Notifier`
 - Workspace: raiz confirmada do repositório ou do worktree atribuído à conversa
 
@@ -18,7 +18,7 @@ Este documento é a autoridade temática única para:
 1. decidir quando continuar na conversa atual;
 2. decidir quando iniciar uma nova conversa;
 3. decidir quando retornar a uma conversa anterior confirmada;
-4. fornecer a mensagem exata que o proprietário deverá enviar;
+4. fornecer sempre a mensagem exata que o proprietário deverá enviar;
 5. classificar se várias conversas podem trabalhar simultaneamente;
 6. impedir que o paralelismo autorizado produza writers sobrepostos,
    sobrescrita, integração ambígua ou mudança fora de autoridade.
@@ -163,10 +163,31 @@ Plano paralelo (`Parallel plan`):
 Mensagens paralelas exatas (`Exact parallel messages`):
 ```
 
-`Próxima mensagem exata` (`Exact next message`) deve conter uma mensagem
-completa, preenchida, pronta para copiar e em `pt-BR`. Quando nenhuma mensagem
-for necessária, usar exatamente
-``Não se aplica (`None`) — nenhuma mensagem é necessária``.
+`Próxima mensagem exata` (`Exact next message`) deve conter sempre uma única
+mensagem completa, específica, preenchida, em `pt-BR` e pronta para o
+proprietário copiar e enviar literalmente na conversa indicada. Essa obrigação
+permanece quando o objetivo estiver concluído, parcial ou bloqueado e quando
+nenhuma ação adicional de projeto for conhecida.
+
+Esse campo nunca aceita valor vazio, placeholder, lista de alternativas,
+sugestão abstrata ou
+``Não se aplica (`None`) — nenhuma mensagem é necessária``. Quando não houver
+ação adicional de projeto, fornecer uma mensagem segura de confirmação ou
+encerramento que declare expressamente não autorizar nova ação.
+
+A mensagem deverá ser coerente com `Próximo passo` (`Next step`),
+`Sua ação agora` (`Your action now`), `Ação da conversa`
+(`Conversation action`) e `Destino da conversa` (`Conversation target`).
+`Sua ação agora` deverá orientar o proprietário a copiar e enviar essa
+mensagem e explicar o resultado esperado.
+
+Uma mensagem pronta para copiar não constitui decisão do proprietário antes de
+ser efetivamente enviada e nunca presume, fabrica ou amplia aprovação,
+autoridade, Human Gate, ADR, `ActivationState`, lifecycle, operação Git ou ação
+externa. Quando uma decisão formal ainda estiver pendente, a mensagem solicita
+a apresentação ou revisão do pacote decisório; ela somente expressa um
+resultado de decisão quando o proprietário já o tiver escolhido
+inequivocamente no contexto vigente.
 
 Quando `START_NEW` não for escolhido, `Título sugerido` (`Suggested title`)
 deve começar por ``Não se aplica (`None`) —`` e declarar concretamente por que
