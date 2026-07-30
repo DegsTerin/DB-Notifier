@@ -9,7 +9,13 @@ execução controlada e estados canônicos. Nenhum documento histórico ou
 template altera o estado do projeto.
 
 A
-[`Coordenação de Conversas e Trabalho Paralelo Seguro`](../../Conversation-Coordination-Prompt.md)
+[`Política de Idioma`](Language-Policy.md) é a autoridade temática única para
+comunicação com o proprietário, idioma dos artefatos, preservação de conteúdo
+existente, convenções externas e separação do idioma da interface. Ela não
+altera autoridade, execução, estados ou gates definidos aqui.
+
+A
+[`Coordenação de Conversas e Trabalho Paralelo Seguro`](Conversation-Coordination-Prompt.md)
 é a autoridade temática especializada de roteamento entre conversas,
 paralelismo, ownership e integração. Ela não altera a autoridade, os estados ou
 os gates definidos aqui.
@@ -113,7 +119,7 @@ Bloqueio não autoriza salto de estado.
 ## Coordenação de conversas e trabalho multiagente
 
 Aplicar integralmente
-[`Conversation-Coordination-Prompt.md`](../../Conversation-Coordination-Prompt.md)
+[`Conversation-Coordination-Prompt.md`](Conversation-Coordination-Prompt.md)
 sempre que houver handoff entre conversas ou avaliação de trabalho paralelo.
 Esta seção preserva somente os invariantes transversais:
 

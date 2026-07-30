@@ -5516,8 +5516,83 @@
   `MOD-12 ActivationState=None`, ADRs, Human Gates, produto e autoridade
   externa permanecem inalterados.
 - Evidências proprietárias:
-  [autoridade de coordenação](../../Conversation-Coordination-Prompt.md),
+  [autoridade de coordenação](../governance/Conversation-Coordination-Prompt.md),
   [changelog do corpus](../system/Prompt-System-Change-Log.md) e
   [estado factual](Current-State.md).
 - Aprovador: Bruno, por autorização explícita limitada à incorporação
   documental sequencial; nenhuma autoridade adjacente inferida.
+
+## 2026-07-29 — Política de idioma incorporada e autoridades movidas para governança
+
+- Estado anterior: `STATE-06 INTEGRATION`, elegibilidade `NÃO REAVALIADA`,
+  `MOD-12 ActivationState=None`, corpus de instruções `6.2.0` com 15 arquivos
+  ativos, política de coordenação na raiz e política de idioma ainda não
+  roteada como autoridade temática.
+- Autoridade humana exata:
+  `APROVO o plano revisado e AUTORIZO exclusivamente mover Language-Policy.md
+  e Conversation-Coordination-Prompt.md para prompts/governance/, preservando
+  seus nomes, e realizar a incorporação sequencial nos 11 documentos
+  enumerados, com validações documentais locais e sem Git. Não autorizo
+  tradução em massa, alteração da interface, código, compilação, execução do
+  produto, ações externas, ADR, Human Gate, ActivationState ou lifecycle.`
+- Esclarecimento do proprietário: toda informação, orientação, sugestão e
+  demais comunicação dirigida ao proprietário deve ser apresentada em
+  `pt-BR`; `en-GB` permanece aplicável aos artefatos de projeto e
+  desenvolvimento conforme a autoridade temática, sem determinar o idioma da
+  interface.
+- Preflight: zero processo e zero listener pertencente ao DB-Notifier. A
+  inspeção complementar confirmou o serviço Docker parado e o endpoint do
+  contexto ativo inexistente; nenhum processo, serviço, database engine,
+  browser, IDE ou recurso alheio foi encerrado ou alterado.
+- Baseline documental: 12 hashes SHA-256 previamente registrados foram
+  reconciliados sem Git. A fonte original `Language-Policy.md` foi preservada
+  por proveniência com o SHA-256
+  `E6021618DD2DED951FC08BA5305C13F35163E86623C612406CBA2239D8E97224`.
+- Decisão documental: mover, preservando os nomes,
+  `Language-Policy.md` e `Conversation-Coordination-Prompt.md` para
+  `prompts/governance/`; adotar a primeira como autoridade temática única de
+  idioma, revisão `1.0.0`; atualizar a segunda para a revisão `1.1.0`; e
+  evoluir o corpus para `6.3.0` com 16 arquivos ativos.
+- Política adotada: comunicação ao proprietário e mensagens prontas em
+  `pt-BR`; novos artefatos autônomos de projeto em `en-GB`; alterações
+  limitadas preservam o idioma estabelecido do arquivo; nomes, contratos,
+  identificadores e enums externos permanecem estáveis; tradução em massa,
+  reescrita histórica e inferência do idioma da interface permanecem
+  proibidas sem autoridade própria.
+- Contratos de coordenação: o handoff preserva exatamente 14 campos canônicos,
+  sua ordem e seus enums fechados, com rótulos visíveis e mensagens padrão em
+  `pt-BR`; a mensagem governada de conversa auxiliar preserva exatamente 19
+  campos. As chaves técnicas canônicas em inglês permanecem entre parênteses
+  ou crases quando necessárias à interoperabilidade.
+- Escopo documental: 11 documentos lógicos e 13 endpoints de caminho —
+  as duas autoridades movidas, `AGENTS.md`, `prompts/Start-Here.md`,
+  `prompts/governance/Governance.md`,
+  `prompts/governance/Quality-Gates.md`,
+  `prompts/templates/Templates.md`,
+  `prompts/system/AI-Software-Engineering-Master-Prompt.md`,
+  `prompts/system/Prompt-System-Change-Log.md`,
+  `prompts/state/Current-State.md` e este log append-only. A única adaptação em
+  evidência histórica anterior foi a correção mecânica do link para a
+  autoridade movida; sua prosa permaneceu inalterada.
+- Gates anteriores a este registro: escopo `11/11` documentos lógicos e
+  `13/13` endpoints, formato e higiene `11/11`, handoff `14/14`, mensagem
+  auxiliar `19/19`, enums `3 + 3`, autoridade, roteamento, precedência,
+  versão, estado, host real, padrões de segredo e limites negativos
+  aprovados; `956` links locais em `225` arquivos aprovados. Uma divergência
+  inicial de apresentação dos enums no template foi corrigida antes da
+  repetição aprovada do contrato.
+- Escopo negativo: nenhum uso de Git; zero tradução em massa, interface,
+  source, configuração executável, dependência, compilação, teste ou execução
+  do produto, runtime, ação externa, ADR, Human Gate, `ActivationState`,
+  homologação, deploy, publicação ou transição de lifecycle.
+- Estado resultante: `STATE-06 INTEGRATION`, elegibilidade `NÃO REAVALIADA`,
+  `MOD-12 ActivationState=None`, ADRs, Human Gates, interface, produto e
+  autoridade externa permanecem inalterados.
+- Evidências proprietárias:
+  [política de idioma](../governance/Language-Policy.md),
+  [autoridade de coordenação](../governance/Conversation-Coordination-Prompt.md),
+  [changelog do corpus](../system/Prompt-System-Change-Log.md) e
+  [estado factual](Current-State.md).
+- Aprovador: Bruno, por autorização explícita limitada à movimentação e
+  incorporação documental sequencial sem Git; nenhuma autoridade adjacente
+  inferida.

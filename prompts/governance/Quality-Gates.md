@@ -44,24 +44,67 @@ Banner de sucesso, compilação isolada ou ausência de erro aparente não prova
 2. Conferir diff e entregáveis esperados.
 3. Descobrir e executar comandos reais do repositório.
 4. Validar build, testes, análise estática, secrets e dependências aplicáveis.
-5. Executar `npm run comments:verify` no Dashboard e revisar documentação de código alterado em inglês britânico.
+5. Aplicar a
+   [`Política de Idioma`](Language-Policy.md), executar
+   `npm run comments:verify` quando autorizado e aplicável e revisar
+   documentação de código alterado em inglês britânico.
 6. Verificar providers, separação monitor/admin e comportamento sem conectividade.
 7. Classificar cada gate como APROVADO, REPROVADO, BLOQUEADO ou NÃO APLICÁVEL.
 8. Registrar achados com severidade, impacto, reprodução e correção recomendada.
 
 Auditoria não corrige silenciosamente falhas, não inventa evidência e não promove estado.
 
+## Gate de conformidade linguística
+
+Aplicar a
+[`Política de Idioma`](Language-Policy.md) em toda mudança documental, de
+código, configuração ou comunicação governada:
+
+1. Confirmar que perguntas, explicações, atualizações, aprovações, alertas,
+   handoffs e mensagens prontas para copiar destinadas ao proprietário usam
+   `pt-BR`.
+2. Confirmar rótulos visíveis ao proprietário em `pt-BR`. Chaves canônicas,
+   comandos, paths e enums podem permanecer em inglês entre crases ou
+   parênteses somente quando tecnicamente necessários.
+3. Confirmar que cada novo artefato independente pertencente ao projeto usa
+   `en-GB`, com ortografia britânica, salvo convenção externa obrigatória.
+4. Em alteração limitada de arquivo existente, confirmar que o idioma
+   estabelecido foi preservado e que não surgiu mistura linguística
+   injustificada.
+5. Confirmar que comentários e documentação de código novos ou modificados
+   usam `en-GB` e cumprem o
+   [`Code-Documentation-Standards.md`](../../docs/Code-Documentation-Standards.md).
+6. Verificar nomes impostos por linguagens, frameworks, bibliotecas,
+   protocolos, padrões, APIs, terceiros e contratos externos sem tradução ou
+   renomeação indevida.
+7. Confirmar ausência de tradução em massa, reescrita de evidência histórica
+   ou migração linguística sem autorização própria.
+8. Quando uma operação Git estiver separadamente autorizada, confirmar
+   mensagem de commit em `en-GB` e preservação integral das mensagens
+   históricas.
+9. Confirmar que idioma de conversa, engenharia ou documentação não alterou
+   locales, catálogos, preferências ou comportamento da interface sem decisão
+   de produto própria.
+10. Registrar escopo revisado, exceções técnicas, revisão humana de vocabulário
+    e resultado como `APROVADO`, `REPROVADO`, `BLOQUEADO` ou
+    `NÃO APLICÁVEL`.
+
+Automação lexical auxilia a revisão, mas não substitui a avaliação humana de
+idioma dominante, ortografia britânica, clareza, nomes externos e contexto de
+interface.
+
 ## Gate de coordenação de conversas e paralelismo
 
 Aplicar este gate a todo handoff governado e a qualquer plano com múltiplas
 conversas, conforme
-[`Conversation-Coordination-Prompt.md`](../../Conversation-Coordination-Prompt.md).
+[`Conversation-Coordination-Prompt.md`](Conversation-Coordination-Prompt.md).
 
 1. Confirmar que `Conversation action` contém somente
    `CONTINUE_CURRENT`, `START_NEW` ou `RETURN_TO_EXISTING`.
 2. Confirmar que `Parallel work` contém somente `SEQUENTIAL_ONLY`,
    `PARALLEL_OPTIONAL` ou `PARALLEL_RECOMMENDED`.
-3. Validar todos os campos obrigatórios, mensagens completas e ausência de
+3. Validar os 14 campos obrigatórios e sua ordem, rótulos em `pt-BR`, chaves
+   canônicas preservadas, mensagens completas em `pt-BR` e ausência de
    placeholders em instâncias reais.
 4. Confirmar label da coordenadora fornecido pelo proprietário ou identificador
    canônico fornecido pela plataforma, versão do corpus e commit/hash da

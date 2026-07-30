@@ -5,145 +5,169 @@ Templates não representam execução nem aprovação até serem preenchidos com
 ## Contrato mínimo de handoff governado
 
 Aplicar a todo handoff conforme a autoridade
-[`Conversation-Coordination-Prompt.md`](../../Conversation-Coordination-Prompt.md).
-Os nomes e a ordem dos campos são normativos:
+[`Conversation-Coordination-Prompt.md`](../governance/Conversation-Coordination-Prompt.md)
+e a
+[`Política de Idioma`](../governance/Language-Policy.md).
+Os 14 campos, suas chaves canônicas e sua ordem são normativos. Os rótulos,
+valores, razões e mensagens apresentados ao proprietário permanecem em
+`pt-BR`:
 
 ```text
-Status:
-Completed:
-Remaining for this target:
-Next step:
-Next stage:
-Your action now:
-Conversation action: CONTINUE_CURRENT/START_NEW/RETURN_TO_EXISTING
-Conversation target:
-Suggested title:
-Conversation reason:
-Exact next message:
-Parallel work: SEQUENTIAL_ONLY/PARALLEL_OPTIONAL/PARALLEL_RECOMMENDED
-Parallel plan:
-Exact parallel messages:
+Situação (`Status`):
+Concluído (`Completed`):
+Restante para este objetivo (`Remaining for this target`):
+Próximo passo (`Next step`):
+Próxima etapa (`Next stage`):
+Sua ação agora (`Your action now`):
+Ação da conversa (`Conversation action`):
+Destino da conversa (`Conversation target`):
+Título sugerido (`Suggested title`):
+Motivo da conversa (`Conversation reason`):
+Próxima mensagem exata (`Exact next message`):
+Trabalho paralelo (`Parallel work`):
+Plano paralelo (`Parallel plan`):
+Mensagens paralelas exatas (`Exact parallel messages`):
 ```
+
+`Ação da conversa` (`Conversation action`) aceita somente
+`CONTINUE_CURRENT`, `START_NEW` ou `RETURN_TO_EXISTING`.
+`Trabalho paralelo` (`Parallel work`) aceita somente `SEQUENTIAL_ONLY`,
+`PARALLEL_OPTIONAL` ou `PARALLEL_RECOMMENDED`.
 
 Templates podem conter placeholders; uma instância real deve substituí-los por
 conteúdo completo. Quando nenhuma mensagem for exigida, usar
-`Exact next message: None — no message is required`. Para trabalho sequencial,
-`Parallel plan` começa por `None —` com a razão concreta e
-`Exact parallel messages` usa
-`None — parallel work is not recommended`.
+``Próxima mensagem exata (`Exact next message`): Não se aplica (`None`) —
+nenhuma mensagem é necessária``. Para trabalho sequencial,
+`Plano paralelo` (`Parallel plan`) começa por
+``Não se aplica (`None`) —`` com a razão concreta e
+`Mensagens paralelas exatas` (`Exact parallel messages`) usa
+``Não se aplica (`None`) — o trabalho paralelo não é recomendado``.
 
-## Complemento de handoff de fase
+## Complemento de encerramento de fase
 
 - Estado encerrado:
 - Estado recomendado:
 - Objetivo e escopo entregues:
 - Arquivos/artefatos alterados:
 - ADRs e decisões:
-- Checks e resultados:
-- Shutdown preflight: componentes/PIDs encerrados, listeners verificados e resíduos:
-- Interfaces/schemas/protocolos:
+- Verificações e resultados:
+- Desligamento preventivo (`shutdown preflight`): componentes/PIDs encerrados, portas em escuta verificadas e resíduos:
+- Interfaces/esquemas/protocolos:
 - Riscos e dívida:
-- Rollback:
+- Reversão (`rollback`):
 - Pré-condições da próxima fase:
 - Auditoria automática:
-- Human Gate:
+- Validação humana (`Human Gate`):
 - Passos ordenados e local de execução:
 - Resultado esperado:
 - Restrições ou cuidados:
 - Evidência/resposta que o usuário deve retornar:
+- Comunicação com o proprietário em `pt-BR`:
+- Idioma dos artefatos novos ou preservado nos arquivos existentes:
+- Convenções externas mantidas e exceções linguísticas justificadas:
+- Impacto na localização da interface: nenhum ou autoridade específica:
+- Resultado do gate de idioma:
 
 ## Plano de trabalho paralelo
 
-- Conversa coordenadora e label confirmado pelo proprietário ou identificador canônico fornecido pela plataforma:
+- Conversa coordenadora e rótulo confirmado pelo proprietário ou identificador canônico fornecido pela plataforma:
 - Versão do corpus:
-- Commit/hash da baseline:
-- Estado/gate/lote:
+- Referência da base (`commit`/hash):
+- Estado/validação/lote:
 - Autoridade e escopo negativo:
-- Lanes numeradas, objetivo e resultado esperado:
+- Frentes numeradas (`lanes`), objetivo e resultado esperado:
 - Dependências congeladas e acíclicas:
-- Ownership exclusivo de paths:
-- Ownership exclusivo de artefatos lógicos:
-- Ownership exclusivo de recursos mutáveis:
-- Inputs compartilhados somente leitura:
-- Arquivos, recursos e ações proibidos por lane:
-- Branch/worktree por writer e autoridade correspondente:
-- Isolamento de portas, processos, bancos, índices, temporários, caches e outputs:
-- Checks e evidências por lane:
+- Propriedade exclusiva de caminhos:
+- Propriedade exclusiva de artefatos lógicos:
+- Propriedade exclusiva de recursos mutáveis:
+- Entradas compartilhadas somente leitura:
+- Arquivos, recursos e ações proibidos por frente:
+- Ramificação/árvore de trabalho (`branch`/`worktree`) por responsável de escrita e autoridade correspondente:
+- Isolamento de portas, processos, bancos, índices, temporários, caches e saídas:
+- Verificações e evidências por frente:
 - Condições de parada:
-- Mensagem completa de início por lane:
+- Mensagem completa de início por frente:
 - Formato de retorno:
 - Ordem determinística de integração:
-- Checks locais por integração:
-- Checks transversais:
-- Fallback sequencial:
+- Verificações locais por integração:
+- Verificações transversais:
+- Alternativa sequencial (`fallback`):
 
-## Mensagem de início de uma worker
+## Mensagem de início de uma conversa auxiliar
 
 ```text
 Projeto:
-Workspace:
-Lane:
-Conversation label:
+Espaço de trabalho (`Workspace`):
+Frente de trabalho (`Lane`):
+Rótulo da conversa:
 Conversa coordenadora confirmada:
-Baseline:
-Estado/gate/lote:
-Autoridade existente:
+Base (`Baseline`):
+Estado/validação/lote:
+Autoridade vigente:
 Objetivo exclusivo:
 Pré-condições:
 Dependências congeladas:
-Escrita exclusiva permitida ou read-only:
-Inputs somente leitura:
+Escrita exclusiva permitida ou somente leitura:
+Entradas somente leitura:
 Arquivos e ações proibidos:
-Checks:
-Output esperado:
+Verificações:
+Resultado esperado:
 Condições de parada:
 Ordem de integração:
 Formato da mensagem de retorno:
 ```
 
-## Retorno de uma worker
+## Retorno de uma conversa auxiliar
 
-- Lane e conversation label:
-- Baseline efetivamente usada:
-- Status da lane:
+- Frente e rótulo da conversa:
+- Base efetivamente usada:
+- Situação da frente:
 - Candidato produzido:
-- Arquivos e paths tocados:
+- Arquivos e caminhos tocados:
 - Artefatos lógicos e recursos mutáveis tocados:
-- Checks, resultados e evidências:
+- Verificações, resultados e evidências:
 - Limitações e riscos:
 - Condições de parada acionadas:
 - Dependências ou autoridade ainda pendentes:
 - Mensagem exata de retorno à coordenadora:
 
-Uma worker entrega somente um candidato. Ela não declara conclusão do lote,
-estado, gate ou projeto e não atualiza memória ou decisões permanentes.
+Uma conversa auxiliar entrega somente um candidato. Ela não declara conclusão
+do lote, estado, validação ou projeto e não atualiza memória ou decisões
+permanentes.
 
 ## Relatório de execução
 
 - Estado/fase:
-- Versão e commit:
+- Versão e referência do commit:
 - Ambiente, data e executor:
-- Escopo e providers cobertos:
+- Escopo e provedores (`providers`) cobertos:
 - Pré-condições e configuração sanitizada:
 - Comandos/testes e resultados:
-- Shutdown preflight: identificação, encerramento, verificação e limitações:
+- Desligamento preventivo (`shutdown preflight`): identificação, encerramento, verificação e limitações:
 - Falhas e correções:
 - Itens não testados:
 - Riscos residuais:
-- Decisão do gate:
+- Decisão da validação:
+- Idioma da comunicação, dos artefatos e das exceções:
+- Confirmação de que a localização da interface não foi inferida:
 - Evidências:
 
-Usar para integração, homologação ou release. A fase determina as verificações adicionais em `../governance/Quality-Gates.md`.
+Usar para integração, homologação ou publicação (`release`). A fase determina
+as verificações adicionais em `../governance/Quality-Gates.md`.
 
 ## Auditoria automática
 
 - Estado e escopo:
 - Entregáveis esperados:
-- Checks executados:
-- Resultado por gate: APROVADO/REPROVADO/BLOQUEADO/NÃO APLICÁVEL
+- Verificações executadas:
+- Resultado por validação: APROVADO/REPROVADO/BLOQUEADO/NÃO APLICÁVEL
 - Achados por severidade:
 - Evidências:
 - Limitações do ambiente:
+- Comunicação com o proprietário em `pt-BR`:
+- Novos artefatos em `en-GB` ou idioma existente preservado:
+- Nomes externos e identificadores preservados:
+- Resultado do gate de idioma:
 - Recomendação:
 
 ## Human Gate

@@ -1,8 +1,9 @@
 # DB-Notifier — Coordenação de Conversas e Trabalho Paralelo Seguro
 
 - Status: autoridade temática normativa
-- Revisão: `1.0.0`
+- Revisão: `1.1.0`
 - Versão de introdução no corpus: `6.2.0`
+- Versão desta revisão no corpus: `6.3.0`
 - Projeto: `DB-Notifier`
 - Workspace: raiz confirmada do repositório ou do worktree atribuído à conversa
 
@@ -22,11 +23,17 @@ Este documento é a autoridade temática única para:
 6. impedir que o paralelismo autorizado produza writers sobrepostos,
    sobrescrita, integração ambígua ou mudança fora de autoridade.
 
-[`prompts/governance/Governance.md`](prompts/governance/Governance.md)
+[`Governance.md`](Governance.md)
 permanece proprietário da autoridade, execução controlada, lifecycle, bloqueio
 e memória. Este documento especializa somente a coordenação de conversas e o
 trabalho paralelo. Segurança, Human Gates, ADRs, estado factual e autorizações
 externas conservam seus proprietários existentes.
+
+A [`Política de Idioma`](Language-Policy.md) governa toda comunicação com o
+proprietário. Rótulos, valores, razões, orientações e mensagens prontas para
+copiar são apresentados em `pt-BR`. Chaves canônicas, comandos, paths e enums
+podem permanecer em inglês entre crases ou parênteses somente quando
+tecnicamente necessário.
 
 Esta política não autoriza, por si só, alteração de arquivo, inicialização ou
 operação Git, branch, worktree, commit, merge, rebase, push, código, build,
@@ -135,38 +142,43 @@ Usar o menor número útil de conversas. Na dúvida, usar `SEQUENTIAL_ONLY`.
 
 ## 3. Contrato do handoff governado
 
-Todo handoff governado deverá apresentar estes campos, exatamente nesta ordem:
+Todo handoff governado deverá apresentar exatamente estes 14 campos, nesta
+ordem. O rótulo visível fica em `pt-BR`; a chave canônica inglesa permanece
+entre parênteses para validação técnica:
 
 ```text
-Status:
-Completed:
-Remaining for this target:
-Next step:
-Next stage:
-Your action now:
-Conversation action:
-Conversation target:
-Suggested title:
-Conversation reason:
-Exact next message:
-Parallel work:
-Parallel plan:
-Exact parallel messages:
+Situação (`Status`):
+Concluído (`Completed`):
+Restante para este objetivo (`Remaining for this target`):
+Próximo passo (`Next step`):
+Próxima etapa (`Next stage`):
+Sua ação agora (`Your action now`):
+Ação da conversa (`Conversation action`):
+Destino da conversa (`Conversation target`):
+Título sugerido (`Suggested title`):
+Motivo da conversa (`Conversation reason`):
+Próxima mensagem exata (`Exact next message`):
+Trabalho paralelo (`Parallel work`):
+Plano paralelo (`Parallel plan`):
+Mensagens paralelas exatas (`Exact parallel messages`):
 ```
 
-`Exact next message` deve conter uma mensagem completa, preenchida e pronta
-para copiar. Quando nenhuma mensagem for necessária, usar exatamente
-`None — no message is required`.
+`Próxima mensagem exata` (`Exact next message`) deve conter uma mensagem
+completa, preenchida, pronta para copiar e em `pt-BR`. Quando nenhuma mensagem
+for necessária, usar exatamente
+``Não se aplica (`None`) — nenhuma mensagem é necessária``.
 
-Quando `START_NEW` não for escolhido, `Suggested title` deve começar por
-`None —` e declarar concretamente por que não há título novo. Um título
-sugerido nunca é apresentado como título existente.
+Quando `START_NEW` não for escolhido, `Título sugerido` (`Suggested title`)
+deve começar por ``Não se aplica (`None`) —`` e declarar concretamente por que
+não há título novo. Um título sugerido nunca é apresentado como título
+existente.
 
 Quando o trabalho for sequencial:
 
-- `Parallel plan` deve começar por `None —` e conter a razão concreta;
-- `Exact parallel messages` deve ser
-  `None — parallel work is not recommended`.
+- `Plano paralelo` (`Parallel plan`) deve começar por
+  ``Não se aplica (`None`) —`` e conter a razão concreta;
+- `Mensagens paralelas exatas` (`Exact parallel messages`) deve ser
+  ``Não se aplica (`None`) — o trabalho paralelo não é recomendado``.
 
 Placeholders podem existir somente nos templates normativos. Nenhum placeholder
 pode permanecer num handoff, plano ou mensagem real.
@@ -309,42 +321,42 @@ Custódia e integração não concedem autoridade decisória. A coordenadora nã
 aceita ADR, não decide Human Gate e não promove lifecycle ou ativação em nome do
 proprietário.
 
-## 10. Mensagens governadas de worker
+## 10. Mensagens governadas de conversa auxiliar
 
-Cada `Exact parallel message` real deverá conter:
+Cada mensagem paralela exata (`Exact parallel message`) real deverá conter:
 
 ```text
 Projeto:
-Workspace:
-Lane:
-Conversation label:
+Espaço de trabalho (`Workspace`):
+Frente de trabalho (`Lane`):
+Rótulo da conversa:
 Conversa coordenadora confirmada:
-Baseline:
-Estado/gate/lote:
-Autoridade existente:
+Base (`Baseline`):
+Estado/validação/lote:
+Autoridade vigente:
 Objetivo exclusivo:
 Pré-condições:
 Dependências congeladas:
-Escrita exclusiva permitida ou read-only:
-Inputs somente leitura:
+Escrita exclusiva permitida ou somente leitura:
+Entradas somente leitura:
 Arquivos e ações proibidos:
-Checks:
-Output esperado:
+Verificações:
+Resultado esperado:
 Condições de parada:
 Ordem de integração:
 Formato da mensagem de retorno:
 ```
 
-A mensagem de retorno deverá identificar lane, baseline efetivamente usada,
-status, candidato produzido, arquivos, artefatos e recursos tocados, checks e
-evidências, limitações, riscos, condições de parada acionadas e a mensagem
-exata que deve ser enviada à coordenadora.
+A mensagem de retorno deverá identificar a frente, a base efetivamente usada,
+a situação, o candidato produzido, os arquivos, artefatos e recursos tocados,
+as verificações e evidências, as limitações, os riscos, as condições de parada
+acionadas e a mensagem exata que deve ser enviada à coordenadora.
 
 ## 11. Documentação, validação e gates
 
-[`prompts/templates/Templates.md`](prompts/templates/Templates.md) é
+[`Templates.md`](../templates/Templates.md) é
 proprietário dos formatos reutilizáveis.
-[`prompts/governance/Quality-Gates.md`](prompts/governance/Quality-Gates.md) é
+[`Quality-Gates.md`](Quality-Gates.md) é
 proprietário dos critérios de verificação. Esses documentos especializam esta
 autoridade sem criar uma segunda política.
 

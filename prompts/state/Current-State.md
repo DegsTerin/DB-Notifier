@@ -49,10 +49,22 @@ proprietários.
 
 ## Sistema de instruções e coordenação
 
-- O corpus vigente é `6.2.0`, com 15 arquivos ativos. A
-  [Coordenação de Conversas e Trabalho Paralelo Seguro](../../Conversation-Coordination-Prompt.md),
-  revisão `1.0.0`, é a autoridade temática de roteamento, handoff,
-  paralelismo, ownership exclusivo e integração coordenada.
+- O corpus vigente é `6.3.0`, com 16 arquivos ativos. A
+  [Política de Idioma](../governance/Language-Policy.md), revisão `1.0.0`, é a
+  autoridade temática única para comunicação com o proprietário, idioma dos
+  artefatos, preservação de conteúdo existente, convenções externas e
+  separação do idioma da interface.
+- A
+  [Coordenação de Conversas e Trabalho Paralelo Seguro](../governance/Conversation-Coordination-Prompt.md),
+  revisão `1.1.0`, é a autoridade temática de roteamento, handoff,
+  paralelismo, ownership exclusivo e integração coordenada. As duas
+  autoridades ficam em `prompts/governance/`; `Governance.md` conserva
+  autoridade, execução controlada e lifecycle.
+- Comunicação com o proprietário usa `pt-BR`. Novos artefatos independentes
+  pertencentes ao projeto usam `en-GB`; alterações limitadas preservam o
+  idioma estabelecido de cada arquivo; convenções externas permanecem
+  inalteradas. Nenhuma migração linguística geral ou alteração de locale da
+  interface está autorizada.
 - Uma única conversa coordenadora conserva escopo, baseline e integração e
   mantém sob sua custódia estado, histórico, changelog, ADRs, relatórios e
   decisões de gate e apresentação de Human Gates. Essa custódia não transfere
@@ -63,8 +75,8 @@ proprietários.
   escrita ocorre sequencialmente na coordenadora; a existência de Git e a
   autorização do commit local final não ampliam esse limite.
 - A adoção desta governança não altera `STATE-06 INTEGRATION`, elegibilidade,
-  `MOD-12 ActivationState=None`, ADRs, Human Gates, produto, runtime ou
-  autoridade externa.
+  `MOD-12 ActivationState=None`, ADRs, Human Gates, produto, interface,
+  runtime ou autoridade externa.
 
 ## Baseline técnica
 

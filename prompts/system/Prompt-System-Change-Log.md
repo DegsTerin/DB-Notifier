@@ -2,10 +2,10 @@
 
 ## Versão atual
 
-- Versão: `6.2.0`
+- Versão: `6.3.0`
 - Data: 2026-07-29
-- Status: coordenação de conversas e paralelismo seguro governados
-- Escopo: 15 arquivos ativos
+- Status: política de idioma e coordenação governadas em `prompts/governance/`
+- Escopo: 16 arquivos ativos
 
 A versão do corpus é independente da versão do software.
 
@@ -16,6 +16,43 @@ A versão do corpus é independente da versão do software.
 - PATCH: clareza, correção ou referência sem mudança de autoridade.
 
 Toda alteração atualiza este arquivo e, quando necessário, `../Start-Here.md`.
+
+## 6.3.0 — 2026-07-29
+
+- Move, preservando os nomes,
+  `Language-Policy.md` e `Conversation-Coordination-Prompt.md` da raiz para
+  `prompts/governance/`, onde permanecem como autoridades temáticas distintas
+  e sem duplicação integral em `Governance.md`.
+- Adota `Language-Policy.md`, revisão `1.0.0`, como autoridade temática única
+  para comunicação com o proprietário, idioma dos artefatos pertencentes ao
+  projeto, convenções externas, preservação de conteúdo existente e separação
+  do idioma da interface. A fonte anterior à adoção foi preservada pelo
+  SHA-256
+  `E6021618DD2DED951FC08BA5305C13F35163E86623C612406CBA2239D8E97224`.
+- Exige comunicação, rótulos, orientações, avisos e mensagens prontas para
+  copiar em `pt-BR`. Chaves canônicas, comandos, paths e enums podem permanecer
+  em inglês entre crases ou parênteses somente quando tecnicamente
+  necessários.
+- Exige `en-GB` e ortografia britânica para novos artefatos independentes
+  pertencentes ao projeto, inclusive futuras mensagens de commit quando Git
+  estiver separadamente autorizado. Alterações limitadas preservam o idioma
+  estabelecido do arquivo, nomes externos permanecem inalterados e nenhuma
+  tradução em massa ou reescrita histórica é autorizada.
+- Atualiza `Conversation-Coordination-Prompt.md` para a revisão `1.1.0`.
+  Preserva as 14 chaves canônicas, sua ordem e os enums de roteamento e
+  paralelismo, mas apresenta rótulos, valores padrão, razões e mensagens ao
+  proprietário em `pt-BR`.
+- Integra a política nos templates, Quality Gates, `AGENTS.md`,
+  `Start-Here.md`, `Governance.md` e matriz PM-1. O
+  `Code-Documentation-Standards.md` continua proprietário de forma,
+  completude e exceções da documentação de código; o Design System continua
+  proprietário dos locales e do comportamento de localização da interface.
+- Mantém a versão-fonte `2.0.0` do Prompt Mestre e evolui o corpus de 15 para
+  16 arquivos ativos.
+- Não altera nem autoriza tradução em massa, interface, catálogo de
+  localização, código, configuração executável, dependência, compilação,
+  runtime, Git, ação externa, ADR, Human Gate, `STATE-06 INTEGRATION`,
+  `MOD-12 ActivationState=None` ou lifecycle.
 
 ## 6.2.0 — 2026-07-29
 

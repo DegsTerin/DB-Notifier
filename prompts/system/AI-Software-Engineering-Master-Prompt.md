@@ -31,6 +31,9 @@ temática. A aplicação especializada pertence aos seguintes documentos:
   transversais para agentes;
 - [`../Start-Here.md`](../Start-Here.md): precedência e roteamento exclusivo do
   corpus;
+- [`../governance/Language-Policy.md`](../governance/Language-Policy.md):
+  comunicação com o proprietário, idioma dos artefatos, preservação de
+  conteúdo existente, convenções externas e separação da interface;
 - [`../foundation/Prompt-New-Project.md`](../foundation/Prompt-New-Project.md):
   visão e limites do DB-Notifier;
 - [`../foundation/Solution-Architecture-Document.md`](../foundation/Solution-Architecture-Document.md):
@@ -39,7 +42,7 @@ temática. A aplicação especializada pertence aos seguintes documentos:
   contratos e limites específicos de MOD-12;
 - [`../governance/Governance.md`](../governance/Governance.md):
   autoridade e execução controlada;
-- [`../../Conversation-Coordination-Prompt.md`](../../Conversation-Coordination-Prompt.md):
+- [`../governance/Conversation-Coordination-Prompt.md`](../governance/Conversation-Coordination-Prompt.md):
   roteamento de conversas, paralelismo seguro, ownership e integração;
 - [`../governance/Lifecycle.md`](../governance/Lifecycle.md): estados
   canônicos;
@@ -79,18 +82,21 @@ autorização permanente e os limites do commit local final pertencem a
   rastreados termina com commit local focal conforme a autorização permanente
   e as exceções estritas de `AGENTS.md`, inclusive quando o resultado é
   parcial, bloqueado ou falha com estado seguro e isolável. O commit usa
-  Conventional Commits e não autoriza amend, rebase, push, pull request,
-  release, publicação ou deploy.
+  Conventional Commits, descrição em `en-GB` conforme a Política de Idioma e
+  não autoriza amend, rebase, push, pull request, release, publicação ou
+  deploy.
 - As fases genéricas F0–F12 deste documento são práticas de engenharia
   mapeadas ao lifecycle DB-Notifier; elas não substituem `STATE-00`–`STATE-08`.
 - O handoff compacto, a contagem auditável do trabalho restante e os campos
   separados de próximo passo e próxima etapa exigidos em `AGENTS.md` são a
   especialização obrigatória da orientação geral de comunicação. O roteamento
   de conversa, a classificação de paralelismo e as mensagens exatas pertencem
-  a `Conversation-Coordination-Prompt.md`. A próxima etapa deve ser nomeada com
-  sua condição de entrada e nunca concede autoridade implícita. Categorias de
-  roadmap, lifecycle e ativação aparecem somente quando pertencem ao alvo
-  solicitado, evitando misturá-las com o lote atual.
+  a `Conversation-Coordination-Prompt.md`, enquanto rótulos, valores,
+  orientações e mensagens apresentados ao proprietário usam `pt-BR` conforme
+  `Language-Policy.md`. A próxima etapa deve ser nomeada com sua condição de
+  entrada e nunca concede autoridade implícita. Categorias de roadmap,
+  lifecycle e ativação aparecem somente quando pertencem ao alvo solicitado,
+  evitando misturá-las com o lote atual.
 - Papéis virtuais apoiam análise e segregação de responsabilidades, mas nunca
   substituem o proprietário, uma revisão independente exigida ou um Human
   Gate.
@@ -126,18 +132,18 @@ Legenda:
 | 11 | Desenvolvimento por camada | `JÁ GOVERNADO` | Arquitetura, Design System e segurança são proprietários de Web, API, Desktop e integrações; mobile exige requisito futuro. |
 | 12 | Banco de dados e dados | `JÁ GOVERNADO` | Contratos de arquitetura e `docs/data/` governam persistência, migrations, retenção, segredos opacos e rollback. |
 | 13 | Segurança, privacidade e conformidade | `JÁ GOVERNADO` | `Security-And-Access.md`, threat models e ADRs aplicáveis são mais específicos; nenhuma obrigação regulatória é presumida. |
-| 14 | Qualidade e padrões de código | `JÁ GOVERNADO` | `AGENTS.md`, `Quality-Gates.md`, Design System e padrão de documentação contêm as especializações obrigatórias. |
+| 14 | Qualidade e padrões de código | `JÁ GOVERNADO` | `AGENTS.md`, `Language-Policy.md`, `Quality-Gates.md`, Design System e padrão de documentação contêm as especializações obrigatórias. |
 | 15 | Testes | `ADAPTADO` | Estratégia baseada em risco; pisos `70%`/`45%`, meta orientativa de `80%` de linhas e proibição de reduzir pisos por componente sem decisão explícita. |
 | 16 | Performance e escalabilidade | `ADOTADO` | Exigir cenário, baseline, método reproduzível, resultado antes/depois e trade-offs; não alegar ganho sem medição. |
 | 17 | DevOps, plataforma e ambientes | `ADAPTADO` | Práticas entram no estado proprietário; publicação, IaC, assinatura, SBOM e deploy continuam condicionados ao lifecycle e à autoridade específica. |
 | 18 | Observabilidade e operação | `JÁ GOVERNADO` | Arquitetura, Quality Gates e MOD-12 governam logs, métricas, traces, health, incidentes e sanitização. |
-| 19 | Documentação | `ADAPTADO` | Manter a taxonomia existente, uma fonte por assunto, links válidos e história separada; não criar a árvore genérica por imitação. |
-| 20 | Git, GitHub e versionamento | `ADAPTADO` | Adotar Conventional Commits e commit local final automático conforme `AGENTS.md`; escrita paralela exige workflow, branches e worktrees especificamente autorizados, enquanto PR, merge, rebase, push, release e ação remota continuam sem autoridade implícita. |
+| 19 | Documentação | `ADAPTADO` | Manter a taxonomia existente, uma fonte por assunto, links válidos e história separada; `Language-Policy.md` governa novos artefatos em `en-GB`, alterações limitadas no idioma estabelecido e a proibição de migração em massa. |
+| 20 | Git, GitHub e versionamento | `ADAPTADO` | Adotar Conventional Commits com descrição em `en-GB` e commit local final automático conforme `AGENTS.md`; escrita paralela exige workflow, branches e worktrees especificamente autorizados, enquanto PR, merge, rebase, push, release e ação remota continuam sem autoridade implícita. |
 | 21 | Revisão de código | `ADOTADO` | Priorizar achados acionáveis por severidade, com localização, cenário, impacto, recomendação, evidência e confiança. |
 | 22 | Refatoração | `JÁ GOVERNADO` | Lotes focais, caracterização, compatibilidade e validação proporcional permanecem obrigatórios. |
 | 23 | Dependências e supply chain | `JÁ GOVERNADO` | Quality Gates e segurança governam necessidade, licença, lockfiles, origem, vulnerabilidades e reprodução. |
 | 24 | IA, modelos, MCP, RAG e ferramentas | `ADAPTADO` | Separar agentes de engenharia do produto MOD-12; contratos mais restritos de AIOps, proveniência, avaliação e menor privilégio prevalecem. |
-| 25 | Comunicação | `ADAPTADO` | Atualizações devem ser curtas e factuais; `AGENTS.md` e `Conversation-Coordination-Prompt.md` governam o handoff, o roteamento, o paralelismo e as mensagens exatas sem transformar indicação de progressão em autorização. |
+| 25 | Comunicação | `ADAPTADO` | Atualizações ao proprietário usam `pt-BR` conforme `Language-Policy.md`; `AGENTS.md` e `Conversation-Coordination-Prompt.md` governam o handoff, o roteamento, o paralelismo e as mensagens exatas sem transformar indicação de progressão em autorização. |
 | 26 | Segurança operacional | `JÁ GOVERNADO` | Shutdown preflight, proteção de segredos e limites de ações externas do repositório são mais específicos. |
 | 27 | Checklist de release | `CONDICIONAL` | Referência futura de `STATE-08`; não concede autoridade de release no estado atual. |
 | 28 | Checklist final | `ADAPTADO` | Checklist interno não substitui evidência, gates, Human Gate ou handoff obrigatório. |
@@ -687,7 +693,7 @@ Essas funções permitem aproveitar experiência operacional e, ao mesmo tempo, 
 Quando a plataforma permitir múltiplos agentes, distribua trabalho apenas
 quando houver ganho real de independência, especialização ou paralelismo e
 aplique integralmente a autoridade
-[`Conversation-Coordination-Prompt.md`](../../Conversation-Coordination-Prompt.md).
+[`Conversation-Coordination-Prompt.md`](../governance/Conversation-Coordination-Prompt.md).
 Os papéis abaixo não concedem autoridade automática de escrita.
 
 Papéis possíveis:
@@ -1003,8 +1009,10 @@ Gate: incremento integrado, testado, documentado e potencialmente entregável.
 
 No DB-Notifier, integrar um candidato autorizado de uma lane na baseline
 coordenada não constitui Human Gate nem transição de lifecycle. A integração
-segue `Conversation-Coordination-Prompt.md`; qualquer gate ou progressão
-continua dependente da auditoria consolidada e da decisão proprietária.
+segue
+[`Conversation-Coordination-Prompt.md`](../governance/Conversation-Coordination-Prompt.md);
+qualquer gate ou progressão continua dependente da auditoria consolidada e da
+decisão proprietária.
 
 ### Fase 7 — Verificação e validação
 
@@ -1698,7 +1706,12 @@ Mantenha, quando aplicável:
 - créditos;
 - screenshots, GIFs ou vídeos úteis.
 
-Conteúdo público destinado ao GitHub deve estar em inglês, salvo orientação diferente do proprietário. Documentação interna pode usar o idioma definido pelo projeto.
+No DB-Notifier, a
+[`Política de Idioma`](../governance/Language-Policy.md) exige `en-GB` para
+novos artefatos independentes pertencentes ao projeto e preserva o idioma
+estabelecido durante alterações limitadas de arquivos existentes. Ela proíbe
+tradução em massa, preserva convenções externas e mantém o idioma da interface
+como decisão separada.
 
 Imagens e vídeos devem demonstrar valor real, não expor dados sensíveis e incluir texto alternativo ou legenda.
 
@@ -1738,6 +1751,10 @@ Tipos usuais:
 - `revert`.
 
 Cada commit deve ser coerente, revisável e conter somente alterações relacionadas. Não reescreva o trabalho do proprietário sem autorização.
+
+A descrição de todo novo commit do DB-Notifier usa `en-GB` conforme a
+[`Política de Idioma`](../governance/Language-Policy.md). Mensagens históricas
+permanecem inalteradas. Esta regra não concede autoridade para executar Git.
 
 No DB-Notifier, toda modificação, tarefa, atividade ou ação autorizada que
 altere arquivos rastreados termina com um commit local focal antes do hand-off,
@@ -2125,6 +2142,7 @@ Antes de uma release, confirme:
 - [ ] versão SemVer correta;
 - [ ] licença e avisos preservados;
 - [ ] artefatos reproduzíveis e identificáveis.
+- [ ] idioma dos artefatos, conteúdo existente e convenções externas validados.
 
 ---
 
@@ -2144,6 +2162,7 @@ Antes de encerrar:
 - [ ] declarei o que não foi testado;
 - [ ] registrei riscos e limitações;
 - [ ] não deixei ações necessárias silenciosamente pendentes;
+- [ ] comuniquei ao proprietário em `pt-BR` e apliquei a Política de Idioma aos artefatos;
 - [ ] forneci o handoff, o próximo passo, a próxima etapa, o roteamento da conversa e a classificação de paralelismo exigidos pelas instruções específicas do projeto, sem inferir autoridade.
 
 ---
