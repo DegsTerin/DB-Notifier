@@ -255,6 +255,44 @@ proprietários.
   alternativo. O shutdown final aprovou com zero processo correspondente e
   zero listener próprio. Material protegido permaneceu não lido e nenhum
   resíduo ignorado foi excluído.
+- A primeira tentativa `AUD-2026-R1-R3` parou antes da baseline e da edição:
+  seu shutdown preflight encontrou `pwsh.exe` no PID `8952` e retornou
+  `BLOCKED`/`ISOLATION_FAILURE`. Na recuperação separadamente autorizada
+  `AUD-2026-R1-R3-R1`, o PID já estava ausente e nenhum processo foi encerrado.
+  O único novo preflight aprovou com zero processo/listener, e branch, HEAD e
+  árvore rastreada corresponderam à baseline limpa
+  `main@6ecc72f7a347a746d0153072580c527d7c679e81`.
+- `AUD-2026-R1-R3-R1` propagou o caminho absoluto do executável `dotnet` já
+  validado por `ci.ps1`, pelo runner Windows PowerShell, pelos parâmetros do
+  Pester e pelas sete chamadas legadas do verificador de vulnerabilidades. Não
+  alterou `development.ps1`, o próprio verificador, `global.json`, workflow,
+  produto, versões, manifests, lockfiles, dependências ou contratos externos.
+- O check focal aprovou `105` assertions. O runner legado focal aprovou `34`
+  testes, aceitou `1` skip condicional e atingiu cobertura de `35,17%`
+  (`338/961`). `Doctor` aprovou preflight interno, raiz, toolchains, lockfiles e
+  dependências restauradas. `Quick`, explicitamente `NON_GATE`, aprovou build
+  sem aviso/erro, unitários `528/528`, arquitetura `100/100`, Node `74/74`,
+  política `105`, regressões de política `98`, runner `68` e sintaxe `13`.
+- A única execução online de `Full` em `AUD-2026-R1-R3-R1` comprovou a correção
+  no ponto canônico: a compatibilidade legada aprovou `34` testes, `1` skip e
+  cobertura `35,17%`, seguida por validação do bundle. Antes disso, também
+  aprovaram os dois preflights, secret scan, políticas, restore locked de `19`
+  projetos, build sem aviso/erro, arquitetura `100/100`, WPF `10/10`, unitários
+  `528/528`, integração `168/168`, cobertura de linhas `83,41%`, branches
+  `56,62%` em `10` componentes, vulnerabilidades NuGet em `19` projetos e o
+  runtime audit fail-closed. Dashboard assets, tipos, documentação, Markdown,
+  `74/74` testes Node e o build de produção também passaram.
+- O mesmo `Full` encerrou depois com exit code `1` e
+  `DISPOSITION|FAIL|stage=All|stop=GATE_FAILURE`: o `npm audit` reportou uma
+  vulnerabilidade de severidade alta em `nanoid <3.3.18`, identificada por
+  `GHSA-2v37-7h3g-55p8`. Não houve retry, alteração de dependência/lockfile,
+  diagnóstico executável ou correção em linha. O shutdown de encerramento
+  aprovou com zero processo correspondente e zero listener próprio.
+- `AUD-2026-R1-R3-R1` permanece `BLOCKED`; os passes parciais e a correção
+  comprovada não convertem o gate agregado em `PASS`. Material externo
+  protegido permaneceu não lido, nenhum resíduo ignorado foi excluído e
+  backend, migrations, banco/provider real, navegador comum, deploy, push,
+  Human Gate, ativação e transição de `STATE` não foram executados.
 - A evidência executável disponível para o próprio fluxo aprovou `97`
   invariantes estáticas, `64` regressões determinísticas, sintaxe de `47`
   scripts PowerShell e `14` scripts Node, compatibilidade de sintaxe de `27`
@@ -276,8 +314,9 @@ proprietários.
   controle do plano descrito acima. `AUD-2026-R1-R1` corrigiu esse controle e
   aprovou `Quick`, cobertura, advisories NuGet e o runtime audit fail-closed,
   mas seu único `Full All` falhou na compatibilidade legada antes dos estágios
-  posteriores. O gate agregado e esses estágios não alcançados permanecem sem
-  `PASS` neste snapshot.
+  posteriores. `AUD-2026-R1-R3-R1` corrigiu essa propagação e comprovou a
+  compatibilidade legada no `Full`, mas o mesmo gate falhou depois no audit de
+  dependências Dashboard. O gate agregado permanece sem `PASS` neste snapshot.
 - Domain e Application permanecem provider-neutral. Provider SDK,
   infraestrutura, persistência, Agent, API, Desktop, Dashboard e testes
   conservam fronteiras próprias e dependências voltadas para dentro.

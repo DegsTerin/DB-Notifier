@@ -10,6 +10,8 @@ $ErrorActionPreference = 'Stop'
 $repositoryRoot = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
 $developmentPath = Join-Path (Join-Path $repositoryRoot 'scripts') 'development.ps1'
 $ciPath = Join-Path (Join-Path $repositoryRoot 'scripts') 'ci.ps1'
+$legacyRunnerPath = Join-Path (Join-Path $repositoryRoot 'scripts') 'run-legacy-tests.ps1'
+$legacyTestsPath = Join-Path (Join-Path $repositoryRoot 'tests') 'DBNotifier.Legacy.Tests.ps1'
 $environmentPath = Join-Path (Join-Path $repositoryRoot 'scripts') 'development-environment.ps1'
 $toolchainPolicyPath = Join-Path (Join-Path $repositoryRoot 'scripts') 'toolchain-version-policy.ps1'
 $shutdownPreflightPath = Join-Path (Join-Path $repositoryRoot 'scripts') 'assert-dbnotifier-shutdown.ps1'
@@ -97,6 +99,8 @@ function Assert-Plan {
 
 $developmentScript = Get-Content -LiteralPath $developmentPath -Raw
 $ciScript = Get-Content -LiteralPath $ciPath -Raw
+$legacyRunnerScript = Get-Content -LiteralPath $legacyRunnerPath -Raw
+$legacyTestsScript = Get-Content -LiteralPath $legacyTestsPath -Raw
 $shutdownScript = Get-Content -LiteralPath $shutdownPreflightPath -Raw
 $workflow = Get-Content -LiteralPath $workflowPath -Raw
 . $environmentPath
@@ -478,6 +482,32 @@ foreach ($requiredGateReference in @(
                 [regex]::Escape($requiredGateReference)).Count -eq 1) `
         -Message "The canonical gate must retain '$requiredGateReference' exactly once."
 }
+Assert-Condition `
+    -Condition ($ciScript -match '(?s)function Invoke-LegacyChecks\s*\{.*?\[Parameter\(Mandatory\)\]\s*\[string\]\$DotNetExecutable.*?run-legacy-tests[.]ps1.*?-DotNetPath\s+\$DotNetExecutable' -and
+        [regex]::Matches(
+            $ciScript,
+            '(?m)^\s*Invoke-LegacyChecks -DotNetExecutable \$dotnetExecutable\s*$').Count -eq 1) `
+    -Message 'The canonical gate must propagate its exact dotnet host through the legacy boundary.'
+Assert-Condition `
+    -Condition ($legacyRunnerScript -match '(?s)\[Parameter\(Mandatory\)\]\s*\[ValidateNotNullOrEmpty\(\)\]\s*\[string\]\$DotNetPath.*?Parameters\s*=\s*@\{\s*DotNetPath\s*=\s*\$resolvedDotNetPath' -and
+        -not $legacyRunnerScript.Contains('.dotnet\dotnet.exe', [System.StringComparison]::OrdinalIgnoreCase)) `
+    -Message 'The legacy runner must require and bind the caller-selected dotnet host to Pester.'
+$legacyVerifierInvocations = [regex]::Matches(
+    $legacyTestsScript,
+    '(?m)^\s*\{\s*& \$gatePath(?<arguments>[^\r\n]+)')
+Assert-Condition `
+    -Condition ($legacyVerifierInvocations.Count -gt 0 -and
+        $legacyVerifierInvocations.Count -eq [regex]::Matches($legacyTestsScript, '& \$gatePath').Count -and
+        @($legacyVerifierInvocations | Where-Object {
+                -not $_.Groups['arguments'].Value.Contains(
+                    '-DotNetPath $DotNetPath',
+                    [System.StringComparison]::Ordinal)
+            }).Count -eq 0) `
+    -Message 'Every legacy vulnerability regression must receive the exact caller-selected dotnet host.'
+Assert-Condition `
+    -Condition ($legacyTestsScript -match '(?s)\[Parameter\(Mandatory\)\]\s*\[ValidateNotNullOrEmpty\(\)\]\s*\[string\]\$DotNetPath' -and
+        -not $legacyTestsScript.Contains('.dotnet\dotnet.exe', [System.StringComparison]::OrdinalIgnoreCase)) `
+    -Message 'The legacy test suite must require toolchain identity without defining a repository fallback.'
 Assert-Condition `
     -Condition ($ciScript -notmatch '(?i)GetEnvironmentVariable\s*\([^)]*(?:OPENAI|AZURE_OPENAI)' -and
         $ciScript -notmatch '(?i)\$env:(?:OPENAI|AZURE_OPENAI)' -and

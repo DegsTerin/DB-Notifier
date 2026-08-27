@@ -6120,3 +6120,78 @@
 - Estado resultante: `STATE-06 INTEGRATION`, elegibilidade `NÃO REAVALIADA`,
   `MOD-12 ActivationState=None`, providers, ADRs, Human Gates, produto,
   interface e autoridade externa permanecem inalterados.
+
+## 2026-08-27 — AUD-2026-R1-R3-R1 corrige a identidade do SDK legado e falha no audit Dashboard
+
+- Estado anterior: `STATE-06 INTEGRATION`, elegibilidade `NÃO REAVALIADA`,
+  `MOD-12 ActivationState=None`, `AUD-2026-R1-R1 BLOCKED` por seu único
+  `Full`, baseline limpa
+  `main@6ecc72f7a347a746d0153072580c527d7c679e81`.
+- Primeira tentativa preservada: o shutdown inicial de `AUD-2026-R1-R3`
+  retornou exit code `1`,
+  `BLOCKED|shutdown-preflight|pid=8952|process=pwsh.exe` e
+  `ISOLATION_FAILURE`. O lote parou antes de verificar a baseline ou editar;
+  nenhum processo foi encerrado, e não houve retry ou validação executável.
+- Autoridade humana de recuperação: verificar somente a identidade atual do
+  PID `8952` sem ler ambiente/segredos; encerrá-lo apenas se a propriedade pelo
+  DB-Notifier fosse comprovada; executar exatamente um novo preflight; e, só
+  após baseline limpa e exata, retomar a propagação do SDK legado, checks
+  focais, `Doctor`, `Quick` e um único `Full` online, parando no primeiro
+  `FAIL` ou `BLOCKED`.
+- Recuperação: o PID `8952` já estava ausente na única consulta autorizada;
+  nenhum processo foi encerrado. O único novo shutdown preflight aprovou com
+  zero processo correspondente e zero listener próprio.
+- Baseline: branch `main`, HEAD
+  `6ecc72f7a347a746d0153072580c527d7c679e81` e árvore/index rastreados limpos
+  foram confirmados antes de atualizar `PLANS.md` e antes da implementação.
+- Implementação: `ci.ps1` passou o executável `dotnet` absoluto já validado à
+  compatibilidade legada; `run-legacy-tests.ps1` tornou o caminho obrigatório e
+  o encaminhou como parâmetro Pester; `DBNotifier.Legacy.Tests.ps1` o forneceu
+  às sete chamadas do verificador; e as regressões de desenvolvimento passaram
+  a exigir a cadeia completa e a ausência de fallback no caminho canônico.
+- Escopo congelado: `development.ps1`, `verify-nuget-vulnerabilities.ps1`,
+  `global.json`, produto, workflow, versões, manifests, lockfiles, dependências
+  e contratos externos não foram alterados.
+- Evidência focal: a única execução de `scripts/verify-development-flow.ps1`
+  aprovou `105` assertions. A única execução focal do runner legado, com o host
+  absoluto resolvido em `C:\Program Files\dotnet\dotnet.exe`, aprovou `34`
+  testes, aceitou `1` skip condicional e atingiu cobertura `35,17%` (`338/961`).
+- `Doctor`: a única execução aprovou com exit code `0`; preflight interno,
+  raiz, toolchains, lockfiles e dependências restauradas passaram.
+- `Quick`: a única execução declarou-se `NON_GATE` e aprovou com exit code `0`.
+  Build Release teve zero aviso/erro; unitários `528/528`, arquitetura
+  `100/100`, Node `74/74`, política `105`, regressões de política `98`, runner
+  `68` e sintaxe `13` passaram, além dos checks auxiliares aplicáveis.
+- `Full` antes da falha: a única execução online aprovou seus dois preflights,
+  secret scan, políticas, restore locked de `19` projetos, build com zero
+  aviso/erro, arquitetura `100/100`, WPF `10/10`, unitários `528/528`,
+  integração `168/168`, cobertura de linhas `83,41%`, branches `56,62%` e `10`
+  componentes obrigatórios, vulnerabilidades NuGet nos `19` projetos e o
+  runtime audit fail-closed. Esse audit observou live `200`, endpoints HTTP
+  protegidos `426`, workers Agent desabilitados, polling de comandos ausente e
+  persistência local não inicializada.
+- Correção comprovada no `Full`: compatibilidade legada aprovou `34` testes,
+  `1` skip e cobertura `35,17%` (`338/961`), seguida por validação do bundle.
+  Dashboard toolchain, assets, tipos, documentação em `439` fontes, Markdown
+  em `981` links de `226` arquivos, `74/74` testes Node e build de produção
+  também aprovaram.
+- `Full` — primeira e única disposição: o audit online de dependências
+  Dashboard reportou uma vulnerabilidade de severidade alta para
+  `nanoid <3.3.18`, identificada por `GHSA-2v37-7h3g-55p8`. O gate encerrou com
+  exit code `1` e `DISPOSITION|FAIL|stage=All|stop=GATE_FAILURE`.
+- Stop factual: nenhuma repetição, alteração de dependência/lockfile,
+  diagnóstico executável, correção em linha ou execução adicional de `Full`
+  ocorreu. Os passes parciais e a correção legada comprovada não substituem a
+  disposição agregada `FAIL`.
+- Preflight de encerramento: `PASS`, com zero processo correspondente e zero
+  listener pertencente ao DB-Notifier; não constituiu retry de gate.
+- Disposição: `AUD-2026-R1-R3-R1 BLOCKED` por `GATE_FAILURE`. O finding legado
+  está resolvido somente neste lote separado; o `Full FAIL` histórico de
+  `AUD-2026-R1-R1` permanece inalterado.
+- Escopo negativo preservado: material externo protegido não foi lido ou
+  modificado; nenhum resíduo ignorado foi excluído; backend, migrations,
+  banco/provider real, navegador comum, deploy, push, Human Gate, ativação e
+  transição de `STATE` não foram executados.
+- Estado resultante: `STATE-06 INTEGRATION`, elegibilidade `NÃO REAVALIADA`,
+  `MOD-12 ActivationState=None`, providers, ADRs, Human Gates, produto,
+  interface e autoridade externa permanecem inalterados.

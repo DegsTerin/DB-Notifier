@@ -1,6 +1,23 @@
 # Module purpose: Runs the pinned legacy compatibility suite with explicit skip handling and a proportional coverage floor.
+<#
+.SYNOPSIS
+Runs the pinned Windows PowerShell compatibility suite with the caller-selected .NET host.
+
+.PARAMETER DotNetPath
+Exact absolute path to the compatible dotnet host selected by the canonical gate.
+
+.PARAMETER MinimumCoveragePercent
+Minimum accepted command-coverage percentage for the legacy module.
+
+.OUTPUTS
+Legacy compatibility, skip and coverage evidence.
+#>
 [CmdletBinding()]
 param(
+    [Parameter(Mandatory)]
+    [ValidateNotNullOrEmpty()]
+    [string]$DotNetPath,
+
     [ValidateRange(0, 100)]
     [double]$MinimumCoveragePercent = 25
 )
@@ -17,6 +34,12 @@ $modulePath = Join-Path $root "src\modules\DBNotifier\DBNotifier.psm1"
 $requiredPesterVersion = [version]"3.4.0"
 $expectedConditionalSkip = "resolves pg_isready from a standard PostgreSQL installation even when it is not on PATH"
 
+if (-not [System.IO.Path]::IsPathRooted($DotNetPath) -or
+    -not (Test-Path -LiteralPath $DotNetPath -PathType Leaf)) {
+    throw "The legacy compatibility gate requires an existing absolute dotnet host path."
+}
+$resolvedDotNetPath = (Resolve-Path -LiteralPath $DotNetPath).Path
+
 $pester = Get-Module -ListAvailable -Name Pester |
     Where-Object Version -eq $requiredPesterVersion |
     Select-Object -First 1
@@ -25,7 +48,13 @@ if ($null -eq $pester) {
 }
 
 Import-Module $pester.Path -Force
-$result = Invoke-Pester -Script $testPath -PassThru -CodeCoverage $modulePath -Quiet
+$testScript = @{
+    Path = $testPath
+    Parameters = @{
+        DotNetPath = $resolvedDotNetPath
+    }
+}
+$result = Invoke-Pester -Script $testScript -PassThru -CodeCoverage $modulePath -Quiet
 $unexpectedSkips = @($result.TestResult | Where-Object {
     $_.Result -eq "Skipped" -and $_.Name -ne $expectedConditionalSkip
 })

@@ -317,10 +317,16 @@ function Invoke-LegacyChecks {
     .SYNOPSIS
     Runs Windows PowerShell compatibility, legacy regression and packaging-entry validation.
 
+    .PARAMETER DotNetExecutable
+    Exact compatible dotnet host already selected by the canonical gate.
+
     .OUTPUTS
     Legacy policy and regression output.
     #>
-    param()
+    param(
+        [Parameter(Mandatory)]
+        [string]$DotNetExecutable
+    )
 
     $windowsPowerShell = Resolve-RequiredApplication -Candidate 'powershell.exe' -Operation 'Windows PowerShell 5.1'
     & $windowsPowerShell -NoProfile -NonInteractive -ExecutionPolicy Bypass `
@@ -329,7 +335,8 @@ function Invoke-LegacyChecks {
         -LegacyCompatibleOnly
     Assert-LastExitCode -Operation 'Windows PowerShell-compatible script syntax'
     & $windowsPowerShell -NoProfile -NonInteractive -ExecutionPolicy Bypass `
-        -File (Join-Path $PSScriptRoot 'run-legacy-tests.ps1')
+        -File (Join-Path $PSScriptRoot 'run-legacy-tests.ps1') `
+        -DotNetPath $DotNetExecutable
     Assert-LastExitCode -Operation 'Legacy compatibility tests'
     & (Join-Path $repositoryRoot 'build/build.ps1') -ValidateOnly
 }
@@ -470,7 +477,7 @@ try {
         }
         $dotnetExecutable = Resolve-CompatibleDotNetHost -Candidate $DotNetPath
         Invoke-DotNetChecks -DotNetExecutable $dotnetExecutable
-        Invoke-LegacyChecks
+        Invoke-LegacyChecks -DotNetExecutable $dotnetExecutable
         Invoke-DashboardChecks -NpmExecutable $npmExecutable
         Invoke-RuntimeChecks -DotNetExecutable $dotnetExecutable -EvidenceRoot $DiagnosticRoot
         Invoke-RepositoryClosureChecks -GitExecutable $gitExecutable

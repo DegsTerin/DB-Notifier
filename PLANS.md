@@ -9,24 +9,92 @@ append-only history, a Quality Gate or a Human Gate.
 
 ## Control record
 
-- Plan ID: `AUD-2026-R1-R1`
+- Plan ID: `AUD-2026-R1-R3-R1`
 - Status: `BLOCKED`
 - Created: `2026-08-27`
 - Initial baseline: `main@3762f71c116af206b911a086b836cef11cd1894d`
-- Continuation baseline: `main@b60ef4d302e4c4dc3f0e474be27eaa4b8c6beb13`
-- Preserved predecessor: `AUD-2026-R1` remains `BLOCKED` by its first `Quick`;
-  this continuation does not rewrite that disposition
+- Recovery baseline: `main@6ecc72f7a347a746d0153072580c527d7c679e81`
+- Preserved predecessors: `AUD-2026-R1` remains `BLOCKED` by its first
+  `Quick`; `AUD-2026-R1-R1` remains `BLOCKED` by its sole online `Full`; and
+  the first `AUD-2026-R1-R3` shutdown result remains `BLOCKED` by
+  `ISOLATION_FAILURE`
 - Lifecycle state: `STATE-06 INTEGRATION`; unchanged by this plan
 - Authority: Bruno's explicit authorisation for the bounded
-  `AUD-2026-R1-R1 Plan Control Integrity` corrective continuation
+  `AUD-2026-R1-R3-R1 Shutdown Residue Recovery and Legacy SDK Identity
+  Propagation` corrective continuation
 - Execution mode: `SEQUENTIAL_ONLY`
 - Writer: coordinating conversation only
-- Independent reviewer: one read-only factual-diff review after the stopped
-  sequence and before the focused local commit
+- Independent reviewer: not separately authorised; focused policy regression,
+  the legacy runner and the canonical sequential checks own executable review
 - Factual-state owner: `prompts/state/Current-State.md`
 - Historical owner: `prompts/state/State-Transition-Log.md`
 
 ## Task envelopes
+
+### Authorised recovery and corrective continuation `AUD-2026-R1-R3-R1` — blocked
+
+- Envelope status: `BLOCKED` by `GATE_FAILURE` from its sole online `Full`.
+- Exact human authority: recover from the preserved first
+  `AUD-2026-R1-R3` result
+  `BLOCKED|shutdown-preflight|pid=8952|process=pwsh.exe` /
+  `ISOLATION_FAILURE`; inspect only that PID's executable path, command line
+  and parentage without reading environment values; terminate it only if its
+  DB-Notifier ownership remains proved; execute exactly one new shutdown
+  preflight; then, only after a clean exact
+  `main@6ecc72f7a347a746d0153072580c527d7c679e81`, resume the bounded legacy SDK
+  identity correction, focused checks, `Doctor`, `Quick` and at most one
+  online `Full`, stopping without retry or in-line correction at the first
+  `FAIL` or `BLOCKED`.
+- Preserved first result: the initial `AUD-2026-R1-R3` shutdown assertion
+  returned exit code `1` and
+  `BLOCKED|shutdown-preflight|pid=8952|process=pwsh.exe`. No baseline check,
+  edit, retry, termination or executable validation followed in that lot.
+- Recovery evidence: PID `8952` was absent at the single authorised identity
+  check, so no process was terminated. The single recovery shutdown preflight
+  then returned `PASS`; matching processes `0`, owned listeners `0`.
+- Workspace and recovery baseline: `C:\Projects\DB-Notifier`, branch `main`,
+  commit `6ecc72f7a347a746d0153072580c527d7c679e81`; tracked worktree and index
+  were clean before this plan update.
+- Verifiable objective: preserve the exact compatible dotnet executable
+  selected by the canonical gate across the Windows PowerShell legacy boundary
+  and into every legacy vulnerability-verifier invocation.
+- Positive implementation scope: `scripts/ci.ps1`,
+  `scripts/run-legacy-tests.ps1`, `tests/DBNotifier.Legacy.Tests.ps1` and
+  `tests/DBNotifier.DevelopmentFlow.Tests.ps1`; this plan and only the mandatory
+  factual current-state and append-only history reconciliation; one focused
+  local commit.
+- Frozen read-only scope: `scripts/development.ps1`,
+  `scripts/verify-nuget-vulnerabilities.ps1`, `global.json`, product
+  implementation, workflow, versions, manifests, lockfiles, dependencies and
+  external contracts.
+- Protected work and negative scope: external protected material and ignored
+  residue remain unread, unmodified and undeleted. Backend, migrations, real
+  database/provider use, ordinary browser use, deploy, publication, push,
+  Human Gate, activation and lifecycle transition remain prohibited.
+- Execution topology and ownership: `SEQUENTIAL_ONLY`; the coordinating
+  conversation is the sole writer for all four implementation/test paths and
+  factual records. The canonical checks exclusively own their bounded runtime
+  and temporary resources.
+- Definition of Ready: recovery PID disposition recorded; recovery preflight
+  passed; exact branch, commit and clean tracked state proved; previous
+  `DISPOSITION|FAIL|stage=All|stop=GATE_FAILURE` preserved; positive and
+  negative scope frozen.
+- Definition of Done: the validated dotnet path is mandatory at every legacy
+  boundary; focused policy regression and one legacy-runner execution pass;
+  `Doctor` and `Quick` pass once and in order; exactly one online `Full` passes
+  only if every prerequisite passed; factual records are reconciled; one
+  focused local commit exists; `STATE-06` remains unchanged.
+- Stop rule: each authorised executable stage runs once. Any first non-zero
+  exit or mechanical `FAIL`/`BLOCKED` stops every later check and prohibits
+  retry or in-line correction. A stopped result permits only mandatory factual
+  reconciliation and the focused local commit of already authorised changes.
+- Result: the recovery preflight, exact baseline, bounded implementation,
+  focused policy check, corrected legacy runner, `Doctor` and `Quick` passed.
+  The sole online `Full` proved the legacy correction, then failed the
+  Dashboard dependency audit because `nanoid <3.3.18` has one high-severity
+  advisory. The preserved result is
+  `DISPOSITION|FAIL|stage=All|stop=GATE_FAILURE`; no retry or in-line
+  correction followed.
 
 ### Authorised corrective continuation `AUD-2026-R1-R1` — blocked
 
@@ -499,6 +567,27 @@ to this increment.
 - [x] One focused local commit contains only `AUD-2026-R1-R1` and its factual
   evidence.
 
+### Completion criteria — current `AUD-2026-R1-R3-R1`
+
+- [x] The initial shutdown `BLOCKED` result and the previous canonical
+  `DISPOSITION|FAIL|stage=All|stop=GATE_FAILURE` remain unchanged.
+- [x] PID `8952` was inspected once, found absent and not terminated; the one
+  recovery shutdown preflight and exact tracked baseline check passed.
+- [x] The exact canonical dotnet host is propagated through `ci.ps1`, the
+  legacy runner, Pester parameters and all seven vulnerability-verifier calls.
+- [x] The focused policy check and corrected legacy runner returned their
+  first `PASS`; `Doctor` and `Quick` then returned their first `PASS` in order.
+- [ ] Exactly one online `Full` returns `PASS`. Its sole execution proved the
+  legacy correction but returned `FAIL` at the Dashboard dependency audit and
+  cannot be retried in this lot.
+- [x] Protected external material remained unread, no ignored residue was
+  deleted and frozen files, versions, lockfiles, dependencies and contracts
+  were not modified.
+- [x] Plan, current state and append-only history record the first factual
+  results without Human Gate, activation or lifecycle claims.
+- [x] One focused local commit contains only `AUD-2026-R1-R3-R1` and its
+  factual evidence.
+
 ## Findings
 
 | ID | Severity | Finding | Disposition |
@@ -526,7 +615,8 @@ to this increment.
 | `AUD-R1-006` | `P1` | The `AUD-2026-R1` plan control used `- Frozen baseline:` instead of the policy-required literal `- Initial baseline:`. | `RESOLVED` only under separately authorised `AUD-2026-R1-R1`; the historical first `Quick FAIL` and its stop rule remain unchanged. |
 | `AUD-R1-007` | `P1` | The first post-failure factual review found one newly inserted blank line inside the append-only historical prefix. | `RESOLVED` by removing only that uncommitted line; final review confirmed one append hunk at end of file and `P0=0`, `P1=0`, `P2=0`, `P3=0`. |
 | `AUD-R1-R1-001` | `P1` | The policy-required control key `- Initial baseline:` was absent because the plan used `- Frozen baseline:`. | `RESOLVED` under separate authority by the exact one-line rename; the focused verifier passed `105` assertions and the first `Quick` passed. Historical `AUD-R1-006` remains preserved. |
-| `AUD-R1-R1-002` | `P1` | The sole online `Full` legacy-compatibility stage could not resolve .NET SDK `10.0.302` while inventorying target frameworks for `DBNotifier.Domain.csproj`. | `OPEN`; the legacy suite reported `Failed=1`, `Pending=0`, forcing `DISPOSITION|FAIL|stage=All|stop=GATE_FAILURE`. Stop-on-failure prohibits diagnosis execution, correction or retry in this lot. |
+| `AUD-R1-R1-002` | `P1` | The sole online `Full` legacy-compatibility stage could not resolve .NET SDK `10.0.302` while inventorying target frameworks for `DBNotifier.Domain.csproj`. | `RESOLVED` only under separately authorised `AUD-2026-R1-R3-R1` by exact host propagation. The historical `AUD-2026-R1-R1` `FAIL`, `Failed=1`, `Pending=0` and `DISPOSITION|FAIL|stage=All|stop=GATE_FAILURE` remain unchanged. |
+| `AUD-R1-R3-R1-001` | `P1` | The sole online `Full` Dashboard dependency audit reported one high-severity advisory for `nanoid <3.3.18` (`GHSA-2v37-7h3g-55p8`). | `OPEN`; the aggregate gate returned `DISPOSITION|FAIL|stage=All|stop=GATE_FAILURE`. Dependency or lockfile correction and gate retry are outside this lot. |
 
 ## Increment plan
 
@@ -542,6 +632,7 @@ to this increment.
 | `I7-R1` | Correct empty-name root-lockfile parsing and execute the newly authorised canonical sequence. | `BLOCKED` |
 | `AUD-2026-R1` | Restore Git/clean-room inventory integrity and align the stale architecture regression before executing the authorised gate sequence. | `BLOCKED` |
 | `AUD-2026-R1-R1` | Restore the mandatory initial-baseline plan control and resume the exact sequential gate attempt. | `BLOCKED` |
+| `AUD-2026-R1-R3-R1` | Recover the stopped shutdown boundary, propagate exact legacy SDK identity and execute the separately authorised sequential gate attempt. | `BLOCKED` |
 
 ## Evidence log
 
@@ -598,9 +689,30 @@ to this increment.
 | 2026-08-27 | `AUD-2026-R1-R1 Full` first and only disposition | Legacy compatibility within the same online `Full` | `FAIL`; exit code `1`; `DISPOSITION|FAIL|stage=All|stop=GATE_FAILURE` | Legacy script syntax passed `27` PowerShell scripts with `21` declared skips. The compatibility test then reported SDK `10.0.302` unavailable in its child environment while inventorying `DBNotifier.Domain.csproj`; `Failed=1`, `Pending=0`. No retry, diagnosis execution or correction followed. |
 | 2026-08-27 | `AUD-2026-R1-R1` closing shutdown | `scripts/assert-dbnotifier-shutdown.ps1` | `PASS`; exit code `0`; matching processes `0`, owned listeners `0` | Safe closure only; it was not a gate retry and started no subsequent validation. |
 | 2026-08-27 | `AUD-2026-R1-R1` independent factual review and recheck | Read-only review of plan, current state, EOF-only history append and historical-tense reconciliation | `P0=0`; `P1=0`; `P2=0`; `P3=0` | Confirmed only three factual documents changed, the historical prefix is byte-preserved, partial passes do not replace `Full FAIL`, and the original `AUD-2026-R1 Quick FAIL` remains unchanged. No executable validation occurred. |
+| 2026-08-27 | First `AUD-2026-R1-R3` shutdown preflight | `scripts/assert-dbnotifier-shutdown.ps1` | `BLOCKED`; exit code `1`; `pid=8952`; `process=pwsh.exe`; `ISOLATION_FAILURE` | The lot stopped before baseline inspection or editing. No retry, process termination or executable validation followed under that authority. |
+| 2026-08-27 | `AUD-2026-R1-R3-R1` PID recovery | Exact PID existence query without environment access | `PASS`; PID `8952` was absent | No process was terminated and no alternate identity was inspected. |
+| 2026-08-27 | `AUD-2026-R1-R3-R1` recovery shutdown and baseline | One shutdown preflight; branch, HEAD and tracked status | `PASS`; matching processes `0`, owned listeners `0`; clean `main@6ecc72f7a347a746d0153072580c527d7c679e81` | Executed before the plan or implementation changed; protected material and ignored residue were not inspected. |
+| 2026-08-27 | `AUD-2026-R1-R3-R1` legacy SDK identity correction | Exact host propagation through CI, Windows PowerShell runner, Pester parameters and seven verifier calls | `PASS` for the authorised implementation | Only the four authorised script/test files changed; `development.ps1`, the verifier, `global.json`, workflow, versions, lockfiles, dependencies and product code remained frozen. |
+| 2026-08-27 | `AUD-2026-R1-R3-R1` focused policy check | `scripts/verify-development-flow.ps1` | `PASS`; exit code `0`; `105` assertions | Executed once; it proves the bounded development-flow policy only. |
+| 2026-08-27 | `AUD-2026-R1-R3-R1` focused legacy runner | `scripts/run-legacy-tests.ps1` under Windows PowerShell 5.1 with the absolute PATH-resolved dotnet host | `PASS`; exit code `0`; tests `34`, skipped `1`, coverage `35.17%` (`338/961`) | Executed once; the single skip was the expected conditional `pg_isready` case. |
+| 2026-08-27 | `AUD-2026-R1-R3-R1 Doctor` | `scripts/development.ps1 Doctor` | `PASS`; exit code `0` | Internal shutdown preflight, root, compatible toolchains, lockfiles and restored dependencies passed. |
+| 2026-08-27 | `AUD-2026-R1-R3-R1 Quick` | `scripts/development.ps1 Quick` | `PASS`; exit code `0`; explicitly `NON_GATE` | Build was clean; unit `528/528`, architecture `100/100`, Node `74/74`, policy `105`, policy regressions `98`, runner `68` and syntax `13` passed with applicable asset, type, documentation and Markdown checks. |
+| 2026-08-27 | `AUD-2026-R1-R3-R1 Full` pre-failure evidence | Sole online `scripts/development.ps1 Full` execution | `PASS` through corrected legacy compatibility, bundle validation, Dashboard tests and Dashboard production build | Earlier stages included two preflights, secret scan, policies, locked restore of `19` projects, build with zero warnings/errors, architecture `100/100`, WPF `10/10`, unit `528/528`, integration `168/168`, coverage `83.41%` lines/`56.62%` branches/`10` components, NuGet vulnerability coverage for `19` projects, fail-closed runtime audit, legacy `34` tests and Node `74/74`. Partial passes do not replace the final disposition. |
+| 2026-08-27 | `AUD-2026-R1-R3-R1 Full` first and only disposition | Dashboard online dependency audit within the same `Full` | `FAIL`; exit code `1`; `DISPOSITION|FAIL|stage=All|stop=GATE_FAILURE` | `npm audit` reported one high-severity advisory for `nanoid <3.3.18`, `GHSA-2v37-7h3g-55p8`. No dependency change, retry, diagnosis execution or correction followed. |
+| 2026-08-27 | `AUD-2026-R1-R3-R1` closing shutdown | `scripts/assert-dbnotifier-shutdown.ps1` | `PASS`; exit code `0`; matching processes `0`, owned listeners `0` | Safe closure only; it was not a gate retry and started no later validation. |
 
 ## Blockers and limitations
 
+- `AUD-2026-R1-R3-R1` is `BLOCKED` by the first and only online `Full` result.
+  The recovery, implementation, focused policy check, corrected legacy runner,
+  `Doctor` and `Quick` all passed before the canonical gate began.
+- The sole `Full` proved the exact legacy SDK correction and passed Dashboard
+  tests and production build. The following `npm audit` reported one
+  high-severity advisory for `nanoid <3.3.18`, forcing
+  `DISPOSITION|FAIL|stage=All|stop=GATE_FAILURE`.
+- Dependency and lockfile changes, advisory correction, diagnosis execution
+  and any retry require separate authority. No partial stage pass converts the
+  aggregate result.
 - `AUD-2026-R1-R1` is `BLOCKED` by the first and only online `Full` result.
   The exact control rename, focused policy check, `Doctor` and `Quick` all
   passed before the canonical gate began.
@@ -654,6 +766,16 @@ to this increment.
 
 ## Outcome and next action
 
+`AUD-2026-R1-R3-R1` is `BLOCKED` by `GATE_FAILURE`. It recovered the transient
+shutdown residue without terminating a process, proved the exact authorised
+baseline, propagated the canonical dotnet host through the legacy boundary and
+passed its focused policy check, corrected legacy runner, `Doctor` and `Quick`.
+The sole online `Full` also proved the correction in its canonical position,
+then failed the later Dashboard dependency audit on one high-severity
+`nanoid <3.3.18` advisory. The aggregate result is `FAIL`; no retry, dependency
+change or in-line correction followed, and the closing shutdown found zero
+matching processes and zero owned listeners.
+
 `AUD-2026-R1-R1` is `BLOCKED` by `GATE_FAILURE`. Its exact one-line control
 correction passed the focused policy verifier with `105` assertions, `Doctor`
 passed and the first `Quick` passed as `NON_GATE`. The sole online `Full`
@@ -682,6 +804,13 @@ lifecycle authority was inferred.
 
 ## Change log
 
+- `2026-08-27`: the owner authorised `AUD-2026-R1-R3-R1` to recover the first
+  shutdown blocker and resume only the diagnosed legacy SDK identity fix from
+  clean `main@6ecc72f`. PID `8952` was already absent; the recovery preflight,
+  implementation, focused checks, `Doctor` and `Quick` passed. The sole online
+  `Full` proved legacy compatibility, then failed the Dashboard dependency
+  audit on one high-severity `nanoid` advisory. Stop-on-failure prohibited
+  retry or dependency correction and left `STATE-06` unchanged.
 - `2026-08-27`: the owner separately authorised `AUD-2026-R1-R1` to rename
   only the plan's initial-baseline control and resume one sequential gate
   attempt from clean `main@b60ef4d`. The control, focused verifier, `Doctor`

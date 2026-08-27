@@ -1,4 +1,11 @@
 # Module purpose: Verifies DBNotifier Legacy Tests behaviour and protects the documented project contract.
+[CmdletBinding()]
+param(
+    [Parameter(Mandatory)]
+    [ValidateNotNullOrEmpty()]
+    [string]$DotNetPath
+)
+
 Set-StrictMode -Version Latest
 $postgresql18Executable = "C:\Program Files\PostgreSQL\18\bin\pg_isready.exe"
 $postgresql18Available = Test-Path -LiteralPath $postgresql18Executable -PathType Leaf
@@ -582,14 +589,14 @@ Describe "DB-Notifier legacy compatibility" {
         $gatePath = Join-Path $PSScriptRoot "..\scripts\verify-nuget-vulnerabilities.ps1"
         $invalidReportPath = Join-Path $PSScriptRoot "fixtures\nuget-vulnerability-report.invalid.json"
 
-        { & $gatePath -SolutionPath (Join-Path $PSScriptRoot "..\DBNotifier.sln") -ReportPath $invalidReportPath } | Should Throw
+        { & $gatePath -DotNetPath $DotNetPath -SolutionPath (Join-Path $PSScriptRoot "..\DBNotifier.sln") -ReportPath $invalidReportPath } | Should Throw
     }
 
     It "accepts the complete empty structure emitted by NuGet when framework findings are omitted" {
         $gatePath = Join-Path $PSScriptRoot "..\scripts\verify-nuget-vulnerabilities.ps1"
         $emptyReportPath = Join-Path $PSScriptRoot "fixtures\nuget-vulnerability-report.no-frameworks.json"
 
-        { & $gatePath -SolutionPath (Join-Path $PSScriptRoot "..\DBNotifier.sln") -ReportPath $emptyReportPath } | Should Not Throw
+        { & $gatePath -DotNetPath $DotNetPath -SolutionPath (Join-Path $PSScriptRoot "..\DBNotifier.sln") -ReportPath $emptyReportPath } | Should Not Throw
     }
 
     It "accepts complete NuGet structure and resolves relative report paths from the solution directory" {
@@ -598,7 +605,7 @@ Describe "DB-Notifier legacy compatibility" {
 
         Push-Location ([System.IO.Path]::GetTempPath())
         try {
-            { & $gatePath -SolutionPath (Join-Path $PSScriptRoot "..\DBNotifier.sln") -ReportPath $completeReportPath } | Should Not Throw
+            { & $gatePath -DotNetPath $DotNetPath -SolutionPath (Join-Path $PSScriptRoot "..\DBNotifier.sln") -ReportPath $completeReportPath } | Should Not Throw
         }
         finally {
             Pop-Location
@@ -612,7 +619,7 @@ Describe "DB-Notifier legacy compatibility" {
         $reportPath = Join-Path $TestDrive "nuget-project-omitted.json"
         $report | ConvertTo-Json -Depth 12 | Set-Content -LiteralPath $reportPath -Encoding UTF8
 
-        { & $gatePath -SolutionPath (Join-Path $PSScriptRoot "..\DBNotifier.sln") -ReportPath $reportPath } | Should Throw
+        { & $gatePath -DotNetPath $DotNetPath -SolutionPath (Join-Path $PSScriptRoot "..\DBNotifier.sln") -ReportPath $reportPath } | Should Throw
     }
 
     It "rejects NuGet reports from a source set that diverges from NuGet.config" {
@@ -622,7 +629,7 @@ Describe "DB-Notifier legacy compatibility" {
         $reportPath = Join-Path $TestDrive "nuget-source-divergent.json"
         $report | ConvertTo-Json -Depth 12 | Set-Content -LiteralPath $reportPath -Encoding UTF8
 
-        { & $gatePath -SolutionPath (Join-Path $PSScriptRoot "..\DBNotifier.sln") -ReportPath $reportPath } | Should Throw
+        { & $gatePath -DotNetPath $DotNetPath -SolutionPath (Join-Path $PSScriptRoot "..\DBNotifier.sln") -ReportPath $reportPath } | Should Throw
     }
 
     It "rejects direct and transitive vulnerability findings" -TestCases @(
@@ -642,7 +649,7 @@ Describe "DB-Notifier legacy compatibility" {
         $reportPath = Join-Path $TestDrive ("nuget-{0}.json" -f $Collection)
         $report | ConvertTo-Json -Depth 12 | Set-Content -LiteralPath $reportPath -Encoding UTF8
 
-        { & $gatePath -SolutionPath (Join-Path $PSScriptRoot "..\DBNotifier.sln") -ReportPath $reportPath } | Should Throw
+        { & $gatePath -DotNetPath $DotNetPath -SolutionPath (Join-Path $PSScriptRoot "..\DBNotifier.sln") -ReportPath $reportPath } | Should Throw
     }
 
     It "rejects malformed and future-schema NuGet reports" -TestCases @(
@@ -654,6 +661,6 @@ Describe "DB-Notifier legacy compatibility" {
         $reportPath = Join-Path $TestDrive ("nuget-{0}.json" -f $Name)
         Set-Content -LiteralPath $reportPath -Value $Content -Encoding UTF8
 
-        { & $gatePath -SolutionPath (Join-Path $PSScriptRoot "..\DBNotifier.sln") -ReportPath $reportPath } | Should Throw
+        { & $gatePath -DotNetPath $DotNetPath -SolutionPath (Join-Path $PSScriptRoot "..\DBNotifier.sln") -ReportPath $reportPath } | Should Throw
     }
 }
