@@ -227,6 +227,34 @@ proprietários.
   canônico agregado foi produzido ou inferido. O preflight de encerramento
   aprovou com zero processo correspondente e zero listener próprio. A árvore
   externa protegida permaneceu não lida; nenhum resíduo ignorado foi excluído.
+- A continuação corretiva `AUD-2026-R1-R1` partiu da baseline limpa
+  `main@b60ef4d302e4c4dc3f0e474be27eaa4b8c6beb13`, após shutdown preflight com
+  zero processo correspondente e zero listener próprio. A única implementação
+  renomeou no control record de `PLANS.md` a chave `- Frozen baseline:` para
+  `- Initial baseline:`, preservando o valor original
+  `main@3762f71c116af206b911a086b836cef11cd1894d`. Nenhum arquivo de
+  implementação/teste, workflow, versão, manifesto, lockfile, dependência ou
+  contrato externo mudou.
+- O check focal `AUD-2026-R1-R1` aprovou `105` assertions; `Doctor` aprovou
+  preflight interno, raiz, toolchains, lockfiles e dependências restauradas; e
+  a primeira `Quick`, explicitamente `NON_GATE`, aprovou build Release com zero
+  aviso/erro, testes unitários `528/528`, arquitetura `100/100`, Node `74/74`,
+  política `105`, regressões de política `94`, runner `68` e sintaxe `13`, além
+  dos checks auxiliares aplicáveis.
+- A única execução online de `Full` em `AUD-2026-R1-R1` encerrou com exit code
+  `1` e `DISPOSITION|FAIL|stage=All|stop=GATE_FAILURE`. Antes da falha,
+  aprovaram secret scan, política, restore locked de `19` projetos, build com
+  zero aviso/erro, arquitetura `100/100`, WPF `10/10`, unitários `528/528`,
+  integração `168/168`, cobertura de linhas `83,41%` e branches `56,62%` em
+  `10` componentes obrigatórios, vulnerabilidades NuGet em `19` projetos e o
+  runtime audit fail-closed sem inicialização de persistência local.
+- A falha factual do `Full` ocorreu na compatibilidade legada: o processo-filho
+  não resolveu o SDK .NET `10.0.302` exigido enquanto inventariava target
+  frameworks de `DBNotifier.Domain.csproj`; a suite registrou `Failed=1` e
+  `Pending=0`. Não houve retry, diagnóstico executável, correção ou ambiente
+  alternativo. O shutdown final aprovou com zero processo correspondente e
+  zero listener próprio. Material protegido permaneceu não lido e nenhum
+  resíduo ignorado foi excluído.
 - A evidência executável disponível para o próprio fluxo aprovou `97`
   invariantes estáticas, `64` regressões determinísticas, sintaxe de `47`
   scripts PowerShell e `14` scripts Node, compatibilidade de sintaxe de `27`
@@ -245,8 +273,11 @@ proprietários.
   lockfile; I7-R1 corrigiu e validou somente esse defeito, mas seu `Quick`
   falhou no teste de arquitetura descrito acima. `AUD-2026-R1` corrigiu e
   validou focalmente a topologia atual, mas sua própria `Quick` falhou no
-  controle do plano descrito acima. `Full All`, cobertura, browser/runtime e
-  advisories online permanecem sem `PASS` neste snapshot.
+  controle do plano descrito acima. `AUD-2026-R1-R1` corrigiu esse controle e
+  aprovou `Quick`, cobertura, advisories NuGet e o runtime audit fail-closed,
+  mas seu único `Full All` falhou na compatibilidade legada antes dos estágios
+  posteriores. O gate agregado e esses estágios não alcançados permanecem sem
+  `PASS` neste snapshot.
 - Domain e Application permanecem provider-neutral. Provider SDK,
   infraestrutura, persistência, Agent, API, Desktop, Dashboard e testes
   conservam fronteiras próprias e dependências voltadas para dentro.

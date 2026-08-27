@@ -6066,3 +6066,57 @@
 - Estado resultante: `STATE-06 INTEGRATION`, elegibilidade `NÃO REAVALIADA`,
   `MOD-12 ActivationState=None`, providers, ADRs, Human Gates, produto,
   interface e autoridade externa permanecem inalterados.
+
+## 2026-08-27 — AUD-2026-R1-R1 corrige o controle e falha no único Full
+
+- Estado anterior: `STATE-06 INTEGRATION`, elegibilidade `NÃO REAVALIADA`,
+  `MOD-12 ActivationState=None`, `AUD-2026-R1 BLOCKED`/`GATE_FAILURE` e
+  baseline limpa `main@b60ef4d302e4c4dc3f0e474be27eaa4b8c6beb13`.
+- Autoridade humana literal: `AUTORIZO exclusivamente o lote corretivo AUD-2026-R1-R1 Plan Control Integrity no DB-Notifier, partindo da baseline limpa main\@b60ef4d302e4c4dc3f0e474be27eaa4b8c6beb13. Execute primeiro o shutdown preflight e pare sem editar diante de qualquer drift rastreado. Corrija somente o control record de PLANS.md, renomeando “- Frozen baseline:” para a chave literal exigida “- Initial baseline:” e preservando o valor factual main\@3762f71c116af206b911a086b836cef11cd1894d. Não altere a implementação já commitada, testes, workflow, versões, lockfiles, dependências ou contratos externos. Depois, execute uma única vez o check focal da política de desenvolvimento, Doctor e Quick; somente se todos passarem, execute exatamente uma vez o Full online. Preserve o primeiro resultado factual de cada etapa e pare diante de qualquer FAIL ou BLOCKED, sem retry ou correção em linha. Reconcilie somente a documentação factual obrigatória e faça um commit local focado. Permanecem proibidos material externo protegido, exclusão de resíduos ignorados, backend/migrations, banco ou provider real, navegador comum, deploy, push, Human Gate, ativação e transição de STATE.`
+- Preflight e baseline: o shutdown inicial aprovou com zero processo
+  correspondente e zero listener pertencente ao DB-Notifier. Branch, commit,
+  index e worktree não ignorada corresponderam exatamente à baseline autorizada
+  antes da edição.
+- Correção: uma única linha no control record de `PLANS.md` renomeou
+  `- Frozen baseline:` para `- Initial baseline:` e preservou o valor original
+  `main@3762f71c116af206b911a086b836cef11cd1894d`. Nenhum arquivo de código,
+  teste, workflow, versão, manifesto, lockfile, dependência ou contrato externo
+  foi alterado.
+- Evidência focal: a única execução de
+  `scripts/verify-development-flow.ps1` aprovou `105` assertions e exit code
+  `0`.
+- `Doctor`: a única execução aprovou com exit code `0`; seu preflight interno
+  encontrou zero processo/listener correspondente, e raiz, toolchains,
+  lockfiles e dependências restauradas passaram.
+- `Quick`: a primeira e única execução declarou-se `NON_GATE` e aprovou com
+  exit code `0`. Build Release aprovou com zero aviso/erro; testes unitários
+  `528/528`, arquitetura `100/100`, Node `74/74`, política `105`, regressões de
+  política `94`, runner `68` e sintaxe `13`, além dos checks auxiliares
+  aplicáveis.
+- `Full` antes da falha: a única execução online aprovou seus dois shutdown
+  preflights, secret scan, política, restore locked de `19` projetos, build com
+  zero aviso/erro, arquitetura `100/100`, WPF `10/10`, unitários `528/528`,
+  integração `168/168`, cobertura de linhas `83,41%`, branches `56,62%` e `10`
+  componentes obrigatórios, vulnerabilidades NuGet nos `19` projetos e o
+  runtime audit fail-closed. Esse audit observou resposta live `200`, todos os
+  endpoints HTTP protegidos como `426`, workers Agent desabilitados, polling de
+  comandos ausente e persistência local não inicializada.
+- `Full` — primeira e única disposição: a compatibilidade legada não resolveu
+  o SDK .NET `10.0.302` exigido no processo-filho durante o inventário MSBuild
+  de `DBNotifier.Domain.csproj`. O teste registrou `Failed=1`, `Pending=0`; o
+  gate encerrou com exit code `1` e
+  `DISPOSITION|FAIL|stage=All|stop=GATE_FAILURE`.
+- Stop factual: nenhuma repetição, diagnóstico executável, correção, ambiente
+  alternativo ou execução adicional de `Full` ocorreu. Os passes parciais não
+  substituem nem corrigem a disposição agregada `FAIL`.
+- Preflight de encerramento: `PASS`, com zero processo correspondente e zero
+  listener pertencente ao DB-Notifier.
+- Disposição: `AUD-2026-R1-R1 BLOCKED` por `GATE_FAILURE`. A correção do
+  controle foi validada até `Quick`, mas o lote não possui `Full PASS`.
+- Escopo negativo preservado: material externo protegido não foi lido ou
+  modificado; nenhum resíduo ignorado foi excluído; backend, migrations,
+  banco/provider real, navegador comum, deploy, push, Human Gate, ativação e
+  transição de `STATE` não foram executados.
+- Estado resultante: `STATE-06 INTEGRATION`, elegibilidade `NÃO REAVALIADA`,
+  `MOD-12 ActivationState=None`, providers, ADRs, Human Gates, produto,
+  interface e autoridade externa permanecem inalterados.
