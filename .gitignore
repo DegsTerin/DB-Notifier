@@ -28,6 +28,9 @@ logs/
 *.sqlite3-shm
 *.sqlite3-wal
 
+# The canonical source project ends in .Sqlite and must remain visible to Git inventory.
+!src/DBNotifier.Persistence.Agent.Sqlite/
+
 # Temporary files
 *.tmp
 *.temp

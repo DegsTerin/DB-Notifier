@@ -6005,3 +6005,64 @@
 - Estado resultante: `STATE-06 INTEGRATION`, elegibilidade `NÃO REAVALIADA`,
   `MOD-12 ActivationState=None`, providers, ADRs, Human Gates, produto,
   interface e autoridade externa permanecem inalterados.
+
+## 2026-08-27 — AUD-2026-R1 corrige inventários e bloqueia no primeiro Quick
+
+- Estado anterior: `STATE-06 INTEGRATION`, elegibilidade `NÃO REAVALIADA`,
+  `MOD-12 ActivationState=None`, I7-R1 `BLOCKED`/`GATE_FAILURE` e baseline
+  limpa `main@3762f71c116af206b911a086b836cef11cd1894d`.
+- Autoridade humana literal: `AUTORIZO exclusivamente o lote AUD-2026-R1 Gate And Inventory Integrity no DB-Notifier. Parta da baseline main\@3762f71c116af206b911a086b836cef11cd1894d; se houver drift rastreado, pare sem editar. Execute primeiro o shutdown preflight e atualize o PLANS.md antes da implementação. Corrija somente: (1) a regra de ignore que oculta novos arquivos em src/DBNotifier.Persistence.Agent.Sqlite, mantendo arquivos runtime SQLite ignorados; (2) o verificador Markdown para derivar seu corpus do inventário Git e provar por regressão que nunca atravessa mysql-notifier-\*-src nem outra raiz ignorada protegida; e (3) o teste arquitetural obsoleto para validar a topologia consolidada atual do CI, sem restaurar jobs antigos. Adicione regressões focais, preserve en-GB nos artefatos técnicos e não altere versões, lockfiles, dependências ou contratos externos. Depois, execute checks focais, Doctor e Quick; somente se todos passarem, execute uma única vez o Full online. Preserve o primeiro resultado factual de cada etapa e pare diante de qualquer FAIL ou BLOCKED, sem retry ou correção em linha. Faça um commit local focado conforme as instruções do repositório e reconcilie apenas a documentação factual obrigatória. Permanecem proibidos: ler ou modificar o material externo protegido, excluir qualquer resíduo ignorado, alterar backend/migrations, usar banco ou provider real, navegador comum, deploy, push, Human Gate, ativação ou transição de STATE.`
+- Preflight e baseline: o shutdown inicial aprovou com zero processo
+  correspondente e zero listener pertencente ao DB-Notifier. Branch, commit,
+  index e worktree rastreada corresponderam exatamente à baseline autorizada
+  antes da atualização do plano e da implementação.
+- Correção de ignore: a exceção estreita para a árvore-fonte canônica
+  `src/DBNotifier.Persistence.Agent.Sqlite/` restaura sua visibilidade ao
+  inventário Git. Arquivos runtime `.db`, `.sqlite`, `.sqlite3`, journal, SHM e
+  WAL continuam ignorados, inclusive dentro dessa árvore.
+- Correção Markdown: o gate deixou de caminhar a árvore física e passou a
+  derivar fontes e destinos admitidos de inventários Git NUL-delimited. Paths
+  ignorados rastreados são excluídos; escapes de raiz, drive Windows, UNC,
+  barras invertidas e symlinks rastreados ou físicos falham antes de leitura ou
+  aceitação de destino. A regressão sintética usa repositórios temporários
+  próprios e prova que arquivos novos não ignorados são verificados enquanto
+  as duas raízes ignoradas sentinela não são atravessadas.
+- Correção arquitetural: o teste obsoleto passou a validar um job
+  `canonical-windows`, uma execução `Stage All`, uma raiz recursiva única de
+  diagnóstico sanitizado, o upload condicional e o job Dashboard Linux
+  suplementar. O workflow CI permaneceu read-only e nenhum job removido foi
+  restaurado.
+- Revisão independente: a primeira inspeção estática retornou `P0=0`, `P1=1`,
+  `P2=3`, `P3=1`; depois das correções pré-validação, a segunda retornou
+  `P0=0`, `P1=0`, `P2=1`, `P3=0`; a releitura final encerrou `P0=0`, `P1=0`,
+  `P2=0`, `P3=0`. Nenhuma revisão executou código ou leu material protegido.
+- Evidência focal: as regressões de inventário aprovaram `2/2`; o verificador
+  Markdown real aprovou `981` links em `226` arquivos do corpus Git não
+  ignorado; o filtro arquitetural exato aprovou `1/1`. Cada comando foi
+  executado uma única vez, com exit code `0`.
+- `Doctor`: a única execução aprovou com exit code `0`; seu preflight interno
+  encontrou zero processo/listener correspondente, e raiz, toolchains,
+  lockfiles e dependências restauradas passaram.
+- `Quick`: a primeira execução declarou-se `NON_GATE` e encerrou com exit code
+  `1`. Antes da falha, build Release aprovou com zero aviso e zero erro, testes
+  unitários `528/528`, arquitetura `100/100`, Node `74/74`, além de assets,
+  tipos, documentação e Markdown. O verificador de desenvolvimento então
+  falhou porque `PLANS.md` não contém a chave literal obrigatória
+  `- Initial baseline:`.
+- Stop factual: não houve correção da chave, repetição nem execução alternativa
+  de `Quick`. A única execução online autorizada de `Full` permaneceu
+  `NOT_RUN`; sua allowance não foi consumida e nenhum gate canônico agregado
+  foi produzido ou inferido. O preflight final de encerramento aprovou com zero
+  processo correspondente e zero listener próprio.
+- Disposição: `AUD-2026-R1 BLOCKED` por `GATE_FAILURE`. As três correções
+  candidatas e suas evidências focais permanecem materializadas, mas o finding
+  de política do plano fica aberto e o lote não possui disposição canônica
+  `Full`.
+- Escopo negativo preservado: nenhum arquivo externo protegido foi lido ou
+  modificado; nenhum resíduo ignorado foi excluído; backend, migrations,
+  banco/provider real, navegador comum, deploy, push, Human Gate, ativação e
+  transição de `STATE` não foram executados. Versões, lockfiles, dependências,
+  contratos externos e workflow CI permaneceram inalterados.
+- Estado resultante: `STATE-06 INTEGRATION`, elegibilidade `NÃO REAVALIADA`,
+  `MOD-12 ActivationState=None`, providers, ADRs, Human Gates, produto,
+  interface e autoridade externa permanecem inalterados.

@@ -111,7 +111,7 @@ public sealed class State06ConsolidatedHarnessIsolationTests
         Assert.DoesNotContain("ConsolidatedHarnessRateLimit", production, StringComparison.Ordinal);
     }
 
-    /// <summary>Confirms browser runners bound Node/CDP work and own exact diagnostics while CI publishes only their sanitised directories.</summary>
+    /// <summary>Confirms browser runners bound Node/CDP work while the canonical gate owns one sanitised diagnostic root.</summary>
     [Fact]
     public void BrowserRunnersBoundWorkAndCleanupExactOwnedResources()
     {
@@ -119,6 +119,7 @@ public sealed class State06ConsolidatedHarnessIsolationTests
         string state06 = Read("scripts", "run-state06-consolidated-e2e.ps1");
         string state05Auditor = Read("scripts", "audit-state05-dashboard.mjs");
         string state06Auditor = Read("scripts", "audit-state06-consolidated-e2e.mjs");
+        string canonicalGate = Read("scripts", "ci.ps1");
         string workflow = Read(".github", "workflows", "ci.yml");
 
         Assert.Contains("NodeTimeoutSeconds", state05, StringComparison.Ordinal);
@@ -135,18 +136,19 @@ public sealed class State06ConsolidatedHarnessIsolationTests
         Assert.Contains("CDP command exceeded its deadline", state06Auditor, StringComparison.Ordinal);
         Assert.Contains("state05-dashboard-failure.json", state05, StringComparison.Ordinal);
         Assert.Contains("state06-consolidated-failure.json", state06, StringComparison.Ordinal);
-        Assert.Contains("state06-consolidated-e2e:", workflow, StringComparison.Ordinal);
+        Assert.Contains("$dashboardEvidence = Join-Path $EvidenceRoot 'state05-dashboard'", canonicalGate, StringComparison.Ordinal);
+        Assert.Contains("$state06Evidence = Join-Path $EvidenceRoot 'state06-consolidated'", canonicalGate, StringComparison.Ordinal);
+        Assert.Contains("canonical-windows:", workflow, StringComparison.Ordinal);
+        Assert.Equal(1, Regex.Count(workflow, @"(?m)^\s*run:\s*[.]\\scripts\\ci[.]ps1 -Stage All\b"));
+        Assert.Contains(@"-DiagnosticRoot ""${{ runner.temp }}\dbnotifier-ci-diagnostics""", workflow, StringComparison.Ordinal);
+        Assert.Contains(@"path: ${{ runner.temp }}\dbnotifier-ci-diagnostics\**\*.json", workflow, StringComparison.Ordinal);
+        Assert.Equal(1, Regex.Count(workflow, @"if-no-files-found:\s+ignore"));
+        Assert.Equal(1, Regex.Count(workflow, @"retention-days:\s+7"));
+        Assert.Contains("dashboard-linux:", workflow, StringComparison.Ordinal);
         Assert.Contains("timeout-minutes: 25", workflow, StringComparison.Ordinal);
-        Assert.Contains(
-            @"path: ${{ runner.temp }}\dbnotifier-state05-diagnostic\*.json",
-            workflow,
-            StringComparison.Ordinal);
-        Assert.Contains(
-            @"path: ${{ runner.temp }}\dbnotifier-state06-diagnostic\*.json",
-            workflow,
-            StringComparison.Ordinal);
-        Assert.Equal(2, Regex.Count(workflow, @"if-no-files-found:\s+error"));
-        Assert.Equal(2, Regex.Count(workflow, @"retention-days:\s+7"));
+        Assert.Contains("run: ./scripts/ci.ps1 -Stage Dashboard", workflow, StringComparison.Ordinal);
+        Assert.DoesNotContain("dbnotifier-state05-diagnostic", workflow, StringComparison.Ordinal);
+        Assert.DoesNotContain("dbnotifier-state06-diagnostic", workflow, StringComparison.Ordinal);
     }
 
     /// <summary>Confirms the runner uses an exact opt-in and contains no installation or download command.</summary>

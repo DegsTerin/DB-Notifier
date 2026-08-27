@@ -9,22 +9,96 @@ append-only history, a Quality Gate or a Human Gate.
 
 ## Control record
 
-- Plan ID: `DEV-FLOW-01`
+- Plan ID: `AUD-2026-R1`
 - Status: `BLOCKED`
 - Created: `2026-08-27`
-- Initial baseline: `main@f0f220c539fde685e2c500b4944ebca168aaec7d`
-- Continuation baseline: `main@e6416f6dac3f65d672f0247da88850881bae9120`
+- Frozen baseline: `main@3762f71c116af206b911a086b836cef11cd1894d`
+- Preserved predecessor: `DEV-FLOW-01/v4` remains `BLOCKED` by its first
+  `Quick` result; this corrective lot does not rewrite that disposition
 - Lifecycle state: `STATE-06 INTEGRATION`; unchanged by this plan
-- Authority: Bruno's request to implement in DB-Notifier the development
-  method and flow used by RAG-Challenge
+- Authority: Bruno's explicit authorisation for the bounded
+  `AUD-2026-R1 Gate And Inventory Integrity` corrective lot
 - Execution mode: `SEQUENTIAL_ONLY`
 - Writer: coordinating conversation only
-- Independent reviewers: three read-only discovery lanes before implementation
-  and three named read-only recheck lanes after implementation
+- Independent reviewer: one read-only candidate-diff review after
+  implementation and before the first executable check
 - Factual-state owner: `prompts/state/Current-State.md`
 - Historical owner: `prompts/state/State-Transition-Log.md`
 
 ## Task envelopes
+
+### Authorised corrective lot `AUD-2026-R1` — blocked
+
+- Envelope status: `BLOCKED` by `GATE_FAILURE` from its first `Quick`.
+- Exact human authority: `AUTORIZO exclusivamente o lote AUD-2026-R1 Gate And
+  Inventory Integrity no DB-Notifier. Parta da baseline
+  main@3762f71c116af206b911a086b836cef11cd1894d; se houver drift rastreado,
+  pare sem editar. Execute primeiro o shutdown preflight e atualize o PLANS.md
+  antes da implementação. Corrija somente: (1) a regra de ignore que oculta
+  novos arquivos em src/DBNotifier.Persistence.Agent.Sqlite, mantendo arquivos
+  runtime SQLite ignorados; (2) o verificador Markdown para derivar seu corpus
+  do inventário Git e provar por regressão que nunca atravessa
+  mysql-notifier-*-src nem outra raiz ignorada protegida; e (3) o teste
+  arquitetural obsoleto para validar a topologia consolidada atual do CI, sem
+  restaurar jobs antigos. Adicione regressões focais, preserve en-GB nos
+  artefatos técnicos e não altere versões, lockfiles, dependências ou contratos
+  externos. Depois, execute checks focais, Doctor e Quick; somente se todos
+  passarem, execute uma única vez o Full online. Preserve o primeiro resultado
+  factual de cada etapa e pare diante de qualquer FAIL ou BLOCKED, sem retry ou
+  correção em linha. Faça um commit local focado conforme as instruções do
+  repositório e reconcilie apenas a documentação factual obrigatória.
+  Permanecem proibidos: ler ou modificar o material externo protegido, excluir
+  qualquer resíduo ignorado, alterar backend/migrations, usar banco ou provider
+  real, navegador comum, deploy, push, Human Gate, ativação ou transição de
+  STATE.`
+- Workspace and frozen baseline: `C:\Projects\DB-Notifier`, branch `main`,
+  commit `3762f71c116af206b911a086b836cef11cd1894d`; the initial tracked worktree
+  and index were clean.
+- Initial shutdown evidence: `PASS`; matching processes `0`, owned listeners
+  `0`.
+- Verifiable objective: restore trustworthy Git inventory and clean-room
+  boundaries, then align the architecture regression with the current single
+  canonical Windows gate without altering the workflow topology.
+- Positive scope: `.gitignore`; `scripts/verify-markdown-links.mjs`;
+  `tests/DBNotifier.Architecture.Tests/State06ConsolidatedHarnessIsolationTests.cs`;
+  one focused deterministic regression under the existing Dashboard test
+  boundary; this plan; mandatory current-state and append-only history
+  reconciliation; focused checks; `Doctor`; `Quick`; exactly one
+  online `Full` only after every preceding check passes; one focused local
+  commit.
+- Frozen read-only contracts: `.github/workflows/ci.yml`, `global.json`,
+  `.nvmrc`, `Directory.Packages.props`, every project/package manifest and
+  every dependency lockfile. Their versions, dependency graph and integrity
+  values must not change.
+- Protected work: `mysql-notifier-1.1.8-src/` and every other ignored external
+  root remain unread, unmodified, untracked and outside every inventory or
+  gate traversal. Ignored build, dependency, toolchain and provisioning
+  residue must not be deleted.
+- Negative scope: product behaviour, backend, migrations, providers, real
+  databases, ordinary browser use, dependency or contract changes, cleanup,
+  deploy, publication, push, Human Gate, activation, homologation and lifecycle
+  transition.
+- Execution topology: `SEQUENTIAL_ONLY`. The coordinating conversation is the
+  only writer. One independent reviewer may inspect the frozen candidate diff
+  read-only and must finish before executable validation begins.
+- Stop rule: static review findings may be corrected before the first focused
+  executable check. From that check onwards, each authorised stage runs once;
+  any non-zero exit or mechanical `FAIL`/`BLOCKED` stops all later checks and
+  prohibits retry or in-line correction. Online `Full` may run at most once.
+- Objective stop codes: `BASELINE_DRIFT`, `SCOPE_OVERLAP`,
+  `ISOLATION_FAILURE`, `MUTABLE_RESOURCE_COLLISION`, `GATE_FAILURE`,
+  `EXTERNAL_AUTHORITY_REQUIRED` and `HUMAN_DECISION_REQUIRED` retain their
+  definitions below.
+- Rollback: before commit, reverse only this lot's owned diff if required by an
+  authorised recovery; after commit, use a separately authorised focused
+  revert. Never discard predecessor history or unrelated work.
+- Acceptance: a hypothetical source beneath the canonical SQLite project is
+  not ignored while real SQLite runtime files remain ignored; the Markdown
+  gate uses Git inventory and a synthetic regression proves ignored protected
+  roots are not traversed; the architecture test validates the current
+  workflow contract; focused checks, `Doctor`, `Quick` and the sole online
+  `Full` all return their first successful dispositions; factual records are
+  reconciled and one focused local commit contains only this lot.
 
 ### Original envelope `DEV-FLOW-01/v1` — closed
 
@@ -87,7 +161,7 @@ append-only history, a Quality Gate or a Human Gate.
   `Doctor` and `Quick` complete successfully, and the sole online `Full` run
   supplies the canonical disposition without prohibited external activity.
 
-### Authorised continuation `I7` — current
+### Authorised continuation `I7` — preserved blocked
 
 - Envelope ID and version: `DEV-FLOW-01/v3`.
 - Envelope status: `BLOCKED` by `GATE_FAILURE`.
@@ -123,7 +197,7 @@ append-only history, a Quality Gate or a Human Gate.
   shutdown preflight, `Doctor` and `Quick` pass, and the sole online `Full`
   supplies its first canonical disposition without prohibited activity.
 
-### Authorised corrective continuation `I7-R1` — current
+### Authorised corrective continuation `I7-R1` — preserved blocked
 
 - Envelope ID and version: `DEV-FLOW-01/v4`.
 - Envelope status: `BLOCKED` by `GATE_FAILURE`.
@@ -251,6 +325,16 @@ to this increment.
 
 ## Definition of Ready
 
+- [x] `AUD-2026-R1` authority is exact, bounded and distinct from the preserved
+  blocked predecessor envelopes.
+- [x] Mandatory shutdown preflight passed with zero matching processes and
+  zero owned listeners.
+- [x] Branch `main`, frozen commit and clean tracked worktree match the
+  authorised baseline.
+- [x] Positive scope, negative scope, protected material, exclusive writer,
+  read-only contracts and objective stop conditions are recorded.
+- [x] The three root causes and their focused regression boundaries are known
+  before implementation.
 - [x] Repository instructions and routed authorities read.
 - [x] Shutdown preflight observed zero DB-Notifier-owned process or listener.
 - [x] DB-Notifier baseline and protected work identified.
@@ -310,6 +394,33 @@ to this increment.
   Human Gate claims.
 - [x] One focused local commit contains only I7-R1 and its factual evidence.
 
+### Completion criteria — current `AUD-2026-R1`
+
+- [x] The canonical SQLite source tree is visible to Git inventory while
+  ordinary `.sqlite`, journal, shared-memory and WAL runtime files remain
+  ignored.
+- [x] The Markdown verifier obtains tracked and non-ignored new paths from Git,
+  performs no physical repository walk and fails closed on inventory errors.
+- [x] A deterministic synthetic regression proves that the verifier checks a
+  non-ignored new Markdown file but never traverses the exact ignored external
+  pattern or another ignored protected root.
+- [x] The architecture regression validates one canonical Windows gate, one
+  recursive sanitised failure-evidence upload and the supplemental Linux
+  Dashboard job without restoring removed workflow jobs.
+- [x] One independent read-only candidate review has no unresolved `P0` or
+  `P1` before executable validation begins.
+- [ ] Focused regressions, `Doctor` and `Quick` each return their first
+  successful disposition. The focused checks and `Doctor` passed, but the
+  first `Quick` failed the existing plan-control policy.
+- [ ] Exactly one online `Full` returns its first canonical disposition; no
+  retry or in-line correction follows a failure. `Full` remained `NOT_RUN`.
+- [x] Frozen manifests and lockfiles remain unchanged, protected external
+  material remains unread, and no ignored residue is deleted.
+- [x] Plan, current state and append-only history record the
+  factual result without product, Human Gate, activation or lifecycle claims.
+- [x] One focused local commit contains only `AUD-2026-R1` and its factual
+  evidence.
+
 ## Findings
 
 | ID | Severity | Finding | Disposition |
@@ -329,6 +440,13 @@ to this increment.
 | `DF-013` | `P2`/`P3` | The live ledger mixed historical and current envelopes, pre-completed I7 criteria, paraphrased exact authority and used one mixed-language term. | Resolved before execution by separating v1/v2/v3, preserving literal authority, adding pending I7 criteria and an append-only clarification, and correcting pt-BR prose. |
 | `DF-014` | `P1` | The first I7 `Doctor` failed while parsing `package-lock.json`: `ConvertFrom-Json` rejected the root package key whose name is an empty string without `-AsHashtable`. | `RESOLVED` only under separately authorised I7-R1: hashtable parsing plus required empty-key lookup passed `94` focused assertions and the new `Doctor`. The historical I7 failure remains unchanged. |
 | `DF-015` | `P1` | The first I7-R1 `Quick` failed in `State06ConsolidatedHarnessIsolationTests.BrowserRunnersBoundWorkAndCleanupExactOwnedResources`: the expected substring `state06-consolidated-e2e:` was absent. | `OPEN`. The I7-R1 stop rule prohibits diagnosis, correction or retry; `Full` remains `NOT_RUN`. |
+| `AUD-R1-001` | `P1` | `.gitignore` pattern `*.sqlite` also ignores new files beneath the canonical `DBNotifier.Persistence.Agent.Sqlite` source tree on the authorised Windows Git boundary. | `RESOLVED` in the candidate; the first focused regression passed both source visibility and twelve runtime-state ignore probes. |
+| `AUD-R1-002` | `P1` | The Markdown gate walks the physical repository and can traverse ignored protected external roots instead of using the Git-owned corpus. | `RESOLVED` in the candidate; the focused synthetic regression passed and the live Git-owned corpus passed `981` links in `226` files. |
+| `AUD-R1-003` | `P1` | The architecture test still asserts the removed pre-consolidation CI jobs and diagnostic uploads. | `RESOLVED` in the candidate; the exact focused architecture test passed `1/1` without changing the workflow. |
+| `AUD-R1-004` | `P1` | The first static review found that destinations and symbolic source paths could still cross the repository or clean-room boundary before physical access. | Resolved before executable validation by inventory-admitting destinations, rejecting tracked symbolic entries and inspecting every worktree path component without symbolic traversal. |
+| `AUD-R1-005` | `P2` | The corrected gate initially treated Windows drive paths as external schemes and interpreted relative backslashes differently across operating systems. | Resolved before executable validation by failing closed on raw and encoded drive, UNC and backslash forms, with focused regressions. |
+| `AUD-R1-006` | `P1` | The current plan control replaced the policy-required literal `- Initial baseline:` with `- Frozen baseline:`. | `OPEN`; the first `Quick` failed this existing development-flow invariant. The lot's stop rule prohibits correction or retry in-line. |
+| `AUD-R1-007` | `P1` | The first post-failure factual review found one newly inserted blank line inside the append-only historical prefix. | `RESOLVED` by removing only that uncommitted line; final review confirmed one append hunk at end of file and `P0=0`, `P1=0`, `P2=0`, `P3=0`. |
 
 ## Increment plan
 
@@ -342,6 +460,7 @@ to this increment.
 | `I6` | Provision the exact isolated toolchains and execute preflight, `Doctor`, `Quick` and one online `Full`. | `BLOCKED` |
 | `I7` | Replace exact toolchain pins with bounded compatible ranges and resume the preserved canonical sequence. | `BLOCKED` |
 | `I7-R1` | Correct empty-name root-lockfile parsing and execute the newly authorised canonical sequence. | `BLOCKED` |
+| `AUD-2026-R1` | Restore Git/clean-room inventory integrity and align the stale architecture regression before executing the authorised gate sequence. | `BLOCKED` |
 
 ## Evidence log
 
@@ -376,9 +495,32 @@ to this increment.
 | 2026-08-27 | `I7-R1 Doctor` | `scripts/development.ps1 Doctor` | `PASS`; exit code `0` | Internal preflight, repository root, compatible toolchains, lockfiles and restored dependencies all passed. |
 | 2026-08-27 | `I7-R1 Quick` | `scripts/development.ps1 Quick` | `FAIL`; exit code `1`; explicitly `NON_GATE` | Release build passed with `0` warnings and `0` errors; unit tests passed `528/528`; architecture tests passed `99/100` and failed the exact `State06ConsolidatedHarnessIsolationTests.BrowserRunnersBoundWorkAndCleanupExactOwnedResources` assertion because `state06-consolidated-e2e:` was not found. No retry or diagnosis followed. |
 | 2026-08-27 | `I7-R1 Full` | Exactly one online `scripts/development.ps1 Full` allowance | `NOT_RUN` | The first `Quick` failure activated the stop rule; the online `Full` allowance remains unused. |
+| 2026-08-27 | `AUD-2026-R1` shutdown preflight and baseline | `scripts/assert-dbnotifier-shutdown.ps1`; `git rev-parse HEAD`; branch and full worktree status | `PASS`; matching processes `0`, owned listeners `0`; clean `main@3762f71c116af206b911a086b836cef11cd1894d` | No protected material, product runtime, browser, database/provider or external action was touched. |
+| 2026-08-27 | `AUD-2026-R1` first independent candidate review | Read-only inspection of the authorised diff and frozen contracts; no executable operation | `P0=0`; `P1=1`; `P2=3`; `P3=1` | All findings were corrected before executable validation; the review did not read protected material. |
+| 2026-08-27 | `AUD-2026-R1` corrected independent review | Read-only inspection after Git-boundary, regression and plan corrections; no executable operation | `P0=0`; `P1=0`; `P2=1`; `P3=0` | The remaining cross-platform path-classification finding was corrected before executable validation. |
+| 2026-08-27 | `AUD-2026-R1` final independent re-review and candidate freeze | Read-only inspection of raw/encoded drive, UNC and backslash handling | `P0=0`; `P1=0`; `P2=0`; `P3=0` | Candidate frozen for the first focused executable check; later `FAIL` or `BLOCKED` prohibits retry and in-line correction. |
+| 2026-08-27 | `AUD-2026-R1` focused Git-boundary regressions | `node --experimental-strip-types --test tests/markdownLinks.test.ts` | `PASS`; exit code `0`; `2/2` tests | Executed once; proves the bounded SQLite ignore and Markdown clean-room cases only. |
+| 2026-08-27 | `AUD-2026-R1` focused live Markdown inventory | `node ../../scripts/verify-markdown-links.mjs` | `PASS`; exit code `0`; `981` local links in `226` files | Executed once against the non-ignored Git-owned corpus; no external link or protected root was followed. |
+| 2026-08-27 | `AUD-2026-R1` focused architecture regression | Exact `State06ConsolidatedHarnessIsolationTests.BrowserRunnersBoundWorkAndCleanupExactOwnedResources` filter | `PASS`; exit code `0`; `1/1` test | Executed once; compiled on .NET 10 and did not mutate the frozen workflow. |
+| 2026-08-27 | `AUD-2026-R1 Doctor` | `scripts/development.ps1 Doctor` | `PASS`; exit code `0` | Internal preflight reported zero matching processes/listeners; root, toolchains, lockfiles and restored dependencies passed. |
+| 2026-08-27 | `AUD-2026-R1 Quick` | `scripts/development.ps1 Quick` | `FAIL`; exit code `1`; explicitly `NON_GATE` | Build passed with `0` warnings/errors; unit tests passed `528/528`; architecture tests `100/100`; Node tests `74/74`; asset, type, documentation and Markdown checks passed. Development-flow policy then failed because `PLANS.md` lacks required control `- Initial baseline:`. No retry or in-line correction followed. |
+| 2026-08-27 | `AUD-2026-R1 Full` | Exactly one online `scripts/development.ps1 Full` allowance | `NOT_RUN` | The first `Quick` failure activated the stop rule; the online allowance remains unused and no canonical gate disposition exists for this lot. |
+| 2026-08-27 | `AUD-2026-R1` closing shutdown | `scripts/assert-dbnotifier-shutdown.ps1` | `PASS`; exit code `0`; matching processes `0`, owned listeners `0` | Safe closure only; it was not a gate retry and started no product runtime. |
+| 2026-08-27 | `AUD-2026-R1` first post-failure factual review | Read-only comparison of plan, current state, append-only history and preserved results | `P0=0`; `P1=1`; `P2=0`; `P3=0` | All execution facts were correct; one added blank line interrupted the byte-identical historical prefix. |
+| 2026-08-27 | `AUD-2026-R1` final factual re-review | Read-only append-boundary inspection after removing only the uncommitted blank line | `P0=0`; `P1=0`; `P2=0`; `P3=0` | History differs from baseline only through the new EOF append; no executable validation was repeated. |
 
 ## Blockers and limitations
 
+- `AUD-2026-R1` is `BLOCKED` by `GATE_FAILURE`. All three focused checks and
+  `Doctor` passed, and the first `Quick` passed build, `528/528` unit tests,
+  `100/100` architecture tests, `74/74` Node tests and its asset, type,
+  documentation and Markdown checks. Its later development-flow policy check
+  failed because `PLANS.md` does not contain the required literal
+  `- Initial baseline:`.
+- The stop rule preserves that first `Quick` result. No plan-key correction,
+  retry or alternative `Quick` is authorised in-line. The sole online `Full`
+  is `NOT_RUN`, its allowance remains unused and no canonical aggregate-gate
+  disposition was produced.
 - I7-R1 is `BLOCKED` by `GATE_FAILURE`. Its first `Quick` exited `1` after the
   Release build and all `528` unit tests passed, because one of `100`
   architecture tests did not find the expected
@@ -409,6 +551,19 @@ to this increment.
 
 ## Outcome and next action
 
+`AUD-2026-R1` is `BLOCKED` by its first `Quick`. The bounded implementation
+candidate remains materialised: all three focused checks passed, `Doctor`
+passed, and the independent final static re-review reported `P0=0`, `P1=0`,
+`P2=0` and `P3=0`. The first `Quick` then passed build, all `528` unit tests,
+all `100` architecture tests, all `74` Node tests and its asset, type,
+documentation and Markdown checks before the development-flow policy rejected
+the missing literal control `- Initial baseline:` in this plan. No correction
+or retry followed. Online `Full` remains `NOT_RUN`; its one-run allowance is
+unused and no canonical aggregate-gate disposition exists for this lot. The
+closing shutdown reported zero matching processes and zero owned listeners.
+The blocked I7 and I7-R1 outcomes below remain historical facts and are not
+converted by this corrective lot.
+
 Continuation `I7` remains factually `BLOCKED`; its first `Doctor` failure is
 preserved. I7-R1 resolved only the authorised empty-key parser defect: the
 protected hashes, `94` focused assertions and the new `Doctor` passed. I7-R1
@@ -421,6 +576,16 @@ lifecycle authority was inferred.
 
 ## Change log
 
+- `2026-08-27`: the owner authorised `AUD-2026-R1` to correct only the Git
+  ignore collision, clean-room Markdown inventory and stale consolidated-CI
+  architecture regression. The mandatory preflight passed with zero matching
+  process or listener, and the exact authorised baseline was clean before this
+  live plan was updated. No implementation or lifecycle authority was inferred.
+- `2026-08-27`: the frozen candidate closed independent static review with
+  zero findings, all three focused checks and `Doctor` passed, then the first
+  `Quick` failed the required `- Initial baseline:` plan-control invariant.
+  The stop rule left online `Full` unexecuted and prohibited correction or
+  retry; factual records only were reconciled.
 - `2026-08-27`: created from the authorised baseline after read-only DB-Notifier
   and RAG-Challenge audits; no lifecycle or product authority was inferred.
 - `2026-08-27`: implementation and policy evidence recorded; the envelope was

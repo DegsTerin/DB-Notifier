@@ -201,6 +201,32 @@ proprietários.
   stop-on-failure encerrou o lote sem diagnóstico, correção ou repetição;
   `Full` online ficou `NOT_RUN` e sua única execução autorizada não foi
   consumida.
+- O lote corretivo `AUD-2026-R1` partiu da baseline limpa
+  `main@3762f71c116af206b911a086b836cef11cd1894d`, após preflight com zero
+  processo correspondente e zero listener próprio. Ele materializou somente a
+  exceção estreita da árvore-fonte `DBNotifier.Persistence.Agent.Sqlite`, o
+  inventário Markdown delimitado pelo Git, suas regressões focais e a
+  atualização do teste arquitetural para a topologia CI consolidada. Workflow,
+  versões, dependências, lockfiles e contratos externos não mudaram.
+- A revisão independente final do candidato `AUD-2026-R1` encerrou
+  estaticamente com `P0=0`, `P1=0`, `P2=0` e `P3=0`. Na primeira execução, as
+  regressões Git-boundary aprovaram `2/2`, o verificador Markdown aprovou `981`
+  links em `226` arquivos do corpus Git não ignorado, e o teste arquitetural
+  focal aprovou `1/1`. O `Doctor` também aprovou com preflight interno, raiz,
+  toolchains, lockfiles e dependências restauradas válidos.
+- A primeira execução `AUD-2026-R1` de `Quick`, explicitamente `NON_GATE`,
+  encerrou com exit code `1`. Antes da falha, o build Release aprovou com zero
+  aviso e zero erro; testes unitários, arquiteturais e Node aprovaram
+  respectivamente `528/528`, `100/100` e `74/74`; verificações de assets,
+  tipos, documentação e Markdown também passaram. O verificador de fluxo então
+  rejeitou o `PLANS.md` pela ausência da chave literal obrigatória
+  `- Initial baseline:`.
+- O stop-on-failure de `AUD-2026-R1` preservou esse primeiro resultado sem
+  correção, repetição ou execução alternativa. O `Full` online permaneceu
+  `NOT_RUN`, sua autorização de uma execução não foi consumida e nenhum gate
+  canônico agregado foi produzido ou inferido. O preflight de encerramento
+  aprovou com zero processo correspondente e zero listener próprio. A árvore
+  externa protegida permaneceu não lida; nenhum resíduo ignorado foi excluído.
 - A evidência executável disponível para o próprio fluxo aprovou `97`
   invariantes estáticas, `64` regressões determinísticas, sintaxe de `47`
   scripts PowerShell e `14` scripts Node, compatibilidade de sintaxe de `27`
@@ -217,8 +243,10 @@ proprietários.
   sequência I6 não iniciou `Doctor`, `Quick` ou `Full` devido ao bloqueio de
   cleanup. A continuação I7 iniciou um novo `Doctor`, que falhou no parser do
   lockfile; I7-R1 corrigiu e validou somente esse defeito, mas seu `Quick`
-  falhou no teste de arquitetura descrito acima. `Full All`, cobertura,
-  browser/runtime e advisories online permanecem sem `PASS` neste snapshot.
+  falhou no teste de arquitetura descrito acima. `AUD-2026-R1` corrigiu e
+  validou focalmente a topologia atual, mas sua própria `Quick` falhou no
+  controle do plano descrito acima. `Full All`, cobertura, browser/runtime e
+  advisories online permanecem sem `PASS` neste snapshot.
 - Domain e Application permanecem provider-neutral. Provider SDK,
   infraestrutura, persistência, Agent, API, Desktop, Dashboard e testes
   conservam fronteiras próprias e dependências voltadas para dentro.
