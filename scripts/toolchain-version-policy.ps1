@@ -37,7 +37,7 @@ function Get-DBNotifierRequiredProperty {
     Parsed policy object that must own the property.
 
     .PARAMETER Name
-    Case-sensitive property name.
+    Case-sensitive property name. An empty name is valid for npm's root package metadata.
 
     .PARAMETER Context
     Sanitised source description used in a failure message.
@@ -53,11 +53,19 @@ function Get-DBNotifierRequiredProperty {
         [object]$InputObject,
 
         [Parameter(Mandatory)]
+        [AllowEmptyString()]
         [string]$Name,
 
         [Parameter(Mandatory)]
         [string]$Context
     )
+
+    if ($InputObject -is [System.Collections.IDictionary]) {
+        if (-not $InputObject.Contains($Name)) {
+            throw "$Context is missing required property '$Name'."
+        }
+        return $InputObject[$Name]
+    }
 
     $property = $InputObject.PSObject.Properties[$Name]
     if ($null -eq $property) {
@@ -336,13 +344,10 @@ function Get-DBNotifierDashboardToolchainPolicy {
     }
 
     $lock = Get-Content -LiteralPath (Join-Path $dashboardRoot 'package-lock.json') -Raw |
-        ConvertFrom-Json
+        ConvertFrom-Json -AsHashtable
     $packages = Get-DBNotifierRequiredProperty -InputObject $lock -Name 'packages' -Context 'package-lock.json'
-    $rootProperty = $packages.PSObject.Properties['']
-    if ($null -eq $rootProperty) {
-        throw 'package-lock.json is missing its root package metadata.'
-    }
-    $lockEngines = Get-DBNotifierRequiredProperty -InputObject $rootProperty.Value -Name 'engines' -Context 'package-lock.json root'
+    $rootPackage = Get-DBNotifierRequiredProperty -InputObject $packages -Name '' -Context 'package-lock.json packages'
+    $lockEngines = Get-DBNotifierRequiredProperty -InputObject $rootPackage -Name 'engines' -Context 'package-lock.json root'
     if ([string](Get-DBNotifierRequiredProperty -InputObject $lockEngines -Name 'node' -Context 'package-lock.json root engines') -cne $nodeRange -or
         [string](Get-DBNotifierRequiredProperty -InputObject $lockEngines -Name 'npm' -Context 'package-lock.json root engines') -cne $npmRange) {
         throw 'package-lock.json root engine metadata diverges from package.json.'

@@ -123,6 +123,41 @@ append-only history, a Quality Gate or a Human Gate.
   shutdown preflight, `Doctor` and `Quick` pass, and the sole online `Full`
   supplies its first canonical disposition without prohibited activity.
 
+### Authorised corrective continuation `I7-R1` — current
+
+- Envelope ID and version: `DEV-FLOW-01/v4`.
+- Envelope status: `BLOCKED` by `GATE_FAILURE`.
+- Exact authority (verbatim): `AUTORIZO exclusivamente uma nova tentativa do lote I7-R1 no workspace DB-Notifier, começando por localizar de forma somente leitura o entry point canônico existente do shutdown preflight e executá-lo uma única vez. Se o preflight passar, corrija de forma mínima e testada a leitura da chave raiz vazia de package-lock.json no policy helper, sem alterar as faixas, o grafo, as versões ou as integridades das dependências e sem remover o resíduo ignorado de I6. Depois, execute Doctor, Quick e uma única execução online de Full, preserve o primeiro resultado factual de cada etapa e pare diante de qualquer falha. Permanecem proibidos banco/provider real, navegador comum, deploy, push, Human Gate, ativação e transição de STATE.`
+- Frozen baseline: `main@fc7001240f87a3ee555b9e53cc98d8c0c57b4ce5`
+  with a clean tracked worktree before the correction.
+- Positive scope: read-only discovery of the canonical shutdown entry point;
+  one preflight; the minimum parser correction in
+  `scripts/toolchain-version-policy.ps1`; one focused regression in
+  `tests/DBNotifier.DevelopmentFlow.Tests.ps1`; factual plan, state, history
+  and changelog reconciliation; `Doctor`; `Quick`; exactly one online `Full`;
+  and one focused local commit.
+- Frozen protected files: `global.json`, Dashboard `package.json` and
+  `package-lock.json` must retain their pre-correction SHA-256 values
+  `6CD80ED6F7A93E76C20E47164E3BFEDFDDC1B42B33519B2CD2DEE6FEBFF4E836`,
+  `5A137255C337AB1A159E797DD7187BCFDBCDB70CA75C73C0CF43FAF5F3A917A8`
+  and `ADC835185B3676484274ACC938487EE846599AADCC18E16B02D4B3FBE64EC5F0`,
+  respectively.
+- Negative scope: compatible-range changes, dependency graph/version/integrity
+  changes, deletion of ignored I6 residue, product components, real
+  database/provider runtime, ordinary browser use, deploy, publication, push,
+  Human Gate, activation, homologation and lifecycle transition.
+- Execution topology: `SEQUENTIAL_ONLY`. The coordinating conversation is the
+  only writer and owns the policy helper, regression, factual evidence, gate
+  sequence and commit. Any review lane remains read-only.
+- Stop rule: run each authorised executable stage once and preserve its first
+  factual result. Any non-zero command or mechanical `FAIL`/`BLOCKED`
+  disposition stops all later executable stages without retry or in-place
+  correction. The online `Full` may be invoked at most once.
+- Acceptance: the empty-name root package key is read without weakening
+  required-property failures; protected hashes remain identical; the focused
+  regression, `Doctor`, `Quick` and sole online `Full` each return their first
+  successful disposition; no prohibited boundary is crossed.
+
 ### Artefact classification and exclusive writers
 
 | Class | Paths or logical artefacts | Exclusive writer |
@@ -258,6 +293,23 @@ to this increment.
 - [x] One focused local commit contains the authorised I6 records and I7
   increment without protected or unrelated work.
 
+### Completion criteria — current `I7-R1`
+
+- [x] Canonical shutdown entry point located read-only and executed once with
+  zero matching processes and zero owned listeners.
+- [x] The minimum parser correction handles the empty-name root package key
+  while preserving fail-closed required-property checks.
+- [x] The focused regression passes once and all three protected hashes remain
+  byte-identical.
+- [x] A new `Doctor` completes successfully.
+- [ ] `Quick` completes successfully as `NON_GATE` evidence.
+- [ ] Exactly one online `Full` supplies its first factual canonical
+  disposition.
+- [x] Plan, current state, append-only history and corpus changelog preserve
+  every historical failure and record the I7-R1 outcome without lifecycle or
+  Human Gate claims.
+- [x] One focused local commit contains only I7-R1 and its factual evidence.
+
 ## Findings
 
 | ID | Severity | Finding | Disposition |
@@ -275,7 +327,8 @@ to this increment.
 | `DF-011` | `P1` | I7's first .NET resolver silently skipped a discovered executable when `--version` failed, which could erase the first factual failure. | Resolved before execution: each entry point now resolves one host and stops immediately on command, format or range failure. |
 | `DF-012` | `P2` | Automatic enumeration under the ignored `.dotnet/toolchains/` root could execute an untracked binary and required unimplemented multi-candidate selection coverage. | Resolved before execution: ignored toolchains are never enumerated; PATH or the explicit CI path owns the single host and `global.json` owns SDK roll-forward. |
 | `DF-013` | `P2`/`P3` | The live ledger mixed historical and current envelopes, pre-completed I7 criteria, paraphrased exact authority and used one mixed-language term. | Resolved before execution by separating v1/v2/v3, preserving literal authority, adding pending I7 criteria and an append-only clarification, and correcting pt-BR prose. |
-| `DF-014` | `P1` | The first I7 `Doctor` failed while parsing `package-lock.json`: `ConvertFrom-Json` rejected the root package key whose name is an empty string without `-AsHashtable`. | `OPEN`. The stop-on-failure rule prohibits correction or retry in this envelope; a separately authorised focused correction must preserve this first factual failure. |
+| `DF-014` | `P1` | The first I7 `Doctor` failed while parsing `package-lock.json`: `ConvertFrom-Json` rejected the root package key whose name is an empty string without `-AsHashtable`. | `RESOLVED` only under separately authorised I7-R1: hashtable parsing plus required empty-key lookup passed `94` focused assertions and the new `Doctor`. The historical I7 failure remains unchanged. |
+| `DF-015` | `P1` | The first I7-R1 `Quick` failed in `State06ConsolidatedHarnessIsolationTests.BrowserRunnersBoundWorkAndCleanupExactOwnedResources`: the expected substring `state06-consolidated-e2e:` was absent. | `OPEN`. The I7-R1 stop rule prohibits diagnosis, correction or retry; `Full` remains `NOT_RUN`. |
 
 ## Increment plan
 
@@ -288,6 +341,7 @@ to this increment.
 | `I5` | Validate, review independently, reconcile factual records and commit. | `COMPLETE` |
 | `I6` | Provision the exact isolated toolchains and execute preflight, `Doctor`, `Quick` and one online `Full`. | `BLOCKED` |
 | `I7` | Replace exact toolchain pins with bounded compatible ranges and resume the preserved canonical sequence. | `BLOCKED` |
+| `I7-R1` | Correct empty-name root-lockfile parsing and execute the newly authorised canonical sequence. | `BLOCKED` |
 
 ## Evidence log
 
@@ -313,9 +367,28 @@ to this increment.
 | 2026-08-27 | First I7 `Doctor` | `scripts/development.ps1 Doctor` | `FAIL`; exit code `1` | Repository root, lock files and restored dependencies passed. Toolchain policy parsing failed with `The provided JSON includes a property whose name is an empty string, this is only supported using the -AsHashTable switch.` The result was not retried or corrected. |
 | 2026-08-27 | Remaining I7 canonical sequence | `Quick` and exactly one online `Full` | `NOT_RUN` | The first `Doctor` failure activated the mandatory stop rule. The online `Full` allowance remains unused. |
 | 2026-08-27 | I7 closing preflight | Process, executable-path, command-line, parentage and listener inventory after the stopped sequence | `PASS`; matching processes `0`, owned listeners `0` | No DB-Notifier-owned process or listener remained. |
+| 2026-08-27 | `I7-R1` preflight discovery | `rg --files scripts` narrowed to shutdown/preflight names | `PASS`; canonical entry point `scripts/assert-dbnotifier-shutdown.ps1` | The preceding misspelled filename did not execute a preflight or mutate the repository; the owner separately authorised this new attempt. |
+| 2026-08-27 | `I7-R1` shutdown preflight | `scripts/assert-dbnotifier-shutdown.ps1` | `PASS`; matching processes `0`, owned listeners `0` | Executed exactly once under the new authority; no product runtime was started. |
+| 2026-08-27 | `I7-R1` baseline and protected hashes | `git status`, `git rev-parse HEAD`, SHA-256 of three protected manifests | `PASS`; `main@fc7001240f87a3ee555b9e53cc98d8c0c57b4ce5`, clean tracked worktree | The ignored I6 residue and protected external source were neither read nor changed. |
+| 2026-08-27 | `I7-R1` parser correction | Hashtable JSON parsing and required-property support for npm's empty root key | `PASS` for the authorised implementation | Only the policy helper and focused regression changed; compatible ranges and protected manifests did not. |
+| 2026-08-27 | `I7-R1` protected-hash recheck | SHA-256 comparison for `global.json`, Dashboard `package.json` and `package-lock.json` | `PASS`; all three hashes identical to the frozen values | Proves byte identity of the protected manifests, not dependency freshness. |
+| 2026-08-27 | `I7-R1` focused regression | `tests/DBNotifier.DevelopmentFlow.Tests.ps1` | `PASS`; `94` assertions, exit code `0` | Executed once; proves the bounded development-flow policy only. |
+| 2026-08-27 | `I7-R1 Doctor` | `scripts/development.ps1 Doctor` | `PASS`; exit code `0` | Internal preflight, repository root, compatible toolchains, lockfiles and restored dependencies all passed. |
+| 2026-08-27 | `I7-R1 Quick` | `scripts/development.ps1 Quick` | `FAIL`; exit code `1`; explicitly `NON_GATE` | Release build passed with `0` warnings and `0` errors; unit tests passed `528/528`; architecture tests passed `99/100` and failed the exact `State06ConsolidatedHarnessIsolationTests.BrowserRunnersBoundWorkAndCleanupExactOwnedResources` assertion because `state06-consolidated-e2e:` was not found. No retry or diagnosis followed. |
+| 2026-08-27 | `I7-R1 Full` | Exactly one online `scripts/development.ps1 Full` allowance | `NOT_RUN` | The first `Quick` failure activated the stop rule; the online `Full` allowance remains unused. |
 
 ## Blockers and limitations
 
+- I7-R1 is `BLOCKED` by `GATE_FAILURE`. Its first `Quick` exited `1` after the
+  Release build and all `528` unit tests passed, because one of `100`
+  architecture tests did not find the expected
+  `state06-consolidated-e2e:` substring. No diagnosis, correction or retry is
+  part of the current envelope.
+- The I7-R1 parser correction itself passed `94` focused assertions and the
+  new `Doctor`. The protected manifests remain byte-identical, so no range,
+  dependency graph, version or integrity value changed.
+- The I7-R1 stop rule leaves the sole online `Full` as `NOT_RUN`; its allowance
+  remains unused and no canonical aggregate-gate disposition was produced.
 - I7 is `BLOCKED` by `GATE_FAILURE`. Its first `Doctor` exited `1` because the
   PowerShell policy helper parses `package-lock.json` without the hashtable
   mode required for the root package key whose name is an empty string.
@@ -336,14 +409,15 @@ to this increment.
 
 ## Outcome and next action
 
-The compatible toolchain ranges are materialised and independently reviewed,
-but continuation `I7` is `BLOCKED`, not `PASS`. The first `Doctor` failed in
-the root-lockfile parser with exit code `1`; the owner's stop rule preserved
-that result and prevented `Quick` and the sole online `Full` from starting.
-No canonical-gate result was produced or inferred, and the online `Full`
-allowance remains unused. I7 does not erase or convert the factual I6 outcome.
-A separately authorised focused parser correction and new canonical sequence
-are required before this target can complete.
+Continuation `I7` remains factually `BLOCKED`; its first `Doctor` failure is
+preserved. I7-R1 resolved only the authorised empty-key parser defect: the
+protected hashes, `94` focused assertions and the new `Doctor` passed. I7-R1
+is nevertheless `BLOCKED`, not `PASS`, because its first `Quick` failed one
+architecture assertion after the Release build, `528/528` unit tests and
+`99/100` architecture tests succeeded. The stop rule preserved that result,
+left the online `Full` `NOT_RUN` and prohibited diagnosis or correction. No
+product, provider, browser, external action, Human Gate, activation or
+lifecycle authority was inferred.
 
 ## Change log
 
@@ -375,3 +449,16 @@ are required before this target can complete.
   `Quick` and the sole online `Full` `NOT_RUN`; a closing preflight again
   observed zero matching process or owned listener. I7 closed as
   `BLOCKED`/`GATE_FAILURE` without correction, retry or lifecycle change.
+- `2026-08-27`: the owner separately authorised I7-R1 to correct only the
+  empty-name root-lockfile parser and restart the preserved sequence. Read-only
+  discovery identified `scripts/assert-dbnotifier-shutdown.ps1`; its single
+  preflight passed with zero matching process and owned listener. Baseline
+  `main@fc70012` was clean and the three protected manifest hashes were frozen
+  before implementation.
+- `2026-08-27`: I7-R1 changed only empty-name dictionary handling in the
+  policy helper and its regression. All protected hashes remained identical;
+  the focused suite passed `94` assertions and `Doctor` passed. The first
+  `Quick` then failed one architecture assertion after a clean Release build,
+  `528/528` unit tests and `99/100` architecture tests passed. The stop rule
+  left online `Full` `NOT_RUN`; I7-R1 closed as `BLOCKED`/`GATE_FAILURE`
+  without diagnosis, retry, prohibited runtime or lifecycle change.

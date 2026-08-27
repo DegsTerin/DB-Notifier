@@ -5960,3 +5960,48 @@
   chave raiz vazia do lockfile, seguida de nova sequência preflight,
   `Doctor`, `Quick` e exatamente uma execução online de `Full`, ainda com
   parada no primeiro resultado de falha.
+
+## 2026-08-27 — I7-R1 corrige o parser e bloqueia no primeiro Quick
+
+- Estado anterior: `STATE-06 INTEGRATION`, elegibilidade `NÃO REAVALIADA`,
+  `MOD-12 ActivationState=None`, I7 `BLOCKED`/`GATE_FAILURE` e baseline limpa
+  `main@fc7001240f87a3ee555b9e53cc98d8c0c57b4ce5`.
+- Autoridade humana literal: `AUTORIZO exclusivamente uma nova tentativa do lote I7-R1 no workspace DB-Notifier, começando por localizar de forma somente leitura o entry point canônico existente do shutdown preflight e executá-lo uma única vez. Se o preflight passar, corrija de forma mínima e testada a leitura da chave raiz vazia de package-lock.json no policy helper, sem alterar as faixas, o grafo, as versões ou as integridades das dependências e sem remover o resíduo ignorado de I6. Depois, execute Doctor, Quick e uma única execução online de Full, preserve o primeiro resultado factual de cada etapa e pare diante de qualquer falha. Permanecem proibidos banco/provider real, navegador comum, deploy, push, Human Gate, ativação e transição de STATE.`
+- Preflight: a descoberta somente leitura identificou
+  `scripts/assert-dbnotifier-shutdown.ps1`; sua única execução inicial aprovou
+  com zero processo correspondente e zero listener pertencente ao DB-Notifier.
+- Proteção congelada: `global.json`, Dashboard `package.json` e
+  `package-lock.json` conservaram, antes e depois da correção, os SHA-256
+  `6CD80ED6F7A93E76C20E47164E3BFEDFDDC1B42B33519B2CD2DEE6FEBFF4E836`,
+  `5A137255C337AB1A159E797DD7187BCFDBCDB70CA75C73C0CF43FAF5F3A917A8` e
+  `ADC835185B3676484274ACC938487EE846599AADCC18E16B02D4B3FBE64EC5F0`.
+- Correção: somente `scripts/toolchain-version-policy.ps1` e sua regressão
+  focal mudaram. O lockfile é desserializado com `-AsHashtable`; o leitor de
+  propriedade aceita o nome vazio exigido pela metadata raiz npm e continua
+  falhando quando essa chave está ausente. Faixas, grafo, versões e
+  integridades de dependência permaneceram inalterados.
+- Evidência focal: `tests/DBNotifier.DevelopmentFlow.Tests.ps1` aprovou em sua
+  primeira execução com `94` assertions e exit code `0`.
+- `Doctor`: a nova e única execução aprovou com exit code `0`; preflight
+  interno, raiz do repositório, toolchains compatíveis, lockfiles e
+  dependências restauradas passaram.
+- `Quick`: a primeira execução declarou-se `NON_GATE` e encerrou com exit code
+  `1`. O build Release aprovou com zero aviso e zero erro; os testes unitários
+  aprovaram `528/528`; os testes de arquitetura aprovaram `99/100`. A única
+  falha foi
+  `State06ConsolidatedHarnessIsolationTests.BrowserRunnersBoundWorkAndCleanupExactOwnedResources`,
+  porque a substring esperada `state06-consolidated-e2e:` não foi encontrada.
+- Stop factual: não houve diagnóstico, correção ou repetição de `Quick`.
+  Exatamente uma execução online de `Full` permaneceu `NOT_RUN`; sua
+  autorização não foi consumida e nenhum gate canônico agregado foi produzido
+  ou inferido.
+- Disposição: o defeito DF-014 foi `RESOLVED` somente sob a nova autoridade e
+  evidência I7-R1; a falha histórica I7 permanece preservada. I7-R1 está
+  `BLOCKED` por `GATE_FAILURE`, com o novo finding DF-015 aberto.
+- Escopo negativo preservado: nenhum banco/provider real, navegador comum,
+  deploy, push, Human Gate, ativação, homologação ou transição de `STATE` foi
+  executado; o resíduo ignorado I6 e a fonte externa protegida não foram
+  removidos ou lidos.
+- Estado resultante: `STATE-06 INTEGRATION`, elegibilidade `NÃO REAVALIADA`,
+  `MOD-12 ActivationState=None`, providers, ADRs, Human Gates, produto,
+  interface e autoridade externa permanecem inalterados.

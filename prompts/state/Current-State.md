@@ -185,6 +185,22 @@ proprietários.
   `Quick` e a única execução online de `Full` ficaram `NOT_RUN`. O preflight de
   encerramento aprovou novamente com zero processo correspondente e zero
   listener próprio.
+- Sob a autoridade corretiva I7-R1, a descoberta somente leitura identificou
+  `scripts/assert-dbnotifier-shutdown.ps1` e sua única execução inicial
+  aprovou com zero processo correspondente e zero listener próprio. A
+  desserialização do lockfile passou a usar hashtable e o leitor obrigatório
+  passou a aceitar a chave vazia sem deixar de recusar sua ausência. Os hashes
+  de `global.json`, Dashboard `package.json` e `package-lock.json` permaneceram
+  idênticos; a regressão focal aprovou `94` assertions e o novo `Doctor`
+  aprovou preflight interno, raiz, toolchains, lockfiles e dependências.
+- A primeira execução I7-R1 de `Quick` encerrou com exit code `1`. O build
+  Release aprovou com zero aviso e zero erro, os testes unitários aprovaram
+  `528/528`, e os testes de arquitetura aprovaram `99/100`; a falha única foi
+  `State06ConsolidatedHarnessIsolationTests.BrowserRunnersBoundWorkAndCleanupExactOwnedResources`,
+  que não encontrou a substring esperada `state06-consolidated-e2e:`. O
+  stop-on-failure encerrou o lote sem diagnóstico, correção ou repetição;
+  `Full` online ficou `NOT_RUN` e sua única execução autorizada não foi
+  consumida.
 - A evidência executável disponível para o próprio fluxo aprovou `97`
   invariantes estáticas, `64` regressões determinísticas, sintaxe de `47`
   scripts PowerShell e `14` scripts Node, compatibilidade de sintaxe de `27`
@@ -200,9 +216,9 @@ proprietários.
   `24.19.0` diante do pin `24.18.0`. Depois do provisionamento exato, a
   sequência I6 não iniciou `Doctor`, `Quick` ou `Full` devido ao bloqueio de
   cleanup. A continuação I7 iniciou um novo `Doctor`, que falhou no parser do
-  lockfile conforme registrado acima; `Quick`, `Full All`, build, testes de
-  produto, cobertura, browser/runtime e advisories online permanecem sem
-  `PASS` neste snapshot.
+  lockfile; I7-R1 corrigiu e validou somente esse defeito, mas seu `Quick`
+  falhou no teste de arquitetura descrito acima. `Full All`, cobertura,
+  browser/runtime e advisories online permanecem sem `PASS` neste snapshot.
 - Domain e Application permanecem provider-neutral. Provider SDK,
   infraestrutura, persistência, Agent, API, Desktop, Dashboard e testes
   conservam fronteiras próprias e dependências voltadas para dentro.

@@ -4,7 +4,7 @@
 
 - Versão: `6.7.0`
 - Data: 2026-08-27
-- Status: faixas compatíveis materializadas; validação bloqueada no `Doctor`
+- Status: parser das faixas corrigido; validação bloqueada no `Quick`
 - Escopo: 16 arquivos ativos
 
 A versão do corpus é independente da versão do software.
@@ -44,6 +44,14 @@ Toda alteração atualiza este arquivo e, quando necessário, `../Start-Here.md`
   esse resultado; `Quick` e a única execução online de `Full` ficaram
   `NOT_RUN`. Portanto, a política materializada não possui validação canônica
   completa e I7 permanece `BLOCKED`/`GATE_FAILURE`.
+- Sob a autoridade corretiva I7-R1, o parser passou a preservar a chave raiz
+  vazia do lockfile por `ConvertFrom-Json -AsHashtable` e pelo mesmo acesso
+  obrigatório fail-closed. Os três manifests protegidos permaneceram
+  byte-idênticos, `94` regressões focais e o novo `Doctor` aprovaram. A
+  primeira `Quick` falhou uma asserção de arquitetura após build, `528/528`
+  testes unitários e `99/100` testes de arquitetura aprovarem; `Full` online
+  permaneceu `NOT_RUN`. I7-R1 está `BLOCKED`/`GATE_FAILURE`, sem alterar a
+  política normativa, versão do corpus, Human Gate, ativação ou lifecycle.
 
 ## 6.6.0 — 2026-08-27
 

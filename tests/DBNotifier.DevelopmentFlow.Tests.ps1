@@ -112,6 +112,28 @@ Assert-Condition `
         $dashboardPolicy.NpmRange -ceq $canonicalToolchains.NpmRange) `
     -Message 'The repository toolchain manifests diverge from the canonical bounded ranges.'
 
+$emptyNameDictionary = [ordered]@{ '' = 'root-package-metadata' }
+Assert-Condition `
+    -Condition ((Get-DBNotifierRequiredProperty `
+            -InputObject $emptyNameDictionary `
+            -Name '' `
+            -Context 'empty-name regression fixture') -ceq 'root-package-metadata') `
+    -Message 'The toolchain policy must preserve npm root package metadata with an empty key.'
+$missingEmptyNameFailedClosed = $false
+try {
+    [void](Get-DBNotifierRequiredProperty `
+            -InputObject ([ordered]@{}) `
+            -Name '' `
+            -Context 'missing empty-name regression fixture')
+}
+catch {
+    $missingEmptyNameFailedClosed = $_.Exception.Message -ceq `
+        "missing empty-name regression fixture is missing required property ''."
+}
+Assert-Condition `
+    -Condition $missingEmptyNameFailedClosed `
+    -Message 'The toolchain policy must fail closed when npm root package metadata is absent.'
+
 # Exercise both edges of each inclusive-lower and exclusive-upper stable range
 # without invoking or changing a host toolchain.
 foreach ($rangeCase in @(
