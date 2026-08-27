@@ -22,6 +22,7 @@ $repositoryRoot = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
 $solutionPath = Join-Path $repositoryRoot 'DBNotifier.sln'
 $dashboardRoot = Join-Path $repositoryRoot 'src/DBNotifier.Dashboard.Web'
 $offlineNuGetConfigPath = Join-Path $PSScriptRoot 'NuGet.Offline.config'
+. (Join-Path $PSScriptRoot 'toolchain-version-policy.ps1')
 . (Join-Path $PSScriptRoot 'development-environment.ps1')
 $script:gitPath = $null
 $script:dotnetPath = $null
@@ -179,7 +180,7 @@ function Resolve-RequiredApplication {
     $application = Get-Command $Candidate -CommandType Application -ErrorAction SilentlyContinue |
         Select-Object -First 1
     if ($null -eq $application) {
-        throw "DEPENDENCY_UNREADY: $Operation is unavailable. Install the pinned toolchain and ensure it is on PATH."
+        throw "DEPENDENCY_UNREADY: $Operation is unavailable. Install a compatible toolchain and ensure it is on PATH."
     }
     return $application.Source
 }
@@ -255,6 +256,7 @@ function Assert-RepositoryLayout {
             (Join-Path $dashboardRoot 'package.json'),
             (Join-Path $dashboardRoot 'package-lock.json'),
             (Join-Path $PSScriptRoot 'ci.ps1'),
+            (Join-Path $PSScriptRoot 'toolchain-version-policy.ps1'),
             (Join-Path $PSScriptRoot 'verify-development-flow.ps1'),
             $offlineNuGetConfigPath)) {
         if (-not (Test-Path -LiteralPath $requiredPath -PathType Leaf)) {
@@ -279,59 +281,49 @@ function Assert-RepositoryLayout {
     }
 }
 
-function Resolve-PinnedDotNetHost {
+function Resolve-CompatibleDotNetHost {
     <#
     .SYNOPSIS
-    Finds a dotnet host that contains the exact SDK pinned by global.json.
+    Resolves and validates the dotnet host exposed through the process PATH.
 
-    .PARAMETER RequiredVersion
-    Exact SDK feature-band version required by the repository.
+    .PARAMETER RequiredRange
+    Inclusive-lower and exclusive-upper SDK compatibility range.
 
     .OUTPUTS
     System.String absolute dotnet host path.
 
     .NOTES
-    Discovery uses only --list-sdks and does not change the machine or repository.
+    The host is invoked once with --version from the repository root. A failed
+    command, malformed version or incompatible result stops immediately.
     #>
     [OutputType([string])]
     param(
         [Parameter(Mandatory)]
-        [string]$RequiredVersion
+        [string]$RequiredRange
     )
 
-    $candidates = [System.Collections.Generic.List[string]]::new()
-    $workspaceDotNetLeaf = if ($IsWindows) {
-        '.dotnet/dotnet.exe'
+    $dotnetHost = Resolve-RequiredApplication -Candidate 'dotnet' -Operation '.NET'
+    Push-Location $repositoryRoot
+    try {
+        $observedVersion = Invoke-VersionCommand `
+            -ApplicationPath $dotnetHost `
+            -Arguments @('--version') `
+            -Operation '.NET SDK version discovery'
+        Assert-DBNotifierVersionInRange `
+            -Version $observedVersion `
+            -Range $RequiredRange `
+            -ToolName '.NET SDK'
     }
-    else {
-        '.dotnet/dotnet'
+    finally {
+        Pop-Location
     }
-    $workspaceDotNet = Join-Path $repositoryRoot $workspaceDotNetLeaf
-    if (Test-Path -LiteralPath $workspaceDotNet -PathType Leaf) {
-        $candidates.Add((Resolve-Path -LiteralPath $workspaceDotNet).Path)
-    }
-    $pathDotNet = Get-Command dotnet -CommandType Application -ErrorAction SilentlyContinue |
-        Select-Object -First 1
-    if ($null -ne $pathDotNet -and -not $candidates.Contains($pathDotNet.Source)) {
-        $candidates.Add($pathDotNet.Source)
-    }
-
-    foreach ($candidate in $candidates) {
-        $sdkOutput = @(& $candidate --list-sdks 2>$null)
-        if ($LASTEXITCODE -eq 0 -and
-            @($sdkOutput | Where-Object { $_ -match "^$([regex]::Escape($RequiredVersion))\s+\[" }).Count -eq 1) {
-            return $candidate
-        }
-    }
-
-    throw (
-        "DEPENDENCY_UNREADY: The exact .NET SDK '$RequiredVersion' pinned by global.json is unavailable. Install it without changing the repository baseline.")
+    return $dotnetHost
 }
 
 function Assert-Toolchains {
     <#
     .SYNOPSIS
-    Verifies the exact PowerShell, Git, .NET, Node.js and npm toolchain contract.
+    Verifies the compatible PowerShell, Git, .NET, Node.js and npm toolchain contract.
 
     .OUTPUTS
     None.
@@ -352,30 +344,13 @@ function Assert-Toolchains {
             -Arguments @('--version') `
             -Operation 'Git version discovery')
 
-    $sdkPolicy = Get-Content -LiteralPath (Join-Path $repositoryRoot 'global.json') -Raw |
-        ConvertFrom-Json | Select-Object -ExpandProperty sdk
-    if ($sdkPolicy.rollForward -cne 'disable') {
-        throw 'global.json must preserve the exact-SDK roll-forward policy.'
-    }
-    $script:dotnetPath = Resolve-PinnedDotNetHost -RequiredVersion ([string]$sdkPolicy.version)
-    $actualDotNet = Invoke-VersionCommand `
-        -ApplicationPath $script:dotnetPath `
-        -Arguments @('--version') `
-        -Operation '.NET SDK version discovery'
-    if ($actualDotNet -cne [string]$sdkPolicy.version) {
-        throw 'The selected dotnet host did not activate the exact pinned SDK.'
-    }
+    $sdkPolicy = Get-DBNotifierDotNetSdkPolicy `
+        -GlobalJsonPath (Join-Path $repositoryRoot 'global.json')
+    $script:dotnetPath = Resolve-CompatibleDotNetHost -RequiredRange $sdkPolicy.Range
 
     $script:nodePath = Resolve-RequiredApplication -Candidate 'node' -Operation 'Node.js'
     $script:npmPath = Resolve-RequiredApplication -Candidate 'npm' -Operation 'npm'
-    $dashboardPackage = Get-Content -LiteralPath (Join-Path $dashboardRoot 'package.json') -Raw |
-        ConvertFrom-Json
-    $requiredNode = [string]$dashboardPackage.engines.node
-    $requiredNpm = [string]$dashboardPackage.engines.npm
-    $nvmVersion = (Get-Content -LiteralPath (Join-Path $repositoryRoot '.nvmrc') -Raw).Trim()
-    if ($nvmVersion -cne $requiredNode) {
-        throw '.nvmrc and the Dashboard Node.js engine must remain identical.'
-    }
+    $dashboardPolicy = Get-DBNotifierDashboardToolchainPolicy -RepositoryRoot $repositoryRoot
     $actualNode = (Invoke-VersionCommand `
             -ApplicationPath $script:nodePath `
             -Arguments @('--version') `
@@ -384,15 +359,14 @@ function Assert-Toolchains {
         -ApplicationPath $script:npmPath `
         -Arguments @('--version') `
         -Operation 'npm version discovery'
-    if ($actualNode -cne $requiredNode) {
-        throw "DEPENDENCY_UNREADY: Node.js '$actualNode' does not match the pinned version '$requiredNode'."
-    }
-    if ($actualNpm -cne $requiredNpm) {
-        throw "DEPENDENCY_UNREADY: npm '$actualNpm' does not match the pinned version '$requiredNpm'."
-    }
-    if ([string]$dashboardPackage.packageManager -cne "npm@$requiredNpm") {
-        throw 'The Dashboard packageManager field diverges from its npm engine.'
-    }
+    Assert-DBNotifierVersionInRange `
+        -Version $actualNode `
+        -Range $dashboardPolicy.NodeRange `
+        -ToolName 'Node.js'
+    Assert-DBNotifierVersionInRange `
+        -Version $actualNpm `
+        -Range $dashboardPolicy.NpmRange `
+        -ToolName 'npm'
 }
 
 function Assert-LockFiles {

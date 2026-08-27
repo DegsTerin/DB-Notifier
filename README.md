@@ -39,6 +39,11 @@ ordered workflow locally and in CI:
 ./scripts/development.ps1 Full
 ```
 
+The workflow accepts stable compatible developer toolchains within .NET SDK
+`>=10.0.302 <10.1.0`, Node.js `>=24.18.0 <25.0.0` and npm
+`>=11.16.0 <12.0.0`. It rejects prereleases and crossings into an unvalidated
+release line while allowing ordinary servicing updates inside those bounds.
+
 Use `-PlanOnly` to inspect the exact deterministic sequence without running a
 preflight, restore, build, test, runtime or network action. `Quick` is always
 `NON_GATE`; only `Full` delegates to the canonical aggregate Quality Gate.

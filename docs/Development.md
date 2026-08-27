@@ -3,9 +3,9 @@
 ## Supported setup baseline
 
 - Git with the default branch `main`.
-- .NET 10 LTS SDK `10.0.302` selected without roll-forward through `global.json` and installed locally in the ignored `.dotnet/` directory for this workspace.
+- A stable .NET 10 LTS SDK in `>=10.0.302 <10.1.0`. `global.json` retains `10.0.302` as the validated minimum, disables prereleases and uses `latestFeature` so compatible .NET 10.0 servicing updates are selected without crossing into .NET 10.1 or 11.
 - Windows is required to run the WPF Desktop and the renamed DB-Notifier compatibility application. The Desktop uses the versioned `net10.0-windows10.0.22621.0` TFM while retaining Windows 10 version 1809 (`10.0.17763.0`) as its declared minimum platform.
-- Node.js `24.18.0` with npm `11.16.0` is used for the Dashboard scaffold; both are declared in `package.json`, and dependencies are locked in `package-lock.json`.
+- Stable Node.js `>=24.18.0 <25.0.0` with npm `>=11.16.0 <12.0.0` is used for the Dashboard scaffold. `.nvmrc` selects the Node 24 line, `package.json` enforces both lower and upper bounds, and `package-lock.json` keeps the dependency graph locked while repeating only the root engine metadata.
 - PowerShell `7.0` or later (`pwsh`) is required by modern browser and consolidated STATE-06 sandbox runners.
 - Windows PowerShell 5.1 with Pester `3.4.0` is used for legacy characterisation.
 
@@ -30,8 +30,8 @@ or broaden the current lifecycle authority.
 
 The tasks have distinct contracts:
 
-- `Doctor` is read-only. It checks the exact worktree, pinned PowerShell, Git,
-  .NET, Node.js and npm versions, tracked lockfiles and restored dependency
+- `Doctor` is read-only. It checks the exact worktree, required PowerShell and
+  Git, compatible stable .NET, Node.js and npm versions, tracked lockfiles and restored dependency
   readiness, and returns actionable failures.
 - `Setup` performs only locked .NET and npm restores. It does not install an
   SDK or mutate a lockfile.
@@ -187,10 +187,10 @@ Secret-shaped or unsupported fields reject the entire migration and produce no t
 
 These direct commands are component diagnostics for focused investigation;
 they do not replace `./scripts/development.ps1 Full`. From Windows PowerShell,
-use the workspace-local SDK:
+use the compatible `dotnet` host selected through `PATH` and `global.json`:
 
 ```powershell
-$dotnet = ".\.dotnet\dotnet.exe"
+$dotnet = "dotnet"
 & $dotnet --info
 & $dotnet restore .\DBNotifier.sln --locked-mode
 & $dotnet build .\DBNotifier.sln --configuration Release --no-restore
@@ -206,8 +206,8 @@ The unit-test coverage gate requires at least 70% line coverage and 45% branch c
 ## Script syntax checks
 
 The repository gate discovers tracked and unignored PowerShell and Node scripts
-dynamically. It parses PowerShell without executing it and uses the pinned Node
-runtime only for JavaScript syntax:
+dynamically. It parses PowerShell without executing it and uses the selected
+compatible Node runtime only for JavaScript syntax:
 
 ```powershell
 pwsh -NoProfile -NonInteractive -File .\scripts\verify-script-syntax.ps1
@@ -378,9 +378,11 @@ compatibility evidence without defining a second aggregate gate. The canonical
 sequence covers the .NET solution and coverage floor, legacy compatibility and
 coverage floor, Dashboard static/build/dependency gates, the isolated browser
 matrix, the bounded STATE-06 sandbox and history-aware secret scanning.
-Checkouts do not persist credentials, Node uses `.nvmrc`, the full checkout is
-available to the history scan, and concurrent runs for the same ref cancel
-older work.
+Checkouts do not persist credentials. The pinned `setup-dotnet` action installs
+the current GA SDK on the `10.0.x` channel; Node uses `.nvmrc` plus
+`check-latest` to select the current compatible Node 24 release. The full
+checkout is available to the history scan, and concurrent runs for the same
+ref cancel older work.
 
 The R5 provenance check queried only `refs/tags/v4` from the official `github.com/actions/*` repositories with `git ls-remote --refs`, without credentials, clone or artefact download. The workflow pins the observed full commits for checkout, setup-dotnet, setup-node and upload-artifact. This local provenance check does not claim that remote CI ran or attest future upstream movement.
 

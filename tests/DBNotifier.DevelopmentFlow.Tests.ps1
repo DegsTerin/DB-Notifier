@@ -11,6 +11,7 @@ $repositoryRoot = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
 $developmentPath = Join-Path (Join-Path $repositoryRoot 'scripts') 'development.ps1'
 $ciPath = Join-Path (Join-Path $repositoryRoot 'scripts') 'ci.ps1'
 $environmentPath = Join-Path (Join-Path $repositoryRoot 'scripts') 'development-environment.ps1'
+$toolchainPolicyPath = Join-Path (Join-Path $repositoryRoot 'scripts') 'toolchain-version-policy.ps1'
 $shutdownPreflightPath = Join-Path (Join-Path $repositoryRoot 'scripts') 'assert-dbnotifier-shutdown.ps1'
 $ownedHelperPath = Join-Path (Join-Path $repositoryRoot 'tests/fixtures') 'DBNotifier.DevelopmentFlow.OwnedHelper.ps1'
 $workflowPath = Join-Path (Join-Path $repositoryRoot '.github/workflows') 'ci.yml'
@@ -99,6 +100,54 @@ $ciScript = Get-Content -LiteralPath $ciPath -Raw
 $shutdownScript = Get-Content -LiteralPath $shutdownPreflightPath -Raw
 $workflow = Get-Content -LiteralPath $workflowPath -Raw
 . $environmentPath
+. $toolchainPolicyPath
+
+$canonicalToolchains = Get-DBNotifierToolchainPolicy
+$dotNetPolicy = Get-DBNotifierDotNetSdkPolicy `
+    -GlobalJsonPath (Join-Path $repositoryRoot 'global.json')
+$dashboardPolicy = Get-DBNotifierDashboardToolchainPolicy -RepositoryRoot $repositoryRoot
+Assert-Condition `
+    -Condition ($dotNetPolicy.Range -ceq $canonicalToolchains.DotNetRange -and
+        $dashboardPolicy.NodeRange -ceq $canonicalToolchains.NodeRange -and
+        $dashboardPolicy.NpmRange -ceq $canonicalToolchains.NpmRange) `
+    -Message 'The repository toolchain manifests diverge from the canonical bounded ranges.'
+
+# Exercise both edges of each inclusive-lower and exclusive-upper stable range
+# without invoking or changing a host toolchain.
+foreach ($rangeCase in @(
+        @{
+            Name = '.NET SDK'
+            Range = $canonicalToolchains.DotNetRange
+            Accepted = @('10.0.302', '10.0.303', '10.0.400', '10.0.999')
+            Rejected = @('10.0.301', '10.1.0', '11.0.100', '10.0.400-preview.1', '10.0')
+        },
+        @{
+            Name = 'Node.js'
+            Range = $canonicalToolchains.NodeRange
+            Accepted = @('24.18.0', '24.19.0', '24.99.999')
+            Rejected = @('24.17.999', '25.0.0', '23.99.999', '24.19.0-rc.1', 'v24.19.0')
+        },
+        @{
+            Name = 'npm'
+            Range = $canonicalToolchains.NpmRange
+            Accepted = @('11.16.0', '11.17.0', '11.99.999')
+            Rejected = @('11.15.999', '12.0.0', '10.99.999', '11.17.0-beta.1', '11.17')
+        })) {
+    foreach ($acceptedVersion in $rangeCase.Accepted) {
+        Assert-Condition `
+            -Condition (Test-DBNotifierVersionInRange `
+                    -Version $acceptedVersion `
+                    -Range $rangeCase.Range) `
+            -Message "$($rangeCase.Name) '$acceptedVersion' should satisfy '$($rangeCase.Range)'."
+    }
+    foreach ($rejectedVersion in $rangeCase.Rejected) {
+        Assert-Condition `
+            -Condition (-not (Test-DBNotifierVersionInRange `
+                        -Version $rejectedVersion `
+                        -Range $rangeCase.Range)) `
+            -Message "$($rangeCase.Name) '$rejectedVersion' should not satisfy '$($rangeCase.Range)'."
+    }
+}
 
 foreach ($secretName in @('OPENAI_API_KEY', 'AZURE_OPENAI_API_KEY')) {
     Assert-Condition `
@@ -136,6 +185,14 @@ Assert-Condition `
             $developmentScript,
             '(?m)^\s*& \$ciEntrypoint @ciArguments\s*$').Count -eq 1) `
     -Message 'Full must delegate to the canonical CI entry point exactly once.'
+Assert-Condition `
+    -Condition ($developmentScript.Contains('Resolve-CompatibleDotNetHost', [System.StringComparison]::Ordinal) -and
+        $ciScript.Contains('Resolve-CompatibleDotNetHost', [System.StringComparison]::Ordinal) -and
+        -not $developmentScript.Contains('Resolve-PinnedDotNetHost', [System.StringComparison]::Ordinal) -and
+        -not $ciScript.Contains('Resolve-PinnedDotNetHost', [System.StringComparison]::Ordinal) -and
+        -not $developmentScript.Contains("'.dotnet') 'toolchains'", [System.StringComparison]::Ordinal) -and
+        -not $ciScript.Contains("'.dotnet') 'toolchains'", [System.StringComparison]::Ordinal)) `
+    -Message 'Both executable entry points must enforce compatible .NET resolution.'
 
 $parentSentinelName = 'DBNOTIFIER_DEVELOPMENT_TEST_SENTINEL'
 [System.Environment]::SetEnvironmentVariable(
@@ -364,8 +421,20 @@ Assert-Condition `
             '(?m)^\s*persist-credentials:\s*false\s*$').Count -eq 2 -and
         [regex]::Matches(
             $workflow,
-            '(?m)^\s*node-version-file:\s*[.]nvmrc\s*$').Count -eq 2) `
-    -Message 'The CI workflow diverged from its least-privilege or pinned-toolchain boundary.'
+            '(?m)^\s*node-version-file:\s*[.]nvmrc\s*$').Count -eq 2 -and
+        [regex]::Matches(
+            $workflow,
+            '(?m)^\s*check-latest:\s*true\s*$').Count -eq 2) `
+    -Message 'The CI workflow diverged from its least-privilege or compatible-toolchain boundary.'
+Assert-Condition `
+    -Condition ([regex]::Matches(
+            $workflow,
+            "(?m)^\s*dotnet-version:\s*'10[.]0[.]x'\s*$").Count -eq 1 -and
+        [regex]::Matches(
+            $workflow,
+            "(?m)^\s*dotnet-quality:\s*'ga'\s*$").Count -eq 1 -and
+        -not $workflow.Contains('global-json-file:', [System.StringComparison]::Ordinal)) `
+    -Message 'The CI workflow must install the current stable .NET 10.0 SDK.'
 Assert-Condition `
     -Condition ($workflow -match '(?m)^\s*timeout-minutes:\s*135\s*$') `
     -Message 'The sequential canonical CI job lacks its bounded capacity envelope.'

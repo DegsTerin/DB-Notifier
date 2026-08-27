@@ -2,9 +2,9 @@
 
 ## Versão atual
 
-- Versão: `6.6.0`
+- Versão: `6.7.0`
 - Data: 2026-08-27
-- Status: método e fluxo de desenvolvimento governado materializados
+- Status: faixas compatíveis materializadas; validação bloqueada no `Doctor`
 - Escopo: 16 arquivos ativos
 
 A versão do corpus é independente da versão do software.
@@ -16,6 +16,34 @@ A versão do corpus é independente da versão do software.
 - PATCH: clareza, correção ou referência sem mudança de autoridade.
 
 Toda alteração atualiza este arquivo e, quando necessário, `../Start-Here.md`.
+
+## 6.7.0 — 2026-08-27
+
+- Substitui os pins exatos do toolchain de desenvolvimento por faixas estáveis
+  limitadas: `.NET SDK >=10.0.302 <10.1.0`,
+  `Node.js >=24.18.0 <25.0.0` e `npm >=11.16.0 <12.0.0`.
+- Mantém `10.0.302`, `24.18.0` e `11.16.0` como limites inferiores já
+  validados, desabilita prereleases e exige nova mudança governada antes de
+  cruzar o limite superior de cada linha.
+- Faz `global.json` usar `latestFeature`, `.nvmrc` selecionar a linha Node 24,
+  os manifests Dashboard repetirem as faixas e `devEngines` falhar fechado.
+  A metadata raiz do lockfile muda somente nos engines; versões, grafo e
+  integridades de dependência permanecem fixos.
+- Centraliza comparação de versões em política PowerShell sem dependências,
+  faz os entry points local e CI escolherem SDK compatível e adiciona
+  regressões para limites inclusivo/exclusivo, versões prévias e entradas
+  malformadas. A CI seleciona as versões estáveis correntes das linhas .NET
+  10.0 e Node 24 sem alterar as revisões aprovadas das Actions.
+- Preserva `STATE-06 INTEGRATION`, elegibilidade `NÃO REAVALIADA`,
+  `MOD-12 ActivationState=None`, providers, Human Gates e autoridade externa.
+  A mudança não autoriza instalação de produto, banco/provider real,
+  navegador comum, deploy, push, ativação ou transição de lifecycle.
+- A revisão estática final encerrou `P0=0`, `P1=0`, `P2=0`, `P3=0`, mas o
+  primeiro `Doctor` I7 falhou com exit code `1` ao desserializar a chave raiz
+  vazia de `package-lock.json` sem `-AsHashtable`. O stop-on-failure preservou
+  esse resultado; `Quick` e a única execução online de `Full` ficaram
+  `NOT_RUN`. Portanto, a política materializada não possui validação canônica
+  completa e I7 permanece `BLOCKED`/`GATE_FAILURE`.
 
 ## 6.6.0 — 2026-08-27
 

@@ -5857,3 +5857,106 @@
   documentar o failure outcome `ISOLATION_FAILURE` do sanitizador. A revisão
   permaneceu estática, sem build, teste de produto, runtime ou acesso à árvore
   externa protegida.
+
+## 2026-08-27 — Provisionamento exato I6 interrompido no cleanup isolado
+
+- Estado anterior: `STATE-06 INTEGRATION`, elegibilidade `NÃO REAVALIADA`,
+  `MOD-12 ActivationState=None`, plano `DEV-FLOW-01` em `PARTIAL` e branch
+  `main` no commit `e6416f6dac3f65d672f0247da88850881bae9120`.
+- Autoridade humana exata: provisionar local e isoladamente .NET SDK
+  `10.0.302`, Node.js `24.18.0` e npm `11.16.0`, sem alterar os pins ou
+  lockfiles; depois executar preflight, `Doctor`, `Quick` e uma única execução
+  online de `Full`, preservando o primeiro resultado factual e parando diante
+  de qualquer falha. Banco/provider real, navegador comum, deploy, push, Human
+  Gate, ativação e transição de `STATE` permaneceram proibidos.
+- Preflight: zero processo ou listener pertencente ao DB-Notifier antes da
+  ação e novamente antes da reconciliação factual.
+- Proveniência: metadata oficial .NET 10 forneceu o arquivo win-x64 do SDK
+  `10.0.302` e seu SHA-512; o catálogo oficial Node.js `24.18.0` forneceu o
+  arquivo win-x64, seu SHA-256 e a composição com npm `11.16.0`.
+- Provisionamento: os dois arquivos corresponderam aos hashes oficiais, foram
+  extraídos sob o root ignorado `.dotnet/toolchains/` e os executáveis
+  reportaram exatamente .NET SDK `10.0.302`, Node.js `24.18.0` e npm
+  `11.16.0`. Nenhum pin, manifesto ou lockfile foi alterado.
+- Bloqueio: após a extração, o limite local de execução rejeitou o comando de
+  remoção recursiva do staging já verificado antes de criar o processo. O
+  diretório ignorado `.dotnet/provisioning-i6/` reteve somente os dois arquivos
+  oficiais verificados, totalizando `334721515` bytes. Nenhum mecanismo
+  alternativo de exclusão foi tentado.
+- Disposição: `I6 BLOCKED` por `ISOLATION_FAILURE`. O stop-on-failure encerrou
+  a sequência; o preflight foi `PASS`, enquanto o novo `Doctor`, `Quick` e a
+  única execução online de `Full` permaneceram `NOT_RUN`. Nenhum resultado de
+  gate canônico foi produzido, repetido, corrigido ou inferido.
+- Escopo negativo preservado: nenhum componente de produto, database/provider
+  real, browser, deploy, push, Human Gate, ativação, homologação ou transição
+  de lifecycle foi executado.
+- Estado resultante: `STATE-06 INTEGRATION`, elegibilidade `NÃO REAVALIADA`,
+  `MOD-12 ActivationState=None`, providers, ADRs, Human Gates, produto,
+  interface e autoridade externa permanecem inalterados.
+- Evidências proprietárias: [plano vivo](../../PLANS.md),
+  [estado factual](Current-State.md),
+  [fluxo de desenvolvimento](../../docs/Development.md) e
+  [gate de qualidade](../governance/Quality-Gates.md).
+- Aprovador: Bruno, exclusivamente para o envelope descrito; nenhuma
+  autoridade adjacente foi inferida.
+
+## 2026-08-27 — Clarificação literal das autoridades I6 e I7
+
+- Clarificação append-only: o rótulo “Autoridade humana exata” da entrada I6
+  anterior descreveu um resumo semanticamente fiel, mas não uma citação
+  literal. A disposição `BLOCKED`/`ISOLATION_FAILURE` e toda a evidência dessa
+  entrada permanecem inalteradas.
+- Texto literal I6: `AUTORIZO exclusivamente provisionar, de forma local e isolada para o workspace DB-Notifier, o .NET SDK 10.0.302, Node.js 24.18.0 e npm 11.16.0, sem alterar global.json, .nvmrc, package.json ou lockfiles e sem instalar componentes de produto. Depois, execute o shutdown preflight, Doctor, Quick e uma única execução online de Full, preserve o primeiro resultado factual e pare diante de qualquer falha. Permanecem proibidos banco/provider real, navegador comum, deploy, push, Human Gate, ativação e transição de STATE.`
+- Texto literal I7: `Não fixar as versões, introduzir um intervalo de versões compatíveis, pois pode acontecer do computador atualizar automaticamente eles`.
+- Continuidade interpretada e declarada: I7 substitui somente a exigência de
+  pins exatos e mantém a sequência I6 ainda não executada, seu primeiro
+  resultado factual e seu stop-on-failure. Essa interpretação não amplia banco,
+  provider, navegador comum, deploy, push, Human Gate, ativação ou transição de
+  `STATE`.
+
+## 2026-08-27 — I7 bloqueado no primeiro Doctor da política de faixas
+
+- Estado anterior: `STATE-06 INTEGRATION`, elegibilidade `NÃO REAVALIADA`,
+  `MOD-12 ActivationState=None`, branch `main` no commit
+  `e6416f6dac3f65d672f0247da88850881bae9120`, mais os registos factuais I6
+  ainda não commitados e protegidos.
+- Autoridade humana literal mais recente: `Não fixar as versões, introduzir um intervalo de versões compatíveis, pois pode acontecer do computador atualizar automaticamente eles`.
+  A sequência I6 ainda não executada, o primeiro resultado factual, o
+  stop-on-failure e todo o escopo negativo permaneceram herdados.
+- Política materializada: .NET SDK `>=10.0.302 <10.1.0` com `latestFeature` e
+  prereleases desabilitados; Node.js `>=24.18.0 <25.0.0`; npm
+  `>=11.16.0 <12.0.0`. `.nvmrc` seleciona a linha Node 24, os manifests
+  Dashboard repetem as faixas e o lockfile muda somente na metadata raiz de
+  engines, sem alterar grafo, versões ou integridades de dependência.
+- Integração técnica: a política PowerShell compartilhada, os resolvers local
+  e CI, o verificador Node, as regressões, o workflow e a documentação foram
+  alinhados às faixas. A revisão independente encontrou inicialmente
+  `P1=1`, `P2=3`, `P3=1`; o recheck estático final encerrou `P0=0`, `P1=0`,
+  `P2=0`, `P3=0` antes da validação executável.
+- Preflight inicial: `PASS`, com zero processo correspondente e zero listener
+  pertencente ao DB-Notifier. Nenhum runtime de produto, provider, banco ou
+  navegador foi iniciado.
+- Primeiro resultado executável: `scripts/development.ps1 Doctor` encerrou
+  com exit code `1`. Raiz do repositório, lockfiles e dependências restauradas
+  aprovaram; a política de toolchain falhou com
+  `The provided JSON includes a property whose name is an empty string, this is only supported using the -AsHashTable switch.` ao ler a chave raiz vazia de
+  `package-lock.json`.
+- Stop factual: nenhuma correção, repetição ou execução alternativa de
+  `Doctor` ocorreu. `Quick` e a única execução online de `Full` permaneceram
+  `NOT_RUN`; a autorização de uma execução online de `Full` não foi consumida
+  e nenhum resultado de gate canônico foi produzido ou inferido.
+- Preflight de encerramento: `PASS`, novamente com zero processo
+  correspondente e zero listener pertencente ao DB-Notifier.
+- Disposição: `I7 BLOCKED` por `GATE_FAILURE`. A implementação de faixas fica
+  materializada, porém não validada pelo fluxo canônico; o finding aberto é a
+  desserialização do lockfile sem o modo que preserva chaves vazias.
+- Escopo negativo preservado: nenhum componente de produto, database/provider
+  real, navegador comum, deploy, push, Human Gate, ativação, homologação ou
+  transição de lifecycle foi executado. O resíduo ignorado I6 não foi apagado.
+- Estado resultante: `STATE-06 INTEGRATION`, elegibilidade `NÃO REAVALIADA`,
+  `MOD-12 ActivationState=None`, providers, ADRs, Human Gates, produto,
+  interface e autoridade externa permanecem inalterados.
+- Próxima autoridade necessária: uma correção focal e testada do parser da
+  chave raiz vazia do lockfile, seguida de nova sequência preflight,
+  `Doctor`, `Quick` e exatamente uma execução online de `Full`, ainda com
+  parada no primeiro resultado de falha.

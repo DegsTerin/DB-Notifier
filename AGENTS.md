@@ -46,6 +46,7 @@ Resolve conflicts using the precedence in `prompts/Start-Here.md`. A current exp
 - Active .NET projects target `net10.0` or the appropriate .NET 10 platform-specific target such as `net10.0-windows`.
 - Do not introduce, retain, or recommend an earlier .NET target for active DB-Notifier code.
 - Keep SDK, CI, build, test, packaging, documentation, and examples aligned with .NET 10.
+- Express developer toolchains as bounded stable compatibility ranges rather than exact version pins: .NET SDK `>=10.0.302 <10.1.0`, Node.js `>=24.18.0 <25.0.0`, and npm `>=11.16.0 <12.0.0`. Keep prereleases disabled, retain the validated lower bounds, and require a separate governed update before crossing an exclusive upper bound.
 - Use React and TypeScript for the Web Dashboard and WPF on .NET 10 for the Windows Desktop application unless an accepted ADR supersedes that decision.
 
 ## Architecture and organisation
@@ -155,7 +156,7 @@ Resolve conflicts using the precedence in `prompts/Start-Here.md`. A current exp
 ## Quality, testing, and evidence
 
 - Discover and run the real repository checks applicable to the change. A banner, isolated compilation, or absence of visible errors is not sufficient evidence.
-- Run `scripts/development.ps1 Quick` for bounded feedback when useful and `scripts/development.ps1 Full` for the aggregate gate when the exact prerequisites and authorised runtime scope are available. Direct component checks remain diagnostic or supplemental evidence and must not be presented as the complete canonical gate.
+- Run `scripts/development.ps1 Quick` for bounded feedback when useful and `scripts/development.ps1 Full` for the aggregate gate when the declared compatible prerequisites and authorised runtime scope are available. Direct component checks remain diagnostic or supplemental evidence and must not be presented as the complete canonical gate.
 - Validate in proportion to risk: formatting, build, tests, static analysis, dependencies, secret scanning, architecture boundaries, compatibility, accessibility, packaging, runtime health, and rollback as applicable.
 - Record actionable review findings as `P0`, `P1`, `P2` or `P3`, with path/location, scenario, impact, evidence and recommendation. Broad or high-risk work requires an independent read-only review before final integration; unresolved `P0` or `P1` findings prevent a passing disposition.
 - For runtime work, verify actual process/service state and live health; do not rely only on startup output. Stop validation processes when the task does not authorise leaving them running.

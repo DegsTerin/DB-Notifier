@@ -10,23 +10,25 @@ append-only history, a Quality Gate or a Human Gate.
 ## Control record
 
 - Plan ID: `DEV-FLOW-01`
-- Status: `PARTIAL`
+- Status: `BLOCKED`
 - Created: `2026-08-27`
 - Initial baseline: `main@f0f220c539fde685e2c500b4944ebca168aaec7d`
+- Continuation baseline: `main@e6416f6dac3f65d672f0247da88850881bae9120`
 - Lifecycle state: `STATE-06 INTEGRATION`; unchanged by this plan
 - Authority: Bruno's request to implement in DB-Notifier the development
   method and flow used by RAG-Challenge
-- Execution mode: `SINGLE_OWNER`
+- Execution mode: `SEQUENTIAL_ONLY`
 - Writer: coordinating conversation only
 - Independent reviewers: three read-only discovery lanes before implementation
   and three named read-only recheck lanes after implementation
 - Factual-state owner: `prompts/state/Current-State.md`
 - Historical owner: `prompts/state/State-Transition-Log.md`
 
-## Closed task envelope
+## Task envelopes
 
-- Envelope ID and version: `DEV-FLOW-01/v1`
-- Envelope status: `BLOCKED`
+### Original envelope `DEV-FLOW-01/v1` — closed
+
+- Envelope status: `PARTIAL`
 - Exact human authority: `Quero que implemente no DB-Notifier o mesmo método
   e fluxo de desenvolvimento do RAG-Challenge`
 - Non-waivable limits: DB-Notifier security, clean-room, lifecycle, Quality
@@ -41,7 +43,7 @@ append-only history, a Quality Gate or a Human Gate.
 - Verifiable objective: provide one DB-native, documented and mechanically
   enforced method from preflight and planning through local feedback,
   canonical validation, evidence, review and hand-off.
-- Frozen contracts and dependencies: the three references in the provenance
+- Historical frozen contracts and dependencies: the three references in the provenance
   table below; .NET SDK `10.0.302`, Node.js `24.18.0`, npm `11.16.0`, tracked
   NuGet lock files and the Dashboard npm lock file.
 - Execution topology: `SINGLE_OWNER`. The coordinating conversation is the
@@ -56,8 +58,70 @@ append-only history, a Quality Gate or a Human Gate.
 - Rollback strategy: before commit, reverse only this increment's owned diff;
   after commit, use a separately authorised focused revert. Never discard or
   rewrite pre-existing user work or append-only history.
-- Final disposition: `PARTIAL`; it may be only `PASS`, `FAIL`, `BLOCKED`,
-  `PARTIAL` or `NOT_RUN`.
+- Original-envelope disposition: `PARTIAL`. The preserved mechanical
+  vocabulary remains `PASS`, `FAIL`, `BLOCKED`, `PARTIAL` or `NOT_RUN`;
+  continuations `I6` and `I7` have their own dispositions below.
+
+### Authorised continuation `I6` — closed
+
+- Envelope ID and version: `DEV-FLOW-01/v2`.
+- Envelope status: `BLOCKED` by `ISOLATION_FAILURE`.
+
+- Exact authority (verbatim): `AUTORIZO exclusivamente provisionar, de forma local e isolada para o workspace DB-Notifier, o .NET SDK 10.0.302, Node.js 24.18.0 e npm 11.16.0, sem alterar global.json, .nvmrc, package.json ou lockfiles e sem instalar componentes de produto. Depois, execute o shutdown preflight, Doctor, Quick e uma única execução online de Full, preserve o primeiro resultado factual e pare diante de qualquer falha. Permanecem proibidos banco/provider real, navegador comum, deploy, push, Human Gate, ativação e transição de STATE.`
+- Execution topology: `SEQUENTIAL_ONLY`; the coordinating conversation owns
+  the local toolchain roots, process environment, caches, outputs, Git state
+  and factual evidence.
+- Positive scope: official toolchain metadata and archives, cryptographic hash
+  verification, isolated installation below the ignored workspace `.dotnet/`
+  root, a private process `PATH`, and the authorised canonical commands.
+- Negative scope: product components, database or provider runtime, ordinary
+  browser use, deploy, publication, push, Human Gate, activation, lifecycle
+  transition, pin changes and lockfile changes.
+- Protected work: the clean tracked baseline and the unread external
+  `mysql-notifier-1.1.8-src/` tree remain outside toolchain discovery and gate
+  traversal.
+- Stop rule: preserve the first factual outcome and stop without retry or
+  corrective continuation when provisioning, `Doctor`, `Quick` or `Full`
+  returns a non-zero exit or a mechanical `FAIL`/`BLOCKED` disposition.
+- Acceptance: exact versions are observed from the isolated executables,
+  `Doctor` and `Quick` complete successfully, and the sole online `Full` run
+  supplies the canonical disposition without prohibited external activity.
+
+### Authorised continuation `I7` — current
+
+- Envelope ID and version: `DEV-FLOW-01/v3`.
+- Envelope status: `BLOCKED` by `GATE_FAILURE`.
+
+- Exact authority (verbatim): `Não fixar as versões, introduzir um intervalo de versões compatíveis, pois pode acontecer do computador atualizar automaticamente eles`.
+- Inherited continuation: the immediately preceding unanswered sequence still
+  owns shutdown preflight, `Doctor`, `Quick`, exactly one online `Full`, first
+  factual-result preservation and stop-on-failure. I7 changes only the
+  incompatible exact-pin constraint and the tracked metadata needed to express
+  bounded ranges.
+- Baseline: `main@e6416f6dac3f65d672f0247da88850881bae9120`, plus the
+  uncommitted factual `I6` records in `PLANS.md`, `Current-State.md` and the
+  append-only `State-Transition-Log.md`; those records are protected history.
+- Compatible contracts: .NET SDK `>=10.0.302 <10.1.0` through
+  `latestFeature` roll-forward with prereleases disabled, Node.js
+  `>=24.18.0 <25.0.0`, and npm `>=11.16.0 <12.0.0`.
+- Positive scope: the canonical manifests, the root lockfile's engine metadata,
+  a shared dependency-free range policy, local/CI resolvers, deterministic
+  policy tests, active development documentation and factual evidence.
+- Negative scope: dependency graph or integrity changes, product components,
+  real database/provider runtime, ordinary browser use, deploy, publication,
+  push, Human Gate, activation, lifecycle transition and deletion of the
+  protected ignored `I6` archive residue.
+- Execution topology: `SEQUENTIAL_ONLY`; one coordinating writer owns every
+  tracked path, process, cache, gate result and final commit. Independent lanes
+  may review the frozen candidate diff read-only before execution.
+- Stop rule: static findings may be corrected before executable validation;
+  after executable validation begins, any non-zero command or mechanical
+  `FAIL`/`BLOCKED` disposition ends the sequence without retry or correction.
+  `Full` may be invoked online at most once.
+- Acceptance: all manifests express the same compatible ranges, boundary tests
+  prove accepted and rejected versions, CI selects current compatible releases,
+  shutdown preflight, `Doctor` and `Quick` pass, and the sole online `Full`
+  supplies its first canonical disposition without prohibited activity.
 
 ### Artefact classification and exclusive writers
 
@@ -79,7 +143,8 @@ append-only history, a Quality Gate or a Human Gate.
 | Git index, branch and final commit | Coordinating conversation | No branch, worktree, amend, rebase, merge, push or publication |
 | Project processes, listeners and runtime ports | Canonical runner while active | None may exist before a technical action; no product runtime is intentionally left running |
 | Runner diagnostics and temporary profiles | The runner that creates them | Bounded, sanitised and cleaned by the owning runner |
-| NuGet and npm caches | Package managers during an authorised `Setup` or gate | Current implementation work does not mutate them |
+| NuGet and npm caches | Package managers during an authorised setup or gate | Online checks may update cache metadata; dependency versions, graph and integrities remain immutable while I7 owns only root engine metadata |
+| Workspace-local toolchains | Coordinating conversation under the ignored `.dotnet/` root | Official archives only; exact hashes and versions must be verified before use |
 | `mysql-notifier-1.1.8-src/` | Owner-protected external material; no project writer | No read, inventory, gate traversal or tracking |
 
 ### Stop conditions
@@ -89,7 +154,7 @@ append-only history, a Quality Gate or a Human Gate.
 | `AUTHORITY_MISMATCH` | Requested work would waive a protected DB-Notifier authority or require an ungranted external, lifecycle, ADR or Human Gate decision. |
 | `BASELINE_DRIFT` | Branch, frozen commit, tracked user work or a frozen contract changes outside this increment before integration. |
 | `SCOPE_OVERLAP` | A proposed edit reaches protected external material, product behaviour or another writer's path. |
-| `DEPENDENCY_UNREADY` | An exact pinned toolchain, locked dependency or required input is unavailable. |
+| `DEPENDENCY_UNREADY` | No stable toolchain satisfies a declared compatible range, or a locked dependency or required input is unavailable. |
 | `ISOLATION_FAILURE` | A project-owned process, listener, runtime, temporary profile or output cannot be identified and isolated. |
 | `MUTABLE_RESOURCE_COLLISION` | More than one writer would touch a path, contract, branch, cache, runtime or evidence set. |
 | `GATE_FAILURE` | An applicable check returns a factual failure; there is no automatic retry or in-place correction. |
@@ -160,7 +225,7 @@ to this increment.
 - [x] Versioned envelope, artefact classes, mutable resources, rollback and
   objective stop conditions recorded.
 
-## Definition of Done
+## Definition of Done — original `I1`–`I5`
 
 - [x] Governance and implementation describe one consistent workflow.
 - [x] `PlanOnly` is exact, deterministic and side-effect free.
@@ -177,6 +242,22 @@ to this increment.
 - [x] State, append-only history and corpus changelog reflect the observed result.
 - [x] One focused local commit contains only the authorised increment.
 
+### Completion criteria — current `I7`
+
+- [x] Every tracked toolchain representation expresses the same bounded stable
+  compatibility contract without an exact developer-tool pin.
+- [ ] Boundary regressions accept the lower limit and later compatible
+  versions while rejecting older, upper-bound, prerelease and malformed values.
+- [x] Three independent read-only reviews have no unresolved `P0` or `P1`.
+- [ ] Shutdown preflight and `Doctor` complete successfully.
+- [ ] `Quick` completes successfully as `NON_GATE` evidence.
+- [ ] Exactly one online `Full` execution supplies its first factual canonical
+  disposition; no retry or in-place correction follows a failure.
+- [x] Plan, current state, append-only history and corpus changelog reflect the
+  observed result without Human Gate, activation or lifecycle claims.
+- [x] One focused local commit contains the authorised I6 records and I7
+  increment without protected or unrelated work.
+
 ## Findings
 
 | ID | Severity | Finding | Disposition |
@@ -191,6 +272,10 @@ to this increment.
 | `DF-008` | `P1` | Case-sensitive `Stage` dispatch could accept lowercase `dashboard` and then execute `All`. | Dispatch the validated value case-insensitively and cover the source invariant. |
 | `DF-009` | `P2` | Process-name-only ownership, an incomplete `Full` plan, workload update notification, and late secret scanning weakened the promised boundary. | Bind ownership to executable-path/command evidence, make the plan faithful, suppress offline workload notification and scan secrets before executable repository gates. |
 | `DF-010` | `P2`/`P3` | Linux procfs could ignore a still-live unreadable process, and a 60-minute timeout lacked capacity evidence for gates made sequential. | Fail closed on still-present unreadable identities and bound the canonical job to 135 minutes using the former jobs' combined 125-minute envelopes plus orchestration margin. |
+| `DF-011` | `P1` | I7's first .NET resolver silently skipped a discovered executable when `--version` failed, which could erase the first factual failure. | Resolved before execution: each entry point now resolves one host and stops immediately on command, format or range failure. |
+| `DF-012` | `P2` | Automatic enumeration under the ignored `.dotnet/toolchains/` root could execute an untracked binary and required unimplemented multi-candidate selection coverage. | Resolved before execution: ignored toolchains are never enumerated; PATH or the explicit CI path owns the single host and `global.json` owns SDK roll-forward. |
+| `DF-013` | `P2`/`P3` | The live ledger mixed historical and current envelopes, pre-completed I7 criteria, paraphrased exact authority and used one mixed-language term. | Resolved before execution by separating v1/v2/v3, preserving literal authority, adding pending I7 criteria and an append-only clarification, and correcting pt-BR prose. |
+| `DF-014` | `P1` | The first I7 `Doctor` failed while parsing `package-lock.json`: `ConvertFrom-Json` rejected the root package key whose name is an empty string without `-AsHashtable`. | `OPEN`. The stop-on-failure rule prohibits correction or retry in this envelope; a separately authorised focused correction must preserve this first factual failure. |
 
 ## Increment plan
 
@@ -201,6 +286,8 @@ to this increment.
 | `I3` | Delegate CI and document the developer workflow. | `COMPLETE` |
 | `I4` | Reconcile governance, templates and method ownership. | `COMPLETE` |
 | `I5` | Validate, review independently, reconcile factual records and commit. | `COMPLETE` |
+| `I6` | Provision the exact isolated toolchains and execute preflight, `Doctor`, `Quick` and one online `Full`. | `BLOCKED` |
+| `I7` | Replace exact toolchain pins with bounded compatible ranges and resume the preserved canonical sequence. | `BLOCKED` |
 
 ## Evidence log
 
@@ -216,28 +303,47 @@ to this increment.
 | 2026-08-27 | `Doctor` | Isolated exact-prerequisite diagnostic | `BLOCKED`; `DEPENDENCY_UNREADY` | Repository layout, lock files and restored dependency readiness passed; exact .NET SDK `10.0.302` was absent. |
 | 2026-08-27 | Canonical Dashboard offline diagnostic attempts | `scripts/ci.ps1 -Stage Dashboard -Offline` | `BLOCKED`; `DEPENDENCY_UNREADY` in every attempt | The latest attempt, after isolation hardening, passed preflight and the full available-history secret scan before Node.js `24.19.0` failed the `24.18.0` pin. No attempt produced or was converted to `PASS`. |
 | 2026-08-27 | Independent review | Method, runner and governance lanes | `PASS` for integration review; `P0=0`, `P1=0`, no unresolved `P2`; two final method-review `P3` clarifications corrected | Review is static and does not replace the blocked executable gates. |
+| 2026-08-27 | `I6` source provenance | Official .NET 10 release metadata and Node.js `24.18.0` signed-release checksum catalogue | `PASS`; the selected win-x64 archives were present and their published hashes were captured | Provenance evidence does not replace archive-integrity or executable-version checks. |
+| 2026-08-27 | `I6` isolated provisioning | SHA-512/SHA-256 verification, isolated extraction and executable version checks | `PASS`; .NET SDK `10.0.302`, Node.js `24.18.0` and bundled npm `11.16.0` were observed under `.dotnet/toolchains/` | Toolchains remain local and ignored; repository pins and lockfiles were not changed. |
+| 2026-08-27 | `I6` temporary-download cleanup | Remove the verified workspace-local `.dotnet/provisioning-i6/` directory after extraction | `BLOCKED`; `ISOLATION_FAILURE` because the execution boundary rejected the recursive removal before process creation | Two official archives remain ignored in that directory: `2` files, `334721515` bytes. No alternate deletion mechanism was attempted. |
+| 2026-08-27 | `I6` canonical sequence | Shutdown preflight, `Doctor`, `Quick` and exactly one online `Full` | Preflight `PASS`; `Doctor`, `Quick` and `Full` are `NOT_RUN` | The owner-required stop-on-failure rule ended the sequence after cleanup was blocked; no canonical-gate attempt exists. |
+| 2026-08-27 | `I7` primary-source review | Microsoft `global.json`, pinned setup-dotnet/setup-node v4 documentation and npm 11 package-manifest contract | `PASS` for policy design | `latestFeature` bounds .NET to the selected major/minor, setup actions accept stable channel/major selectors, and npm supports semver engines plus fail-closed `devEngines`. |
+| 2026-08-27 | `I7` independent static review and recheck | PowerShell/range, Node/CI/lockfile and governance/history lanes | Initial `P1=1`, `P2=3`, `P3=1`; final `P0=0`, `P1=0`, `P2=0`, `P3=0` | Candidate-failure, ignored-binary execution, ledger, authority and language findings were corrected before executable validation. |
+| 2026-08-27 | `I7` shutdown preflight | Process, executable-path, command-line, parentage and listener inventory | `PASS`; matching processes `0`, owned listeners `0` | No product runtime, database/provider or browser was started. |
+| 2026-08-27 | First I7 `Doctor` | `scripts/development.ps1 Doctor` | `FAIL`; exit code `1` | Repository root, lock files and restored dependencies passed. Toolchain policy parsing failed with `The provided JSON includes a property whose name is an empty string, this is only supported using the -AsHashTable switch.` The result was not retried or corrected. |
+| 2026-08-27 | Remaining I7 canonical sequence | `Quick` and exactly one online `Full` | `NOT_RUN` | The first `Doctor` failure activated the mandatory stop rule. The online `Full` allowance remains unused. |
+| 2026-08-27 | I7 closing preflight | Process, executable-path, command-line, parentage and listener inventory after the stopped sequence | `PASS`; matching processes `0`, owned listeners `0` | No DB-Notifier-owned process or listener remained. |
 
 ## Blockers and limitations
 
-- The checked-in flow can be implemented and policy-tested locally, but
-  `Doctor`, `Quick` and `Full` cannot be reported as passing until the exact
-  pinned toolchains are available. The gate must report that fact rather than
-  relaxing `global.json`, `.nvmrc` or `package.json`.
-- Remote CI execution is not authorised by a local commit and is not evidence
-  available in this increment.
-- Product build, unit/integration tests, coverage, browser/runtime matrices and
-  online dependency-advisory freshness remain `NOT_RUN` for this increment;
-  policy and documentation diagnostics are not substitutes for them.
+- I7 is `BLOCKED` by `GATE_FAILURE`. Its first `Doctor` exited `1` because the
+  PowerShell policy helper parses `package-lock.json` without the hashtable
+  mode required for the root package key whose name is an empty string.
+- The stop-on-failure rule preserves that first `Doctor` result and leaves
+  `Quick` and the sole online `Full` as `NOT_RUN`. No retry or in-place
+  correction is permitted in the current envelope.
+- The compatible-range candidate is materialised and static review closed at
+  `P0=0`, `P1=0`, `P2=0`, `P3=0`, but executable boundary regressions, product
+  build, unit/integration tests, coverage, browser/runtime matrices and online
+  dependency-advisory freshness have no new passing evidence.
+- The historical I6 cleanup remains `BLOCKED` by `ISOLATION_FAILURE`. Its
+  ignored `.dotnet/provisioning-i6/` residue contains only the two
+  hash-verified official archives (`2` files, `334721515` bytes); I7 did not
+  authorise its deletion.
+- Remote CI, product/provider runtime, ordinary browser use, deployment,
+  publication, Human Gate, activation and lifecycle transition remain outside
+  authority.
 
 ## Outcome and next action
 
-The DB-native method and its implementation increments are complete, reviewed,
-factually reconciled and bounded into the focused local commit that contains
-this ledger. The technical disposition remains `PARTIAL`, not `PASS`, because
-the pinned toolchains are unavailable and the product and runtime gates listed
-above remain `NOT_RUN`. The next separately authorised interaction is isolated
-toolchain provisioning followed by `Doctor`, `Quick` and one online `Full`
-without relaxing repository pins.
+The compatible toolchain ranges are materialised and independently reviewed,
+but continuation `I7` is `BLOCKED`, not `PASS`. The first `Doctor` failed in
+the root-lockfile parser with exit code `1`; the owner's stop rule preserved
+that result and prevented `Quick` and the sole online `Full` from starting.
+No canonical-gate result was produced or inferred, and the online `Full`
+allowance remains unused. I7 does not erase or convert the factual I6 outcome.
+A separately authorised focused parser correction and new canonical sequence
+are required before this target can complete.
 
 ## Change log
 
@@ -248,3 +354,24 @@ without relaxing repository pins.
 - `2026-08-27`: independent rechecks closed with zero unresolved `P0`, `P1` or
   `P2`; two final `P3` wording/help clarifications were corrected before the
   focused commit.
+- `2026-08-27`: the owner authorised isolated exact-toolchain provisioning and
+  one sequential online canonical-gate attempt under continuation `I6`; no
+  product, external runtime, Human Gate, activation or lifecycle authority was
+  inferred.
+- `2026-08-27`: exact toolchains and archive hashes passed, but the execution
+  boundary rejected cleanup of the verified ignored staging directory before
+  process creation. `I6` stopped as `BLOCKED`/`ISOLATION_FAILURE`; `Doctor`,
+  `Quick` and `Full` remained `NOT_RUN`, and no retry or alternate deletion
+  mechanism was attempted.
+- `2026-08-27`: the owner replaced exact toolchain pins with bounded compatible
+  ranges so host updates within .NET 10.0, Node 24 and npm 11 remain usable.
+  Continuation `I7` reopened implementation and the preserved canonical
+  sequence without granting database/provider, browser, deploy, push, Human
+  Gate, activation or lifecycle authority.
+- `2026-08-27`: static I7 review closed at `P0=0`, `P1=0`, `P2=0`, `P3=0` and
+  shutdown preflight passed with zero matching process or owned listener. The
+  first `Doctor` then failed with exit code `1` while the policy helper parsed
+  the empty-name root package key in `package-lock.json`. The stop rule left
+  `Quick` and the sole online `Full` `NOT_RUN`; a closing preflight again
+  observed zero matching process or owned listener. I7 closed as
+  `BLOCKED`/`GATE_FAILURE` without correction, retry or lifecycle change.

@@ -18,6 +18,7 @@ if (-not (Test-Path -LiteralPath $RepositoryRoot -PathType Container)) {
 $resolvedRoot = [System.IO.Path]::GetFullPath(
     (Resolve-Path -LiteralPath $RepositoryRoot).Path)
 $assertionCount = 0
+. (Join-Path $PSScriptRoot 'toolchain-version-policy.ps1')
 
 function Assert-Condition {
     <#
@@ -91,13 +92,18 @@ Assert-Condition `
 
 $requiredFiles = @(
     '.nvmrc',
+    'global.json',
     'PLANS.md',
     'scripts/assert-dbnotifier-shutdown.ps1',
     'scripts/development-environment.ps1',
     'scripts/development.ps1',
     'scripts/ci.ps1',
     'scripts/NuGet.Offline.config',
+    'scripts/toolchain-version-policy.ps1',
     'scripts/verify-development-flow.ps1',
+    'scripts/verify-node-toolchain.mjs',
+    'src/DBNotifier.Dashboard.Web/package.json',
+    'src/DBNotifier.Dashboard.Web/package-lock.json',
     'tests/DBNotifier.DevelopmentFlow.Tests.ps1',
     'tests/fixtures/DBNotifier.DevelopmentFlow.OwnedHelper.ps1')
 $inventory = @(& $gitPath -C $resolvedRoot ls-files --cached --others --exclude-standard -- $requiredFiles)
@@ -131,7 +137,7 @@ Assert-Condition `
 $plans = Get-RequiredFileText -RelativePath 'PLANS.md'
 foreach ($requiredHeading in @(
         '## Control record',
-        '## Closed task envelope',
+        '## Task envelopes',
         '### Artefact classification and exclusive writers',
         '### Mutable-resource matrix',
         '### Stop conditions',
@@ -159,12 +165,17 @@ foreach ($requiredPlanLiteral in @(
         '- Execution mode:',
         '- Writer:',
         '- Independent reviewers:',
-        '- Envelope ID and version:',
         '- Rollback strategy:')) {
     Assert-Condition `
         -Condition ($plans.Contains($requiredPlanLiteral, [System.StringComparison]::Ordinal)) `
         -Message "PLANS.md is missing required control '$requiredPlanLiteral'."
 }
+Assert-Condition `
+    -Condition ([regex]::Matches(
+            $plans,
+            '- Envelope ID and version: `DEV-FLOW-01/v[23]`[.]').Count -eq 2 -and
+        $plans.Contains('### Original envelope `DEV-FLOW-01/v1` — closed', [System.StringComparison]::Ordinal)) `
+    -Message 'PLANS.md must preserve the three distinct development-flow envelopes.'
 foreach ($requiredPlanStopCode in @(
         'AUTHORITY_MISMATCH',
         'BASELINE_DRIFT',
@@ -180,15 +191,19 @@ foreach ($requiredPlanStopCode in @(
         -Message "PLANS.md is missing stop code '$requiredPlanStopCode'."
 }
 
-$package = Get-RequiredFileText -RelativePath 'src/DBNotifier.Dashboard.Web/package.json' |
-    ConvertFrom-Json
-$nvmVersion = (Get-RequiredFileText -RelativePath '.nvmrc').Trim()
+$canonicalToolchains = Get-DBNotifierToolchainPolicy
+$dotNetPolicy = Get-DBNotifierDotNetSdkPolicy `
+    -GlobalJsonPath (Join-Path $resolvedRoot 'global.json')
+$dashboardPolicy = Get-DBNotifierDashboardToolchainPolicy -RepositoryRoot $resolvedRoot
 Assert-Condition `
-    -Condition ($nvmVersion -ceq [string]$package.engines.node) `
-    -Message '.nvmrc must equal the exact Dashboard Node.js engine.'
+    -Condition ($dotNetPolicy.Range -ceq $canonicalToolchains.DotNetRange -and
+        $dotNetPolicy.RollForward -ceq 'latestFeature') `
+    -Message 'global.json must express the bounded stable .NET 10.0 policy.'
 Assert-Condition `
-    -Condition ([string]$package.packageManager -ceq "npm@$([string]$package.engines.npm)") `
-    -Message 'The Dashboard packageManager and npm engine must remain identical.'
+    -Condition ($dashboardPolicy.NodeRange -ceq $canonicalToolchains.NodeRange -and
+        $dashboardPolicy.NpmRange -ceq $canonicalToolchains.NpmRange -and
+        $dashboardPolicy.NvmSelector -ceq $canonicalToolchains.NvmSelector) `
+    -Message 'The Dashboard manifests must express the canonical bounded stable ranges.'
 
 $developmentScript = Get-RequiredFileText -RelativePath 'scripts/development.ps1'
 $environmentScript = Get-RequiredFileText -RelativePath 'scripts/development-environment.ps1'
@@ -198,6 +213,14 @@ foreach ($taskLiteral in @("'Doctor'", "'Setup'", "'Quick'", "'Full'", 'PlanOnly
         -Condition ($developmentScript.Contains($taskLiteral, [System.StringComparison]::Ordinal)) `
         -Message "The development entry point is missing '$taskLiteral'."
 }
+Assert-Condition `
+    -Condition ($developmentScript.Contains('Resolve-CompatibleDotNetHost', [System.StringComparison]::Ordinal) -and
+        $ciScript.Contains('Resolve-CompatibleDotNetHost', [System.StringComparison]::Ordinal) -and
+        -not $developmentScript.Contains('Resolve-PinnedDotNetHost', [System.StringComparison]::Ordinal) -and
+        -not $ciScript.Contains('Resolve-PinnedDotNetHost', [System.StringComparison]::Ordinal) -and
+        -not $developmentScript.Contains("'.dotnet') 'toolchains'", [System.StringComparison]::Ordinal) -and
+        -not $ciScript.Contains("'.dotnet') 'toolchains'", [System.StringComparison]::Ordinal)) `
+    -Message 'Local and CI .NET resolution must enforce the compatible range rather than an exact pin.'
 Assert-Condition `
     -Condition ([regex]::Matches(
             $developmentScript,
@@ -285,6 +308,15 @@ Assert-Condition `
 Assert-Condition `
     -Condition ([regex]::Matches(
             $workflow,
+            "(?m)^\s*dotnet-version:\s*'10[.]0[.]x'\s*$").Count -eq 1 -and
+        [regex]::Matches(
+            $workflow,
+            "(?m)^\s*dotnet-quality:\s*'ga'\s*$").Count -eq 1 -and
+        -not $workflow.Contains('global-json-file:', [System.StringComparison]::Ordinal)) `
+    -Message 'CI must install the current stable .NET 10.0 SDK through the pinned setup-dotnet contract.'
+Assert-Condition `
+    -Condition ([regex]::Matches(
+            $workflow,
             '(?m)^\s*run:\s*[.]\\scripts\\ci[.]ps1 -Stage All\b').Count -eq 1) `
     -Message 'CI must invoke the canonical full Windows gate exactly once.'
 Assert-Condition `
@@ -292,6 +324,11 @@ Assert-Condition `
             $workflow,
             '(?m)^\s*run:\s*[.]\/scripts\/ci[.]ps1 -Stage Dashboard\b').Count -eq 1) `
     -Message 'CI must retain one supplemental Linux Dashboard invocation through the same entry point.'
+Assert-Condition `
+    -Condition ([regex]::Matches(
+            $workflow,
+            '(?m)^\s*check-latest:\s*true\s*$').Count -eq 2) `
+    -Message 'Both CI Node.js setup steps must select the current compatible Node 24 release.'
 foreach ($forbiddenWorkflowCommand in @(
         'dotnet build',
         'dotnet test',
@@ -327,10 +364,10 @@ $currentState = Get-RequiredFileText -RelativePath 'prompts/state/Current-State.
 $stateTransitionLog = Get-RequiredFileText -RelativePath 'prompts/state/State-Transition-Log.md'
 $masterPrompt = Get-RequiredFileText -RelativePath 'prompts/system/AI-Software-Engineering-Master-Prompt.md'
 Assert-Condition `
-    -Condition ($changelog -match '(?s)## Versão atual\s+- Versão: `6[.]6[.]0`') `
-    -Message 'The instruction-corpus changelog is not at version 6.6.0.'
+    -Condition ($changelog -match '(?s)## Versão atual\s+- Versão: `6[.]7[.]0`') `
+    -Message 'The instruction-corpus changelog is not at version 6.7.0.'
 Assert-Condition `
-    -Condition ($currentState.Contains('`6.6.0`', [System.StringComparison]::Ordinal) -and
+    -Condition ($currentState.Contains('`6.7.0`', [System.StringComparison]::Ordinal) -and
         $currentState.Contains('`1.4.0`', [System.StringComparison]::Ordinal)) `
     -Message 'Current-State.md does not record the adopted workflow versions.'
 Assert-Condition `

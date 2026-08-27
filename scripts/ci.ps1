@@ -27,6 +27,7 @@ $repositoryRoot = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
 $solutionPath = Join-Path $repositoryRoot 'DBNotifier.sln'
 $dashboardRoot = Join-Path $repositoryRoot 'src/DBNotifier.Dashboard.Web'
 $offlineNuGetConfigPath = Join-Path $PSScriptRoot 'NuGet.Offline.config'
+. (Join-Path $PSScriptRoot 'toolchain-version-policy.ps1')
 . (Join-Path $PSScriptRoot 'development-environment.ps1')
 if ([string]::IsNullOrWhiteSpace($DiagnosticRoot)) {
     $DiagnosticRoot = Join-Path ([System.IO.Path]::GetTempPath()) (
@@ -161,15 +162,15 @@ function Resolve-RequiredApplication {
     $application = Get-Command $Candidate -CommandType Application -ErrorAction SilentlyContinue |
         Select-Object -First 1
     if ($null -eq $application) {
-        throw "DEPENDENCY_UNREADY: $Operation is unavailable. Provision the pinned repository toolchain and retry."
+        throw "DEPENDENCY_UNREADY: $Operation is unavailable. Provision a compatible repository toolchain and retry."
     }
     return $application.Source
 }
 
-function Resolve-PinnedDotNetHost {
+function Resolve-CompatibleDotNetHost {
     <#
     .SYNOPSIS
-    Resolves a dotnet host containing the exact SDK pinned by global.json.
+    Resolves and validates the single dotnet host selected by the caller or PATH.
 
     .PARAMETER Candidate
     Optional executable name or explicit path supplied by CI or the caller.
@@ -178,54 +179,38 @@ function Resolve-PinnedDotNetHost {
     System.String absolute dotnet host path.
 
     .NOTES
-    The function uses only --list-sdks and never installs or changes a toolchain.
+    The selected host is invoked once with --version from the repository root.
+    A failed command, malformed version or incompatible result stops immediately.
     #>
     [OutputType([string])]
     param(
         [string]$Candidate
     )
 
-    $requiredVersion = [string](
-        Get-Content -LiteralPath (Join-Path $repositoryRoot 'global.json') -Raw |
-            ConvertFrom-Json | Select-Object -ExpandProperty sdk).version
-    $candidates = [System.Collections.Generic.List[string]]::new()
-    if (-not [string]::IsNullOrWhiteSpace($Candidate)) {
-        $candidates.Add((Resolve-RequiredApplication -Candidate $Candidate -Operation '.NET'))
+    $policy = Get-DBNotifierDotNetSdkPolicy `
+        -GlobalJsonPath (Join-Path $repositoryRoot 'global.json')
+    $candidateName = if ([string]::IsNullOrWhiteSpace($Candidate)) { 'dotnet' } else { $Candidate }
+    $dotnetHost = Resolve-RequiredApplication -Candidate $candidateName -Operation '.NET'
+    Push-Location $repositoryRoot
+    try {
+        $versionOutput = @(& $dotnetHost --version)
+        Assert-LastExitCode -Operation '.NET SDK version discovery'
+        $observedVersion = ($versionOutput -join '').Trim()
+        Assert-DBNotifierVersionInRange `
+            -Version $observedVersion `
+            -Range $policy.Range `
+            -ToolName '.NET SDK'
     }
-    else {
-        $workspaceDotNetLeaf = if ($IsWindows) {
-            '.dotnet/dotnet.exe'
-        }
-        else {
-            '.dotnet/dotnet'
-        }
-        $workspaceDotNet = Join-Path $repositoryRoot $workspaceDotNetLeaf
-        if (Test-Path -LiteralPath $workspaceDotNet -PathType Leaf) {
-            $candidates.Add((Resolve-Path -LiteralPath $workspaceDotNet).Path)
-        }
-        $pathDotNet = Get-Command dotnet -CommandType Application -ErrorAction SilentlyContinue |
-            Select-Object -First 1
-        if ($null -ne $pathDotNet -and -not $candidates.Contains($pathDotNet.Source)) {
-            $candidates.Add($pathDotNet.Source)
-        }
+    finally {
+        Pop-Location
     }
-
-    foreach ($dotnetCandidate in $candidates) {
-        $sdkOutput = @(& $dotnetCandidate --list-sdks 2>$null)
-        if ($LASTEXITCODE -eq 0 -and
-            @($sdkOutput | Where-Object {
-                    $_ -match "^$([regex]::Escape($requiredVersion))\s+\["
-                }).Count -eq 1) {
-            return $dotnetCandidate
-        }
-    }
-    throw "DEPENDENCY_UNREADY: The exact .NET SDK '$requiredVersion' pinned by global.json is unavailable."
+    return $dotnetHost
 }
 
 function Assert-DashboardToolchain {
     <#
     .SYNOPSIS
-    Verifies the exact Node.js and npm versions owned by the Dashboard package contract.
+    Verifies the compatible Node.js and npm versions owned by the Dashboard package contract.
 
     .PARAMETER NodeExecutable
     Exact Node.js executable path.
@@ -244,18 +229,19 @@ function Assert-DashboardToolchain {
         [string]$NpmExecutable
     )
 
-    $package = Get-Content -LiteralPath (Join-Path $dashboardRoot 'package.json') -Raw |
-        ConvertFrom-Json
+    $policy = Get-DBNotifierDashboardToolchainPolicy -RepositoryRoot $repositoryRoot
     $nodeVersion = ((@(& $NodeExecutable --version)) -join '').Trim().TrimStart('v')
     Assert-LastExitCode -Operation 'Node.js version discovery'
     $npmVersion = ((@(& $NpmExecutable --version)) -join '').Trim()
     Assert-LastExitCode -Operation 'npm version discovery'
-    if ($nodeVersion -cne [string]$package.engines.node) {
-        throw "DEPENDENCY_UNREADY: Node.js '$nodeVersion' does not match the pinned version '$($package.engines.node)'."
-    }
-    if ($npmVersion -cne [string]$package.engines.npm) {
-        throw "DEPENDENCY_UNREADY: npm '$npmVersion' does not match the pinned version '$($package.engines.npm)'."
-    }
+    Assert-DBNotifierVersionInRange `
+        -Version $nodeVersion `
+        -Range $policy.NodeRange `
+        -ToolName 'Node.js'
+    Assert-DBNotifierVersionInRange `
+        -Version $npmVersion `
+        -Range $policy.NpmRange `
+        -ToolName 'npm'
 }
 
 function Invoke-PolicyChecks {
@@ -264,7 +250,7 @@ function Invoke-PolicyChecks {
     Runs repository-method, script-syntax and process-boundary policy tests.
 
     .PARAMETER NodeExecutable
-    Exact Node.js executable used by the dynamic syntax gate.
+    Compatible Node.js executable used by the dynamic syntax gate.
 
     .OUTPUTS
     Policy-test output.
@@ -287,7 +273,7 @@ function Invoke-DotNetChecks {
     Runs the locked restore, build, tests, coverage, formatting and .NET audits.
 
     .PARAMETER DotNetExecutable
-    Exact dotnet host containing the pinned SDK.
+    Compatible dotnet host selected under the repository SDK policy.
 
     .OUTPUTS
     Native .NET and repository-check output.
@@ -482,7 +468,7 @@ try {
         if (-not $IsWindows) {
             throw 'DEPENDENCY_UNREADY: The canonical All gate requires Windows for WPF, legacy compatibility and the existing runtime matrices.'
         }
-        $dotnetExecutable = Resolve-PinnedDotNetHost -Candidate $DotNetPath
+        $dotnetExecutable = Resolve-CompatibleDotNetHost -Candidate $DotNetPath
         Invoke-DotNetChecks -DotNetExecutable $dotnetExecutable
         Invoke-LegacyChecks
         Invoke-DashboardChecks -NpmExecutable $npmExecutable

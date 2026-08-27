@@ -49,7 +49,7 @@ proprietários.
 
 ## Sistema de instruções e coordenação
 
-- O corpus vigente é `6.6.0`, com 16 arquivos ativos. A
+- O corpus vigente é `6.7.0`, com 16 arquivos ativos. A
   [Política de Idioma](../governance/Language-Policy.md), revisão `1.0.0`, é a
   autoridade temática única para comunicação com o proprietário, idioma dos
   artefatos, preservação de conteúdo existente, convenções externas e
@@ -153,13 +153,38 @@ proprietários.
   `net10.0-windows10.0.22621.0`; os hosts de sandbox em `tests/` não pertencem
   à composição normal. O Dashboard usa React e TypeScript; o cliente Windows
   usa WPF.
-- Na validação local de 2026-08-27, o host não possuía simultaneamente os
-  pins exatos `.NET SDK 10.0.302`, `Node.js 24.18.0` e `npm 11.16.0`: foram
-  observados SDKs locais `8.0.422`/`10.0.301`, SDKs de sistema
-  `10.0.303`/`10.0.400`, Node.js `24.19.0` e npm `11.17.0`. Nenhuma ferramenta
-  foi instalada e nenhum pin foi relaxado; por isso `Doctor` preserva
-  `DEPENDENCY_UNREADY` e `Quick`/`Full` não podem receber `PASS` local nessa
-  configuração.
+- No início da validação local de 2026-08-27, o host não possuía
+  simultaneamente os pins exatos `.NET SDK 10.0.302`, `Node.js 24.18.0` e
+  `npm 11.16.0`: foram observados SDKs locais `8.0.422`/`10.0.301`, SDKs de
+  sistema `10.0.303`/`10.0.400`, Node.js `24.19.0` e npm `11.17.0`.
+- Sob autoridade posterior específica, os arquivos oficiais win-x64 tiveram
+  SHA-512/SHA-256 conferidos contra os catálogos oficiais e foram extraídos de
+  forma isolada sob `.dotnet/toolchains/`. Os executáveis reportaram exatamente
+  .NET SDK `10.0.302`, Node.js `24.18.0` e npm `11.16.0`; `global.json`,
+  `.nvmrc`, `package.json` e lockfiles permaneceram inalterados. A remoção do
+  staging ignorado `.dotnet/provisioning-i6/` foi rejeitada pelo limite local
+  de execução antes da criação do processo, deixando somente os dois arquivos
+  oficiais verificados (`334721515` bytes). O stop-on-failure exigido encerrou
+  o lote como `BLOCKED`/`ISOLATION_FAILURE` antes de novo `Doctor`, `Quick` ou
+  `Full`.
+- A autoridade mais recente substituiu os pins exatos de toolchain por faixas
+  estáveis compatíveis para tolerar atualizações automáticas do host. O
+  contrato versionado em implementação é `.NET SDK >=10.0.302 <10.1.0` com
+  `latestFeature` e sem prerelease, `Node.js >=24.18.0 <25.0.0` e
+  `npm >=11.16.0 <12.0.0`; a CI solicita o SDK GA corrente da linha .NET 10.0,
+  enquanto `.nvmrc` e `check-latest` selecionam a linha Node 24 corrente. O
+  grafo, as versões e as integridades de
+  dependência do lockfile permanecem inalterados; somente sua metadata raiz de
+  engines acompanha as faixas.
+- O shutdown preflight I7 aprovou com zero processo correspondente e zero
+  listener próprio. A primeira execução de `scripts/development.ps1 Doctor`
+  encerrou com exit code `1`: raiz do repositório, lockfiles e dependências
+  restauradas aprovaram, mas a política de toolchain falhou ao desserializar a
+  chave raiz de nome vazio de `package-lock.json` sem `-AsHashtable`. O
+  stop-on-failure preservou esse primeiro resultado sem correção nem repetição;
+  `Quick` e a única execução online de `Full` ficaram `NOT_RUN`. O preflight de
+  encerramento aprovou novamente com zero processo correspondente e zero
+  listener próprio.
 - A evidência executável disponível para o próprio fluxo aprovou `97`
   invariantes estáticas, `64` regressões determinísticas, sintaxe de `47`
   scripts PowerShell e `14` scripts Node, compatibilidade de sintaxe de `27`
@@ -172,7 +197,10 @@ proprietários.
   `BLOCKED` por `DEPENDENCY_UNREADY`; nenhuma produziu ou foi convertida em
   `PASS`. A execução mais recente, posterior ao hardening de isolamento,
   aprovou preflight e scan completo de segredos antes de observar Node.js
-  `24.19.0` diante do pin `24.18.0`. `Quick`, `Full All`, build, testes de
+  `24.19.0` diante do pin `24.18.0`. Depois do provisionamento exato, a
+  sequência I6 não iniciou `Doctor`, `Quick` ou `Full` devido ao bloqueio de
+  cleanup. A continuação I7 iniciou um novo `Doctor`, que falhou no parser do
+  lockfile conforme registrado acima; `Quick`, `Full All`, build, testes de
   produto, cobertura, browser/runtime e advisories online permanecem sem
   `PASS` neste snapshot.
 - Domain e Application permanecem provider-neutral. Provider SDK,

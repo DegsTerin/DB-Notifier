@@ -27,7 +27,8 @@ Usar para preparação, feedback local e Quality Gate do repositório:
 2. Em trabalho amplo, transversal ou multi-incremento, criar ou sincronizar o
    `../../PLANS.md` vivo antes da implementação.
 3. Executar `../../scripts/development.ps1 Doctor`. O comando é read-only,
-   aplica a asserção de shutdown e não instala toolchain.
+   aplica a asserção de shutdown, valida as faixas estáveis compatíveis e não
+   instala nem atualiza toolchain.
 4. Se as dependências bloqueadas ainda não estiverem prontas e a autoridade
    permitir restore, executar `Setup`; usar `-Offline` somente quando caches
    locais forem a fonte autorizada.

@@ -112,6 +112,15 @@ O entry point local é `../../scripts/development.ps1`:
 - `PlanOnly`: plano versionado, ordenado, determinístico e sem preflight,
   processo-filho, restore, build, teste, runtime ou rede.
 
+A política de toolchain aceita somente versões estáveis nas faixas
+`.NET SDK >=10.0.302 <10.1.0`, `Node.js >=24.18.0 <25.0.0` e
+`npm >=11.16.0 <12.0.0`. O limite inferior preserva a baseline validada; o
+limite superior impede que uma atualização automática cruze uma linha ainda
+não governada. `global.json`, `.nvmrc`, os manifests Dashboard, a metadata raiz
+do lockfile e a CI devem representar esse mesmo contrato sem pin exato de
+toolchain. Dependências e GitHub Actions continuam determinísticas em suas
+autoridades próprias e não são relaxadas por esta regra.
+
 O gate canônico conserva, conforme plataforma e escopo, as responsabilidades
 .NET/WPF, arquitetura, legado/Pester, Dashboard, assets gerados, documentação,
 Markdown, cobertura, dependências, segurança, browser sandbox, E2E `STATE-06`,
