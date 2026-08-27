@@ -4,6 +4,30 @@
 
 Cada fase exige entradas, entregáveis, auditoria automática, decisão humana e handoff. Correções pertencem à fase dona do defeito. Os templates ficam em `../templates/Templates.md`.
 
+## Definition of Ready transversal
+
+Antes de executar um incremento em qualquer `STATE`:
+
+- baseline e worktree estão identificados, com mudanças preexistentes e
+  trabalho protegido preservados;
+- shutdown preflight aplicável está comprovado;
+- autoridade, objetivo, estado dono, escopos positivo e negativo e critérios
+  de aceite estão explícitos;
+- contratos e dependências necessários estão congelados ou classificados como
+  bloqueio;
+- paths, artefatos lógicos e recursos mutáveis possuem um único writer;
+- checks, revisores, evidências esperadas, rollback e stop codes estão
+  definidos proporcionalmente ao risco;
+- trabalho amplo ou transversal possui `PLANS.md` vivo e sincronizado.
+
+Ausência de uma entrada obrigatória mantém o incremento `BLOCKED`; não autoriza
+improviso, redução de gate ou avanço de estado.
+
+`Doctor`, `Setup`, `Quick`, `Full`, `PlanOnly`, verificadores de repositório e
+CI são mecanismos de preparação ou evidência. Nenhum deles, isoladamente ou em
+conjunto, decide Human Gate, ativa capability, homologa provider, concede
+suporte público ou promove `STATE-00`–`STATE-08`.
+
 ## STATE-00 DISCOVERY_MIGRATION
 
 Objetivo: compreender o PgNotifier e propor migração incremental.

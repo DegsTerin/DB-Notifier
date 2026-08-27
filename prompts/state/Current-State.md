@@ -1,6 +1,6 @@
 # Estado Atual
 
-Este documento é o snapshot factual vigente do workspace em 2026-07-30. Ele
+Este documento é o snapshot factual vigente do workspace em 2026-08-27. Ele
 não concede autoridade de execução. A evolução, os resultados substituídos e
 as decisões tomadas no seu contexto original permanecem no
 [`State-Transition-Log.md`](State-Transition-Log.md) e nos relatórios
@@ -49,14 +49,14 @@ proprietários.
 
 ## Sistema de instruções e coordenação
 
-- O corpus vigente é `6.5.0`, com 16 arquivos ativos. A
+- O corpus vigente é `6.6.0`, com 16 arquivos ativos. A
   [Política de Idioma](../governance/Language-Policy.md), revisão `1.0.0`, é a
   autoridade temática única para comunicação com o proprietário, idioma dos
   artefatos, preservação de conteúdo existente, convenções externas e
   separação do idioma da interface.
 - A
   [Coordenação de Conversas e Trabalho Paralelo Seguro](../governance/Conversation-Coordination-Prompt.md),
-  revisão `1.3.0`, é a autoridade temática de roteamento, handoff,
+  revisão `1.4.0`, é a autoridade temática de roteamento, handoff,
   recomendação de raciocínio do Codex, paralelismo, ownership exclusivo e
   integração coordenada. As duas
   autoridades ficam em `prompts/governance/`; `Governance.md` conserva
@@ -92,12 +92,39 @@ proprietários.
   autorizado neste snapshot. Conversas simultâneas permanecem read-only e toda
   escrita ocorre sequencialmente na coordenadora; a existência de Git e a
   autorização do commit local final não ampliam esse limite.
+- O `PLANS.md` raiz é o ledger vivo não autorizante para trabalho amplo,
+  transversal, multi-incremento ou auditoria com remediação. Ele registra
+  baseline, autoridade, escopos, trabalho protegido, ownership, DoR/DoD,
+  findings, incrementos, evidências, blockers e outcome; estado, histórico,
+  ADRs e gates conservam seus owners temáticos.
+- O envelope fechado usa as topologias `SAFE_PARALLEL`,
+  `CONTRACT_FROZEN_PARALLEL`, `SINGLE_OWNER` ou `SEQUENTIAL_ONLY`, classes de
+  artefato e stop codes canônicos. O handoff continua com exatamente 14
+  campos e com seus enums anteriores de roteamento e paralelismo.
+- `scripts/development.ps1` é o entry point local canônico com `Doctor`,
+  `Setup`, `Quick`, `Full`, `-Offline` e `-PlanOnly`. `Quick` é `NON_GATE`;
+  `Full` delega uma vez a `scripts/ci.ps1`. A workflow GitHub usa o mesmo
+  agregador para o gate Windows e uma execução Dashboard suplementar em Linux.
+  Offline conserva advisories online como `NOT_RUN` e resultado completo como
+  `PARTIAL`. Tanto o entry point local quanto a chamada direta do gate criam
+  processo-filho sem shell e removem da cópia privada do ambiente, sem ler os
+  valores, activators, conexões/configurações DB-Notifier, flags de sandbox,
+  overrides ASP.NET e credenciais de provider herdados. O shell chamador não é
+  alterado e campanhas físicas continuam exigindo seus runners e autoridades
+  próprias.
 - A adoção desta governança não altera `STATE-06 INTEGRATION`, elegibilidade,
   `MOD-12 ActivationState=None`, ADRs, Human Gates, produto, interface,
   runtime ou autoridade externa.
 
 ## Baseline técnica
 
+- A adoção do fluxo de desenvolvimento começou em
+  `main@f0f220c539fde685e2c500b4944ebca168aaec7d`, com zero processo ou
+  listener DB-Notifier no preflight. A mudança é limitada a método,
+  governança, tooling de desenvolvimento, CI e documentação; não revalida a
+  baseline executável de produto descrita abaixo. Uma árvore externa local
+  preexistente de fonte de referência permanece não rastreada, não lida e
+  excluída do inventário clean-room pelos padrões de `.gitignore`.
 - A última árvore executável inventariada é
   `9512dc1de15619eadd9d2e8e6b5476bb77a13abd`, de 2026-07-28. Ela estava na
   branch `main`, com worktree limpa, e contém como ancestrais `84217c6`,
@@ -126,6 +153,28 @@ proprietários.
   `net10.0-windows10.0.22621.0`; os hosts de sandbox em `tests/` não pertencem
   à composição normal. O Dashboard usa React e TypeScript; o cliente Windows
   usa WPF.
+- Na validação local de 2026-08-27, o host não possuía simultaneamente os
+  pins exatos `.NET SDK 10.0.302`, `Node.js 24.18.0` e `npm 11.16.0`: foram
+  observados SDKs locais `8.0.422`/`10.0.301`, SDKs de sistema
+  `10.0.303`/`10.0.400`, Node.js `24.19.0` e npm `11.17.0`. Nenhuma ferramenta
+  foi instalada e nenhum pin foi relaxado; por isso `Doctor` preserva
+  `DEPENDENCY_UNREADY` e `Quick`/`Full` não podem receber `PASS` local nessa
+  configuração.
+- A evidência executável disponível para o próprio fluxo aprovou `97`
+  invariantes estáticas, `64` regressões determinísticas, sintaxe de `47`
+  scripts PowerShell e `14` scripts Node, compatibilidade de sintaxe de `27`
+  scripts Windows PowerShell com `20` skips declarados, `68` assertions do
+  runner e `13` assertions de sintaxe. Documentação (`437` fontes), Markdown
+  (`977` links em `227` arquivos), validação de bundle, scan de segredos no
+  worktree e histórico disponíveis e integridade Git também aprovaram. Isso
+  não substitui build, testes de produto, cobertura, runtime ou gate canônico.
+- As tentativas diagnósticas do gate canônico Dashboard offline encerraram
+  `BLOCKED` por `DEPENDENCY_UNREADY`; nenhuma produziu ou foi convertida em
+  `PASS`. A execução mais recente, posterior ao hardening de isolamento,
+  aprovou preflight e scan completo de segredos antes de observar Node.js
+  `24.19.0` diante do pin `24.18.0`. `Quick`, `Full All`, build, testes de
+  produto, cobertura, browser/runtime e advisories online permanecem sem
+  `PASS` neste snapshot.
 - Domain e Application permanecem provider-neutral. Provider SDK,
   infraestrutura, persistência, Agent, API, Desktop, Dashboard e testes
   conservam fronteiras próprias e dependências voltadas para dentro.

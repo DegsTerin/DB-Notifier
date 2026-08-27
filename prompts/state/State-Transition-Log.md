@@ -5750,3 +5750,110 @@
   [estado factual](Current-State.md).
 - Aprovador: Bruno, por pedido explícito desta orientação documental; nenhuma
   autoridade adjacente foi inferida.
+
+## 2026-08-27 — Método e fluxo de desenvolvimento governado adotados de forma DB-native
+
+- Estado anterior: `STATE-06 INTEGRATION`, elegibilidade `NÃO REAVALIADA`,
+  `MOD-12 ActivationState=None`, corpus de instruções `6.5.0`, autoridade de
+  coordenação na revisão `1.3.0` e branch `main` no commit
+  `f0f220c539fde685e2c500b4944ebca168aaec7d`.
+- Autoridade humana exata:
+  `Quero que implemente no DB-Notifier o mesmo método e fluxo de desenvolvimento do RAG-Challenge`.
+- Preflight e baseline: zero processo ou listener pertencente ao DB-Notifier
+  antes da ação. O index e o worktree rastreado estavam limpos; a árvore
+  externa preexistente `mysql-notifier-1.1.8-src/` foi classificada como
+  material de referência de terceiro protegido, permaneceu não lida, não
+  alterada e não rastreada e foi excluída do inventário clean-room por
+  `.gitignore`.
+- Fontes congeladas: fluxo técnico público RAG-Challenge em
+  `main@2154b311b4ba41d62f462e3cdb37bc360ee32ca4`, corpus governado em
+  `codex/pdf1-internal-governance@31ac04ba53f2e94b305d4ca08eb2c6d23aab9f9a`
+  e baseline DB-Notifier acima. O worktree público RAG-Challenge possuía
+  alterações locais e, por isso, somente conteúdo commitado integrou a fonte.
+- Decisão de adaptação: adotar autoridade e baseline antes da execução,
+  escopos positivo e negativo, `PLANS.md` vivo, envelope fechado, ownership,
+  stop codes, incrementos pequenos, regressão focal, revisão independente,
+  integração serial, gate agregado e reconciliação de estado/histórico.
+  Permanecem rejeitados lifecycle, corpus, qrels, PDFs/citações, cloud,
+  projeção pública/privada e handoff compacto do RAG-Challenge; o orquestrador
+  TypeScript/worktree fica `DEFERRED` até ADR e autoridade próprias.
+- Sistema de instruções: corpus elevado a `6.6.0` com os mesmos `16` prompts
+  ativos e autoridade de coordenação elevada a `1.4.0`. Permanecem exatamente
+  `14` campos do handoff, `19` campos auxiliares e os enums fechados de
+  roteamento/paralelismo. `PLANS.md`, scripts e testes são materializações não
+  autorizantes e não criam lifecycle ou Human Gate.
+- Tooling materializado: `.nvmrc`, `scripts/development.ps1` com `Doctor`,
+  `Setup`, `Quick`, `Full`, `-Offline` e `-PlanOnly`, agregador
+  `scripts/ci.ps1`, configuração NuGet offline, preflight executável,
+  verificador de política, regressões determinísticas e workflow CI que delega
+  ao mesmo gate em Windows e à etapa Dashboard suplementar em Linux.
+- Segurança do runner: os entry points local e direto criam processo-filho sem
+  shell e removem da cópia privada do ambiente, sem ler valores, credenciais
+  de IA, activators e conexões DB-Notifier, flags de sandbox, configuração de
+  endpoints/listeners e overrides ASP.NET. O shell pai permanece inalterado;
+  campanhas físicas exigem seus runners e autoridades próprios. Processo
+  pertencente ao produto exige evidência de executable path, command line ou
+  raiz do projeto, nunca apenas nome.
+- Semântica dos checks: `Quick` permanece `NON_GATE`; `Full` delega exatamente
+  uma vez ao agregador. `PlanOnly` é determinístico e sem processo/preflight.
+  Offline usa restore/cache local, suprime notificação de update de workloads
+  .NET, preserva advisories online como `NOT_RUN` e só pode resultar
+  `PARTIAL`. Resultado mecânico, classificação do gate automático e decisão
+  humana permanecem camadas separadas.
+- Hardening durante revisão: findings independentes detectaram envelope
+  incompleto, atribuição indevida de autoridade ao plano, taxonomia ambígua,
+  descrição incorreta de `PlanOnly`, ambiente herdado capaz de habilitar testes
+  físicos ou endpoints/listeners, dispatch case-sensitive de `Stage`,
+  identificação por nome de processo, plano `Full` incompleto, notificação de
+  workload offline, secret scan tardio, inventário procfs permissivo e timeout
+  sem margem para a serialização. Cada ponto foi corrigido no menor owner
+  aplicável; nenhum finding foi convertido silenciosamente em aprovação. O
+  timeout canônico de `135` minutos deriva dos `125` minutos combinados dos
+  antigos envelopes paralelos mais margem de orquestração.
+- Evidência mecânica aprovada: preflight; verificador do fluxo `97` assertions;
+  regressões do fluxo `64`; sintaxe primária `47` PowerShell e `14` Node;
+  sintaxe legada `27` PowerShell com `20` skips declarados; runner `68`
+  assertions; regressões de sintaxe `13`; documentação `437` fontes; Markdown
+  `977` links em `227` arquivos; validação do bundle; scan de segredos do
+  worktree não ignorado e do histórico Git disponível; `git diff --check`; e
+  `git fsck --full`, cujos objetos dangling foram informativos sem erro de
+  integridade.
+- Limitação factual: faltam os pins exatos .NET SDK `10.0.302`, Node.js
+  `24.18.0` e npm `11.16.0`. `Doctor` encerrou `DEPENDENCY_UNREADY` no SDK,
+  após aprovar layout, lockfiles e dependências restauradas. As tentativas
+  diagnósticas Dashboard offline encerraram `DEPENDENCY_UNREADY` no Node; a
+  mais recente aprovou preflight e scan completo de segredos antes do bloqueio.
+  Nenhuma tentativa gerou ou foi promovida a `PASS`.
+- Disposição: implementação estrutural concluída e política testada, mas o
+  incremento permanece `PARTIAL`. `Quick`, `Full All`, build, testes de
+  produto, cobertura, browser/runtime e freshness online de advisories não
+  possuem `PASS` neste ambiente. Remote CI não foi executada.
+- Revisão: as três lanes independentes são `Dirac` (equivalência do método),
+  `Turing` (PowerShell/runner) e `Schrodinger` (governança/estado), todas
+  read-only e sem custody de integração. O recheck final sobre fotografia
+  congelada permanece item obrigatório antes do commit focal.
+- Autoridade Git: a instrução permanente exige um commit local focal ao fim do
+  incremento. `amend`, branch, worktree, merge, rebase, push, publicação,
+  release e ação remota permanecem sem autoridade.
+- Escopo negativo: zero alteração de comportamento de produto, provider,
+  schema, migration, interface, packaging de release, database real, serviço
+  externo, navegador comum, deploy, ADR, Human Gate, ativação, homologação ou
+  transição de lifecycle.
+- Estado resultante: `STATE-06 INTEGRATION`, elegibilidade `NÃO REAVALIADA`,
+  `MOD-12 ActivationState=None`, providers, ADRs, Human Gates, produto,
+  interface e autoridade externa permanecem inalterados.
+- Evidências proprietárias: [plano vivo](../../PLANS.md),
+  [fluxo de desenvolvimento](../../docs/Development.md),
+  [gate de qualidade](../governance/Quality-Gates.md),
+  [autoridade de coordenação](../governance/Conversation-Coordination-Prompt.md),
+  [changelog do corpus](../system/Prompt-System-Change-Log.md) e
+  [estado factual](Current-State.md).
+- Aprovador: Bruno, pelo pedido explícito do método e fluxo; nenhuma autoridade
+  adjacente foi inferida.
+- Recheck independente final: governança/estado e PowerShell/runner encerraram
+  `P0=0`, `P1=0`, `P2=0`, `P3=0`; equivalência do método encerrou `P0=0`,
+  `P1=0`, `P2=0` e dois `P3` de precisão documental. Os dois `P3` foram
+  corrigidos ao distinguir runtime de produto do helper descartável e ao
+  documentar o failure outcome `ISOLATION_FAILURE` do sanitizador. A revisão
+  permaneceu estática, sem build, teste de produto, runtime ou acesso à árvore
+  externa protegida.

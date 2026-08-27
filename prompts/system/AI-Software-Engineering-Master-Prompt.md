@@ -108,6 +108,13 @@ autorização permanente e os limites do commit local final pertencem a
   autoridade de coordenação. Sem workflow Git de escrita paralela
   especificamente autorizado e worktrees isolados, conversas simultâneas
   permanecem read-only.
+- Trabalho amplo mantém `PLANS.md` como ledger vivo não autorizante e fecha um
+  envelope com baseline, escopos, ownership, recursos, checks, revisores e stop
+  codes antes da implementação. O ciclo operacional DB-native usa
+  `scripts/development.ps1`: `Doctor`, `Setup`, `Quick` explicitamente
+  `NON_GATE`, `Full` delegado uma vez ao gate canônico e `PlanOnly`
+  determinístico. Essa materialização não cria lifecycle, gate ou autoridade
+  paralelos.
 
 ### Matriz normativa de adoção
 
@@ -129,17 +136,17 @@ Legenda:
 | 4 | Escala e proporcionalidade | `ADOTADO` | Profundidade, evidência e segregação são proporcionais ao risco, sem remover controles obrigatórios. |
 | 5 | Equipes e papéis | `ADAPTADO` | Papéis e RACI são ativados conforme a tarefa; catálogos de cargos e orientação de carreira são `INFORMATIVO`. |
 | 6 | Agentes de IA | `ADAPTADO` | Usar apenas quando a plataforma permitir e houver ganho material; `Conversation-Coordination-Prompt.md` especializa roteamento, single-writer, isolamento, workers e integração central. |
-| 7 | Descoberta do projeto | `JÁ GOVERNADO` | `AGENTS.md` e `Operational-Playbooks.md` governam inventário, fluxo, dependências, CI, risco e amostragem explícita. |
-| 8 | Modos e autorização | `ADAPTADO` | Análise, revisão, planejamento, implementação, refatoração e entrega preservam seus limites; `AGENTS.md` concede autoridade permanente somente para o commit local final do estado de hand-off rastreado, inclusive quando parcial, bloqueado ou falho. |
+| 7 | Descoberta do projeto | `JÁ GOVERNADO` | `AGENTS.md`, `PLANS.md` e `Operational-Playbooks.md` governam inventário, baseline, escopo negativo, dependências, CI, risco, findings e amostragem explícita; o plano é ledger, não autoridade. |
+| 8 | Modos e autorização | `ADAPTADO` | Análise, revisão, planejamento, implementação, refatoração e entrega preservam seus limites; o envelope fechado impede ampliação implícita, e `AGENTS.md` concede autoridade permanente somente para o commit local final do estado de hand-off rastreado, inclusive quando parcial, bloqueado ou falho. |
 | 9 | Ciclo F0–F12 | `ADAPTADO` | O mapeamento abaixo preserva `STATE-00`–`STATE-08` como a única máquina de estados. |
 | 10 | Arquitetura e design | `JÁ GOVERNADO` | Arquitetura da solução, ADRs e baseline .NET 10/React/WPF prevalecem sobre exemplos genéricos. |
 | 11 | Desenvolvimento por camada | `JÁ GOVERNADO` | Arquitetura, Design System e segurança são proprietários de Web, API, Desktop e integrações; mobile exige requisito futuro. |
 | 12 | Banco de dados e dados | `JÁ GOVERNADO` | Contratos de arquitetura e `docs/data/` governam persistência, migrations, retenção, segredos opacos e rollback. |
 | 13 | Segurança, privacidade e conformidade | `JÁ GOVERNADO` | `Security-And-Access.md`, threat models e ADRs aplicáveis são mais específicos; nenhuma obrigação regulatória é presumida. |
-| 14 | Qualidade e padrões de código | `JÁ GOVERNADO` | `AGENTS.md`, `Language-Policy.md`, `Quality-Gates.md`, Design System e padrão de documentação contêm as especializações obrigatórias. |
-| 15 | Testes | `ADAPTADO` | Estratégia baseada em risco; pisos `70%`/`45%`, meta orientativa de `80%` de linhas e proibição de reduzir pisos por componente sem decisão explícita. |
+| 14 | Qualidade e padrões de código | `JÁ GOVERNADO` | `AGENTS.md`, `Language-Policy.md`, `Quality-Gates.md`, Design System e padrão de documentação contêm as especializações obrigatórias; `Quick` é somente feedback e `Full` é o agregador canônico. |
+| 15 | Testes | `ADAPTADO` | Estratégia baseada em risco, regressão focal por incremento e revisão independente quando exigida; pisos `70%`/`45%`, meta orientativa de `80%` de linhas e proibição de reduzir pisos por componente sem decisão explícita. |
 | 16 | Performance e escalabilidade | `ADOTADO` | Exigir cenário, baseline, método reproduzível, resultado antes/depois e trade-offs; não alegar ganho sem medição. |
-| 17 | DevOps, plataforma e ambientes | `ADAPTADO` | Práticas entram no estado proprietário; publicação, IaC, assinatura, SBOM e deploy continuam condicionados ao lifecycle e à autoridade específica. |
+| 17 | DevOps, plataforma e ambientes | `ADAPTADO` | `scripts/development.ps1` e `scripts/ci.ps1` materializam preparação e gate reproduzível com toolchains/lockfiles fixos e disposição offline parcial; publicação, IaC, assinatura, SBOM e deploy continuam condicionados ao lifecycle e à autoridade específica. |
 | 18 | Observabilidade e operação | `JÁ GOVERNADO` | Arquitetura, Quality Gates e MOD-12 governam logs, métricas, traces, health, incidentes e sanitização. |
 | 19 | Documentação | `ADAPTADO` | Manter a taxonomia existente, uma fonte por assunto, links válidos e história separada; `Language-Policy.md` governa novos artefatos em `en-GB`, alterações limitadas no idioma estabelecido e a proibição de migração em massa. |
 | 20 | Git, GitHub e versionamento | `ADAPTADO` | Adotar Conventional Commits com descrição em `en-GB` e commit local final automático conforme `AGENTS.md`; escrita paralela exige workflow, branches e worktrees especificamente autorizados, enquanto PR, merge, rebase, push, release e ação remota continuam sem autoridade implícita. |
@@ -150,9 +157,9 @@ Legenda:
 | 25 | Comunicação | `ADAPTADO` | Atualizações ao proprietário usam `pt-BR` conforme `Language-Policy.md`; `AGENTS.md` e `Conversation-Coordination-Prompt.md` governam o handoff, o roteamento, a recomendação de raciocínio por conversa e lane, o paralelismo e as mensagens exatas sem transformar sugestão de configuração ou indicação de progressão em autorização. |
 | 26 | Segurança operacional | `JÁ GOVERNADO` | Shutdown preflight, proteção de segredos e limites de ações externas do repositório são mais específicos. |
 | 27 | Checklist de release | `CONDICIONAL` | Referência futura de `STATE-08`; não concede autoridade de release no estado atual. |
-| 28 | Checklist final | `ADAPTADO` | Checklist interno não substitui evidência, gates, Human Gate ou handoff obrigatório. |
+| 28 | Checklist final | `ADAPTADO` | Definition of Ready, Definition of Done, revisão de diff/claims, stop codes, plano vivo e checklist interno não substituem evidência, gates, Human Gate ou handoff obrigatório. |
 | 29 | Estrutura modular | `ADAPTADO` | Usar `AGENTS.md`, `prompts/` e `docs/` existentes; criar arquivo somente para autoridade, ciclo de vida, owner ou público genuinamente distinto. |
-| 30 | Inicialização | `ADAPTADO` | Fluxo geral é adotado; ideia nova entra em `STATE-00`, e projeto existente começa pelo estado e escopo atuais. |
+| 30 | Inicialização | `ADAPTADO` | Fluxo geral é adotado; ideia nova entra em `STATE-00`, projeto existente começa pelo estado e escopo atuais, e execução técnica começa por envelope, preflight e `Doctor` sem instalar ferramentas. |
 
 Nenhuma macroseção foi descartada. Trechos genéricos incompatíveis com a
 especialização do DB-Notifier permanecem apenas informativos: escolha livre de

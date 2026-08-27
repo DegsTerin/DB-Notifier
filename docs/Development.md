@@ -11,6 +11,76 @@
 
 Installing an SDK or dependency changes the development environment and is not performed automatically by this repository.
 
+## Canonical development workflow
+
+All ordinary preparation and validation begins at the checked-in entry point:
+
+```powershell
+./scripts/development.ps1 Doctor
+./scripts/development.ps1 Setup
+./scripts/development.ps1 Quick
+./scripts/development.ps1 Full
+```
+
+The entry point runs its executable task in an isolated PowerShell child,
+removes AI provider credentials from that child without reading them, and
+applies the mandatory DB-Notifier shutdown assertion before technical work.
+It does not stop an ambiguous process, install a toolchain, control a database
+or broaden the current lifecycle authority.
+
+The tasks have distinct contracts:
+
+- `Doctor` is read-only. It checks the exact worktree, pinned PowerShell, Git,
+  .NET, Node.js and npm versions, tracked lockfiles and restored dependency
+  readiness, and returns actionable failures.
+- `Setup` performs only locked .NET and npm restores. It does not install an
+  SDK or mutate a lockfile.
+- `Quick` provides bounded local feedback for formatting, compilation, unit
+  and architecture tests, Dashboard static/tests and repository policy. Its
+  first disposition is `NON_GATE`; it deliberately excludes integration,
+  coverage, runtime matrices, online advisory audits and Human Gates.
+- `Full` delegates exactly once to `scripts/ci.ps1`, the canonical aggregate
+  repository gate used by CI. It preserves the existing .NET/WPF, legacy,
+  Dashboard, browser, STATE-06 sandbox, coverage, dependency, documentation,
+  secret and Git-integrity responsibilities.
+
+Every executable task crosses a shell-free child-process boundary. Before the
+child starts, the runner removes inherited DB-Notifier activation markers,
+connection/configuration overrides, sandbox build flags, ASP.NET hosting
+overrides and AI-provider credentials from the child's private environment
+without reading their values. Direct `scripts/ci.ps1` invocation applies the
+same boundary. The calling shell remains unchanged, and a physical campaign
+must still use its separately authorised owning runner.
+
+Append `-PlanOnly` to any task to print its versioned, ordered plan, or run the
+same command twice to compare it in automation, without process inventory, child creation,
+restore, build, test, runtime or network access:
+
+```powershell
+./scripts/development.ps1 Quick -PlanOnly
+./scripts/development.ps1 Full -Offline -PlanOnly
+```
+
+Only `Setup` and `Full` accept `-Offline`. Offline locked restore uses
+`scripts/NuGet.Offline.config`, which clears package sources, and npm uses its
+local cache. Both isolated entry points suppress .NET workload update
+notifications in this mode. The full runner emits `NOT_RUN` for online NuGet
+and npm advisory freshness and finishes with a `PARTIAL` disposition even when
+every runnable check passes.
+
+After the mandatory shutdown assertion, the canonical gate scans the current
+non-ignored worktree and available Git history for high-confidence secret
+signatures before it executes repository policy or product checks. Secret
+values are never printed. Git diff and object-integrity checks still close the
+ordered gate after executable validation.
+
+Broad and cross-cutting increments maintain [`../PLANS.md`](../PLANS.md) as a
+live execution ledger containing the frozen baseline, authority, positive and
+negative scope, protected work, ownership, findings, incremental progress,
+evidence, blockers and outcome. The plan never grants authority and does not
+replace current factual state, append-only history, an ADR, a Quality Gate or
+a Human Gate.
+
 ## Repository layout
 
 ```text
@@ -115,7 +185,9 @@ Secret-shaped or unsupported fields reject the entire migration and produce no t
 
 ## .NET checks
 
-From Windows PowerShell, use the workspace-local SDK:
+These direct commands are component diagnostics for focused investigation;
+they do not replace `./scripts/development.ps1 Full`. From Windows PowerShell,
+use the workspace-local SDK:
 
 ```powershell
 $dotnet = ".\.dotnet\dotnet.exe"
@@ -220,12 +292,13 @@ These tests characterize the only functional legacy provider behavior under its 
 
 ## Dashboard bootstrap
 
-`src/DBNotifier.Dashboard.Web` contains the deterministic React demonstration views and Design System theme runtime. The normal build has no Agent, API, database, IdP or administrative integration. One restricted `STATE-06` adapter exists only for the exact `local-test` flag on an HTTPS loopback origin and reads the test-authenticated Dashboard TV sandbox endpoint; it does not admit an external endpoint or operational identity. The ordinary sandbox registration still supplies the fixed in-memory fixture. Only the integration-test host replaces that source with a read-only projection of synthetic observations received through Agent SQLite/outbox and HTTPS/mTLS; neither this projection nor its synthetic provider is registered by the normal API or Agent Worker. The Dashboard CI job uses the committed lockfile and runs:
+`src/DBNotifier.Dashboard.Web` contains the deterministic React demonstration views and Design System theme runtime. The normal build has no Agent, API, database, IdP or administrative integration. One restricted `STATE-06` adapter exists only for the exact `local-test` flag on an HTTPS loopback origin and reads the test-authenticated Dashboard TV sandbox endpoint; it does not admit an external endpoint or operational identity. The ordinary sandbox registration still supplies the fixed in-memory fixture. Only the integration-test host replaces that source with a read-only projection of synthetic observations received through Agent SQLite/outbox and HTTPS/mTLS; neither this projection nor its synthetic provider is registered by the normal API or Agent Worker. The canonical gate and supplemental Linux Dashboard stage use the committed lockfile and run these responsibilities through `scripts/ci.ps1`:
 
 ```powershell
 npm run toolchain:verify
-npm ci
+npm ci --ignore-scripts --no-audit --no-fund
 npm run brand:verify
+npm run provider-icons:verify
 npm run tokens:verify
 npm run localisation:verify
 npm run check
@@ -298,7 +371,16 @@ Run `.\scripts\verify-secrets.ps1` to scan non-ignored worktree files and availa
 
 ## CI
 
-`.github/workflows/ci.yml` defines bounded jobs for the .NET solution and coverage floor, legacy compatibility and coverage floor, Dashboard static/build/dependency gates, the isolated browser matrix, and history-aware secret scanning. Checkouts do not persist credentials, Node uses the exact supported patch, and concurrent runs for the same ref cancel older work.
+`.github/workflows/ci.yml` delegates the canonical Windows evidence sequence
+exactly once to `scripts/ci.ps1 -Stage All`. A supplemental Linux job calls the
+same entry point with `-Stage Dashboard` to retain cross-platform Dashboard
+compatibility evidence without defining a second aggregate gate. The canonical
+sequence covers the .NET solution and coverage floor, legacy compatibility and
+coverage floor, Dashboard static/build/dependency gates, the isolated browser
+matrix, the bounded STATE-06 sandbox and history-aware secret scanning.
+Checkouts do not persist credentials, Node uses `.nvmrc`, the full checkout is
+available to the history scan, and concurrent runs for the same ref cancel
+older work.
 
 The R5 provenance check queried only `refs/tags/v4` from the official `github.com/actions/*` repositories with `git ls-remote --refs`, without credentials, clone or artefact download. The workflow pins the observed full commits for checkout, setup-dotnet, setup-node and upload-artifact. This local provenance check does not claim that remote CI ran or attest future upstream movement.
 

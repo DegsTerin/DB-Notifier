@@ -1,4 +1,4 @@
-# Module purpose: Runs the continuous-integration gates for builds, tests, dependencies and documentation.
+# Module purpose: Delegates canonical and supplemental continuous-integration evidence to the checked-in repository gate.
 name: CI
 
 on:
@@ -15,161 +15,50 @@ concurrency:
 
 # R5 provenance: official actions/* refs/tags/v4 resolved read-only on 2026-07-21; every checkout drops credentials.
 jobs:
-  dotnet:
+  canonical-windows:
+    name: Canonical repository gate
     runs-on: windows-2025
-    timeout-minutes: 30
-    steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
-        with:
-          persist-credentials: false
-      - uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4
-        with:
-          global-json-file: global.json
-      - name: Verify tracked .NET lockfiles and clean locked restore
-        shell: powershell
-        run: .\scripts\verify-dotnet-lockfiles.ps1 -DotNetPath dotnet
-      - run: dotnet build DBNotifier.sln --configuration Release --no-restore
-      - run: dotnet test DBNotifier.sln --configuration Release --no-build
-      - name: Enforce proportional .NET coverage
-        shell: powershell
-        run: .\scripts\verify-dotnet-coverage.ps1 -DotNetPath dotnet
-      - run: dotnet format DBNotifier.sln --verify-no-changes --no-restore
-      - name: Audit NuGet vulnerabilities
-        shell: powershell
-        run: .\scripts\verify-nuget-vulnerabilities.ps1 -DotNetPath dotnet
-      - name: Audit fail-closed runtime boundaries
-        shell: powershell
-        run: .\scripts\audit-fail-closed-runtime.ps1 -DotNetPath dotnet
-      - run: git diff --check
-      - run: git fsck --full
-
-  legacy-compatibility:
-    runs-on: windows-2025
-    timeout-minutes: 15
-    steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
-        with:
-          persist-credentials: false
-      - name: Verify Windows PowerShell-compatible script syntax
-        shell: cmd
-        run: powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File .\scripts\verify-script-syntax.ps1 -PowerShellOnly -LegacyCompatibleOnly
-      - name: Run DB-Notifier legacy compatibility tests
-        shell: cmd
-        run: powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File .\scripts\run-legacy-tests.ps1
-      - name: Validate the canonical build entry point
-        shell: powershell
-        run: .\build\build.ps1 -ValidateOnly
-
-  dashboard:
-    runs-on: ubuntu-24.04
-    timeout-minutes: 20
-    defaults:
-      run:
-        working-directory: src/DBNotifier.Dashboard.Web
-    steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
-        with:
-          persist-credentials: false
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
-        with:
-          node-version: 24.18.0
-          cache: npm
-          cache-dependency-path: src/DBNotifier.Dashboard.Web/package-lock.json
-      - name: Verify PowerShell and Node script syntax
-        shell: pwsh
-        working-directory: .
-        run: ./scripts/verify-script-syntax.ps1
-      - name: Test the shell-free runner process boundary
-        shell: pwsh
-        working-directory: .
-        run: ./tests/DBNotifier.RunnerProcess.Tests.ps1
-      - name: Test the dynamic script-syntax gate
-        shell: pwsh
-        working-directory: .
-        run: ./tests/DBNotifier.ScriptSyntax.Tests.ps1
-      - run: npm run toolchain:verify
-      - run: npm ci
-      - run: npm run brand:verify
-      - run: npm run provider-icons:verify
-      - run: npm run tokens:verify
-      - run: npm run localisation:verify
-      - run: npm run check
-      - run: npm run comments:verify
-      - run: npm run markdown:verify
-      - run: npm run test
-      - run: npm run build
-      - run: npm audit --audit-level=high
-
-  dashboard-runtime-audit:
-    runs-on: windows-2025
-    timeout-minutes: 20
-    defaults:
-      run:
-        working-directory: src/DBNotifier.Dashboard.Web
-    steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
-        with:
-          persist-credentials: false
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
-        with:
-          node-version: 24.18.0
-          cache: npm
-          cache-dependency-path: src/DBNotifier.Dashboard.Web/package-lock.json
-      - run: npm run toolchain:verify
-      - run: npm ci
-      - run: npm run build
-      - name: Run the bilingual Light and Dark headless browser matrix
-        shell: pwsh
-        working-directory: .
-        run: .\scripts\run-state05-dashboard-audit.ps1 -DiagnosticDirectory "${{ runner.temp }}\dbnotifier-state05-diagnostic"
-      - name: Upload sanitised STATE-05 failure evidence
-        if: failure()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
-        with:
-          name: state05-dashboard-failure-${{ github.run_attempt }}
-          path: ${{ runner.temp }}\dbnotifier-state05-diagnostic\*.json
-          if-no-files-found: error
-          retention-days: 7
-
-  state06-consolidated-e2e:
-    needs: [dotnet, dashboard]
-    runs-on: windows-2025
-    timeout-minutes: 25
-    steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
-        with:
-          persist-credentials: false
-      - uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4
-        with:
-          global-json-file: global.json
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
-        with:
-          node-version: 24.18.0
-          cache: npm
-          cache-dependency-path: src/DBNotifier.Dashboard.Web/package-lock.json
-      - run: dotnet restore DBNotifier.sln --locked-mode
-      - run: npm run toolchain:verify --prefix src/DBNotifier.Dashboard.Web
-      - run: npm ci --prefix src/DBNotifier.Dashboard.Web
-      - name: Run the bounded correlated STATE-06 sandbox
-        shell: pwsh
-        run: .\scripts\run-state06-consolidated-e2e.ps1 -DotNetPath dotnet -DiagnosticDirectory "${{ runner.temp }}\dbnotifier-state06-diagnostic"
-      - name: Upload sanitised STATE-06 failure evidence
-        if: failure()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
-        with:
-          name: state06-consolidated-failure-${{ github.run_attempt }}
-          path: ${{ runner.temp }}\dbnotifier-state06-diagnostic\*.json
-          if-no-files-found: error
-          retention-days: 7
-
-  secret-scan:
-    runs-on: windows-2025
-    timeout-minutes: 15
+    # The former parallel jobs had 125 minutes of combined bounded envelopes; the canonical runner now executes them sequentially.
+    timeout-minutes: 135
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           fetch-depth: 0
           persist-credentials: false
-      - name: Scan the current tree and complete available history without printing values
-        shell: powershell
-        run: .\scripts\verify-secrets.ps1
+      - uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4
+        with:
+          global-json-file: global.json
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: src/DBNotifier.Dashboard.Web/package-lock.json
+      - name: Run the canonical DB-Notifier gate exactly once
+        shell: pwsh
+        run: .\scripts\ci.ps1 -Stage All -DotNetPath dotnet -NodePath node -NpmPath npm -DiagnosticRoot "${{ runner.temp }}\dbnotifier-ci-diagnostics"
+      - name: Upload sanitised runtime failure evidence
+        if: failure()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: dbnotifier-runtime-failure-${{ github.run_attempt }}
+          path: ${{ runner.temp }}\dbnotifier-ci-diagnostics\**\*.json
+          if-no-files-found: ignore
+          retention-days: 7
+
+  dashboard-linux:
+    name: Supplemental Dashboard Linux compatibility
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: src/DBNotifier.Dashboard.Web/package-lock.json
+      - name: Run the supplemental Dashboard gate through the shared entry point
+        shell: pwsh
+        run: ./scripts/ci.ps1 -Stage Dashboard -NodePath node -NpmPath npm

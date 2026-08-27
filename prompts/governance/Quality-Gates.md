@@ -12,6 +12,21 @@ Toda alegação técnica deve registrar, conforme aplicável:
 
 Banner de sucesso, compilação isolada ou ausência de erro aparente não provam saúde funcional.
 
+## Definition of Ready
+
+- Baseline, worktree e estado corrente identificados.
+- Shutdown preflight aplicável comprovado.
+- Autoridade, objetivo, critérios de aceite, escopo positivo, escopo negativo
+  e trabalho protegido explícitos.
+- Contratos e dependências necessários congelados ou bloqueados factualmente.
+- Ownership exclusivo de paths, artefatos lógicos e recursos mutáveis.
+- Estratégia de regressão, checks, revisores, evidência e rollback definida.
+- `PLANS.md` vivo e sincronizado quando o trabalho for amplo, transversal,
+  multi-incremento ou combinar auditoria e remediação.
+
+Falha de prontidão é `BLOCKED`; não deve ser convertida em sucesso por redução
+de escopo silenciosa, retry ou substituição de evidência.
+
 ## Definition of Done
 
 - Requisitos e critérios atendidos.
@@ -22,6 +37,13 @@ Banner de sucesso, compilação isolada ou ausência de erro aparente não prova
 - Nenhum secret ou evidência falsa.
 - Dívida e cobertura pendente explicitadas.
 - Mudanças preexistentes não relacionadas preservadas.
+- Causa raiz tratada pelo menor incremento coerente e regressão correspondente.
+- Diff, claims, segurança e compatibilidade revisados; revisão independente
+  concluída quando exigida pelo risco.
+- Plano vivo, estado, histórico, documentação e evidência reconciliados depois
+  do fato, sem reescrever registros anteriores.
+- Disposição final preservada como `PASS`, `FAIL`, `BLOCKED`, `PARTIAL` ou
+  `NOT_RUN`, sem promover lifecycle ou Human Gate implicitamente.
 
 ## Política de cobertura
 
@@ -53,6 +75,79 @@ Banner de sucesso, compilação isolada ou ausência de erro aparente não prova
 8. Registrar achados com severidade, impacto, reprodução e correção recomendada.
 
 Auditoria não corrige silenciosamente falhas, não inventa evidência e não promove estado.
+
+### Resultados mecânicos, gate automático e decisão humana
+
+As disposições do runner são evidência mecânica e permanecem literalmente
+`PASS`, `FAIL`, `BLOCKED`, `PARTIAL` ou `NOT_RUN`:
+
+- `PASS`: todos os checks obrigatórios daquele runner foram executados e
+  aprovados no escopo declarado;
+- `FAIL`: ao menos um check executado produziu falha factual;
+- `BLOCKED`: uma pré-condição obrigatória impediu a execução;
+- `PARTIAL`: somente parte do conjunto aplicável foi executada ou ficou atual;
+- `NOT_RUN`: um check aplicável não foi executado, com motivo explícito.
+
+O gate automático apresenta ao proprietário `APROVADO` apenas quando a
+evidência agregada obrigatória é `PASS`; apresenta `REPROVADO` diante de
+`FAIL`; e apresenta `BLOQUEADO` diante de `BLOCKED`, `PARTIAL` ou qualquer
+`NOT_RUN` obrigatório. A disposição mecânica original continua visível e não
+é traduzida nem apagada. `NÃO APLICÁVEL` significa que o check está fora do
+escopo provado e nunca é sinónimo de `NOT_RUN`.
+
+Uma decisão humana ou `Human Gate` é uma camada separada: não nasce de um
+resultado mecânico e nunca pode convertê-lo, corrigi-lo ou substituí-lo.
+
+## Fluxo local canônico e CI
+
+O entry point local é `../../scripts/development.ps1`:
+
+- `Doctor`: diagnóstico read-only do preflight, layout, toolchains, lockfiles
+  e prontidão das dependências;
+- `Setup`: restore bloqueado, sem instalar toolchain e sem alterar lockfile;
+- `Quick`: feedback focal explicitamente `NON_GATE`, sem integração, cobertura,
+  runtime, auditoria online ou Human Gate;
+- `Full`: única tarefa que delega exatamente uma vez para
+  `../../scripts/ci.ps1`, o agregador canônico;
+- `PlanOnly`: plano versionado, ordenado, determinístico e sem preflight,
+  processo-filho, restore, build, teste, runtime ou rede.
+
+O gate canônico conserva, conforme plataforma e escopo, as responsabilidades
+.NET/WPF, arquitetura, legado/Pester, Dashboard, assets gerados, documentação,
+Markdown, cobertura, dependências, segurança, browser sandbox, E2E `STATE-06`,
+segredos e integridade Git. A workflow remota delega à mesma implementação;
+checks diretos de componente são diagnósticos ou evidência suplementar, não um
+segundo gate agregado. Após o shutdown preflight obrigatório, a varredura de
+segredos do worktree não ignorado e do histórico Git disponível precede a
+execução das políticas e dos gates de produto; higiene do diff e integridade
+de objetos Git encerram a sequência.
+
+Somente `Setup` e `Full` aceitam `-Offline`. O modo offline usa caches locais,
+desativa notificações de atualização de workloads .NET, marca freshness de
+advisories NuGet/npm como `NOT_RUN` e encerra o gate completo como `PARTIAL`,
+mesmo quando todos os checks executáveis passam. Não há retry automático nem
+correção em linha de uma falha.
+
+`scripts/verify-development-flow.ps1` e
+`tests/DBNotifier.DevelopmentFlow.Tests.ps1` verificam o plano vivo, a
+delegação de CI, as invariantes `Quick`/`Full`, o isolamento de credenciais e o
+plano determinístico. Esses testes de política não substituem build, teste de
+produto, revisão semântica ou gate humano.
+
+## Severidade de achados
+
+- `P0`: risco crítico imediato, perda de dados, segredo exposto, ação externa
+  insegura ou violação incontornável de autoridade; interrompe todo trabalho
+  afetado.
+- `P1`: defeito material de correção, segurança, reprodutibilidade, gate ou
+  escopo; impede disposição `PASS` até correção autorizada ou bloqueio factual.
+- `P2`: risco relevante não bloqueante, dívida ou lacuna de cobertura que deve
+  ser registrada e priorizada.
+- `P3`: melhoria de baixo risco, clareza ou manutenção sem impacto material
+  demonstrado no objetivo corrente.
+
+Todo achado informa localização, cenário, impacto, evidência, recomendação e
+confiança. Ausência de achado não prova ausência absoluta de defeitos.
 
 ## Gate de conformidade linguística
 

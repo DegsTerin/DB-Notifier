@@ -1,9 +1,9 @@
 # DB-Notifier — Coordenação de Conversas e Trabalho Paralelo Seguro
 
 - Status: autoridade temática normativa
-- Revisão: `1.3.0`
+- Revisão: `1.4.0`
 - Versão de introdução no corpus: `6.2.0`
-- Versão desta revisão no corpus: `6.5.0`
+- Versão desta revisão no corpus: `6.6.0`
 - Projeto: `DB-Notifier`
 - Workspace: raiz confirmada do repositório ou do worktree atribuído à conversa
 
@@ -22,7 +22,11 @@ Este documento é a autoridade temática única para:
 5. recomendar o nível de raciocínio do Codex adequado a cada conversa;
 6. classificar se várias conversas podem trabalhar simultaneamente;
 7. impedir que o paralelismo autorizado produza writers sobrepostos,
-   sobrescrita, integração ambígua ou mudança fora de autoridade.
+   sobrescrita, integração ambígua ou mudança fora de autoridade;
+8. fechar o envelope operacional de cada tarefa com baseline, escopo,
+   ownership, recursos, checks, revisores e stop codes;
+9. classificar topologia de execução e artefatos sem alterar os enums do
+   handoff governado.
 
 [`Governance.md`](Governance.md)
 permanece proprietário da autoridade, execução controlada, lifecycle, bloqueio
@@ -140,6 +144,56 @@ Usar somente quando existirem duas ou mais tarefas realmente independentes,
 limitadas, verificáveis e com ganho material de tempo ou especialização.
 
 Usar o menor número útil de conversas. Na dúvida, usar `SEQUENTIAL_ONLY`.
+
+### Envelope, topologia e recursos da execução
+
+Antes de qualquer implementação, a coordenadora fecha um envelope versionado
+com autoridade, baseline, estado, objetivo, escopos positivo e negativo,
+trabalho protegido, contratos e dependências, ownership, recursos mutáveis,
+checks, revisores, evidência, rollback e condições de parada. Trabalho amplo
+mantém também o `../../PLANS.md` vivo. Nenhum dos dois concede autoridade.
+
+O envelope usa exatamente uma topologia operacional:
+
+- `SAFE_PARALLEL`: lanes independentes e somente leitura ou totalmente
+  isoladas, sem contrato ou recurso mutável compartilhado;
+- `CONTRACT_FROZEN_PARALLEL`: contratos e dependências foram congelados antes
+  de lanes isoladas com write sets disjuntos;
+- `SINGLE_OWNER`: uma única conversa escreve o conjunto coerente enquanto
+  lanes auxiliares permanecem read-only;
+- `SEQUENTIAL_ONLY`: dependência, runtime, gate, decisão, isolamento ou risco
+  exige ordem estrita.
+
+A topologia não substitui `Parallel work`. O handoff continua aceitando apenas
+`SEQUENTIAL_ONLY`, `PARALLEL_OPTIONAL` ou `PARALLEL_RECOMMENDED`; as duas
+classificações devem ser coerentes. Sem autorização específica de branches e
+worktrees, qualquer topologia com análise paralela conserva `SINGLE_OWNER` ou
+writers sequenciais na coordenadora.
+
+Cada artefato é classificado como `AUTHORITY`, `CURRENT_FACT`, `HISTORY`,
+`EVIDENCE`, `PLAN`, `IMPLEMENTATION` ou `GENERATED`. Cada recurso mutável —
+arquivo, contrato, schema, migration, lockfile, branch, worktree, banco,
+índice, porta, processo, runtime, temporário, cache, output ou recurso externo
+— possui um único owner. A classificação não reduz a proteção da fonte
+proprietária nem permite edição manual de artefato gerado ou histórico.
+
+Usar stop codes canônicos nos bloqueios operacionais:
+
+- `AUTHORITY_MISMATCH`: autoridade ausente, conflitante ou insuficiente;
+- `BASELINE_DRIFT`: branch, commit, worktree ou contrato divergiu da baseline;
+- `SCOPE_OVERLAP`: path, artefato, requisito ou writer sobrepõe outro escopo;
+- `DEPENDENCY_UNREADY`: ferramenta, contrato, pacote ou entrada obrigatória
+  não está pronta;
+- `ISOLATION_FAILURE`: worktree, processo, porta, banco, cache ou output não
+  pode ser isolado;
+- `MUTABLE_RESOURCE_COLLISION`: duas atividades atingem o mesmo recurso;
+- `GATE_FAILURE`: check obrigatório produziu falha factual;
+- `EXTERNAL_AUTHORITY_REQUIRED`: ação externa exige autorização própria;
+- `HUMAN_DECISION_REQUIRED`: ADR, Human Gate ou outra decisão humana permanece
+  pendente.
+
+Stop code preserva a causa original, impede retry corretivo silencioso e não
+autoriza descarte, ampliação de escopo ou substituição de evidência.
 
 ## 3. Contrato do handoff governado
 

@@ -55,13 +55,43 @@ IDs não podem ser reutilizados com outro significado.
 
 1. Ler visão, estado corrente e regras aplicáveis.
 2. Antes de cada nova ação técnica autorizada, executar o shutdown preflight obrigatório e provar que nenhum componente ou runtime DB-Notifier permanece aberto, ativo ou escutando; turnos exclusivamente conversacionais não acionam este passo.
-3. Inspecionar workspace, ferramentas e mudanças preexistentes.
-4. Confirmar escopo, estado e entregáveis permitidos.
-5. Planejar mudança e validação proporcional ao risco.
-6. Implementar somente o escopo autorizado.
-7. Executar checks reais e registrar evidências sanitizadas.
-8. Relatar resultado, riscos, itens não testados e próximo gate.
-9. Atualizar estado/histórico apenas quando houver mudança factual.
+3. Congelar a baseline por branch/worktree e commit quando existente;
+   inventariar ferramentas, mudanças preexistentes, untracked, artefatos
+   protegidos e limites clean-room sem absorver trabalho alheio.
+4. Confirmar autoridade, estado, objetivo, entregáveis, escopo positivo e
+   escopo negativo. Fechar o envelope da tarefa com ownership, recursos
+   mutáveis, revisores, checks, critérios de aceite e stop codes.
+5. Para trabalho amplo, transversal, multi-incremento ou auditoria com
+   remediação já autorizada, criar ou atualizar o [`../../PLANS.md`](../../PLANS.md)
+   vivo. O plano registra execução; nunca concede autoridade nem substitui
+   estado, histórico, ADR ou gate.
+6. Selecionar o menor incremento coerente que ataque a causa raiz e definir a
+   regressão capaz de provar o comportamento alterado.
+7. Implementar somente o escopo autorizado, com um writer por boundary e
+   validação focal contínua após cada incremento.
+8. Revisar diff, claims, segurança, compatibilidade e evidência; usar revisão
+   independente quando o risco ou a amplitude exigirem.
+9. Integrar resultados de forma serial e determinística. Workers entregam
+   candidatos; a coordenadora preserva a custódia da integração.
+10. Executar os checks reais do repositório. `Quick` é somente feedback
+    `NON_GATE`; `Full` chama uma vez o gate canônico. Preservar a disposição
+    factual `PASS`, `FAIL`, `BLOCKED`, `PARTIAL` ou `NOT_RUN`.
+11. Atualizar estado e histórico somente depois da mudança factual e sem
+    reescrever evidência anterior.
+12. Encerrar com diff/staged diff revisados, commit focal quando exigido,
+    limitações, trabalho restante, próximo passo, próxima etapa e handoff
+    governado.
+
+O fluxo operacional padrão é:
+
+```text
+authority → baseline → scope → preflight → live plan → small increments →
+focused regressions → independent review → serial integration → aggregate
+gate → factual state/history → governed hand-off
+```
+
+Os scripts apenas materializam parte desse protocolo. Resultado mecânico não
+autoriza escopo, ADR, Human Gate, ativação, homologação ou transição de estado.
 
 ## Ações permitidas por estado
 
@@ -110,6 +140,7 @@ Bloqueio não autoriza salto de estado.
 
 ## Memória do projeto
 
+- `../../PLANS.md`: plano vivo não autorizante do incremento amplo corrente.
 - `../state/Current-State.md`: somente presente factual.
 - `../state/State-Transition-Log.md`: histórico append-only.
 - ADRs: decisões arquiteturais e substituições.

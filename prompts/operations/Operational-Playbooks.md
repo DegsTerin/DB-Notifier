@@ -17,6 +17,37 @@ Executar antes de cada nova ação técnica autorizada no código, workspace ou 
 
 Uma amostra humana pode permanecer aberta somente quando a finalidade da ação técnica atual é entregá-la visivelmente ao validador. Antes de qualquer ação técnica posterior — inclusive registrar a aprovação em arquivos — aplicar este protocolo integralmente. Processos de build/teste iniciados na própria tarefa continuam sujeitos ao encerramento normal antes do hand-off, salvo essa entrega visível limitada.
 
+## Fluxo de desenvolvimento governado
+
+Usar para preparação, feedback local e Quality Gate do repositório:
+
+1. Fechar o envelope: autoridade, baseline, estado, escopos positivo e
+   negativo, trabalho protegido, contratos, ownership, recursos mutáveis,
+   revisores, checks, aceite e stop codes.
+2. Em trabalho amplo, transversal ou multi-incremento, criar ou sincronizar o
+   `../../PLANS.md` vivo antes da implementação.
+3. Executar `../../scripts/development.ps1 Doctor`. O comando é read-only,
+   aplica a asserção de shutdown e não instala toolchain.
+4. Se as dependências bloqueadas ainda não estiverem prontas e a autoridade
+   permitir restore, executar `Setup`; usar `-Offline` somente quando caches
+   locais forem a fonte autorizada.
+5. Implementar o menor incremento coerente, atualizar regressões e usar
+   `Quick` para feedback `NON_GATE` após cada lote útil.
+6. Revisar diff, claims, segurança, compatibilidade e evidência; obter revisão
+   independente quando o risco exigir e integrar candidatos serialmente.
+7. Executar `Full` somente quando todos os preflight e runtimes locais do gate
+   estiverem autorizados. `Full` delega uma vez ao agregador
+   `../../scripts/ci.ps1` e preserva o primeiro resultado factual.
+8. Atualizar plano, estado, histórico e changelog somente depois do fato,
+   revisar staged diff, executar checks finais e produzir o commit focal e o
+   handoff governado.
+
+`-PlanOnly` permite examinar a sequência determinística sem executar ação
+técnica. `Quick` nunca encerra Quality Gate. `Full -Offline` marca verificações
+online como `NOT_RUN` e produz evidência `PARTIAL`, não equivalência ao gate
+online. Scripts implementam o fluxo, mas não concedem autoridade, lifecycle,
+ADR, Human Gate, ativação ou ação externa.
+
 ## Ajuste focado
 
 Quando usar: correção ou melhoria delimitada.
@@ -36,9 +67,15 @@ Quando usar: pedido explícito de revisão ponta a ponta.
 3. Avaliar cada linguagem e framework segundo suas convenções oficiais e, quando aplicável, separação de responsabilidades, SOLID, DRY, KISS, OWASP, concorrência, gestão de recursos, compatibilidade e manutenção futura.
 4. Validar comportamento local/remoto, stale/unknown, falhas parciais, reconexão, alertas e notificações sem apresentar alcance de transporte como saúde autenticada.
 5. Validar Start/Stop/Restart somente contra capability, identidade, privilégio, confirmação, idempotência, auditoria e homologação comprovados; ausência de prova permanece `Unsupported`, `Unavailable`, `Denied` ou não testada conforme o fato.
-6. Executar os testes e verificações estáticas reais que sejam seguros e aplicáveis ao estado autorizado, registrando comandos, versões, ambiente, exit codes, limitações e evidência sanitizada.
-7. Classificar cada achado como Crítico, Alto, Médio ou Baixo e informar arquivo/localização, categoria, descrição técnica, evidência ou reprodução, impacto atual e futuro, causa e correção recomendada.
-8. Produzir resumo executivo, estado geral, lista de achados, riscos, melhorias, prioridade de correção e plano de ação sugerido, distinguindo observado, inferido, não testado e bloqueado.
+6. Manter `../../PLANS.md` sincronizado com baseline, escopo negativo,
+   findings, incrementos, evidências, decisões, limitações e outcome quando a
+   mesma autoridade já incluir remediação.
+7. Executar os testes e verificações estáticas reais que sejam seguros e aplicáveis ao estado autorizado, registrando comandos, versões, ambiente, exit codes, limitações e evidência sanitizada.
+8. Classificar cada achado como `P0`, `P1`, `P2` ou `P3` e informar arquivo/localização, categoria, descrição técnica, evidência ou reprodução, impacto atual e futuro, causa e correção recomendada.
+9. Quando remediação estiver autorizada, corrigir por causa raiz em incrementos
+   pequenos, adicionar regressão, validar continuamente e submeter o conjunto
+   a revisão independente antes do gate agregado.
+10. Produzir resumo executivo, estado geral, lista de achados, riscos, melhorias, prioridade de correção e plano de ação sugerido, distinguindo observado, inferido, não testado e bloqueado.
 
 Auditoria isolada não autoriza correção. Não alterar arquivos durante o
 diagnóstico nem avançar o ciclo de vida. Se a solicitação atual já separar e

@@ -26,6 +26,27 @@ The discovery outputs for the transformation are:
 
 The project has technically completed discovery, setup, architecture, database modelling, backend implementation and the governed frontend phase. It is now executing only explicitly authorised, restricted `STATE-06` integration increments; completing one increment does not promote the lifecycle or activate a planned capability automatically. See [`prompts/state/Current-State.md`](prompts/state/Current-State.md) for current truth and [`docs/Development.md`](docs/Development.md) for onboarding commands.
 
+## Canonical development flow
+
+[`PLANS.md`](PLANS.md) is the non-authorising live execution ledger for broad
+or cross-cutting work. The checked-in development entry point exposes the same
+ordered workflow locally and in CI:
+
+```powershell
+./scripts/development.ps1 Doctor
+./scripts/development.ps1 Setup
+./scripts/development.ps1 Quick
+./scripts/development.ps1 Full
+```
+
+Use `-PlanOnly` to inspect the exact deterministic sequence without running a
+preflight, restore, build, test, runtime or network action. `Quick` is always
+`NON_GATE`; only `Full` delegates to the canonical aggregate Quality Gate.
+`Setup -Offline` and `Full -Offline` use local caches and report online
+advisory freshness checks as `NOT_RUN`, so an offline result is never
+equivalent to the complete online gate. Exact prerequisites and operational
+limits are documented in [`docs/Development.md`](docs/Development.md).
+
 ## Current legacy application
 
 The functional implementation is a Windows tray monitor written in PowerShell 5.1:

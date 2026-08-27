@@ -79,3 +79,6 @@ secrets.json
 # Windows noise
 Thumbs.db
 Desktop.ini
+
+# External reference source excluded from the clean-room project inventory
+mysql-notifier-*-src/

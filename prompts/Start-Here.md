@@ -20,11 +20,18 @@ Agentes que operam no repositório começam também por [`../AGENTS.md`](../AGEN
    iniciar trabalho com múltiplas conversas.
 7. Abrir somente os demais documentos temáticos necessários à tarefa.
 
+Em trabalho amplo, transversal, multi-incremento ou que combine auditoria e
+remediação, ler também [`../PLANS.md`](../PLANS.md) antes da implementação e
+mantê-lo sincronizado. O plano é ledger operacional não autorizante: divergência
+com estado ou autoridade interrompe a execução e se resolve pela fonte
+proprietária, nunca pelo plano.
+
 ## Roteamento
 
 | Necessidade | Documento |
 |---|---|
 | Instruções permanentes e comportamento operacional de agentes | `../AGENTS.md` |
+| Plano vivo do incremento amplo corrente, escopo, progresso, achados e evidências | `../PLANS.md` |
 | Comunicação com o proprietário, idioma dos artefatos, conteúdo existente, convenções externas e separação da interface | `governance/Language-Policy.md` |
 | Roteamento de conversas, handoff, recomendação de raciocínio do Codex, paralelismo seguro, ownership e integração coordenada | `governance/Conversation-Coordination-Prompt.md` |
 | Método geral de engenharia, papéis virtuais, proporcionalidade, modos de trabalho e matriz de adoção | `system/AI-Software-Engineering-Master-Prompt.md` |
@@ -36,6 +43,7 @@ Agentes que operam no repositório começam também por [`../AGENTS.md`](../AGEN
 | Evidências, auditoria, DoD e Human Gate | `governance/Quality-Gates.md` |
 | Credenciais, autenticação, RBAC e auditoria | `governance/Security-And-Access.md` |
 | Auditoria completa, ajustes, UI/UX e reestruturação | `operations/Operational-Playbooks.md` |
+| Uso de `Doctor`, `Setup`, `Quick`, `Full`, `PlanOnly` e gate local canônico | `operations/Operational-Playbooks.md`, `governance/Quality-Gates.md` e `../docs/Development.md` |
 | Design System, temas, tokens e componentes React/WPF | `../docs/design/DB-Notifier-Design-System.md` |
 | Situação atual | `state/Current-State.md` |
 | Ratificação retrospectiva dos Human Gates contestados | `../docs/Human-Gate-Retrospective-Ratification.md` |
@@ -95,6 +103,11 @@ Conflitos que ampliem materialmente o escopo, exijam ação externa irreversíve
 - Documentar código e configuração exclusivamente em inglês britânico (`en-GB`), conforme `../docs/Code-Documentation-Standards.md`, mantendo comentários concisos e sincronizados.
 - Aplicar `../docs/design/DB-Notifier-Design-System.md` a todo frontend novo ou alterado; não criar temas, tokens ou componentes paralelos fora do contrato oficial.
 - Consultar o estado antes de executar uma fase ou playbook.
+- Fechar o envelope da tarefa antes de implementar: baseline, autoridade,
+  escopos positivo e negativo, trabalho protegido, ownership, recursos
+  mutáveis, checks, revisores e stop codes devem estar explícitos.
+- Usar `../scripts/development.ps1` como entrada local canônica. `Quick` é
+  `NON_GATE`; somente `Full` delega ao agregador `../scripts/ci.ps1`.
 - Atualizar estado e histórico somente quando houver mudança factual.
 
 ## Estrutura ativa
@@ -107,4 +120,6 @@ transversal distinta: preserva a baseline geral e encaminha especializações
 aos documentos proprietários, sem criar um lifecycle paralelo. Um novo arquivo
 só deve ser criado quando o conteúdo tiver autoridade, ciclo de vida ou
 público diferente dos documentos existentes. Caso contrário, adicionar uma
-seção ao documento temático apropriado.
+seção ao documento temático apropriado. `PLANS.md` e os scripts de execução
+ficam fora da contagem dos 16 prompts ativos porque são, respectivamente,
+ledger não autorizante e implementação verificável das autoridades temáticas.

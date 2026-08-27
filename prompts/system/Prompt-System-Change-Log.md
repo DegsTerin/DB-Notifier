@@ -2,9 +2,9 @@
 
 ## Versão atual
 
-- Versão: `6.5.0`
-- Data: 2026-07-30
-- Status: recomendação de raciocínio do Codex obrigatória por conversa
+- Versão: `6.6.0`
+- Data: 2026-08-27
+- Status: método e fluxo de desenvolvimento governado materializados
 - Escopo: 16 arquivos ativos
 
 A versão do corpus é independente da versão do software.
@@ -16,6 +16,58 @@ A versão do corpus é independente da versão do software.
 - PATCH: clareza, correção ou referência sem mudança de autoridade.
 
 Toda alteração atualiza este arquivo e, quando necessário, `../Start-Here.md`.
+
+## 6.6.0 — 2026-08-27
+
+- Adota de forma DB-native o núcleo transferível do método RAG-Challenge:
+  autoridade e baseline antes da execução, escopos positivo e negativo,
+  `PLANS.md` vivo, envelope fechado, ownership, pequenos incrementos,
+  regressões focais, revisão independente, integração serial, gate agregado e
+  reconciliação factual posterior.
+- Usa como fontes congeladas o fluxo técnico público RAG-Challenge em
+  `main@2154b311b4ba41d62f462e3cdb37bc360ee32ca4` e o corpus governado em
+  `codex/pdf1-internal-governance@31ac04ba53f2e94b305d4ca08eb2c6d23aab9f9a`.
+  Alterações não commitadas observadas no worktree público não foram tratadas
+  como autoridade.
+- Atualiza `Conversation-Coordination-Prompt.md` para a revisão `1.4.0` com
+  envelope, topologias `SAFE_PARALLEL`, `CONTRACT_FROZEN_PARALLEL`,
+  `SINGLE_OWNER` e `SEQUENTIAL_ONLY`, classes de artefato, matriz de recursos
+  mutáveis e stop codes. Preserva exatamente os 14 campos do handoff, os 19
+  campos auxiliares e seus enums existentes.
+- Cria `PLANS.md` como ledger operacional não autorizante e mantém o corpus
+  com 16 prompts ativos. Plano, scripts e testes materializam autoridades
+  existentes; não formam novo lifecycle, estado ou gate humano.
+- Introduz `scripts/development.ps1` com `Doctor`, `Setup`, `Quick`, `Full`,
+  `-Offline` e `-PlanOnly`, processo-filho isolado e scrub de credenciais sem
+  leitura. `Quick` é `NON_GATE`; `Full` delega exatamente uma vez ao agregador
+  `scripts/ci.ps1`. O entry point e o gate direto removem ainda activators,
+  conexões/configurações DB-Notifier, flags de sandbox e overrides ASP.NET da
+  cópia privada do ambiente antes de qualquer check, sem alterar o shell pai;
+  isso impede que estado residual habilite campanha física ou endpoint
+  externo num `Full` genérico.
+- Consolida no gate canônico as responsabilidades existentes de .NET/WPF,
+  arquitetura, legado, Dashboard, assets, documentação, cobertura,
+  dependências, browser, sandbox `STATE-06`, segredos e integridade Git. A
+  workflow remota chama o mesmo gate e preserva uma matriz Dashboard Linux
+  suplementar.
+- Define offline como evidência parcial: restores usam fontes/cache locais,
+  notificações de update de workloads .NET são suprimidas, freshness de
+  advisories online fica `NOT_RUN` e o agregado termina `PARTIAL`, nunca
+  equivalente ao gate online.
+- Faz o scan de segredos preceder políticas e gates executáveis depois do
+  shutdown preflight, preserva disposições mecânicas de falha/bloqueio, exige
+  evidência de path/comando em vez de nome de processo isolado e corrige o
+  dispatch case-insensitive do estágio Dashboard.
+- Faz o inventário procfs Linux falhar fechado diante de identidade ainda viva
+  e ilegível e ajusta para `135` minutos o timeout bounded do gate Windows
+  serial, a partir dos `125` minutos combinados dos envelopes anteriores.
+- Adiciona verificadores de método e plano determinístico, protege fonte
+  externa local do inventário clean-room sem ler, copiar ou rastrear seu
+  conteúdo e documenta o fluxo em `README.md` e `docs/Development.md`.
+- Mantém `STATE-06 INTEGRATION`, elegibilidade `NÃO REAVALIADA`,
+  `MOD-12 ActivationState=None`, providers não homologados, ADRs e Human Gates
+  inalterados. Não autoriza produto, migration, banco real, runtime externo,
+  deploy, publicação, ativação, homologação ou transição de lifecycle.
 
 ## 6.5.0 — 2026-07-30
 
