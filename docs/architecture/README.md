@@ -88,6 +88,7 @@ Infrastructure / Providers / Agent / API / Desktop
 - [ADR-0006 — Provider capability and administrative control](ADR-0006-Provider-Capabilities-And-Control.md)
 - [ADR-0007 — AIOps trust distribution and resource admission](ADR-0007-AIOps-Trust-Distribution-And-Resource-Admission.md) (`accepted`; implementation not authorised)
 - [ADR-0008 — JOSE cryptographic profiles and key lifecycle](ADR-0008-JOSE-Cryptographic-Profiles-And-Key-Lifecycle.md) (revision `1.2`, `proposed`; `JOSE-0` package accepted only as documentary preparation, feasibility spike and `JOSE-D1` decision not authorised; no implementation or infrastructure authorised)
+- [ADR-0009 — Web, API, data, and Linux delivery topology](ADR-0009-Web-API-Data-And-Linux-Delivery-Topology.md) (`proposed`; retains the implemented React/Vite, ASP.NET Core, PostgreSQL and REST baseline, while Next.js, Redis, GraphQL and Docker/Linux/Nginx delivery remain conditional and separately authorised)
 - [JOSE security profile and key lifecycle](JOSE-Security-Profile-And-Key-Lifecycle.md) (`JOSE-0` documentary preparation accepted; provisional profiles, safety caps and ownership/trust/data/egress maps remain non-normative and unimplemented)
 - [JOSE IANA registry coverage](JOSE-IANA-Registry-Coverage.md) (`JOSE-0` pinned evidence and classification; `318/318` registry rows reviewed with no `Unreviewed`; not runtime support)
 - [Canonical contracts](Canonical-Contracts.md)

@@ -9,26 +9,103 @@ append-only history, a Quality Gate or a Human Gate.
 
 ## Control record
 
-- Plan ID: `AUD-2026-R1-R4`
-- Status: `BLOCKED`
-- Created: `2026-08-27`
-- Initial baseline: `main@0f59408440dc1c5877f8d3de0de8859ef9bc7fed`
+- Plan ID: `ARCH-2026-R1`
+- Status: `COMPLETE`
+- Created: `2026-08-28`
+- Initial baseline: `main@0b09bd62863ad71fb1fcde48c6f47851b2ee0e69`
 - Preserved predecessors: all first factual dispositions remain immutable;
-  most recently, `AUD-2026-R1-R3-R1` remains `BLOCKED` by its sole online
-  `Full` and the high-severity `nanoid <3.3.18` advisory
+  most recently, `AUD-2026-R1-R4` remains `BLOCKED` by its sole online `Full`
+  and the missing consolidated-E2E `marker` property
 - Lifecycle state: `STATE-06 INTEGRATION`; unchanged by this plan
-- Authority: Bruno's explicit request to implement in DB-Notifier the same
-  development method and flow used by RAG-Challenge, continued from the
-  factual blocker left by the already adopted workflow
+- Authority: Bruno's explicit authorisation for a documentation-only increment
+  to formalise the revised DB-Notifier architecture in `STATE-06`
 - Execution mode: `SEQUENTIAL_ONLY`
 - Writer: coordinating conversation only
-- Independent reviewer: not separately authorised; deterministic lockfile
-  comparison, the focused dependency audit and the canonical sequential checks
-  own executable review
+- Independent reviewers: one read-only architecture/documentation review after
+  candidate freeze, followed by the applicable deterministic documentation
+  checks
 - Factual-state owner: `prompts/state/Current-State.md`
 - Historical owner: `prompts/state/State-Transition-Log.md`
 
 ## Task envelopes
+
+### Authorised documentary architecture decision `ARCH-2026-R1` — complete
+
+- Envelope status: `COMPLETE`.
+- Exact human authority: prepare a documentation-only proposed architecture
+  decision for the named Web, API, data, cache/session, container, Linux,
+  reverse-proxy and repository-automation technologies; update this live plan;
+  perform applicable documentation checks once; create one focused local
+  commit; do not implement, advance lifecycle, accept the ADR or take external
+  action.
+- Workspace and frozen baseline: `C:\Projects\DB-Notifier`, branch `main`,
+  commit `0b09bd62863ad71fb1fcde48c6f47851b2ee0e69`; index, tracked worktree and
+  non-ignored untracked inventory were clean before this plan update.
+- Initial shutdown evidence: one canonical shutdown preflight returned `PASS`;
+  matching processes `0`, owned listeners `0`.
+- Verifiable objective: record one coherent proposed decision that retains the
+  existing React/Vite and C#/.NET 10/ASP.NET Core baseline, PostgreSQL as the
+  sole durable source of truth and REST as the primary API; makes Next.js,
+  Redis and GraphQL conditional on objective criteria; and defines a future
+  Docker/Linux/Nginx Web topology plus Git/GitHub/GitHub Actions delivery
+  boundaries without claiming implementation or operational support.
+- Positive documentary scope: this live plan;
+  `docs/architecture/ADR-0009-Web-API-Data-And-Linux-Delivery-Topology.md` as a
+  new `en-GB` artefact with status `proposed`; the discoverability entry in
+  `docs/architecture/README.md`; static independent review; the development-flow
+  policy verifier, code-documentation verifier, Markdown-link verifier,
+  secret scan and `git diff --check`; one focused local commit.
+- Frozen read-only scope: `AGENTS.md`, the instruction corpus, current state,
+  append-only history, accepted ADRs, other proposed ADRs, architecture
+  baseline, product reports, source, tests, scripts, workflows, configuration,
+  manifests, lockfiles, schemas and migrations.
+- Protected work and negative scope: protected external or ignored material
+  remains unread, unmodified and undeleted. `AUD-2026-R1-R5-R1` and every path
+  or artefact owned by it are protected read-only work and are neither
+  incorporated nor altered by this envelope. No code, configuration,
+  dependency, lockfile, schema, migration, runtime, build, product test,
+  operational database, implementation, support claim, ADR acceptance, Human
+  Gate, activation, lifecycle transition, deploy, publication, push or other
+  external action is authorised. Subjects outside the exact named technology
+  set remain outside the ADR.
+- Artefact classification and ownership: `PLANS.md` is `PLAN`; the new ADR is
+  `AUTHORITY` with proposal status; the architecture index is `AUTHORITY`. The
+  coordinating conversation is the exclusive writer for all three paths. The
+  independent reviewer is read-only and cannot accept the ADR or alter facts.
+- Execution topology and mutable resources: `SEQUENTIAL_ONLY`; no product
+  process, port, database, container, browser, workflow runner or external
+  resource is started or changed. Git index and worktree remain under the
+  coordinating conversation's exclusive custody through the final commit.
+- Definition of Ready: shutdown preflight `PASS`; exact clean baseline frozen;
+  authority, positive and negative scope, owners, checks, reviewer and stop
+  codes explicit; ADR number `0009` confirmed unused; current aggregate-gate
+  `FAIL` preserved as prior factual evidence rather than retried.
+- Definition of Done: the plan is reconciled; ADR-0009 remains `proposed` and
+  contains context, decision, alternatives, consequences, adoption criteria,
+  failure behaviour, rollback, observability, acceptance conditions and
+  negative scope; the architecture index labels it as proposed and
+  non-authorising; independent review has no unresolved `P0` or `P1`; every
+  applicable documentation check passes on its first execution; final diff and
+  staged diff contain only the three authorised paths; one focused local commit
+  exists; `STATE-06` remains unchanged.
+- Rollback strategy: before commit, correct only in-scope documentary defects;
+  after commit, preserve history and use a separately authorised focused revert
+  if the proposal must be withdrawn. No product, data, schema or runtime
+  rollback applies because none changes.
+- Objective stop codes: `AUTHORITY_MISMATCH`, `BASELINE_DRIFT`,
+  `SCOPE_OVERLAP`, `DEPENDENCY_UNREADY`, `ISOLATION_FAILURE`,
+  `MUTABLE_RESOURCE_COLLISION`, `GATE_FAILURE`, `EXTERNAL_AUTHORITY_REQUIRED`
+  and `HUMAN_DECISION_REQUIRED`. Any first applicable stop condition prevents
+  later validation or correction beyond safe factual reconciliation and the
+  mandatory focused commit of an isolable authorised state.
+- Result: `COMPLETE`. The candidate was frozen after an initial independent
+  review reported `P0=0`, `P1=0`, `P2=3`, `P3=0`; all three documentary
+  findings were corrected, and the final read-only re-review reported `P0=0`,
+  `P1=0`, `P2=0`, `P3=0`. The development-flow, code-documentation,
+  Markdown-link and secret checks each passed on their first execution. The
+  final whitespace and staged-scope checks and the focused local commit form
+  the atomic closing boundary after this ledger freeze; their exact facts are
+  reported from the final Git state in the owner hand-off.
 
 ### Authorised dependency corrective continuation `AUD-2026-R1-R4` — blocked
 
@@ -720,11 +797,16 @@ to this increment.
 | `AUD-2026-R1-R1` | Restore the mandatory initial-baseline plan control and resume the exact sequential gate attempt. | `BLOCKED` |
 | `AUD-2026-R1-R3-R1` | Recover the stopped shutdown boundary, propagate exact legacy SDK identity and execute the separately authorised sequential gate attempt. | `BLOCKED` |
 | `AUD-2026-R1-R4` | Update only the vulnerable transitive nanoid lock identity and execute the sequential gate attempt. | `BLOCKED` |
+| `ARCH-2026-R1` | Formalise the proposed Web, API, data and Linux delivery topology without implementation or lifecycle progression. | `COMPLETE` |
 
 ## Evidence log
 
 | Date | Scope | Command or review | Result | Limitation |
 |---|---|---|---|---|
+| 2026-08-28 | `ARCH-2026-R1` shutdown preflight | `scripts/assert-dbnotifier-shutdown.ps1` | `PASS`; matching processes `0`, owned listeners `0` | No product runtime, database, container, browser or external resource was started. |
+| 2026-08-28 | `ARCH-2026-R1` baseline and scope freeze | Branch, `HEAD`, index, tracked worktree and complete non-ignored untracked inventory | `PASS`; initially clean `main@0b09bd62863ad71fb1fcde48c6f47851b2ee0e69`; candidate limited to the three authorised paths | Protected and ignored material was not inspected; `AUD-2026-R1-R5-R1` was neither incorporated nor altered. |
+| 2026-08-28 | `ARCH-2026-R1` independent review and corrected re-review | Read-only architecture, factual, language, link and scope review | Initial `P0=0`, `P1=0`, `P2=3`, `P3=0`; final `P0=0`, `P1=0`, `P2=0`, `P3=0` | The reviewer changed no file, ran no canonical check and did not consult external links. |
+| 2026-08-28 | `ARCH-2026-R1` deterministic documentary validation | Development-flow policy, code-documentation, Markdown-link and available-history secret verifiers | `PASS` on first execution; `105` policy assertions, `439` comment-capable source files and `990` local links in `227` Markdown files | No build, product test, runtime or external link request was performed; final Git whitespace and staged-scope evidence follows the ledger freeze. |
 | 2026-08-27 | Initial preflight | Process, command-line, parentage and listener inventory | `PASS` | No product runtime was started. |
 | 2026-08-27 | Baseline | `git status`, `git rev-parse HEAD`, source provenance comparison | `PASS` | The protected external source tree was not inspected. |
 | 2026-08-27 | Toolchain discovery | Local and system .NET/Node/npm version inspection | `BLOCKED` for full execution | Required .NET SDK `10.0.302`, Node `24.18.0` and npm `11.16.0` are not all available on the current host. |
@@ -872,6 +954,17 @@ to this increment.
 
 ## Outcome and next action
 
+`ARCH-2026-R1` is `COMPLETE` as a documentary increment. ADR-0009 records the
+revised Web, API, data and Linux delivery topology at status `proposed`; the
+architecture index exposes that status without granting implementation, and
+this plan preserves the exact baseline, negative scope, review and validation
+evidence. The final independent review closed at `P0=0`, `P1=0`, `P2=0`,
+`P3=0`, and all four deterministic documentary verifiers passed on their first
+execution. No source, configuration, dependency, schema, runtime, external
+resource, factual state, Human Gate or lifecycle position changed. The next
+action is the owner's separate review of the exact proposed ADR revision; no
+decision is inferred by this completed preparation.
+
 `AUD-2026-R1-R4` is `BLOCKED` by `GATE_FAILURE`. npm generated only the
 compatible `nanoid 3.3.18` lock identity, while the Dashboard manifest,
 dependency edge and developer-toolchain ranges remained unchanged. The
@@ -920,6 +1013,12 @@ lifecycle authority was inferred.
 
 ## Change log
 
+- `2026-08-28`: the owner authorised documentary increment `ARCH-2026-R1` on
+  clean `main@0b09bd6`. The plan, proposed ADR-0009 and architecture index were
+  updated without implementation or lifecycle progression. Three initial `P2`
+  review findings were corrected; final review closed at zero findings, and
+  the development-flow, code-documentation, Markdown-link and secret checks
+  each passed once. The protected adjacent lot remained outside this envelope.
 - `2026-08-27`: the owner requested continuation of the adopted development
   method from clean `main@0f59408`. `AUD-2026-R1-R4` changed only the
   transitive `nanoid` lock identity to patched `3.3.18`; the focused audit,
