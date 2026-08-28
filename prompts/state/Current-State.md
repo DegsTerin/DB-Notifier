@@ -49,7 +49,7 @@ proprietários.
 
 ## Sistema de instruções e coordenação
 
-- O corpus vigente é `7.0.0`, com 16 arquivos ativos. A
+- O corpus vigente é `8.0.0`, com 16 arquivos ativos. A
   [Política de Idioma](../governance/Language-Policy.md), revisão `1.0.0`, é a
   autoridade temática única para comunicação com o proprietário, idioma dos
   artefatos, preservação de conteúdo existente, convenções externas e
@@ -62,16 +62,22 @@ proprietários.
   autoridades ficam em `prompts/governance/`; `Governance.md` conserva
   autoridade, execução controlada e lifecycle.
 - O
-  [relatório `GOV-MN-REV-01`](../../docs/STATE-06-MySQL-Notifier-Authority-Revocation-Report.md)
-  registra a revogação prospectiva da antiga decisão clean-room e do
-  mandato de paridade funcional com MySQL Notifier. A cláusula de inspiração
-  em MySQL Notifier de `REQ-047`, todo o `REQ-048`, `REQ-050`, `MN-001`–`MN-025`
-  e `MN-Q01`–`MN-Q04` permanecem somente como histórico; nenhum deles autoriza
-  requisito, design, código, teste, ativo, critério de aceite, roadmap ou
-  implementação futura. A proibição vale para qualquer funcionalidade isolada,
-  combinação ou conjunto completo. Comportamentos já próprios do DB-Notifier e
-  o possível provider independente para o banco MySQL preservam suas
-  autoridades separadas.
+  [relatório `GOV-MN-RESTORE-01`](../../docs/STATE-06-MySQL-Notifier-Functional-Reference-Restoration-Report.md)
+  registra a intenção corrigida do proprietário: MySQL Notifier 1.1.8 volta a
+  ser referência funcional e comportamental para aperfeiçoar DB-Notifier.
+  `REQ-048`, `REQ-050`, `MN-001`–`MN-025` e `MN-Q01`–`MN-Q04` recuperam suas
+  disposições e saídas incrementais. `GOV-MN-REV-01` e seu commit permanecem
+  história factual, mas sua proibição prospectiva está supersedida. A
+  autoridade permite somente resultados funcionais observáveis, sanitizados e
+  não expressivos, não uma base de implementação ou mandato de clone. Analista
+  exposto à fonte entrega apenas proveniência e especificação comportamental
+  sanitizada; autores correspondentes de implementação/testes permanecem não
+  expostos e uma revisão independente de proveniência/similaridade precede a
+  integração. Código, binário, ativo, texto, trade dress ou arquitetura interna
+  Oracle/MySQL não entram no projeto MIT sem proveniência/direitos documentados,
+  modelo de distribuição compatível, revisão jurídica especializada e decisão
+  separada do proprietário. O possível provider independente para o banco
+  MySQL conserva autoridade separada.
 - Comunicação com o proprietário usa `pt-BR`. Novos artefatos independentes
   pertencentes ao projeto usam `en-GB`; alterações limitadas preservam o
   idioma estabelecido de cada arquivo; convenções externas permanecem
@@ -137,10 +143,18 @@ proprietários.
   listener DB-Notifier no preflight. A mudança é limitada a método,
   governança, tooling de desenvolvimento, CI e documentação; não revalida a
   baseline executável de produto descrita abaixo. A árvore externa local
-  `mysql-notifier-1.1.8-src/` foi lida estaticamente somente durante a auditoria
-  e revogação `GOV-MN-REV-01`; nenhum conteúdo foi executado, copiado,
-  rastreado ou convertido em requisito. Ela permanece excluída do inventário
-  Git pelos padrões de `.gitignore` e não pode ser usada como input de produto.
+  `mysql-notifier-1.1.8-src/` foi lida estaticamente durante
+  `GOV-MN-REV-01`; nenhum conteúdo foi executado, incorporado ou rastreado.
+  `GOV-MN-RESTORE-01` acrescentou uma lane separada e read-only que amostrou
+  licença/avisos e metadados representativos de source, projeto e manifesto de
+  recursos para classificar proveniência e risco de ativos. Nenhum arquivo-alvo
+  foi copiado ou modificado, e nenhum extract atravessou para artefato,
+  implementação, teste ou commit. A árvore permanece excluída do inventário Git
+  pelos padrões de `.gitignore`. Qualquer inspeção futura exige autoridade
+  explícita separada; autores de implementação/testes recebem somente registro
+  de proveniência e especificação comportamental sanitizados e aprovados, nunca
+  source, binários, ativos, material decompilado ou notas brutas/não sanitizadas
+  derivadas da fonte.
 - A última árvore executável inventariada é
   `9512dc1de15619eadd9d2e8e6b5476bb77a13abd`, de 2026-07-28. Ela estava na
   branch `main`, com worktree limpa, e contém como ancestrais `84217c6`,
@@ -518,17 +532,17 @@ proprietários.
   continuam não autorizados.
 - Não há loader dinâmico nem carregamento ou distribuição operacional de
   provider packages, instalador, assinatura, update channel ou entrega
-  operacional. A cláusula de inspiração em MySQL Notifier de `REQ-047` está
-  `REVOGADA`; `REQ-048` e `REQ-050` estão `REVOGADOS`; os 29 registros
-  `MN-*`/`MN-Q*` são rastreabilidade histórica e têm zero saídas futuras
-  autorizadas. Os lotes `S06-DFR-01`/`02` continuam fatos locais concluídos,
-  mas não são precedente para nova paridade ou derivação. O possível provider
-  independente para o banco MySQL permanece não implementado e não homologado.
+  operacional. A referência funcional de `REQ-047` está restaurada;
+  `REQ-048` e `REQ-050` estão `ATIVOS COM LIMITES`; os 29 registros
+  `MN-*`/`MN-Q*` recuperam suas disposições e saídas incrementais. Os lotes
+  `S06-DFR-01`/`02` continuam fatos locais concluídos e evidenciam somente seus
+  recortes provider-neutral. O possível provider independente para o banco
+  MySQL permanece não implementado e não homologado.
 
 ## Interfaces atuais
 
 - O contrato normativo vigente é o
-  [Design System `3.4.1`](../../docs/design/DB-Notifier-Design-System.md), com
+  [Design System `3.4.2`](../../docs/design/DB-Notifier-Design-System.md), com
   `pt-BR` e `en-GB`, temas Light e Dark e Windows High Contrast como override
   independente.
 - Dashboard Web e WPF expõem oito destinos comuns. O Web é responsivo a partir
@@ -688,11 +702,16 @@ proprietários.
 
 ## Decisões que exigem nova autoridade
 
-- Nenhum requisito, matriz, implementação ou gate baseado em MySQL Notifier
-  pode ser iniciado. Restaurar a referência ou qualquer mandato de paridade
-  exigiria nova decisão explícita do proprietário que supersedesse
-  `GOV-MN-REV-01`, além das revisões independentes de licença, segurança,
-  arquitetura e lifecycle aplicáveis.
+- Cada incremento que implemente uma saída `MN-*`/`MN-Q*` ainda exige envelope,
+  baseline, escopo, checks e autoridade técnica próprios; a matriz ativa não
+  autoriza implementação em massa, provider, runtime ou transição de lifecycle.
+- Copiar, traduzir, adaptar, linkar ou redistribuir código-fonte, binários,
+  ativos, texto, trade dress ou arquitetura interna Oracle/MySQL exige decisão
+  explícita e separada de licenciamento/distribuição, proveniência exata do
+  componente/rightsholder, direitos ou permissões aplicáveis documentados,
+  modelo de distribuição compatível e revisão jurídica especializada;
+  `GOV-MN-RESTORE-01` não concede essa autoridade e a decisão do proprietário
+  não relicencia esse material Oracle/MySQL ou de terceiros.
 - Qualquer novo diagnóstico, mudança metodológica ou campanha física requer
   autorização explícita e separada. `D9` não foi autorizado nem transformado
   em pré-condição automática.

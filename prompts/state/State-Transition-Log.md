@@ -6547,3 +6547,129 @@
   `SEQUENTIAL_ONLY`, `SINGLE_OWNER` foi mantido como topologia separada, e a
   execução seguinte aprovou 123 asserções. O primeiro resultado permanece
   registrado como falha.
+
+## 2026-08-28 — GOV-MN-RESTORE-01 restaura a referência funcional MySQL Notifier
+
+- Estado anterior: `STATE-06 INTEGRATION`, elegibilidade `NÃO REAVALIADA`,
+  `MOD-12 ActivationState=None`, corpus `7.0.0`, Design System `3.4.1` e
+  baseline limpa `main@830b20c423b604cc72ec2e1b53423ac53066e067`.
+- Autoridade humana corrigida: o proprietário esclareceu que pretende recriar
+  no DB-Notifier as funcionalidades do MySQL Notifier e usar o produto de
+  referência como base funcional para aperfeiçoamento.
+- Preflight e baseline: o shutdown obrigatório aprovou com zero processo e
+  zero listener DB-Notifier; branch, HEAD, index e worktree rastreada
+  correspondiam à baseline antes da abertura do plano corretivo.
+- Supersessão prospectiva: `GOV-MN-RESTORE-01` substitui a proibição vigente de
+  `GOV-MN-REV-01`, mas preserva integralmente seu relatório, commit, falha e
+  PASS de política, revisões e entrada histórica como fatos da instrução
+  literal anterior.
+- Autoridade funcional: `REQ-048` e `REQ-050` voltam a `ATIVOS COM LIMITES`;
+  `MN-001`–`MN-025` e `MN-Q01`–`MN-Q04` recuperam suas disposições e saídas
+  incrementais. “Todas as funcionalidades” significa cobertura de resultados,
+  não clone de mecanismo, seleção, arranjo, interface ou expressão de interação.
+- Fronteira de expressão: somente resultados funcionais observáveis,
+  sanitizados e não expressivos podem informar requisitos e aceite
+  provider-neutral. MySQL Notifier não é base de implementação nem target de
+  compatibilidade de source.
+- Separação de papéis: analista exposto à fonte entrega apenas proveniência e
+  especificação comportamental sanitizada; autores correspondentes de
+  implementação/testes permanecem não expostos a source, binários, assets,
+  material decompilado e notas derivadas. Revisão independente de
+  proveniência/similaridade precede integração.
+- Licença e direitos: nenhum material protegido ou de terceiro entra em
+  entrega MIT sem proveniência exata de componente/rightsholder, direitos ou
+  permissões aplicáveis documentados, modelo de distribuição compatível,
+  revisão jurídica especializada e decisão separada do proprietário. Decisão
+  do proprietário e permissão adicional local de linkagem não relicenciam
+  material Oracle/MySQL/terceiro nem concedem direitos de marca.
+- Matriz factual: oito resultados têm comportamento normal ainda ligado à
+  demonstração, 12 têm implementação própria bounded/parcial/injetável/test-only,
+  três são contract-only, três estão ausentes e três permanecem
+  `REJECT/REPLACE`. Vinte de 29 têm algum comportamento próprio; 18 permanecem
+  incompletos/condicionais e zero prova paridade operacional homologada.
+- Próximo lote recomendado, não autorizado: `S06-DFR-03 Desktop Fleet
+  Authenticated Runtime Binding`, estritamente read-only, após decisão separada
+  de identidade humana curta, `instances.read`, HTTPS/egress e gates próprios.
+- Integridade e contenção: a árvore externa permanece ignorada, não rastreada e
+  inalterada na identidade já registrada
+  `6f7c58b1c36c91dd2c3d7406aba31eb3d8213e6e737dce23be6fc0eaa1b4c676`.
+  Este lote usou o inventário sanitizado anterior e uma revisão separada de
+  licença/avisos; nenhum source de implementação foi reaberto ou executado.
+- Governança: o corpus avança para `8.0.0` e o Design System para `3.4.2`, sem
+  alteração de token, asset, comportamento executável ou Human Gate. O prefixo
+  append-only anterior foi preservado com 771.775 bytes e SHA-256
+  `6ebb28113f5e36c9118939e27455f67db096f80974fbf7a3bab83fc8c4598762`.
+- Escopo negativo: nenhum código de produto, teste comportamental, provider,
+  dependência, lockfile, schema, runtime, banco, serviço, deploy, publicação,
+  push, Human Gate, homologação, ativação ou transição de lifecycle foi
+  executado ou autorizado.
+- Estado resultante: `STATE-06 INTEGRATION` permanece inalterado, com
+  elegibilidade `NÃO REAVALIADA` e `MOD-12 ActivationState=None`.
+- Validação focal: a primeira execução do verificador de política falhou com
+  exit `1` porque o literal obrigatório da fronteira de provider atravessava
+  uma quebra de linha no relatório corretivo. A representação foi ajustada sem
+  mudança de política; a execução sucessora aprovou `125` asserções, o teste
+  standalone aprovou `98`, documentação aprovou `447` arquivos, links Markdown
+  aprovaram `995` links em `231` arquivos, e o scan de segredos e
+  `git diff --check` aprovaram.
+- Aplicabilidade dos gates: `Quick` e `Full` são `NOT_RUN` e não constituem
+  evidência deste lote exclusivamente documental/de política.
+- Preservação estrutural: o relatório histórico de revogação não tem diff, e
+  os 771.775 bytes anteriores deste histórico append-only preservam SHA-256
+  `6ebb28113f5e36c9118939e27455f67db096f80974fbf7a3bab83fc8c4598762`.
+- Correção factual de exposição: a lane separada de proveniência deste lote
+  amostrou read-only licença/avisos e metadados representativos de source,
+  projeto e manifesto de recursos. Nenhum arquivo-alvo foi executado, copiado
+  para o workspace ou modificado, e nenhum extract atravessou para artefato,
+  implementação, teste ou commit. A afirmação anterior de que nenhum source de
+  implementação foi reaberto estava incorreta e fica expressamente corrigida.
+- Correção de autoridade: a cláusula de inspiração funcional MySQL Notifier de
+  `REQ-047` também volta a vigorar. A matriz apenas roteia possíveis incrementos
+  e não os autoriza. Qualquer inspeção futura da árvore exige autoridade
+  explícita separada e novo envelope com separação de papéis.
+- Precisão clean-room e de licença: autores de implementação/testes recebem
+  somente registro de proveniência e especificação comportamental sanitizados e
+  aprovados; a exclusão alcança source e notas brutas ou não sanitizadas
+  derivadas da fonte, não o handoff aprovado. A exigência especial de
+  proveniência, modelo de distribuição, revisão jurídica e decisão separada
+  aplica-se somente à expressão protegida ou material terceiro originário,
+  incluído ou derivado da árvore de referência MySQL Notifier.
+- Precisão da matriz: 20 registros têm algum comportamento próprio. Os 18 das
+  categorias parcial, contract-only e ausente não esgotam trabalho aberto,
+  porque os oito demo-bound também mantêm saídas. Todos os 26 não rejeitados
+  têm saída aberta ou limitada; três permanecem `REJECT/REPLACE`, e zero prova
+  paridade operacional homologada.
+- Fontes jurídicas primárias: a coordenação atualizou em 2026-08-28 as páginas
+  oficiais de 17 USC §102(b), 15 USC §1125 e diretrizes de marca Oracle usadas
+  apenas para contextualizar o controle de engenharia. Isso não substitui
+  revisão jurídica especializada nem conclui licença, derivação ou infração.
+- Revisões independentes iniciais: `FAIL`. A lane de autoridade registrou
+  `P0=0`, `P1=3`, `P2=3`, `P3=0`; a lane de licenciamento registrou `P0=0`,
+  `P1=1`, `P2=2`, `P3=1`. Os achados cobriram exposição ao source, `REQ-047`,
+  não autorização da matriz, leitura futura, contagem, regressões de política,
+  fonte jurídica, handoff sanitizado, escopo de material terceiro e uso
+  referencial de marca. O candidato foi corrigido; nova revisão permanece
+  obrigatória antes da disposição final.
+- Falha de integridade do rascunho: uma primeira aplicação da evidência
+  encontrou uma ocorrência histórica repetida e alterou temporariamente o
+  prefixo append-only. A verificação imediata detectou SHA-256
+  `e4d8d696fb78f41580cc25e49b1886ef7bf6a923984f489980ec5cbc67962051`;
+  o bloco não commitado foi removido e anexado somente ao final. O prefixo de
+  771.775 bytes voltou ao SHA-256 congelado antes de qualquer integração.
+- Segunda falha focal preservada: depois de fortalecer o verificador para
+  `REQ-047`, identidade exata das 29 linhas, autoridade separada de inspeção
+  futura e não autorização de `S06-DFR-03`, sua primeira execução falhou com
+  exit `1` porque uma asserção de contagem atravessava quebra de linha. A
+  asserção foi tornada independente de layout sem enfraquecer o contrato; a
+  execução sucessora aprovou `127` asserções, e o teste standalone sucessor
+  aprovou `98`.
+- Revisões independentes finais: `PASS`. As lanes de autoridade e licenciamento
+  retornaram, cada uma, `P0=0`, `P1=0`, `P2=0`, `P3=0`; confirmaram fechamento
+  de todos os achados, identidade das 29 linhas, prefixo histórico, fronteiras
+  de source/licença/marca, não autorização da matriz e ausência de mudança em
+  produto, provider, Human Gate ou lifecycle.
+- Disposição: `GOV-MN-RESTORE-01 COMPLETE`, com zero item obrigatório
+  remanescente neste alvo corretivo. `S06-DFR-03 Desktop Fleet Authenticated
+  Runtime Binding` permanece apenas recomendado e exige decisão e autoridade
+  separadas antes de qualquer implementação. `STATE-06 INTEGRATION` permanece
+  inalterado.

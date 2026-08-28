@@ -9,11 +9,14 @@ append-only history, a Quality Gate or a Human Gate.
 
 ## Control record
 
-- Plan ID: `GOV-MN-REV-01`
+- Plan ID: `GOV-MN-RESTORE-01`
 - Status: `COMPLETE`
 - Created: `2026-08-28`
-- Initial baseline: `main@0c1da9d9cc11fa0a0678ce1435660e1a833364e1`
+- Initial baseline: `main@830b20c423b604cc72ec2e1b53423ac53066e067`
 - Preserved predecessors: all first factual dispositions remain immutable;
+  `GOV-MN-REV-01` remains `COMPLETE` as the factual result of the owner's
+  earlier literal wording but is prospectively superseded by the corrected
+  intent recorded in this plan,
   `S06-DFR-02` and `S06-DFR-01` remain `COMPLETE`,
   `GOV-2026-R1` remains `COMPLETE`,
   `AUD-2026-R1-R5-R2` remains `BLOCKED` by its rejected durable-capture
@@ -21,21 +24,172 @@ append-only history, a Quality Gate or a Human Gate.
   `AUD-2026-R1-R5-R1` remains `BLOCKED` by its unprovable sole focal result,
   while `AUD-2026-R1-R4` remains `BLOCKED` by its sole online `Full`
 - Lifecycle state: `STATE-06 INTEGRATION`; unchanged by this plan
-- Authority: Bruno's explicit instruction to read, analyse and verify the local
-  `mysql-notifier-1.1.8-src` folder and revoke every decision or permission to
-  incorporate, recreate or use the complete MySQL Notifier 1.1.8 feature set
-  in DB-Notifier
+- Authority: Bruno's explicit clarification that the intended direction is to
+  recreate MySQL Notifier functionality in DB-Notifier and use MySQL Notifier
+  as a functional basis for improving DB-Notifier
 - Execution mode: `SEQUENTIAL_ONLY`; execution topology `SINGLE_OWNER`.
   Independent lanes are read-only, and every write, integration step,
   validation and Git operation is sequential
 - Writer: coordinating conversation only
-- Independent reviewers: one read-only legacy-folder auditor, one tracked
-  authority-reference auditor and one governance reviewer produced candidates;
-  final read-only re-review closed with zero findings at every severity
+- Independent reviewers: one read-only authority-restoration reviewer, one
+  functional-matrix reviewer and one licensing-boundary reviewer produce
+  independent candidates; a final reviewer examines the integrated frozen diff
 - Factual-state owner: `prompts/state/Current-State.md`
 - Historical owner: `prompts/state/State-Transition-Log.md`
 
 ## Task envelopes
+
+### MySQL Notifier functional-reference restoration `GOV-MN-RESTORE-01` — complete
+
+- Envelope status: `COMPLETE`.
+- Corrected human authority: restore MySQL Notifier 1.1.8 as a functional and
+  behavioural reference for improving DB-Notifier and recreate its useful
+  capabilities as DB-Notifier-owned functionality.
+- Workspace and frozen baseline: `C:\Projects\DB-Notifier`, branch `main`,
+  commit `830b20c423b604cc72ec2e1b53423ac53066e067`; index and tracked worktree
+  were clean before this corrective plan update.
+- Initial shutdown evidence: the canonical preflight returned `PASS` with zero
+  matching processes and zero owned listeners. No process was stopped.
+- Verifiable objective: supersede the prospective prohibition created by
+  `GOV-MN-REV-01`; restore the MySQL Notifier functional-inspiration clause of
+  `REQ-047`; reactivate `REQ-048`, `REQ-050` and the 29-record `MN-*`/`MN-Q*`
+  functional-coverage matrix; permit sanitised behavioural
+  inspection and independently implemented provider-neutral equivalents;
+  preserve all historical records and existing DB-Notifier evidence; and name
+  the smallest separately authorised implementation lot that should follow.
+- Safe interpretation of “copy functionality”: cover sanitised, observable and
+  non-expressive user outcomes and improve them through DB-Notifier-owned
+  requirements, architecture, code, tests and assets. The reference may inform
+  capability discovery and behavioural acceptance criteria, but it is not an
+  implementation base, source-compatibility target or mandate to clone a
+  distinctive selection, arrangement, interface or interaction expression.
+- Licensing boundary: this envelope does not authorise copying, translating,
+  adapting, linking, redistributing or importing Oracle/MySQL source code,
+  compiled libraries, artwork, logos, trade dress, product copy or other
+  protected expression into the MIT project. Literal reuse would require exact
+  component/rightsholder provenance, documented applicable rights or
+  permissions, a compatible distribution model, specialist legal review and a
+  separate owner decision; neither the owner decision nor a local additional
+  linking permission can relicense Oracle/MySQL or third-party material from
+  the reference tree or grant trademark rights. No such authority or evidence
+  is inferred here.
+- Positive scope: this live plan; permanent root-agent instructions; README;
+  project vision; migration-plan authority and its preserved 29-row matrix;
+  Design System authority; current factual state; one corrective documentary
+  report; instruction-system changelog; append-only transition history; the
+  development-flow policy regression; focused policy, documentation, link and
+  secret checks; independent read-only review; and one focused local commit.
+- Source-reference scope: this corrective lot relies on the sanitised inventory
+  already frozen by `GOV-MN-REV-01` and one separated read-only provenance lane.
+  That lane sampled licence/notice material plus representative source, project
+  and resource-manifest metadata to classify ownership and asset risk. It
+  executed and modified nothing, copied no target file into the workspace and
+  delivered no source extract, signature, identifier, constant or internal
+  design to the coordinating or implementation lanes. The ignored
+  `mysql-notifier-1.1.8-src/` tree remains quarantined and untracked. Any future
+  source-code inspection requires separate explicit authority and a
+  source-exposed analyst who may return only an approved sanitised provenance
+  record and behavioural specification; corresponding implementation and test
+  authors must remain unexposed to source, binaries, assets, decompiled material
+  and raw or unsanitised source-derived notes and may receive only that approved
+  sanitised handoff. Independent provenance/similarity review is required
+  before integration.
+- Historical scope preserved read-only: `GOV-MN-REV-01`, prior Human Gates,
+  ADRs, reports, request traceability, plan envelopes, changelog entries,
+  transition-log entries and commits retain their original wording and factual
+  dispositions. The current clarification supersedes only their prospective
+  authority where they conflict.
+- Earlier `unread`/no-access statements in predecessor envelopes remain true
+  for those executions and are not rewritten. This corrected-authority lot
+  separately authorised the bounded provenance sampling recorded above. Any
+  future source-code inspection requires its own explicit authority and
+  separated-role envelope.
+- Protected work and negative scope: no product source, test behaviour,
+  provider, dependency, lockfile, schema, generated artefact or runtime
+  composition changes in this corrective governance lot. Do not access a real
+  database/provider/network service, start DB-Notifier, deploy, publish, push,
+  decide a Human Gate, activate a capability or transition lifecycle.
+- Provider distinction: MySQL Notifier is the functional reference product;
+  MySQL remains a separate database-engine provider candidate. Reactivating
+  functional coverage does not implement or homologate that provider.
+- Artefact classification and ownership: instructions, migration plan and
+  Design System are `AUTHORITY`; current state is `CURRENT_FACT`; transition
+  log is append-only `HISTORY`; this file is `PLAN`; the corrective report is
+  `EVIDENCE`; README and changelog are governed documentation. The coordinating
+  conversation is sole writer; all reviewers remain read-only.
+- Definition of Ready: shutdown and exact-baseline checks pass; current and
+  historical authorities are classified; the 29 matrix records remain
+  byte-preserved from their pre-revocation form; licensing and security limits
+  are explicit; ownership, checks, reviewers and stop codes are frozen.
+- Definition of Done: all active authorities agree that MySQL Notifier may
+  inform observable non-expressive functional requirements and independently
+  authored provider-neutral behaviour through the separated-role boundary;
+  the functional-inspiration clause of `REQ-047`, `REQ-048`, `REQ-050` and all
+  29 matrix records have active dispositions and remaining exits;
+  code/assets/vendor expression remain prohibited without a
+  separate licensing decision; existing product evidence and rejected unsafe
+  mechanisms remain truthful; corpus, Design System, state, changelog and
+  append-only history agree; policy regression and independent review pass;
+  one focused local commit exists; lifecycle remains unchanged.
+- Stop rule: baseline drift, tracked owner work, copying protected expression,
+  weakening a security rejection, changing product implementation, conflicting
+  authority, historical-evidence rewrite, provider/product conflation, failed
+  mandatory check, secret/host disclosure or need for legal, Human Gate,
+  external or lifecycle authority stops the affected work without widening.
+- Objective stop codes: `AUTHORITY_MISMATCH`, `BASELINE_DRIFT`,
+  `SCOPE_OVERLAP`, `DEPENDENCY_UNREADY`, `ISOLATION_FAILURE`,
+  `MUTABLE_RESOURCE_COLLISION`, `GATE_FAILURE`, `EXTERNAL_AUTHORITY_REQUIRED`
+  and `HUMAN_DECISION_REQUIRED` retain their governed meanings.
+- Rollback strategy: before commit, reverse only this envelope's owned
+  documentary candidate under separately authorised recovery; after commit,
+  preserve history and use a separately authorised focused revert. No product,
+  external tree, provider, runtime or external system is mutated by this lot.
+- Focused validation evidence: the first development-flow policy execution
+  returned `FAIL`/exit `1` because the required provider-boundary literal was
+  split by a Markdown line break in the new report. The report representation
+  was corrected without changing policy meaning; the successor execution
+  passed `125` assertions. After the verifier was strengthened for `REQ-047`,
+  exact matrix identity, separately authorised future inspection and the
+  non-authorisation of `S06-DFR-03`, its first execution returned `FAIL`/exit
+  `1` because one new count assertion crossed a Markdown line break. The
+  assertion was made line-break-safe without weakening the contract; its
+  successor passed `127` assertions. The standalone regression then passed
+  `98` assertions. The documentation gate passed `447` comment-capable files,
+  the Markdown gate passed `995` local links in `231` files, the
+  available-history secret scan passed and `git diff --check` passed.
+- Structural preservation evidence: the historical revocation report has no
+  diff, and the first 771,775 bytes of the append-only transition log retain
+  SHA-256
+  `6ebb28113f5e36c9118939e27455f67db096f80974fbf7a3bab83fc8c4598762`.
+  The 29 matrix rows retain normalised SHA-256
+  `8961a3af4b02de68a2b16b83159c48779e5d26cffaabbb6de387e4a6b61d1449`.
+  One draft evidence patch initially matched a repeated historical context and
+  temporarily changed the prefix; the immediate hash check caught it, the
+  uncommitted block was removed and the frozen prefix was restored before any
+  integration.
+- Gate applicability: `Quick` and `Full` are `NOT_RUN` because this corrective
+  policy/documentation lot changes no executable product behaviour,
+  dependency, generated artefact or runtime composition. They are not used as
+  evidence for this disposition.
+- Independent review evidence: the first frozen-diff authority review returned
+  `FAIL` with `P0=0`, `P1=3`, `P2=3`, `P3=0`; the first licensing review
+  returned `FAIL` with `P0=0`, `P1=1`, `P2=2`, `P3=1`. Findings covered factual
+  source exposure, `REQ-047`, matrix non-authority, future inspection,
+  category counts, policy assertions, official-source verification, sanitised
+  handoff wording, third-party scope and referential naming. The candidate now
+  addresses every finding. The official 17 USC §102(b), 15 USC §1125 and Oracle
+  trademark pages were refreshed on 2026-08-28 as contextual engineering
+  sources, not specialist legal review. Both final frozen-diff re-reviews
+  returned `PASS` with `P0=0`, `P1=0`, `P2=0`, `P3=0`; they confirmed the
+  corrected authority, source-exposure record, 29-row identity, append-only
+  prefix, non-authorising routing, restricted third-party scope, independent
+  MySQL provider boundary and zero product/lifecycle change.
+- Outcome: `GOV-MN-RESTORE-01 COMPLETE`. The functional-inspiration clause of
+  `REQ-047`, `REQ-048`, `REQ-050` and all 29 matrix records are active with
+  their bounded dispositions and exits. Zero mandatory item remains in this
+  corrective governance target. `S06-DFR-03 Desktop Fleet Authenticated Runtime
+  Binding` is the prioritised next technical lot, remains separately authorised
+  and requires an owner decision packet before implementation authority.
 
 ### MySQL Notifier authority revocation `GOV-MN-REV-01` — complete
 
@@ -1649,17 +1803,24 @@ to this increment.
 
 ## Outcome and next action
 
-`GOV-MN-REV-01` is `COMPLETE`. The ignored local MySQL Notifier tree was
-statically inventoried without execution, copying, network access or mutation;
-all prospective authority to incorporate, recreate or use its individual,
-combined or complete functionality is revoked. The historical matrix and
-completed increments remain factual but non-authorising, existing
-DB-Notifier-owned behaviour is preserved, and MySQL remains only an independent
-future provider candidate. Focused policy `123`, standalone regression `98`,
-documentation `447`, Markdown `993`, secret and diff checks passed; final
-independent review closed at zero findings. `STATE-06 INTEGRATION` remains
-unchanged. The next action is owner acknowledgement or closure; any technical
-follow-up requires separate explicit authority.
+`GOV-MN-RESTORE-01` is `COMPLETE`. The corrected owner intent restores the
+MySQL Notifier functional-inspiration clause of `REQ-047`, `REQ-048`, `REQ-050`
+and the 29-row functional matrix as non-authorising routing for independently
+implemented DB-Notifier outcomes. The reference is not an implementation base,
+clone mandate or compatibility target; source-exposed provenance analysis is
+separated from implementation/test authorship, and literal reference-tree
+material remains outside the MIT deliverable without the separately evidenced
+rights and distribution decision. Focused policy `127`, standalone regression
+`98`, documentation `447`, Markdown `995`, secret and diff checks passed; both
+final independent re-reviews closed at zero findings. `STATE-06 INTEGRATION`
+remains unchanged. The next action is an owner decision on whether to request a
+non-implementing authority packet for `S06-DFR-03 Desktop Fleet Authenticated
+Runtime Binding`.
+
+As the preserved historical predecessor result, `GOV-MN-REV-01` remains
+`COMPLETE` for the owner's earlier literal wording. Its report, commit, failed
+and passing checks, reviews and append-only entry remain unchanged facts; its
+prospective prohibition is superseded by `GOV-MN-RESTORE-01`.
 
 `GOV-2026-R1` is `COMPLETE` as a project-wide governance increment. Every
 owner-facing payload explicitly presented for copying now uses its own fenced

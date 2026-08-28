@@ -2,9 +2,9 @@
 
 ## Versão atual
 
-- Versão: `7.0.0`
+- Versão: `8.0.0`
 - Data: 2026-08-28
-- Status: autoridade de paridade com MySQL Notifier revogada; lifecycle inalterado
+- Status: referência funcional MySQL Notifier restaurada com limite de expressão; lifecycle inalterado
 - Escopo: 16 arquivos ativos
 
 A versão do corpus é independente da versão do software.
@@ -16,6 +16,90 @@ A versão do corpus é independente da versão do software.
 - PATCH: clareza, correção ou referência sem mudança de autoridade.
 
 Toda alteração atualiza este arquivo e, quando necessário, `../Start-Here.md`.
+
+## 8.0.0 — 2026-08-28
+
+- Registra `GOV-MN-RESTORE-01`, a clarificação explícita do proprietário de que
+  a intenção é recriar funcionalidades do MySQL Notifier no DB-Notifier e usar
+  o produto de referência como base funcional para aperfeiçoamento.
+- Supersede prospectivamente a proibição criada em `7.0.0` sem reescrever
+  `GOV-MN-REV-01`, seu relatório, commit, revisão, falha intermediária ou
+  entrada append-only. Esses artefatos permanecem fatos da instrução literal
+  anterior; não são autoridade vigente contra a intenção corrigida.
+- Restaura a cláusula de inspiração funcional MySQL Notifier de `REQ-047` e
+  restaura `REQ-048`, `REQ-050`, `MN-001`–`MN-025` e `MN-Q01`–`MN-Q04` como
+  matriz funcional ativa. `ADOPT`, `ADAPT` e `REJECT/REPLACE`, evidência atual,
+  fase proprietária e saída restante voltam a rotear possíveis incrementos
+  separados; a matriz não os autoriza nem prova implementação, suporte,
+  homologação ou lifecycle.
+- Permite somente que documentação pública, resultados observáveis não
+  expressivos e inventário sanitizado de capacidades informem requisitos e
+  critérios de aceite provider-neutral. Não transforma o produto em base de
+  implementação, target de compatibilidade de source ou mandato de clone.
+- Separa papéis: analista exposto à fonte entrega somente registro de
+  proveniência e especificação comportamental sanitizados e aprovados; autores
+  correspondentes de implementação/testes permanecem não expostos a source,
+  binários, assets, material decompilado e notas brutas ou não sanitizadas
+  derivadas da fonte; revisão independente de proveniência/similaridade precede
+  integração.
+- Mantém fora da autoridade qualquer cópia, tradução, adaptação, linkagem,
+  redistribuição ou importação de código-fonte, binários, arte, marca, trade
+  dress, texto de produto ou arquitetura interna Oracle/MySQL no projeto MIT.
+  Reuso literal exige proveniência exata de componente/rightsholder, direitos
+  ou permissões aplicáveis documentados, modelo de distribuição compatível,
+  revisão jurídica especializada e decisão separada do proprietário. Nenhuma
+  dessas decisões relicencia material Oracle/MySQL/terceiro originário,
+  incluído ou derivado da árvore de referência nem concede marca.
+- A lane separada de proveniência deste lote amostrou read-only licença/avisos e
+  metadados representativos de source, projeto e manifesto de recursos. Nenhum
+  arquivo-alvo foi copiado ou modificado e nenhum extract atravessou para
+  artefato, implementação, teste ou commit. Qualquer inspeção futura exige
+  autoridade explícita separada e a mesma separação de papéis.
+- Atualiza instrução permanente, visão, README, plano de migração, Design
+  System e estado factual. O Design System avança para `3.4.2`; não há alteração
+  de token, asset, comportamento executável ou Human Gate.
+- Mantém 16 arquivos ativos, a Política de Idioma na revisão `1.0.0`, a
+  Coordenação de Conversas na revisão `1.4.1`, a versão-fonte `2.0.0` do Prompt
+  Mestre, `STATE-06 INTEGRATION`, elegibilidade `NÃO REAVALIADA` e
+  `MOD-12 ActivationState=None`.
+- Este lote é corretivo e documental/de política. Não implementa provider,
+  funcionalidade, dependência, migration, runtime, banco, serviço, deploy,
+  publicação, push, Human Gate, homologação, ativação ou transição de
+  lifecycle.
+- A primeira execução do verificador de política falhou com exit `1` porque o
+  literal obrigatório de separação do provider atravessava uma quebra de linha
+  no novo relatório. A representação foi corrigida sem alterar a política; a
+  execução sucessora aprovou `125` asserções, o teste standalone aprovou `98`,
+  documentação aprovou `447` arquivos, links Markdown aprovaram `995` links em
+  `231` arquivos, e o scan de segredos e `git diff --check` aprovaram.
+- Após fortalecer a regressão para `REQ-047`, identidade exata das 29 linhas,
+  autoridade separada de inspeção futura e não autorização de `S06-DFR-03`, a
+  primeira execução fortalecida também falhou com exit `1` porque a asserção de
+  contagem atravessava quebra de linha. A asserção foi tornada independente de
+  layout sem enfraquecer o contrato; a sucessora aprovou `127` asserções, e o
+  teste standalone voltou a aprovar `98`.
+- `Quick` e `Full` são `NOT_RUN` e não constituem evidência deste lote
+  exclusivamente documental/de política. O relatório histórico de revogação
+  não tem diff, e os 771.775 bytes anteriores do histórico append-only
+  preservam SHA-256
+  `6ebb28113f5e36c9118939e27455f67db096f80974fbf7a3bab83fc8c4598762`.
+- As 29 linhas da matriz preservam SHA-256 normalizado
+  `8961a3af4b02de68a2b16b83159c48779e5d26cffaabbb6de387e4a6b61d1449`.
+  Um patch de evidência do rascunho encontrou inicialmente contexto histórico
+  repetido e alterou temporariamente o prefixo append-only; a checagem imediata
+  detectou, o bloco não commitado foi removido e o hash congelado foi restaurado
+  antes da integração.
+- A primeira revisão de autoridade retornou `FAIL` com `P0=0`, `P1=3`, `P2=3`,
+  `P3=0`; a primeira revisão de licenciamento retornou `FAIL` com `P0=0`,
+  `P1=1`, `P2=2`, `P3=1`. Todos os achados foram corrigidos e exigem re-review
+  final. As fontes oficiais 17 USC §102(b), 15 USC §1125 e diretrizes de marca
+  Oracle foram atualizadas em 2026-08-28 somente como contexto de engenharia,
+  não como revisão jurídica especializada.
+- As duas re-reviews finais retornaram `PASS`, cada uma com `P0=0`, `P1=0`,
+  `P2=0`, `P3=0`. Confirmaram a correção factual da exposição, `REQ-047`,
+  identidade das 29 linhas, histórico/prefixo, handoff sanitizado, escopo de
+  material terceiro, provider MySQL separado, não autorização da matriz e zero
+  mudança de produto ou lifecycle. `GOV-MN-RESTORE-01` fica `COMPLETE`.
 
 ## 7.0.0 — 2026-08-28
 
