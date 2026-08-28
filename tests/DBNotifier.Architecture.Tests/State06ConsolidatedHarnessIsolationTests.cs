@@ -151,7 +151,7 @@ public sealed class State06ConsolidatedHarnessIsolationTests
         Assert.DoesNotContain("dbnotifier-state06-diagnostic", workflow, StringComparison.Ordinal);
     }
 
-    /// <summary>Confirms the runner uses an exact opt-in and contains no installation or download command.</summary>
+    /// <summary>Confirms the runner uses an exact opt-in, protects StrictMode readiness lookup and contains no installation or download command.</summary>
     [Fact]
     public void ConsolidatedRunnerIsExactAndOffline()
     {
@@ -160,6 +160,11 @@ public sealed class State06ConsolidatedHarnessIsolationTests
         Assert.Contains("state06-consolidated-e2e-sandbox", runner, StringComparison.Ordinal);
         Assert.Contains("state06-final-human-samples-remediation", runner, StringComparison.Ordinal);
         Assert.Contains("--no-restore", runner, StringComparison.Ordinal);
+        Assert.Contains("$null -eq $candidate", runner, StringComparison.Ordinal);
+        Assert.Contains("$candidate.PSObject.Properties['marker']", runner, StringComparison.Ordinal);
+        Assert.Contains("$markerProperty.Value -is [string]", runner, StringComparison.Ordinal);
+        Assert.Contains("$markerProperty.Value -ceq 'DBNOTIFIER_STATE06_CONSOLIDATED_SANDBOX_READY'", runner, StringComparison.Ordinal);
+        Assert.DoesNotContain("$candidate.marker", runner, StringComparison.Ordinal);
         Assert.DoesNotContain("npm install", runner, StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain("npm ci", runner, StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain("Start-BitsTransfer", runner, StringComparison.OrdinalIgnoreCase);

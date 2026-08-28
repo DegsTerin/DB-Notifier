@@ -9,25 +9,106 @@ append-only history, a Quality Gate or a Human Gate.
 
 ## Control record
 
-- Plan ID: `ARCH-2026-R1`
-- Status: `COMPLETE`
+- Plan ID: `AUD-2026-R1-R5-R1`
+- Status: `BLOCKED`
 - Created: `2026-08-28`
-- Initial baseline: `main@0b09bd62863ad71fb1fcde48c6f47851b2ee0e69`
+- Initial baseline: `main@34e5f3358491a1eb52b508c0170d6a9ac3169bc4`
 - Preserved predecessors: all first factual dispositions remain immutable;
-  most recently, `AUD-2026-R1-R4` remains `BLOCKED` by its sole online `Full`
-  and the missing consolidated-E2E `marker` property
+  `ARCH-2026-R1` remains `COMPLETE`, while `AUD-2026-R1-R4` remains `BLOCKED`
+  by its sole online `Full` and the missing consolidated-E2E `marker` property
 - Lifecycle state: `STATE-06 INTEGRATION`; unchanged by this plan
-- Authority: Bruno's explicit authorisation for a documentation-only increment
-  to formalise the revised DB-Notifier architecture in `STATE-06`
+- Authority: Bruno's explicit authorisation for one corrective attempt that
+  guards consolidated readiness parsing under inherited StrictMode, adds one
+  focal architecture regression and executes the ordered canonical checks once
 - Execution mode: `SEQUENTIAL_ONLY`
 - Writer: coordinating conversation only
-- Independent reviewers: one read-only architecture/documentation review after
-  candidate freeze, followed by the applicable deterministic documentation
-  checks
+- Independent reviewer: not separately authorised; static candidate review,
+  the focal regression and the ordered canonical checks own verification
 - Factual-state owner: `prompts/state/Current-State.md`
 - Historical owner: `prompts/state/State-Transition-Log.md`
 
 ## Task envelopes
+
+### Authorised consolidated-readiness corrective attempt `AUD-2026-R1-R5-R1` — blocked
+
+- Envelope status: `BLOCKED` by `ISOLATION_FAILURE`.
+- Exact human authority: start from clean
+  `main@34e5f3358491a1eb52b508c0170d6a9ac3169bc4`; execute the canonical shutdown
+  preflight exactly once and stop without editing on drift, `FAIL` or `BLOCKED`;
+  update this plan before implementation; correct only consolidated readiness
+  parsing and its focal architecture regression; execute the focal test,
+  `Doctor`, `Quick` and, conditionally, exactly one online `Full`; preserve every
+  first factual result; reconcile only this plan, current state and append-only
+  history; create one focused local commit; do not use a real database/provider,
+  ordinary browser, deploy, push, Human Gate, activation or lifecycle transition.
+- Workspace and frozen baseline: `C:\Projects\DB-Notifier`, branch `main`, commit
+  `34e5f3358491a1eb52b508c0170d6a9ac3169bc4`; index, tracked worktree and
+  complete non-ignored untracked inventory were clean before this plan update.
+- Initial shutdown evidence: the single authorised canonical preflight returned
+  `PASS`; matching processes `0`, owned listeners `0`.
+- Verifiable objective: admit only the exact consolidated readiness record from
+  a mixed stdout stream while safely ignoring non-JSON lines, JSON `null`,
+  objects without `marker` and non-exact marker values under the StrictMode
+  inherited from `scripts/ci.ps1`.
+- Positive implementation scope: this plan;
+  `scripts/run-state06-consolidated-e2e.ps1` readiness parsing only;
+  `tests/DBNotifier.Architecture.Tests/State06ConsolidatedHarnessIsolationTests.cs`
+  focal source-contract regression only; one focused test execution; one
+  `Doctor`; one `Quick`; exactly one online `Full` only if all preceding stages
+  pass; mandatory reconciliation limited to `prompts/state/Current-State.md`
+  and append-only `prompts/state/State-Transition-Log.md`; one focused commit.
+- Frozen read-only scope: `scripts/ci.ps1` and its inherited
+  `Set-StrictMode -Version Latest`; the consolidated host, activation argument,
+  exact literal `DBNOTIFIER_STATE06_CONSOLIDATED_SANDBOX_READY`, all readiness
+  payload members and every adjacent runner; all other source, tests, workflow,
+  configuration, version files, manifests, lockfiles, dependency graph,
+  dependency versions, integrity values, contracts and architecture artefacts.
+- Protected work and negative scope: external or ignored material remains
+  unread, unmodified and undeleted. No product behaviour, host change, provider,
+  operational database, ordinary browser, deploy, publication, push, Human
+  Gate, activation, homologation or lifecycle transition is authorised.
+- Artefact classification and ownership: the runner and architecture test are
+  `IMPLEMENTATION`; this file is `PLAN`; current state is `CURRENT_FACT`; the
+  transition log is append-only `HISTORY`. The coordinating conversation is the
+  exclusive writer for every authorised path, the Git index and final commit.
+- Execution topology and mutable resources: `SEQUENTIAL_ONLY`. Static candidate
+  review finishes before executable validation; each authorised command then
+  exclusively owns its bounded child processes, temporary resources and first
+  result. No concurrent writer or runtime is admitted.
+- Definition of Ready: the one authorised preflight passed; exact branch, HEAD
+  and clean non-ignored tree passed; prior `AUD-2026-R1-R4` failure remains
+  immutable; root cause, writable paths, regression, frozen contracts, negative
+  scope, sequence and objective stop codes are explicit.
+- Definition of Done: readiness parsing uses protected property lookup and an
+  exact case-sensitive marker comparison; all four non-candidate forms are
+  ignored without weakening StrictMode; the focal regression requires protected
+  lookup and forbids direct `$candidate.marker`; host, literal and adjacent
+  runners remain unchanged; focal test, `Doctor`, `Quick` and sole conditional
+  online `Full` return their first `PASS`; factual records are reconciled; one
+  focused commit exists; `STATE-06` remains unchanged.
+- Stop rule: static defects may be corrected only before the first focal test.
+  From the first focal test onwards, each authorised stage runs once; any first
+  non-zero exit or mechanical `FAIL`/`BLOCKED` stops every later executable
+  stage and prohibits retry, alternative execution, diagnosis execution or
+  in-line correction. Only mandatory factual reconciliation and an isolable
+  focused commit may follow a stopped stage.
+- Objective stop codes: `AUTHORITY_MISMATCH`, `BASELINE_DRIFT`,
+  `SCOPE_OVERLAP`, `DEPENDENCY_UNREADY`, `ISOLATION_FAILURE`,
+  `MUTABLE_RESOURCE_COLLISION`, `GATE_FAILURE`, `EXTERNAL_AUTHORITY_REQUIRED`
+  and `HUMAN_DECISION_REQUIRED` retain their definitions below.
+- Rollback strategy: before commit, reverse only this lot's two implementation
+  paths under separately authorised recovery; after commit, preserve history
+  and use a separately authorised focused revert. Never discard predecessor or
+  unrelated work.
+- Result: the minimum parser and regression candidate are materialised. Static
+  review found no defect, `git diff --check` passed, the runner contains zero
+  direct `$candidate.marker` occurrence and frozen host/StrictMode/adjacent
+  runner paths remain unchanged. The sole focal command built the candidate and
+  reported one matching test file, but the execution channel did not retain its
+  final verdict or exit code. Read-only recovery of that same execution found no
+  matching process and no durable result artefact. The focal stage is therefore
+  `BLOCKED` by `ISOLATION_FAILURE`; it was not retried, and `Doctor`, `Quick` and
+  `Full` are `NOT_RUN`.
 
 ### Authorised documentary architecture decision `ARCH-2026-R1` — complete
 
@@ -730,7 +811,27 @@ to this increment.
 - [x] One focused local commit contains only `AUD-2026-R1-R3-R1` and its
   factual evidence.
 
-### Completion criteria — current `AUD-2026-R1-R4`
+### Completion criteria — current `AUD-2026-R1-R5-R1`
+
+- [x] The single canonical initial shutdown returned `PASS`, and branch, exact
+  HEAD and the complete non-ignored tree matched the authorised clean baseline.
+- [ ] Readiness parsing safely ignores non-JSON lines, JSON `null`, objects
+  without `marker` and non-exact marker values under inherited StrictMode.
+- [x] The runner uses a protected property lookup and exact case-sensitive
+  marker comparison without direct `$candidate.marker` access.
+- [ ] The focal architecture regression requires the protected lookup, forbids
+  direct member access and returns its first `PASS`.
+- [ ] `Doctor` and `Quick` return their first `PASS` in order.
+- [ ] Exactly one online `Full` returns its first `PASS`, only after every
+  preceding stage passes; no retry or in-line correction follows a failure.
+- [x] Host, canonical marker, adjacent runners, versions, dependencies,
+  lockfiles, integrities and protected material remain unchanged.
+- [x] Plan, current state and append-only history record the first factual
+  results without Human Gate, activation or lifecycle claims.
+- [x] One focused local commit contains only `AUD-2026-R1-R5-R1` and its
+  mandatory factual evidence.
+
+### Completion criteria — preserved `AUD-2026-R1-R4`
 
 - [x] The canonical initial shutdown and exact clean baseline check passed.
 - [x] Primary sources identify `nanoid 3.3.18` as the compatible patched
@@ -780,6 +881,7 @@ to this increment.
 | `AUD-R1-R1-002` | `P1` | The sole online `Full` legacy-compatibility stage could not resolve .NET SDK `10.0.302` while inventorying target frameworks for `DBNotifier.Domain.csproj`. | `RESOLVED` only under separately authorised `AUD-2026-R1-R3-R1` by exact host propagation. The historical `AUD-2026-R1-R1` `FAIL`, `Failed=1`, `Pending=0` and `DISPOSITION|FAIL|stage=All|stop=GATE_FAILURE` remain unchanged. |
 | `AUD-R1-R3-R1-001` | `P1` | The sole online `Full` Dashboard dependency audit reported one high-severity advisory for `nanoid <3.3.18` (`GHSA-2v37-7h3g-55p8`). | `RESOLVED` only under separately authorised `AUD-2026-R1-R4`: npm generated the `3.3.18` lock identity, the focused audit and the next sole `Full` both reported zero vulnerabilities. The historical `AUD-2026-R1-R3-R1` `FAIL` remains unchanged. |
 | `AUD-R1-R4-001` | `P1` | The sole online `Full` reached `scripts/run-state06-consolidated-e2e.ps1:254` and failed because one candidate object did not expose the accessed `marker` property. | `OPEN`; the aggregate gate returned `DISPOSITION|FAIL|stage=All|stop=GATE_FAILURE`. Executable diagnosis, source/test correction and another gate attempt are outside this lot. |
+| `AUD-R1-R5-R1-001` | `P1` | Under inherited StrictMode, direct `$candidate.marker` access turns a null or property-less parsed stdout candidate into a terminating runner error before the exact readiness record can be admitted. | `IMPLEMENTED_UNVERIFIED`: the frozen candidate uses null-guarded `PSObject.Properties['marker']` lookup, string-type admission and `-ceq`, but its sole focal execution has no recoverable verdict. The historical `AUD-2026-R1-R4` `FAIL` remains unchanged. |
 
 ## Increment plan
 
@@ -798,11 +900,17 @@ to this increment.
 | `AUD-2026-R1-R3-R1` | Recover the stopped shutdown boundary, propagate exact legacy SDK identity and execute the separately authorised sequential gate attempt. | `BLOCKED` |
 | `AUD-2026-R1-R4` | Update only the vulnerable transitive nanoid lock identity and execute the sequential gate attempt. | `BLOCKED` |
 | `ARCH-2026-R1` | Formalise the proposed Web, API, data and Linux delivery topology without implementation or lifecycle progression. | `COMPLETE` |
+| `AUD-2026-R1-R5-R1` | Guard consolidated readiness parsing under inherited StrictMode and execute the separately authorised sequential gate attempt. | `BLOCKED` |
 
 ## Evidence log
 
 | Date | Scope | Command or review | Result | Limitation |
 |---|---|---|---|---|
+| 2026-08-28 | `AUD-2026-R1-R5-R1` shutdown preflight | `scripts/assert-dbnotifier-shutdown.ps1` | `PASS`; exit code `0`; matching processes `0`, owned listeners `0` | Executed exactly once before baseline inspection; no product, provider, database or ordinary browser runtime was started. |
+| 2026-08-28 | `AUD-2026-R1-R5-R1` baseline and envelope freeze | Branch, `HEAD`, index, tracked worktree and complete non-ignored untracked inventory | `PASS`; clean `main@34e5f3358491a1eb52b508c0170d6a9ac3169bc4` | The prior aggregate `FAIL`, protected material and negative scope remain unchanged. |
+| 2026-08-28 | `AUD-2026-R1-R5-R1` implementation and static candidate review | Protected readiness lookup, exact marker admission, focal source-contract regression, owned diff and frozen-path comparison | `PASS`; zero direct `$candidate.marker` occurrence, zero frozen-path diff, `git diff --check` exit code `0` | Static evidence precedes and does not replace the one authorised focal test or canonical sequence. |
+| 2026-08-28 | `AUD-2026-R1-R5-R1` focal architecture regression | One `dotnet test` invocation filtered to `State06ConsolidatedHarnessIsolationTests.ConsolidatedRunnerIsExactAndOffline` | `BLOCKED`; `ISOLATION_FAILURE`; final verdict and exit code were not retained | The preserved stream proves candidate build and reports one matching test file only. Read-only same-execution recovery found no matching process and no durable TRX or log. The command was not retried, and no `PASS` or test `FAIL` is inferred. |
+| 2026-08-28 | `AUD-2026-R1-R5-R1` canonical continuation | One `Doctor`, one `Quick` and the sole conditional online `Full` | `NOT_RUN` | The unprovable focal result activated the stop rule before `Doctor`; no later allowance was consumed. |
 | 2026-08-28 | `ARCH-2026-R1` shutdown preflight | `scripts/assert-dbnotifier-shutdown.ps1` | `PASS`; matching processes `0`, owned listeners `0` | No product runtime, database, container, browser or external resource was started. |
 | 2026-08-28 | `ARCH-2026-R1` baseline and scope freeze | Branch, `HEAD`, index, tracked worktree and complete non-ignored untracked inventory | `PASS`; initially clean `main@0b09bd62863ad71fb1fcde48c6f47851b2ee0e69`; candidate limited to the three authorised paths | Protected and ignored material was not inspected; `AUD-2026-R1-R5-R1` was neither incorporated nor altered. |
 | 2026-08-28 | `ARCH-2026-R1` independent review and corrected re-review | Read-only architecture, factual, language, link and scope review | Initial `P0=0`, `P1=0`, `P2=3`, `P3=0`; final `P0=0`, `P1=0`, `P2=0`, `P3=0` | The reviewer changed no file, ran no canonical check and did not consult external links. |
@@ -881,6 +989,13 @@ to this increment.
 
 ## Blockers and limitations
 
+- `AUD-2026-R1-R5-R1` is `BLOCKED` by `ISOLATION_FAILURE`. Its sole focal test
+  command built the candidate and reported one matching test file, but the
+  execution channel did not retain the final verdict or exit code.
+- Read-only recovery found no matching process and no durable result artefact.
+  Repeating the focal command would violate the explicit no-retry boundary, so
+  the candidate has static evidence only; `Doctor`, `Quick` and `Full` remain
+  `NOT_RUN`.
 - `AUD-2026-R1-R4` is `BLOCKED` by the first and only online `Full` result.
   The exact generated lockfile correction, focused audit, `Doctor` and `Quick`
   all passed before the canonical gate began.
@@ -954,6 +1069,17 @@ to this increment.
 
 ## Outcome and next action
 
+`AUD-2026-R1-R5-R1` is `BLOCKED` by `ISOLATION_FAILURE`. It began on clean
+`main@34e5f3358491a1eb52b508c0170d6a9ac3169bc4`; its single initial shutdown
+preflight, baseline freeze, minimum implementation and static candidate review
+passed. The sole focal command built the candidate and reported one matching
+test file, but its final verdict and exit code were not retained. Read-only recovery
+found neither a matching process nor a durable result artefact. No retry or
+in-line correction followed, and `Doctor`, `Quick` and the conditional online
+`Full` are `NOT_RUN`. The implementation therefore remains a statically reviewed
+but executably unverified candidate; `STATE-06` and every protected boundary are
+unchanged.
+
 `ARCH-2026-R1` is `COMPLETE` as a documentary increment. ADR-0009 records the
 revised Web, API, data and Linux delivery topology at status `proposed`; the
 architecture index exposes that status without granting implementation, and
@@ -1013,6 +1139,13 @@ lifecycle authority was inferred.
 
 ## Change log
 
+- `2026-08-28`: the owner separately authorised `AUD-2026-R1-R5-R1` from clean
+  `main@34e5f3`. The initial preflight and baseline check passed, and the minimum
+  guarded parser plus focal source-contract regression passed static review. The
+  sole focal command did not retain its final verdict or exit code; read-only
+  recovery found no process or durable result artefact. The lot stopped as
+  `BLOCKED`/`ISOLATION_FAILURE` without retry; `Doctor`, `Quick` and `Full` are
+  `NOT_RUN`, with `STATE-06` unchanged.
 - `2026-08-28`: the owner authorised documentary increment `ARCH-2026-R1` on
   clean `main@0b09bd6`. The plan, proposed ADR-0009 and architecture index were
   updated without implementation or lifecycle progression. Three initial `P2`

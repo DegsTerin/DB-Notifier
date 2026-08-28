@@ -1,6 +1,6 @@
 # Estado Atual
 
-Este documento é o snapshot factual vigente do workspace em 2026-08-27. Ele
+Este documento é o snapshot factual vigente do workspace em 2026-08-28. Ele
 não concede autoridade de execução. A evolução, os resultados substituídos e
 as decisões tomadas no seu contexto original permanecem no
 [`State-Transition-Log.md`](State-Transition-Log.md) e nos relatórios
@@ -330,6 +330,25 @@ proprietários.
   Material externo protegido permaneceu não lido, nenhum resíduo ignorado foi
   excluído e banco/provider real, navegador comum, deploy, push, Human Gate,
   ativação e transição de `STATE` não foram executados.
+- `AUD-2026-R1-R5-R1` partiu da baseline limpa
+  `main@34e5f3358491a1eb52b508c0170d6a9ac3169bc4`, após seu único shutdown
+  preflight inicial aprovar com zero processo correspondente e zero listener
+  próprio. O plano foi atualizado antes da implementação.
+- O candidato substitui o acesso direto `$candidate.marker` por lookup
+  protegido em `PSObject.Properties['marker']`, guarda nulo e tipo string e usa
+  `-ceq` para admitir somente o marker canônico exato. A regressão focal exige
+  esse lookup e proíbe o acesso direto. A revisão estática confirmou zero
+  alteração no host, no literal canônico, nos runners adjacentes, nas faixas,
+  dependências, lockfiles ou integridades.
+- A única invocação do teste focal compilou o candidato e reportou um arquivo de
+  teste correspondente, mas o canal de execução não reteve o veredicto final nem o
+  exit code. A recuperação somente leitura da mesma execução não encontrou
+  processo correspondente nem TRX/log durável. O resultado não é inferido como
+  `PASS` nem como falha do teste e a execução não foi repetida.
+- `AUD-2026-R1-R5-R1` está `BLOCKED` por `ISOLATION_FAILURE`. `Doctor`, `Quick`
+  e o `Full` online condicional estão `NOT_RUN`; o candidato possui apenas
+  evidência estática. Banco/provider real, navegador comum, deploy, push, Human
+  Gate, ativação e transição de `STATE` não foram executados.
 - A evidência executável disponível para o próprio fluxo aprovou `97`
   invariantes estáticas, `64` regressões determinísticas, sintaxe de `47`
   scripts PowerShell e `14` scripts Node, compatibilidade de sintaxe de `27`

@@ -251,7 +251,16 @@ try {
             foreach ($line in Get-Content -LiteralPath $hostStdOut) {
                 try { $candidate = $line | ConvertFrom-Json }
                 catch { $candidate = $null }
-                if ($candidate.marker -eq 'DBNOTIFIER_STATE06_CONSOLIDATED_SANDBOX_READY') {
+                # Treat stdout as a mixed diagnostic stream and admit only the exact readiness record.
+                $markerProperty = if ($null -eq $candidate) {
+                    $null
+                }
+                else {
+                    $candidate.PSObject.Properties['marker']
+                }
+                if ($null -ne $markerProperty -and
+                    $markerProperty.Value -is [string] -and
+                    $markerProperty.Value -ceq 'DBNOTIFIER_STATE06_CONSOLIDATED_SANDBOX_READY') {
                     $ready = $candidate
                     break
                 }

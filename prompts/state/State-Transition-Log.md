@@ -6257,3 +6257,40 @@
 - Estado resultante: `STATE-06 INTEGRATION`, elegibilidade `NÃO REAVALIADA`,
   `MOD-12 ActivationState=None`, providers, ADRs, Human Gates, produto,
   interface e autoridade externa permanecem inalterados.
+
+## 2026-08-28 — AUD-2026-R1-R5-R1 materializa a guarda e para sem veredicto focal comprovável
+
+- Estado anterior: `STATE-06 INTEGRATION`, elegibilidade `NÃO REAVALIADA`,
+  `MOD-12 ActivationState=None`, `AUD-2026-R1-R4 BLOCKED` por seu único `Full`,
+  baseline limpa `main@34e5f3358491a1eb52b508c0170d6a9ac3169bc4`.
+- Autoridade humana: executar um único shutdown preflight; atualizar `PLANS.md`
+  antes da implementação; corrigir somente o parsing de readiness consolidado e
+  sua regressão focal; depois executar uma vez teste focal, `Doctor`, `Quick` e,
+  apenas após todos aprovarem, um único `Full` online, preservando o primeiro
+  resultado e sem retry ou correção em linha.
+- Preflight e baseline: o único shutdown inicial aprovou com exit code `0`, zero
+  processo correspondente e zero listener próprio. Branch, HEAD, index,
+  worktree rastreada e inventário não ignorado corresponderam à baseline limpa.
+- Planeamento: `PLANS.md` congelou autoridade, baseline, ownership, escopos
+  positivo e negativo, contratos, critérios e stop codes antes da implementação.
+- Implementação: o runner usa guarda de nulo, lookup protegido em
+  `PSObject.Properties['marker']`, admissão de tipo string e comparação `-ceq`
+  com o literal canônico. A regressão focal exige o lookup protegido e proíbe
+  `$candidate.marker`. StrictMode herdado, host, literal, runners adjacentes,
+  versões, dependências, lockfiles e integridades permaneceram inalterados.
+- Revisão estática: `git diff --check` aprovou, o runner contém zero acesso
+  direto `$candidate.marker` e nenhum caminho congelado apresentou diff. Essa
+  evidência não substitui execução.
+- Teste focal: a única invocação compilou o candidato e reportou um arquivo de
+  teste correspondente, mas o canal de execução não reteve o veredicto final nem o
+  exit code. A recuperação somente leitura da mesma execução não encontrou
+  processo correspondente nem artefacto TRX/log durável. O resultado não foi
+  inferido como `PASS` nem como falha do teste, e a invocação não foi repetida.
+- Stop factual: `AUD-2026-R1-R5-R1 BLOCKED` por `ISOLATION_FAILURE`. `Doctor`,
+  `Quick` e o `Full` online condicional ficaram `NOT_RUN`; nenhuma autorização
+  posterior foi consumida e nenhuma correção em linha ocorreu.
+- Escopo negativo preservado: nenhum banco/provider real, navegador comum,
+  deploy, push, Human Gate, ativação ou transição de `STATE` foi executado.
+- Estado resultante: `STATE-06 INTEGRATION`, elegibilidade `NÃO REAVALIADA`,
+  `MOD-12 ActivationState=None`, providers, ADRs, Human Gates, produto,
+  interface e autoridade externa permanecem inalterados.
