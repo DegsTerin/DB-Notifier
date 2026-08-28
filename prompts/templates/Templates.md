@@ -29,6 +29,23 @@ Plano paralelo (`Parallel plan`):
 Mensagens paralelas exatas (`Exact parallel messages`):
 ```
 
+Em uma instância real, o rótulo de cada campo permanece fora da caixa. Todo
+payload que o proprietário seja orientado a copiar ocupa sozinho um bloco de
+código Markdown cercado e rotulado `text`. O preenchimento de
+`Próxima mensagem exata` segue este formato:
+
+Próxima mensagem exata (`Exact next message`):
+
+```text
+<mensagem completa, específica e pronta para copiar>
+```
+
+Quando `START_NEW` exigir que o proprietário copie um título, esse título usa
+outro bloco `text`. Mensagens de lanes paralelas e mensagens de retorno também
+usam um bloco separado por payload, com a identificação correspondente fora da
+caixa. Rótulos, razões, instruções e alternativas nunca entram no conteúdo
+copiável.
+
 `Ação da conversa` (`Conversation action`) aceita somente
 `CONTINUE_CURRENT`, `START_NEW` ou `RETURN_TO_EXISTING`.
 `Trabalho paralelo` (`Parallel work`) aceita somente `SEQUENTIAL_ONLY`,
@@ -46,7 +63,8 @@ Templates podem conter placeholders; uma instância real deve substituí-los por
 conteúdo completo. Todo handoff real, inclusive quando concluído, parcial ou
 bloqueado, deve preencher `Próxima mensagem exata` (`Exact next message`) com
 uma única mensagem completa, específica, em `pt-BR` e pronta para copiar e
-enviar literalmente na conversa indicada.
+enviar literalmente na conversa indicada, dentro de exatamente um bloco
+`text`.
 
 `Próxima mensagem exata` nunca aceita valor vazio, placeholder, alternativas ou
 ``Não se aplica (`None`) — nenhuma mensagem é necessária``. Quando nenhuma
@@ -218,6 +236,9 @@ Formato da mensagem de retorno:
 - Condições de parada acionadas:
 - Dependências ou autoridade ainda pendentes:
 - Mensagem exata de retorno à coordenadora:
+
+A mensagem exata de retorno é apresentada logo após o último rótulo, sozinha em
+um bloco `text`.
 
 Uma conversa auxiliar entrega somente um candidato. Ela não declara conclusão
 do lote, estado, validação ou projeto e não atualiza memória ou decisões

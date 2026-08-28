@@ -1,9 +1,9 @@
 # DB-Notifier — Coordenação de Conversas e Trabalho Paralelo Seguro
 
 - Status: autoridade temática normativa
-- Revisão: `1.4.0`
+- Revisão: `1.4.1`
 - Versão de introdução no corpus: `6.2.0`
-- Versão desta revisão no corpus: `6.6.0`
+- Versão desta revisão no corpus: `6.7.1`
 - Projeto: `DB-Notifier`
 - Workspace: raiz confirmada do repositório ou do worktree atribuído à conversa
 
@@ -39,6 +39,14 @@ proprietário. Rótulos, valores, razões, orientações e mensagens prontas par
 copiar são apresentados em `pt-BR`. Chaves canônicas, comandos, paths e enums
 podem permanecer em inglês entre crases ou parênteses somente quando
 tecnicamente necessário.
+
+Todo payload apresentado expressamente para o proprietário copiar — inclusive
+`Exact next message`, título sugerido quando houver orientação para copiá-lo,
+mensagem exata de lane e mensagem exata de retorno — deverá aparecer sozinho
+em um bloco de código Markdown cercado e rotulado `text`. O rótulo, a
+identificação da lane, a razão, a orientação e qualquer outro texto que não faça
+parte do payload ficam fora do bloco. Quando houver vários payloads, usar um
+bloco independente para cada um.
 
 Esta política não autoriza, por si só, alteração de arquivo, inicialização ou
 operação Git, branch, worktree, commit, merge, rebase, push, código, build,
@@ -274,6 +282,11 @@ proprietário copiar e enviar literalmente na conversa indicada. Essa obrigaçã
 permanece quando o objetivo estiver concluído, parcial ou bloqueado e quando
 nenhuma ação adicional de projeto for conhecida.
 
+O valor de `Exact next message` deve aparecer dentro de exatamente um bloco de
+código Markdown cercado rotulado como `text`. O rótulo do campo fica
+imediatamente antes e fora do bloco; o bloco contém somente a mensagem que será
+copiada, sem título, explicação, alternativa ou orientação adicional.
+
 Esse campo nunca aceita valor vazio, placeholder, lista de alternativas,
 sugestão abstrata ou
 ``Não se aplica (`None`) — nenhuma mensagem é necessária``. Quando não houver
@@ -295,10 +308,18 @@ a apresentação ou revisão do pacote decisório; ela somente expressa um
 resultado de decisão quando o proprietário já o tiver escolhido
 inequivocamente no contexto vigente.
 
-Quando `START_NEW` não for escolhido, `Título sugerido` (`Suggested title`)
+Quando `START_NEW` for escolhido e o proprietário for orientado a copiar o
+título sugerido, o valor do título deverá ocupar um bloco `text` próprio, sem se
+misturar à mensagem exata. Quando `START_NEW` não for escolhido, `Título
+sugerido` (`Suggested title`)
 deve começar por ``Não se aplica (`None`) —`` e declarar concretamente por que
 não há título novo. Um título sugerido nunca é apresentado como título
 existente.
+
+Quando houver mensagens paralelas ou de retorno prontas para copiar, cada
+payload deverá ocupar seu próprio bloco `text`, precedido fora do bloco pela
+identificação da lane ou do destino. Um valor governado `None` não é payload
+para copiar e permanece fora de uma caixa de cópia.
 
 Quando o trabalho for sequencial:
 
@@ -409,7 +430,8 @@ Cada conversa worker deverá:
 - não solicitar, confirmar ou registrar Human Gate;
 - não executar ação externa não autorizada;
 - informar arquivos, artefatos, recursos, checks, limitações e riscos;
-- produzir uma mensagem exata de retorno para a coordenadora.
+- produzir uma mensagem exata de retorno para a coordenadora em um bloco
+  `text` próprio.
 
 ## 8. Condições obrigatórias de parada
 

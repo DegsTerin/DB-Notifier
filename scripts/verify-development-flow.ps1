@@ -344,8 +344,8 @@ foreach ($forbiddenWorkflowCommand in @(
 
 $coordination = Get-RequiredFileText -RelativePath 'prompts/governance/Conversation-Coordination-Prompt.md'
 Assert-Condition `
-    -Condition ($coordination.Contains('- Revisão: `1.4.0`', [System.StringComparison]::Ordinal)) `
-    -Message 'The coordination authority is not at revision 1.4.0.'
+    -Condition ($coordination.Contains('- Revisão: `1.4.1`', [System.StringComparison]::Ordinal)) `
+    -Message 'The coordination authority is not at revision 1.4.1.'
 foreach ($requiredCoordinationLiteral in @(
         'SAFE_PARALLEL',
         'CONTRACT_FROZEN_PARALLEL',
@@ -358,17 +358,23 @@ foreach ($requiredCoordinationLiteral in @(
                 [System.StringComparison]::Ordinal)) `
         -Message "The coordination authority is missing '$requiredCoordinationLiteral'."
 }
+$normalisedCoordination = [regex]::Replace($coordination, '\s+', ' ')
+Assert-Condition `
+    -Condition ($normalisedCoordination.Contains(
+            'O valor de `Exact next message` deve aparecer dentro de exatamente um bloco de código Markdown cercado rotulado como `text`.',
+            [System.StringComparison]::Ordinal)) `
+    -Message 'The coordination authority does not require one text-labelled Markdown block for Exact next message.'
 
 $changelog = Get-RequiredFileText -RelativePath 'prompts/system/Prompt-System-Change-Log.md'
 $currentState = Get-RequiredFileText -RelativePath 'prompts/state/Current-State.md'
 $stateTransitionLog = Get-RequiredFileText -RelativePath 'prompts/state/State-Transition-Log.md'
 $masterPrompt = Get-RequiredFileText -RelativePath 'prompts/system/AI-Software-Engineering-Master-Prompt.md'
 Assert-Condition `
-    -Condition ($changelog -match '(?s)## Versão atual\s+- Versão: `6[.]7[.]0`') `
-    -Message 'The instruction-corpus changelog is not at version 6.7.0.'
+    -Condition ($changelog -match '(?s)## Versão atual\s+- Versão: `6[.]7[.]1`') `
+    -Message 'The instruction-corpus changelog is not at version 6.7.1.'
 Assert-Condition `
-    -Condition ($currentState.Contains('`6.7.0`', [System.StringComparison]::Ordinal) -and
-        $currentState.Contains('`1.4.0`', [System.StringComparison]::Ordinal)) `
+    -Condition ($currentState.Contains('`6.7.1`', [System.StringComparison]::Ordinal) -and
+        $currentState.Contains('`1.4.1`', [System.StringComparison]::Ordinal)) `
     -Message 'Current-State.md does not record the adopted workflow versions.'
 Assert-Condition `
     -Condition ($stateTransitionLog.Contains(

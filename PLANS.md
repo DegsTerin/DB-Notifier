@@ -9,25 +9,99 @@ append-only history, a Quality Gate or a Human Gate.
 
 ## Control record
 
-- Plan ID: `AUD-2026-R1-R5-R2`
-- Status: `BLOCKED`
+- Plan ID: `GOV-2026-R1`
+- Status: `COMPLETE`
 - Created: `2026-08-28`
-- Initial baseline: `main@dcd3d24064e0709981e8ba0cff223de6a2c35565`
+- Initial baseline: `main@0f63548365cf5fbb83cc5bff781fecab2f9bbc77`
 - Preserved predecessors: all first factual dispositions remain immutable;
+  `AUD-2026-R1-R5-R2` remains `BLOCKED` by its rejected durable-capture
+  wrapper before process creation,
   `AUD-2026-R1-R5-R1` remains `BLOCKED` by its unprovable sole focal result,
   while `AUD-2026-R1-R4` remains `BLOCKED` by its sole online `Full`
 - Lifecycle state: `STATE-06 INTEGRATION`; unchanged by this plan
-- Authority: Bruno's explicit authorisation for one validation-recovery lot
-  against the committed readiness candidate, with durable first-result capture
-  and no implementation or test change
+- Authority: Bruno's explicit instruction to document project-wide that every
+  payload presented for copying must appear inside an editable, copyable box
 - Execution mode: `SEQUENTIAL_ONLY`
 - Writer: coordinating conversation only
-- Independent reviewer: not separately authorised; static candidate review,
-  the focal regression and the ordered canonical checks own verification
+- Independent reviewer: one isolated read-only verifier inspection before
+  implementation plus two final read-only reviews of governance and the
+  integrated diff; the coordinating conversation retained all writes
 - Factual-state owner: `prompts/state/Current-State.md`
 - Historical owner: `prompts/state/State-Transition-Log.md`
 
 ## Task envelopes
+
+### Project-wide copy-box governance `GOV-2026-R1` — complete
+
+- Envelope status: `COMPLETE`.
+- Exact human authority: document throughout DB-Notifier the immediately prior
+  owner preference that text intended for copying must be placed inside a box
+  where it can be edited and copied. No adjacent product, runtime, lifecycle or
+  external authority is inferred.
+- Workspace and frozen baseline: `C:\Projects\DB-Notifier`, branch `main`,
+  commit `0f63548365cf5fbb83cc5bff781fecab2f9bbc77`; index, tracked worktree and
+  complete non-ignored untracked inventory were clean before this plan update.
+- Initial shutdown evidence: the single mandatory canonical preflight returned
+  `PASS`; exit code `0`; matching processes `0`, owned listeners `0`.
+- Verifiable objective: make one project-wide presentation rule require every
+  owner-facing payload explicitly intended for copying to appear by itself in
+  a fenced Markdown code block labelled `text`, with labels and explanatory
+  prose outside the block so copied content remains exact.
+- Positive scope: this plan; the root cross-cutting instruction; the thematic
+  conversation-coordination authority; its reusable template and Quality Gate;
+  the instruction-corpus changelog; current factual state; append-only history;
+  and the minimum development-flow policy assertion needed to keep the
+  versioned corpus fail-closed. The existing development-flow test remains
+  read-only unless a directly related expectation proves stale.
+- Frozen read-only scope: every product source, product test, runtime runner,
+  workflow, dependency, manifest, lockfile, graph, version or integrity outside
+  the instruction-corpus policy version; every schema, migration, provider,
+  executable contract, interface and generated artefact.
+- Protected work and negative scope: all predecessor results and the ignored I6
+  residue remain untouched. No database/provider, ordinary browser, product
+  runtime, build, deploy, publication, push, Human Gate, ADR decision,
+  activation, homologation or lifecycle transition is authorised.
+- Artefact classification and ownership: `AGENTS.md` and the coordination and
+  Quality Gate documents are `AUTHORITY`; the template is `AUTHORITY`; the
+  changelog and append-only state log are `HISTORY`; current state is
+  `CURRENT_FACT`; this file is `PLAN`; the policy verifier is
+  `IMPLEMENTATION`. The coordinating conversation is the exclusive writer for
+  every authorised path, the Git index and the focused commit.
+- Execution topology and mutable resources: `SINGLE_OWNER` with one isolated
+  read-only verifier-inspection lane. All writes, validation, integration and
+  Git operations remain sequential in the coordinating conversation.
+- Definition of Ready: shutdown preflight, exact branch, exact HEAD and clean
+  complete non-ignored tree passed; the owning authority, dependent template,
+  gate, version records and verifier were identified; scope, ownership and stop
+  codes are explicit.
+- Definition of Done: the project-wide rule covers every payload explicitly
+  presented for copying; `Exact next message` uses exactly one `text` block and
+  parallel payloads use one block per payload; no label or explanation enters a
+  copy block; the 14 handoff fields and all closed enums remain unchanged; the
+  corpus patch version, current state and append-only history agree; focused
+  policy and documentary checks pass; one focused local commit exists; lifecycle
+  and product state remain unchanged.
+- Stop rule: any baseline drift, scope overlap, malformed policy, failed
+  required check or inability to isolate the documentation-only increment stops
+  further mutation and is recorded factually without widening scope.
+- Objective stop codes: `AUTHORITY_MISMATCH`, `BASELINE_DRIFT`,
+  `SCOPE_OVERLAP`, `DEPENDENCY_UNREADY`, `ISOLATION_FAILURE`,
+  `MUTABLE_RESOURCE_COLLISION`, `GATE_FAILURE`, `EXTERNAL_AUTHORITY_REQUIRED`
+  and `HUMAN_DECISION_REQUIRED` retain their governed meanings.
+- Rollback strategy: before commit, reverse only this lot's documentary and
+  policy-verifier candidate under separately authorised recovery; after commit,
+  preserve history and use a separately authorised focused revert.
+- Result: the project-wide presentation rule is materialised at corpus `6.7.1`
+  and coordination revision `1.4.1`. The first two focal verifier invocations
+  exited `1` because the new assertion did not yet normalise every ordinary
+  Markdown line wrap inside the normative sentence; the rule itself was present
+  throughout. The corrected assertion normalises whitespace before its ordinal
+  comparison, and the next invocation passed `106` assertions. The code
+  documentation gate passed `439` files, the Markdown link gate passed `990`
+  local links in `227` files, and the secret scan passed the non-ignored
+  worktree and available Git history. Two independent final reviews closed at
+  `P0=0`, `P1=0`, `P2=0`, `P3=0`, confirmed the append-only prefix and required
+  no test change. No product path changed.
 
 ### Authorised validation recovery `AUD-2026-R1-R5-R2` — blocked
 
@@ -1171,6 +1245,19 @@ to this increment.
 
 ## Outcome and next action
 
+`GOV-2026-R1` is `COMPLETE` as a project-wide governance increment. Every
+owner-facing payload explicitly presented for copying now uses its own fenced
+Markdown block labelled `text`; labels, reasons and instructions remain outside
+the box. The rule covers the exact next message, a suggested title when the
+owner is told to copy it, parallel-lane messages and worker-return messages.
+Corpus `6.7.1`, coordination revision `1.4.1`, the template, Quality Gate,
+current state and policy verifier agree while preserving the existing 14 fields
+and closed enums. Focused policy, documentation, link and secret checks passed,
+and two final independent reviews closed with zero findings at every severity;
+no product, interface, provider, runtime, Human Gate, activation or lifecycle
+state changed. The next action is to use the new box format in every subsequent
+governed handoff; no separate project execution is required for adoption.
+
 `AUD-2026-R1-R5-R2` is `BLOCKED` by `ISOLATION_FAILURE`. It began on clean
 `main@dcd3d24064e0709981e8ba0cff223de6a2c35565`; its single initial shutdown
 preflight and exact baseline freeze passed, and the committed runner and focal
@@ -1251,6 +1338,12 @@ lifecycle authority was inferred.
 
 ## Change log
 
+- `2026-08-28`: `GOV-2026-R1` adopted one fenced Markdown `text` block per
+  owner-facing copy payload across the root instruction, coordination authority,
+  template, Quality Gate, factual records and policy verifier. Corpus `6.7.1`
+  and coordination revision `1.4.1` passed the focused policy, documentation,
+  link and secret checks; two final independent reviews closed at zero findings
+  without product or lifecycle change.
 - `2026-08-28`: the owner separately authorised validation recovery
   `AUD-2026-R1-R5-R2` from clean `main@dcd3d24`. The initial preflight and
   baseline check passed, and implementation/tests remained frozen. The local

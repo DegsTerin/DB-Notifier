@@ -223,7 +223,11 @@ conversas, conforme
    completa, específica, preenchida, em `pt-BR` e pronta para copiar e enviar
    literalmente na conversa indicada, inclusive em resultado concluído,
    parcial ou bloqueado e quando nenhuma ação adicional de projeto for
-   conhecida.
+   conhecida. Confirmar também que seu valor aparece sozinho em exatamente um
+   bloco de código Markdown cercado e rotulado `text`, com o rótulo e toda
+   explicação fora da caixa. Aplicar a mesma apresentação a todo payload que o
+   proprietário seja orientado a copiar: um bloco separado para cada título,
+   mensagem de lane ou mensagem de retorno.
 7. Reprovar valor vazio, placeholder, lista de alternativas, sugestão abstrata
    ou ``Não se aplica (`None`) — nenhuma mensagem é necessária`` em
    `Exact next message`. Confirmar coerência com `Next step`,

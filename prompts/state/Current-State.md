@@ -49,14 +49,14 @@ proprietários.
 
 ## Sistema de instruções e coordenação
 
-- O corpus vigente é `6.7.0`, com 16 arquivos ativos. A
+- O corpus vigente é `6.7.1`, com 16 arquivos ativos. A
   [Política de Idioma](../governance/Language-Policy.md), revisão `1.0.0`, é a
   autoridade temática única para comunicação com o proprietário, idioma dos
   artefatos, preservação de conteúdo existente, convenções externas e
   separação do idioma da interface.
 - A
   [Coordenação de Conversas e Trabalho Paralelo Seguro](../governance/Conversation-Coordination-Prompt.md),
-  revisão `1.4.0`, é a autoridade temática de roteamento, handoff,
+  revisão `1.4.1`, é a autoridade temática de roteamento, handoff,
   recomendação de raciocínio do Codex, paralelismo, ownership exclusivo e
   integração coordenada. As duas
   autoridades ficam em `prompts/governance/`; `Governance.md` conserva
@@ -68,12 +68,15 @@ proprietários.
   interface está autorizada.
 - Todo handoff, concluído, parcial ou bloqueado, fornece uma única mensagem
   completa, específica, preenchida, em `pt-BR` e pronta para copiar e enviar na
-  conversa indicada. `Exact next message` não aceita `None`, placeholder ou
-  alternativas; quando não houver ação adicional de projeto, a mensagem
-  confirma ou encerra com segurança e declara não autorizar nova ação. Uma
-  mensagem pronta não constitui decisão antes de ser enviada nem presume
-  aprovação, Human Gate, ADR, `ActivationState`, lifecycle, operação Git ou
-  ação externa.
+  conversa indicada. Seu valor aparece sozinho em exatamente um bloco de código
+  Markdown cercado e rotulado `text`, com rótulo e explicações fora da caixa.
+  Todo outro payload apresentado expressamente para copiar, como título
+  sugerido, mensagem de lane ou mensagem de retorno, usa um bloco separado.
+  `Exact next message` não aceita `None`, placeholder ou alternativas; quando
+  não houver ação adicional de projeto, a mensagem confirma ou encerra com
+  segurança e declara não autorizar nova ação. Uma mensagem pronta não constitui
+  decisão antes de ser enviada nem presume aprovação, Human Gate, ADR,
+  `ActivationState`, lifecycle, operação Git ou ação externa.
 - Todo handoff preserva os 14 campos existentes e começa `Your action now` com
   exatamente uma recomendação para a próxima interação: `Leve` (`low`),
   `Médio` (`medium`), `Alto` (`high`), `Extra alto` (`xhigh`), `Máximo`

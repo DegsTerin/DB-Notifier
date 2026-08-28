@@ -2,9 +2,9 @@
 
 ## Versão atual
 
-- Versão: `6.7.0`
-- Data: 2026-08-27
-- Status: parser das faixas corrigido; validação bloqueada no `Quick`
+- Versão: `6.7.1`
+- Data: 2026-08-28
+- Status: apresentação de payloads copiáveis governada; lifecycle inalterado
 - Escopo: 16 arquivos ativos
 
 A versão do corpus é independente da versão do software.
@@ -16,6 +16,31 @@ A versão do corpus é independente da versão do software.
 - PATCH: clareza, correção ou referência sem mudança de autoridade.
 
 Toda alteração atualiza este arquivo e, quando necessário, `../Start-Here.md`.
+
+## 6.7.1 — 2026-08-28
+
+- Atualiza a autoridade de coordenação para a revisão `1.4.1` e exige que todo
+  payload apresentado expressamente ao proprietário para copiar apareça sozinho
+  em um bloco de código Markdown cercado e rotulado `text`.
+- Mantém rótulos, razões, orientações e demais explicações fora da caixa de
+  cópia. `Exact next message` usa exatamente um bloco; títulos sugeridos quando
+  houver orientação de cópia, mensagens de lanes e mensagens de retorno usam
+  um bloco separado por payload.
+- Integra a regra em `AGENTS.md`, no template, no Quality Gate e no verificador
+  de política do fluxo de desenvolvimento. Preserva exatamente os 14 campos do
+  handoff, sua ordem, os enums fechados e os valores governados `None` que não
+  representam payload copiável.
+- A asserção focal foi ajustada para normalizar espaços em branco de Markdown
+  antes da comparação ordinal. O verificador aprovou `106` asserções, o gate de
+  documentação aprovou `439` arquivos, o gate de links aprovou `990` links
+  locais em `227` arquivos e o scan de segredos aprovou a árvore não ignorada e
+  o histórico Git disponível.
+- Mantém 16 arquivos ativos, a Política de Idioma na revisão `1.0.0`, a
+  versão-fonte `2.0.0` do Prompt Mestre, `STATE-06 INTEGRATION`, elegibilidade
+  `NÃO REAVALIADA` e `MOD-12 ActivationState=None`.
+- Não altera produto, interface, dependência, provider, runtime, ADR, Human
+  Gate, ativação ou lifecycle e não autoriza banco real, navegador comum,
+  deploy, publicação ou push.
 
 ## 6.7.0 — 2026-08-27
 

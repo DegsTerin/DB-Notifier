@@ -6329,3 +6329,53 @@
 - Estado resultante: `STATE-06 INTEGRATION`, elegibilidade `NÃO REAVALIADA`,
   `MOD-12 ActivationState=None`, providers, ADRs, Human Gates, produto,
   interface e autoridade externa permanecem inalterados.
+
+## 2026-08-28 — GOV-2026-R1 governa caixas para todo payload copiável
+
+- Estado anterior: `STATE-06 INTEGRATION`, elegibilidade `NÃO REAVALIADA`,
+  `MOD-12 ActivationState=None`, corpus de instruções `6.7.0`, autoridade de
+  coordenação na revisão `1.4.0` e baseline limpa
+  `main@0f63548365cf5fbb83cc5bff781fecab2f9bbc77`.
+- Autoridade humana: documentar em todo o projeto a preferência imediatamente
+  anterior de que texto destinado à cópia fique dentro de uma caixa para editar
+  e copiar.
+- Preflight e baseline: o único shutdown inicial aprovou com exit code `0`, zero
+  processo correspondente e zero listener próprio. Branch, HEAD, index,
+  worktree rastreada e inventário não ignorado estavam limpos antes da abertura
+  do envelope em `PLANS.md`.
+- Política adotada: todo payload voltado ao proprietário e apresentado para
+  copiar fica sozinho em um bloco de código Markdown cercado e rotulado `text`.
+  Rótulos, razões, instruções e qualquer conteúdo alheio ao payload permanecem
+  fora da caixa; múltiplos payloads usam blocos independentes.
+- Cobertura: `Exact next message` usa exatamente um bloco; título sugerido usa
+  bloco próprio quando o proprietário é orientado a copiá-lo; mensagens de
+  lanes paralelas e mensagens de retorno usam um bloco por payload. Valores
+  governados `None` que não representam conteúdo copiável permanecem fora da
+  caixa.
+- Versionamento: o corpus foi elevado para `6.7.1` e a autoridade de coordenação
+  para `1.4.1`, preservando 16 arquivos ativos, exatamente 14 campos de handoff,
+  sua ordem, os enums fechados, a Política de Idioma `1.0.0` e o Prompt Mestre
+  fonte `2.0.0`.
+- Verificação focal: as duas primeiras invocações do verificador retornaram exit
+  code `1` porque a nova asserção não normalizava todas as quebras de linha
+  Markdown da sentença normativa. A regra esteve materializada durante ambas;
+  a correção permaneceu no limite já autorizado do verificador e passou a
+  normalizar espaços em branco antes da comparação ordinal. A invocação
+  seguinte aprovou `106` asserções.
+- Evidência documental: o gate de documentação aprovou `439` arquivos, o gate
+  de links Markdown aprovou `990` links locais em `227` arquivos e o scan de
+  segredos aprovou a árvore não ignorada e o histórico Git disponível.
+- Escopo negativo preservado: nenhum produto, interface, dependência, manifest,
+  lockfile, provider, banco real, navegador comum, runtime, deploy, publicação,
+  push, ADR, Human Gate, ativação, homologação ou transição de `STATE` foi
+  executado ou alterado. Os lotes anteriores e o resíduo ignorado I6 permanecem
+  intactos.
+- Disposição: `GOV-2026-R1 COMPLETE` como incremento documental governado, sem
+  inferir autoridade adicional.
+- Estado resultante: `STATE-06 INTEGRATION`, elegibilidade `NÃO REAVALIADA`,
+  `MOD-12 ActivationState=None`, providers, ADRs, Human Gates, produto,
+  interface e autoridade externa permanecem inalterados.
+- Revisão independente final: as revisões de governança e do diff integrado
+  encerraram `P0=0`, `P1=0`, `P2=0`, `P3=0`; confirmaram a robustez da
+  asserção PowerShell, a preservação integral do prefixo append-only, a
+  suficiência dos testes existentes e a ausência de ampliação de escopo.
