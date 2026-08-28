@@ -6469,3 +6469,81 @@
 - Estado resultante: `STATE-06 INTEGRATION`, elegibilidade `NÃO REAVALIADA`,
   `MOD-12 ActivationState=None`; identidade Desktop operacional, providers e
   toda autoridade externa continuam separados e pendentes de lotes próprios.
+
+## 2026-08-28 — GOV-MN-REV-01 revoga a autoridade MySQL Notifier
+
+- Estado anterior: `STATE-06 INTEGRATION`, elegibilidade `NÃO REAVALIADA`,
+  `MOD-12 ActivationState=None`, Design System `3.4.0` e baseline limpa
+  `main@0c1da9d9cc11fa0a0678ce1435660e1a833364e1`.
+- Autoridade humana: ler, analisar e verificar a pasta local
+  `mysql-notifier-1.1.8-src/` e revogar todas as decisões e permissões para
+  incorporar, recriar ou usar suas funcionalidades no DB-Notifier.
+- Preflight e baseline: o shutdown obrigatório aprovou repetidamente com zero
+  processo e zero listener DB-Notifier; branch, HEAD, index e worktree
+  rastreada correspondiam à baseline autorizada antes das alterações.
+- Auditoria estática: a árvore ignorada continha 110 arquivos em dez
+  diretórios, total de 6.554.849 bytes e identidade determinística
+  `6f7c58b1c36c91dd2c3d7406aba31eb3d8213e6e737dce23be6fc0eaa1b4c676`.
+  Nenhum conteúdo foi executado, compilado, decompilado, copiado, rastreado,
+  alterado ou consultado por rede.
+- Proveniência local observada: os metadados identificam Oracle/MySQL Notifier
+  1.1.8, GPLv2 com permissão adicional de linkagem e avisos de terceiros. A
+  auditoria não provou autenticidade upstream, cadeia de custódia,
+  reprodutibilidade, proveniência dos binários ou compatibilidade jurídica.
+- Supersessão controlada: a cláusula MySQL Notifier de `REQ-047`, todo o
+  `REQ-048`, `REQ-050` e os 29 registros `MN-001`–`MN-025`/`MN-Q01`–`MN-Q04`
+  tornam-se históricos e não autorizantes. A proibição cobre cada
+  funcionalidade isolada, qualquer combinação e o conjunto completo; fonte,
+  binários, assets, texto de produto, documentação pública e arquitetura não
+  podem informar requisito, design, código, teste, aceite, roadmap ou
+  implementação.
+- Preservação factual: Human Gates, ADRs, relatórios, commits e entradas
+  históricas anteriores não foram reescritos. `S06-DFR-01` e `S06-DFR-02`
+  continuam incrementos concluídos, mas não são precedente de paridade ou
+  derivação. Comportamentos já próprios do DB-Notifier permanecem sob suas
+  autoridades independentes.
+- Distinção de provider: MySQL Notifier deixa de ser referência de produto; o
+  banco MySQL continua somente como candidato independente do catálogo aberto,
+  sem implementação, homologação ou autorização inferida.
+- Contenção: a pasta externa permanece fisicamente inalterada, ignorada e não
+  rastreada. Exclusão ou relocação seriam ações destrutivas separadas e não
+  foram inferidas deste pedido.
+- Governança: o corpus avança de `6.7.1` para `7.0.0` por mudança incompatível
+  de autoridade; o Design System avança de `3.4.0` para `3.4.1` sem mudança de
+  token, asset ou comportamento executável. O prefixo append-only anterior foi
+  preservado com 766.612 bytes e SHA-256
+  `8aa11f2ceebf3a2ab3094476ec77247d2066b668e14a2ef04dd44c9317167bfc`.
+- Escopo negativo: nenhum código de produto, provider, dependência, lockfile,
+  migration, runtime, banco, serviço, infraestrutura, deploy, publicação,
+  push, Human Gate, ativação ou transição de lifecycle foi executado ou
+  autorizado.
+- Estado resultante: `STATE-06 INTEGRATION` permanece inalterado, com
+  elegibilidade `NÃO REAVALIADA` e `MOD-12 ActivationState=None`.
+- Validação focal: o verificador de política aprovou 123 asserções, o teste
+  standalone aprovou 98, documentação aprovou 447 arquivos, links Markdown
+  aprovaram 993 links em 230 arquivos, e o scan de segredos e
+  `git diff --check` aprovaram.
+- Integridade final: a árvore externa reproduziu contagem, bytes e identidade,
+  com zero arquivo rastreado; os 766.612 bytes anteriores do histórico
+  preservaram o mesmo SHA-256.
+- Revisão independente inicial: `P0=0`, `P1=0`, `P2=1`, `P3=0`. O único `P2`
+  identificou regressão de política incompleta para não-efeitos, README, visão,
+  changelog delimitado e esta entrada histórica; todas as fronteiras nomeadas
+  foram adicionadas ao verificador e as 123 asserções aprovaram depois da
+  correção.
+- Aplicabilidade dos gates: `Quick` e `Full` não se aplicam a esta revogação
+  exclusivamente documental/de política porque não houve mudança executável de
+  produto, dependência, artefato gerado ou composição de runtime; eles não são
+  usados como evidência.
+- Revisão independente final: `P0=0`, `P1=0`, `P2=0`, `P3=0`; o revisor
+  confirmou as asserções corrigidas, a matriz histórica inalterada, o prefixo
+  append-only, a identidade da árvore externa e zero arquivo alvo rastreado.
+- Disposição: `GOV-MN-REV-01 COMPLETE`, com zero item obrigatório remanescente
+  no alvo autorizado e sem alteração de lifecycle, Human Gate, ativação ou
+  autoridade externa.
+- Correção de controle posterior à revisão: uma execução do verificador de
+  política falhou porque a reconciliação administrativa havia renomeado o
+  rótulo obrigatório `- Execution mode:`. O rótulo foi restaurado com
+  `SEQUENTIAL_ONLY`, `SINGLE_OWNER` foi mantido como topologia separada, e a
+  execução seguinte aprovou 123 asserções. O primeiro resultado permanece
+  registrado como falha.

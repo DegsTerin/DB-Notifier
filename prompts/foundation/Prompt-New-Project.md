@@ -2,7 +2,7 @@
 
 ## Contexto
 
-O workspace contém o PgNotifier, um monitor PostgreSQL para Windows implementado principalmente em PowerShell. Conforme registro do product owner, o PgNotifier foi inspirado conceitualmente no MySQL Notifier, e o DB-Notifier é seu sucessor. Essa linhagem descreve a origem da ideia de monitor/Tray; não declara reutilização de código, compatibilidade técnica, afiliação ou dependência do MySQL Notifier.
+O workspace contém o PgNotifier, um monitor PostgreSQL para Windows implementado principalmente em PowerShell. Conforme registro do product owner, o PgNotifier foi inspirado conceitualmente no MySQL Notifier, e o DB-Notifier é seu sucessor. Essa linhagem descreve somente a origem histórica da ideia de monitor/Tray; `GOV-MN-REV-01` revogou qualquer autoridade presente ou futura para usar MySQL Notifier como fonte de requisito, benchmark, paridade, design ou implementação do DB-Notifier. Ela não declara reutilização de código, compatibilidade técnica, afiliação ou dependência.
 
 O PgNotifier é o legado executável e a base de aprendizado, não a arquitetura final. O DB-Notifier transforma a ideia original em uma plataforma independente, segura e multi-provider.
 

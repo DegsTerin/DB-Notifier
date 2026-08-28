@@ -2,10 +2,15 @@
 
 ## Status
 
-Originated in `STATE-00 DISCOVERY_MIGRATION`. Its clean-room dispositions and
-coverage identifiers remain the functional baseline, while the evidence and
-remaining exits below reflect the current `STATE-06` workspace. This plan does
-not authorise lifecycle progression, deployment or administrative action.
+Originated in `STATE-00 DISCOVERY_MIGRATION`. The owner revoked the MySQL
+Notifier clean-room inspiration and comprehensive-coverage authority through
+`GOV-MN-REV-01` on 2026-08-28. The MySQL Notifier inspiration clause in former
+`REQ-047`, all of `REQ-048` and `REQ-050`, and the `MN-001`–`MN-025` and
+`MN-Q01`–`MN-Q04` records remain only as historical traceability; their
+dispositions, owning phases and exit conditions are not current or future
+requirements. The independently established notification-area behaviour
+remains DB-Notifier-owned. The remaining PgNotifier migration plan does not
+authorise lifecycle progression, deployment or administrative action.
 
 ## Migration principles
 
@@ -18,13 +23,33 @@ not authorise lifecycle progression, deployment or administrative action.
 - Announce only the provider/platform combinations proven by tests and homologation.
 - Keep the provider catalog open to every database engine while implementing and homologating one bounded provider slice at a time.
 
-## MySQL Notifier conceptual benchmark
+## MySQL Notifier historical reference — authority revoked
 
-### Clean-room product decision
+### Revocation and controlled supersession
 
-On 2026-07-14, the product owner explicitly selected option 1: a clean implementation inspired functionally by MySQL Notifier while preserving DB Notifier's MIT licence and independent identity. This decision is a provenance and implementation constraint, not permission to copy or derive from the reference repository. Public behavioural documentation may be converted into provider-neutral DB Notifier requirements; Oracle/MySQL source, binaries, artwork, logos, trade dress, product copy and vendor-specific architecture must not enter this repository. Every implementation claim must be supported by DB Notifier-owned code, tests and evidence.
+On 2026-08-28, the product owner revoked every decision and permission to
+incorporate, recreate or use the complete MySQL Notifier 1.1.8 feature set in
+DB-Notifier. MySQL Notifier source, binaries, assets, product text, public
+behavioural documentation, internal architecture and the catalogue below are
+provenance and history only. They must not inform DB-Notifier requirements,
+design, code, tests, assets, acceptance criteria, roadmap items or
+implementation guidance. This prohibition applies to each individual feature,
+to any combination and to the purported complete set. The sanitised inspection
+and exact boundary are recorded in the
+[`GOV-MN-REV-01` report](STATE-06-MySQL-Notifier-Authority-Revocation-Report.md).
 
-The product owner clarified on 2026-07-14 that the Windows WPF client is primarily a Windows notification-area notifier. The benchmark is the interaction model documented by Oracle for MySQL Notifier 1.1, not its source code, artwork, vendor identity or security architecture. Oracle's archived [MySQL Notifier manual](https://downloads.mysql.com/docs/mysql-notifier-en.pdf) and [release notes](https://downloads.mysql.com/docs/mysql-notifier-relnotes-en.pdf) establish the following reference behaviours:
+This supersession does not delete DB-Notifier-owned behaviour already delivered
+and governed on independent product, security, accessibility or architecture
+grounds. It also does not remove MySQL from the open database-provider
+catalogue. Any future MySQL provider requires its own provider-neutral
+authority, implementation, licensing review and exact homologation without
+using MySQL Notifier as a blueprint or compatibility target.
+
+### Historical clean-room product decision — superseded
+
+On 2026-07-14, the product owner explicitly selected option 1: a clean implementation inspired functionally by MySQL Notifier while preserving DB Notifier's MIT licence and independent identity. This paragraph preserves that historical decision; `GOV-MN-REV-01` supersedes its prospective authority in full.
+
+The product owner clarified on 2026-07-14 that the Windows WPF client was primarily a Windows notification-area notifier. The historical benchmark was the interaction model documented by Oracle for MySQL Notifier 1.1, not its source code, artwork, vendor identity or security architecture. The archived [MySQL Notifier manual](https://downloads.mysql.com/docs/mysql-notifier-en.pdf) and [release notes](https://downloads.mysql.com/docs/mysql-notifier-relnotes-en.pdf) were used at that time to record the following reference behaviours:
 
 - the application resides in the Microsoft Windows taskbar notification area and may start with Windows;
 - activating its icon opens the main status menu, with each monitored server and its current state;
@@ -33,19 +58,25 @@ The product owner clarified on 2026-07-14 that the Windows WPF client is primari
 - larger management tools are secondary destinations opened from the notifier;
 - the final documented series is under Oracle Lifetime Sustaining Support, so it is a historical benchmark rather than a current dependency.
 
-DB Notifier adopts the tray-first hierarchy, rapid fleet scan, aggregate-state concept, change-only notification intent and secondary-management navigation. It deliberately replaces MySQL-specific service assumptions with provider-neutral Application contracts, canonical health states, explicit freshness and Agent/API ownership. Normal WPF startup remains in the notification area; the full WPF shell is a secondary local drill-down, while the Web Dashboard owns the complete responsive fleet experience.
+The historical plan associated the tray-first hierarchy, rapid fleet scan, aggregate-state concept, change-only notification intent and secondary-management navigation with that reference. Those DB-Notifier behaviours now stand only on their independent product-owned requirements and evidence; the reference no longer justifies or authorises them.
 
-DB Notifier does not adopt automatic service addition by name, direct remote WMI/DCOM callbacks, automatic firewall changes, vendor connection-file coupling or unconditional Start/Stop/Restart. Discovery must be typed and authorised. Remote monitoring follows the accepted outbound Agent/API architecture. Administrative actions remain unavailable until capability, identity, permission, confirmation, replay protection, audit, post-probe and exact homologation are proved.
+The independently governed DB-Notifier safety boundaries still prohibit automatic service addition by name, direct remote WMI/DCOM callbacks, automatic firewall changes, vendor connection-file coupling and unconditional Start/Stop/Restart. Discovery remains typed and authorised; remote monitoring follows the accepted outbound Agent/API architecture; administrative actions remain unavailable until their own capability, identity, permission, confirmation, replay protection, audit, post-probe and exact homologation are proved.
 
 Starting automatically at Windows sign-in is not implemented by this `STATE-05` increment. It requires an explicit user preference and the signed installer/startup-registration contract owned by `STATE-08`; normal process startup being tray-first must not be confused with automatic operating-system registration.
 
-### Complete public-function coverage matrix
+### Historical public-function coverage matrix — revoked
 
-“All MySQL Notifier functionality” means that every distinct user outcome publicly documented in Oracle's [MySQL Notifier 1.1 reference manual](https://downloads.mysql.com/docs/mysql-notifier-en.pdf) and [release notes through 1.1.8](https://downloads.mysql.com/docs/mysql-notifier-relnotes-en.pdf) has a stable record below. The baseline was re-audited against both publications on 2026-07-16. Release-note bug entries are not copied as a vendor defect catalogue; where they establish a durable user outcome, that outcome is captured by an `MN-Q*` quality record.
+The table preserves the 2026-07-16 traceability of the former “all MySQL
+Notifier functionality” request. It is not a backlog, specification,
+functional baseline, parity target or source of acceptance criteria after
+`GOV-MN-REV-01`.
 
-Disposition and maturity are separate facts. `ADOPT` preserves a safe portable outcome, `ADAPT` provides the outcome through DB-Notifier's provider-neutral and least-privilege architecture, and `REJECT/REPLACE` permanently refuses the documented mechanism while naming the supported alternative. A future owning phase is a scheduled requirement, never an implementation, support or homologation claim.
+`ADOPT`, `ADAPT` and `REJECT/REPLACE` below describe only the historical
+classification. Former future phases and exit conditions are revoked, not
+scheduled requirements. Similar DB-Notifier capabilities may proceed only from
+independent current authority and product-owned requirements.
 
-| ID | Publicly documented outcome and source | DB-Notifier clean-room disposition | Current evidence | Owning phase and remaining exit condition |
+| ID | Historically documented outcome and source | Historical clean-room disposition | Preserved DB-Notifier evidence | Revoked former phase and exit condition |
 |---|---|---|---|---|
 | `MN-001` | Windows notification-area residency and activation of a compact status menu (manual 1.1 §§1.1-1.2) | `ADOPT`: the notification-area-first Windows hierarchy is the product behaviour. | Normal WPF startup is hidden; one icon activation opens the compact fleet flyout and the full shell remains secondary. The `STATE-05` Human Gate is approved with recorded environmental limitations. | Bind the normal client to authorised reconciled state before any operational claim; homologation remains separate. |
 | `MN-002` | Per-item status in the main menu, contextual actions and an empty-inventory state (manual 1.1 §1.1) | `ADAPT`: show provider-neutral state, freshness and only applicable actions. Safe navigation, Settings and Exit remain discoverable when the fleet is empty rather than reproducing the reference menu-hiding rule. | The normal flyout presents labelled demonstration instances and safe local destinations. Authoritative reads and empty/offline/stale recovery are proved only in opt-in test sandboxes. | Bind the normal list and action applicability to authorised reconciled state without enabling unsupported administration. |
@@ -75,14 +106,17 @@ Disposition and maturity are separate facts. `ADOPT` preserves a safe portable o
 
 The release notes also establish durable quality outcomes that cut across the capabilities above:
 
-| ID | Publicly documented quality outcome | DB-Notifier clean-room disposition | Current evidence | Owning phase and remaining exit condition |
+| ID | Historically documented quality outcome | Historical clean-room disposition | Preserved DB-Notifier evidence | Revoked former phase and exit condition |
 |---|---|---|---|---|
 | `MN-Q01` | External additions, removals and status changes reconcile without stale entries, duplicates or restart-only visibility (release notes 1.0.3-1.1.6) | `ADAPT`: reconciliation is idempotent, ordered and source-aware; disappearance becomes an explicit state/event and never deletes history silently. | Outbox, sequence, idempotency, rejection ledger and canonical transition contracts exist. Local E2E proves offline replay, duplicate/reorder handling, staleness and revocation; normal UIs still consume demonstrations. | Bind the proved contracts to authorised normal composition and preserve freshness/history under operational scale. |
 | `MN-Q02` | Missing, dead or corrupt service/configuration inputs do not crash the notifier (release notes 1.1.4-1.1.7) | `ADAPT`: validate at trust boundaries, quarantine invalid input, retain last-known factual state and expose a sanitised remediation path. Deleting configuration is not the default recovery mechanism. | ConfigMigrator proves authenticated crash recovery; Agent/API and browser sandboxes prove bounded refusal, quarantine and last-valid evidence retention. Provider/runtime external-file recovery is not operationally integrated. | `STATE-07`: provider/platform negative fixtures; `STATE-08`: packaged configuration recovery. |
 | `MN-Q03` | Cancelled dialogs or denied external launches perform no action; runtime failures are logged without exposing raw stack traces (release notes 1.0.3, 1.1.5 and 1.1.8) | `ADOPT/ADAPT`: cancellation and refusal are side-effect free; failures are typed, bounded, sanitised and auditable. | Fail-closed authorisation, unsupported-action previews and sanitised migration reports exist; integrated settings/tool-launch flows do not. | Prove negative paths in each owning phase before enabling the corresponding function. |
 | `MN-Q04` | Persisted options and connection changes survive restart/upgrade without corruption, while incompatible legacy data is migrated explicitly (release notes 1.1.4, 1.1.7 and 1.1.8) | `ADAPT`: versioned schemas, atomic writes, backup, validation, idempotent migration and rollback replace ad hoc vendor XML edits. | UI preferences, Agent/server internal state and PgNotifier configuration migration are versioned and tested in their bounded scopes. | Operational settings, provider settings and packaged upgrade/rollback/uninstall remain in their owning phases. |
 
-These 29 records are the exhaustive clean-room coverage baseline for the public manual and feature-bearing release-note outcomes reviewed above. A future row is an accepted requirement only. A rejected mechanism cannot be reintroduced merely to obtain visual or behavioural similarity, and a capability cannot be marked supported until its exact provider/version/platform/topology combination is implemented and homologated.
+These 29 records are retired historical traceability. None grants authority,
+creates remaining work or may be reactivated by adding a row. Independently
+authorised DB-Notifier capabilities still require their own implementation and
+exact provider/version/platform/topology homologation before any support claim.
 
 ## Original technical baseline for the STATE-00 gate
 

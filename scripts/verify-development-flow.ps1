@@ -92,8 +92,17 @@ Assert-Condition `
 
 $requiredFiles = @(
     '.nvmrc',
+    'AGENTS.md',
+    'docs/Legacy-Migration-Plan.md',
+    'docs/STATE-06-MySQL-Notifier-Authority-Revocation-Report.md',
+    'docs/design/DB-Notifier-Design-System.md',
     'global.json',
     'PLANS.md',
+    'prompts/foundation/Prompt-New-Project.md',
+    'prompts/state/Current-State.md',
+    'prompts/state/State-Transition-Log.md',
+    'prompts/system/Prompt-System-Change-Log.md',
+    'README.md',
     'scripts/assert-dbnotifier-shutdown.ps1',
     'scripts/development-environment.ps1',
     'scripts/development.ps1',
@@ -369,13 +378,70 @@ $changelog = Get-RequiredFileText -RelativePath 'prompts/system/Prompt-System-Ch
 $currentState = Get-RequiredFileText -RelativePath 'prompts/state/Current-State.md'
 $stateTransitionLog = Get-RequiredFileText -RelativePath 'prompts/state/State-Transition-Log.md'
 $masterPrompt = Get-RequiredFileText -RelativePath 'prompts/system/AI-Software-Engineering-Master-Prompt.md'
+$rootInstructions = Get-RequiredFileText -RelativePath 'AGENTS.md'
+$legacyMigrationPlan = Get-RequiredFileText -RelativePath 'docs/Legacy-Migration-Plan.md'
+$designSystem = Get-RequiredFileText -RelativePath 'docs/design/DB-Notifier-Design-System.md'
+$revocationReport = Get-RequiredFileText -RelativePath 'docs/STATE-06-MySQL-Notifier-Authority-Revocation-Report.md'
+$projectReadme = Get-RequiredFileText -RelativePath 'README.md'
+$projectVision = Get-RequiredFileText -RelativePath 'prompts/foundation/Prompt-New-Project.md'
+$changelogSevenSectionMatch = [regex]::Match(
+    $changelog,
+    '(?ms)^## 7[.]0[.]0 — 2026-08-28\r?\n(?<body>.*?)(?=^## )')
+$changelogSevenSection = $changelogSevenSectionMatch.Groups['body'].Value
 Assert-Condition `
-    -Condition ($changelog -match '(?s)## Versão atual\s+- Versão: `6[.]7[.]1`') `
-    -Message 'The instruction-corpus changelog is not at version 6.7.1.'
+    -Condition ($changelog -match '(?s)## Versão atual\s+- Versão: `7[.]0[.]0`') `
+    -Message 'The instruction-corpus changelog is not at version 7.0.0.'
 Assert-Condition `
-    -Condition ($currentState.Contains('`6.7.1`', [System.StringComparison]::Ordinal) -and
+    -Condition ($changelogSevenSectionMatch.Success -and
+        $changelogSevenSection.Contains('`GOV-MN-REV-01`', [System.StringComparison]::Ordinal) -and
+        $changelogSevenSection.Contains('cada funcionalidade isolada', [System.StringComparison]::Ordinal) -and
+        $changelogSevenSection.Contains('não remove comportamento DB-Notifier já próprio', [System.StringComparison]::Ordinal)) `
+    -Message 'The 7.0.0 changelog entry does not delimit the revocation and its protected non-effects.'
+Assert-Condition `
+    -Condition ($currentState.Contains('`7.0.0`', [System.StringComparison]::Ordinal) -and
         $currentState.Contains('`1.4.1`', [System.StringComparison]::Ordinal)) `
     -Message 'Current-State.md does not record the adopted workflow versions.'
+Assert-Condition `
+    -Condition ($rootInstructions.Contains('`GOV-MN-REV-01`', [System.StringComparison]::Ordinal) -and
+        $rootInstructions.Contains('Do not incorporate, recreate or use any individual or combined MySQL Notifier functionality.', [System.StringComparison]::Ordinal) -and
+        $rootInstructions.Contains('`REQ-050`', [System.StringComparison]::Ordinal) -and
+        $rootInstructions.Contains('are `REVOKED` and historical only', [System.StringComparison]::Ordinal) -and
+        -not $rootInstructions.Contains('Implement comparable notification-area behaviour only through a clean-room implementation', [System.StringComparison]::Ordinal)) `
+    -Message 'The root instructions do not enforce the MySQL Notifier authority revocation.'
+Assert-Condition `
+    -Condition ($legacyMigrationPlan.Contains('## MySQL Notifier historical reference — authority revoked', [System.StringComparison]::Ordinal) -and
+        $legacyMigrationPlan.Contains('`MN-Q01`–`MN-Q04` records remain only as historical traceability', [System.StringComparison]::Ordinal) -and
+        $legacyMigrationPlan.Contains('The MySQL Notifier inspiration clause in former', [System.StringComparison]::Ordinal) -and
+        -not $legacyMigrationPlan.Contains('coverage identifiers remain the functional baseline', [System.StringComparison]::Ordinal)) `
+    -Message 'The migration plan still presents MySQL Notifier coverage as active authority.'
+Assert-Condition `
+    -Condition ($designSystem.Contains('| Design System version | `3.4.1` |', [System.StringComparison]::Ordinal) -and
+        $designSystem.Contains('Design System `3.4.1` records the owner''s `GOV-MN-REV-01` revocation', [System.StringComparison]::Ordinal) -and
+        -not $designSystem.Contains('public behavioural documentation may inform requirements', [System.StringComparison]::Ordinal)) `
+    -Message 'The Design System does not preserve the revoked reference boundary.'
+Assert-Condition `
+    -Condition ($currentState.Contains('A cláusula de inspiração em MySQL Notifier de `REQ-047` está', [System.StringComparison]::Ordinal) -and
+        $currentState.Contains('`REQ-048` e `REQ-050` estão `REVOGADOS`', [System.StringComparison]::Ordinal) -and
+        $revocationReport.Contains('every individual MySQL Notifier functionality', [System.StringComparison]::Ordinal) -and
+        $revocationReport.Contains('6f7c58b1c36c91dd2c3d7406aba31eb3d8213e6e737dce23be6fc0eaa1b4c676', [System.StringComparison]::Ordinal)) `
+    -Message 'Current fact or revocation evidence is incomplete.'
+Assert-Condition `
+    -Condition ($projectReadme.Contains('These are DB-Notifier-owned product decisions, not MySQL Notifier parity requirements.', [System.StringComparison]::Ordinal) -and
+        $projectReadme.Contains('independently governed versioned providers/plugins', [System.StringComparison]::Ordinal) -and
+        $projectVision.Contains('`GOV-MN-REV-01` revogou qualquer autoridade presente ou futura', [System.StringComparison]::Ordinal)) `
+    -Message 'The project overview or vision does not preserve the revoked reference boundary.'
+Assert-Condition `
+    -Condition ($rootInstructions.Contains('it does not remove MySQL as an independently governed future database provider', [System.StringComparison]::Ordinal) -and
+        $legacyMigrationPlan.Contains('independently established notification-area behaviour', [System.StringComparison]::Ordinal) -and
+        $revocationReport.Contains('The revocation does not rewrite a Human Gate', [System.StringComparison]::Ordinal) -and
+        $revocationReport.Contains('MySQL as a database engine remains an independently governed candidate', [System.StringComparison]::Ordinal)) `
+    -Message 'The revocation does not protect existing DB-Notifier behaviour, history and the independent MySQL provider boundary.'
+Assert-Condition `
+    -Condition ($stateTransitionLog.Contains('## 2026-08-28 — GOV-MN-REV-01 revoga a autoridade MySQL Notifier', [System.StringComparison]::Ordinal) -and
+        $stateTransitionLog.Contains('6f7c58b1c36c91dd2c3d7406aba31eb3d8213e6e737dce23be6fc0eaa1b4c676', [System.StringComparison]::Ordinal) -and
+        $stateTransitionLog.Contains('cláusula MySQL Notifier de `REQ-047`', [System.StringComparison]::Ordinal) -and
+        $stateTransitionLog.Contains('`STATE-06 INTEGRATION` permanece inalterado', [System.StringComparison]::Ordinal)) `
+    -Message 'The append-only history does not record the MySQL Notifier authority revocation.'
 Assert-Condition `
     -Condition ($stateTransitionLog.Contains(
             'Método e fluxo de desenvolvimento governado adotados de forma DB-native',

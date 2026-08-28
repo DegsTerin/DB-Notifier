@@ -9,30 +9,170 @@ append-only history, a Quality Gate or a Human Gate.
 
 ## Control record
 
-- Plan ID: `S06-DFR-02`
+- Plan ID: `GOV-MN-REV-01`
 - Status: `COMPLETE`
 - Created: `2026-08-28`
-- Initial baseline: `main@d805e86b313d084d1d4f44c4b7559e699e4c6eda`
+- Initial baseline: `main@0c1da9d9cc11fa0a0678ce1435660e1a833364e1`
 - Preserved predecessors: all first factual dispositions remain immutable;
+  `S06-DFR-02` and `S06-DFR-01` remain `COMPLETE`,
   `GOV-2026-R1` remains `COMPLETE`,
   `AUD-2026-R1-R5-R2` remains `BLOCKED` by its rejected durable-capture
   wrapper before process creation,
   `AUD-2026-R1-R5-R1` remains `BLOCKED` by its unprovable sole focal result,
   while `AUD-2026-R1-R4` remains `BLOCKED` by its sole online `Full`
 - Lifecycle state: `STATE-06 INTEGRATION`; unchanged by this plan
-- Authority: Bruno's explicit authorisation for `S06-DFR-02` to connect the
-  Tray reconciliation boundary to a provider-neutral Agent/API read model,
-  based only on the public behaviour already classified by `S06-DFR-01` and
-  without consulting or adapting the protected external source tree
-- Execution mode: `SEQUENTIAL_ONLY`
+- Authority: Bruno's explicit instruction to read, analyse and verify the local
+  `mysql-notifier-1.1.8-src` folder and revoke every decision or permission to
+  incorporate, recreate or use the complete MySQL Notifier 1.1.8 feature set
+  in DB-Notifier
+- Execution mode: `SEQUENTIAL_ONLY`; execution topology `SINGLE_OWNER`.
+  Independent lanes are read-only, and every write, integration step,
+  validation and Git operation is sequential
 - Writer: coordinating conversation only
-- Reviewer: the coordinating conversation performs frozen-diff, security,
-  architectural and factual review; an independent semantic reviewer is not
-  assigned under the current single-conversation authority
+- Independent reviewers: one read-only legacy-folder auditor, one tracked
+  authority-reference auditor and one governance reviewer produced candidates;
+  final read-only re-review closed with zero findings at every severity
 - Factual-state owner: `prompts/state/Current-State.md`
 - Historical owner: `prompts/state/State-Transition-Log.md`
 
 ## Task envelopes
+
+### MySQL Notifier authority revocation `GOV-MN-REV-01` — complete
+
+- Envelope status: `COMPLETE`.
+- Exact human authority: inspect the local `mysql-notifier-1.1.8-src` tree and
+  revoke every existing decision or permission to incorporate, recreate or use
+  the complete MySQL Notifier 1.1.8 feature set in DB-Notifier.
+- Workspace and frozen baseline: `C:\Projects\DB-Notifier`, branch `main`,
+  commit `0c1da9d9cc11fa0a0678ce1435660e1a833364e1`; index and tracked worktree
+  were clean before the audit and plan update.
+- Initial shutdown evidence: the canonical preflight returned `PASS` with zero
+  matching processes and zero owned listeners. No process was stopped.
+- Verifiable objective: establish a sanitised local inventory of the reference
+  tree; identify its provenance, licensing and functional families without
+  executing or copying it; supersede every current DB-Notifier authority that
+  treats MySQL Notifier behaviour or comprehensive parity as a requirements
+  source; mark `REQ-050` and the `MN-*`/`MN-Q*` catalogue as revoked and
+  historical; preserve existing DB-Notifier-owned behaviour and historical
+  evidence without deriving further work from the reference.
+- Positive scope: this live plan; read-only inspection of the explicitly named
+  external tree; permanent root-agent instructions; the current README,
+  migration-plan authority, Design System authority and factual state; one
+  sanitised documentary audit report; the instruction-system changelog and
+  append-only transition history; the existing development-flow policy
+  verifier and its revocation regression; focused documentation, link, policy
+  and secret checks; independent read-only review; and one focused local
+  commit.
+- Historical scope preserved read-only: prior Human Gates, ADRs, completed
+  implementation reports, request-traceability evidence, earlier plan
+  envelopes, prior changelog entries and prior transition-log entries retain
+  their original facts and wording. They no longer grant prospective authority
+  where the current revocation supersedes them.
+- Protected work and negative scope: do not execute, build, import, translate,
+  adapt, copy, track, move, delete or modify the external tree or any of its
+  contents. Do not remove existing DB-Notifier-owned product behaviour or
+  tests, alter the independent future MySQL database-provider roadmap, change a
+  dependency or lockfile, access a database/provider/network service, start a
+  product runtime, deploy, publish, push, decide a Human Gate, activate a
+  capability or transition lifecycle.
+- Authority effect: MySQL Notifier and its source tree, binaries, assets,
+  product text, public behavioural documentation, internal architecture and
+  historical feature catalogue become provenance/history only. They are not a
+  current or future source of requirements, parity targets, design decisions,
+  code, tests, assets, roadmap items, acceptance criteria or implementation
+  authority. The prohibition applies to each individual feature and to every
+  combination or purported complete set. Similar generic outcomes may continue
+  only when independently owned and justified by DB-Notifier requirements.
+- Provider distinction: this revocation concerns the MySQL Notifier reference
+  product and comprehensive-feature mandate. It does not remove MySQL as a
+  database-engine candidate from the open provider catalogue; any future MySQL
+  provider still requires its own provider-neutral authority, implementation,
+  licensing review and homologation.
+- Artefact classification and ownership: `AGENTS.md`, the migration plan and
+  Design System are `AUTHORITY`; current state is `CURRENT_FACT`; the transition
+  log is append-only `HISTORY`; this file is `PLAN`; the new audit report is
+  `EVIDENCE`; the README and changelog are governed documentation. The
+  coordinating conversation is the sole writer for every path, the Git index
+  and the focused commit. Parallel reviewers remain read-only.
+- Definition of Ready: shutdown and exact-baseline checks pass; the target tree
+  exists and is ignored by the existing protected-tree rule; applicable
+  instructions and current state are read; current prospective authorities and
+  historical records are classified; no tracked owner work is present; scope,
+  ownership, reviewers, checks and stop codes are frozen.
+- Definition of Done: the local tree is verified by counts and deterministic
+  SHA-256 inventory; the report records provenance, licence families,
+  functional families and non-execution limits without reproducing source;
+  every current authority permits only historical/provenance mention and
+  independently justified DB-Notifier requirements; the MySQL Notifier
+  inspiration clause in `REQ-047`, all of `REQ-048` and `REQ-050`, and every
+  `MN-*`/`MN-Q*` future exit are revoked; existing product-owned behaviour and
+  the independent MySQL provider boundary are explicitly preserved; corpus
+  version, current state, changelog and append-only history agree; applicable
+  checks and independent review are factual; one focused local commit exists;
+  lifecycle remains unchanged.
+- Stop rule: any baseline drift, tracked user work, attempt to copy or execute
+  external material, unresolved current authority, historical-evidence rewrite,
+  provider/product conflation, failed mandatory check, secret/host disclosure
+  or need for product-removal, external, Human Gate or lifecycle authority stops
+  the affected work without implicit widening.
+- Objective stop codes: `AUTHORITY_MISMATCH`, `BASELINE_DRIFT`,
+  `SCOPE_OVERLAP`, `DEPENDENCY_UNREADY`, `ISOLATION_FAILURE`,
+  `MUTABLE_RESOURCE_COLLISION`, `GATE_FAILURE`, `EXTERNAL_AUTHORITY_REQUIRED`
+  and `HUMAN_DECISION_REQUIRED` retain their governed meanings.
+- Rollback strategy: before commit, reverse only this envelope's owned
+  documentary candidate under separately authorised recovery; after commit,
+  preserve history and use a separately authorised focused revert. The
+  external tree, product runtime, providers, schemas and external systems have
+  no rollback action because this envelope does not mutate them.
+- Prospective supersession of predecessor envelopes: every earlier phrase in
+  this ledger that authorised clean-room inspiration, public-reference use,
+  parity or a MySQL Notifier-derived exit remains an immutable record of its
+  former envelope only. It is not executable authority after `GOV-MN-REV-01`.
+- Observed audit evidence: the ignored external tree retained 110 files, ten
+  directories and 6,554,849 bytes with deterministic SHA-256
+  `6f7c58b1c36c91dd2c3d7406aba31eb3d8213e6e737dce23be6fc0eaa1b4c676`.
+  It remains unmodified, ignored and untracked, and no target content was
+  executed, compiled, decompiled, copied or consulted by network.
+- Observed local provenance and risk: local metadata identifies Oracle/MySQL
+  Notifier 1.1.8, GPLv2 with an additional linking permission, third-party
+  notices, branded assets, privileged operations and a Windows/MySQL-specific
+  .NET Framework composition. Authenticity, chain of custody, reproducibility,
+  binary provenance and legal compatibility remain unproved; the tree is
+  quarantined historical evidence, not an implementation blueprint.
+- Verification evidence: development-flow policy `123` assertions; standalone
+  regression `98`; documentation `447` comment-capable files; Markdown `993`
+  local links in `230` files; secret scan and `git diff --check` both passed.
+  The post-change target identity matched, and the 766,612-byte append-only
+  history prefix retained SHA-256
+  `8aa11f2ceebf3a2ab3094476ec77247d2066b668e14a2ef04dd44c9317167bfc`.
+- Review evidence: initial independent frozen-diff review reported `P0=0`,
+  `P1=0`, `P2=1`, `P3=0`. The sole `P2` found missing policy assertions for
+  non-effects, README, vision, the bounded `7.0.0` entry and transition log;
+  all named boundaries are now asserted and the focused verifier passes.
+- Final independent review: `P0=0`, `P1=0`, `P2=0`, `P3=0`; the reviewer
+  independently confirmed the corrected assertions, unchanged historical
+  matrix, append-only prefix, target-tree identity and zero tracked target
+  files. No actionable finding remains.
+- Post-review control correction: one policy execution failed because the
+  administrative reconciliation had renamed the mandatory `- Execution mode:`
+  plan label. The label was restored with canonical `SEQUENTIAL_ONLY` while
+  retaining `SINGLE_OWNER` as the separate execution topology; the next policy
+  execution passed 123 assertions. The failed result is not relabelled.
+- Gate applicability: `Quick` and canonical `Full` are not applicable to this
+  policy/documentation-only revocation because product behaviour, dependencies,
+  generated artefacts and runtime composition are unchanged. They are not
+  treated as `NOT_RUN` stages or substituted by the focused checks.
+- Disposition: `GOV-MN-REV-01 COMPLETE`; the prospective MySQL Notifier
+  authority is revoked for individual features, combinations and the complete
+  set while historical truth, existing DB-Notifier-owned behaviour and the
+  independent future MySQL provider boundary remain intact.
+- Delivery: this completed record is included in the single focused local
+  commit required by repository policy. Its object ID is reported in the final
+  hand-off rather than embedded here.
+- Remaining mandatory items for `GOV-MN-REV-01`: `0`. Deleting or relocating
+  the external tree, removing existing product behaviour, implementing a MySQL
+  provider or entering a later lifecycle stage are separate actions and not
+  remainder of this target.
 
 ### Desktop Fleet Agent/API read-only integration `S06-DFR-02` — complete
 
@@ -1509,6 +1649,18 @@ to this increment.
 
 ## Outcome and next action
 
+`GOV-MN-REV-01` is `COMPLETE`. The ignored local MySQL Notifier tree was
+statically inventoried without execution, copying, network access or mutation;
+all prospective authority to incorporate, recreate or use its individual,
+combined or complete functionality is revoked. The historical matrix and
+completed increments remain factual but non-authorising, existing
+DB-Notifier-owned behaviour is preserved, and MySQL remains only an independent
+future provider candidate. Focused policy `123`, standalone regression `98`,
+documentation `447`, Markdown `993`, secret and diff checks passed; final
+independent review closed at zero findings. `STATE-06 INTEGRATION` remains
+unchanged. The next action is owner acknowledgement or closure; any technical
+follow-up requires separate explicit authority.
+
 `GOV-2026-R1` is `COMPLETE` as a project-wide governance increment. Every
 owner-facing payload explicitly presented for copying now uses its own fenced
 Markdown block labelled `text`; labels, reasons and instructions remain outside
@@ -1602,6 +1754,12 @@ lifecycle authority was inferred.
 
 ## Change log
 
+- `2026-08-28`: `GOV-MN-REV-01` statically audited the ignored MySQL Notifier
+  1.1.8 tree and revoked every prospective functional-use authority while
+  preserving history, existing DB-Notifier-owned behaviour and the independent
+  future MySQL provider boundary. Corpus `7.0.0`, Design System `3.4.1`, focused
+  checks and append-only integrity passed; an initial `P2` regression gap was
+  corrected and final independent review closed with zero findings.
 - `2026-08-28`: `GOV-2026-R1` adopted one fenced Markdown `text` block per
   owner-facing copy payload across the root instruction, coordination authority,
   template, Quality Gate, factual records and policy verifier. Corpus `6.7.1`

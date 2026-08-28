@@ -2,9 +2,9 @@
 
 ## Versão atual
 
-- Versão: `6.7.1`
+- Versão: `7.0.0`
 - Data: 2026-08-28
-- Status: apresentação de payloads copiáveis governada; lifecycle inalterado
+- Status: autoridade de paridade com MySQL Notifier revogada; lifecycle inalterado
 - Escopo: 16 arquivos ativos
 
 A versão do corpus é independente da versão do software.
@@ -16,6 +16,61 @@ A versão do corpus é independente da versão do software.
 - PATCH: clareza, correção ou referência sem mudança de autoridade.
 
 Toda alteração atualiza este arquivo e, quando necessário, `../Start-Here.md`.
+
+## 7.0.0 — 2026-08-28
+
+- Registra `GOV-MN-REV-01`, a revogação explícita do proprietário de toda
+  decisão ou permissão para incorporar, recriar ou usar o conjunto completo de
+  funcionalidades do MySQL Notifier 1.1.8 no DB-Notifier.
+- Torna MySQL Notifier somente proveniência histórica do PgNotifier. Fonte,
+  binários, ativos, texto de produto, documentação comportamental pública,
+  arquitetura interna e a matriz antiga deixam de ser inputs de requisito,
+  design, código, teste, ativo, aceite, roadmap ou implementação.
+- Revoga a cláusula de inspiração em MySQL Notifier de `REQ-047`, todo o
+  `REQ-048`, `REQ-050`, `MN-001`–`MN-025` e `MN-Q01`–`MN-Q04` como obrigações
+  presentes ou futuras. A proibição abrange cada funcionalidade isolada,
+  qualquer combinação e o conjunto completo. A matriz e os lotes concluídos
+  permanecem evidência histórica, sem reescrever Human Gates, ADRs, relatórios,
+  commits ou entradas anteriores do histórico.
+- Atualiza a instrução permanente, visão, README, plano de migração, Design
+  System e estado factual. O Design System avança para `3.4.1` porque a
+  proveniência normativa foi retirada sem alterar tokens, assets ou
+  comportamento executável; os comportamentos Tray existentes permanecem
+  requisitos próprios do DB-Notifier.
+- A auditoria estática local da árvore ignorada observou 110 arquivos, dez
+  diretórios e 6.554.849 bytes, com identidade determinística
+  `6f7c58b1c36c91dd2c3d7406aba31eb3d8213e6e737dce23be6fc0eaa1b4c676`.
+  Nenhum conteúdo foi executado, copiado, rastreado, alterado ou consultado por
+  rede; autenticidade upstream e cadeia de custódia não foram inferidas.
+- Preserva as proteções de ignore/inventário da árvore externa. A leitura
+  excepcional desta auditoria não torna o material acessível aos gates normais
+  nem cria um blueprint de implementação.
+- Mantém 16 arquivos ativos, a Política de Idioma na revisão `1.0.0`, a
+  Coordenação de Conversas na revisão `1.4.1`, a versão-fonte `2.0.0` do Prompt
+  Mestre, `STATE-06 INTEGRATION`, elegibilidade `NÃO REAVALIADA` e
+  `MOD-12 ActivationState=None`.
+- A revogação não remove comportamento DB-Notifier já próprio nem o MySQL como
+  candidato independente do catálogo aberto de providers. Não autoriza código
+  de produto, provider, dependência, migration, runtime, banco real, deploy,
+  publicação, push, Human Gate, homologação, ativação ou transição de
+  lifecycle.
+- O verificador de política aprovou 123 asserções e seu teste standalone, 98;
+  documentação aprovou 447 arquivos, links Markdown aprovaram 993 links em 230
+  arquivos, o scan de segredos e `git diff --check` aprovaram. A identidade da
+  árvore externa e o prefixo append-only permaneceram idênticos. `Quick` e
+  `Full` não se aplicam à revogação exclusivamente documental/de política e não
+  são usados como evidência.
+- A primeira revisão independente fechou `P0=0`, `P1=0`, `P2=1`, `P3=0`. O
+  único `P2`, proteção incompleta dos não-efeitos e documentos no verificador,
+  foi corrigido por asserções delimitadas antes da revisão final.
+- A revisão independente final fechou `P0=0`, `P1=0`, `P2=0`, `P3=0` e
+  confirmou as asserções corrigidas, a matriz histórica inalterada, o prefixo
+  append-only, a identidade da árvore externa e zero arquivo alvo rastreado.
+- Uma execução de política posterior à revisão falhou porque a reconciliação
+  administrativa havia renomeado o controle obrigatório `- Execution mode:` do
+  plano. O rótulo foi restaurado com `SEQUENTIAL_ONLY`, `SINGLE_OWNER` foi
+  mantido como topologia separada e a execução seguinte aprovou 123 asserções;
+  a falha não foi relabelada.
 
 ## 6.7.1 — 2026-08-28
 
