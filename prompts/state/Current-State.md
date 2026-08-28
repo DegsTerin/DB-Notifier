@@ -349,6 +349,20 @@ proprietários.
   e o `Full` online condicional estão `NOT_RUN`; o candidato possui apenas
   evidência estática. Banco/provider real, navegador comum, deploy, push, Human
   Gate, ativação e transição de `STATE` não foram executados.
+- `AUD-2026-R1-R5-R2` partiu da baseline limpa
+  `main@dcd3d24064e0709981e8ba0cff223de6a2c35565`. Seu único shutdown preflight
+  inicial aprovou com exit code `0`, zero processo correspondente e zero
+  listener próprio; branch, HEAD e a árvore não ignorada corresponderam à
+  baseline autorizada.
+- O runner consolidado e o teste focal permaneceram byte-idênticos. A primeira
+  tentativa de iniciar o invólucro de captura durável foi rejeitada pelo limite
+  local de execução antes de `CreateProcess`; nenhum processo PowerShell ou de
+  teste foi criado e o diretório ignorado de evidência permaneceu ausente. A
+  invocação não foi corrigida, simplificada ou repetida.
+- `AUD-2026-R1-R5-R2` está `BLOCKED` por `ISOLATION_FAILURE`. O teste focal,
+  `Doctor`, `Quick` e o `Full` online condicional estão `NOT_RUN`; nenhuma dessas
+  autorizações foi consumida. Banco/provider real, navegador comum, deploy,
+  push, Human Gate, ativação e transição de `STATE` não foram executados.
 - A evidência executável disponível para o próprio fluxo aprovou `97`
   invariantes estáticas, `64` regressões determinísticas, sintaxe de `47`
   scripts PowerShell e `14` scripts Node, compatibilidade de sintaxe de `27`

@@ -6294,3 +6294,38 @@
 - Estado resultante: `STATE-06 INTEGRATION`, elegibilidade `NÃO REAVALIADA`,
   `MOD-12 ActivationState=None`, providers, ADRs, Human Gates, produto,
   interface e autoridade externa permanecem inalterados.
+
+## 2026-08-28 — AUD-2026-R1-R5-R2 para antes de invocar o teste focal
+
+- Estado anterior: `STATE-06 INTEGRATION`, elegibilidade `NÃO REAVALIADA`,
+  `MOD-12 ActivationState=None`, `AUD-2026-R1-R5-R1 BLOCKED` por resultado focal
+  não comprovável, baseline limpa
+  `main@dcd3d24064e0709981e8ba0cff223de6a2c35565`.
+- Autoridade humana: executar um único shutdown preflight; manter implementação
+  e testes inalterados; executar uma vez o teste focal com saída e exit code
+  duráveis; somente após `PASS`, executar uma vez `Doctor`, `Quick` e um único
+  `Full` online; parar sem retry, diagnóstico executável ou correção em linha no
+  primeiro `FAIL` ou `BLOCKED`; reconciliar somente os três documentos factuais.
+- Preflight e baseline: o único shutdown inicial aprovou com exit code `0`, zero
+  processo correspondente e zero listener próprio. Branch, HEAD, index,
+  worktree rastreada e inventário não ignorado corresponderam à baseline limpa.
+- Identidade congelada: o runner consolidado conservou SHA-256
+  `F88CC8B090967CE666CA57C62BE8949D37B91C1797CF9D1D1B2E1E40F3FFBFF1`; o
+  teste focal conservou SHA-256
+  `0F2CD49EEB1D87C7986F6F60F793D8E4E8F2603F0793756C00029B0A614857BF`.
+- Primeira tentativa executável: o limite local de execução rejeitou o
+  invólucro de captura durável antes de `CreateProcess`. Nenhum processo
+  PowerShell ou de teste foi criado e o diretório ignorado
+  `.dotnet/evidence/AUD-2026-R1-R5-R2/` permaneceu ausente.
+- Stop factual: a rejeição foi preservada sem simplificar, corrigir ou repetir a
+  invocação. O teste focal, `Doctor`, `Quick` e o `Full` online condicional estão
+  `NOT_RUN`; nenhuma dessas autorizações foi consumida.
+- Disposição: `AUD-2026-R1-R5-R2 BLOCKED` por `ISOLATION_FAILURE`. Não existe
+  novo resultado executável para o candidato commitado.
+- Escopo negativo preservado: implementação, testes, scripts, workflows,
+  versões, dependências, manifests, lockfiles, integridades, contratos e schemas
+  permaneceram inalterados. Nenhum banco/provider real, navegador comum, deploy,
+  push, Human Gate, ativação ou transição de `STATE` foi executado.
+- Estado resultante: `STATE-06 INTEGRATION`, elegibilidade `NÃO REAVALIADA`,
+  `MOD-12 ActivationState=None`, providers, ADRs, Human Gates, produto,
+  interface e autoridade externa permanecem inalterados.
