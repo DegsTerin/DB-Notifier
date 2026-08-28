@@ -293,6 +293,43 @@ proprietários.
   protegido permaneceu não lido, nenhum resíduo ignorado foi excluído e
   backend, migrations, banco/provider real, navegador comum, deploy, push,
   Human Gate, ativação e transição de `STATE` não foram executados.
+- `AUD-2026-R1-R4` partiu da baseline limpa
+  `main@0f59408440dc1c5877f8d3de0de8859ef9bc7fed` após um shutdown preflight
+  com zero processo correspondente e zero listener próprio. As toolchains
+  observadas — .NET `10.0.400`, Node.js `24.19.0` e npm `11.17.0` — satisfazem
+  as faixas estáveis governadas; nenhum pin ou intervalo mudou.
+- npm atualizou em modo package-lock-only somente os campos `version`,
+  `resolved` e `integrity` do nó transitivo `nanoid`, de `3.3.16` para a versão
+  corrigida compatível `3.3.18`. O `package.json` Dashboard permaneceu
+  byte-idêntico, com SHA-256
+  `5a137255c337ab1a159e797dd7187bcfdbcdb70ca75c73c0cf43faf5f3a917a8`, e a
+  aresta `postcss -> nanoid ^3.3.16` não mudou.
+- A auditoria focal online retornou `found 0 vulnerabilities`. `Doctor`
+  aprovou preflight interno, raiz, toolchains, lockfiles e dependências
+  restauradas. A única `Quick`, explicitamente `NON_GATE`, aprovou build sem
+  aviso/erro, unitários `528/528`, arquitetura `100/100`, Node `74/74`,
+  política `105`, regressões de política `98`, runner `68` e sintaxe `13`.
+- A única execução online de `Full` em `AUD-2026-R1-R4` aprovou os dois
+  preflights, secret scan, políticas, restore locked de `19` projetos, build
+  sem aviso/erro, arquitetura `100/100`, WPF `10/10`, unitários `528/528`,
+  integração `168/168`, cobertura de linhas `83,41%`, branches `56,62%` em
+  `10` componentes, vulnerabilidades NuGet nos `19` projetos, runtime audit
+  fail-closed, compatibilidade legada com `34` testes e `1` skip, bundle,
+  `74/74` testes Node, build Dashboard e o audit npm com zero vulnerabilidades.
+  O audit isolado do Dashboard também aprovou `128` amostras de viewport, `96`
+  de forced colours e `24` focais de zoom/reflow.
+- O mesmo `Full` encerrou depois com exit code `1` e
+  `DISPOSITION|FAIL|stage=All|stop=GATE_FAILURE`: em
+  `scripts/run-state06-consolidated-e2e.ps1:254`, PowerShell informou que a
+  propriedade `marker` não existe em um objeto candidato. Não houve retry,
+  diagnóstico executável, correção em linha ou segunda execução. O shutdown
+  de encerramento aprovou com zero processo correspondente e zero listener
+  próprio.
+- `AUD-2026-R1-R4` permanece `BLOCKED`; a correção do advisory está comprovada
+  neste lote, mas passes parciais não convertem o gate agregado em `PASS`.
+  Material externo protegido permaneceu não lido, nenhum resíduo ignorado foi
+  excluído e banco/provider real, navegador comum, deploy, push, Human Gate,
+  ativação e transição de `STATE` não foram executados.
 - A evidência executável disponível para o próprio fluxo aprovou `97`
   invariantes estáticas, `64` regressões determinísticas, sintaxe de `47`
   scripts PowerShell e `14` scripts Node, compatibilidade de sintaxe de `27`
@@ -316,7 +353,10 @@ proprietários.
   mas seu único `Full All` falhou na compatibilidade legada antes dos estágios
   posteriores. `AUD-2026-R1-R3-R1` corrigiu essa propagação e comprovou a
   compatibilidade legada no `Full`, mas o mesmo gate falhou depois no audit de
-  dependências Dashboard. O gate agregado permanece sem `PASS` neste snapshot.
+  dependências Dashboard. `AUD-2026-R1-R4` comprovou a correção desse advisory
+  até dentro do `Full`, que falhou mais tarde no runner E2E consolidado por uma
+  propriedade `marker` ausente. O gate agregado permanece sem `PASS` neste
+  snapshot.
 - Domain e Application permanecem provider-neutral. Provider SDK,
   infraestrutura, persistência, Agent, API, Desktop, Dashboard e testes
   conservam fronteiras próprias e dependências voltadas para dentro.

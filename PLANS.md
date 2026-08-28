@@ -9,27 +9,92 @@ append-only history, a Quality Gate or a Human Gate.
 
 ## Control record
 
-- Plan ID: `AUD-2026-R1-R3-R1`
+- Plan ID: `AUD-2026-R1-R4`
 - Status: `BLOCKED`
 - Created: `2026-08-27`
-- Initial baseline: `main@3762f71c116af206b911a086b836cef11cd1894d`
-- Recovery baseline: `main@6ecc72f7a347a746d0153072580c527d7c679e81`
-- Preserved predecessors: `AUD-2026-R1` remains `BLOCKED` by its first
-  `Quick`; `AUD-2026-R1-R1` remains `BLOCKED` by its sole online `Full`; and
-  the first `AUD-2026-R1-R3` shutdown result remains `BLOCKED` by
-  `ISOLATION_FAILURE`
+- Initial baseline: `main@0f59408440dc1c5877f8d3de0de8859ef9bc7fed`
+- Preserved predecessors: all first factual dispositions remain immutable;
+  most recently, `AUD-2026-R1-R3-R1` remains `BLOCKED` by its sole online
+  `Full` and the high-severity `nanoid <3.3.18` advisory
 - Lifecycle state: `STATE-06 INTEGRATION`; unchanged by this plan
-- Authority: Bruno's explicit authorisation for the bounded
-  `AUD-2026-R1-R3-R1 Shutdown Residue Recovery and Legacy SDK Identity
-  Propagation` corrective continuation
+- Authority: Bruno's explicit request to implement in DB-Notifier the same
+  development method and flow used by RAG-Challenge, continued from the
+  factual blocker left by the already adopted workflow
 - Execution mode: `SEQUENTIAL_ONLY`
 - Writer: coordinating conversation only
-- Independent reviewer: not separately authorised; focused policy regression,
-  the legacy runner and the canonical sequential checks own executable review
+- Independent reviewer: not separately authorised; deterministic lockfile
+  comparison, the focused dependency audit and the canonical sequential checks
+  own executable review
 - Factual-state owner: `prompts/state/Current-State.md`
 - Historical owner: `prompts/state/State-Transition-Log.md`
 
 ## Task envelopes
+
+### Authorised dependency corrective continuation `AUD-2026-R1-R4` — blocked
+
+- Envelope status: `BLOCKED` by `GATE_FAILURE` from its sole online `Full`.
+- Exact human authority: `Quero que implemente no DB-Notifier o mesmo método e
+  fluxo de desenvolvimento do RAG-Challenge`.
+- Workspace and frozen baseline: `C:\Projects\DB-Notifier`, branch `main`,
+  commit `0f59408440dc1c5877f8d3de0de8859ef9bc7fed`; tracked worktree and index
+  were clean before this plan update.
+- Initial shutdown evidence: one canonical shutdown preflight returned `PASS`;
+  matching processes `0`, owned listeners `0`.
+- Verifiable objective: remove the sole known high-severity Dashboard
+  dependency finding by moving the transitive `nanoid` lock entry from
+  `3.3.16` to a non-vulnerable compatible patch selected by npm, without
+  changing its owning dependency edge or any developer-toolchain range.
+- Positive implementation scope:
+  `src/DBNotifier.Dashboard.Web/package-lock.json`, generated through npm in
+  package-lock-only mode; this plan and only the mandatory factual current-state
+  and append-only history reconciliation; deterministic lockfile comparison;
+  one focused dependency audit; `Doctor`; `Quick`; exactly one online `Full`
+  only after every preceding stage passes; one focused local commit.
+- Frozen read-only scope:
+  `src/DBNotifier.Dashboard.Web/package.json` at SHA-256
+  `5a137255c337ab1a159e797dd7187bcfdbcdb70ca75c73c0cf43faf5f3a917a8`,
+  every other manifest and lockfile, source and test implementation, workflow,
+  `global.json`, `.nvmrc`, dependency edges, developer-toolchain ranges and
+  external contracts. The initial Dashboard lockfile SHA-256 is
+  `adc835185b3676484274acc938487ee846599aadcc18e16b02d4b3fbe64ec5f0`.
+- Protected work and negative scope: ignored or external protected material
+  remains unread, unmodified and undeleted. Product components, backend,
+  migrations, real database/provider use, ordinary browser use, deploy,
+  publication, push, Human Gate, activation, homologation and lifecycle
+  transition remain prohibited.
+- Execution topology and ownership: `SEQUENTIAL_ONLY`; the coordinating
+  conversation is the sole writer. npm exclusively owns the generated lockfile
+  update, and each canonical check owns its bounded runtime and temporary
+  resources.
+- Definition of Ready: clean exact baseline and initial preflight proved;
+  previous `DISPOSITION|FAIL|stage=All|stop=GATE_FAILURE` preserved; official
+  advisory and patched-version evidence must be confirmed before the generated
+  lockfile update; positive and negative scope frozen.
+- Definition of Done: only the `nanoid` package identity fields required for
+  the compatible patch change in the Dashboard lockfile; package manifest and
+  dependency edges remain byte-identical; focused dependency audit, `Doctor`
+  and `Quick` pass once and in order; exactly one online `Full` passes only if
+  every prerequisite passed; factual records are reconciled; one focused local
+  commit exists; `STATE-06` remains unchanged.
+- Stop rule: the generated lockfile update runs once. Each authorised
+  executable validation stage then runs once. Any first non-zero exit or
+  mechanical `FAIL`/`BLOCKED` stops every later check and prohibits retry or
+  in-line correction. A stopped result permits only mandatory factual
+  reconciliation and the focused local commit of already authorised changes.
+- Objective stop codes: `BASELINE_DRIFT`, `SCOPE_OVERLAP`,
+  `ISOLATION_FAILURE`, `MUTABLE_RESOURCE_COLLISION`, `GATE_FAILURE`,
+  `EXTERNAL_AUTHORITY_REQUIRED` and `HUMAN_DECISION_REQUIRED` retain their
+  definitions below.
+- Result: npm generated the exact compatible `nanoid 3.3.18` lock identity;
+  the manifest hash and dependency edge remained unchanged. The focused audit,
+  `Doctor` and `Quick` passed. The sole online `Full` confirmed zero npm
+  vulnerabilities and passed the isolated Dashboard browser audit, then failed
+  in the later STATE-06 consolidated E2E runner because one candidate object
+  did not expose a `marker` property at
+  `scripts/run-state06-consolidated-e2e.ps1:254`. The preserved result is
+  `DISPOSITION|FAIL|stage=All|stop=GATE_FAILURE`; no retry, executable
+  diagnosis or in-line correction followed. Closing shutdown passed with zero
+  matching process and zero owned listener.
 
 ### Authorised recovery and corrective continuation `AUD-2026-R1-R3-R1` — blocked
 
@@ -567,7 +632,7 @@ to this increment.
 - [x] One focused local commit contains only `AUD-2026-R1-R1` and its factual
   evidence.
 
-### Completion criteria — current `AUD-2026-R1-R3-R1`
+### Completion criteria — preserved `AUD-2026-R1-R3-R1`
 
 - [x] The initial shutdown `BLOCKED` result and the previous canonical
   `DISPOSITION|FAIL|stage=All|stop=GATE_FAILURE` remain unchanged.
@@ -587,6 +652,26 @@ to this increment.
   results without Human Gate, activation or lifecycle claims.
 - [x] One focused local commit contains only `AUD-2026-R1-R3-R1` and its
   factual evidence.
+
+### Completion criteria — current `AUD-2026-R1-R4`
+
+- [x] The canonical initial shutdown and exact clean baseline check passed.
+- [x] Primary sources identify `nanoid 3.3.18` as the compatible patched
+  package and npm generated its exact registry identity in package-lock-only
+  mode.
+- [x] Dashboard `package.json`, the `postcss` dependency edge, all other
+  package entries and every developer-toolchain range remained unchanged.
+- [x] The focused online audit returned `found 0 vulnerabilities`; `Doctor`
+  and `Quick` then returned their first `PASS` in order.
+- [ ] Exactly one online `Full` returns `PASS`. Its sole execution confirmed
+  the npm correction but returned `FAIL` in the later STATE-06 consolidated
+  E2E runner and cannot be retried in this lot.
+- [x] Protected external material remained unread, no ignored residue was
+  deleted and no prohibited product or external action occurred.
+- [x] Plan, current state and append-only history record the first factual
+  results without Human Gate, activation or lifecycle claims.
+- [x] One focused local commit contains only `AUD-2026-R1-R4` and its factual
+  evidence.
 
 ## Findings
 
@@ -616,7 +701,8 @@ to this increment.
 | `AUD-R1-007` | `P1` | The first post-failure factual review found one newly inserted blank line inside the append-only historical prefix. | `RESOLVED` by removing only that uncommitted line; final review confirmed one append hunk at end of file and `P0=0`, `P1=0`, `P2=0`, `P3=0`. |
 | `AUD-R1-R1-001` | `P1` | The policy-required control key `- Initial baseline:` was absent because the plan used `- Frozen baseline:`. | `RESOLVED` under separate authority by the exact one-line rename; the focused verifier passed `105` assertions and the first `Quick` passed. Historical `AUD-R1-006` remains preserved. |
 | `AUD-R1-R1-002` | `P1` | The sole online `Full` legacy-compatibility stage could not resolve .NET SDK `10.0.302` while inventorying target frameworks for `DBNotifier.Domain.csproj`. | `RESOLVED` only under separately authorised `AUD-2026-R1-R3-R1` by exact host propagation. The historical `AUD-2026-R1-R1` `FAIL`, `Failed=1`, `Pending=0` and `DISPOSITION|FAIL|stage=All|stop=GATE_FAILURE` remain unchanged. |
-| `AUD-R1-R3-R1-001` | `P1` | The sole online `Full` Dashboard dependency audit reported one high-severity advisory for `nanoid <3.3.18` (`GHSA-2v37-7h3g-55p8`). | `OPEN`; the aggregate gate returned `DISPOSITION|FAIL|stage=All|stop=GATE_FAILURE`. Dependency or lockfile correction and gate retry are outside this lot. |
+| `AUD-R1-R3-R1-001` | `P1` | The sole online `Full` Dashboard dependency audit reported one high-severity advisory for `nanoid <3.3.18` (`GHSA-2v37-7h3g-55p8`). | `RESOLVED` only under separately authorised `AUD-2026-R1-R4`: npm generated the `3.3.18` lock identity, the focused audit and the next sole `Full` both reported zero vulnerabilities. The historical `AUD-2026-R1-R3-R1` `FAIL` remains unchanged. |
+| `AUD-R1-R4-001` | `P1` | The sole online `Full` reached `scripts/run-state06-consolidated-e2e.ps1:254` and failed because one candidate object did not expose the accessed `marker` property. | `OPEN`; the aggregate gate returned `DISPOSITION|FAIL|stage=All|stop=GATE_FAILURE`. Executable diagnosis, source/test correction and another gate attempt are outside this lot. |
 
 ## Increment plan
 
@@ -633,6 +719,7 @@ to this increment.
 | `AUD-2026-R1` | Restore Git/clean-room inventory integrity and align the stale architecture regression before executing the authorised gate sequence. | `BLOCKED` |
 | `AUD-2026-R1-R1` | Restore the mandatory initial-baseline plan control and resume the exact sequential gate attempt. | `BLOCKED` |
 | `AUD-2026-R1-R3-R1` | Recover the stopped shutdown boundary, propagate exact legacy SDK identity and execute the separately authorised sequential gate attempt. | `BLOCKED` |
+| `AUD-2026-R1-R4` | Update only the vulnerable transitive nanoid lock identity and execute the sequential gate attempt. | `BLOCKED` |
 
 ## Evidence log
 
@@ -700,9 +787,28 @@ to this increment.
 | 2026-08-27 | `AUD-2026-R1-R3-R1 Full` pre-failure evidence | Sole online `scripts/development.ps1 Full` execution | `PASS` through corrected legacy compatibility, bundle validation, Dashboard tests and Dashboard production build | Earlier stages included two preflights, secret scan, policies, locked restore of `19` projects, build with zero warnings/errors, architecture `100/100`, WPF `10/10`, unit `528/528`, integration `168/168`, coverage `83.41%` lines/`56.62%` branches/`10` components, NuGet vulnerability coverage for `19` projects, fail-closed runtime audit, legacy `34` tests and Node `74/74`. Partial passes do not replace the final disposition. |
 | 2026-08-27 | `AUD-2026-R1-R3-R1 Full` first and only disposition | Dashboard online dependency audit within the same `Full` | `FAIL`; exit code `1`; `DISPOSITION|FAIL|stage=All|stop=GATE_FAILURE` | `npm audit` reported one high-severity advisory for `nanoid <3.3.18`, `GHSA-2v37-7h3g-55p8`. No dependency change, retry, diagnosis execution or correction followed. |
 | 2026-08-27 | `AUD-2026-R1-R3-R1` closing shutdown | `scripts/assert-dbnotifier-shutdown.ps1` | `PASS`; exit code `0`; matching processes `0`, owned listeners `0` | Safe closure only; it was not a gate retry and started no later validation. |
+| 2026-08-27 | `AUD-2026-R1-R4` initial shutdown and baseline | `scripts/assert-dbnotifier-shutdown.ps1`; branch, commit, worktree and toolchain inspection | `PASS`; matching processes `0`, owned listeners `0`; clean `main@0f59408440dc1c5877f8d3de0de8859ef9bc7fed`; .NET `10.0.400`, Node `24.19.0`, npm `11.17.0` | All toolchains satisfied their bounded stable ranges; protected material and ignored residue were not inspected. |
+| 2026-08-27 | `AUD-2026-R1-R4` advisory and package provenance | GitHub Advisory Database `GHSA-2v37-7h3g-55p8`; npm registry metadata for `nanoid@3.3.18` | `PASS`; `<3.3.18` affected, `3.3.18` patched; registry tarball and SHA-512 integrity matched the generated lock entry | Primary-source review proves the selected patch identity, not the aggregate repository gate. |
+| 2026-08-27 | `AUD-2026-R1-R4` generated lockfile correction | `npm update nanoid --package-lock-only --ignore-scripts --no-audit --no-fund` | `PASS`; exit code `0`; only nanoid `version`, `resolved` and `integrity` changed from `3.3.16` to `3.3.18` | Dashboard `package.json` remained byte-identical at SHA-256 `5a137255c337ab1a159e797dd7187bcfdbcdb70ca75c73c0cf43faf5f3a917a8`; the `postcss` edge remained `^3.3.16`. No product component was installed. |
+| 2026-08-27 | `AUD-2026-R1-R4` focused dependency audit | `npm audit --audit-level=high` | `PASS`; exit code `0`; `found 0 vulnerabilities` | Executed once before the canonical sequence; registry freshness is bounded to this observation. |
+| 2026-08-27 | `AUD-2026-R1-R4 Doctor` | `scripts/development.ps1 Doctor` | `PASS`; exit code `0` | Internal shutdown preflight, root, compatible toolchains, lockfiles and restored dependencies passed. |
+| 2026-08-27 | `AUD-2026-R1-R4 Quick` | `scripts/development.ps1 Quick` | `PASS`; exit code `0`; explicitly `NON_GATE` | Executed once. Build passed with zero warnings/errors; unit `528/528`, architecture `100/100`, Node `74/74`, policy `105`, policy regressions `98`, runner `68` and syntax `13` passed with applicable asset, type, documentation and Markdown checks. |
+| 2026-08-27 | `AUD-2026-R1-R4 Full` pre-failure evidence | Sole online `scripts/development.ps1 Full` execution | `PASS` through the Dashboard vulnerability and isolated browser-audit stages | Earlier stages included two preflights, secret scan, policies, locked restore of `19` projects, build with zero warnings/errors, architecture `100/100`, WPF `10/10`, unit `528/528`, integration `168/168`, coverage `83.41%` lines/`56.62%` branches/`10` components, NuGet vulnerability coverage for `19` projects, fail-closed runtime audit, legacy `34` tests, Node `74/74`, Dashboard build and `found 0 vulnerabilities`. The isolated browser audit passed `128` viewport, `96` forced-colour and `24` focal zoom/reflow samples. Partial passes do not replace the final disposition. |
+| 2026-08-27 | `AUD-2026-R1-R4 Full` first and only disposition | STATE-06 consolidated E2E runner within the same online `Full` | `FAIL`; exit code `1`; `DISPOSITION|FAIL|stage=All|stop=GATE_FAILURE` | At `scripts/run-state06-consolidated-e2e.ps1:254`, PowerShell reported `The property 'marker' cannot be found on this object.` No retry, executable diagnosis or in-line correction followed. |
+| 2026-08-27 | `AUD-2026-R1-R4` closing shutdown | `scripts/assert-dbnotifier-shutdown.ps1` | `PASS`; exit code `0`; matching processes `0`, owned listeners `0` | Safe closure only; it was not a gate retry and started no later validation. |
 
 ## Blockers and limitations
 
+- `AUD-2026-R1-R4` is `BLOCKED` by the first and only online `Full` result.
+  The exact generated lockfile correction, focused audit, `Doctor` and `Quick`
+  all passed before the canonical gate began.
+- The sole `Full` proved the prior npm-advisory correction with
+  `found 0 vulnerabilities` and passed the isolated Dashboard browser audit.
+  The later STATE-06 consolidated E2E runner then accessed a missing `marker`
+  property at `scripts/run-state06-consolidated-e2e.ps1:254`, forcing
+  `DISPOSITION|FAIL|stage=All|stop=GATE_FAILURE`.
+- Executable diagnosis, runner/test correction and any retry require separate
+  authority. No partial stage pass converts the aggregate result.
 - `AUD-2026-R1-R3-R1` is `BLOCKED` by the first and only online `Full` result.
   The recovery, implementation, focused policy check, corrected legacy runner,
   `Doctor` and `Quick` all passed before the canonical gate began.
@@ -710,9 +816,9 @@ to this increment.
   tests and production build. The following `npm audit` reported one
   high-severity advisory for `nanoid <3.3.18`, forcing
   `DISPOSITION|FAIL|stage=All|stop=GATE_FAILURE`.
-- Dependency and lockfile changes, advisory correction, diagnosis execution
-  and any retry require separate authority. No partial stage pass converts the
-  aggregate result.
+- Dependency and lockfile changes were outside that historical lot. Its
+  advisory was corrected only under separate `AUD-2026-R1-R4` authority, which
+  does not rewrite the preserved historical `FAIL`.
 - `AUD-2026-R1-R1` is `BLOCKED` by the first and only online `Full` result.
   The exact control rename, focused policy check, `Doctor` and `Quick` all
   passed before the canonical gate began.
@@ -766,6 +872,16 @@ to this increment.
 
 ## Outcome and next action
 
+`AUD-2026-R1-R4` is `BLOCKED` by `GATE_FAILURE`. npm generated only the
+compatible `nanoid 3.3.18` lock identity, while the Dashboard manifest,
+dependency edge and developer-toolchain ranges remained unchanged. The
+focused audit, `Doctor` and `Quick` passed. The sole online `Full` confirmed
+zero npm vulnerabilities and passed all reported stages through the isolated
+Dashboard browser audit, then failed in the later STATE-06 consolidated E2E
+runner on a missing `marker` property. The aggregate result is `FAIL`; no
+retry, executable diagnosis or in-line correction followed, and the closing
+shutdown found zero matching processes and zero owned listeners.
+
 `AUD-2026-R1-R3-R1` is `BLOCKED` by `GATE_FAILURE`. It recovered the transient
 shutdown residue without terminating a process, proved the exact authorised
 baseline, propagated the canonical dotnet host through the legacy boundary and
@@ -804,6 +920,13 @@ lifecycle authority was inferred.
 
 ## Change log
 
+- `2026-08-27`: the owner requested continuation of the adopted development
+  method from clean `main@0f59408`. `AUD-2026-R1-R4` changed only the
+  transitive `nanoid` lock identity to patched `3.3.18`; the focused audit,
+  `Doctor` and `Quick` passed. The sole online `Full` confirmed zero npm
+  vulnerabilities and passed the isolated browser audit, then failed the
+  STATE-06 consolidated E2E runner on a missing `marker` property. The stop
+  rule prohibited retry or in-line correction and left `STATE-06` unchanged.
 - `2026-08-27`: the owner authorised `AUD-2026-R1-R3-R1` to recover the first
   shutdown blocker and resume only the diagnosed legacy SDK identity fix from
   clean `main@6ecc72f`. PID `8952` was already absent; the recovery preflight,

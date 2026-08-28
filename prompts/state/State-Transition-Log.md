@@ -6195,3 +6195,65 @@
 - Estado resultante: `STATE-06 INTEGRATION`, elegibilidade `NÃO REAVALIADA`,
   `MOD-12 ActivationState=None`, providers, ADRs, Human Gates, produto,
   interface e autoridade externa permanecem inalterados.
+
+## 2026-08-27 — AUD-2026-R1-R4 corrige o advisory npm e falha no E2E consolidado
+
+- Estado anterior: `STATE-06 INTEGRATION`, elegibilidade `NÃO REAVALIADA`,
+  `MOD-12 ActivationState=None`, `AUD-2026-R1-R3-R1 BLOCKED` por seu único
+  `Full`, baseline limpa
+  `main@0f59408440dc1c5877f8d3de0de8859ef9bc7fed`.
+- Autoridade humana literal: `Quero que implemente no DB-Notifier o mesmo
+  método e fluxo de desenvolvimento do RAG-Challenge`.
+- Preflight e baseline: o shutdown inicial aprovou com zero processo
+  correspondente e zero listener pertencente ao DB-Notifier. Branch, commit,
+  index e worktree rastreada estavam limpos antes da abertura do envelope.
+  .NET `10.0.400`, Node.js `24.19.0` e npm `11.17.0` satisfizeram as faixas
+  estáveis governadas sem alterar qualquer pin ou intervalo.
+- Proveniência: a GitHub Advisory Database identifica `nanoid <3.3.18` como
+  afetado por `GHSA-2v37-7h3g-55p8` e `3.3.18` como corrigido. Os metadados do
+  registro npm forneceram o tarball e a integridade SHA-512 depois gravados no
+  lockfile.
+- Correção: uma única execução de npm em modo package-lock-only atualizou
+  somente `version`, `resolved` e `integrity` do nó transitivo `nanoid`, de
+  `3.3.16` para `3.3.18`. O `package.json` Dashboard permaneceu byte-idêntico
+  no SHA-256 `5a137255c337ab1a159e797dd7187bcfdbcdb70ca75c73c0cf43faf5f3a917a8`,
+  a aresta `postcss -> nanoid ^3.3.16` permaneceu igual e nenhum componente de
+  produto foi instalado pela correção.
+- Evidência focal: a única auditoria `npm audit --audit-level=high` retornou
+  exit code `0` e `found 0 vulnerabilities`.
+- `Doctor`: a única execução aprovou com exit code `0`; preflight interno,
+  raiz, toolchains, lockfiles e dependências restauradas passaram.
+- `Quick`: a única execução declarou-se `NON_GATE` e aprovou com exit code `0`.
+  Build Release teve zero aviso/erro; unitários `528/528`, arquitetura
+  `100/100`, Node `74/74`, política `105`, regressões de política `98`, runner
+  `68` e sintaxe `13` passaram, além dos checks auxiliares aplicáveis.
+- `Full` antes da falha: a única execução online aprovou seus dois preflights,
+  secret scan, políticas, restore locked de `19` projetos, build com zero
+  aviso/erro, arquitetura `100/100`, WPF `10/10`, unitários `528/528`,
+  integração `168/168`, cobertura de linhas `83,41%`, branches `56,62%` e `10`
+  componentes obrigatórios, vulnerabilidades NuGet nos `19` projetos, runtime
+  audit fail-closed, compatibilidade legada com `34` testes e `1` skip, bundle,
+  Dashboard toolchain, assets, tipos, documentação em `439` fontes, Markdown
+  em `981` links de `226` arquivos, `74/74` testes Node, build de produção e
+  o audit npm com zero vulnerabilidades. O audit isolado do Dashboard também
+  aprovou `128` amostras de viewport, `96` de forced colours e `24` focais de
+  zoom/reflow.
+- `Full` — primeira e única disposição: o runner STATE-06 E2E consolidado
+  chegou a `scripts/run-state06-consolidated-e2e.ps1:254` e PowerShell reportou
+  `The property 'marker' cannot be found on this object.` O gate encerrou com
+  exit code `1` e `DISPOSITION|FAIL|stage=All|stop=GATE_FAILURE`.
+- Stop factual: nenhuma repetição, diagnóstico executável, correção em linha
+  ou execução adicional de `Full` ocorreu. Os passes parciais e a correção do
+  advisory comprovada não substituem a disposição agregada `FAIL`.
+- Preflight de encerramento: `PASS`, com zero processo correspondente e zero
+  listener pertencente ao DB-Notifier; não constituiu retry de gate.
+- Disposição: `AUD-2026-R1-R4 BLOCKED` por `GATE_FAILURE`. O finding npm está
+  resolvido somente neste lote separado; os resultados históricos anteriores
+  permanecem inalterados.
+- Escopo negativo preservado: material externo protegido não foi lido ou
+  modificado; nenhum resíduo ignorado foi excluído; banco/provider real,
+  navegador comum, deploy, push, Human Gate, ativação e transição de `STATE`
+  não foram executados.
+- Estado resultante: `STATE-06 INTEGRATION`, elegibilidade `NÃO REAVALIADA`,
+  `MOD-12 ActivationState=None`, providers, ADRs, Human Gates, produto,
+  interface e autoridade externa permanecem inalterados.
