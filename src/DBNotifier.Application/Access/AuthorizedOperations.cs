@@ -1,5 +1,6 @@
 // Module purpose: Defines Authorized Operations application behaviour without depending on concrete providers or user interfaces.
 using System.Text.Json;
+using DBNotifier.Application.Presentation;
 
 namespace DBNotifier.Application.Access;
 
@@ -98,6 +99,18 @@ public interface IAuthorizedOperationsStore
         DateTimeOffset now,
         CancellationToken cancellationToken);
 
+    /// <summary>Reads the latest coherent Agent observation for each authorised database instance.</summary>
+    /// <param name="subjectId">Authenticated human subject identifier.</param>
+    /// <param name="permissionCode">Exact permission required by the read.</param>
+    /// <param name="now">Trusted UTC projection instant.</param>
+    /// <param name="cancellationToken">Cancellation propagated from the API request.</param>
+    /// <returns>A complete bounded provider-neutral Desktop Fleet snapshot.</returns>
+    ValueTask<DesktopFleetApiSnapshot> GetAuthorizedDesktopFleetSnapshotAsync(
+        string subjectId,
+        string permissionCode,
+        DateTimeOffset now,
+        CancellationToken cancellationToken);
+
     ValueTask<CommandCreationResult> CreateCommandAsync(
         string subjectId,
         Guid instanceId,
@@ -159,6 +172,22 @@ public sealed class AuthorizedOperationsService(
             actor.SubjectId,
             PlatformPermissions.InstancesRead,
             timeProvider.GetUtcNow(),
+            cancellationToken);
+    }
+
+    /// <summary>Reads a provider-neutral latest-observation snapshot within the human actor's instance scope.</summary>
+    /// <param name="actor">Authenticated human actor resolved by the Server boundary.</param>
+    /// <param name="cancellationToken">Cancellation propagated from the API request.</param>
+    /// <returns>A bounded wire snapshot containing no endpoint, credential or provider-native diagnostic data.</returns>
+    public ValueTask<DesktopFleetApiSnapshot> GetDesktopFleetSnapshotAsync(
+        HumanActor actor,
+        CancellationToken cancellationToken = default)
+    {
+        ValidateActor(actor);
+        return store.GetAuthorizedDesktopFleetSnapshotAsync(
+            actor.SubjectId,
+            PlatformPermissions.InstancesRead,
+            timeProvider.GetUtcNow().ToUniversalTime(),
             cancellationToken);
     }
 

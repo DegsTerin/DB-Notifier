@@ -197,6 +197,7 @@ app.UseAuthorization();
 
 app.MapServerHealthEndpoints();
 app.MapDashboardTvSandboxEndpoint(dashboardTvSandboxEnabled);
+app.MapDesktopFleetEndpoint();
 app.MapGet(
         "/api/v1/catalog/instances",
         async Task<IResult> (

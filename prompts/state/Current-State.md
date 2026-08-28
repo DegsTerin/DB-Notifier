@@ -512,7 +512,7 @@ proprietários.
 ## Interfaces atuais
 
 - O contrato normativo vigente é o
-  [Design System `3.3.0`](../../docs/design/DB-Notifier-Design-System.md), com
+  [Design System `3.4.0`](../../docs/design/DB-Notifier-Design-System.md), com
   `pt-BR` e `en-GB`, temas Light e Dark e Windows High Contrast como override
   independente.
 - Dashboard Web e WPF expõem oito destinos comuns. O Web é responsivo a partir
@@ -520,17 +520,29 @@ proprietários.
   notification-area-first: flyout como superfície primária e shell completo
   como destino secundário; ele não possui modo TV.
 - As superfícies normais apresentam dados locais determinísticos e
-  identificados como demonstração. As composições autoritativas existentes são
-  test-only, opt-in e desabilitadas por padrão; não usam provider, banco,
+  identificados como demonstração. Existe agora um contrato injetável
+  Agent/API para o Tray, validado somente em composição HTTPS local isolada;
+  ele permanece indisponível no startup comum porque o Desktop ainda não possui
+  fluxo humano próprio de token. Nenhuma composição normal usa provider, banco,
   identidade ou canal externo real.
 - O Tray normal adquire esse inventário local através de um contrato
   provider-neutral de snapshot e uma reconciliação Application-owned
   single-flight. Inicialização, atualização manual e timer serial de 30 segundos
   produzem um frame coerente para ícone, tooltip, flyout e inventário WPF;
   leituras offline, negadas, incompatíveis ou falhas retêm a última evidência
-  aceita enquanto a freshness continua envelhecendo. A fonte composta continua
-  sendo somente um adapter demonstrativo local: Agent/API, provider real,
-  descoberta, persistência e ações administrativas não foram integrados.
+  aceita enquanto a freshness continua envelhecendo. O endpoint humano
+  `/api/v1/desktop/fleet-snapshot` e seu adapter HTTPS bounded integram as
+  observações mais recentes recebidas dos Agents, filtradas por `instances.read`,
+  ao mesmo contrato; o startup comum continua compondo somente o adapter
+  demonstrativo local. Provider real, identidade Desktop, descoberta e ações
+  administrativas não foram ativados.
+- O lote `S06-DFR-02` foi validado por regressões focais `10/10`, endpoint HTTPS
+  isolado `3/3`, arquitetura `2/2` e build WPF sem avisos. `Doctor` e `Quick`
+  aprovaram; um único `Full` canônico concluiu
+  `DISPOSITION|PASS|stage=All`, com unitários `543/543`, arquitetura `101/101`,
+  integração `171/171`, WPF `10/10` e cobertura `83,39%`/`56,46%`. A evidência
+  usa apenas processos e dados locais e não ativa identidade, provider ou
+  lifecycle.
 - No sandbox TV autorizado, a entrada lê a API imediatamente e a reconciliação
   seguinte ocorre de forma serial 30 segundos após a conclusão da leitura
   anterior. SignalR é apenas um hint autenticado para antecipar uma nova

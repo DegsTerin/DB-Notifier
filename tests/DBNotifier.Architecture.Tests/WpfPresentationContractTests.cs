@@ -808,6 +808,8 @@ public sealed class WpfPresentationContractTests
 
         Assert.Equal(1, Regex.Count(application, "DesktopDemonstrationEvidence\\.Create", RegexOptions.CultureInvariant));
         Assert.Contains("DesktopFleetReconciliationCoordinator reconciliation", application, StringComparison.Ordinal);
+        Assert.Contains("configuredInventorySource ??", application, StringComparison.Ordinal);
+        Assert.Contains("internal App(IDesktopFleetSnapshotSource inventorySource)", application, StringComparison.Ordinal);
         Assert.Contains("ReconcileAsync(DesktopFleetRefreshTrigger.Initial)", application, StringComparison.Ordinal);
         Assert.Contains("TrayNotificationValidationPolicy.Resolve(e.Args)", application, StringComparison.Ordinal);
         Assert.Contains("notificationValidationMode", application, StringComparison.Ordinal);
@@ -840,6 +842,38 @@ public sealed class WpfPresentationContractTests
         Assert.Contains("RefreshStatusClick", flyout, StringComparison.Ordinal);
         Assert.Contains("FormatUtc(snapshot.GeneratedAt)", flyout, StringComparison.Ordinal);
         Assert.DoesNotContain("TimeProvider.System.GetUtcNow", flyout, StringComparison.Ordinal);
+    }
+
+    /// <summary>Ensures the operational source uses the human API boundary and cannot silently adopt Agent identity or administrative routes.</summary>
+    [Fact]
+    public void DesktopFleetHttpSourceRemainsHumanAuthorisedAndReadOnly()
+    {
+        string root = RepositoryRoot();
+        string source = File.ReadAllText(Path.Combine(
+            root,
+            "src",
+            "DBNotifier.Infrastructure",
+            "Presentation",
+            "HttpDesktopFleetSnapshotSource.cs"));
+        string endpoint = File.ReadAllText(Path.Combine(
+            root,
+            "src",
+            "DBNotifier.Server.Api",
+            "DesktopFleetEndpoints.cs"));
+        string program = File.ReadAllText(Path.Combine(root, "src", "DBNotifier.Server.Api", "Program.cs"));
+
+        Assert.Contains(": IDesktopFleetSnapshotSource", source, StringComparison.Ordinal);
+        Assert.Contains("HttpMethod.Get", source, StringComparison.Ordinal);
+        Assert.Contains("BoundedHttpJsonReader.ReadAsync", source, StringComparison.Ordinal);
+        Assert.DoesNotContain("AuthorizationHeaderValue", source, StringComparison.Ordinal);
+        Assert.DoesNotContain("AgentApiPolicy", source, StringComparison.Ordinal);
+        Assert.DoesNotContain("HttpMethod.Post", source, StringComparison.Ordinal);
+        Assert.DoesNotContain("commands", source, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("service.restart", source, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("RequireAuthorization(ApiSecurityDefaults.HumanApiPolicy)", endpoint, StringComparison.Ordinal);
+        Assert.DoesNotContain("AgentApiPolicy", endpoint, StringComparison.Ordinal);
+        Assert.DoesNotContain("MapPost", endpoint, StringComparison.Ordinal);
+        Assert.Contains("app.MapDesktopFleetEndpoint();", program, StringComparison.Ordinal);
     }
 
     /// <summary>Finds the repository root from the compiled test output without depending on the caller's working directory.</summary>

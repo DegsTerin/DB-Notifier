@@ -9,10 +9,10 @@ append-only history, a Quality Gate or a Human Gate.
 
 ## Control record
 
-- Plan ID: `S06-DFR-01`
+- Plan ID: `S06-DFR-02`
 - Status: `COMPLETE`
 - Created: `2026-08-28`
-- Initial baseline: `main@8e1fb1c4cee61b2bb2d1a67012d2a78db072ef47`
+- Initial baseline: `main@d805e86b313d084d1d4f44c4b7559e699e4c6eda`
 - Preserved predecessors: all first factual dispositions remain immutable;
   `GOV-2026-R1` remains `COMPLETE`,
   `AUD-2026-R1-R5-R2` remains `BLOCKED` by its rejected durable-capture
@@ -20,9 +20,9 @@ append-only history, a Quality Gate or a Human Gate.
   `AUD-2026-R1-R5-R1` remains `BLOCKED` by its unprovable sole focal result,
   while `AUD-2026-R1-R4` remains `BLOCKED` by its sole online `Full`
 - Lifecycle state: `STATE-06 INTEGRATION`; unchanged by this plan
-- Authority: Bruno's explicit clean-room authorisation to approximate the
-  publicly documented MySQL Notifier Tray coverage and flows through the
-  smallest coherent provider-neutral `STATE-06` read-only reconciliation lot,
+- Authority: Bruno's explicit authorisation for `S06-DFR-02` to connect the
+  Tray reconciliation boundary to a provider-neutral Agent/API read model,
+  based only on the public behaviour already classified by `S06-DFR-01` and
   without consulting or adapting the protected external source tree
 - Execution mode: `SEQUENTIAL_ONLY`
 - Writer: coordinating conversation only
@@ -33,6 +33,139 @@ append-only history, a Quality Gate or a Human Gate.
 - Historical owner: `prompts/state/State-Transition-Log.md`
 
 ## Task envelopes
+
+### Desktop Fleet Agent/API read-only integration `S06-DFR-02` — complete
+
+- Envelope status: `COMPLETE`.
+- Exact human authority: integrate the DB Notifier Tray with a provider-neutral
+  Agent/API read-only source as the smallest coherent successor to
+  `S06-DFR-01`; preserve the clean-room boundary, independent product identity,
+  current baseline, gates and `STATE-06 INTEGRATION`; do not access or use the
+  protected external source tree.
+- Workspace and frozen baseline: `C:\Projects\DB-Notifier`, branch `main`,
+  commit `d805e86b313d084d1d4f44c4b7559e699e4c6eda`; index and tracked worktree
+  were clean without enumerating untracked material.
+- Initial shutdown evidence: the mandatory preflight returned `PASS`; no
+  process was stopped, matching processes were `0` and owned listeners were
+  `0`.
+- Public behavioural basis: the clean-room matrix and public Oracle/MySQL
+  references already frozen in
+  `docs/STATE-06-Desktop-Fleet-Read-Only-Reconciliation-Report.md`. No
+  proprietary source, binary, artwork, wording, trade dress or vendor
+  architecture is an input.
+- Verifiable objective: expose one bounded human-authorised API projection of
+  the latest provider-neutral Agent observations; consume that versioned
+  projection through an HTTPS `IDesktopFleetSnapshotSource`; map denied,
+  offline, incompatible and failed transport outcomes to stable non-secret
+  reconciliation results; and prove that the existing Tray coordinator can use
+  the source without enabling provider or administrative behaviour.
+- Positive scope: this plan; the minimum Application wire/read contracts;
+  authorisation-scoped PostgreSQL read projection; one human-policy Server GET
+  endpoint; one bounded Infrastructure HTTP adapter; the minimum WPF
+  composition seam needed to admit an injected authenticated source while
+  preserving the current demonstration default; focused unit, integration and
+  architecture regressions; the owning Design System clarification; factual
+  report, current state and append-only history; applicable local validation;
+  and one focused local commit.
+- Frozen read-only scope: provider implementations and registry activation;
+  Agent assignment, monitoring and ingestion behaviour; schemas and migrations;
+  Dashboard runtime; package and lockfile identities; installers, update
+  channels and authoritative notification delivery. Existing demonstration and
+  review modes retain their authority and factual labels.
+- Protected work and negative scope: no MySQL or other provider/driver,
+  discovery, configuration mutation, Start/Stop/Restart, database or OS
+  administration, authoritative notification, firewall, tunnel, infrastructure
+  mutation, real OIDC/identity-provider flow, credential provisioning, deploy,
+  publication, push, Human Gate, activation, homologation or lifecycle
+  transition. Agent mTLS identity MUST NOT be reused as Desktop human identity.
+  The protected external source tree and every item beneath it remain strictly
+  inaccessible.
+- Identity and activation boundary: the Server read remains protected by the
+  existing human JWT policy and `instances.read` scope. The HTTP adapter accepts
+  only a caller-owned authenticated client and never acquires, persists, logs
+  or accepts a token through arguments, files or environment variables. The
+  ordinary executable retains the labelled local demonstration until a
+  separately authorised Desktop human-identity composition exists; tests may
+  inject an isolated authenticated client. This is an activation dependency,
+  not authority to weaken the API or reuse Agent identity.
+- Artefact classification and ownership: governing prompts and Design System
+  are `AUTHORITY`; current state is `CURRENT_FACT`; the state log is append-only
+  `HISTORY`; this file is `PLAN`; source and tests are `IMPLEMENTATION`; the
+  report is `EVIDENCE`. This coordinating conversation is the sole writer for
+  every path, Git index and focused commit.
+- Execution topology and mutable resources: `SINGLE_OWNER` and
+  `SEQUENTIAL_ONLY`. HTTP reads are bounded and cancellation-aware; the existing
+  coordinator retains the single-flight boundary; every validation process is
+  shut down before the next technical stage.
+- Definition of Ready: shutdown and exact baseline checks passed; tracked state
+  is clean; the current Agent observation state, human authorisation store,
+  Server endpoint policy, bounded HTTP reader, Tray reconciliation contract,
+  WPF composition, test owners and negative scope are identified. The missing
+  Desktop human identity is classified as a separately authorised activation
+  dependency rather than silently implemented.
+- Definition of Done: an authenticated and scope-filtered API request returns
+  only coherent provider-neutral latest-observation fields; invalid or
+  inconsistent stored evidence fails closed; the client enforces HTTPS, exact
+  protocol/schema, response bounds and non-secret typed failures; the existing
+  Tray reconciliation accepts the source and retains prior evidence after read
+  failure; ordinary WPF startup remains demonstration-only; focused and
+  canonical checks are recorded factually; one focused local commit exists;
+  lifecycle remains unchanged.
+- Stop rule: any protected-path exposure, baseline drift, scope overlap,
+  licensing conflict, unready implementation dependency, insecure identity
+  shortcut, failed required gate or need for provider, administration,
+  notification, external-infrastructure or lifecycle authority stops the
+  affected work without implicit widening or evidence replacement.
+- Objective stop codes: `AUTHORITY_MISMATCH`, `BASELINE_DRIFT`,
+  `SCOPE_OVERLAP`, `DEPENDENCY_UNREADY`, `ISOLATION_FAILURE`,
+  `MUTABLE_RESOURCE_COLLISION`, `GATE_FAILURE`, `EXTERNAL_AUTHORITY_REQUIRED`
+  and `HUMAN_DECISION_REQUIRED` retain their governed meanings.
+- Rollback strategy: before commit, reverse only this envelope's owned
+  candidate under separately authorised recovery; after commit, preserve
+  history and use a separately authorised focused revert. No provider, schema,
+  external service or lifecycle rollback applies.
+- Implemented outcome: `desktop-fleet.v1` carries only bounded latest-observation
+  fields from an `instances.read`-scoped human Server endpoint to an HTTPS
+  `IDesktopFleetSnapshotSource`. Persistence rejects incoherent Agent/state/
+  sample joins, the client maps typed non-secret failures and the existing
+  coordinator preserves single-flight, freshness and last-accepted semantics.
+- Identity disposition: WPF admits an already authorised injected source, while
+  the ordinary executable remains the labelled local demonstration. No token
+  argument, token file, environment token, Agent-certificate reuse, OIDC flow,
+  egress activation or external service was introduced.
+- Focal evidence: Application/store and HTTP-source regressions `10/10`;
+  isolated authenticated HTTPS endpoint `3/3`; WPF/source architecture `2/2`;
+  WPF build with zero warnings and zero errors. Four earlier focal invocations
+  exposed and corrected three syntax/analyser issues plus one over-broad test
+  assertion; those failures remain factual.
+- Shutdown evidence: every executable stage was preceded by the canonical
+  preflight. One pre-`Doctor` invocation found a project-owned PowerShell reader
+  left by this task; exact process metadata proved ownership, only that PID was
+  terminated, and the next preflight passed with zero processes/listeners.
+- Development evidence: `Doctor` passed. Final `Quick` passed as `NON_GATE`
+  with Release build, unit `543/543`, architecture `101/101`, Dashboard `74/74`
+  and the included asset, localisation, documentation, Markdown and script
+  checks.
+- Canonical evidence: exactly one `Full` completed
+  `DISPOSITION|PASS|stage=All`; unit `543/543`, architecture `101/101`,
+  integration `171/171`, WPF `10/10`, line coverage `83.39%`, branch coverage
+  `56.46%`, vulnerability/runtime/legacy/bundle/Web/browser/consolidated gates
+  passed. Browser and consolidated harnesses used isolated local processes and
+  local test data only.
+- Final review disposition: coordinating frozen-scope, clean-room, licensing,
+  architecture, identity, security and factual-state review closed with
+  `P0=0`, `P1=0`, `P2=0`, `P3=0`. No independent reviewer was assigned under
+  the current single-conversation authority; runtime activation remains absent.
+- Delivery: this completed record is included in the single focused local
+  commit required by repository policy. Its object ID is reported in the final
+  hand-off rather than embedded here.
+- Remaining mandatory items for `S06-DFR-02`: `0`. Desktop human identity and
+  egress activation, provider integrations, discovery, authoritative
+  notifications and administration are separately authorised future work, not
+  remainder of this target.
+- Resulting state: `STATE-06 INTEGRATION`, eligibility and
+  `MOD-12 ActivationState=None` remain unchanged; no Human Gate, provider
+  support, runtime activation or external authority is inferred.
 
 ### Desktop Fleet read-only reconciliation `S06-DFR-01` — complete
 

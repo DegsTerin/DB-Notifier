@@ -10,11 +10,25 @@ namespace DBNotifier.Desktop.Wpf;
 /// </summary>
 public partial class App : System.Windows.Application, IDisposable
 {
+    private readonly IDesktopFleetSnapshotSource? configuredInventorySource;
     private TrayApplicationController? trayController;
     private DesktopLocalisationService? localisation;
     private DesktopThemeService? theme;
     private DesktopMotionService? motion;
     private ProviderVisualIdentityPolicy? providerVisualIdentityPolicy;
+
+    /// <summary>Initialises the ordinary demonstration-only executable composition.</summary>
+    public App()
+    {
+    }
+
+    /// <summary>Initialises an integration composition with a caller-owned authenticated read-only source.</summary>
+    /// <param name="inventorySource">Source already bound to an authorised identity and network policy by the owning host.</param>
+    internal App(IDesktopFleetSnapshotSource inventorySource)
+    {
+        ArgumentNullException.ThrowIfNull(inventorySource);
+        configuredInventorySource = inventorySource;
+    }
 
     /// <summary>Loads safe preferences and starts in the notification area with only explicitly requested local review modes enabled.</summary>
     /// <param name="e">Startup arguments; exact desktop, notification-transition, accessibility and W02 review switches remain opt-in.</param>
@@ -30,7 +44,8 @@ public partial class App : System.Windows.Application, IDisposable
         providerVisualIdentityPolicy = new ProviderVisualIdentityPolicy(theme);
         DateTimeOffset generatedAt = TimeProvider.System.GetUtcNow();
         DesktopDemonstrationEvidence evidence = DesktopDemonstrationEvidence.Create(generatedAt);
-        IDesktopFleetSnapshotSource inventorySource = new DesktopDemonstrationInventorySnapshotSource(evidence, localisation);
+        IDesktopFleetSnapshotSource inventorySource = configuredInventorySource ??
+            new DesktopDemonstrationInventorySnapshotSource(evidence, localisation);
         DesktopFleetReconciliationCoordinator reconciliation = new(
             inventorySource,
             DesktopDemonstrationEvidence.StaleAfter,

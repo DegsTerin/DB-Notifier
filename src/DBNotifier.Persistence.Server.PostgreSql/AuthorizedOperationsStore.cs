@@ -1,6 +1,8 @@
 // Module purpose: Implements Authorized Operations Store for central PostgreSQL persistence with transactional and authorisation boundaries.
 using System.Text.Json;
 using DBNotifier.Application.Access;
+using DBNotifier.Application.Presentation;
+using DBNotifier.Domain;
 using Microsoft.EntityFrameworkCore;
 
 namespace DBNotifier.Persistence.Server.PostgreSql;
@@ -207,6 +209,100 @@ public sealed class AuthorizedOperationsStore(
                 row.Enabled))
             .ToArrayAsync(cancellationToken)
             .ConfigureAwait(false);
+    }
+
+    /// <inheritdoc />
+    public async ValueTask<DesktopFleetApiSnapshot> GetAuthorizedDesktopFleetSnapshotAsync(
+        string subjectId,
+        string permissionCode,
+        DateTimeOffset now,
+        CancellationToken cancellationToken)
+    {
+        await using ServerDbContext context = await contextFactory
+            .CreateDbContextAsync(cancellationToken)
+            .ConfigureAwait(false);
+        Guid? userId = await context.Users
+            .AsNoTracking()
+            .Where(row => row.SubjectId == subjectId && row.State == "Active")
+            .Select(row => (Guid?)row.UserId)
+            .SingleOrDefaultAsync(cancellationToken)
+            .ConfigureAwait(false);
+        if (userId is null)
+        {
+            return EmptyDesktopFleetSnapshot(now);
+        }
+
+        AuthorizationScope[] scopes = await GetScopesAsync(
+            context,
+            userId.Value,
+            permissionCode,
+            now,
+            cancellationToken).ConfigureAwait(false);
+        if (scopes.Length == 0)
+        {
+            return EmptyDesktopFleetSnapshot(now);
+        }
+
+        bool global = scopes.Any(scope => scope.ScopeType == "Global" && scope.ScopeValue == "*");
+        string[] environments = scopes
+            .Where(scope => scope.ScopeType == "Environment")
+            .Select(scope => scope.ScopeValue)
+            .Distinct(StringComparer.Ordinal)
+            .ToArray();
+        Guid[] instanceIds = scopes
+            .Where(scope => scope.ScopeType == "Instance" && Guid.TryParse(scope.ScopeValue, out _))
+            .Select(scope => Guid.Parse(scope.ScopeValue))
+            .Distinct()
+            .ToArray();
+
+        DesktopFleetProjectionRow[] rows = await (
+                from instance in context.Instances.AsNoTracking()
+                join state in context.InstanceObservationStates.AsNoTracking()
+                    on instance.InstanceId equals state.InstanceId
+                join sample in context.HealthSamples.AsNoTracking()
+                    on state.ObservationId equals sample.ObservationId
+                join agent in context.Agents.AsNoTracking()
+                    on state.AgentId equals agent.AgentId
+                where instance.ArchivedAt == null &&
+                    instance.AssignedAgentId != null &&
+                    instance.AssignedAgentId == state.AgentId &&
+                    (global || environments.Contains(instance.Environment) || instanceIds.Contains(instance.InstanceId))
+                orderby instance.Environment, instance.DisplayName, instance.InstanceId
+                select new DesktopFleetProjectionRow(
+                    instance.InstanceId,
+                    instance.DisplayName,
+                    instance.ProviderType,
+                    instance.Environment,
+                    instance.Enabled,
+                    agent.DisplayName,
+                    state.AgentId,
+                    state.ObservationId,
+                    state.LastProcessedSequence,
+                    state.Status,
+                    state.ObservedAt,
+                    state.ReceivedAt,
+                    sample.InstanceId,
+                    sample.AgentId,
+                    sample.Sequence,
+                    sample.ProviderType,
+                    sample.Status,
+                    sample.EvidenceLevel,
+                    sample.ObservedAt,
+                    sample.ReceivedAt,
+                    sample.DurationMilliseconds))
+            .Take(DesktopFleetReconciliationCoordinator.MaximumSnapshotItems + 1)
+            .ToArrayAsync(cancellationToken)
+            .ConfigureAwait(false);
+        if (rows.Length > DesktopFleetReconciliationCoordinator.MaximumSnapshotItems)
+        {
+            throw new InvalidOperationException("desktop_fleet.projection_limit_exceeded");
+        }
+
+        DesktopFleetApiItem[] items = rows.Select(MapDesktopFleetItem).ToArray();
+        return new DesktopFleetApiSnapshot(
+            DesktopFleetApiContract.CurrentSchemaVersion,
+            now.ToUniversalTime(),
+            items);
     }
 
     public async ValueTask<CommandCreationResult> CreateCommandAsync(
@@ -448,6 +544,75 @@ public sealed class AuthorizedOperationsStore(
         existing.ExpectedAgentVersion == request.ExpectedAgentVersion &&
         existing.ExpectedProviderVersion == request.ExpectedProviderVersion;
 
+    /// <summary>Creates an authorised empty read result without inventing observation evidence.</summary>
+    private static DesktopFleetApiSnapshot EmptyDesktopFleetSnapshot(DateTimeOffset now) =>
+        new(DesktopFleetApiContract.CurrentSchemaVersion, now.ToUniversalTime(), []);
+
+    /// <summary>Maps only a fully coherent latest-observation row and rejects inconsistent persistence evidence.</summary>
+    private static DesktopFleetApiItem MapDesktopFleetItem(DesktopFleetProjectionRow row)
+    {
+        if (row.InstanceId != row.SampleInstanceId ||
+            row.AgentId != row.SampleAgentId ||
+            row.ObservationId == Guid.Empty ||
+            row.Sequence != row.SampleSequence ||
+            !string.Equals(row.ProviderType, row.SampleProviderType, StringComparison.Ordinal) ||
+            !string.Equals(row.Status, row.SampleStatus, StringComparison.Ordinal) ||
+            row.ObservedAt != row.SampleObservedAt ||
+            row.ReceivedAt != row.SampleReceivedAt ||
+            row.ObservedAt > row.ReceivedAt ||
+            row.DurationMilliseconds is < 0 or > 86_400_000 ||
+            !TryMapStatus(row.Status, out string status) ||
+            !TryMapEvidenceLevel(row.EvidenceLevel, out string evidenceLabel))
+        {
+            throw new InvalidOperationException("desktop_fleet.projection_evidence_invalid");
+        }
+
+        return new DesktopFleetApiItem(
+            row.InstanceId,
+            row.DisplayName,
+            row.ProviderType,
+            evidenceLabel,
+            row.Environment,
+            row.AgentDisplayName,
+            status,
+            row.ObservedAt.ToUniversalTime(),
+            row.ReceivedAt.ToUniversalTime(),
+            row.DurationMilliseconds,
+            row.Enabled);
+    }
+
+    /// <summary>Maps the canonical stored domain status to the stable Desktop Fleet wire identifier.</summary>
+    private static bool TryMapStatus(string value, out string status)
+    {
+        status = value switch
+        {
+            nameof(HealthStatus.Healthy) => "healthy",
+            nameof(HealthStatus.Degraded) => "degraded",
+            nameof(HealthStatus.Unavailable) => "unavailable",
+            nameof(HealthStatus.AuthFailed) => "authFailed",
+            nameof(HealthStatus.Timeout) => "timeout",
+            nameof(HealthStatus.Maintenance) => "maintenance",
+            nameof(HealthStatus.Unknown) => "unknown",
+            _ => string.Empty,
+        };
+        return status.Length != 0;
+    }
+
+    /// <summary>Maps stored observation quality to a factual label without claiming provider support or homologation.</summary>
+    private static bool TryMapEvidenceLevel(string value, out string label)
+    {
+        label = value switch
+        {
+            nameof(EvidenceLevel.ProviderAuthenticated) => "Provider-authenticated evidence",
+            nameof(EvidenceLevel.ProviderReadiness) => "Provider-readiness evidence",
+            nameof(EvidenceLevel.TransportOnly) => "Transport-only evidence",
+            nameof(EvidenceLevel.Synthetic) => "Synthetic evidence",
+            nameof(EvidenceLevel.Unknown) => "Unknown evidence",
+            _ => string.Empty,
+        };
+        return label.Length != 0;
+    }
+
     private static async ValueTask<CommandCreationResult> DenyAsync(
         ServerDbContext context,
         Microsoft.EntityFrameworkCore.Storage.IDbContextTransaction transaction,
@@ -522,4 +687,28 @@ public sealed class AuthorizedOperationsStore(
         string ScopeType,
         string ScopeValue,
         DateTimeOffset? ExpiresAt);
+
+    /// <summary>Holds the exact database values required to prove one coherent Desktop Fleet item.</summary>
+    private sealed record DesktopFleetProjectionRow(
+        Guid InstanceId,
+        string DisplayName,
+        string ProviderType,
+        string Environment,
+        bool Enabled,
+        string AgentDisplayName,
+        Guid AgentId,
+        Guid ObservationId,
+        long Sequence,
+        string Status,
+        DateTimeOffset ObservedAt,
+        DateTimeOffset ReceivedAt,
+        Guid SampleInstanceId,
+        Guid SampleAgentId,
+        long SampleSequence,
+        string SampleProviderType,
+        string SampleStatus,
+        string EvidenceLevel,
+        DateTimeOffset SampleObservedAt,
+        DateTimeOffset SampleReceivedAt,
+        long DurationMilliseconds);
 }

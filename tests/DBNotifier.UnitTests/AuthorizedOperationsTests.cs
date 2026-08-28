@@ -2,6 +2,8 @@
 using System.Security.Claims;
 using System.Text.Json;
 using DBNotifier.Application.Access;
+using DBNotifier.Application.Presentation;
+using DBNotifier.Domain;
 using DBNotifier.Persistence.Server.PostgreSql;
 using DBNotifier.Server.Api.Security;
 using Microsoft.Data.Sqlite;
@@ -36,6 +38,58 @@ public sealed class AuthorizedOperationsTests
         AuthorizedInstance instance = Assert.Single(result);
         Assert.Equal(allowedId, instance.InstanceId);
         Assert.Equal("production", instance.Environment);
+    }
+
+    [Fact]
+    public async Task DesktopFleetReturnsOnlyCoherentLatestObservationsWithinPermissionScope()
+    {
+        await using SqliteConnection connection = await OpenConnectionAsync();
+        DbContextOptions<ServerDbContext> options = Options(connection);
+        Guid allowedId = Guid.NewGuid();
+        Guid deniedId = Guid.NewGuid();
+        await SeedAsync(options, allowedId, "production", PlatformPermissions.InstancesRead, "Environment", "production");
+        await using (ServerDbContext setup = new(options))
+        {
+            Guid deniedAgentId = Guid.NewGuid();
+            setup.Agents.Add(Agent(deniedAgentId));
+            setup.Instances.Add(Instance(deniedId, deniedAgentId, "development"));
+            await setup.SaveChangesAsync();
+        }
+        await AddObservationAsync(options, allowedId, HealthStatus.Degraded, EvidenceLevel.ProviderReadiness);
+        await AddObservationAsync(options, deniedId, HealthStatus.Healthy, EvidenceLevel.ProviderAuthenticated);
+
+        DesktopFleetApiSnapshot result = await Service(options)
+            .GetDesktopFleetSnapshotAsync(new HumanActor(SubjectId));
+
+        Assert.Equal(DesktopFleetApiContract.CurrentSchemaVersion, result.SchemaVersion);
+        Assert.Equal(Now, result.GeneratedAt);
+        DesktopFleetApiItem item = Assert.Single(result.Items);
+        Assert.Equal(allowedId, item.InstanceId);
+        Assert.Equal("degraded", item.Status);
+        Assert.Equal("Provider-readiness evidence", item.SupportLabel);
+        Assert.Equal("Fixture Agent", item.LocationLabel);
+        Assert.Equal(175, item.LatencyMilliseconds);
+    }
+
+    [Fact]
+    public async Task DesktopFleetRejectsInconsistentObservationEvidence()
+    {
+        await using SqliteConnection connection = await OpenConnectionAsync();
+        DbContextOptions<ServerDbContext> options = Options(connection);
+        Guid instanceId = Guid.NewGuid();
+        await SeedAsync(options, instanceId, "production", PlatformPermissions.InstancesRead, "Global", "*");
+        await AddObservationAsync(options, instanceId, HealthStatus.Healthy, EvidenceLevel.ProviderAuthenticated);
+        await using (ServerDbContext mutation = new(options))
+        {
+            HealthSampleRow sample = await mutation.HealthSamples.SingleAsync();
+            sample.Status = nameof(HealthStatus.Timeout);
+            await mutation.SaveChangesAsync();
+        }
+
+        InvalidOperationException exception = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+            await Service(options).GetDesktopFleetSnapshotAsync(new HumanActor(SubjectId)));
+
+        Assert.Equal("desktop_fleet.projection_evidence_invalid", exception.Message);
     }
 
     [Fact]
@@ -353,6 +407,49 @@ public sealed class AuthorizedOperationsTests
         ConcurrencyToken = Guid.NewGuid(),
     };
 
+    private static async Task AddObservationAsync(
+        DbContextOptions<ServerDbContext> options,
+        Guid instanceId,
+        HealthStatus status,
+        EvidenceLevel evidenceLevel)
+    {
+        await using ServerDbContext context = new(options);
+        DatabaseInstanceRow instance = await context.Instances.SingleAsync(row => row.InstanceId == instanceId);
+        Guid agentId = instance.AssignedAgentId!.Value;
+        Guid observationId = Guid.NewGuid();
+        DateTimeOffset observedAt = Now.AddSeconds(-2);
+        DateTimeOffset receivedAt = Now.AddSeconds(-1);
+        context.HealthSamples.Add(new HealthSampleRow
+        {
+            ObservationId = observationId,
+            InstanceId = instanceId,
+            AgentId = agentId,
+            MessageId = Guid.NewGuid(),
+            Sequence = 1,
+            ProviderType = instance.ProviderType,
+            ProviderVersion = "fixture-provider",
+            Status = status.ToString(),
+            Method = "fixture-read",
+            EvidenceLevel = evidenceLevel.ToString(),
+            ObservedAt = observedAt,
+            ReceivedAt = receivedAt,
+            DurationMilliseconds = 175,
+            AttemptCount = 1,
+        });
+        context.InstanceObservationStates.Add(new InstanceObservationStateRow
+        {
+            InstanceId = instanceId,
+            AgentId = agentId,
+            LastProcessedSequence = 1,
+            ObservationId = observationId,
+            Status = status.ToString(),
+            ObservedAt = observedAt,
+            ReceivedAt = receivedAt,
+            ConcurrencyToken = Guid.NewGuid(),
+        });
+        await context.SaveChangesAsync();
+    }
+
     private static DatabaseInstanceRow Instance(Guid instanceId, Guid agentId, string environment) => new()
     {
         InstanceId = instanceId,
@@ -417,6 +514,16 @@ public sealed class AuthorizedOperationsTests
             DateTimeOffset now,
             CancellationToken cancellationToken) =>
             ValueTask.FromResult<IReadOnlyList<AuthorizedInstance>>([]);
+
+        public ValueTask<DesktopFleetApiSnapshot> GetAuthorizedDesktopFleetSnapshotAsync(
+            string subjectId,
+            string permissionCode,
+            DateTimeOffset now,
+            CancellationToken cancellationToken) =>
+            ValueTask.FromResult(new DesktopFleetApiSnapshot(
+                DesktopFleetApiContract.CurrentSchemaVersion,
+                now,
+                []));
 
         public ValueTask<CommandCreationResult> CreateCommandAsync(
             string subjectId,

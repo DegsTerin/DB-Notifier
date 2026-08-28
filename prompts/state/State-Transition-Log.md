@@ -6421,3 +6421,51 @@
 - Estado resultante: `STATE-06 INTEGRATION`, elegibilidade `NÃO REAVALIADA`,
   `MOD-12 ActivationState=None`; nenhuma transição de lifecycle ou autoridade
   externa foi inferida.
+
+## 2026-08-28 — S06-DFR-02 integra fonte Agent/API read-only ao contrato do Tray
+
+- Estado anterior: `STATE-06 INTEGRATION`, elegibilidade `NÃO REAVALIADA`,
+  `MOD-12 ActivationState=None`, Design System `3.3.0` e baseline limpa
+  `main@d805e86b313d084d1d4f44c4b7559e699e4c6eda`.
+- Autoridade humana: implementar o menor lote coerente que conecte a
+  reconciliação Desktop Fleet a uma fonte Agent/API provider-neutral somente
+  leitura, preservando clean-room, identidade própria, gates e lifecycle, sem
+  acessar a árvore-fonte protegida nem implementar provider MySQL, descoberta,
+  Start/Stop/Restart, notificações autoritativas ou infraestrutura externa.
+- Preflight e baseline: o shutdown inicial aprovou com zero processo e zero
+  listener próprio; branch, HEAD, index e worktree rastreada correspondiam à
+  baseline autorizada antes das alterações. Um preflight posterior encontrou
+  um leitor PowerShell desta própria tarefa; PID, executável e linha de comando
+  provaram ownership, somente ele foi encerrado e o recheck aprovou sem resíduo.
+- Implementação: `desktop-fleet.v1` limita e valida a projeção das observações
+  mais recentes. O Server exige política humana, headers exatos, rate limit e
+  escopo `instances.read`; a persistência cruza somente a instância, seu Agent
+  atribuído, o estado reconciliado e a amostra exata. Endpoint, credential
+  reference, erro nativo, comando e segredo não atravessam a resposta.
+- Transporte: o adapter HTTPS lê no máximo 512 KiB de JSON estrito, exige eco
+  exato de protocolo/schema e produz somente disposições `Accepted`, `Denied`,
+  `Offline`, `Incompatible` ou `Failed` com códigos sanitizados. O coordenador
+  existente conserva single-flight, last-known accepted e freshness.
+- Identidade e ativação: o WPF aceita uma fonte autenticada injetada, mas o
+  executável comum permanece na demonstração local. Nenhum token em argumento,
+  arquivo ou environment, fluxo OIDC, identidade mTLS de Agent, policy de
+  egress ativa ou serviço externo foi introduzido.
+- Validação focal: unitários de Application/store/transporte `10/10`, endpoint
+  HTTPS humano isolado `3/3`, arquitetura `2/2` e build WPF sem aviso ou erro.
+  Quatro execuções intermediárias falharam antes das correções focais de três
+  questões sintáticas/analyser e uma asserção ampla; não foram relabeladas.
+- Validação governada: `Doctor` aprovou e o `Quick` final aprovou como
+  `NON_GATE`. Um único `Full` canônico concluiu
+  `DISPOSITION|PASS|stage=All`: unitários `543/543`, arquitetura `101/101`,
+  integração `171/171`, WPF `10/10`, cobertura de linhas `83,39%` e branches
+  `56,46%`, além dos gates de vulnerabilidade, runtime, legado, bundle, Web,
+  navegador e harness consolidado com dados locais.
+- Escopo negativo preservado: nenhum provider, banco real, descoberta,
+  credencial, Start/Stop/Restart, delivery autoritativo, firewall, túnel,
+  infraestrutura externa, deploy, publicação, push, Human Gate, homologação,
+  ativação ou transição de lifecycle foi implementado ou executado.
+- Disposição: `S06-DFR-02 COMPLETE`, Design System `3.4.0`, sem itens
+  obrigatórios remanescentes dentro do envelope autorizado.
+- Estado resultante: `STATE-06 INTEGRATION`, elegibilidade `NÃO REAVALIADA`,
+  `MOD-12 ActivationState=None`; identidade Desktop operacional, providers e
+  toda autoridade externa continuam separados e pendentes de lotes próprios.

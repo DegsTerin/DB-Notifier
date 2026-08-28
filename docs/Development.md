@@ -122,6 +122,8 @@ Agent synchronization remains disabled by default. Observation synchronization m
 
 Human API endpoints use the separate `HumanBearer` JWT scheme. Configure an absolute HTTPS OIDC authority and audience through `HumanAuthentication`; absent or invalid configuration fails closed. The JWT `sub` must map to an active platform user with a non-expired role assignment and the exact permission/scope. No password, signing key, token, or bootstrap administrator is stored in repository configuration.
 
+`GET /api/v1/desktop/fleet-snapshot` is the versioned provider-neutral read model for an authenticated Desktop Fleet source. It requires exact `DBN-Protocol-Version: 1` and `DBN-Message-Schema: desktop-fleet.v1` headers plus the existing human policy, rate limit and `instances.read` scope. The response contains only the latest coherent observations received from each exact assigned Agent; it omits endpoints, credentials, commands and provider-native diagnostics. The WPF executable does not yet own a human token-acquisition flow, so ordinary startup remains the labelled local demonstration. Tests inject an isolated authenticated client; that does not activate an external identity or operational source.
+
 Every outbound connection in the normal Agent, provider and Server composition
 is also subject to the
 [network egress policy](architecture/Network-Egress-Policy.md). Configuration
