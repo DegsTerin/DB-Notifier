@@ -1,4 +1,4 @@
-<!-- Generated from dbnotifier.localisation.v1; culture:en-GB; source sha256:fbeb0c52c7d5569c1d827e3017ed10bd2d6200828cf83fd698fcdd84d8992630. Do not edit directly. -->
+<!-- Generated from dbnotifier.localisation.v1; culture:en-GB; source sha256:b7aeb39f3508fdf033e99d630bb0fd1f28f0a2d8c21826cd4a0152337e3ed5d1. Do not edit directly. -->
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:sys="clr-namespace:System;assembly=System.Runtime">
@@ -218,7 +218,7 @@
   <sys:String x:Key="Tray.BalloonMessage">The window was hidden. No database or service was controlled.</sys:String>
   <sys:String x:Key="Tray.BalloonTitle">DB Notifier remains available</sys:String>
   <sys:String x:Key="Tray.Exit">Exit</sys:String>
-  <sys:String x:Key="Tray.FleetSummary">4 demonstration instances · no external data</sys:String>
+  <sys:String x:Key="Tray.FleetSummary">Reconciled fleet inventory · local demonstration source</sys:String>
   <sys:String x:Key="Tray.FleetTitle">Fleet at a glance</sys:String>
   <sys:String x:Key="Tray.Instances">Instances monitored in the local demonstration</sys:String>
   <sys:String x:Key="Tray.LocalSnapshot">Local snapshot at {0} UTC</sys:String>
@@ -229,6 +229,12 @@
   <sys:String x:Key="Tray.OpenOverview">Open Dashboard</sys:String>
   <sys:String x:Key="Tray.ReconciledStatusChangeMessage">{0}: {1} → {2}. Synthetic local sandbox observation at {3}; freshness: {4}. No external data.</sys:String>
   <sys:String x:Key="Tray.ReconciledStatusChangeTitle">Synthetic sandbox status changed</sys:String>
+  <sys:String x:Key="Tray.Reconciliation.Accepted">Read-only local source accepted</sys:String>
+  <sys:String x:Key="Tray.Reconciliation.Busy">A read-only refresh is already in progress</sys:String>
+  <sys:String x:Key="Tray.Reconciliation.Retained">Latest read failed; showing retained evidence with current freshness</sys:String>
+  <sys:String x:Key="Tray.Reconciliation.Unavailable">No accepted fleet snapshot is available</sys:String>
+  <sys:String x:Key="Tray.Refreshing">Refreshing status...</sys:String>
+  <sys:String x:Key="Tray.RefreshStatus">Refresh status</sys:String>
   <sys:String x:Key="Tray.RestartUnavailable">Restart service · unavailable</sys:String>
   <sys:String x:Key="Tray.RestartUnavailableHelp">Requires a homologated capability, authorisation, confirmation and audit.</sys:String>
   <sys:String x:Key="Tray.SilentUnavailable">Silent mode · unavailable</sys:String>

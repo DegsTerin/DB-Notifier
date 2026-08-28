@@ -5,8 +5,8 @@ using DBNotifier.Application.Presentation;
 namespace DBNotifier.Desktop.Wpf;
 
 /// <summary>
-/// Owns the notification-area-first WPF lifecycle and shared local demonstration evidence without controlling
-/// database services, external infrastructure or administrative capabilities.
+/// Owns the notification-area-first WPF lifecycle and read-only fleet reconciliation without controlling database
+/// services, external infrastructure or administrative capabilities.
 /// </summary>
 public partial class App : System.Windows.Application, IDisposable
 {
@@ -30,7 +30,18 @@ public partial class App : System.Windows.Application, IDisposable
         providerVisualIdentityPolicy = new ProviderVisualIdentityPolicy(theme);
         DateTimeOffset generatedAt = TimeProvider.System.GetUtcNow();
         DesktopDemonstrationEvidence evidence = DesktopDemonstrationEvidence.Create(generatedAt);
-        TrayFleetSummary fleetSummary = evidence.Summarise(generatedAt);
+        IDesktopFleetSnapshotSource inventorySource = new DesktopDemonstrationInventorySnapshotSource(evidence, localisation);
+        DesktopFleetReconciliationCoordinator reconciliation = new(
+            inventorySource,
+            DesktopDemonstrationEvidence.StaleAfter,
+            TimeProvider.System);
+        DesktopFleetReconciliationFrame initialFrame = reconciliation
+            .ReconcileAsync(DesktopFleetRefreshTrigger.Initial)
+            .AsTask()
+            .GetAwaiter()
+            .GetResult();
+        InventorySnapshot initialSnapshot = initialFrame.Snapshot ??
+            throw new InvalidOperationException("The local desktop inventory source did not establish an initial snapshot.");
         TrayFlyoutLiveReviewMode flyoutLiveReviewMode = TrayFlyoutLiveReviewPolicy.Resolve(e.Args);
         bool flyoutLiveReviewEnabled =
             flyoutLiveReviewMode == TrayFlyoutLiveReviewMode.BoundedInMemorySequence;
@@ -43,7 +54,8 @@ public partial class App : System.Windows.Application, IDisposable
             motion,
             providerVisualIdentityPolicy,
             evidence,
-            fleetSummary.State,
+            initialSnapshot,
+            initialFrame.Summary.State,
             accessibilityReviewMode);
         MainWindow = window;
         TrayNotificationValidationMode notificationValidationMode = flyoutLiveReviewEnabled
@@ -58,7 +70,8 @@ public partial class App : System.Windows.Application, IDisposable
             localisation,
             providerVisualIdentityPolicy,
             evidence,
-            fleetSummary,
+            reconciliation,
+            initialFrame,
             notificationValidationMode,
             reconciledNotificationActivation,
             flyoutLiveReviewMode);

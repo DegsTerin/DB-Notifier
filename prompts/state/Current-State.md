@@ -512,7 +512,7 @@ proprietários.
 ## Interfaces atuais
 
 - O contrato normativo vigente é o
-  [Design System `3.2.1`](../../docs/design/DB-Notifier-Design-System.md), com
+  [Design System `3.3.0`](../../docs/design/DB-Notifier-Design-System.md), com
   `pt-BR` e `en-GB`, temas Light e Dark e Windows High Contrast como override
   independente.
 - Dashboard Web e WPF expõem oito destinos comuns. O Web é responsivo a partir
@@ -523,6 +523,14 @@ proprietários.
   identificados como demonstração. As composições autoritativas existentes são
   test-only, opt-in e desabilitadas por padrão; não usam provider, banco,
   identidade ou canal externo real.
+- O Tray normal adquire esse inventário local através de um contrato
+  provider-neutral de snapshot e uma reconciliação Application-owned
+  single-flight. Inicialização, atualização manual e timer serial de 30 segundos
+  produzem um frame coerente para ícone, tooltip, flyout e inventário WPF;
+  leituras offline, negadas, incompatíveis ou falhas retêm a última evidência
+  aceita enquanto a freshness continua envelhecendo. A fonte composta continua
+  sendo somente um adapter demonstrativo local: Agent/API, provider real,
+  descoberta, persistência e ações administrativas não foram integrados.
 - No sandbox TV autorizado, a entrada lê a API imediatamente e a reconciliação
   seguinte ocorre de forma serial 30 segundos após a conclusão da leitura
   anterior. SignalR é apenas um hint autenticado para antecipar uma nova

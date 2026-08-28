@@ -255,9 +255,15 @@
   <message key="Tray.Open">Abrir DB Notifier</message>
   <message key="Tray.Status">Demonstração local · sem dados externos</message>
   <message key="Tray.FleetTitle">Visão rápida da frota</message>
-  <message key="Tray.FleetSummary">4 instâncias demonstrativas · sem dados externos</message>
+  <message key="Tray.FleetSummary">Inventário reconciliado da frota · fonte demonstrativa local</message>
   <message key="Tray.Instances">Instâncias monitoradas na demonstração local</message>
   <message key="Tray.LocalSnapshot">Snapshot local em {0} UTC</message>
+  <message key="Tray.RefreshStatus">Atualizar status</message>
+  <message key="Tray.Refreshing">Atualizando status...</message>
+  <message key="Tray.Reconciliation.Accepted">Fonte local somente leitura aceita</message>
+  <message key="Tray.Reconciliation.Retained">A leitura mais recente falhou; exibindo evidência retida com atualização corrente</message>
+  <message key="Tray.Reconciliation.Busy">Uma atualização somente leitura já está em andamento</message>
+  <message key="Tray.Reconciliation.Unavailable">Nenhum snapshot aceito da frota está disponível</message>
   <message key="Tray.OpenOverview">Abrir Dashboard</message>
   <message key="Tray.OpenInventory">Abrir inventário</message>
   <message key="Tray.OpenHistoryAlerts">Abrir logs</message>

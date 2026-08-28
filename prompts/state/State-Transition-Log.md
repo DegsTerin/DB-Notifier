@@ -6379,3 +6379,45 @@
   encerraram `P0=0`, `P1=0`, `P2=0`, `P3=0`; confirmaram a robustez da
   asserção PowerShell, a preservação integral do prefixo append-only, a
   suficiência dos testes existentes e a ausência de ampliação de escopo.
+
+## 2026-08-28 — S06-DFR-01 integra reconciliação read-only do Tray em clean-room
+
+- Estado anterior: `STATE-06 INTEGRATION`, elegibilidade `NÃO REAVALIADA`,
+  `MOD-12 ActivationState=None`, Design System `3.2.1` e baseline limpa
+  `main@8e1fb1c4cee61b2bb2d1a67012d2a78db072ef47`.
+- Autoridade humana: aproximar exclusivamente em clean-room a cobertura
+  funcional e os fluxos públicos do Tray do MySQL Notifier pelo menor lote
+  coerente de reconciliação Desktop Fleet read-only, sem usar implementação,
+  arte, texto proprietário, trade dress ou arquitetura interna do produto de
+  referência.
+- Preflight e baseline: o shutdown obrigatório aprovou com zero processo
+  correspondente e zero listener próprio; branch `main`, HEAD, index e
+  worktree rastreada correspondiam à baseline autorizada antes das alterações.
+- Fonte de requisitos: somente o manual público arquivado, o anúncio oficial da
+  versão 1.1.8 e as autoridades existentes do DB-Notifier. A matriz clean-room
+  classifica cada capacidade como adotada, adaptada com segurança, rejeitada ou
+  agendada.
+- Implementação: a camada Application passou a possuir o contrato versionado de
+  snapshot, validação bounded, aquisição single-flight, códigos não secretos,
+  retenção da última evidência aceita e avaliação atômica de freshness/agregado.
+  O WPF usa um adapter local isolado e aplica inicialização, atualização manual,
+  localização e timer serial de 30 segundos ao ícone, tooltip, flyout e shell.
+- Validação focal: reconciliação `5/5`, arquitetura focal `1/1`, arquitetura
+  legada afetada `1/1`, apresentação Dashboard `25/25` e build WPF sem aviso ou
+  erro. Falhas intermediárias corrigiram somente `CA1001`, o código
+  `snapshot.invalid` e três expectativas históricas; não foram relabeladas.
+- Validação governada: o `Quick` final aprovou como `NON_GATE`. Um único `Full`
+  canônico concluiu `DISPOSITION|PASS|stage=All`, com unitários `533/533`,
+  arquitetura `100/100`, integração `168/168`, WPF `10/10`, cobertura de linhas
+  `83,44%` e branches `56,81%`, além dos gates de vulnerabilidade, runtime,
+  legado, bundle, Web, navegador e harness consolidado com dados locais.
+- Escopo negativo preservado: nenhum provider MySQL/MariaDB, Agent/API real,
+  credencial, conexão, descoberta, WMI/DCOM, firewall, Start/Stop/Restart,
+  persistência, delivery autoritativo, infraestrutura, deploy, publicação,
+  push, Human Gate, ativação, homologação ou transição de lifecycle foi
+  implementado ou executado.
+- Disposição: `S06-DFR-01 COMPLETE`, Design System `3.3.0`, sem itens obrigatórios
+  remanescentes dentro do lote autorizado.
+- Estado resultante: `STATE-06 INTEGRATION`, elegibilidade `NÃO REAVALIADA`,
+  `MOD-12 ActivationState=None`; nenhuma transição de lifecycle ou autoridade
+  externa foi inferida.

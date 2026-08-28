@@ -1,4 +1,4 @@
-// Module purpose: Positions and coordinates the notification-area fleet flyout while limiting its actions to local desktop navigation and exit.
+// Module purpose: Positions the notification-area fleet flyout and exposes bounded read-only refresh, local navigation and exit intents.
 using System.ComponentModel;
 using System.Windows;
 using System.Windows.Input;
@@ -18,7 +18,7 @@ internal sealed partial class TrayFlyoutWindow : Window
 {
     private readonly DesktopLocalisationService localisation;
     private readonly ProviderVisualIdentityPolicy providerVisualIdentityPolicy;
-    private readonly DesktopDemonstrationEvidence evidence;
+    private readonly Func<Task> requestRefresh;
     private readonly Action<DesktopView> openView;
     private readonly Action exitApplication;
     private readonly DispatcherTimer activationTimer;
@@ -26,28 +26,36 @@ internal sealed partial class TrayFlyoutWindow : Window
     private bool dismissOnDeactivation;
     private bool compactLayout;
     private TrayFleetSummary fleetSummary;
+    private InventorySnapshot snapshot;
+    private DesktopFleetReadDisposition readDisposition;
+    private bool retainedLastAcceptedSnapshot;
 
     /// <summary>Initialises the flyout with safe callbacks owned by the tray lifecycle controller.</summary>
     /// <param name="localisation">Generated localisation resource owner.</param>
     /// <param name="providerVisualIdentityPolicy">Theme-aware resolver for decorative per-instance provider logos.</param>
-    /// <param name="evidence">Immutable locale-independent evidence shared with the desktop shell.</param>
-    /// <param name="initialSummary">Aggregate evaluated at the evidence creation instant.</param>
+    /// <param name="initialFrame">Initial accepted reconciliation frame shared with the desktop shell.</param>
+    /// <param name="requestRefresh">Callback that requests one serial read-only reconciliation.</param>
     /// <param name="openView">Callback that opens one validated read-only desktop destination.</param>
     /// <param name="exitApplication">Callback that explicitly exits DB Notifier.</param>
     /// <param name="secondaryNavigationEnabled">Whether the current composition permits opening the preference-bearing shell.</param>
     internal TrayFlyoutWindow(
         DesktopLocalisationService localisation,
         ProviderVisualIdentityPolicy providerVisualIdentityPolicy,
-        DesktopDemonstrationEvidence evidence,
-        TrayFleetSummary initialSummary,
+        DesktopFleetReconciliationFrame initialFrame,
+        Func<Task> requestRefresh,
         Action<DesktopView> openView,
         Action exitApplication,
         bool secondaryNavigationEnabled)
     {
         this.localisation = localisation;
         this.providerVisualIdentityPolicy = providerVisualIdentityPolicy;
-        this.evidence = evidence;
-        fleetSummary = initialSummary;
+        ArgumentNullException.ThrowIfNull(initialFrame);
+        snapshot = initialFrame.Snapshot ??
+            throw new ArgumentException("The initial Tray reconciliation frame must contain a snapshot.", nameof(initialFrame));
+        fleetSummary = initialFrame.Summary;
+        readDisposition = initialFrame.Disposition;
+        retainedLastAcceptedSnapshot = initialFrame.RetainedLastAcceptedSnapshot;
+        this.requestRefresh = requestRefresh ?? throw new ArgumentNullException(nameof(requestRefresh));
         this.openView = openView;
         this.exitApplication = exitApplication;
         activationTimer = new DispatcherTimer(DispatcherPriority.ApplicationIdle)
@@ -61,7 +69,7 @@ internal sealed partial class TrayFlyoutWindow : Window
         OpenHistoryAlertsButton.IsEnabled = secondaryNavigationEnabled;
         providerVisualIdentityPolicy.VisualIdentityChanged += ProviderVisualIdentityChanged;
         Closed += TrayFlyoutWindowClosed;
-        RefreshPresentation(evidence.GeneratedAt, initialSummary);
+        RefreshPresentation(initialFrame);
     }
 
     /// <summary>Shows and positions the flyout inside the working area nearest the notification icon.</summary>
@@ -126,18 +134,24 @@ internal sealed partial class TrayFlyoutWindow : Window
     /// <param name="e">Previous and current rendered dimensions.</param>
     private void WindowSizeChanged(object sender, SizeChangedEventArgs e) => ApplyResponsiveLayout(e.NewSize.Width < 480);
 
-    /// <summary>Refreshes localised fleet text and item states from one shared freshness evaluation.</summary>
-    /// <param name="evaluatedAt">UTC instant used only to classify the immutable item evidence.</param>
-    /// <param name="summary">Aggregate derived from the same evidence and evaluation instant.</param>
-    internal void RefreshPresentation(DateTimeOffset evaluatedAt, TrayFleetSummary summary)
+    /// <summary>Refreshes localised fleet text and item states from one atomically reconciled frame.</summary>
+    /// <param name="frame">Frame whose snapshot, aggregate and freshness share one evaluation instant.</param>
+    internal void RefreshPresentation(DesktopFleetReconciliationFrame frame)
     {
-        InstanceInventoryItem[] items = evidence.CreateInventorySnapshot(localisation).Items.ToArray();
+        ArgumentNullException.ThrowIfNull(frame);
+        if (frame.Snapshot is not null)
+        {
+            snapshot = frame.Snapshot;
+        }
+
+        readDisposition = frame.Disposition;
+        retainedLastAcceptedSnapshot = frame.RetainedLastAcceptedSnapshot;
         ApplyPresentation(
-            summary,
-            items.Select(item => new TrayFlyoutInstancePresentationState(
+            frame.Summary,
+            snapshot.Items.Select(item => new TrayFlyoutInstancePresentationState(
                 item.InstanceId,
                 item.Status,
-                item.GetFreshness(evaluatedAt, DesktopDemonstrationEvidence.StaleAfter),
+                item.GetFreshness(frame.EvaluatedAt, DesktopDemonstrationEvidence.StaleAfter),
                 item.Enabled)).ToArray());
     }
 
@@ -160,23 +174,52 @@ internal sealed partial class TrayFlyoutWindow : Window
         string aggregateLabel = localisation.Text($"Tray.Aggregate.{fleetSummary.State}");
         AggregateText.Text =
             $"{localisation.Text("Tray.AggregateSummary", aggregateLabel)} · {localisation.Text("Inventory.DisabledCount", fleetSummary.DisabledCount)}";
-        SnapshotText.Text = localisation.Text("Tray.LocalSnapshot", FormatUtc(evidence.GeneratedAt));
+        SnapshotText.Text = localisation.Text("Tray.LocalSnapshot", FormatUtc(snapshot.GeneratedAt));
+        SourceStatusText.Text = localisation.Text(SourceStatusKey());
         RefreshBrandStatusImage(VisualTreeHelper.GetDpi(this));
         RefreshInstanceStates(states);
+    }
+
+    /// <summary>Maps the latest acquisition outcome to explicit source and retention truth.</summary>
+    /// <returns>A generated localisation key that does not expose provider-native diagnostics.</returns>
+    private string SourceStatusKey()
+    {
+        if (retainedLastAcceptedSnapshot)
+        {
+            return "Tray.Reconciliation.Retained";
+        }
+
+        return readDisposition switch
+        {
+            DesktopFleetReadDisposition.Accepted => "Tray.Reconciliation.Accepted",
+            DesktopFleetReadDisposition.Busy => "Tray.Reconciliation.Busy",
+            _ => "Tray.Reconciliation.Unavailable",
+        };
     }
 
     /// <summary>Aligns every flyout row with the canonical freshness and provider-neutral status policies.</summary>
     /// <param name="states">Stable row states already evaluated for the current presentation frame.</param>
     private void RefreshInstanceStates(IReadOnlyList<TrayFlyoutInstancePresentationState> states)
     {
-        InstanceInventoryItem[] items = evidence.CreateInventorySnapshot(localisation).Items.ToArray();
+        InstanceInventoryItem[] items = snapshot.Items.Take(4).ToArray();
+        System.Windows.Controls.Grid[] rows =
+            [FinanceInstanceRow, OrdersInstanceRow, AnalyticsInstanceRow, CatalogueInstanceRow];
+        System.Windows.Controls.TextBlock[] names =
+            [FinanceInstanceName, OrdersInstanceName, AnalyticsInstanceName, CatalogueInstanceName];
         SemanticIcon[] glyphs = [FinanceStatusGlyph, OrdersStatusGlyph, AnalyticsStatusGlyph, CatalogueStatusGlyph];
         System.Windows.Controls.TextBlock[] labels = [FinanceStatusText, OrdersStatusText, AnalyticsStatusText, CatalogueStatusText];
         ProviderIdentityView[] providerIdentities =
             [FinanceProviderIdentity, OrdersProviderIdentity, AnalyticsProviderIdentity, CatalogueProviderIdentity];
-        for (int index = 0; index < Math.Min(items.Length, labels.Length); index++)
+        for (int index = 0; index < rows.Length; index++)
         {
+            rows[index].Visibility = index < items.Length ? Visibility.Visible : Visibility.Collapsed;
+            if (index >= items.Length)
+            {
+                continue;
+            }
+
             InstanceInventoryItem item = items[index];
+            names[index].Text = item.DisplayName;
             providerIdentities[index].Identity = providerVisualIdentityPolicy.Resolve(item.ProviderType);
             TrayFlyoutInstancePresentationState state = states
                 .SingleOrDefault(candidate => candidate.InstanceId == item.InstanceId)
@@ -224,12 +267,12 @@ internal sealed partial class TrayFlyoutWindow : Window
     private void RefreshBrandStatusImage(DpiScale dpi) =>
         BrandStatusImage.Source = BrandStatusIconPolicy.LoadImageSource(fleetSummary.State, 32, dpi);
 
-    /// <summary>Re-resolves decorative provider identities without re-evaluating immutable operational evidence.</summary>
+    /// <summary>Re-resolves decorative provider identities without re-acquiring operational evidence.</summary>
     /// <param name="sender">Provider identity policy that observed an effective presentation change.</param>
     /// <param name="e">Identity-change event data.</param>
     private void ProviderVisualIdentityChanged(object? sender, EventArgs e)
     {
-        InstanceInventoryItem[] items = evidence.CreateInventorySnapshot(localisation).Items.ToArray();
+        InstanceInventoryItem[] items = snapshot.Items.Take(4).ToArray();
         ProviderIdentityView[] providerIdentities =
             [FinanceProviderIdentity, OrdersProviderIdentity, AnalyticsProviderIdentity, CatalogueProviderIdentity];
         for (int index = 0; index < Math.Min(items.Length, providerIdentities.Length); index++)
@@ -271,6 +314,24 @@ internal sealed partial class TrayFlyoutWindow : Window
 
     /// <summary>Formats an exact UTC timestamp without implying that an external source was read.</summary>
     private string FormatUtc(DateTimeOffset value) => DesktopDateTimePresentation.FormatUtc(value, localisation.Culture);
+
+    /// <summary>Requests one bounded serial read-only reconciliation and exposes its busy state accessibly.</summary>
+    /// <param name="sender">Refresh button that initiated the request.</param>
+    /// <param name="e">Routed click metadata.</param>
+    private async void RefreshStatusClick(object sender, RoutedEventArgs e)
+    {
+        RefreshStatusButton.IsEnabled = false;
+        RefreshStatusText.Text = localisation.Text("Tray.Refreshing");
+        try
+        {
+            await requestRefresh();
+        }
+        finally
+        {
+            RefreshStatusText.Text = localisation.Text("Tray.RefreshStatus");
+            RefreshStatusButton.IsEnabled = true;
+        }
+    }
 
     /// <summary>Opens the composed operational overview and hides the transient flyout.</summary>
     private void OpenOverviewClick(object sender, RoutedEventArgs e) => Open(DesktopView.Overview);

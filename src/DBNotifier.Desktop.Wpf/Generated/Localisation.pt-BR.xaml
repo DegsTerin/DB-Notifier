@@ -1,4 +1,4 @@
-<!-- Generated from dbnotifier.localisation.v1; culture:pt-BR; source sha256:fbeb0c52c7d5569c1d827e3017ed10bd2d6200828cf83fd698fcdd84d8992630. Do not edit directly. -->
+<!-- Generated from dbnotifier.localisation.v1; culture:pt-BR; source sha256:b7aeb39f3508fdf033e99d630bb0fd1f28f0a2d8c21826cd4a0152337e3ed5d1. Do not edit directly. -->
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:sys="clr-namespace:System;assembly=System.Runtime">
@@ -218,7 +218,7 @@
   <sys:String x:Key="Tray.BalloonMessage">A janela foi recolhida. Nenhum banco ou serviço foi controlado.</sys:String>
   <sys:String x:Key="Tray.BalloonTitle">DB Notifier continua disponível</sys:String>
   <sys:String x:Key="Tray.Exit">Sair</sys:String>
-  <sys:String x:Key="Tray.FleetSummary">4 instâncias demonstrativas · sem dados externos</sys:String>
+  <sys:String x:Key="Tray.FleetSummary">Inventário reconciliado da frota · fonte demonstrativa local</sys:String>
   <sys:String x:Key="Tray.FleetTitle">Visão rápida da frota</sys:String>
   <sys:String x:Key="Tray.Instances">Instâncias monitoradas na demonstração local</sys:String>
   <sys:String x:Key="Tray.LocalSnapshot">Snapshot local em {0} UTC</sys:String>
@@ -229,6 +229,12 @@
   <sys:String x:Key="Tray.OpenOverview">Abrir Dashboard</sys:String>
   <sys:String x:Key="Tray.ReconciledStatusChangeMessage">{0}: {1} → {2}. Observação do sandbox local sintético em {3}; atualização: {4}. Sem dados externos.</sys:String>
   <sys:String x:Key="Tray.ReconciledStatusChangeTitle">Status alterado no sandbox sintético</sys:String>
+  <sys:String x:Key="Tray.Reconciliation.Accepted">Fonte local somente leitura aceita</sys:String>
+  <sys:String x:Key="Tray.Reconciliation.Busy">Uma atualização somente leitura já está em andamento</sys:String>
+  <sys:String x:Key="Tray.Reconciliation.Retained">A leitura mais recente falhou; exibindo evidência retida com atualização corrente</sys:String>
+  <sys:String x:Key="Tray.Reconciliation.Unavailable">Nenhum snapshot aceito da frota está disponível</sys:String>
+  <sys:String x:Key="Tray.Refreshing">Atualizando status...</sys:String>
+  <sys:String x:Key="Tray.RefreshStatus">Atualizar status</sys:String>
   <sys:String x:Key="Tray.RestartUnavailable">Reiniciar serviço · indisponível</sys:String>
   <sys:String x:Key="Tray.RestartUnavailableHelp">Requer capability homologada, autorização, confirmação e auditoria.</sys:String>
   <sys:String x:Key="Tray.SilentUnavailable">Modo silencioso · indisponível</sys:String>

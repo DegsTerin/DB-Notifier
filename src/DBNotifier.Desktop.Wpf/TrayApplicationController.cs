@@ -1,4 +1,4 @@
-// Module purpose: Coordinates the localised Windows tray lifecycle without controlling database or operating-system services.
+// Module purpose: Coordinates the localised Windows tray lifecycle and serial read-only fleet reconciliation without controlling services.
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Drawing;
@@ -22,6 +22,8 @@ internal sealed class TrayApplicationController : IDisposable
     private readonly System.Windows.Application application;
     private readonly DesktopLocalisationService localisation;
     private readonly DesktopDemonstrationEvidence evidence;
+    private readonly DesktopFleetReconciliationCoordinator reconciliation;
+    private readonly CancellationTokenSource reconciliationCancellation = new();
     private readonly IReadOnlyList<TrayNotificationTransitionValidationCase> transitionValidationCases;
     private Icon applicationIcon;
     private Icon? notificationMeaningIcon;
@@ -39,6 +41,7 @@ internal sealed class TrayApplicationController : IDisposable
     private readonly TrayFlyoutWindow flyout;
     private readonly Queue<LegacyNotificationRequest> legacyNotificationQueue = new();
     private TrayFleetSummary fleetSummary;
+    private DesktopFleetReconciliationFrame currentFrame;
     private IReadOnlyList<TrayInstanceEffectiveState> instanceStates;
     private bool disposing;
     private bool exiting;
@@ -54,7 +57,8 @@ internal sealed class TrayApplicationController : IDisposable
     /// <param name="localisation">Localisation owner used by Tray text and the flyout.</param>
     /// <param name="providerVisualIdentityPolicy">Theme-aware local provider-logo resolver used only by per-instance rows.</param>
     /// <param name="evidence">Immutable locale-independent evidence shared with the full desktop shell.</param>
-    /// <param name="initialSummary">Aggregate evaluated at the evidence creation instant.</param>
+    /// <param name="reconciliation">Application-owned single-flight read-only inventory coordinator.</param>
+    /// <param name="initialFrame">Initial accepted frame shared with the full desktop shell.</param>
     /// <param name="notificationValidationMode">Explicit validation-only mode; invalid values fail safely to normal fixture behaviour.</param>
     /// <param name="reconciledNotificationActivation">Validated opt-in sandbox activation, or null for the disabled default.</param>
     /// <param name="flyoutLiveReviewMode">Exact W02 presentation-only mode, disabled in normal composition.</param>
@@ -64,7 +68,8 @@ internal sealed class TrayApplicationController : IDisposable
         DesktopLocalisationService localisation,
         ProviderVisualIdentityPolicy providerVisualIdentityPolicy,
         DesktopDemonstrationEvidence evidence,
-        TrayFleetSummary initialSummary,
+        DesktopFleetReconciliationCoordinator reconciliation,
+        DesktopFleetReconciliationFrame initialFrame,
         TrayNotificationValidationMode notificationValidationMode,
         ReconciledNotificationSandboxActivation? reconciledNotificationActivation,
         TrayFlyoutLiveReviewMode flyoutLiveReviewMode)
@@ -73,6 +78,9 @@ internal sealed class TrayApplicationController : IDisposable
         this.application = application;
         this.localisation = localisation;
         this.evidence = evidence;
+        this.reconciliation = reconciliation ?? throw new ArgumentNullException(nameof(reconciliation));
+        ArgumentNullException.ThrowIfNull(initialFrame);
+        currentFrame = initialFrame;
         this.flyoutLiveReviewMode = flyoutLiveReviewMode;
         suppressAllNotifications =
             flyoutLiveReviewMode == TrayFlyoutLiveReviewMode.BoundedInMemorySequence;
@@ -82,18 +90,23 @@ internal sealed class TrayApplicationController : IDisposable
         transitionValidationCases = notificationValidationMode == TrayNotificationValidationMode.TransitionMatrix
             ? TrayNotificationTransitionValidationMatrix.Cases
             : [];
-        fleetSummary = initialSummary;
-        instanceStates = evidence.CaptureInstanceStates(evidence.GeneratedAt);
+        fleetSummary = initialFrame.Summary;
+        InventorySnapshot initialSnapshot = initialFrame.Snapshot ??
+            throw new ArgumentException("The initial Tray reconciliation frame must contain a snapshot.", nameof(initialFrame));
+        instanceStates = TrayInstanceStateChangePolicy.Capture(
+            initialSnapshot,
+            initialFrame.EvaluatedAt,
+            DesktopDemonstrationEvidence.StaleAfter);
         flyout = new TrayFlyoutWindow(
             localisation,
             providerVisualIdentityPolicy,
-            evidence,
-            initialSummary,
+            initialFrame,
+            () => RefreshFleetPresentationAsync(DesktopFleetRefreshTrigger.Manual, advanceTransitionValidation: false),
             ShowView,
             () => Apply(TrayWindowIntent.Exit),
             TrayFlyoutLiveReviewPolicy.AllowsSecondaryShell(flyoutLiveReviewMode));
         flyout.IsVisibleChanged += FlyoutIsVisibleChanged;
-        (applicationIcon, notifyIcon) = CreateNotificationAreaResources(initialSummary.State);
+        (applicationIcon, notifyIcon) = CreateNotificationAreaResources(initialFrame.Summary.State);
         notificationIconRestoreTimer = new DispatcherTimer
         {
             Interval = TrayNotificationIconLeasePolicy.FallbackDelay,
@@ -144,6 +157,7 @@ internal sealed class TrayApplicationController : IDisposable
     public void Dispose()
     {
         disposing = true;
+        reconciliationCancellation.Cancel();
         legacyNotificationQueue.Clear();
         window.StateChanged -= WindowStateChanged;
         window.Closing -= WindowClosing;
@@ -173,6 +187,7 @@ internal sealed class TrayApplicationController : IDisposable
         notificationMeaningIcon?.Dispose();
         notificationMeaningIcon = null;
         applicationIcon.Dispose();
+        reconciliationCancellation.Dispose();
     }
 
     /// <summary>Creates the factual aggregate Tray icon and notification-area component as one exception-safe resource set.</summary>
@@ -223,7 +238,7 @@ internal sealed class TrayApplicationController : IDisposable
         Apply(TrayWindowIntent.CloseRequest);
     }
 
-    /// <summary>Refreshes tray labels after an interface-language change.</summary>
+    /// <summary>Requests a newly localised read-only snapshot after an interface-language change.</summary>
     private void LanguageChanged(object? sender, EventArgs e)
     {
         if (flyoutLiveReviewSession?.CurrentFrame is TrayFlyoutPresentationFrame currentFrame)
@@ -232,43 +247,72 @@ internal sealed class TrayApplicationController : IDisposable
             return;
         }
 
-        RefreshFleetPresentation(TimeProvider.System.GetUtcNow(), advanceTransitionValidation: false);
+        _ = RefreshFleetPresentationAsync(DesktopFleetRefreshTrigger.Localisation, advanceTransitionValidation: false);
     }
 
-    /// <summary>Reconciles the shared immutable evidence at the bounded desktop refresh interval.</summary>
-    /// <param name="sender">Dispatcher timer that owns no external work.</param>
+    /// <summary>Requests one serial read-only reconciliation at the bounded desktop refresh interval.</summary>
+    /// <param name="sender">Dispatcher timer that owns only the refresh request.</param>
     /// <param name="e">Timer event metadata.</param>
     private void FleetRefreshTimerTick(object? sender, EventArgs e) =>
-        RefreshFleetPresentation(TimeProvider.System.GetUtcNow(), advanceTransitionValidation: true);
+        _ = RefreshFleetPresentationAsync(DesktopFleetRefreshTrigger.Periodic, advanceTransitionValidation: true);
 
-    /// <summary>Updates every factual surface, then advances either normal fixture changes or one explicit validation case.</summary>
-    /// <param name="evaluatedAt">UTC instant used only to age the immutable evidence.</param>
+    /// <summary>Acquires one coherent frame, updates every factual surface, then advances only authorised local notification evidence.</summary>
+    /// <param name="trigger">Reason for this read-only reconciliation request.</param>
     /// <param name="advanceTransitionValidation">Whether this timer-owned refresh may advance the validation-only matrix.</param>
-    private void RefreshFleetPresentation(DateTimeOffset evaluatedAt, bool advanceTransitionValidation)
+    /// <returns>A task that completes after the current Dispatcher turn applies or safely rejects the frame.</returns>
+    private async Task RefreshFleetPresentationAsync(
+        DesktopFleetRefreshTrigger trigger,
+        bool advanceTransitionValidation)
     {
-        TrayFleetSummary next = evidence.Summarise(evaluatedAt);
-        IReadOnlyList<TrayInstanceEffectiveState> nextInstanceStates = evidence.CaptureInstanceStates(evaluatedAt);
-        IReadOnlyList<TrayInstanceStateChange> changes = TrayInstanceStateChangePolicy.DetectChanges(
-            instanceStates,
-            nextInstanceStates);
+        fleetRefreshTimer.Stop();
+        try
+        {
+            DesktopFleetReconciliationFrame frame = await reconciliation.ReconcileAsync(
+                trigger,
+                reconciliationCancellation.Token);
+            if (disposing || frame.Snapshot is null)
+            {
+                return;
+            }
 
-        // Advance the in-memory baseline before delivery so platform failure or re-entrant UI work cannot replay a transition.
-        instanceStates = nextInstanceStates;
-        if (next.State != fleetSummary.State)
-        {
-            ReplaceAggregateIcon(next.State);
+            IReadOnlyList<TrayInstanceEffectiveState> nextInstanceStates = TrayInstanceStateChangePolicy.Capture(
+                frame.Snapshot,
+                frame.EvaluatedAt,
+                DesktopDemonstrationEvidence.StaleAfter);
+            IReadOnlyList<TrayInstanceStateChange> changes = TrayInstanceStateChangePolicy.DetectChanges(
+                instanceStates,
+                nextInstanceStates);
+
+            // Advance the in-memory baseline before delivery so platform failure or re-entrant UI work cannot replay a transition.
+            instanceStates = nextInstanceStates;
+            currentFrame = frame;
+            if (frame.Summary.State != fleetSummary.State)
+            {
+                ReplaceAggregateIcon(frame.Summary.State);
+            }
+            fleetSummary = frame.Summary;
+            RefreshText();
+            flyout.RefreshPresentation(frame);
+            window.ApplyReconciledInventory(frame.Snapshot, frame.EvaluatedAt, frame.Summary.State);
+            if (transitionValidationCases.Count == 0 && !suppressDemonstrationNotifications)
+            {
+                PublishDemonstrationStatusChanges(changes);
+            }
+            else if (advanceTransitionValidation)
+            {
+                PublishNextTransitionValidationCase();
+            }
         }
-        fleetSummary = next;
-        RefreshText();
-        flyout.RefreshPresentation(evaluatedAt, next);
-        window.RefreshOperationalEvidence(evaluatedAt, next.State);
-        if (transitionValidationCases.Count == 0 && !suppressDemonstrationNotifications)
+        catch (OperationCanceledException) when (reconciliationCancellation.IsCancellationRequested)
         {
-            PublishDemonstrationStatusChanges(changes);
+            // Application disposal owns cancellation; no operational state or diagnostics are changed afterwards.
         }
-        else if (advanceTransitionValidation)
+        finally
         {
-            PublishNextTransitionValidationCase();
+            if (!disposing && !suppressAllNotifications)
+            {
+                fleetRefreshTimer.Start();
+            }
         }
     }
 
@@ -294,16 +338,18 @@ internal sealed class TrayApplicationController : IDisposable
     }
 
     /// <summary>Toggles the accessible WPF fleet flyout after the Windows shell reports a complete primary or secondary click.</summary>
-    private void NotifyIconMouseClick(object? sender, Forms.MouseEventArgs e)
+    private async void NotifyIconMouseClick(object? sender, Forms.MouseEventArgs e)
     {
         if (e.Button is Forms.MouseButtons.Left or Forms.MouseButtons.Right)
         {
-            if (flyoutLiveReviewMode == TrayFlyoutLiveReviewMode.Disabled)
-            {
-                RefreshFleetPresentation(TimeProvider.System.GetUtcNow(), advanceTransitionValidation: false);
-            }
-
+            bool opening = !flyout.IsVisible;
             ToggleFlyout();
+            if (opening && flyoutLiveReviewMode == TrayFlyoutLiveReviewMode.Disabled)
+            {
+                await RefreshFleetPresentationAsync(
+                    DesktopFleetRefreshTrigger.Manual,
+                    advanceTransitionValidation: false);
+            }
         }
     }
 
@@ -437,11 +483,20 @@ internal sealed class TrayApplicationController : IDisposable
         RestoreFlyoutLiveReviewBaseline(TimeProvider.System.GetUtcNow());
     }
 
-    /// <summary>Restores only the ordinary Tray and flyout fixture after W02 without mutating the hidden shell.</summary>
-    /// <param name="evaluatedAt">UTC instant used solely to evaluate the immutable local fixture.</param>
+    /// <summary>Restores only the latest reconciled Tray frame after W02 without mutating the hidden shell.</summary>
+    /// <param name="evaluatedAt">UTC instant used solely to re-evaluate retained snapshot freshness.</param>
     private void RestoreFlyoutLiveReviewBaseline(DateTimeOffset evaluatedAt)
     {
-        TrayFleetSummary baseline = evidence.Summarise(evaluatedAt);
+        InventorySnapshot? snapshot = currentFrame.Snapshot;
+        if (snapshot is null)
+        {
+            return;
+        }
+
+        TrayFleetSummary baseline = TrayFleetPresentationPolicy.Summarise(
+            snapshot,
+            evaluatedAt,
+            DesktopDemonstrationEvidence.StaleAfter);
         if (baseline.State != fleetSummary.State)
         {
             ReplaceAggregateIcon(baseline.State);
@@ -449,7 +504,11 @@ internal sealed class TrayApplicationController : IDisposable
 
         fleetSummary = baseline;
         RefreshText();
-        flyout.RefreshPresentation(evaluatedAt, baseline);
+        flyout.RefreshPresentation(currentFrame with
+        {
+            Summary = baseline,
+            EvaluatedAt = evaluatedAt,
+        });
     }
 
     /// <summary>

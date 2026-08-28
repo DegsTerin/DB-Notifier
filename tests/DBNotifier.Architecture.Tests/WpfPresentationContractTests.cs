@@ -366,7 +366,8 @@ public sealed class WpfPresentationContractTests
         Assert.Contains("ShowCloseToTrayNotification()", trayController, StringComparison.Ordinal);
         Assert.Contains("WindowsAppNotificationPublisher.TryCreate", trayController, StringComparison.Ordinal);
         Assert.Contains("appNotificationPublisher?.TryPublishAvailability(title, message)", trayController, StringComparison.Ordinal);
-        Assert.Contains("instanceStates = evidence.CaptureInstanceStates(evidence.GeneratedAt)", trayController, StringComparison.Ordinal);
+        Assert.Contains("TrayInstanceStateChangePolicy.Capture(", trayController, StringComparison.Ordinal);
+        Assert.Contains("initialFrame.EvaluatedAt", trayController, StringComparison.Ordinal);
         Assert.Contains("TrayInstanceStateChangePolicy.DetectChanges", trayController, StringComparison.Ordinal);
         Assert.Contains("TrayNotificationTransitionValidationMatrix.Cases", trayController, StringComparison.Ordinal);
         Assert.Contains("PublishNextTransitionValidationCase()", trayController, StringComparison.Ordinal);
@@ -791,35 +792,53 @@ public sealed class WpfPresentationContractTests
         Assert.Contains("bottom-$($windowDpi)dpi.png", script, StringComparison.Ordinal);
     }
 
-    /// <summary>Ensures language, navigation and bounded refreshes age one immutable desktop evidence snapshot across shell and Tray.</summary>
+    /// <summary>Ensures desktop surfaces share validated frames from one serial read-only reconciliation boundary.</summary>
     [Fact]
-    public void WpfDesktopSurfacesShareImmutableFreshnessEvidence()
+    public void WpfDesktopSurfacesShareSerialReadOnlyReconciliationFrames()
     {
         string desktopDirectory = Path.Combine(RepositoryRoot(), "src", "DBNotifier.Desktop.Wpf");
+        string applicationDirectory = Path.Combine(RepositoryRoot(), "src", "DBNotifier.Application", "Presentation");
         string application = File.ReadAllText(Path.Combine(desktopDirectory, "App.xaml.cs"));
         string evidence = File.ReadAllText(Path.Combine(desktopDirectory, "DesktopDemonstrationEvidence.cs"));
+        string source = File.ReadAllText(Path.Combine(desktopDirectory, "DesktopDemonstrationInventorySnapshotSource.cs"));
         string mainWindow = File.ReadAllText(Path.Combine(desktopDirectory, "MainWindow.xaml.cs"));
         string flyout = File.ReadAllText(Path.Combine(desktopDirectory, "TrayFlyoutWindow.xaml.cs"));
         string trayController = File.ReadAllText(Path.Combine(desktopDirectory, "TrayApplicationController.cs"));
+        string reconciliation = File.ReadAllText(Path.Combine(applicationDirectory, "DesktopFleetReconciliation.cs"));
 
         Assert.Equal(1, Regex.Count(application, "DesktopDemonstrationEvidence\\.Create", RegexOptions.CultureInvariant));
+        Assert.Contains("DesktopFleetReconciliationCoordinator reconciliation", application, StringComparison.Ordinal);
+        Assert.Contains("ReconcileAsync(DesktopFleetRefreshTrigger.Initial)", application, StringComparison.Ordinal);
         Assert.Contains("TrayNotificationValidationPolicy.Resolve(e.Args)", application, StringComparison.Ordinal);
         Assert.Contains("notificationValidationMode", application, StringComparison.Ordinal);
-        Assert.Contains("evidence.CreateInventorySnapshot(localisation)", mainWindow, StringComparison.Ordinal);
+        Assert.Contains("evidence.CreateInventorySnapshot(localisation)", source, StringComparison.Ordinal);
+        Assert.DoesNotContain("evidence.CreateInventorySnapshot(localisation)", mainWindow, StringComparison.Ordinal);
+        Assert.DoesNotContain("evidence.CreateInventorySnapshot(localisation)", flyout, StringComparison.Ordinal);
+        Assert.Contains("ApplyReconciledInventory", mainWindow, StringComparison.Ordinal);
         Assert.Contains("CreateTimelineSnapshot(evidence.GeneratedAt)", mainWindow, StringComparison.Ordinal);
         Assert.Contains("FormatUtc(evidence.GeneratedAt)", mainWindow, StringComparison.Ordinal);
         Assert.DoesNotContain("fixtureGeneratedAt", mainWindow, StringComparison.Ordinal);
         Assert.Contains("TrayFleetPresentationPolicy.Summarise(CreateInventorySnapshot", evidence, StringComparison.Ordinal);
         Assert.Contains("TrayInstanceStateChangePolicy.Capture(CreateInventorySnapshot", evidence, StringComparison.Ordinal);
         Assert.DoesNotContain("TrayNotificationTransitionValidationMatrix", evidence, StringComparison.Ordinal);
+        Assert.Contains("Interlocked.CompareExchange(ref acquisitionInProgress", reconciliation, StringComparison.Ordinal);
+        Assert.Contains("lastAcceptedSnapshot", reconciliation, StringComparison.Ordinal);
+        Assert.Contains("MaximumSnapshotItems", reconciliation, StringComparison.Ordinal);
         Assert.Contains("Interval = TimeSpan.FromSeconds(30)", trayController, StringComparison.Ordinal);
+        Assert.Contains("fleetRefreshTimer.Stop()", trayController, StringComparison.Ordinal);
+        Assert.Contains("fleetRefreshTimer.Start()", trayController, StringComparison.Ordinal);
+        Assert.Contains("reconciliation.ReconcileAsync", trayController, StringComparison.Ordinal);
+        Assert.Contains("DesktopFleetRefreshTrigger.Periodic", trayController, StringComparison.Ordinal);
+        Assert.Contains("DesktopFleetRefreshTrigger.Manual", trayController, StringComparison.Ordinal);
+        Assert.Contains("DesktopFleetRefreshTrigger.Localisation", trayController, StringComparison.Ordinal);
         Assert.Contains("TrayInstanceStateChangePolicy.DetectChanges", trayController, StringComparison.Ordinal);
         Assert.Contains("PublishDemonstrationStatusChanges(changes)", trayController, StringComparison.Ordinal);
         Assert.Contains("advanceTransitionValidation: false", trayController, StringComparison.Ordinal);
         Assert.Contains("advanceTransitionValidation: true", trayController, StringComparison.Ordinal);
-        Assert.Contains("window.RefreshOperationalEvidence(evaluatedAt, next.State)", trayController, StringComparison.Ordinal);
+        Assert.Contains("window.ApplyReconciledInventory", trayController, StringComparison.Ordinal);
         Assert.DoesNotContain("notifyIcon.DoubleClick", trayController, StringComparison.Ordinal);
-        Assert.Contains("FormatUtc(evidence.GeneratedAt)", flyout, StringComparison.Ordinal);
+        Assert.Contains("RefreshStatusClick", flyout, StringComparison.Ordinal);
+        Assert.Contains("FormatUtc(snapshot.GeneratedAt)", flyout, StringComparison.Ordinal);
         Assert.DoesNotContain("TimeProvider.System.GetUtcNow", flyout, StringComparison.Ordinal);
     }
 

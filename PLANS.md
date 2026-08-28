@@ -9,27 +9,158 @@ append-only history, a Quality Gate or a Human Gate.
 
 ## Control record
 
-- Plan ID: `GOV-2026-R1`
+- Plan ID: `S06-DFR-01`
 - Status: `COMPLETE`
 - Created: `2026-08-28`
-- Initial baseline: `main@0f63548365cf5fbb83cc5bff781fecab2f9bbc77`
+- Initial baseline: `main@8e1fb1c4cee61b2bb2d1a67012d2a78db072ef47`
 - Preserved predecessors: all first factual dispositions remain immutable;
+  `GOV-2026-R1` remains `COMPLETE`,
   `AUD-2026-R1-R5-R2` remains `BLOCKED` by its rejected durable-capture
   wrapper before process creation,
   `AUD-2026-R1-R5-R1` remains `BLOCKED` by its unprovable sole focal result,
   while `AUD-2026-R1-R4` remains `BLOCKED` by its sole online `Full`
 - Lifecycle state: `STATE-06 INTEGRATION`; unchanged by this plan
-- Authority: Bruno's explicit instruction to document project-wide that every
-  payload presented for copying must appear inside an editable, copyable box
+- Authority: Bruno's explicit clean-room authorisation to approximate the
+  publicly documented MySQL Notifier Tray coverage and flows through the
+  smallest coherent provider-neutral `STATE-06` read-only reconciliation lot,
+  without consulting or adapting the protected external source tree
 - Execution mode: `SEQUENTIAL_ONLY`
 - Writer: coordinating conversation only
-- Independent reviewer: one isolated read-only verifier inspection before
-  implementation plus two final read-only reviews of governance and the
-  integrated diff; the coordinating conversation retained all writes
+- Reviewer: the coordinating conversation performs frozen-diff, security,
+  architectural and factual review; an independent semantic reviewer is not
+  assigned under the current single-conversation authority
 - Factual-state owner: `prompts/state/Current-State.md`
 - Historical owner: `prompts/state/State-Transition-Log.md`
 
 ## Task envelopes
+
+### Desktop Fleet read-only reconciliation `S06-DFR-01` — complete
+
+- Envelope status: `COMPLETE`.
+- Exact human authority: implement a strictly clean-room approximation of the
+  publicly documented MySQL Notifier notification-area coverage and flows,
+  preserving DB-Notifier's provider-neutral architecture, independent identity,
+  existing authorities and `STATE-06 INTEGRATION` position. The protected
+  external source tree must not be enumerated, searched, opened, read, moved,
+  changed or used.
+- Workspace and frozen baseline: `C:\Projects\DB-Notifier`, branch `main`,
+  commit `8e1fb1c4cee61b2bb2d1a67012d2a78db072ef47`; index and tracked worktree
+  were clean without enumerating untracked material.
+- Initial shutdown evidence: the mandatory preflight returned `PASS`; no
+  process was stopped, matching processes were `0` and owned listeners were
+  `0`.
+- Public behavioural references: Oracle's archived *MySQL Notifier Reference
+  Manual* at `https://downloads.mysql.com/docs/mysql-notifier-en.pdf`, the
+  official 1.1.8 release announcement at
+  `https://dev.mysql.com/blog-archive/mysql-notifier-1-1-8/`, and the DB-Notifier
+  Design System's already adopted clean-room Tray requirements. Public
+  behaviour may inform requirements; proprietary implementation, artwork,
+  wording, trade dress and vendor architecture are not inputs.
+- Verifiable objective: introduce an Application-owned, bounded inventory
+  snapshot read contract and validator; reconcile one accepted snapshot at a
+  time through a `TimeProvider`; preserve the last accepted snapshot on a
+  denied, offline, incompatible or failed read; update Tray, flyout and
+  secondary WPF shell coherently; provide initial, manual and serial 30-second
+  refresh paths; and retain the deterministic demonstration behind an isolated
+  adapter with no operational source.
+- Positive scope: this plan; one explicit clean-room functional-coverage matrix
+  and factual report; `DBNotifier.Application` presentation contracts and
+  coordinator; the minimum WPF demonstration adapter, composition, controller,
+  flyout, shell and localised manual-refresh presentation; focused unit and
+  architecture regressions; the owning Design System clarification; generated
+  localisation adapters through their canonical XML source; factual current
+  state and append-only history reconciliation; applicable local validation;
+  and one focused local commit.
+- Frozen read-only scope: provider implementations and registry behaviour;
+  Domain health semantics; Agent, API, Server and Dashboard runtime behaviour;
+  schemas, migrations, manifests, dependencies, lockfile identities, package
+  versions, workflows, installer, update channel and notification-delivery
+  contracts except deterministic generated localisation parity.
+- Protected work and negative scope: no MySQL or MariaDB provider/driver,
+  credential, connection editor, SSH tunnel, service discovery, name-filter
+  auto-add, WMI/DCOM, firewall mutation, Start/Stop/Restart execution,
+  authoritative change notification, persisted notification preference,
+  external database, infrastructure, deploy, publication, push, Human Gate,
+  activation, homologation or lifecycle transition. The protected external
+  source tree and every item beneath it remain strictly inaccessible.
+- Artefact classification and ownership: governing prompts and Design System
+  are `AUTHORITY`; current state is `CURRENT_FACT`; the state log is append-only
+  `HISTORY`; this file is `PLAN`; source, canonical localisation and tests are
+  `IMPLEMENTATION`; generated localisation adapters are `GENERATED`; the
+  coverage report is `EVIDENCE`. This coordinating conversation is the sole
+  writer for every path, Git index and focused commit.
+- Execution topology and mutable resources: `SINGLE_OWNER` and
+  `SEQUENTIAL_ONLY`. Only one reconciliation read may run at a time; UI
+  application occurs on the WPF Dispatcher; timer scheduling restarts after a
+  completed cycle; every command owns and closes its child processes and
+  outputs before the next stage.
+- Definition of Ready: shutdown and exact baseline checks passed; tracked state
+  is clean; the current composition, public references, Design System,
+  Application boundary, WPF consumers, canonical localisation source, test
+  owners, positive/negative scope and objective stop codes are identified.
+- Definition of Done: the coverage matrix classifies every public behaviour in
+  scope as adopted, safely adapted, rejected or scheduled; initial/manual/
+  periodic reads share one validated coordinator; concurrent reads do not
+  overlap; rejected reads retain only the last accepted snapshot and present
+  factual source/freshness state; the normal WPF composition remains a labelled
+  local demonstration with no external data; every changed behaviour has
+  focused regression coverage; generated assets are regenerated from canonical
+  sources; applicable focal checks and canonical workflow evidence are factual;
+  one focused local commit exists; lifecycle remains unchanged.
+- Stop rule: any protected-path exposure, baseline drift, scope overlap,
+  licensing conflict, unready dependency, unisolated runtime, failed required
+  gate or need for provider, administrative, notification, external or
+  lifecycle authority stops the affected work without implicit widening,
+  retry-based evidence replacement or speculative implementation.
+- Objective stop codes: `AUTHORITY_MISMATCH`, `BASELINE_DRIFT`,
+  `SCOPE_OVERLAP`, `DEPENDENCY_UNREADY`, `ISOLATION_FAILURE`,
+  `MUTABLE_RESOURCE_COLLISION`, `GATE_FAILURE`, `EXTERNAL_AUTHORITY_REQUIRED`
+  and `HUMAN_DECISION_REQUIRED` retain their governed meanings.
+- Rollback strategy: before commit, reverse only this envelope's owned
+  candidate under separately authorised recovery; after commit, preserve
+  history and use a separately authorised focused revert. No database,
+  provider, schema or external rollback applies.
+- Implemented outcome: `DBNotifier.Application` owns the bounded snapshot source
+  contract, validation, non-overlapping acquisition and last-known retention;
+  WPF composes the local fixture only through an isolated adapter and applies
+  initial, manual, localisation and 30-second periodic frames coherently. The
+  flyout exposes read-only Refresh Status and factual source/retention text.
+- Coverage decision: the clean-room matrix in
+  `docs/STATE-06-Desktop-Fleet-Read-Only-Reconciliation-Report.md` classifies
+  the public behaviours as adopted, safely adapted, rejected or scheduled.
+  No protected implementation source, vendor asset, proprietary product copy or
+  vendor-specific architecture was an input.
+- Findings closed during validation: `CA1001` replaced the disposable
+  `SemaphoreSlim` with an atomic guard; one invalid-candidate reason code was
+  corrected to `snapshot.invalid`; and three stale cross-surface test
+  expectations were reconciled to the new Application-owned boundary. The
+  failed intermediate results remain factual and are not relabelled.
+- Focal evidence: reconciliation `5/5`; architecture reconciliation `1/1`;
+  affected legacy architecture `1/1`; Dashboard presentation `25/25`; WPF build
+  zero warnings and zero errors.
+- Development evidence: final `Quick` passed as `NON_GATE` with Release build,
+  unit `533/533`, architecture `100/100`, Dashboard `74/74` and all included
+  generation, documentation, localisation, Markdown and script checks.
+- Canonical evidence: exactly one `Full` completed
+  `DISPOSITION|PASS|stage=All`; unit `533/533`, architecture `100/100`,
+  integration `168/168`, WPF `10/10`, line coverage `83.44%`, branch coverage
+  `56.81%`, vulnerability/runtime/legacy/bundle/Web/browser/consolidated gates
+  passed. The browser and consolidated harnesses used dedicated local test
+  processes and local test data only.
+- Final review disposition: `P0=0`, `P1=0`, `P2=0`, `P3=0` after frozen-scope,
+  clean-room, licensing, architecture, security, localisation, accessibility,
+  generated-artefact and factual-state review. The narrow local-source lot does
+  not require a separate high-risk semantic reviewer.
+- Delivery: this completed record is included in the single focused local
+  commit required by repository policy. Its object ID is reported in the final
+  hand-off rather than embedded here, avoiding a self-referential commit hash.
+- Remaining mandatory items for `S06-DFR-01`: `0`. Agent/API binding, persisted
+  preferences, provider integrations, authoritative notification delivery and
+  administration remain separately authorised future work, not remainder of
+  this target.
+- Resulting state: `STATE-06 INTEGRATION` and lifecycle eligibility remain
+  unchanged; no Human Gate, provider support, activation or external authority
+  is inferred.
 
 ### Project-wide copy-box governance `GOV-2026-R1` — complete
 

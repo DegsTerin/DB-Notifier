@@ -1,4 +1,4 @@
-// Module purpose: Presents local demonstration inventory, history, alerts and capability decisions through the localised WPF shell.
+// Module purpose: Presents reconciled read-only inventory plus local demonstration history, alerts and capability decisions through the localised WPF shell.
 using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Windows;
@@ -58,7 +58,7 @@ internal sealed class AuditableCardBorder : Border
 }
 
 /// <summary>
-/// Presents read-only demonstration data and accessible operational states without connecting to databases or executing commands.
+/// Presents reconciled read-only inventory and isolated demonstration data without connecting to databases or executing commands.
 /// Localised presentation values are rebuilt whenever the user changes the supported interface language;
 /// theme changes remain isolated to generated semantic resources owned by the desktop theme service.
 /// Responsive route templates preserve every factual field while switching between desktop tables and compact stacked records.
@@ -84,12 +84,13 @@ public partial class MainWindow : Window
     private bool nativeIconsInitialised;
     private bool? compactLayoutApplied;
 
-    /// <summary>Initialises the local demonstration surface with loaded preferences and one factual aggregate icon state.</summary>
+    /// <summary>Initialises the desktop surface with one accepted inventory snapshot and isolated local fixtures.</summary>
     /// <param name="localisation">Desktop localisation owner shared with the application and tray controller.</param>
     /// <param name="theme">Desktop theme owner shared with the application.</param>
     /// <param name="motion">Read-only adapter for the current Windows reduced-motion preference.</param>
     /// <param name="providerVisualIdentityPolicy">Local resolver for decorative provider logos and neutral fallbacks.</param>
     /// <param name="evidence">Immutable locale-independent evidence shared with Tray presentation.</param>
+    /// <param name="initialSnapshot">Initial snapshot accepted by the application reconciliation boundary.</param>
     /// <param name="aggregateState">Initial provider-neutral fleet state shared by every product-mark surface.</param>
     /// <param name="accessibilityReviewMode">Optional isolated geometry used only for a bounded accessibility review.</param>
     internal MainWindow(
@@ -98,6 +99,7 @@ public partial class MainWindow : Window
         DesktopMotionService motion,
         ProviderVisualIdentityPolicy providerVisualIdentityPolicy,
         DesktopDemonstrationEvidence evidence,
+        InventorySnapshot initialSnapshot,
         TrayAggregateState aggregateState,
         DesktopAccessibilityReviewMode accessibilityReviewMode)
     {
@@ -106,6 +108,7 @@ public partial class MainWindow : Window
         this.motion = motion;
         this.providerVisualIdentityPolicy = providerVisualIdentityPolicy;
         this.evidence = evidence;
+        snapshot = initialSnapshot ?? throw new ArgumentNullException(nameof(initialSnapshot));
         this.aggregateState = aggregateState;
         InitializeComponent();
         ConfigureAccessibilityReview(accessibilityReviewMode);
@@ -190,11 +193,17 @@ public partial class MainWindow : Window
         PresentReadyState();
     }
 
-    /// <summary>Re-evaluates visible freshness and product-mark state without replacing the immutable evidence snapshot.</summary>
-    /// <param name="evaluatedAt">UTC instant supplied by the shared desktop reconciliation timer.</param>
-    /// <param name="state">Aggregate state derived from the same immutable evidence.</param>
-    internal void RefreshOperationalEvidence(DateTimeOffset evaluatedAt, TrayAggregateState state)
+    /// <summary>Atomically applies one accepted or retained inventory snapshot and its aggregate presentation state.</summary>
+    /// <param name="reconciledSnapshot">Snapshot validated or retained by the application reconciliation boundary.</param>
+    /// <param name="evaluatedAt">UTC instant shared by detailed freshness and aggregate evaluation.</param>
+    /// <param name="state">Aggregate state derived from <paramref name="reconciledSnapshot"/> at the same instant.</param>
+    internal void ApplyReconciledInventory(
+        InventorySnapshot reconciledSnapshot,
+        DateTimeOffset evaluatedAt,
+        TrayAggregateState state)
     {
+        snapshot = reconciledSnapshot ?? throw new ArgumentNullException(nameof(reconciledSnapshot));
+        RebuildInventoryDerivedData();
         UpdateAggregateState(state);
         if (ScenarioSelector.SelectedItem is ComboBoxItem selected &&
             Enum.TryParse(selected.Tag?.ToString(), false, out InventorySurfaceState surfaceState) &&
@@ -342,10 +351,7 @@ public partial class MainWindow : Window
         {
             PresentNonReadyState(state);
         }
-        else
-        {
-            PresentReadyState();
-        }
+        // The tray controller applies the newly localised reconciled snapshot after this synchronous resource update.
     }
 
     /// <summary>Presents the selected accessible operational state without external activity.</summary>
@@ -575,12 +581,19 @@ public partial class MainWindow : Window
         }));
     }
 
-    /// <summary>Recreates all local fixtures whose visible values depend on the active language.</summary>
+    /// <summary>Recreates local fixtures whose visible values depend on the active language.</summary>
     private void RebuildLocalisedData()
     {
-        snapshot = evidence.CreateInventorySnapshot(localisation);
         timelineSnapshot = CreateTimelineSnapshot(evidence.GeneratedAt);
         configurationSnapshot = CreateConfigurationSnapshot();
+        RebuildInventoryDerivedData();
+        ConfigurationGrid.ItemsSource = configurationSnapshot.Fields;
+        RefreshGridHeaders();
+    }
+
+    /// <summary>Rebuilds only presentation collections derived from the current reconciled inventory snapshot.</summary>
+    private void RebuildInventoryDerivedData()
+    {
         Replace(providerRows, snapshot.Items
             .GroupBy(item => item.ProviderType, StringComparer.Ordinal)
             .Select(group => new ProviderDistributionItem(
@@ -588,8 +601,6 @@ public partial class MainWindow : Window
                 group.Count(),
                 group.First().SupportLabel)));
         RefreshProviderCharts();
-        ConfigurationGrid.ItemsSource = configurationSnapshot.Fields;
-        RefreshGridHeaders();
     }
 
     /// <summary>Re-resolves only decorative provider identities after theme or High Contrast changes.</summary>
