@@ -20,6 +20,23 @@ A
 recomendação de raciocínio do Codex, paralelismo, ownership e integração. Ela
 não altera a autoridade, os estados ou os gates definidos aqui.
 
+## Autonomia prospectiva
+
+Os objetivos e requisitos canônicos do produto são entradas estabelecidas. A
+coordenadora decide autonomamente arquitetura, planejamento, implementação,
+revisão, documentação, integração local e progressão de lifecycle, desde que o
+escopo permaneça local, seguro e compatível com as autoridades temáticas.
+
+Human Gates, aprovações rotineiras e navegação manual deixam de ser dependências
+futuras de desenvolvimento. Resultados históricos permanecem fatos imutáveis;
+novas decisões usam `Agent Gate` e os estados `AGENT_DECIDED`,
+`AUTOMATED_GATE_PASS`, `AUTOMATED_GATE_FAIL`, `LOCAL_COMPLETE`,
+`EXTERNAL_PREREQUISITE` ou `BLOCKED_BY_HIGHER_AUTHORITY`.
+
+Essa delegação não substitui autenticação humana do produto, RBAC, confirmação
+de ações administrativas, requisitos jurídicos e de licenciamento, clean-room,
+proteção de segredos, safety gates destrutivos ou pré-requisitos externos.
+
 ## Estados canônicos
 
 1. `STATE-00 DISCOVERY_MIGRATION`
@@ -32,7 +49,7 @@ não altera a autoridade, os estados ou os gates definidos aqui.
 8. `STATE-07 TESTING_HOMOLOGATION`
 9. `STATE-08 PRODUCTION_RELEASE`
 
-O fluxo normal é sequencial. Auditoria aprovada não promove o estado automaticamente. Uma transição requer entregáveis, Quality Gate, Human Gate e entrada explícita no log.
+O fluxo normal é sequencial. Auditoria isolada não promove o estado automaticamente. Uma transição requer entregáveis, Quality Gate, `AUTOMATED_GATE_PASS`, decisão `AGENT_DECIDED` e entrada explícita no log; satisfeitas essas condições, a coordenadora continua sem solicitar aprovação rotineira.
 
 ## IDs canônicos de módulos
 
@@ -54,7 +71,7 @@ IDs não podem ser reutilizados com outro significado.
 ## Protocolo de execução
 
 1. Ler visão, estado corrente e regras aplicáveis.
-2. Antes de cada nova ação técnica autorizada, executar o shutdown preflight obrigatório e provar que nenhum componente ou runtime DB-Notifier permanece aberto, ativo ou escutando; turnos exclusivamente conversacionais não acionam este passo.
+2. Antes de cada nova ação técnica, executar o shutdown preflight obrigatório e provar que nenhum componente ou runtime DB-Notifier permanece aberto, ativo ou escutando; turnos exclusivamente conversacionais não acionam este passo.
 3. Congelar a baseline por branch/worktree e commit quando existente;
    inventariar ferramentas, mudanças preexistentes, untracked, artefatos
    protegidos e limites clean-room sem absorver trabalho alheio.
@@ -78,24 +95,26 @@ IDs não podem ser reutilizados com outro significado.
     factual `PASS`, `FAIL`, `BLOCKED`, `PARTIAL` ou `NOT_RUN`.
 11. Atualizar estado e histórico somente depois da mudança factual e sem
     reescrever evidência anterior.
-12. Encerrar com diff/staged diff revisados, commit focal quando exigido,
-    limitações, trabalho restante, próximo passo, próxima etapa e handoff
-    governado.
+12. Encerrar o lote com diff/staged diff revisados, commit focal quando exigido,
+    limitações, trabalho restante e despacho interno governado para o próximo
+    lote seguro.
 
 O fluxo operacional padrão é:
 
 ```text
-authority → baseline → scope → preflight → live plan → small increments →
+canonical objectives → baseline → scope → preflight → live plan → small increments →
 focused regressions → independent review → serial integration → aggregate
-gate → factual state/history → governed hand-off
+gate → Agent Gate → factual state/history → automatic dispatch
 ```
 
 Os scripts apenas materializam parte desse protocolo. Resultado mecânico não
-autoriza escopo, ADR, Human Gate, ativação, homologação ou transição de estado.
+substitui decisão arquitetural, Agent Gate, ativação, homologação ou transição
+de estado; a coordenadora decide somente depois de satisfazer as condições
+objetivas aplicáveis.
 
 ## Ações permitidas por estado
 
-| Estado | Permitido | Não permitido sem nova autoridade |
+| Estado | Permitido | Limite ou pré-requisito separado |
 |---|---|---|
 | STATE-00 | Inspeção, inventário, documentação e testes não mutáveis do legado | Implementar arquitetura-alvo |
 | STATE-01 | Scaffold, restore, build, lint e testes de infraestrutura | Regras funcionais do domínio |
@@ -114,8 +133,11 @@ Comando destrutivo, deploy remoto, alteração de secret ou controle de banco re
 - Aplicar a precedência do `Start-Here.md`.
 - Preferir fonte atual e factual a registro histórico.
 - Não resolver conflito reduzindo segurança ou inventando decisão.
-- Mudança arquitetural exige ADR.
-- Se a resolução ampliar materialmente escopo ou impacto externo, solicitar direção.
+- Mudança arquitetural exige ADR decidido e registrado pela coordenadora após
+  revisão independente proporcional ao risco.
+- Se a resolução ampliar materialmente o escopo, dividir e decidir um novo lote
+  local. Se produzir impacto externo ou encontrar autoridade superior, registrar
+  `EXTERNAL_PREREQUISITE` ou `BLOCKED_BY_HIGHER_AUTHORITY`.
 
 ## Estado bloqueado
 
@@ -132,11 +154,43 @@ Bloqueio não autoriza salto de estado.
 
 ## Rollback
 
-- Definir gatilho, owner, versão-alvo, RTO e RPO.
+- Definir gatilho, responsável agente, versão-alvo, RTO e RPO.
 - Separar rollback de binário, configuração, schema interno e protocolo.
 - Preservar dados/auditoria e validar restore.
 - Nunca executar rollback em banco monitorado como efeito colateral.
 - Preferir forward-fix quando rollback aumentar o risco, com decisão registrada.
+
+## Automated Safety Gate para ação destrutiva local
+
+Uma ação local destrutiva ou de difícil reversão somente pode receber decisão
+agente quando o gate comprovar cumulativamente:
+
+- alvo exato, resolvido e estritamente dentro do escopo positivo;
+- ausência de raiz de workspace, diretório home, caminho amplo, variável,
+  substituição, glob ou identificador ainda não resolvido no alvo;
+- preservação de WIP e artefatos protegidos;
+- checkpoint recuperável e plano de rollback;
+- validação de rollback quando aplicável;
+- inexistência de alternativa materialmente mais segura;
+- necessidade objetiva e revisão independente.
+
+Qualquer incerteza registra `AUTOMATED_GATE_FAIL` antes da mutação. O gate não
+concede acesso clean-room, credencial, autoridade sobre dado externo,
+produção, publicação ou infraestrutura.
+
+## Pré-requisitos de ação externa
+
+A coordenadora somente executa ação externa quando todos os itens aplicáveis
+estão presentes e atuais: autoridade explícita ou permanente; credencial
+existente e válida usada por mecanismo seguro; conta, organização, ambiente e
+alvo exatos; ferramenta disponível e apta; limite de custo definido; critério
+objetivo de sucesso; e verificação segura ou reversão. A confirmação
+administrativa exigida pelo produto continua separada.
+
+Se qualquer condição faltar, concluir todo trabalho local independente e
+registrar `EXTERNAL_PREREQUISITE` com uma única dependência factual. Nunca
+reduzir gate, fabricar receipt, reutilizar credencial incerta ou transferir ao
+proprietário um payload que uma ferramenta disponível possa executar.
 
 ## Memória do projeto
 
@@ -147,27 +201,27 @@ Bloqueio não autoriza salto de estado.
 - Relatórios: evidência de uma execução específica.
 - `../system/Prompt-System-Change-Log.md`: evolução deste corpus.
 
-## Coordenação de conversas e trabalho multiagente
+## Coordenação de tarefas e trabalho multiagente
 
 Aplicar integralmente
 [`Conversation-Coordination-Prompt.md`](Conversation-Coordination-Prompt.md)
-sempre que houver handoff entre conversas ou avaliação de trabalho paralelo.
+sempre que houver despacho entre tarefas ou avaliação de trabalho paralelo.
 Esta seção preserva somente os invariantes transversais:
 
-- Uma única conversa coordenadora mantém escopo, baseline e integração.
-- Cada handoff recomenda exatamente um nível de raciocínio do Codex para a
-  próxima interação e cada lane recebe recomendação própria. A recomendação é
-  consultiva, não comprova a configuração aplicada e não altera autoridade,
-  roteamento, paralelismo, ownership, gates ou lifecycle.
+- Uma única tarefa coordenadora mantém escopo, baseline e integração.
+- O próximo trabalho é despachado diretamente por ferramenta com payload
+  completo, receipt e chave de deduplicação; nunca depende do proprietário
+  copiar, colar, encaminhar ou escolher a conversa.
 - Nenhum arquivo, artefato lógico ou recurso mutável pode ter writers
   sobrepostos.
 - Sem workflow Git de escrita paralela especificamente autorizado e worktrees
   isolados, conversas simultâneas permanecem read-only e toda escrita ocorre
   sequencialmente na coordenadora.
-- Estado, histórico, changelog, ADRs, relatórios e decisões de gate e Human
-  Gates permanecem sob custódia exclusiva da coordenadora.
-- Custódia não concede autoridade para decidir ADR, Human Gate, lifecycle,
-  ativação, ação externa ou operação Git não autorizada.
+- Estado, histórico, changelog, ADRs, relatórios e decisões de Agent Gate
+  permanecem sob custódia exclusiva da coordenadora.
+- A coordenadora decide ADR e lifecycle locais depois dos gates objetivos.
+  Custódia não concede autoridade sobre ação externa, operação Git insegura ou
+  limite de autoridade superior.
 - O uso de workers não amplia escopo, runtime, acesso a secrets ou autoridade
   externa; cada resultado é somente candidato sujeito a integração e validação
   central.

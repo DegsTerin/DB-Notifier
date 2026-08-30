@@ -2,9 +2,9 @@
 
 ## Versão atual
 
-- Versão: `8.0.0`
-- Data: 2026-08-28
-- Status: referência funcional MySQL Notifier restaurada com limite de expressão; lifecycle inalterado
+- Versão: `9.0.0`
+- Data: 2026-08-30
+- Status: entrega autônoma prospectiva, Agent Gates e despacho automático
 - Escopo: 16 arquivos ativos
 
 A versão do corpus é independente da versão do software.
@@ -16,6 +16,50 @@ A versão do corpus é independente da versão do software.
 - PATCH: clareza, correção ou referência sem mudança de autoridade.
 
 Toda alteração atualiza este arquivo e, quando necessário, `../Start-Here.md`.
+
+## 9.0.0 — 2026-08-30
+
+- Delega prospectivamente à coordenadora as decisões locais de arquitetura,
+  planejamento, implementação, revisão, validação, documentação e progressão de
+  lifecycle conforme objetivos e requisitos canônicos.
+- Substitui Human Gates futuros de desenvolvimento por Agent Gates objetivos.
+  `AUTOMATED_GATE_PASS` exige baseline exata, todos os checks obrigatórios em
+  `PASS`, evidência reconciliada e revisão independente com zero `P0`/`P1`.
+  `FAIL`, `BLOCKED`, `PARTIAL` ou `NOT_RUN` obrigatório produzem
+  `AUTOMATED_GATE_FAIL` e nunca são convertidos por julgamento.
+- Adota os estados `AGENT_DECIDED`, `AUTOMATED_GATE_PASS`,
+  `AUTOMATED_GATE_FAIL`, `LOCAL_COMPLETE`, `EXTERNAL_PREREQUISITE` e
+  `BLOCKED_BY_HIGHER_AUTHORITY`.
+- Eleva a Coordenação para revisão `2.0.0` e substitui navegação e handoff
+  manuais por `CONTINUE_CURRENT`, `DELEGATE_SUBAGENT`, `RETURN_TO_EXISTING` e
+  `START_NEW_AUTO_DISPATCH`, com receipt, chave de deduplicação, reconciliação
+  antes de retry e fallback interno.
+- Remove do fluxo ativo títulos sugeridos, `Exact next message`, copy boxes,
+  prompts de encaminhamento e qualquer obrigação de copiar/colar. O
+  proprietário recebe somente resultado consolidado ou dependência externa
+  inevitável.
+- Preserva single-writer, branches/worktrees isolados para escrita paralela,
+  integração determinística, shutdown preflight, disposições mecânicas,
+  clean-room, segurança, segredos, rollback e limites destrutivos ou externos.
+- O Automated Safety Gate destrutivo rejeita raiz de workspace/home, caminho
+  amplo, variável, substituição, glob ou alvo não resolvido e exige WIP
+  preservado, checkpoint, rollback, ausência de alternativa mais segura,
+  necessidade objetiva e revisão independente.
+- Ação externa exige cumulativamente autoridade aplicável, credencial
+  existente e atualmente válida por mecanismo seguro, conta/ambiente exatos,
+  ferramenta disponível e apta, limite de custo aplicável, critério de sucesso
+  e verificação segura ou reversão.
+- Preserva integralmente autenticação humana, RBAC e confirmação de ações
+  administrativas do produto. A autonomia de desenvolvimento não concede ao
+  modelo identidade, credencial ou permissão do usuário do produto.
+- Preserva sem reescrita Human Gates, ADRs, decisões, relatórios, commits e
+  evidência histórica. A supersessão é somente prospectiva.
+- Mantém 16 arquivos ativos, a Política de Idioma na revisão `1.0.0`, a
+  versão-fonte `2.0.0` do Prompt Mestre e os fatos de produto/lifecycle
+  existentes. `Current-State.md` e `PLANS.md` reconciliam a supersessão
+  prospectiva sem alterar `STATE-06`, o candidato bloqueado ou seu WIP.
+- Esta mudança de autoridade, gate e coordenação é `MAJOR` conforme a política
+  SemVer do corpus.
 
 ## 8.0.0 — 2026-08-28
 

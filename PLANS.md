@@ -5,7 +5,198 @@
 This file is the canonical live plan for the current broad or cross-cutting
 increment. It records execution intent and evidence; it does not replace
 `AGENTS.md`, the instruction corpus, an accepted ADR, `Current-State.md`, the
-append-only history, a Quality Gate or a Human Gate.
+append-only history, a Quality Gate, an Agent Gate or a preserved historical
+Human Gate.
+
+## Active autonomous-delivery control record
+
+- Plan ID: `GOV-AUTONOMOUS-DELIVERY-01`
+- Status: `LOCAL_COMPLETE`; the focused governance candidate passed in an
+  isolated exact-baseline worktree and is closed by the narrow local commit;
+  the principal worktree's protected predecessor WIP and its factual verifier
+  failure remain outside this increment
+- Created: `2026-08-30`
+- Initial baseline: `main@971adf2d0432ee4c61112535e69b938eb7b561b4`
+- Authority: the owner's current request to execute
+  `C:\Projects\Autonomous-Project-Delivery.md` across DB-Notifier,
+  Shift-Flow and RAG-Challenge; the source contained 428 lines, 14,038 bytes
+  and SHA-256
+  `7591ADBC0D8DBACCCEC73FF698A4046B14B587939F1418A55E4E2AD845E16FE1`
+  when this plan was opened
+- Lifecycle state: `STATE-06 INTEGRATION`; unchanged at plan entry
+- Execution mode: `SEQUENTIAL_ONLY` for every DB-Notifier write and mutable
+  validation; parallel lanes are read-only
+- Writer: coordinating task for integration; the delegated governance writer
+  owned only the 13 clean instruction and policy-validator paths listed below
+- Independent reviewers: one semantic authority reviewer and one
+  coordination/safety reviewer over the integrated exact-path candidate
+- Protected work: the entire pre-existing `S06-DFR-03-AUTH-01 v1.1` tracked
+  diff, its `ISOLATION_FAILURE`, its open P1 findings and every unrelated
+  product, dependency, generated, localisation, state and history change
+- External and higher-authority boundary: protected-reference access,
+  licensing/legal decisions, secrets, destructive operations without an
+  Automated Safety Gate, real providers/databases, production, deploy,
+  publication, push and external infrastructure
+
+### Objective and scope
+
+Replace prospective development Human Gates and owner-mediated copy/paste
+handoffs with objective Agent Gates and factual automatic dispatch, without
+rewriting historical decisions or weakening product-user authentication,
+RBAC, administrative confirmation, clean-room, licensing, data, secret,
+destructive, external or production controls.
+
+Positive scope is limited to the active instruction corpus, its two explicit
+policy validators, factual reconciliation in this plan/current state/history,
+focused validation, independent review and a narrow local governance commit.
+Product implementation and the protected predecessor candidate are negative
+scope.
+
+### Exact candidate write set
+
+The delegated governance writer owned exactly these 13 paths:
+
+1. `AGENTS.md`
+2. `prompts/Start-Here.md`
+3. `prompts/governance/Governance.md`
+4. `prompts/governance/Lifecycle.md`
+5. `prompts/governance/Quality-Gates.md`
+6. `prompts/governance/Conversation-Coordination-Prompt.md`
+7. `prompts/governance/Language-Policy.md`
+8. `prompts/templates/Templates.md`
+9. `prompts/system/AI-Software-Engineering-Master-Prompt.md`
+10. `prompts/system/Prompt-System-Change-Log.md`
+11. `prompts/operations/Operational-Playbooks.md`
+12. `scripts/verify-development-flow.ps1`
+13. `tests/DBNotifier.DevelopmentFlow.Tests.ps1`
+
+Coordinator-owned integration is limited to localised hunks in:
+
+1. `PLANS.md`
+2. `prompts/state/Current-State.md`
+3. `prompts/state/State-Transition-Log.md`
+
+Every other path, including all predecessor product WIP, is outside the
+candidate and must remain unstaged.
+
+### Definition of Ready
+
+- Shutdown preflight is `PASS` with zero matching process and zero owned
+  listener.
+- Repository identity, branch, HEAD, index, tracked WIP and worktrees are
+  recorded without enumerating an excluded reference boundary.
+- Canonical owners, active Human Gate/copy contracts and validator consumers
+  are mapped.
+- One writer owns DB-Notifier mutation at a time; reviewers remain read-only.
+- The predecessor candidate and unrelated WIP are protected from staging and
+  commit.
+
+### Definition of Done
+
+- Corpus `9.0.0` and coordination `2.0.0` consistently own prospective
+  autonomous decisions, gates and dispatch.
+- Agent Gates use objective `PASS`/`FAIL`, independent P0-P3 review and the six
+  canonical operational states.
+- Dispatch uses the four canonical routes, factual receipts, deduplication,
+  reconciliation before retry and deterministic fallback, with no owner
+  copy/paste dependency.
+- Current facts and append-only history distinguish prospective supersession
+  from preserved Human Gate evidence.
+- Explicit allowlisted policy validation, AST parsing, diff hygiene and two
+  independent semantic reviews pass with zero open P0/P1.
+- Only the clean governance paths and any safely staged plan/state hunks enter
+  a focused local commit; predecessor WIP remains unstaged.
+
+### Increment plan
+
+1. `COMPLETE` — resolve authority, baseline, WIP and clean-room boundary.
+2. `COMPLETE` — map canonical gate, lifecycle, coordination, template and
+   validator consumers through three independent read-only repository audits.
+3. `COMPLETE` — integrate corpus `9.0.0`, coordination `2.0.0`, current
+   factual state and this live plan.
+4. `COMPLETE` — preserve the principal-worktree verifier failure, correct all
+   independent findings, then validate the exact 16-path candidate in an
+   isolated worktree where the verifier passed 151 assertions.
+5. `COMPLETE` — stage only owned governance hunks, commit locally and retain the
+   automatic continuation record; predecessor WIP remains unstaged.
+
+### Evidence and blockers
+
+- `PASS`: shutdown preflight at entry and again before coordinator integration.
+- `PASS`: Git baseline and tracked-only WIP inventory without untracked root
+  enumeration.
+- `PASS`: three delegated audits mapped the three repositories without writes.
+- `FAIL` (preserved): early focal policy attempts found missing literals and
+  checker assumptions; successor evidence remains required.
+- `PASS`: focused policy test completed with 108 assertions; PowerShell AST
+  parsed both validator files; 13 explicit Markdown files resolved 85 relative
+  targets; exact-path diff hygiene passed.
+- `FAIL` (preserved): `scripts/verify-development-flow.ps1` stopped on
+  pre-existing drift in the protected 29-row MySQL Notifier functional matrix.
+  The product WIP was not changed and this mandatory result is not relabelled.
+- `AUTOMATED_GATE_FAIL`: initial final DB v9 review returned P0 zero, P1 three,
+  P2 one and P3 zero. The exact write set, factual dispatch receipts and
+  cumulative destructive/external gate regression coverage are now reconciled.
+  The principal-worktree full-verifier failure remains preserved.
+- `PASS`: isolated successor worktree at exact HEAD
+  `971adf2d0432ee4c61112535e69b938eb7b561b4`, overlaid with only the enumerated
+  16 candidate paths, passed shutdown preflight and the complete
+  `scripts/verify-development-flow.ps1` policy verifier with 151 assertions.
+- `PASS`: independent successor review returned P0 zero, P1 zero, P2 zero and
+  P3 zero after write-set, receipt, coverage and evidence reconciliation.
+- `NOT_RUN`: `Quick`, `Full`, runtime, provider, database, browser, deploy,
+  publication and push; they are outside this governance-only increment.
+- Current blocker: none for this governance increment. The protected predecessor
+  candidate remains separately `BLOCKED / ISOLATION_FAILURE`; its product WIP
+  and principal-worktree verifier failure were neither changed nor promoted.
+
+### Dispatch receipts
+
+#### Governance audit and implementation candidate
+
+- Ledger dispatch ID: `NÃO APLICÁVEL`; the tool returned no separate dispatch
+  identifier.
+- Route/source/destination: `DELEGATE_SUBAGENT` from `/root` to the confirmed
+  canonical task `/root/db_governance_audit`.
+- Tool and timestamp: `collaboration.spawn_agent` on `2026-08-30`; the tool
+  result exposed no wall-clock timestamp.
+- Repository/baseline/corpus: `C:\Projects\DB-Notifier`,
+  `main@971adf2d0432ee4c61112535e69b938eb7b561b4`, target corpus `9.0.0`
+  and coordination `2.0.0`.
+- Objective/scope/protection: audit the prospective autonomy contract and
+  produce only the 13-path candidate enumerated above; preserve the predecessor
+  candidate, product WIP and clean-room boundary.
+- Receipt/cursor: confirmed destination `/root/db_governance_audit`; no
+  separate receipt ID or cursor was exposed.
+- Result/status/retry: audit returned and the 13-path candidate was integrated
+  serially; `AGENT_DECIDED`; no retry.
+- Deduplication key/fallback: repository + exact baseline + corpus version +
+  autonomous-governance objective; reconcile in `CONTINUE_CURRENT` if the
+  destination becomes unavailable.
+
+#### Independent final review
+
+- Ledger dispatch ID: `NÃO APLICÁVEL`; the tool returned no separate dispatch
+  identifier.
+- Route/source/destination: `DELEGATE_SUBAGENT` from `/root` to confirmed
+  canonical task `/root/db_v9_final_review`.
+- Tool and timestamp: `collaboration.spawn_agent` on `2026-08-30`; no
+  wall-clock timestamp or cursor was exposed.
+- Repository/baseline/corpus: the same exact repository and baseline above,
+  corpus `9.0.0`, coordination `2.0.0`.
+- Objective/scope/protection: read-only P0-P3 review of the exact governance
+  candidate; no protected-reference enumeration and no mutation.
+- Receipt/result/status/retry: confirmed destination and initial final result
+  `FAIL` with P0 zero, P1 three, P2 one and P3 zero. After candidate changes,
+  the same confirmed reviewer returned `PASS` with P0-P3 zero;
+  `AUTOMATED_GATE_PASS`; no duplicate dispatch or unreconciled retry.
+- Deduplication key/fallback: repository + baseline + corpus + final-review
+  objective; correction occurred safely in `CONTINUE_CURRENT`, followed by a
+  return to the same confirmed reviewer only after the candidate changed.
+
+The `S06-DFR-03-AUTH-01` record below remains the preserved predecessor. Its
+blocked disposition and WIP are not superseded, staged or corrected by this
+governance plan.
 
 ## Control record
 

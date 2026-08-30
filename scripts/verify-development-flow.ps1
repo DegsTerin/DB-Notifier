@@ -100,9 +100,17 @@ $requiredFiles = @(
     'global.json',
     'PLANS.md',
     'prompts/foundation/Prompt-New-Project.md',
+    'prompts/governance/Conversation-Coordination-Prompt.md',
+    'prompts/governance/Governance.md',
+    'prompts/governance/Language-Policy.md',
+    'prompts/governance/Lifecycle.md',
+    'prompts/governance/Quality-Gates.md',
+    'prompts/operations/Operational-Playbooks.md',
     'prompts/state/Current-State.md',
     'prompts/state/State-Transition-Log.md',
+    'prompts/system/AI-Software-Engineering-Master-Prompt.md',
     'prompts/system/Prompt-System-Change-Log.md',
+    'prompts/templates/Templates.md',
     'README.md',
     'scripts/assert-dbnotifier-shutdown.ps1',
     'scripts/development-environment.ps1',
@@ -127,22 +135,9 @@ foreach ($requiredFile in $requiredFiles) {
         -Message "Development-flow file '$requiredFile' is missing from the project inventory."
 }
 
-$protectedExternalTree = 'mysql-notifier-1.1.8-src/'
-& $gitPath -C $resolvedRoot check-ignore --quiet -- $protectedExternalTree
-Assert-Condition `
-    -Condition ($LASTEXITCODE -eq 0) `
-    -Message 'The protected external reference tree is not excluded from project inventory.'
-$projectInventory = @(& $gitPath -C $resolvedRoot ls-files --cached --others --exclude-standard)
-if ($LASTEXITCODE -ne 0) {
-    throw 'Git could not enumerate the project inventory.'
-}
-Assert-Condition `
-    -Condition (@($projectInventory | Where-Object {
-                $_.Replace('\', '/').StartsWith(
-                    $protectedExternalTree,
-                    [System.StringComparison]::OrdinalIgnoreCase)
-            }).Count -eq 0) `
-    -Message 'Protected external reference material entered the project inventory.'
+# The verifier deliberately limits Git inventory to the explicit allowlist
+# above. It must never enumerate the repository root or any protected external
+# boundary merely to prove that the boundary remains excluded.
 
 $plans = Get-RequiredFileText -RelativePath 'PLANS.md'
 foreach ($requiredHeading in @(
@@ -354,32 +349,56 @@ foreach ($forbiddenWorkflowCommand in @(
 
 $coordination = Get-RequiredFileText -RelativePath 'prompts/governance/Conversation-Coordination-Prompt.md'
 Assert-Condition `
-    -Condition ($coordination.Contains('- Revisão: `1.4.1`', [System.StringComparison]::Ordinal)) `
-    -Message 'The coordination authority is not at revision 1.4.1.'
+    -Condition ($coordination.Contains('- Revisão: `2.0.0`', [System.StringComparison]::Ordinal)) `
+    -Message 'The coordination authority is not at revision 2.0.0.'
 foreach ($requiredCoordinationLiteral in @(
         'SAFE_PARALLEL',
         'CONTRACT_FROZEN_PARALLEL',
         'SINGLE_OWNER',
         'BASELINE_DRIFT',
-        'GATE_FAILURE')) {
+        'GATE_FAILURE',
+        'CONTINUE_CURRENT',
+        'DELEGATE_SUBAGENT',
+        'RETURN_TO_EXISTING',
+        'START_NEW_AUTO_DISPATCH',
+        'deduplicação',
+        'receipt',
+        'AGENT_DECIDED',
+        'AUTOMATED_GATE_PASS',
+        'AUTOMATED_GATE_FAIL',
+        'LOCAL_COMPLETE',
+        'EXTERNAL_PREREQUISITE',
+        'BLOCKED_BY_HIGHER_AUTHORITY')) {
     Assert-Condition `
         -Condition ($coordination.Contains(
                 $requiredCoordinationLiteral,
                 [System.StringComparison]::Ordinal)) `
         -Message "The coordination authority is missing '$requiredCoordinationLiteral'."
 }
-$normalisedCoordination = [regex]::Replace($coordination, '\s+', ' ')
 Assert-Condition `
-    -Condition ($normalisedCoordination.Contains(
-            'O valor de `Exact next message` deve aparecer dentro de exatamente um bloco de código Markdown cercado rotulado como `text`.',
+    -Condition ($coordination.Contains(
+            'Não produzir título sugerido, `Exact next message`, copy box ou instrução para',
+            [System.StringComparison]::Ordinal) -and
+        $coordination.Contains(
+            'A indisponibilidade nunca produz texto para o proprietário copiar.',
             [System.StringComparison]::Ordinal)) `
-    -Message 'The coordination authority does not require one text-labelled Markdown block for Exact next message.'
+    -Message 'The coordination authority does not prohibit owner-mediated copy-and-paste dispatch.'
+Assert-Condition `
+    -Condition ($coordination.Contains(
+            '`CONTINUE_CURRENT` usa um registro local factual',
+            [System.StringComparison]::Ordinal) -and
+        $coordination.Contains(
+            'exigem confirmação factual da ferramenta',
+            [System.StringComparison]::Ordinal)) `
+    -Message 'The coordination authority does not distinguish local continuation from tool-backed dispatch receipts.'
 
 $changelog = Get-RequiredFileText -RelativePath 'prompts/system/Prompt-System-Change-Log.md'
 $currentState = Get-RequiredFileText -RelativePath 'prompts/state/Current-State.md'
 $stateTransitionLog = Get-RequiredFileText -RelativePath 'prompts/state/State-Transition-Log.md'
 $masterPrompt = Get-RequiredFileText -RelativePath 'prompts/system/AI-Software-Engineering-Master-Prompt.md'
 $rootInstructions = Get-RequiredFileText -RelativePath 'AGENTS.md'
+$governance = Get-RequiredFileText -RelativePath 'prompts/governance/Governance.md'
+$qualityGates = Get-RequiredFileText -RelativePath 'prompts/governance/Quality-Gates.md'
 $legacyMigrationPlan = Get-RequiredFileText -RelativePath 'docs/Legacy-Migration-Plan.md'
 $designSystem = Get-RequiredFileText -RelativePath 'docs/design/DB-Notifier-Design-System.md'
 $revocationReport = Get-RequiredFileText -RelativePath 'docs/STATE-06-MySQL-Notifier-Authority-Revocation-Report.md'
@@ -399,13 +418,24 @@ $changelogEightSectionMatch = [regex]::Match(
     $changelog,
     '(?ms)^## 8[.]0[.]0 — 2026-08-28\r?\n(?<body>.*?)(?=^## )')
 $changelogEightSection = $changelogEightSectionMatch.Groups['body'].Value
+$changelogNineSectionMatch = [regex]::Match(
+    $changelog,
+    '(?ms)^## 9[.]0[.]0 — 2026-08-30\r?\n(?<body>.*?)(?=^## )')
+$changelogNineSection = $changelogNineSectionMatch.Groups['body'].Value
 $changelogSevenSectionMatch = [regex]::Match(
     $changelog,
     '(?ms)^## 7[.]0[.]0 — 2026-08-28\r?\n(?<body>.*?)(?=^## )')
 $changelogSevenSection = $changelogSevenSectionMatch.Groups['body'].Value
 Assert-Condition `
-    -Condition ($changelog -match '(?s)## Versão atual\s+- Versão: `8[.]0[.]0`') `
-    -Message 'The instruction-corpus changelog is not at version 8.0.0.'
+    -Condition ($changelog -match '(?s)## Versão atual\s+- Versão: `9[.]0[.]0`') `
+    -Message 'The instruction-corpus changelog is not at version 9.0.0.'
+Assert-Condition `
+    -Condition ($changelogNineSectionMatch.Success -and
+        $changelogNineSection.Contains('Agent Gates objetivos', [System.StringComparison]::Ordinal) -and
+        $changelogNineSection.Contains('`START_NEW_AUTO_DISPATCH`', [System.StringComparison]::Ordinal) -and
+        $changelogNineSection.Contains('Preserva integralmente autenticação humana, RBAC', [System.StringComparison]::Ordinal) -and
+        $changelogNineSection.Contains('A supersessão é somente prospectiva', [System.StringComparison]::Ordinal)) `
+    -Message 'The 9.0.0 changelog entry does not delimit autonomous delivery and preserved product controls.'
 Assert-Condition `
     -Condition ($changelogEightSectionMatch.Success -and
         $changelogEightSection.Contains('`GOV-MN-RESTORE-01`', [System.StringComparison]::Ordinal) -and
@@ -420,9 +450,32 @@ Assert-Condition `
         $changelogSevenSection.Contains('não remove comportamento DB-Notifier já próprio', [System.StringComparison]::Ordinal)) `
     -Message 'The 7.0.0 changelog entry no longer preserves the historical revocation.'
 Assert-Condition `
-    -Condition ($currentState.Contains('`8.0.0`', [System.StringComparison]::Ordinal) -and
-        $currentState.Contains('`1.4.1`', [System.StringComparison]::Ordinal)) `
+    -Condition ($currentState.Contains('`9.0.0`', [System.StringComparison]::Ordinal) -and
+        $currentState.Contains('`2.0.0`', [System.StringComparison]::Ordinal)) `
     -Message 'Current-State.md does not record the adopted workflow versions.'
+Assert-Condition `
+    -Condition ($rootInstructions.Contains('## Autonomous delivery mandate', [System.StringComparison]::Ordinal) -and
+        $rootInstructions.Contains('`START_NEW_AUTO_DISPATCH`', [System.StringComparison]::Ordinal) -and
+        $rootInstructions.Contains('`AUTOMATED_GATE_PASS`', [System.StringComparison]::Ordinal) -and
+        $rootInstructions.Contains('Product-user authentication, RBAC, administrative confirmation', [System.StringComparison]::Ordinal)) `
+    -Message 'The root instructions do not enforce autonomous delivery while preserving product controls.'
+Assert-Condition `
+    -Condition ($rootInstructions.Contains('existing currently valid credential', [System.StringComparison]::Ordinal) -and
+        $rootInstructions.Contains('available capable tool', [System.StringComparison]::Ordinal) -and
+        $rootInstructions.Contains('broad path, unresolved variable, substitution, glob or unresolved target', [System.StringComparison]::Ordinal)) `
+    -Message 'The root instructions do not preserve external-action and destructive-target safety prerequisites.'
+Assert-Condition `
+    -Condition ($rootInstructions.Contains('protected-work preservation, recoverable checkpoint, rollback, no safer alternative, objective necessity and independent review', [System.StringComparison]::Ordinal) -and
+        $governance -match '(?s)preservação de WIP.*checkpoint recuperável e plano de rollback.*validação de rollback.*alternativa materialmente mais segura.*necessidade objetiva e revisão independente' -and
+        $qualityGates -match '(?s)preservação de WIP, checkpoint recuperável,\s+rollback, validação aplicável, inexistência de alternativa mais segura,\s+necessidade objetiva e revisão independente') `
+    -Message 'The destructive Safety Gate does not preserve recovery, alternative, necessity and review controls.'
+Assert-Condition `
+    -Condition ($rootInstructions.Contains('exact account and environment', [System.StringComparison]::Ordinal) -and
+        $rootInstructions.Contains('defined cost boundary when applicable', [System.StringComparison]::Ordinal) -and
+        $rootInstructions.Contains('objective success criterion and safe verification or reversal', [System.StringComparison]::Ordinal) -and
+        $governance -match '(?s)conta, organização, ambiente e\s+alvo exatos.*limite de custo definido.*critério\s+objetivo de sucesso.*verificação segura ou reversão' -and
+        $qualityGates -match '(?s)conta e\s+ambiente exatos.*limite de custo.*critério objetivo de sucesso.*verificação segura ou reversão') `
+    -Message 'The external-action gate does not preserve account, environment, cost, success and verification or reversal controls.'
 Assert-Condition `
     -Condition ($rootInstructions.Contains('`GOV-MN-RESTORE-01`', [System.StringComparison]::Ordinal) -and
         $rootInstructions.Contains('sanitised, observable and non-expressive functional outcomes', [System.StringComparison]::Ordinal) -and

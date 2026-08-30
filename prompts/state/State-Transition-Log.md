@@ -6673,3 +6673,59 @@
   Runtime Binding` permanece apenas recomendado e exige decisão e autoridade
   separadas antes de qualquer implementação. `STATE-06 INTEGRATION` permanece
   inalterado.
+
+## 2026-08-30 — GOV-AUTONOMOUS-DELIVERY-01 materializado com gate pendente
+
+- Estado anterior e posterior: `STATE-06 INTEGRATION`, elegibilidade
+  `NÃO REAVALIADA` e `MOD-12 ActivationState=None`; não houve transição de
+  lifecycle, ativação, produto, provider, banco, runtime ou produção.
+- Autoridade: pedido corrente para executar
+  `C:\Projects\Autonomous-Project-Delivery.md` nos três projetos. A fonte
+  observada tinha 428 linhas, 14.038 bytes e SHA-256
+  `7591ADBC0D8DBACCCEC73FF698A4046B14B587939F1418A55E4E2AD845E16FE1`.
+- Mudança prospectiva: corpus `9.0.0` e coordenação `2.0.0` substituem
+  decisões técnicas rotineiras do proprietário, Human Gates futuros e handoffs
+  de copiar/colar por Agent Gates objetivos, continuidade automática e despacho
+  interno com receipts factuais, deduplicação, reconciliação e fallback.
+- Preservação: Human Gates e decisões antigas continuam fatos históricos. WIP
+  `S06-DFR-03-AUTH-01 v1.1`, `ISOLATION_FAILURE`, P1 de produto, fronteira
+  clean-room, autenticação, RBAC, confirmação administrativa, licença, segredo,
+  ação destrutiva, ação externa e produção não foram revogados nem absorvidos.
+- Evidência focal: shutdown preflight passou com zero processo e zero listener;
+  o teste de política passou 108 assertivas; AST dos dois validadores, 85 links
+  Markdown explícitos e higiene do diff exato passaram.
+- Falhas preservadas: tentativas focais iniciais encontraram literais e
+  pressupostos incorretos e foram sucedidas sem apagar o primeiro resultado. O
+  verificador obrigatório `scripts/verify-development-flow.ps1` continua
+  `FAIL` no worktree corrente por drift preexistente da matriz funcional
+  MySQL Notifier de 29 linhas; o WIP de produto não foi alterado para ocultar a
+  falha.
+- Revisão independente inicial: `FAIL`, com P0 zero, P1 três, P2 um e P3 zero.
+  O candidato passou a enumerar literalmente o write set, reconciliou receipts
+  com `NÃO APLICÁVEL` onde a ferramenta não expôs ID/cursor e ampliou regressões
+  dos gates destrutivo e externo. A revisão sucessora permanece necessária.
+- Disposição atual: `AUTOMATED_GATE_FAIL` até reconciliar legitimamente o
+  verificador obrigatório e obter revisão sucessora com zero P0/P1. Nenhuma
+  falha foi relabelada como sucesso, e nenhum push, deploy, publicação ou ação
+  externa foi executado.
+
+## 2026-08-30 — GOV-AUTONOMOUS-DELIVERY-01 reconciliado em baseline isolada
+
+- A falha do verificador no worktree principal permanece registrada acima e
+  continua pertencendo ao drift preexistente da matriz funcional protegida; ela
+  não foi apagada, alterada, executada novamente nem convertida em sucesso.
+- A coordenadora criou sequencialmente um worktree descartável no HEAD exato
+  `971adf2d0432ee4c61112535e69b938eb7b561b4` e sobrepôs somente os 13 paths do
+  candidato mais `PLANS.md`, `Current-State.md` e este log. Nenhum WIP de produto
+  ou conteúdo da árvore clean-room foi copiado.
+- O shutdown preflight isolado passou com zero processo e zero listener. O
+  verificador completo `scripts/verify-development-flow.ps1` passou 151
+  assertivas nesse candidato exato.
+- A revisão independente sucessora retornou `PASS`, P0 zero, P1 zero, P2 zero e
+  P3 zero. O write set, receipts factuais e regressões cumulativas dos gates
+  destrutivo e externo ficaram reconciliados.
+- Disposição do incremento: `AUTOMATED_GATE_PASS`, seguido de `LOCAL_COMPLETE`
+  no commit focal que contém este registro. `STATE-06 INTEGRATION`, elegibilidade
+  e `MOD-12 ActivationState=None` permanecem inalterados; WIP predecessor,
+  push, deploy, publicação, provider, banco real e ação externa permanecem fora
+  do escopo.

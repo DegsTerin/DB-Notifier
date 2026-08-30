@@ -2,7 +2,17 @@
 
 ## Regra geral
 
-Cada fase exige entradas, entregáveis, auditoria automática, decisão humana e handoff. Correções pertencem à fase dona do defeito. Os templates ficam em `../templates/Templates.md`.
+Cada fase exige entradas, entregáveis, auditoria automática, Agent Gate objetivo
+e despacho automático. Correções pertencem à fase dona do defeito. Os templates
+ficam em `../templates/Templates.md`.
+
+Human Gates históricos permanecem evidência do contexto em que ocorreram, mas
+não são dependência prospectiva. Quando todos os checks obrigatórios forem
+`PASS`, a revisão independente encerrar com zero `P0`/`P1` e a evidência estiver
+reconciliada na baseline exata, registrar `AUTOMATED_GATE_PASS` e
+`AGENT_DECIDED`. Caso contrário, registrar `AUTOMATED_GATE_FAIL` e continuar a
+remediação segura, ou `EXTERNAL_PREREQUISITE`/`BLOCKED_BY_HIGHER_AUTHORITY`
+quando essa for a causa factual.
 
 ## Definition of Ready transversal
 
@@ -24,9 +34,9 @@ Ausência de uma entrada obrigatória mantém o incremento `BLOCKED`; não autor
 improviso, redução de gate ou avanço de estado.
 
 `Doctor`, `Setup`, `Quick`, `Full`, `PlanOnly`, verificadores de repositório e
-CI são mecanismos de preparação ou evidência. Nenhum deles, isoladamente ou em
-conjunto, decide Human Gate, ativa capability, homologa provider, concede
-suporte público ou promove `STATE-00`–`STATE-08`.
+CI são mecanismos de preparação ou evidência. Nenhum deles, isoladamente,
+constitui Agent Gate, ativa capability, homologa provider, concede suporte
+público ou promove `STATE-00`–`STATE-08`.
 
 ## STATE-00 DISCOVERY_MIGRATION
 
@@ -98,7 +108,7 @@ Objetivo: liberar artefatos assinados com observabilidade, migração e rollback
 
 Entregáveis: release candidate, SBOM quando aplicável, assinatura, release notes, runbook, backup/restore, rollout e relatório.
 
-Aceite: alvo e autorização explícitos; secrets externos; health checks reais; rollback ensaiado; sem feature oculta no fechamento.
+Aceite: alvo inequivocamente identificado e pré-requisitos externos satisfeitos; secrets externos; health checks reais; rollback ensaiado; sem feature oculta no fechamento.
 
 ## Matriz módulo × fase
 

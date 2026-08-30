@@ -16,8 +16,8 @@ Agentes que operam no repositório começam também por [`../AGENTS.md`](../AGEN
    leitura obrigatória antes de comunicação governada com o proprietário e
    antes de criar ou alterar artefatos pertencentes ao projeto.
 6. [`governance/Conversation-Coordination-Prompt.md`](governance/Conversation-Coordination-Prompt.md):
-   leitura obrigatória antes de todo handoff governado e antes de avaliar ou
-   iniciar trabalho com múltiplas conversas.
+   leitura obrigatória antes de todo despacho automático e antes de avaliar ou
+   iniciar trabalho multiagente.
 7. Abrir somente os demais documentos temáticos necessários à tarefa.
 
 Em trabalho amplo, transversal, multi-incremento ou que combine auditoria e
@@ -33,20 +33,20 @@ proprietária, nunca pelo plano.
 | Instruções permanentes e comportamento operacional de agentes | `../AGENTS.md` |
 | Plano vivo do incremento amplo corrente, escopo, progresso, achados e evidências | `../PLANS.md` |
 | Comunicação com o proprietário, idioma dos artefatos, conteúdo existente, convenções externas e separação da interface | `governance/Language-Policy.md` |
-| Roteamento de conversas, handoff, recomendação de raciocínio do Codex, paralelismo seguro, ownership e integração coordenada | `governance/Conversation-Coordination-Prompt.md` |
+| Despacho automático, paralelismo seguro, ownership, receipts, deduplicação e integração coordenada | `governance/Conversation-Coordination-Prompt.md` |
 | Método geral de engenharia, papéis virtuais, proporcionalidade, modos de trabalho e matriz de adoção | `system/AI-Software-Engineering-Master-Prompt.md` |
 | Visão, escopo e objetivos | `foundation/Prompt-New-Project.md` |
 | Arquitetura, dados, providers e módulos | `foundation/Solution-Architecture-Document.md` |
 | MOD-12 AIOPS_AI, modelos estatísticos, LLM e automação controlada | `foundation/AIOps-And-AI-Module.md` |
 | Autoridade, estados, bloqueio, rollback e memória | `governance/Governance.md` |
 | Fases, entregáveis e critérios por estado | `governance/Lifecycle.md` |
-| Evidências, auditoria, DoD e Human Gate | `governance/Quality-Gates.md` |
+| Evidências, auditoria, DoD e Agent Gate | `governance/Quality-Gates.md` |
 | Credenciais, autenticação, RBAC e auditoria | `governance/Security-And-Access.md` |
 | Auditoria completa, ajustes, UI/UX e reestruturação | `operations/Operational-Playbooks.md` |
 | Uso de `Doctor`, `Setup`, `Quick`, `Full`, `PlanOnly` e gate local canônico | `operations/Operational-Playbooks.md`, `governance/Quality-Gates.md` e `../docs/Development.md` |
 | Design System, temas, tokens e componentes React/WPF | `../docs/design/DB-Notifier-Design-System.md` |
 | Situação atual | `state/Current-State.md` |
-| Ratificação retrospectiva dos Human Gates contestados | `../docs/Human-Gate-Retrospective-Ratification.md` |
+| Evidência histórica e ratificação retrospectiva de Human Gates anteriores | `../docs/Human-Gate-Retrospective-Ratification.md` |
 | Histórico de transições | `state/State-Transition-Log.md` |
 | Handoff, relatórios, auditoria e ADR | `templates/Templates.md` |
 | Versão e histórico do corpus | `system/Prompt-System-Change-Log.md` |
@@ -57,8 +57,8 @@ Em caso de conflito, aplicar nesta ordem:
 
 1. Instruções da plataforma, sistema e desenvolvedor.
 2. Pedido atual e explícito do proprietário.
-3. Segurança, proteção de dados, autorização externa e gates de lifecycle que
-   uma solicitação comum não pode dispensar silenciosamente.
+3. Segurança, proteção de dados, clean-room, limites jurídicos e pré-requisitos
+   externos ou de autoridade superior que não podem ser dispensados.
 4. Instruções aplicáveis ao diretório, da mais específica para a mais geral,
    incluindo `AGENTS.override.md` quando existir e `AGENTS.md`.
 5. Estado corrente factual.
@@ -86,20 +86,21 @@ Conflitos que ampliem materialmente o escopo, exijam ação externa irreversíve
 - Antes de iniciar cada nova ação técnica autorizada sobre o código, workspace ou produto, aplicar o shutdown preflight obrigatório definido em `../AGENTS.md` e detalhado em `operations/Operational-Playbooks.md`. Conversa, pergunta, explicação ou status sem ação técnica não dispara encerramento.
 - Aplicar `governance/Language-Policy.md` a toda comunicação com o
   proprietário e a todo artefato criado ou alterado. Comunicação, rótulos,
-  orientações e mensagens prontas usam `pt-BR`; novos artefatos independentes
+  orientações e relatórios finais usam `pt-BR`; novos artefatos independentes
   pertencentes ao projeto usam `en-GB`; alterações limitadas preservam o
   idioma estabelecido do arquivo; convenções externas não são traduzidas; e o
   idioma da interface permanece uma decisão de produto separada.
-- Aplicar `governance/Conversation-Coordination-Prompt.md` a todo handoff e trabalho com
-  múltiplas conversas. Sem workflow Git de escrita paralela especificamente
-  autorizado e worktrees isolados, conversas simultâneas permanecem read-only
-  e toda escrita ocorre sequencialmente na coordenadora.
-- Em cada handoff, recomendar em `Sua ação agora` exatamente um nível de
-  raciocínio do Codex para a próxima interação, com justificativa específica.
-  Usar o menor esforço suficiente, repetir a recomendação nas mensagens
-  auxiliares e definir um nível por lane nos planos paralelos. A sugestão não
-  comprova configuração aplicada, não substitui Quality Gate ou revisão humana
-  e não amplia roteamento, paralelismo, ownership, autoridade ou lifecycle.
+- Aplicar `governance/Conversation-Coordination-Prompt.md` a todo despacho e
+  trabalho multiagente. Sem workflow Git de escrita paralela autorizado e
+  worktrees isolados, agentes simultâneos permanecem read-only e toda escrita
+  ocorre sequencialmente na coordenadora.
+- Despachar diretamente toda continuação por `CONTINUE_CURRENT`,
+  `DELEGATE_SUBAGENT`, `RETURN_TO_EXISTING` ou `START_NEW_AUTO_DISPATCH`.
+  Registrar receipt, reconciliar resultados incertos antes de retry, impedir
+  duplicidade e nunca produzir texto para o proprietário copiar ou encaminhar.
+- Aplicar decisões de desenvolvimento prospectivas por Agent Gate objetivo.
+  Preservar Human Gates anteriores como fatos históricos, sem mantê-los como
+  dependência de execução futura.
 - Documentar código e configuração exclusivamente em inglês britânico (`en-GB`), conforme `../docs/Code-Documentation-Standards.md`, mantendo comentários concisos e sincronizados.
 - Aplicar `../docs/design/DB-Notifier-Design-System.md` a todo frontend novo ou alterado; não criar temas, tokens ou componentes paralelos fora do contrato oficial.
 - Consultar o estado antes de executar uma fase ou playbook.

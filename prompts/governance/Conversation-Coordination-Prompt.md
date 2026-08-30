@@ -1,11 +1,11 @@
-# DB-Notifier — Coordenação de Conversas e Trabalho Paralelo Seguro
+# DB-Notifier — Coordenação Autônoma e Trabalho Paralelo Seguro
 
 - Status: autoridade temática normativa
-- Revisão: `1.4.1`
+- Revisão: `2.0.0`
 - Versão de introdução no corpus: `6.2.0`
-- Versão desta revisão no corpus: `6.7.1`
+- Versão desta revisão no corpus: `9.0.0`
 - Projeto: `DB-Notifier`
-- Workspace: raiz confirmada do repositório ou do worktree atribuído à conversa
+- Workspace: raiz confirmada do repositório ou do worktree atribuído à tarefa
 
 Este documento foi adaptado no próprio local a partir da fonte fornecida pelo
 proprietário, cujo SHA-256 anterior à incorporação era
@@ -15,541 +15,286 @@ proprietário, cujo SHA-256 anterior à incorporação era
 
 Este documento é a autoridade temática única para:
 
-1. decidir quando continuar na conversa atual;
-2. decidir quando iniciar uma nova conversa;
-3. decidir quando retornar a uma conversa anterior confirmada;
-4. fornecer sempre a mensagem exata que o proprietário deverá enviar;
-5. recomendar o nível de raciocínio do Codex adequado a cada conversa;
-6. classificar se várias conversas podem trabalhar simultaneamente;
-7. impedir que o paralelismo autorizado produza writers sobrepostos,
-   sobrescrita, integração ambígua ou mudança fora de autoridade;
-8. fechar o envelope operacional de cada tarefa com baseline, escopo,
-   ownership, recursos, checks, revisores e stop codes;
-9. classificar topologia de execução e artefatos sem alterar os enums do
-   handoff governado.
+1. continuar automaticamente na tarefa atual;
+2. delegar uma frente a subagente;
+3. retornar a uma tarefa existente confirmada pela plataforma;
+4. criar e despachar uma nova tarefa quando necessário;
+5. registrar receipt, deduplicação e resultado de cada despacho;
+6. classificar paralelismo, ownership e isolamento;
+7. impedir writers sobrepostos, sobrescrita e integração ambígua;
+8. fechar o envelope operacional com baseline, escopo, recursos, checks,
+   revisores e stop codes.
 
-[`Governance.md`](Governance.md)
-permanece proprietário da autoridade, execução controlada, lifecycle, bloqueio
-e memória. Este documento especializa somente a coordenação de conversas e o
-trabalho paralelo. Segurança, Human Gates, ADRs, estado factual e autorizações
-externas conservam seus proprietários existentes.
+[`Governance.md`](Governance.md) permanece proprietário da autoridade,
+execução controlada, lifecycle, bloqueio e memória. Segurança, identidade de
+usuário, RBAC, confirmação administrativa do produto, limites jurídicos,
+clean-room, destrutivos e pré-requisitos externos conservam seus proprietários.
 
-A [`Política de Idioma`](Language-Policy.md) governa toda comunicação com o
-proprietário. Rótulos, valores, razões, orientações e mensagens prontas para
-copiar são apresentados em `pt-BR`. Chaves canônicas, comandos, paths e enums
-podem permanecer em inglês entre crases ou parênteses somente quando
-tecnicamente necessário.
+Human Gates de desenvolvimento e navegação manual são prospectivamente
+substituídos por Agent Gates objetivos e despacho direto. Decisões e relatórios
+históricos permanecem inalterados.
 
-Todo payload apresentado expressamente para o proprietário copiar — inclusive
-`Exact next message`, título sugerido quando houver orientação para copiá-lo,
-mensagem exata de lane e mensagem exata de retorno — deverá aparecer sozinho
-em um bloco de código Markdown cercado e rotulado `text`. O rótulo, a
-identificação da lane, a razão, a orientação e qualquer outro texto que não faça
-parte do payload ficam fora do bloco. Quando houver vários payloads, usar um
-bloco independente para cada um.
+Esta política não autoriza por si só ação externa, exposição de secret,
+operação destrutiva insegura, publicação, deploy, push ou acesso fora do escopo.
+Na dúvida sobre isolamento, usar `SEQUENTIAL_ONLY`.
 
-Esta política não autoriza, por si só, alteração de arquivo, inicialização ou
-operação Git, branch, worktree, commit, merge, rebase, push, código, build,
-teste, runtime, ação externa, decisão arquitetural, Human Gate, ativação ou
-transição de lifecycle. Cada ação continua dependente da autoridade já exigida
-pelo projeto.
+Neste documento, `worker` ou `subagente` designa uma frente de engenharia. O
+termo `Agent` do produto DB-Notifier e MOD-12 permanecem regidos por suas
+autoridades próprias.
 
-Segurança e consistência têm prioridade sobre velocidade. Os controles são
-fail-safe: previnem, detectam e interrompem trabalho inseguro, mas não prometem
-ausência absoluta de erros. Na dúvida, classificar como `SEQUENTIAL_ONLY`.
+## 1. Rotas autônomas
 
-Neste documento, `conversa worker` e `agente de engenharia` designam uma frente
-de trabalho temporária. O termo `Agent` permanece reservado ao componente de
-produto DB-Notifier, e MOD-12 continua regido pela sua autoridade própria.
-
-As regras de navegação manual aplicam-se a conversas visíveis ao proprietário.
-Spawn e coordenação de subagentes internos permitidos pela plataforma são
-orquestração técnica, não alegação de que o agente abriu, encontrou, renomeou
-ou mudou uma conversa do proprietário. Um identificador canônico fornecido
-pela plataforma pode identificar a coordenadora interna, mas não satisfaz
-`RETURN_TO_EXISTING`.
-
-## 1. Roteamento entre conversas
-
-Todo handoff governado deverá classificar a próxima interação usando
-exatamente um destes valores:
+Todo próximo trabalho usa exatamente uma rota:
 
 - `CONTINUE_CURRENT`
-- `START_NEW`
+- `DELEGATE_SUBAGENT`
 - `RETURN_TO_EXISTING`
+- `START_NEW_AUTO_DISPATCH`
 
 ### `CONTINUE_CURRENT`
 
-Usar quando o mesmo objetivo, estado ou lote continua ativo e o contexto atual
-permanece confiável.
+Usar quando o objetivo ou lote continua ativo e o contexto permanece
+confiável. Atualizar o plano e executar sem encerrar apenas para produzir um
+handoff.
 
-### `START_NEW`
+### `DELEGATE_SUBAGENT`
 
-Usar quando começar outro estado, gate, lote ou assunto independente; quando o
-contexto atual já não for confiável; ou quando não existir referência
-confirmada para uma conversa anterior.
+Usar para frente concreta, independente e verificável. Enviar diretamente o
+payload completo, acompanhar, revisar e integrar o candidato.
 
 ### `RETURN_TO_EXISTING`
 
-Usar somente quando o título ou label da conversa anterior tiver sido fornecido
-ou confirmado pelo proprietário. Sem essa confirmação, usar `START_NEW`.
+Usar somente com identificador factual fornecido pela plataforma. Reconciliar
+corpus, baseline, estado e autoridade antes do despacho.
 
-### Regras obrigatórias de navegação
+### `START_NEW_AUTO_DISPATCH`
 
-- O agente recomenda a conversa; o proprietário realiza a navegação manual.
-- O agente nunca afirma que abriu, encontrou, renomeou ou mudou de conversa.
-- Nunca inventar título, label, link ou identificador de conversa existente.
-- Um título sugerido para conversa nova é somente uma proposta não canônica.
-- Ao retornar a uma conversa antiga, reconciliar integralmente o contexto com
-  a versão do corpus, baseline, estado factual e autoridade vigentes.
-- Toda conversa nova ou retomada deve reler as instruções aplicáveis e
-  confirmar estado, autoridade, escopo positivo e escopo negativo antes de
-  agir.
-- Se o contexto de uma decisão formal se perder, usar `START_NEW`, reconstruir
-  o resumo vigente a partir da memória oficial e solicitar nova decisão
-  inequívoca; nunca inferir ou transportar aprovação.
+Usar quando uma nova tarefa durável for necessária. Identificar projeto e
+ambiente corretos, criar, enviar o payload, acompanhar e integrar.
 
-Conversas são contexto temporário. A memória oficial é tipada:
+O proprietário não navega, cria tarefa, escolhe destino nem encaminha mensagem.
+Não produzir título sugerido, `Exact next message`, copy box ou instrução para
+copiar e colar.
 
-- governança e instruções: autoridade vigente;
-- `Current-State.md`: presente factual;
-- `State-Transition-Log.md`: histórico factual append-only;
-- ADRs: decisões arquiteturais;
-- relatórios: evidência de execuções específicas;
-- commits: evidência versionada das mudanças, sem autoridade implícita.
+## 2. Receipt, deduplicação e veracidade
 
-O pedido e a resposta de um Human Gate permanecem numa única conversa
-coordenadora que contenha o resumo integral e vigente. A decisão continua
-humana e deve ser registrada na memória oficial; a conversa não a substitui.
+Cada rota registra internamente:
 
-## 2. Avaliação de paralelismo
+- ID e chave de deduplicação;
+- origem e destino;
+- rota;
+- projeto, versão do corpus e baseline;
+- objetivo e escopo;
+- horário e ferramenta;
+- resultado factual da ferramenta;
+- estado atual e cursor quando aplicável.
 
-A avaliação de paralelismo é independente do roteamento da conversa principal.
-Todo handoff governado deverá usar exatamente um destes valores:
+`CONTINUE_CURRENT` usa um registro local factual no plano e não inventa
+ferramenta ou receipt. `DELEGATE_SUBAGENT`, `RETURN_TO_EXISTING` e
+`START_NEW_AUTO_DISPATCH` exigem confirmação factual da ferramenta. Nunca
+declarar criação, envio, retomada ou conclusão sem a evidência correspondente.
+Resultado incerto de ferramenta exige reconciliação antes de retry. A mesma
+chave de deduplicação identifica o mesmo intento lógico e impede envio
+duplicado.
+
+## 3. Payload interno obrigatório
+
+Todo despacho contém:
+
+1. projeto e workspace autorizado;
+2. baseline e versão do corpus;
+3. estado, lote ou validação proprietária;
+4. objetivo exclusivo e resultado esperado;
+5. autoridade vigente;
+6. escopo positivo;
+7. escopo negativo e trabalho protegido;
+8. dependências congeladas;
+9. paths, artefatos e recursos com ownership exclusivo;
+10. entradas somente leitura;
+11. ações proibidas;
+12. checks, evidência e critérios de aceite;
+13. condições de parada e rollback;
+14. formato estruturado de retorno.
+
+O payload é enviado diretamente. Não é exibido como texto para o proprietário
+copiar ou encaminhar.
+
+## 4. Avaliação de paralelismo
+
+Usar exatamente um valor:
 
 - `SEQUENTIAL_ONLY`
 - `PARALLEL_OPTIONAL`
 - `PARALLEL_RECOMMENDED`
 
-### `SEQUENTIAL_ONLY`
-
-Usar quando houver dependência entre tarefas, arquivos ou recursos
-compartilhados, contrato instável, decisão humana pendente, isolamento
-insuficiente, runtime comum ou risco de conflito.
-
-Trabalho com runtime ou processos DB-Notifier é `SEQUENTIAL_ONLY` por padrão
-devido ao shutdown preflight. Uma exceção exige plano único, isolamento
-comprovado e autoridade explícita que sejam compatíveis com o preflight.
-
-### `PARALLEL_OPTIONAL`
-
-Usar quando as tarefas forem independentes, mas o ganho esperado for pequeno
-ou o custo de coordenação puder superar o benefício.
-
-### `PARALLEL_RECOMMENDED`
-
-Usar somente quando existirem duas ou mais tarefas realmente independentes,
-limitadas, verificáveis e com ganho material de tempo ou especialização.
-
-Usar o menor número útil de conversas. Na dúvida, usar `SEQUENTIAL_ONLY`.
-
-### Envelope, topologia e recursos da execução
-
-Antes de qualquer implementação, a coordenadora fecha um envelope versionado
-com autoridade, baseline, estado, objetivo, escopos positivo e negativo,
-trabalho protegido, contratos e dependências, ownership, recursos mutáveis,
-checks, revisores, evidência, rollback e condições de parada. Trabalho amplo
-mantém também o `../../PLANS.md` vivo. Nenhum dos dois concede autoridade.
-
-O envelope usa exatamente uma topologia operacional:
-
-- `SAFE_PARALLEL`: lanes independentes e somente leitura ou totalmente
-  isoladas, sem contrato ou recurso mutável compartilhado;
-- `CONTRACT_FROZEN_PARALLEL`: contratos e dependências foram congelados antes
-  de lanes isoladas com write sets disjuntos;
-- `SINGLE_OWNER`: uma única conversa escreve o conjunto coerente enquanto
-  lanes auxiliares permanecem read-only;
-- `SEQUENTIAL_ONLY`: dependência, runtime, gate, decisão, isolamento ou risco
-  exige ordem estrita.
-
-A topologia não substitui `Parallel work`. O handoff continua aceitando apenas
-`SEQUENTIAL_ONLY`, `PARALLEL_OPTIONAL` ou `PARALLEL_RECOMMENDED`; as duas
-classificações devem ser coerentes. Sem autorização específica de branches e
-worktrees, qualquer topologia com análise paralela conserva `SINGLE_OWNER` ou
-writers sequenciais na coordenadora.
-
-Cada artefato é classificado como `AUTHORITY`, `CURRENT_FACT`, `HISTORY`,
-`EVIDENCE`, `PLAN`, `IMPLEMENTATION` ou `GENERATED`. Cada recurso mutável —
-arquivo, contrato, schema, migration, lockfile, branch, worktree, banco,
-índice, porta, processo, runtime, temporário, cache, output ou recurso externo
-— possui um único owner. A classificação não reduz a proteção da fonte
-proprietária nem permite edição manual de artefato gerado ou histórico.
-
-Usar stop codes canônicos nos bloqueios operacionais:
-
-- `AUTHORITY_MISMATCH`: autoridade ausente, conflitante ou insuficiente;
-- `BASELINE_DRIFT`: branch, commit, worktree ou contrato divergiu da baseline;
-- `SCOPE_OVERLAP`: path, artefato, requisito ou writer sobrepõe outro escopo;
-- `DEPENDENCY_UNREADY`: ferramenta, contrato, pacote ou entrada obrigatória
-  não está pronta;
-- `ISOLATION_FAILURE`: worktree, processo, porta, banco, cache ou output não
-  pode ser isolado;
-- `MUTABLE_RESOURCE_COLLISION`: duas atividades atingem o mesmo recurso;
-- `GATE_FAILURE`: check obrigatório produziu falha factual;
-- `EXTERNAL_AUTHORITY_REQUIRED`: ação externa exige autorização própria;
-- `HUMAN_DECISION_REQUIRED`: ADR, Human Gate ou outra decisão humana permanece
-  pendente.
-
-Stop code preserva a causa original, impede retry corretivo silencioso e não
-autoriza descarte, ampliação de escopo ou substituição de evidência.
-
-## 3. Contrato do handoff governado
-
-Todo handoff governado deverá apresentar exatamente estes 14 campos, nesta
-ordem. O rótulo visível fica em `pt-BR`; a chave canônica inglesa permanece
-entre parênteses para validação técnica:
-
-```text
-Situação (`Status`):
-Concluído (`Completed`):
-Restante para este objetivo (`Remaining for this target`):
-Próximo passo (`Next step`):
-Próxima etapa (`Next stage`):
-Sua ação agora (`Your action now`):
-Ação da conversa (`Conversation action`):
-Destino da conversa (`Conversation target`):
-Título sugerido (`Suggested title`):
-Motivo da conversa (`Conversation reason`):
-Próxima mensagem exata (`Exact next message`):
-Trabalho paralelo (`Parallel work`):
-Plano paralelo (`Parallel plan`):
-Mensagens paralelas exatas (`Exact parallel messages`):
-```
-
-### Recomendação obrigatória de raciocínio do Codex
-
-Em todo handoff real, `Sua ação agora` (`Your action now`) deverá começar com
-exatamente uma recomendação para a próxima interação, no seguinte formato:
-
-```text
-Raciocínio recomendado do Codex: <nível> (`<identificador técnico>`). Motivo: <razão específica>.
-```
-
-Usar somente o catálogo abaixo:
-
-| Nível apresentado ao proprietário | Nome em superfícies gráficas do Codex | `model_reasoning_effort` | Uso orientativo |
-|---|---|---|---|
-| `Leve` | `Light` | `low` | Tarefa rápida, determinística e bem delimitada, como consulta factual estável, status, encerramento seguro ou inspeção focal de baixo risco. |
-| `Médio` | `Medium` | `medium` | Opção equilibrada para a maioria das tarefas focais, com requisitos claros, algum planejamento e validação moderada. |
-| `Alto` | `High` | `high` | Implementação, diagnóstico ou revisão não trivial, com lógica complexa, múltiplos componentes, premissas ou edge cases relevantes. |
-| `Extra alto` | `Extra High` | `xhigh` | Trabalho difícil, longo ou multietapas, como integração, segurança, arquitetura ou auditoria que exija várias fontes, trade-offs e rechecagem. |
-| `Máximo` | `Max` | `max` | Problema excepcionalmente difícil tratado como uma única tarefa, quando profundidade importa mais que tempo ou tokens e não há decomposição independente útil. |
-| `Ultra` | `Ultra` | `ultra` | Tarefa grande e complexa divisível em frentes significativas e independentes, quando subagentes trazem ganho material e a superfície, o modelo e a conta são elegíveis. |
-
-Selecionar o menor esforço suficiente para o objetivo seguinte. Maior esforço
-pode aumentar tempo e consumo de tokens e não garante, por si só, melhor
-resultado. Reavaliar o nível a cada handoff; não transportar automaticamente a
-recomendação da conversa atual para outra conversa ou lane.
-
-A disponibilidade dos níveis depende da superfície, do modelo e da conta. Não
-afirmar que um nível está disponível, selecionado ou aplicado sem evidência da
-superfície vigente. Quando a opção ideal puder estar indisponível, declarar na
-mesma orientação um fallback proporcional, sem transformar uma faixa de níveis
-em recomendação principal.
-
-A recomendação é consultiva e independente de `Conversation action`, `Parallel
-work`, escopo, autoridade, ownership, preflight, Quality Gates, revisão humana,
-ADR, Human Gate, `ActivationState` e lifecycle. `Ultra` não cria trabalho
-paralelo autorizado, e `PARALLEL_RECOMMENDED` não exige `Ultra`. Sob
-`SEQUENTIAL_ONLY`, nenhuma escolha permite writers concorrentes; eventuais
-subagentes permanecem somente leitura e a integração continua central quando
-essas atividades forem permitidas.
-
-Em plano paralelo, indicar separadamente o nível da coordenadora e de cada
-lane. Cada mensagem governada de conversa auxiliar deverá repetir, antes dos 19
-campos existentes, a recomendação e a razão específicas daquela lane em uma
-frase de preâmbulo não canônica, que não cria campo adicional.
-
-Esta matriz aplica a orientação oficial de usar o menor esforço suficiente e
-preserva a distinção entre profundidade individual e decomposição com
-subagentes. Referências oficiais vigentes na adoção:
-[configuração de modelos do Codex](https://learn.chatgpt.com/docs/models) e
-[subagentes do Codex](https://learn.chatgpt.com/docs/agent-configuration/subagents).
-
-`Próxima mensagem exata` (`Exact next message`) deve conter sempre uma única
-mensagem completa, específica, preenchida, em `pt-BR` e pronta para o
-proprietário copiar e enviar literalmente na conversa indicada. Essa obrigação
-permanece quando o objetivo estiver concluído, parcial ou bloqueado e quando
-nenhuma ação adicional de projeto for conhecida.
-
-O valor de `Exact next message` deve aparecer dentro de exatamente um bloco de
-código Markdown cercado rotulado como `text`. O rótulo do campo fica
-imediatamente antes e fora do bloco; o bloco contém somente a mensagem que será
-copiada, sem título, explicação, alternativa ou orientação adicional.
-
-Esse campo nunca aceita valor vazio, placeholder, lista de alternativas,
-sugestão abstrata ou
-``Não se aplica (`None`) — nenhuma mensagem é necessária``. Quando não houver
-ação adicional de projeto, fornecer uma mensagem segura de confirmação ou
-encerramento que declare expressamente não autorizar nova ação.
-
-A mensagem deverá ser coerente com `Próximo passo` (`Next step`),
-`Sua ação agora` (`Your action now`), `Ação da conversa`
-(`Conversation action`) e `Destino da conversa` (`Conversation target`).
-`Sua ação agora` deverá orientar o proprietário a copiar e enviar essa
-mensagem e explicar o resultado esperado, depois da recomendação de raciocínio
-obrigatória.
-
-Uma mensagem pronta para copiar não constitui decisão do proprietário antes de
-ser efetivamente enviada e nunca presume, fabrica ou amplia aprovação,
-autoridade, Human Gate, ADR, `ActivationState`, lifecycle, operação Git ou ação
-externa. Quando uma decisão formal ainda estiver pendente, a mensagem solicita
-a apresentação ou revisão do pacote decisório; ela somente expressa um
-resultado de decisão quando o proprietário já o tiver escolhido
-inequivocamente no contexto vigente.
-
-Quando `START_NEW` for escolhido e o proprietário for orientado a copiar o
-título sugerido, o valor do título deverá ocupar um bloco `text` próprio, sem se
-misturar à mensagem exata. Quando `START_NEW` não for escolhido, `Título
-sugerido` (`Suggested title`)
-deve começar por ``Não se aplica (`None`) —`` e declarar concretamente por que
-não há título novo. Um título sugerido nunca é apresentado como título
-existente.
-
-Quando houver mensagens paralelas ou de retorno prontas para copiar, cada
-payload deverá ocupar seu próprio bloco `text`, precedido fora do bloco pela
-identificação da lane ou do destino. Um valor governado `None` não é payload
-para copiar e permanece fora de uma caixa de cópia.
-
-Quando o trabalho for sequencial:
-
-- `Plano paralelo` (`Parallel plan`) deve começar por
-  ``Não se aplica (`None`) —`` e conter a razão concreta;
-- `Mensagens paralelas exatas` (`Exact parallel messages`) deve ser
-  ``Não se aplica (`None`) — o trabalho paralelo não é recomendado``.
-
-Placeholders podem existir somente nos templates normativos. Nenhum placeholder
-pode permanecer num handoff, plano ou mensagem real.
-
-## 4. Plano paralelo obrigatório
-
-Um plano paralelo deverá possuir:
-
-1. uma única conversa coordenadora identificada por título ou label confirmado
-   pelo proprietário ou, na orquestração interna, por identificador canônico
-   fornecido pela plataforma;
-2. baseline comum identificada pela versão do corpus e, quando existir, commit
-   ou hash;
-3. lanes ou workstreams numerados;
-4. objetivo e resultado esperado de cada lane;
-5. nível de raciocínio recomendado para a coordenadora e para cada lane, com
-   razão específica;
-6. dependências congeladas, acíclicas e explicitadas;
-7. ownership exclusivo de paths, artefatos lógicos e recursos mutáveis;
-8. inputs compartilhados somente leitura;
-9. arquivos, recursos e ações proibidos para cada lane;
-10. checks e evidências esperadas;
-11. condições objetivas de parada;
-12. mensagem completa para iniciar cada conversa worker;
-13. mensagem de retorno pronta para copiar à coordenadora;
-14. ordem determinística de integração;
-15. checks transversais após a integração;
-16. fallback explícito para execução sequencial.
-
-Sem identificação confiável da coordenadora, baseline estável, ownership
-exclusivo ou fallback sequencial, o trabalho é `SEQUENTIAL_ONLY`. Somente um
-título ou label confirmado pelo proprietário permite `RETURN_TO_EXISTING`.
-
-## 5. Ownership exclusivo e isolamento
-
-Deve existir somente um writer para cada:
-
-- arquivo ou diretório;
-- contrato ou schema;
-- migration;
-- lockfile;
-- manifesto;
-- solution ou project file;
-- configuração ou pipeline;
-- banco, índice ou corpus mutável;
-- porta, processo ou runtime;
-- temporário, cache ou output de build;
-- recurso externo;
-- artefato lógico compartilhado.
-
-O ownership usa a menor granularidade segura. Se uma lane possuir um diretório,
-nenhuma outra lane poderá escrever num descendente. Artefatos logicamente
-acoplados continuam indivisíveis mesmo quando atravessam vários paths.
-
-Estado, histórico, changelog do corpus, ADRs, relatórios e decisões de gate,
-decisões permanentes e integração pertencem exclusivamente à conversa
-coordenadora. Inputs compartilhados por workers permanecem somente leitura.
-
-Uma worker concluída entrega apenas um candidato para integração. Ela não
-declara o lote, estado, gate ou projeto como concluído.
-
-## 6. Git, branches, worktrees e recursos mutáveis
-
-Trabalho paralelo de escrita somente é elegível quando todas estas condições
-forem satisfeitas:
-
-1. o repositório estiver rastreado por Git;
-2. o proprietário tiver autorizado especificamente o workflow paralelo e as
-   operações Git necessárias ao lote;
-3. cada writer usar branch própria e worktree isolado próprio;
-4. os write sets permanecerem sem sobreposição;
-5. portas, processos, bancos, índices, temporários, caches e outputs estiverem
-   isolados quando aplicável.
-
-Git existente e a autorização permanente de commit local final não autorizam
-branch, worktree, merge ou rebase. Branches diferentes no mesmo worktree não
-constituem isolamento.
-
-Sem workflow paralelo de escrita especificamente autorizado, conversas
-simultâneas podem executar somente análise, pesquisa, revisão e auditoria
-read-only. Toda alteração de arquivo ocorre sequencialmente na conversa
-coordenadora.
-
-Merge, rebase e qualquer outra operação de integração Git somente podem ser
-executados pela coordenadora quando tiverem autoridade explícita própria.
-Nenhuma autorização de workflow implica push, publicação, deploy, consumo pago
-ou alteração externa.
-
-## 7. Responsabilidades das workers
-
-Cada conversa worker deverá:
-
-- reler as instruções aplicáveis;
-- confirmar baseline, autoridade e ownership antes de agir;
-- trabalhar somente dentro da sua lane;
-- aplicar least privilege;
-- não integrar outras lanes;
-- não atualizar estado, histórico ou changelog;
-- não aceitar nem alterar ADR;
-- não promover lifecycle ou ativação;
-- não solicitar, confirmar ou registrar Human Gate;
-- não executar ação externa não autorizada;
-- informar arquivos, artefatos, recursos, checks, limitações e riscos;
-- produzir uma mensagem exata de retorno para a coordenadora em um bloco
-  `text` próprio.
-
-## 8. Condições obrigatórias de parada
-
-A worker deverá parar antes de continuar quando detectar:
-
-- arquivo, artefato ou recurso com ownership sobreposto;
-- baseline alterada ou desatualizada;
-- mudança concorrente inesperada;
-- dependência ainda não integrada;
-- contrato ou schema instável;
-- colisão de porta, processo, banco, índice, cache, output ou runtime;
-- decisão humana pendente;
-- necessidade de ampliar escopo ou autoridade;
-- falha de isolamento;
-- conflito de integração;
-- ação potencialmente irreversível.
-
-Não utilizar last-write-wins, sobrescrita automática ou reversão de trabalho
-alheio. A frente afetada deve ser preservada e retomada sequencialmente a partir
-da última baseline validada. Essa retomada não autoriza reset, checkout
-destrutivo, revert ou descarte de trabalho.
-
-## 9. Responsabilidades da conversa coordenadora
-
-A coordenadora deverá:
-
-- manter escopo, autoridade e baseline;
-- validar o plano antes de abrir workers;
-- congelar dependências e ownership;
-- integrar uma entrega por vez, na ordem definida;
-- inspecionar cada resultado e resolver conflitos centralmente;
-- executar checks locais após cada integração;
-- executar todos os checks transversais sobre o resultado combinado;
-- atualizar estado, histórico e relatórios uma única vez;
-- apresentar Human Gate somente após integração e auditoria consolidadas.
-
-Custódia e integração não concedem autoridade decisória. A coordenadora não
-aceita ADR, não decide Human Gate e não promove lifecycle ou ativação em nome do
-proprietário.
-
-## 10. Mensagens governadas de conversa auxiliar
-
-Cada mensagem paralela exata (`Exact parallel message`) real deverá começar
-pela seguinte frase de preâmbulo não canônica, preenchida sem placeholders:
-
-```text
-Para esta lane, recomenda-se usar o raciocínio <nível> (`<identificador técnico>`) do Codex porque <razão específica>.
-```
-
-Essa frase não é um campo do contrato. Em seguida, a mensagem deverá conter os
-19 campos existentes:
-
-```text
-Projeto:
-Espaço de trabalho (`Workspace`):
-Frente de trabalho (`Lane`):
-Rótulo da conversa:
-Conversa coordenadora confirmada:
-Base (`Baseline`):
-Estado/validação/lote:
-Autoridade vigente:
-Objetivo exclusivo:
-Pré-condições:
-Dependências congeladas:
-Escrita exclusiva permitida ou somente leitura:
-Entradas somente leitura:
-Arquivos e ações proibidos:
-Verificações:
-Resultado esperado:
-Condições de parada:
-Ordem de integração:
-Formato da mensagem de retorno:
-```
-
-A mensagem de retorno deverá identificar a frente, a base efetivamente usada,
-a situação, o candidato produzido, os arquivos, artefatos e recursos tocados,
-as verificações e evidências, as limitações, os riscos, as condições de parada
-acionadas e a mensagem exata que deve ser enviada à coordenadora.
-
-## 11. Documentação, validação e gates
-
-[`Templates.md`](../templates/Templates.md) é
-proprietário dos formatos reutilizáveis.
-[`Quality-Gates.md`](Quality-Gates.md) é
-proprietário dos critérios de verificação. Esses documentos especializam esta
-autoridade sem criar uma segunda política.
-
-Após mudanças de coordenação, executar auditoria proporcional que cubra:
-
-- inventário de arquivos;
-- links locais;
-- UTF-8, LF, newline final e trailing whitespace;
-- consistência dos enums e campos;
-- ausência de placeholders em handoffs e mensagens reais;
-- segurança, ausência de secrets e sanitização;
-- autoridade, escopo positivo e escopo negativo;
-- baseline, ownership e isolamento;
-- coerência entre versão, estado, histórico e relatório;
-- revisão semântica independente sobre baseline congelada;
-- confirmação de que paralelismo não altera lifecycle, ADRs ou Human Gates.
-
-Não declarar aprovação até os checks aplicáveis passarem. Uma falha de gate
-interrompe a integração e é relatada factualmente; não autoriza correção fora do
-escopo.
-
-## 12. Controle de mudanças desta política
-
-Antes de modificar esta autoridade ou a sua integração no corpus:
-
-1. ler as instruções aplicáveis, entrada, governança, estado, histórico,
-   templates, Quality Gates, ADRs e documentação relacionada;
-2. identificar conflitos, duplicações e documentos proprietários;
-3. apresentar arquivos, finalidade, autoridade temática, ordem, versão e
-   riscos;
-4. obter a autoridade exigida antes da escrita;
-5. atualizar changelog, estado e histórico somente quando a mudança ocorrer;
-6. preservar segurança, Human Gates, ADRs e limites de autoridade.
-
-O handoff da mudança deverá apresentar arquivos alterados, política adotada,
-situações paralelas e sequenciais, limitações, checks, riscos residuais,
-recomendação de conversa, recomendação de paralelismo e mensagens exatas.
+`SEQUENTIAL_ONLY` aplica-se quando houver dependência, contrato instável,
+writer ou recurso compartilhado, runtime comum, gate, isolamento insuficiente
+ou risco de conflito. Trabalho com runtime DB-Notifier é sequencial por padrão.
+
+`PARALLEL_OPTIONAL` aplica-se a frentes independentes cujo ganho esperado seja
+pequeno. `PARALLEL_RECOMMENDED` exige duas ou mais frentes independentes,
+limitadas, verificáveis e com ganho material.
+
+Usar o menor número útil de agentes. Maior quantidade não constitui progresso
+nem consenso.
+
+## 5. Envelope, topologia e recursos
+
+Antes de implementação, a coordenadora fecha envelope versionado com
+autoridade, baseline, objetivo, escopos, trabalho protegido, contratos,
+ownership, recursos, checks, revisores, evidência, rollback e stop conditions.
+Trabalho amplo mantém `PLANS.md` vivo. Nenhum deles substitui autoridade.
+
+Usar uma topologia:
+
+- `SAFE_PARALLEL`: lanes read-only ou totalmente isoladas;
+- `CONTRACT_FROZEN_PARALLEL`: contratos congelados e write sets disjuntos;
+- `SINGLE_OWNER`: um writer e lanes auxiliares read-only;
+- `SEQUENTIAL_ONLY`: ordem estrita.
+
+Cada artefato é `AUTHORITY`, `CURRENT_FACT`, `HISTORY`, `EVIDENCE`, `PLAN`,
+`IMPLEMENTATION` ou `GENERATED`. Cada arquivo, contrato, schema, migration,
+lockfile, branch, worktree, banco, índice, porta, processo, runtime, temporário,
+cache, output ou recurso externo possui um único owner.
+
+## 6. Stop codes e disposições
+
+Usar stop codes factuais:
+
+- `AUTHORITY_MISMATCH`
+- `BASELINE_DRIFT`
+- `SCOPE_OVERLAP`
+- `DEPENDENCY_UNREADY`
+- `ISOLATION_FAILURE`
+- `MUTABLE_RESOURCE_COLLISION`
+- `GATE_FAILURE`
+- `EXTERNAL_AUTHORITY_REQUIRED`
+- `EXTERNAL_PREREQUISITE`
+- `BLOCKED_BY_HIGHER_AUTHORITY`
+
+Estados de decisão e conclusão:
+
+- `AGENT_DECIDED`
+- `AUTOMATED_GATE_PASS`
+- `AUTOMATED_GATE_FAIL`
+- `LOCAL_COMPLETE`
+- `EXTERNAL_PREREQUISITE`
+- `BLOCKED_BY_HIGHER_AUTHORITY`
+
+Stop code preserva a primeira causa factual, não autoriza descarte ou ampliação
+de escopo e não converte `FAIL`, `BLOCKED`, `PARTIAL` ou `NOT_RUN` em `PASS`.
+
+## 7. Ownership e Git
+
+Somente um writer pode possuir cada boundary. Ownership de diretório exclui
+outro writer em qualquer descendente. Artefatos logicamente acoplados continuam
+indivisíveis mesmo quando atravessam vários paths.
+
+Estado, histórico, changelog, ADRs, relatórios, Agent Gates e integração
+pertencem à coordenadora. Inputs compartilhados por workers são read-only.
+
+Escrita paralela exige Git rastreado, workflow autorizado, branch e worktree
+isolados por writer, write sets disjuntos e isolamento de recursos. Sem essas
+condições, agentes paralelos são read-only e a coordenadora escreve
+sequencialmente. Nenhuma autorização local implica push, publicação ou deploy.
+
+## 8. Responsabilidades dos workers
+
+Cada worker:
+
+- relê as instruções aplicáveis;
+- confirma baseline, autoridade, ownership e negative scope;
+- trabalha somente na lane;
+- aplica least privilege;
+- não integra outras lanes;
+- não atualiza estado, histórico ou changelog;
+- não altera decisão permanente;
+- não executa ação externa não autorizada;
+- entrega candidato, arquivos, recursos, checks, evidência, limitações e riscos.
+
+Uma worker não declara lote, gate, estado ou projeto como concluído.
+
+## 9. Condições de parada
+
+A frente afetada para diante de ownership sobreposto, baseline drift, mudança
+concorrente, dependência não integrada, contrato instável, colisão de recurso,
+falha de isolamento, conflito de integração, risco destrutivo ou autoridade
+superior. Preservar o estado e continuar qualquer trabalho independente seguro.
+
+Não usar last-write-wins, reset, checkout destrutivo, sobrescrita automática ou
+reversão de trabalho alheio.
+
+## 10. Responsabilidades da coordenadora
+
+A coordenadora:
+
+- mantém objetivo, escopo, autoridade e baseline;
+- congela dependências, ownership e recursos;
+- despacha e acompanha workers;
+- integra uma entrega por vez;
+- executa checks locais e transversais;
+- decide ADRs locais e lifecycle após `AUTOMATED_GATE_PASS`;
+- registra fatos uma única vez;
+- continua automaticamente para o próximo lote seguro.
+
+## 11. Fallback de despacho
+
+Se uma rota ou ferramenta estiver indisponível:
+
+1. continuar na tarefa atual;
+2. delegar subagente interno;
+3. retornar a tarefa existente confirmada;
+4. manter o trabalho na fila coordenada;
+5. registrar `EXTERNAL_PREREQUISITE` somente quando nenhuma continuação segura
+   for tecnicamente possível.
+
+A indisponibilidade nunca produz texto para o proprietário copiar.
+
+## 12. Agent Gate e revisão independente
+
+Cada candidato recebe revisão independente proporcional ao risco, com achados
+`P0`–`P3`. `PASS` exige zero `P0` e zero `P1`, todos os checks obrigatórios em
+`PASS`, baseline exata, evidência sanitizada e rollback adequado. Risco elevado
+de arquitetura, segurança, persistência ou compatibilidade recebe segunda
+revisão independente.
+
+Human Gates anteriores permanecem história. O Agent Gate atual não os apaga,
+ratifica ou reinterpreta.
+
+## 13. Limites destrutivos e externos
+
+Despacho não cria autoridade. Uma mutação local destrutiva exige Automated
+Safety Gate com alvo exato e resolvido, rejeição de raiz/home/caminho amplo,
+variável, glob ou identificador não resolvido, WIP preservado, checkpoint,
+rollback, ausência de alternativa mais segura, necessidade objetiva e revisão
+independente.
+
+Ação externa exige cumulativamente autoridade aplicável, credencial existente
+e atualmente válida por mecanismo seguro, conta e ambiente exatos, ferramenta
+disponível e apta, limite de custo aplicável, critério de sucesso e verificação
+segura ou reversão. A falta de qualquer item aciona fallback local e, somente
+quando nada material restar, `EXTERNAL_PREREQUISITE`.
+
+## 14. Comunicação com o proprietário
+
+Comunicar somente o resultado consolidado ou uma dependência externa inevitável
+quando não houver progresso material possível. A comunicação usa `pt-BR` e
+informa fatos, validações, limitações e riscos; não pede preferência técnica,
+aprovação rotineira, navegação, criação de tarefa ou encaminhamento de payload.
+
+## 15. Validação e mudança desta política
+
+Após alteração, validar:
+
+- versão, links e fontes proprietárias;
+- ausência de requisitos de copy-and-paste;
+- rotas, receipts, deduplicação e fallback;
+- ownership, isolamento e stop codes;
+- estados de Agent Gate;
+- preservação de autenticação/RBAC do produto, segurança, clean-room, histórico
+  e limites externos;
+- revisão semântica independente.
+
+Uma falha interrompe a integração e permanece factual. Mudanças desta política
+atualizam o changelog e o estado factual apenas depois do fato, sem reescrever
+evidência anterior.

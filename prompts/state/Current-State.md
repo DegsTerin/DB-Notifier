@@ -1,6 +1,6 @@
 # Estado Atual
 
-Este documento é o snapshot factual vigente do workspace em 2026-08-28. Ele
+Este documento é o snapshot factual vigente do workspace em 2026-08-30. Ele
 não concede autoridade de execução. A evolução, os resultados substituídos e
 as decisões tomadas no seu contexto original permanecem no
 [`State-Transition-Log.md`](State-Transition-Log.md) e nos relatórios
@@ -49,16 +49,16 @@ proprietários.
 
 ## Sistema de instruções e coordenação
 
-- O corpus vigente é `8.0.0`, com 16 arquivos ativos. A
+- O corpus vigente é `9.0.0`, com 16 arquivos ativos. A
   [Política de Idioma](../governance/Language-Policy.md), revisão `1.0.0`, é a
   autoridade temática única para comunicação com o proprietário, idioma dos
   artefatos, preservação de conteúdo existente, convenções externas e
   separação do idioma da interface.
 - A
   [Coordenação de Conversas e Trabalho Paralelo Seguro](../governance/Conversation-Coordination-Prompt.md),
-  revisão `1.4.1`, é a autoridade temática de roteamento, handoff,
-  recomendação de raciocínio do Codex, paralelismo, ownership exclusivo e
-  integração coordenada. As duas
+  revisão `2.0.0`, é a autoridade temática de despacho automático, receipts,
+  deduplicação, fallback, paralelismo, ownership exclusivo e integração
+  coordenada. As duas
   autoridades ficam em `prompts/governance/`; `Governance.md` conserva
   autoridade, execução controlada e lifecycle.
 - O
@@ -83,31 +83,28 @@ proprietários.
   idioma estabelecido de cada arquivo; convenções externas permanecem
   inalteradas. Nenhuma migração linguística geral ou alteração de locale da
   interface está autorizada.
-- Todo handoff, concluído, parcial ou bloqueado, fornece uma única mensagem
-  completa, específica, preenchida, em `pt-BR` e pronta para copiar e enviar na
-  conversa indicada. Seu valor aparece sozinho em exatamente um bloco de código
-  Markdown cercado e rotulado `text`, com rótulo e explicações fora da caixa.
-  Todo outro payload apresentado expressamente para copiar, como título
-  sugerido, mensagem de lane ou mensagem de retorno, usa um bloco separado.
-  `Exact next message` não aceita `None`, placeholder ou alternativas; quando
-  não houver ação adicional de projeto, a mensagem confirma ou encerra com
-  segurança e declara não autorizar nova ação. Uma mensagem pronta não constitui
-  decisão antes de ser enviada nem presume aprovação, Human Gate, ADR,
-  `ActivationState`, lifecycle, operação Git ou ação externa.
-- Todo handoff preserva os 14 campos existentes e começa `Your action now` com
-  exatamente uma recomendação para a próxima interação: `Leve` (`low`),
-  `Médio` (`medium`), `Alto` (`high`), `Extra alto` (`xhigh`), `Máximo`
-  (`max`) ou `Ultra` (`ultra`), acompanhada de uma razão específica. A escolha
-  usa o menor esforço suficiente, é reavaliada por conversa e lane e não
-  comprova disponibilidade, seleção ou aplicação. Os planos paralelos indicam
-  um nível para a coordenadora e para cada lane; mensagens auxiliares repetem a
-  orientação numa frase de preâmbulo não canônica antes dos 19 campos
-  preservados, sem criar campo adicional.
-- Uma única conversa coordenadora conserva escopo, baseline e integração e
-  mantém sob sua custódia estado, histórico, changelog, ADRs, relatórios e
-  decisões de gate e apresentação de Human Gates. Essa custódia não transfere
-  a decisão humana ou arquitetural nem concede autoridade de lifecycle,
-  ativação, operação Git ou ação externa.
+- Human Gates de desenvolvimento, navegação manual e handoffs para copiar e
+  colar estão prospectivamente supersedidos. Os seus resultados históricos
+  continuam fatos do contexto original; nenhuma decisão humana antiga é
+  reatribuída, apagada ou reinterpretada.
+- Todo próximo trabalho usa `CONTINUE_CURRENT`, `DELEGATE_SUBAGENT`,
+  `RETURN_TO_EXISTING` ou `START_NEW_AUTO_DISPATCH`. A coordenadora despacha
+  diretamente pela ferramenta disponível e registra ID, origem, destino,
+  baseline, objetivo, chave de deduplicação, horário, resultado factual,
+  receipt/cursor e estado. Resultado incerto é reconciliado antes de retry; a
+  indisponibilidade de rota aciona fallback interno e nunca cria tarefa de
+  copiar/colar para o proprietário.
+- Decisões locais de arquitetura, planejamento, implementação, revisão,
+  documentação, integração e lifecycle usam Agent Gate objetivo. Um
+  `AUTOMATED_GATE_PASS` exige baseline exata, todos os checks obrigatórios em
+  `PASS`, evidência reconciliada e revisão independente com zero `P0`/`P1`.
+  Caso contrário, registra-se `AUTOMATED_GATE_FAIL`,
+  `EXTERNAL_PREREQUISITE` ou `BLOCKED_BY_HIGHER_AUTHORITY`, conforme o fato.
+- Uma única tarefa coordenadora conserva escopo, baseline e integração e
+  mantém sob sua custódia estado, histórico, changelog, ADRs, relatórios,
+  receipts e decisões de Agent Gate. A coordenadora decide o trabalho local
+  depois dos critérios objetivos; a custódia não concede credencial,
+  autoridade destrutiva insegura, licenciamento, ação externa ou produção.
 - Nenhum workflow de escrita paralela com branches e worktrees isolados está
   autorizado neste snapshot. Conversas simultâneas permanecem read-only e toda
   escrita ocorre sequencialmente na coordenadora; a existência de Git e a
@@ -119,8 +116,9 @@ proprietários.
   ADRs e gates conservam seus owners temáticos.
 - O envelope fechado usa as topologias `SAFE_PARALLEL`,
   `CONTRACT_FROZEN_PARALLEL`, `SINGLE_OWNER` ou `SEQUENTIAL_ONLY`, classes de
-  artefato e stop codes canônicos. O handoff continua com exatamente 14
-  campos e com seus enums anteriores de roteamento e paralelismo.
+  artefato e stop codes canônicos. O payload interno registra objetivo,
+  escopos, ownership, recursos, checks, stop conditions e formato de retorno;
+  ele é entregue diretamente, sem título ou mensagem para o proprietário.
 - `scripts/development.ps1` é o entry point local canônico com `Doctor`,
   `Setup`, `Quick`, `Full`, `-Offline` e `-PlanOnly`. `Quick` é `NON_GATE`;
   `Full` delega uma vez a `scripts/ci.ps1`. A workflow GitHub usa o mesmo
@@ -132,9 +130,10 @@ proprietários.
   overrides ASP.NET e credenciais de provider herdados. O shell chamador não é
   alterado e campanhas físicas continuam exigindo seus runners e autoridades
   próprias.
-- A adoção desta governança não altera `STATE-06 INTEGRATION`, elegibilidade,
-  `MOD-12 ActivationState=None`, ADRs, Human Gates, produto, interface,
-  runtime ou autoridade externa.
+- A adoção desta governança não altera retroativamente `STATE-06 INTEGRATION`,
+  elegibilidade, `MOD-12 ActivationState=None`, ADRs, Human Gates históricos,
+  produto, interface, runtime ou autoridade externa. Ela substitui somente o
+  processo prospectivo de decisão e continuidade local.
 
 ## Baseline técnica
 
@@ -697,14 +696,17 @@ proprietários.
   foi preparado em 2026-07-29 sobre a baseline administrativa `2a59548` e
   está `PENDENTE DE REVISÃO`. Ele ordena o trabalho futuro como
   `PC-M12-02 → PC-M12-03 → PC-M12-01 → PC-M12-04` e o decompõe em
-  `M12-IC1`–`M12-IC6`. Nenhum desses lotes, gate ou amostra humana está
-  autorizado; o plano não altera qualquer resultado técnico.
+  `M12-IC1`–`M12-IC6`. Nenhum desses lotes foi executado. O plano não altera
+  qualquer resultado técnico; sob o corpus `9.0.0`, a coordenadora deve
+  reconciliar a baseline e decidir um incremento local por vez antes de agir.
 
-## Decisões que exigem nova autoridade
+## Autonomia local e pré-requisitos de autoridade superior
 
-- Cada incremento que implemente uma saída `MN-*`/`MN-Q*` ainda exige envelope,
-  baseline, escopo, checks e autoridade técnica próprios; a matriz ativa não
-  autoriza implementação em massa, provider, runtime ou transição de lifecycle.
+- Cada incremento que implemente uma saída `MN-*`/`MN-Q*` exige envelope,
+  baseline, escopo, checks e Agent Gate próprios. A coordenadora pode decidir
+  e executar o próximo incremento local coerente; a matriz ativa não autoriza
+  implementação em massa, acesso clean-room, provider externo, runtime real ou
+  produção por inferência.
 - Copiar, traduzir, adaptar, linkar ou redistribuir código-fonte, binários,
   ativos, texto, trade dress ou arquitetura interna Oracle/MySQL exige decisão
   explícita e separada de licenciamento/distribuição, proveniência exata do
@@ -712,29 +714,30 @@ proprietários.
   modelo de distribuição compatível e revisão jurídica especializada;
   `GOV-MN-RESTORE-01` não concede essa autoridade e a decisão do proprietário
   não relicencia esse material Oracle/MySQL ou de terceiros.
-- Qualquer novo diagnóstico, mudança metodológica ou campanha física requer
-  autorização explícita e separada. `D9` não foi autorizado nem transformado
-  em pré-condição automática.
+- Diagnóstico e mudança metodológica estritamente locais podem ser decididos
+  pela coordenadora dentro de envelope seguro. Campanha física, acesso ao
+  material de referência protegido ou uso de ambiente externo permanece
+  `BLOCKED_BY_HIGHER_AUTHORITY` ou `EXTERNAL_PREREQUISITE` até satisfazer sua
+  autoridade própria. `D9` não foi executado nem transformado em pré-condição
+  automática.
 - O plano `M12-IC1`–`M12-IC6` está somente preparado para revisão documental.
-  Seu eventual aceite não autorizará código, build, testes, runtime, amostras
-  humanas ou classificação de fechamento; cada autoridade permanece
-  separada.
-- `JOSE-1`, `JOSE-D1`, aceitação do ADR-0008 e qualquer código, dependência,
-  migration, login/IdP, chave, custodiante, egress candidate, infraestrutura,
-  homologação ou profile JOSE operacional exigem decisões explícitas e
-  separadas. A direção documental aceita torna o fechamento integrado
-  `JOSE-1`–`JOSE-5` aplicável uma pré-condição futura, mas nem o aceite da
-  delimitação nem o aceite humano limitado de `JOSE-0` concedem qualquer
-  dessas autoridades.
-- Qualquer ativação `None → Observer` exige os gates próprios e uma decisão
-  explícita. O fechamento sintético MOD-12 no `STATE-06` não aprova O5, e o
-  bloqueio de ativação não pode ser contornado por mudança de lifecycle.
-- Qualquer transição para `STATE-07` exige decisão de lifecycle própria. A
-  estratégia vigente exige antes dela os fechamentos de integração STATE-06
-  de MOD-12 e JOSE, a revalidação consolidada da baseline resultante, novas
-  amostras humanas e um Human Gate de revalidação. Cada item exige autoridade
-  própria. O Human Gate de 2026-07-20 e os gates posteriores permanecem
-  históricos nos seus escopos; a proposta antiga está invalidada, e a nova
-  não concede autoridade executiva.
+  O corpus `9.0.0` remove a espera por aceite humano rotineiro, mas não torna o
+  plano baseline atual nem prova DoR. A coordenadora deve revalidá-lo, escolher
+  o menor lote elegível e aplicar checks e revisão independente antes de código
+  ou runtime.
+- `JOSE-1`, `JOSE-D1`, ADR-0008 e trabalho local associado podem receber
+  decisão agente incremental depois da reconciliação de baseline, escopo e
+  gates. Login/IdP externo, chaves ou custódia reais, egress externo,
+  infraestrutura, homologação e profile operacional permanecem pré-requisitos
+  externos separados.
+- Qualquer ativação local `None → Observer` exige os gates próprios e decisão
+  `AGENT_DECIDED`. Ativação externa ou produtiva conserva os pré-requisitos do
+  ambiente alvo. O fechamento sintético MOD-12 no `STATE-06` não aprova O5, e
+  o bloqueio de ativação não pode ser contornado por mudança de lifecycle.
+- A transição para `STATE-07` exige os fechamentos de integração STATE-06 de
+  MOD-12 e JOSE, revalidação consolidada da baseline, amostras agentes atuais,
+  Quality Gate, `AUTOMATED_GATE_PASS` e decisão `AGENT_DECIDED` registrada. O
+  Human Gate de 2026-07-20 e os gates posteriores permanecem históricos nos
+  seus escopos; a proposta antiga continua invalidada.
 - Produção, PostgreSQL operacional, provider homologado, runtime externo,
   publicação, deploy e ação administrativa real continuam não autorizados.

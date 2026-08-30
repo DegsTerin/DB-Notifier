@@ -22,8 +22,8 @@ This document is the single thematic authority for:
 [`Governance.md`](Governance.md) remains the owner of authority, controlled
 execution and lifecycle.
 [`Conversation-Coordination-Prompt.md`](Conversation-Coordination-Prompt.md)
-remains the owner of hand-off semantics, field order, routing and parallelism
-enums. [`Templates.md`](../templates/Templates.md) owns reusable formats, and
+remains the owner of automatic dispatch, receipts, routing, ownership and
+parallelism enums. [`Templates.md`](../templates/Templates.md) owns reusable formats, and
 [`Quality-Gates.md`](Quality-Gates.md) owns verification criteria.
 [`Code-Documentation-Standards.md`](../../docs/Code-Documentation-Standards.md)
 owns structural requirements, completeness and narrow exceptions for code
@@ -44,8 +44,10 @@ Where the rules below overlap, apply them in this order:
 ## Owner communication
 
 - Always communicate with the owner in Brazilian Portuguese (`pt-BR`).
-- Questions, explanations, progress updates, approvals, warnings, hand-offs
-  and ready-to-copy messages must use `pt-BR`.
+- Questions, explanations, progress updates, warnings and consolidated final
+  reports must use `pt-BR`.
+- Internal dispatch payloads are operational records sent directly by tools;
+  they are never presented as owner-facing copy-and-paste messages.
 - Present owner-facing labels, reasons, default values and guidance in
   `pt-BR`.
 - Canonical field names, commands, paths and enums may remain in English

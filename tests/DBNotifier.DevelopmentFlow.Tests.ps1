@@ -17,6 +17,15 @@ $toolchainPolicyPath = Join-Path (Join-Path $repositoryRoot 'scripts') 'toolchai
 $shutdownPreflightPath = Join-Path (Join-Path $repositoryRoot 'scripts') 'assert-dbnotifier-shutdown.ps1'
 $ownedHelperPath = Join-Path (Join-Path $repositoryRoot 'tests/fixtures') 'DBNotifier.DevelopmentFlow.OwnedHelper.ps1'
 $workflowPath = Join-Path (Join-Path $repositoryRoot '.github/workflows') 'ci.yml'
+$verifierPath = Join-Path (Join-Path $repositoryRoot 'scripts') 'verify-development-flow.ps1'
+$rootInstructionsPath = Join-Path $repositoryRoot 'AGENTS.md'
+$governancePath = Join-Path (Join-Path $repositoryRoot 'prompts/governance') 'Governance.md'
+$lifecyclePath = Join-Path (Join-Path $repositoryRoot 'prompts/governance') 'Lifecycle.md'
+$qualityPath = Join-Path (Join-Path $repositoryRoot 'prompts/governance') 'Quality-Gates.md'
+$coordinationPath = Join-Path (Join-Path $repositoryRoot 'prompts/governance') 'Conversation-Coordination-Prompt.md'
+$templatesPath = Join-Path (Join-Path $repositoryRoot 'prompts/templates') 'Templates.md'
+$masterPromptPath = Join-Path (Join-Path $repositoryRoot 'prompts/system') 'AI-Software-Engineering-Master-Prompt.md'
+$changelogPath = Join-Path (Join-Path $repositoryRoot 'prompts/system') 'Prompt-System-Change-Log.md'
 $assertionCount = 0
 
 function Assert-Condition {
@@ -103,8 +112,74 @@ $legacyRunnerScript = Get-Content -LiteralPath $legacyRunnerPath -Raw
 $legacyTestsScript = Get-Content -LiteralPath $legacyTestsPath -Raw
 $shutdownScript = Get-Content -LiteralPath $shutdownPreflightPath -Raw
 $workflow = Get-Content -LiteralPath $workflowPath -Raw
+$verifierScript = Get-Content -LiteralPath $verifierPath -Raw
+$rootInstructions = Get-Content -LiteralPath $rootInstructionsPath -Raw
+$governance = Get-Content -LiteralPath $governancePath -Raw
+$lifecycle = Get-Content -LiteralPath $lifecyclePath -Raw
+$quality = Get-Content -LiteralPath $qualityPath -Raw
+$coordination = Get-Content -LiteralPath $coordinationPath -Raw
+$templates = Get-Content -LiteralPath $templatesPath -Raw
+$masterPrompt = Get-Content -LiteralPath $masterPromptPath -Raw
+$changelog = Get-Content -LiteralPath $changelogPath -Raw
 . $environmentPath
 . $toolchainPolicyPath
+
+Assert-Condition `
+    -Condition ($verifierScript.Contains(
+            'ls-files --cached --others --exclude-standard -- $requiredFiles',
+            [System.StringComparison]::Ordinal) -and
+        $verifierScript -notmatch '(?m)ls-files --cached --others --exclude-standard\s*\)') `
+    -Message 'The policy verifier must inventory only its explicit allowlist and never the repository root.'
+Assert-Condition `
+    -Condition ($rootInstructions.Contains('## Autonomous delivery mandate', [System.StringComparison]::Ordinal) -and
+        $governance.Contains('## Autonomia prospectiva', [System.StringComparison]::Ordinal) -and
+        $lifecycle.Contains('`AUTOMATED_GATE_PASS`', [System.StringComparison]::Ordinal)) `
+    -Message 'Autonomous prospective delivery is not aligned across the root, governance and lifecycle authorities.'
+Assert-Condition `
+    -Condition ($coordination.Contains('- Revisão: `2.0.0`', [System.StringComparison]::Ordinal) -and
+        $coordination.Contains('`START_NEW_AUTO_DISPATCH`', [System.StringComparison]::Ordinal) -and
+        $coordination.Contains('chave de deduplicação', [System.StringComparison]::Ordinal) -and
+        $coordination.Contains('Receipt', [System.StringComparison]::OrdinalIgnoreCase)) `
+    -Message 'The autonomous coordination authority lacks revision, routing, receipt or deduplication controls.'
+Assert-Condition `
+    -Condition ($coordination.Contains('`CONTINUE_CURRENT` usa um registro local factual', [System.StringComparison]::Ordinal) -and
+        $coordination.Contains('exigem confirmação factual da ferramenta', [System.StringComparison]::Ordinal) -and
+        $quality.Contains('Para `CONTINUE_CURRENT`, exigir registro local factual', [System.StringComparison]::Ordinal)) `
+    -Message 'Local continuation and tool-backed dispatch receipts are not distinguished.'
+Assert-Condition `
+    -Condition ($rootInstructions.Contains('existing currently valid credential', [System.StringComparison]::Ordinal) -and
+        $rootInstructions.Contains('available capable tool', [System.StringComparison]::Ordinal) -and
+        $governance -match 'credencial\s+existente e válida' -and
+        $governance.Contains('ferramenta disponível e apta', [System.StringComparison]::Ordinal)) `
+    -Message 'External-action prerequisites do not require a valid credential and capable tool.'
+Assert-Condition `
+    -Condition ($rootInstructions.Contains('broad path, unresolved variable, substitution, glob or unresolved target', [System.StringComparison]::Ordinal) -and
+        $governance -match 'caminho amplo, variável,\s+substituição, glob ou identificador ainda não resolvido' -and
+        $quality.Contains('raiz de workspace/home/caminho amplo/variável/glob', [System.StringComparison]::Ordinal)) `
+    -Message 'The destructive Automated Safety Gate does not fail closed on broad or unresolved targets.'
+Assert-Condition `
+    -Condition ($rootInstructions.Contains('protected-work preservation, recoverable checkpoint, rollback, no safer alternative, objective necessity and independent review', [System.StringComparison]::Ordinal) -and
+        $governance -match '(?s)preservação de WIP.*checkpoint recuperável e plano de rollback.*validação de rollback.*alternativa materialmente mais segura.*necessidade objetiva e revisão independente' -and
+        $quality -match '(?s)preservação de WIP, checkpoint recuperável,\s+rollback, validação aplicável, inexistência de alternativa mais segura,\s+necessidade objetiva e revisão independente') `
+    -Message 'The destructive Automated Safety Gate does not preserve WIP, recovery, safer-alternative, necessity and review controls.'
+Assert-Condition `
+    -Condition ($rootInstructions.Contains('exact account and environment', [System.StringComparison]::Ordinal) -and
+        $rootInstructions.Contains('defined cost boundary when applicable', [System.StringComparison]::Ordinal) -and
+        $rootInstructions.Contains('objective success criterion and safe verification or reversal', [System.StringComparison]::Ordinal) -and
+        $governance -match '(?s)conta, organização, ambiente e\s+alvo exatos.*limite de custo definido.*critério\s+objetivo de sucesso.*verificação segura ou reversão' -and
+        $quality -match '(?s)conta e\s+ambiente exatos.*limite de custo.*critério objetivo de sucesso.*verificação segura ou reversão') `
+    -Message 'The external-action gate does not preserve account, environment, cost, success and verification or reversal controls.'
+Assert-Condition `
+    -Condition ($quality.Contains('## Agent Gate', [System.StringComparison]::Ordinal) -and
+        $quality.Contains('zero `P0` e zero `P1`', [System.StringComparison]::Ordinal) -and
+        $templates.Contains('## Agent Gate', [System.StringComparison]::Ordinal) -and
+        $templates.Contains('## Receipt de despacho', [System.StringComparison]::Ordinal)) `
+    -Message 'Agent Gate and dispatch receipt contracts are incomplete.'
+Assert-Condition `
+    -Condition ($changelog -match '(?s)## Versão atual\s+- Versão: `9[.]0[.]0`' -and
+        $masterPrompt.Contains('`EXTERNAL_PREREQUISITE`', [System.StringComparison]::Ordinal) -and
+        -not $masterPrompt.Contains('WAITING_APPROVAL', [System.StringComparison]::Ordinal)) `
+    -Message 'The corpus version or autonomous master method is incomplete.'
 
 $canonicalToolchains = Get-DBNotifierToolchainPolicy
 $dotNetPolicy = Get-DBNotifierDotNetSdkPolicy `

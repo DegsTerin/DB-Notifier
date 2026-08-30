@@ -6,7 +6,7 @@ Selecionar somente o playbook correspondente ao pedido. Todos dependem do estado
 
 ## Shutdown preflight obrigatório por ação técnica
 
-Executar antes de cada nova ação técnica autorizada no código, workspace ou produto. São gatilhos: aprovação que libera execução, alteração de fonte/configuração/documentação, ajuste, remediação, modificação, implementação, auditoria executável, build, teste ou amostra humana. Conversa, pergunta, explicação, planejamento sem execução e status sem mutação ou runtime não são gatilhos.
+Executar antes de cada nova ação técnica no código, workspace ou produto. São gatilhos: alteração de fonte/configuração/documentação, ajuste, remediação, modificação, implementação, auditoria executável, build, teste ou amostra agente. Conversa, pergunta, explicação, planejamento sem execução e status sem mutação ou runtime não são gatilhos.
 
 1. Inventariar WPF/Tray, Dashboard preview/dev server, Agent, API, helpers em background, runners de validação e navegador dedicado pertencentes ao DB-Notifier.
 2. Identificar processos hospedados por `dotnet`, Node, PowerShell ou navegador através de PID, caminho do executável, command line, parentage, porta e perfil temporário comprovadamente pertencentes ao projeto. Nome genérico de processo não basta.
@@ -15,7 +15,11 @@ Executar antes de cada nova ação técnica autorizada no código, workspace ou 
 5. Nunca encerrar PostgreSQL ou outro banco monitorado, serviço externo, browser/perfil comum do usuário, IDE, terminal alheio ou processo não atribuído com segurança ao DB-Notifier.
 6. Se qualquer componente não puder ser identificado ou encerrado com segurança, interromper o trabalho e informar o resíduo exato. Não continuar sobre um runtime anterior incerto.
 
-Uma amostra humana pode permanecer aberta somente quando a finalidade da ação técnica atual é entregá-la visivelmente ao validador. Antes de qualquer ação técnica posterior — inclusive registrar a aprovação em arquivos — aplicar este protocolo integralmente. Processos de build/teste iniciados na própria tarefa continuam sujeitos ao encerramento normal antes do hand-off, salvo essa entrega visível limitada.
+Uma amostra agente pode permanecer aberta somente enquanto a ação técnica atual
+coleta evidência visual ou operacional. Antes de qualquer ação técnica posterior
+— inclusive registrar o Agent Gate — aplicar este protocolo integralmente.
+Processos de build/teste iniciados na própria tarefa continuam sujeitos ao
+encerramento normal antes do despacho seguinte, salvo essa coleta limitada.
 
 ## Fluxo de desenvolvimento governado
 
@@ -40,14 +44,14 @@ Usar para preparação, feedback local e Quality Gate do repositório:
    estiverem autorizados. `Full` delega uma vez ao agregador
    `../../scripts/ci.ps1` e preserva o primeiro resultado factual.
 8. Atualizar plano, estado, histórico e changelog somente depois do fato,
-   revisar staged diff, executar checks finais e produzir o commit focal e o
-   handoff governado.
+   revisar staged diff, executar checks finais, produzir o commit focal quando
+   exigido e despachar automaticamente o próximo lote seguro.
 
 `-PlanOnly` permite examinar a sequência determinística sem executar ação
 técnica. `Quick` nunca encerra Quality Gate. `Full -Offline` marca verificações
 online como `NOT_RUN` e produz evidência `PARTIAL`, não equivalência ao gate
 online. Scripts implementam o fluxo, mas não concedem autoridade, lifecycle,
-ADR, Human Gate, ativação ou ação externa.
+ADR, Agent Gate, ativação ou ação externa.
 
 ## Ajuste focado
 
@@ -78,11 +82,10 @@ Quando usar: pedido explícito de revisão ponta a ponta.
    a revisão independente antes do gate agregado.
 10. Produzir resumo executivo, estado geral, lista de achados, riscos, melhorias, prioridade de correção e plano de ação sugerido, distinguindo observado, inferido, não testado e bloqueado.
 
-Auditoria isolada não autoriza correção. Não alterar arquivos durante o
-diagnóstico nem avançar o ciclo de vida. Se a solicitação atual já separar e
-autorizar inequivocamente um lote de implementação, concluir e apresentar o
-diagnóstico antes de executar somente esse lote; caso contrário, aguardar
-aprovação específica antes de qualquer remediação.
+Uma tarefa explicitamente somente leitura continua sem autorizar correção. Nos
+demais mandatos de entrega autônoma, concluir o diagnóstico, registrar o menor
+lote seguro, remediar a causa raiz e validar sem aguardar aprovação rotineira.
+Avançar lifecycle somente após Quality Gate e Agent Gate objetivos.
 
 ## Dashboard
 
@@ -125,7 +128,7 @@ aprovação específica antes de qualquer remediação.
 - Comparar legado, arquitetura aprovada e implementação.
 - Detectar promessas não implementadas e divergências de provider.
 - Avaliar monitoramento, alertas, controle, Dashboard, Tray e offline.
-- Produzir backlog priorizado sem avançar fase automaticamente.
+- Produzir backlog priorizado e avançar fase somente após os gates objetivos.
 
 ## Reorganização do sistema de instruções
 
