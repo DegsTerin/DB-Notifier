@@ -100,6 +100,7 @@ $requiredFiles = @(
     'global.json',
     'PLANS.md',
     'prompts/foundation/Prompt-New-Project.md',
+    'prompts/governance/Continuous-Improvement.md',
     'prompts/governance/Conversation-Coordination-Prompt.md',
     'prompts/governance/Governance.md',
     'prompts/governance/Language-Policy.md',
@@ -107,6 +108,7 @@ $requiredFiles = @(
     'prompts/governance/Quality-Gates.md',
     'prompts/operations/Operational-Playbooks.md',
     'prompts/state/Current-State.md',
+    'prompts/state/Continuous-Improvement-Backlog.md',
     'prompts/state/State-Transition-Log.md',
     'prompts/system/AI-Software-Engineering-Master-Prompt.md',
     'prompts/system/Prompt-System-Change-Log.md',
@@ -116,12 +118,14 @@ $requiredFiles = @(
     'scripts/development-environment.ps1',
     'scripts/development.ps1',
     'scripts/ci.ps1',
+    'scripts/continuous-improvement.ps1',
     'scripts/NuGet.Offline.config',
     'scripts/toolchain-version-policy.ps1',
     'scripts/verify-development-flow.ps1',
     'scripts/verify-node-toolchain.mjs',
     'src/DBNotifier.Dashboard.Web/package.json',
     'src/DBNotifier.Dashboard.Web/package-lock.json',
+    'tests/DBNotifier.ContinuousImprovement.Tests.ps1',
     'tests/DBNotifier.DevelopmentFlow.Tests.ps1',
     'tests/fixtures/DBNotifier.DevelopmentFlow.OwnedHelper.ps1')
 $inventory = @(& $gitPath -C $resolvedRoot ls-files --cached --others --exclude-standard -- $requiredFiles)
@@ -301,6 +305,11 @@ Assert-Condition `
             [regex]::Escape('DBNotifier.DevelopmentFlow.Tests.ps1')).Count -eq 1) `
     -Message 'The canonical gate must invoke the development-flow policy tests exactly once.'
 Assert-Condition `
+    -Condition ([regex]::Matches(
+            $ciScript,
+            [regex]::Escape('DBNotifier.ContinuousImprovement.Tests.ps1')).Count -eq 1) `
+    -Message 'The canonical gate must invoke the continuous-improvement policy tests exactly once.'
+Assert-Condition `
     -Condition ($ciScript.Contains('NOT_RUN', [System.StringComparison]::Ordinal) -and
         $ciScript.Contains('PARTIAL', [System.StringComparison]::Ordinal) -and
         $ciScript.Contains('DISPOSITION|$failureDisposition', [System.StringComparison]::Ordinal)) `
@@ -349,8 +358,8 @@ foreach ($forbiddenWorkflowCommand in @(
 
 $coordination = Get-RequiredFileText -RelativePath 'prompts/governance/Conversation-Coordination-Prompt.md'
 Assert-Condition `
-    -Condition ($coordination.Contains('- Revisão: `2.0.0`', [System.StringComparison]::Ordinal)) `
-    -Message 'The coordination authority is not at revision 2.0.0.'
+    -Condition ($coordination.Contains('- Revisão: `2.1.0`', [System.StringComparison]::Ordinal)) `
+    -Message 'The coordination authority is not at revision 2.1.0.'
 foreach ($requiredCoordinationLiteral in @(
         'SAFE_PARALLEL',
         'CONTRACT_FROZEN_PARALLEL',
@@ -399,6 +408,10 @@ $masterPrompt = Get-RequiredFileText -RelativePath 'prompts/system/AI-Software-E
 $rootInstructions = Get-RequiredFileText -RelativePath 'AGENTS.md'
 $governance = Get-RequiredFileText -RelativePath 'prompts/governance/Governance.md'
 $qualityGates = Get-RequiredFileText -RelativePath 'prompts/governance/Quality-Gates.md'
+$continuousImprovement = Get-RequiredFileText -RelativePath 'prompts/governance/Continuous-Improvement.md'
+$continuousBacklog = Get-RequiredFileText -RelativePath 'prompts/state/Continuous-Improvement-Backlog.md'
+$continuousController = Get-RequiredFileText -RelativePath 'scripts/continuous-improvement.ps1'
+$continuousTests = Get-RequiredFileText -RelativePath 'tests/DBNotifier.ContinuousImprovement.Tests.ps1'
 $legacyMigrationPlan = Get-RequiredFileText -RelativePath 'docs/Legacy-Migration-Plan.md'
 $designSystem = Get-RequiredFileText -RelativePath 'docs/design/DB-Notifier-Design-System.md'
 $revocationReport = Get-RequiredFileText -RelativePath 'docs/STATE-06-MySQL-Notifier-Authority-Revocation-Report.md'
@@ -422,13 +435,24 @@ $changelogNineSectionMatch = [regex]::Match(
     $changelog,
     '(?ms)^## 9[.]0[.]0 — 2026-08-30\r?\n(?<body>.*?)(?=^## )')
 $changelogNineSection = $changelogNineSectionMatch.Groups['body'].Value
+$changelogNineOneSectionMatch = [regex]::Match(
+    $changelog,
+    '(?ms)^## 9[.]1[.]0 — 2026-08-30\r?\n(?<body>.*?)(?=^## )')
+$changelogNineOneSection = $changelogNineOneSectionMatch.Groups['body'].Value
 $changelogSevenSectionMatch = [regex]::Match(
     $changelog,
     '(?ms)^## 7[.]0[.]0 — 2026-08-28\r?\n(?<body>.*?)(?=^## )')
 $changelogSevenSection = $changelogSevenSectionMatch.Groups['body'].Value
 Assert-Condition `
-    -Condition ($changelog -match '(?s)## Versão atual\s+- Versão: `9[.]0[.]0`') `
-    -Message 'The instruction-corpus changelog is not at version 9.0.0.'
+    -Condition ($changelog -match '(?s)## Versão atual\s+- Versão: `9[.]1[.]0`') `
+    -Message 'The instruction-corpus changelog is not at version 9.1.0.'
+Assert-Condition `
+    -Condition ($changelogNineOneSectionMatch.Success -and
+        $changelogNineOneSection.Contains('event-driven', [System.StringComparison]::OrdinalIgnoreCase) -and
+        $changelogNineOneSection.Contains('same-candidate', [System.StringComparison]::OrdinalIgnoreCase) -and
+        $changelogNineOneSection.Contains('last-known-good', [System.StringComparison]::OrdinalIgnoreCase) -and
+        $changelogNineOneSection.Contains('anti-gaming', [System.StringComparison]::OrdinalIgnoreCase)) `
+    -Message 'The 9.1.0 changelog entry does not preserve the continuous-improvement contract.'
 Assert-Condition `
     -Condition ($changelogNineSectionMatch.Success -and
         $changelogNineSection.Contains('Agent Gates objetivos', [System.StringComparison]::Ordinal) -and
@@ -450,9 +474,124 @@ Assert-Condition `
         $changelogSevenSection.Contains('não remove comportamento DB-Notifier já próprio', [System.StringComparison]::Ordinal)) `
     -Message 'The 7.0.0 changelog entry no longer preserves the historical revocation.'
 Assert-Condition `
-    -Condition ($currentState.Contains('`9.0.0`', [System.StringComparison]::Ordinal) -and
-        $currentState.Contains('`2.0.0`', [System.StringComparison]::Ordinal)) `
+    -Condition ($currentState.Contains('`9.1.0`', [System.StringComparison]::Ordinal) -and
+        $currentState.Contains('`2.1.0`', [System.StringComparison]::Ordinal)) `
     -Message 'Current-State.md does not record the adopted workflow versions.'
+$officialContinuousImprovementPaths = @(
+    'AGENTS.md',
+    'PLANS.md',
+    'prompts/Start-Here.md',
+    'prompts/foundation/Prompt-New-Project.md',
+    'prompts/foundation/Solution-Architecture-Document.md',
+    'prompts/foundation/AIOps-And-AI-Module.md',
+    'prompts/governance/Continuous-Improvement.md',
+    'prompts/governance/Conversation-Coordination-Prompt.md',
+    'prompts/governance/Governance.md',
+    'prompts/governance/Language-Policy.md',
+    'prompts/governance/Lifecycle.md',
+    'prompts/governance/Quality-Gates.md',
+    'prompts/governance/Security-And-Access.md',
+    'prompts/operations/Operational-Playbooks.md',
+    'prompts/state/Current-State.md',
+    'prompts/state/Continuous-Improvement-Backlog.md',
+    'prompts/state/State-Transition-Log.md',
+    'prompts/system/AI-Software-Engineering-Master-Prompt.md',
+    'prompts/system/Prompt-System-Change-Log.md',
+    'prompts/templates/Templates.md',
+    'docs/Code-Documentation-Standards.md',
+    'docs/design/DB-Notifier-Design-System.md',
+    'scripts/development.ps1',
+    'scripts/ci.ps1',
+    'scripts/continuous-improvement.ps1',
+    'scripts/verify-development-flow.ps1',
+    'tests/DBNotifier.ContinuousImprovement.Tests.ps1',
+    'tests/DBNotifier.DevelopmentFlow.Tests.ps1')
+$continuousImprovementProjectionSources = @(
+    $continuousImprovement,
+    $continuousController,
+    $continuousTests)
+$missingContinuousImprovementPaths = @(
+    foreach ($path in $officialContinuousImprovementPaths) {
+        foreach ($source in $continuousImprovementProjectionSources) {
+            if (-not $source.Contains(
+                    $path,
+                    [System.StringComparison]::OrdinalIgnoreCase)) {
+                $path
+                break
+            }
+        }
+    })
+Assert-Condition `
+    -Condition ($officialContinuousImprovementPaths.Count -eq 28 -and
+        @($officialContinuousImprovementPaths | Sort-Object -Unique).Count -eq 28 -and
+        $missingContinuousImprovementPaths.Count -eq 0 -and
+        [regex]::Matches(
+            $continuousTests,
+            'WasPreviouslyMissed = \$true').Count -eq 11) `
+    -Message 'The exact 28-path governance matrix or its 11 prior counterexamples are not aligned across authority, controller and tests.'
+Assert-Condition `
+    -Condition ($continuousImprovement.Contains('Revision: `1.0.0`', [System.StringComparison]::Ordinal) -and
+        $continuousImprovement.Contains('EXECUTION_KEY_IDENTITY_INVALID', [System.StringComparison]::Ordinal) -and
+        $continuousImprovement.Contains('SAME_CANDIDATE_RETRY', [System.StringComparison]::Ordinal) -and
+        $continuousImprovement.Contains('CAUSAL_DELTA_REQUIRED', [System.StringComparison]::Ordinal) -and
+        $continuousImprovement.Contains('PENDING_APPEND_RECOVERY_REQUIRED', [System.StringComparison]::Ordinal) -and
+        $continuousImprovement.Contains('DUPLICATE_JSON_PROPERTY', [System.StringComparison]::Ordinal) -and
+        $continuousImprovement.Contains('PATH_OUTSIDE_AUTHORISED_ROOT', [System.StringComparison]::Ordinal) -and
+        $continuousImprovement.Contains('legacy `ContractRiskFacts`', [System.StringComparison]::Ordinal) -and
+        $continuousImprovement.Contains('P0-P3 counts', [System.StringComparison]::Ordinal) -and
+        $continuousImprovement.Contains('caller-supplied reviewer list', [System.StringComparison]::Ordinal) -and
+        $continuousImprovement.Contains('recovery never reports event A as successful completion of requested event B', [System.StringComparison]::Ordinal) -and
+        $continuousImprovement.Contains('Verifier disjointness applies identically to `GATE_FAILED` and `GATE_PASSED`', [System.StringComparison]::Ordinal) -and
+        $continuousImprovement.Contains('rejects `PASS`/`PASS`', [System.StringComparison]::Ordinal) -and
+        $continuousImprovement.Contains('promotion preimage commit and tree', [System.StringComparison]::Ordinal) -and
+        $continuousImprovement.Contains('UTF8_BOM_FORBIDDEN', [System.StringComparison]::Ordinal) -and
+        $continuousImprovement.Contains('last-known-good (`LKG`)', [System.StringComparison]::Ordinal) -and
+        $continuousImprovement.Contains('zero denominator', [System.StringComparison]::Ordinal) -and
+        $continuousBacklog.Contains('DBN-CI-0001', [System.StringComparison]::Ordinal) -and
+        $continuousBacklog.Contains('DBN-CI-0004', [System.StringComparison]::Ordinal)) `
+    -Message 'The continuous-improvement authority or factual backlog is incomplete.'
+Assert-Condition `
+    -Condition ($continuousController.Contains('function New-CIStableFindingFingerprint', [System.StringComparison]::Ordinal) -and
+        $continuousController.Contains('executionScopeDigest', [System.StringComparison]::Ordinal) -and
+        $continuousController.Contains('acceptanceDigest', [System.StringComparison]::Ordinal) -and
+        $continuousController.Contains('EXECUTION_KEY_IDENTITY_INVALID', [System.StringComparison]::Ordinal) -and
+        $continuousController.Contains('function Add-CILedgerEvent', [System.StringComparison]::Ordinal) -and
+        $continuousController.Contains('[System.IO.FileShare]::None', [System.StringComparison]::Ordinal) -and
+        $continuousController.Contains('function Repair-CILedgerPendingAppend', [System.StringComparison]::Ordinal) -and
+        $continuousController.Contains('PENDING_APPEND_TRUNCATED_RECOVERED', [System.StringComparison]::Ordinal) -and
+        $continuousController.Contains('UTF8_BOM_FORBIDDEN', [System.StringComparison]::Ordinal) -and
+        $continuousController.Contains('REVIEW_RECORDED', [System.StringComparison]::Ordinal) -and
+        $continuousController.Contains('CALLER_SUPPLIED_CLASSIFICATION', [System.StringComparison]::Ordinal) -and
+        $continuousController.Contains('function Resolve-CIGitCommitReceipt', [System.StringComparison]::Ordinal) -and
+        $continuousController.Contains('SAME_CANDIDATE_RETRY', [System.StringComparison]::Ordinal) -and
+        $continuousController.Contains('CAUSAL_DELTA_REQUIRED', [System.StringComparison]::Ordinal) -and
+        $continuousController.Contains('function Assert-CIExactCandidate', [System.StringComparison]::Ordinal) -and
+        $continuousController.Contains('kind = ''VALIDATED_APPEND_ONLY_LEDGER''', [System.StringComparison]::Ordinal) -and
+        $continuousController.Contains('function Assert-CINoDuplicateJsonProperties', [System.StringComparison]::Ordinal) -and
+        $continuousController.Contains('function Assert-CIPathContained', [System.StringComparison]::Ordinal) -and
+        $continuousController.Contains('reviewFindingCounts', [System.StringComparison]::Ordinal) -and
+        $continuousController.Contains('$failedChecksAreFactual', [System.StringComparison]::Ordinal) -and
+        $continuousController.Contains('$requestedRecoveryEvent.eventHash -ceq $recovery.event.eventHash', [System.StringComparison]::Ordinal) -and
+        $continuousController.Contains('profileVersion', [System.StringComparison]::Ordinal) -and
+        $continuousTests.Contains('An arbitrary caller-supplied causal GUID', [System.StringComparison]::Ordinal) -and
+        $continuousTests.Contains('Arbitrary SHA strings without a domain-bound ledger receipt', [System.StringComparison]::Ordinal) -and
+        $continuousTests.Contains('canonical valid-hash event with duplicate result', [System.StringComparison]::Ordinal) -and
+        $continuousTests.Contains('ledger outside its authorised root', [System.StringComparison]::Ordinal) -and
+        $continuousTests.Contains('latest ATTEMPT_STARTED event', [System.StringComparison]::Ordinal) -and
+        $continuousTests.Contains('A gate passed with a factual P0', [System.StringComparison]::Ordinal) -and
+        $continuousTests.Contains('reparse-backed candidate path', [System.StringComparison]::Ordinal) -and
+        $continuousTests.Contains('A phantom reviewer list', [System.StringComparison]::Ordinal) -and
+        $continuousTests.Contains('A failed gate accepted the candidate implementer as verifier', [System.StringComparison]::Ordinal) -and
+        $continuousTests.Contains('A governance failed gate accepted factual PASS/PASS', [System.StringComparison]::Ordinal) -and
+        $continuousTests.Contains('Recovery reported success for pending event A instead of requested event B', [System.StringComparison]::Ordinal) -and
+        $continuousTests.Contains('An arbitrary well-formed SHA-256 execution key was admitted', [System.StringComparison]::Ordinal) -and
+        $continuousTests.Contains('A later event admitted an arbitrary well-formed execution key', [System.StringComparison]::Ordinal) -and
+        $continuousTests.Contains('An exact pending execution retry did not return its repaired receipt', [System.StringComparison]::Ordinal) -and
+        $continuousTests.Contains('Non-authority product path', [System.StringComparison]::Ordinal) -and
+        $continuousTests.Contains('PENDING_APPEND_TRUNCATED_RECOVERED', [System.StringComparison]::Ordinal) -and
+        $continuousTests.Contains('UTF8_BOM_FORBIDDEN', [System.StringComparison]::Ordinal) -and
+        $continuousTests.Contains('Continuous-improvement policy tests passed with', [System.StringComparison]::Ordinal)) `
+    -Message 'The continuous-improvement controller or behavioural regression contract is incomplete.'
 Assert-Condition `
     -Condition ($rootInstructions.Contains('## Autonomous delivery mandate', [System.StringComparison]::Ordinal) -and
         $rootInstructions.Contains('`START_NEW_AUTO_DISPATCH`', [System.StringComparison]::Ordinal) -and

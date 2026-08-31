@@ -39,6 +39,7 @@ Resolve conflicts using the precedence in `prompts/Start-Here.md`. A current exp
 - Use `scripts/development.ps1` as the canonical local development entry point. `Doctor` is read-only, `Setup` performs locked restores without installing toolchains, `Quick` is explicitly `NON_GATE`, and `Full` delegates exactly once to `scripts/ci.ps1`, the canonical aggregate repository gate. `-PlanOnly` is deterministic and side-effect free. Offline execution must identify online-only checks as `NOT_RUN` and a full offline result as partial evidence, never as equivalent to the online gate.
 - Execute every authorised increment completely, including its applicable checks and documentation, before recommending progression.
 - Apply the governed [`Conversation Coordination and Safe Parallel Work`](prompts/governance/Conversation-Coordination-Prompt.md) contract to every internal dispatch. Use only `CONTINUE_CURRENT`, `DELEGATE_SUBAGENT`, `RETURN_TO_EXISTING` or `START_NEW_AUTO_DISPATCH`; dispatch the complete payload directly through the available platform mechanism, retain a receipt, reconcile uncertain results before retrying and prevent duplicates.
+- Apply [`Continuous Improvement`](prompts/governance/Continuous-Improvement.md) to every recurring audit/remediation loop. Consume immutable events, execute at most one bounded next action, reject the same candidate forever, require a new causal delta for any successor, keep implementation/review/integration/observation roles disjoint, and quarantine invalid progress.
 - A dispatch payload records repository, baseline, objective, positive and negative scope, protected work, ownership, checks, evidence, stop conditions and expected return. It is internal operational data, not text for the owner to copy or relay.
 - When a route or tool is unavailable, continue locally, delegate internally, return to a confirmed task or retain the work in the coordinated queue. Use `EXTERNAL_PREREQUISITE` only when no safe material progress remains.
 - Owner-facing completion communication is a concise consolidated factual report in `pt-BR`. It contains results, validations, limitations, residual risks and unavoidable external prerequisites, but no routing choice, suggested title, exact next message or manual forwarding instruction.
@@ -133,9 +134,11 @@ Resolve conflicts using the precedence in `prompts/Start-Here.md`. A current exp
 - `prompts/Start-Here.md`: authoritative routing, precedence, and entry to the detailed instruction corpus.
 - `prompts/governance/Language-Policy.md`: thematic authority for owner communication, project artefact language, preservation and interface-language separation.
 - `prompts/governance/Conversation-Coordination-Prompt.md`: thematic authority for conversation routing, safe parallel work, exclusive ownership and coordinated integration.
+- `prompts/governance/Continuous-Improvement.md`: thematic authority for stable findings, bounded event-driven improvement, promotion observation, rollback and anti-gaming metrics.
 - `prompts/foundation/`: product vision, solution architecture, and AIOps/AI direction.
 - `prompts/governance/`: lifecycle, authority, quality gates, and security/access rules.
 - `prompts/state/Current-State.md`: present factual state only.
+- `prompts/state/Continuous-Improvement-Backlog.md`: factual improvement-queue snapshot; never standing authority or a mutable execution ledger.
 - `prompts/state/State-Transition-Log.md`: append-only factual transition/increment history.
 - `prompts/operations/`: task-specific operational playbooks.
 - `prompts/templates/`: evidence templates; templates are not approvals or proof of execution.

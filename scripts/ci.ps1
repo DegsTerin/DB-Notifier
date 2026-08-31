@@ -261,6 +261,7 @@ function Invoke-PolicyChecks {
     )
 
     & (Join-Path $PSScriptRoot 'verify-development-flow.ps1') -RepositoryRoot $repositoryRoot
+    & (Join-Path $repositoryRoot 'tests/DBNotifier.ContinuousImprovement.Tests.ps1')
     & (Join-Path $repositoryRoot 'tests/DBNotifier.DevelopmentFlow.Tests.ps1')
     & (Join-Path $PSScriptRoot 'verify-script-syntax.ps1') -NodePath $NodeExecutable
     & (Join-Path $repositoryRoot 'tests/DBNotifier.RunnerProcess.Tests.ps1')

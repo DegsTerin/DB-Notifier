@@ -8,6 +8,222 @@ increment. It records execution intent and evidence; it does not replace
 append-only history, a Quality Gate, an Agent Gate or a preserved historical
 Human Gate.
 
+## Active continuous-improvement control record
+
+- Plan ID: `GOV-CONTINUOUS-IMPROVEMENT-01`
+- Status: `AUTOMATED_GATE_FAIL`; the prior final review at `P0=0`, `P1=5`,
+  `P2=2`, `P3=0` and the latest re-review at `P0=0`, `P1=3`, `P2=0`, `P3=0`
+  remain preserved. The next independent review at `P0=0`, `P1=2`, `P2=0`,
+  `P3=0` is also preserved. This same isolated 17-path successor is correcting
+  only canonical execution-key replay and the complete governed-path matrix; no
+  reviewer `FAIL` is converted by the writer's local passes
+- Created: `2026-08-30`
+- Initial baseline: detached
+  `d75e98112334cf1a74fcfb0614f8b308a9ebbdb9`
+- Authority: the current owner-authorised audit-and-remediation request for a
+  continuous-improvement process and independent improvement agents, narrowed
+  by the coordinating task to the DB-Notifier `9.1.0` candidate in this exact
+  isolated worktree
+- Lifecycle state: `STATE-06 INTEGRATION`; unchanged
+- Execution mode and topology: `SEQUENTIAL_ONLY` / `SINGLE_OWNER`; this task
+  is the only writer in the isolated worktree and every reviewer remains
+  read-only
+- Writer: `/root/audit_rag_continuous` owns only the exact candidate paths
+  below; the coordinating task retains integration, promotion and Agent Gate
+  custody
+- Independent reviewers: the completed final review is preserved as a failing
+  gate; a new read-only reviewer must inspect the corrected frozen candidate
+- Rollback strategy: discard or reverse only the isolated candidate paths
+  before integration; after a future promotion, use the recorded last-known-
+  good revision and a separately gated compensating commit, never destructive
+  reset or loss of protected work
+- Protected work and negative scope: the principal worktree, its predecessor
+  product WIP, the preserved 29-row verifier failure, the first failed v9
+  audit, product source, dependencies, `Language-Policy.md`, lifecycle,
+  providers, databases, runtime, remote, baseline branch, push, publication,
+  deployment, secrets and every prohibited source/reference tree
+
+### Objective and acceptance
+
+Materialise one event-driven and bounded continuous-improvement control plane
+that derives work from immutable events, uses stable fingerprints and keys,
+prevents every same-candidate retry, requires causal delta before a successor
+attempt, quarantines invalid progress, derives candidate classification from
+governed paths, records each reviewer and receipt factually, and keeps
+implementation, verification, review, integration and observation identities
+disjoint. A recoverable pending journal protects every append. Governance
+changes pass old and new gates; promotion and rollback resolve real Git commit,
+  tree and preimage facts for the exact isolated candidate and prior LKG.
+
+Every event carrying an execution identity must persist its declared execution
+scope and acceptance digests and replay the canonical execution key from the
+improvement fingerprint, baseline and those inputs. The controller-owned
+governance matrix must classify all 28 official authority, state, planning,
+architecture, standards, playbook, template, prompt-system and development-
+control paths as high-risk governance without making ordinary product paths
+high-risk by default.
+
+Metrics must be derived from the validated append-only ledger, retain explicit
+numerators and denominators, exclude unobserved promotions from escape-rate
+denominators and never allow a mutable dashboard or caller-supplied aggregate
+to become evidence.
+
+### Exact candidate write set
+
+1. `AGENTS.md`
+2. `PLANS.md`
+3. `prompts/Start-Here.md`
+4. `prompts/governance/Continuous-Improvement.md`
+5. `prompts/governance/Conversation-Coordination-Prompt.md`
+6. `prompts/governance/Governance.md`
+7. `prompts/governance/Quality-Gates.md`
+8. `prompts/state/Continuous-Improvement-Backlog.md`
+9. `prompts/state/Current-State.md`
+10. `prompts/state/State-Transition-Log.md`
+11. `prompts/system/AI-Software-Engineering-Master-Prompt.md`
+12. `prompts/system/Prompt-System-Change-Log.md`
+13. `scripts/ci.ps1`
+14. `scripts/continuous-improvement.ps1`
+15. `scripts/verify-development-flow.ps1`
+16. `tests/DBNotifier.ContinuousImprovement.Tests.ps1`
+17. `tests/DBNotifier.DevelopmentFlow.Tests.ps1`
+
+Every path not listed above is immutable for this candidate.
+
+### Definition of Ready
+
+- Shutdown preflight reports zero matching process and zero owned listener
+  before every applicable technical action.
+- The exact worktree is detached at the initial baseline with a clean index and
+  no pre-existing worktree diff.
+- The prohibited reference boundary is neither accessed nor enumerated.
+- Authority, lifecycle, clean-room, product, external and destructive limits
+  remain unchanged.
+- One writer owns the full candidate; reviewers cannot write or promote it.
+
+### Definition of Done
+
+- Corpus `9.1.0`, coordination `2.1.0`, the new governance authority and the
+  factual backlog agree on one process and one set of stable literals.
+- The controller proves stable fingerprints, execution/dispatch keys, locked
+  hash-chained pending/append recovery, strict UTF-8 without BOM, bounded
+  event-driven decisions, same-candidate rejection, derived causal receipts and
+  risk, factual review receipts, disjoint roles, old/new meta-gates, exact
+  candidate isolation, Git-proven LKG observation/rollback and anti-gaming
+  metrics.
+- Behavioural regressions, development-flow regressions, PowerShell AST,
+  explicit Markdown links, exact-path diff hygiene and the complete policy
+  verifier pass in this isolated worktree.
+- The first audit `FAIL` and principal-worktree verifier `FAIL` remain visible
+  and are not counted as successful candidate evidence.
+- Independent review and promotion remain with the coordinating task; no
+  commit, branch update, remote action or product/lifecycle transition occurs
+  in this writer task.
+
+### Increment plan
+
+1. `COMPLETE` — reconcile authority, baseline, protected boundaries and the
+   inherited failure evidence.
+2. `COMPLETE` — correct strict recursive JSON admission, full path-derived
+   risk, ledger-bound causal receipts, operational-path confinement, structured
+   review findings, predecessor-exact attempt admission and metric provenance.
+3. `COMPLETE` — run the focused behavioural and development-flow policy tests,
+   PowerShell AST and explicit-link validation on the complete correction.
+4. `COMPLETE` — run the complete development-flow verifier once after the full
+   delta and preserve every earlier result and reviewer finding.
+5. `COMPLETE` — freeze the exact baseline, empty index and 17-path diff for a
+   new independent P0-P3 review without commit or promotion.
+6. `COMPLETE` — preserve the subsequent `P0=0`, `P1=3`, `P2=0`, `P3=0`
+   review and correct failed-gate role separation, pending-recovery request
+   identity and factual failed old/new check results in the same 17 paths.
+7. `COMPLETE` — preserve the next independent review at `P0=0`, `P1=2`,
+   `P2=0`, `P3=0` for frozen digest
+   `808ef853c1a6786920254d83d1301e5611d50d27ca9bb1dcdbb4ec36f94c5823`.
+8. `COMPLETE` — reject non-canonical execution keys during append,
+   idempotent recovery, admission and full replay; replace partial governed-path
+   matching with the exact 28-path matrix and table-driven regressions.
+9. `COMPLETE` — rerun behavioural, development-flow, complete verifier, AST and
+   explicit-link gates after the full correction, then reconcile state and the
+   exact 17-path candidate before freeze.
+10. `PENDING` — dispatch the frozen successor for a new independent read-only
+    P0-P3 review; promotion remains outside this writer.
+
+### Preserved evidence and stop conditions
+
+- `PASS`: entry shutdown preflight reported zero matching process and zero
+  owned listener.
+- `FAIL` (preserved): the entry `Doctor` found dependencies unrestored in this
+  new isolated worktree. This does not replace the focused governance checks
+  and is not relabelled as a product or canonical gate pass.
+- `FAIL` (preserved predecessor): the principal-worktree
+  `scripts/verify-development-flow.ps1` stopped on pre-existing drift in the
+  protected 29-row MySQL Notifier functional matrix. This candidate does not
+  access or alter that product WIP.
+- `FAIL` (preserved audit): the initial v9 final review returned P0 zero, P1
+  three, P2 one and P3 zero before its successor review passed. The original
+  finding set remains an immutable input to the new backlog.
+- `FAIL` (preserved successor review): one preliminary P1 plus five additional
+  P1 findings identified direct append recovery, caller-owned causal and risk
+  facts, phantom reviews, integrator/observer overlap and opaque Git identities;
+  one P2 identified permissive BOM handling. The implementation now contains
+  reproducing counterexamples and corrections, but independent successor review
+  remains pending.
+- `FAIL` (preserved focal): the first post-schema behavioural run exposed an
+  empty review projection under StrictMode after the opaque revision probe. The
+  defect and leaked Git stderr were corrected without rewriting the result.
+- `FAIL` (preserved validator): the first strengthened development-flow run
+  found a historical phrase split across two lines; the prose was reflowed
+  without semantic change and the result remains factual.
+- `FAIL` (preserved final successor review): the final independent review
+  returned `P0=0`, `P1=5`, `P2=2`, `P3=0`. It found duplicate-property JSON
+  ambiguity, incomplete path-derived risk, non-factual causal hashes,
+  unconstrained ledger/candidate paths, incomplete P0-P3 gate evidence,
+  attempt admission after a non-failed predecessor and unbound metric
+   provenance. No prior PASS or FAIL is rewritten by this corrective successor.
+- `FAIL` (preserved corrective focal): the first behavioural run after adding
+  structured review evidence exposed a P2 disposition copied onto
+  `DUPLICATE_SUPPRESSED` without an execution key. Propagation was restricted to
+  candidate-lifecycle events; the successor run passed 88 assertions.
+- `FAIL` (preserved corrective full gate): the first full verifier stopped on a
+  required `zero denominator` literal split by prose wrapping. The phrase was
+  reflowed without changing its contract; the successor full gate passed.
+- `FAIL` (preserved latest re-review): the next independent review returned
+  `P0=0`, `P1=3`, `P2=0`, `P3=0`. It found that `GATE_FAILED` did not apply the
+  verifier/implementer separation used by `GATE_PASSED`, recovery could return
+  pending event A as success for requested event B, and a failed governance
+  gate could preserve `PASS`/`PASS` old/new results.
+- `FAIL` (preserved latest focal): the first behavioural run of this successor
+  exposed an empty-array collapse while replaying an exact recovered request as
+  `Ledger event 2 reuses an event ID.` The focused correction retained an
+  explicit empty prior-event array; later runs also exposed and corrected empty
+  reviewer binding and assertion wording without weakening rejection.
+- `FAIL` (preserved execution/risk re-review): the independent review of frozen
+  candidate
+  `808ef853c1a6786920254d83d1301e5611d50d27ca9bb1dcdbb4ec36f94c5823`
+  returned `P0=0`, `P1=2`, `P2=0`, `P3=0`. It found that arbitrary well-formed
+  execution-key digests were not recomputed from declared inputs and that 11
+  official authority/state/development-control paths could remain `STANDARD`.
+- `FAIL` (preserved execution-identity focal): the first behavioural run after
+  the new replay fields stopped at controller line 1025 with
+  `EXECUTION_KEY_IDENTITY_INVALID: execution inputs cannot exist without an
+  execution key.` The post-execution duplicate fixture lacked the now-required
+  declared identity; the fixture was corrected without weakening admission.
+- `PASS` (current successor): the behavioural suite passed 140 assertions, the
+  development-flow suite passed 112 assertions, the complete verifier passed
+  160 assertions, AST passed for all five PowerShell policy files, and the
+  repository link gate resolved 1007 local links in 233 files.
+- `PASS` (mechanical): the continuous-improvement behavioural suite passed 98
+  assertions, the development-flow policy suite passed 111 assertions, the
+  complete verifier passed 159 assertions, AST passed for all five changed
+  PowerShell policy files and the repository link gate resolved 1007 local
+  links in 233 files.
+- Stop on `AUTHORITY_MISMATCH`, `BASELINE_DRIFT`, `SCOPE_OVERLAP`,
+  `ISOLATION_FAILURE`, `MUTABLE_RESOURCE_COLLISION`, `GATE_FAILURE`, an exact
+  candidate path mismatch, an invalid/pending ledger chain, caller-supplied risk
+  or causal identity, a same-candidate attempt, absent causal receipt, phantom
+  reviewer, overlapping role identities, opaque Git receipt, BOM, failed
+  old/new meta-gate, or any prohibited-boundary access.
+
 ## Active autonomous-delivery control record
 
 - Plan ID: `GOV-AUTONOMOUS-DELIVERY-01`

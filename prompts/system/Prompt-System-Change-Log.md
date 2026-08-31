@@ -2,10 +2,10 @@
 
 ## Versão atual
 
-- Versão: `9.0.0`
+- Versão: `9.1.0`
 - Data: 2026-08-30
-- Status: entrega autônoma prospectiva, Agent Gates e despacho automático
-- Escopo: 16 arquivos ativos
+- Status: melhoria contínua autônoma bounded com Agent Gates
+- Escopo: 18 arquivos ativos
 
 A versão do corpus é independente da versão do software.
 
@@ -16,6 +16,60 @@ A versão do corpus é independente da versão do software.
 - PATCH: clareza, correção ou referência sem mudança de autoridade.
 
 Toda alteração atualiza este arquivo e, quando necessário, `../Start-Here.md`.
+
+## 9.1.0 — 2026-08-30
+
+- Introduces the normative
+  [`Continuous-Improvement.md`](../governance/Continuous-Improvement.md)
+  authority and factual
+  [`Continuous-Improvement-Backlog.md`](../state/Continuous-Improvement-Backlog.md),
+  increasing the active corpus from 16 to 18 files without changing product or
+  lifecycle authority.
+- Materialises an event-driven bounded controller with stable finding,
+  execution and dispatch keys; an exclusively locked, hash-chained append-only
+  ledger with recoverable flushed pending journals; strict UTF-8 without BOM;
+  recursive duplicate-property rejection; authorised-root/reparse confinement;
+  zero same-candidate retry; factual causal-delta admission; quarantine and
+  finite event/attempt budgets.
+- Derives governance/high-risk classification additively from complete candidate
+  paths and canonical risk domains; `ContractRiskFacts`, `false` and `STANDARD`
+  cannot lower it, and classification replays from stored candidate paths.
+  Every independent reviewer records one factual event, P0-P3
+  counts/findings, candidate-bound P2/P3 dispositions and a controller-derived
+  SHA receipt before old/new meta-gate PASS with zero P0/P1.
+- Requires disjoint implementer, verifier, reviewer, integrator and observer
+  identities on both failed and passing gates and exact candidate validation
+  isolated from unrelated or ignored WIP. A failed gate preserves factual
+  applicable old/new results and cannot accept `PASS`/`PASS`.
+- Reconciles a pending append before a new request but returns the recovered
+  event only for the exact replayed request. A distinct requested event is
+  appended and returned after the recovered event under the same lock.
+- Resolves real Git candidate, last-known-good and promotion-preimage commits
+  and trees, holds LKG advancement until a closed independent observation
+  window, and proves rollback against the exact prior LKG tree.
+- Adds anti-gaming metrics derived only from the validated ledger, with bound
+  source/head, event window, direction, unit, profile/version, explicit
+  numerator/denominator pairs, null zero-denominator ratios, observed-promotion
+  escape rates and duplicate suppression that cannot alter unique findings.
+- Elevates Conversation Coordination to revision `2.1.0`, routes the authority
+  through `AGENTS.md`, `Start-Here.md`, Governance, Quality Gates and PM-1, and
+  wires behavioural regressions into the canonical policy gate.
+- Preserves the entry `Doctor` dependency-unready result, the principal-
+  worktree verifier FAIL caused by protected predecessor WIP, and the initial
+  autonomous-delivery review FAIL. The later continuous-improvement review
+  `P0=0`, `P1=5`, `P2=2`, `P3=0` is also preserved while its counterexamples are
+  corrected. The subsequent review `P0=0`, `P1=3`, `P2=0`, `P3=0` is likewise
+  preserved while its three counterexamples are corrected; none is relabelled
+  as candidate success.
+- Preserves the next review `P0=0`, `P1=2`, `P2=0`, `P3=0` and corrects its two
+  counterexamples without relabelling that gate: execution identity is now
+  recomputed from improvement, baseline, scope and acceptance at every
+  admission and replay boundary, while one table-driven regression binds the
+  exact 28-path official governance matrix, its 11 prior false `STANDARD` rows
+  and ordinary non-authority product controls.
+- The corpus remains `STATE-06 INTEGRATION`; no product, provider, database,
+  runtime, remote, branch, push, deployment, publication or clean-room boundary
+  is changed by this governance-only candidate.
 
 ## 9.0.0 — 2026-08-30
 

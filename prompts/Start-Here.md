@@ -18,7 +18,10 @@ Agentes que operam no repositório começam também por [`../AGENTS.md`](../AGEN
 6. [`governance/Conversation-Coordination-Prompt.md`](governance/Conversation-Coordination-Prompt.md):
    leitura obrigatória antes de todo despacho automático e antes de avaliar ou
    iniciar trabalho multiagente.
-7. Abrir somente os demais documentos temáticos necessários à tarefa.
+7. [`governance/Continuous-Improvement.md`](governance/Continuous-Improvement.md):
+   leitura obrigatória para auditoria recorrente, remediação contínua,
+   promoção, observação ou rollback dirigido por agentes.
+8. Abrir somente os demais documentos temáticos necessários à tarefa.
 
 Em trabalho amplo, transversal, multi-incremento ou que combine auditoria e
 remediação, ler também [`../PLANS.md`](../PLANS.md) antes da implementação e
@@ -34,6 +37,7 @@ proprietária, nunca pelo plano.
 | Plano vivo do incremento amplo corrente, escopo, progresso, achados e evidências | `../PLANS.md` |
 | Comunicação com o proprietário, idioma dos artefatos, conteúdo existente, convenções externas e separação da interface | `governance/Language-Policy.md` |
 | Despacho automático, paralelismo seguro, ownership, receipts, deduplicação e integração coordenada | `governance/Conversation-Coordination-Prompt.md` |
+| Melhoria contínua, fingerprints, ledger append-only, retry, quarentena, promoção, observação, rollback e métricas | `governance/Continuous-Improvement.md` |
 | Método geral de engenharia, papéis virtuais, proporcionalidade, modos de trabalho e matriz de adoção | `system/AI-Software-Engineering-Master-Prompt.md` |
 | Visão, escopo e objetivos | `foundation/Prompt-New-Project.md` |
 | Arquitetura, dados, providers e módulos | `foundation/Solution-Architecture-Document.md` |
@@ -46,6 +50,7 @@ proprietária, nunca pelo plano.
 | Uso de `Doctor`, `Setup`, `Quick`, `Full`, `PlanOnly` e gate local canônico | `operations/Operational-Playbooks.md`, `governance/Quality-Gates.md` e `../docs/Development.md` |
 | Design System, temas, tokens e componentes React/WPF | `../docs/design/DB-Notifier-Design-System.md` |
 | Situação atual | `state/Current-State.md` |
+| Backlog factual de melhoria contínua | `state/Continuous-Improvement-Backlog.md` |
 | Evidência histórica e ratificação retrospectiva de Human Gates anteriores | `../docs/Human-Gate-Retrospective-Ratification.md` |
 | Histórico de transições | `state/State-Transition-Log.md` |
 | Handoff, relatórios, auditoria e ADR | `templates/Templates.md` |
@@ -94,6 +99,15 @@ Conflitos que ampliem materialmente o escopo, exijam ação externa irreversíve
   trabalho multiagente. Sem workflow Git de escrita paralela autorizado e
   worktrees isolados, agentes simultâneos permanecem read-only e toda escrita
   ocorre sequencialmente na coordenadora.
+- Aplicar `governance/Continuous-Improvement.md` a todo loop de auditoria e
+  remediação recorrente. Consumir eventos imutáveis, executar no máximo uma
+  próxima ação bounded, impedir retry do mesmo candidato, derivar risco e delta
+  causal de fatos com receipts, exigir reviews individuais e recuperar qualquer
+  pending append antes de um sucessor sem confundir o receipt recuperado com a
+  conclusão de um evento distinto solicitado. Recomputar a execution key de
+  improvement, baseline, scope e acceptance em todo append, recovery, admission
+  e replay; classificar como `HIGH` os 28 paths oficiais mantidos pela autoridade
+  temática, sem elevar produto não autoritativo a governança por padrão.
 - Despachar diretamente toda continuação por `CONTINUE_CURRENT`,
   `DELEGATE_SUBAGENT`, `RETURN_TO_EXISTING` ou `START_NEW_AUTO_DISPATCH`.
   Registrar receipt, reconciliar resultados incertos antes de retry, impedir
@@ -113,8 +127,8 @@ Conflitos que ampliem materialmente o escopo, exijam ação externa irreversíve
 
 ## Estrutura ativa
 
-O corpus contém 16 arquivos ativos. As autoridades especializadas de idioma e
-coordenação de conversas ficam em `governance/`, com escopo e público próprios,
+O corpus contém 18 arquivos ativos. As autoridades especializadas de idioma,
+coordenação de conversas e melhoria contínua ficam em `governance/`, com escopo e público próprios,
 enquanto `Governance.md` permanece proprietário da autoridade, execução
 controlada e lifecycle. O Prompt Mestre incorporado conserva autoridade
 transversal distinta: preserva a baseline geral e encaminha especializações
@@ -122,5 +136,5 @@ aos documentos proprietários, sem criar um lifecycle paralelo. Um novo arquivo
 só deve ser criado quando o conteúdo tiver autoridade, ciclo de vida ou
 público diferente dos documentos existentes. Caso contrário, adicionar uma
 seção ao documento temático apropriado. `PLANS.md` e os scripts de execução
-ficam fora da contagem dos 16 prompts ativos porque são, respectivamente,
+ficam fora da contagem dos 18 prompts ativos porque são, respectivamente,
 ledger não autorizante e implementação verificável das autoridades temáticas.

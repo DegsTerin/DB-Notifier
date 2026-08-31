@@ -6729,3 +6729,167 @@
   e `MOD-12 ActivationState=None` permanecem inalterados; WIP predecessor,
   push, deploy, publicação, provider, banco real e ação externa permanecem fora
   do escopo.
+
+## 2026-08-30 — GOV-CONTINUOUS-IMPROVEMENT-01 candidato 9.1 materializado
+
+- Estado anterior e posterior: `STATE-06 INTEGRATION`, elegibilidade
+  `NÃO REAVALIADA` e `MOD-12 ActivationState=None`; não houve transição de
+  lifecycle, ativação, produto, provider, banco, runtime ou produção.
+- Baseline: worktree isolado e detached em
+  `d75e98112334cf1a74fcfb0614f8b308a9ebbdb9`, com writer único e write set
+  explícito no `PLANS.md`. Branch baseline, remote e worktree principal não
+  foram alterados.
+- Corpus `9.1.0`, Coordenação `2.1.0`, autoridade de Melhoria Contínua `1.0.0`
+  e backlog factual passam a descrever fingerprints/keys estáveis, loop
+  event-driven bounded, ledger append-only locked, retry zero do mesmo
+  candidato, delta causal, quarentena, roles disjuntos, meta-gate antigo/novo,
+  candidato exato, LKG, promoção, observação, rollback e métricas anti-gaming.
+- Implementação verificável: `scripts/continuous-improvement.ps1` materializa
+  schema `1`, hash chain, bounded events/attempts, chaves idempotentes,
+  transições estritas, isolamento do candidate path set e métricas derivadas
+  somente do ledger validado. O teste comportamental passou 46 assertivas; o
+  teste focal de development flow passou 111 assertivas; AST passou nos cinco
+  arquivos PowerShell alterados e 491 links Markdown explícitos resolveram.
+- Falhas preservadas: o `Doctor` de entrada permaneceu `FAIL` por dependências
+  de produto não restauradas no worktree novo; o verificador do worktree
+  principal permaneceu `FAIL` por drift de matriz do WIP predecessor protegido;
+  a auditoria v9 inicial permaneceu P0 zero, P1 três, P2 um e P3 zero. Nenhum
+  desses fatos foi retentado, ocultado ou relabelado como sucesso do candidato.
+- Limites: nenhuma árvore de referência proibida ou overlay ignorado foi aberto
+  para validar exclusão. Produto, `Language-Policy.md`, dependências, runtime,
+  segredo, ação destrutiva/externa, commit, push, deploy e publicação ficaram
+  fora do escopo.
+- Disposição deste registro: `AGENT_DECIDED`. O verificador completo do
+  candidato, o Agent Gate independente, promoção e observação são evidências
+  separadas e não são inferidos dos passes focais acima.
+
+## 2026-08-30 — GOV-CONTINUOUS-IMPROVEMENT-01 successor hardening
+
+- O reviewer preservou `FAIL`: um P1 preliminar mostrou append direto sem
+  journal recuperável; cinco P1 adicionais mostraram causal delta e
+  classificação caller-supplied, reviewer declarativo, colisão entre integrador
+  e observador e revisions/trees opacos; um P2 mostrou aceitação de UTF-8 BOM.
+- O successor implementou journal `.pending.new`/`.pending` sob o mesmo lock,
+  hashes do path/base/evento/journal, recuperação idempotente antes/depois do
+  flush, recuperação de prefixo truncado e preservação fail-closed de pending
+  corrupto ou path inseguro. Leitura comum não recupera implicitamente.
+- Classificação e causal delta agora são derivados de paths, fatos canônicos e
+  receipts SHA. Cada reviewer registra evento e receipt próprios; verifier,
+  reviewers, implementer, integrator e observer obedecem às separações factuais.
+  Promoção, preimage, LKG e rollback resolvem commits e trees no Git exato.
+- Contraexemplos executáveis cobrem GUID arbitrário, `false`/`STANDARD`, phantom
+  reviewer, integrator=observer, revision opaca, crashes antes/depois do append,
+  append truncado, pending corrupto/path ocupado e BOM.
+- Primeiro resultado pós-schema preservado: a regressão focal falhou sob
+  StrictMode ao projetar `actorId` de review vazio depois de um probe Git opaco;
+  a correção removeu também o stderr do probe. O rerun passou 70 assertivas.
+- Primeiro validator fortalecido preservado: `FAIL` por uma frase histórica
+  quebrada entre `attempted` e `twice`; o reflow semântico foi corrigido e o
+  rerun passou 111 assertivas. O verificador completo passou 159 assertivas,
+  AST passou nos cinco PowerShell alterados e o gate de links resolveu 1007
+  links locais em 233 arquivos.
+- Estado e limites permanecem `STATE-06 INTEGRATION`, elegibilidade não
+  reavaliada e `MOD-12 ActivationState=None`. O reviewer FAIL histórico não é
+  convertido em PASS; re-review independente, promoção, observação, commit,
+  produto, runtime, remote, push, deploy e publicação continuam separados.
+
+## 2026-08-30 — GOV-CONTINUOUS-IMPROVEMENT-01 corrective successor
+
+- A revisão independente final anterior permanece `FAIL`, com `P0=0`, `P1=5`,
+  `P2=2` e `P3=0`. Ela identificou JSON com propriedades duplicadas,
+  classificação de risco incompleta, hashes causais não factuais, ledger e
+  candidate paths sem confinamento físico, evidência P0-P3 incompleta,
+  predecessor de attempt permissivo e métricas sem proveniência completa.
+- O mesmo worktree isolado e os mesmos 17 paths agora rejeitam nomes JSON
+  duplicados recursivamente antes da conversão, confinam ledger/sidecars a uma
+  raiz autorizada sem reparse e validam casing, containment e arquivo regular
+  de cada candidate path antes do hash.
+- Risco é a união não redutível dos domínios derivados dos paths; o legado
+  `ContractRiskFacts`, `false` e `STANDARD` não têm autoridade. Causal retry
+  exige `GATE_FAILED` como predecessor exato e receipt derivado que vincula
+  attempt, gate, execução, candidato anterior/sucessor, fato e decisão; SHA
+  arbitrário e latest `ATTEMPT_STARTED` são quarentenados.
+- Reviews registram counts/findings P0-P3, dispositions P2/P3 vinculadas ao
+  reviewer, execution e candidato, e summaries de gate projetados dos eventos
+  individuais. P0/P1 impedem gate PASS e promoção. Métricas vinculam profile e
+  versão, ledger head, janela, direção, unidade, numerador e denominador.
+- Primeiro focal corretivo preservado: `FAIL` porque um P2 herdado por
+  `DUPLICATE_SUPPRESSED` não possuía execution key. A propagação foi limitada ao
+  lifecycle do candidato e a regressão passou 88 assertivas. O development-flow
+  focal passou 111 assertivas.
+- Primeiro full corretivo preservado: `FAIL` no literal obrigatório
+  `zero denominator`, quebrado por wrapping documental. Após reflow, o
+  verificador completo passou 159 assertivas. AST passou nos cinco arquivos
+  PowerShell e o link gate resolveu 1007 links locais em 233 arquivos.
+- Estado e limites continuam `STATE-06 INTEGRATION`, elegibilidade não
+  reavaliada e `MOD-12 ActivationState=None`. Novo re-review independente,
+  promoção, observação, commit, produto, runtime, remote, push, deploy e
+  publicação continuam separados e não são inferidos destes passes.
+
+## 2026-08-30 — GOV-CONTINUOUS-IMPROVEMENT-01 final replay hardening
+
+- Uma self-audit posterior encontrou que o digest de scope era persistido sem
+  os candidate paths usados para derivar risco. O schema `1` passou a guardar os
+  paths canônicos e o replay recalcula scope, `riskDomains`, `riskClass` e
+  `governanceChange`; um evento re-hashado com path `Security` e risco omitido
+  agora falha fechado.
+- `Assert-CIExactCandidate` preserva o casing reportado pelo Git no receipt,
+  enquanto containment físico e ausência de reparse são verificados antes de
+  qualquer hash de conteúdo.
+- Evidência final deste writer: comportamento `PASS` com 90 assertivas,
+  development-flow focal `PASS` com 111 assertivas e verificador completo
+  `PASS` com 159 assertivas. O `FAIL` da revisão independente anterior e os
+  primeiros `FAIL` focal/full permanecem inalterados; novo re-review continua
+  necessário antes de qualquer promoção.
+
+## 2026-08-30 — GOV-CONTINUOUS-IMPROVEMENT-01 failed-gate and recovery successor
+
+- A re-review independente seguinte preservou `FAIL` com `P0=0`, `P1=3`,
+  `P2=0`, `P3=0`: `GATE_FAILED` não aplicava a separação implementer/verifier;
+  um pending A recuperado podia ser devolvido como sucesso para um pedido B; e
+  o gate falho de governança não vinculava resultados antigos/novos factuais.
+- O mesmo successor de 17 paths agora aplica a separação ao gate falho e
+  aprovado, retorna A idempotentemente somente quando a requisição canônica
+  reexecuta A e, caso contrário, grava e devolve B depois de A sob o mesmo lock.
+  `GATE_FAILED` exige `FAIL` literal e pelo menos um check aplicável em `FAIL`;
+  governança conserva os dois resultados e rejeita `PASS`/`PASS`.
+- Regressões reproduzem implementer como verifier falho, governança
+  `PASS`/`PASS`, retry exato A e pending A seguido de pedido B com ordem/hash
+  causal. Os três `GATE_FAILED` nominais passaram a preservar old=`PASS` e
+  new=`FAIL` factuais.
+- Primeiro focal desta rodada permanece `FAIL`: o replay idempotente colapsou um
+  array vazio e tentou duplicar o event ID. A correção preservou o array vazio
+  explicitamente. Dois resultados diagnósticos posteriores expuseram binding
+  de reviewers vazios e texto de assertion; ambos foram corrigidos sem afrouxar
+  a rejeição. O focal final passou 98 assertivas, development flow passou 111 e
+  o verificador completo passou 159.
+- Reviews anteriores, Doctor, drift do WIP predecessor e primeiros FAILs
+  focal/full continuam factuais. Re-review independente novo, promoção,
+  observação, commit, produto, remote, push, deploy e publicação continuam fora
+  do writer.
+
+## 2026-08-30 — GOV-CONTINUOUS-IMPROVEMENT-01 canonical identity and risk-matrix successor
+
+- A revisão independente do candidato congelado com digest
+  `808ef853c1a6786920254d83d1301e5611d50d27ca9bb1dcdbb4ec36f94c5823`
+  permanece `FAIL` factual em `P0=0`, `P1=2`, `P2=0`, `P3=0`: uma SHA-256 bem
+  formada podia substituir a execution key canônica, e 11 paths oficiais ainda
+  podiam ser classificados como `STANDARD`.
+- O successor no mesmo worktree isolado persiste scope e acceptance ao lado de
+  cada execution key e recompõe a identidade de improvement, baseline e inputs
+  no append, recuperação pending, admissão e replay integral. Regressões rejeitam
+  SHA arbitrária tanto no attempt quanto em evento posterior, e um attempt
+  pending canônico continua recuperável e idempotente sem duplicação.
+- Classificação passa a usar uma matriz controller-owned de exatamente 28 paths
+  oficiais. A regressão table-driven verifica todos, identifica explicitamente
+  os 11 antigos falsos `STANDARD` e mantém controles de produto não autoritativos
+  como `STANDARD` quando nenhum domínio elevado independente se aplica.
+- Primeiro focal preservado: `FAIL` em
+  `EXECUTION_KEY_IDENTITY_INVALID: execution inputs cannot exist without an
+  execution key.` A fixture de duplicate pós-execução não declarava a identidade
+  agora obrigatória; a correção foi restrita à fixture. Depois, comportamento
+  passou 140 assertivas, development flow 112, verificador completo 160, AST nos
+  cinco arquivos PowerShell e links 1007 em 233 arquivos.
+- Baseline, index, 17-path write set, produto, lifecycle, worktree principal,
+  remote e boundary proibido permanecem inalterados. Novo review independente,
+  promoção, observação e rollback continuam sob custódia separada.

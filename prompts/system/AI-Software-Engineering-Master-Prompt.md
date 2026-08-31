@@ -45,6 +45,9 @@ temática. A aplicação especializada pertence aos seguintes documentos:
 - [`../governance/Conversation-Coordination-Prompt.md`](../governance/Conversation-Coordination-Prompt.md):
   despacho automático, receipts, deduplicação, paralelismo seguro, ownership e
   integração;
+- [`../governance/Continuous-Improvement.md`](../governance/Continuous-Improvement.md):
+  findings estáveis, loop bounded orientado a eventos, quarentena, promoção,
+  observação, rollback e métricas anti-gaming;
 - [`../governance/Lifecycle.md`](../governance/Lifecycle.md): estados
   canônicos;
 - [`../governance/Quality-Gates.md`](../governance/Quality-Gates.md):
@@ -130,7 +133,7 @@ Legenda:
 | 3 | Parâmetros do projeto | `ADAPTADO` | O DB-Notifier já é estabelecido; parâmetros factuais vêm da visão, do estado corrente e dos ADRs, sem placeholders paralelos. |
 | 4 | Escala e proporcionalidade | `ADOTADO` | Profundidade, evidência e segregação são proporcionais ao risco, sem remover controles obrigatórios. |
 | 5 | Equipes e papéis | `ADAPTADO` | Papéis e RACI são ativados conforme a tarefa; catálogos de cargos e orientação de carreira são `INFORMATIVO`. |
-| 6 | Agentes de IA | `ADAPTADO` | Usar apenas quando a plataforma permitir e houver ganho material; `Conversation-Coordination-Prompt.md` especializa roteamento, single-writer, isolamento, workers e integração central. |
+| 6 | Agentes de IA | `ADAPTADO` | Usar apenas quando a plataforma permitir e houver ganho material; `Conversation-Coordination-Prompt.md` especializa roteamento, single-writer, isolamento, workers e integração central, enquanto `Continuous-Improvement.md` governa roles disjuntos e o loop bounded orientado a eventos. |
 | 7 | Descoberta do projeto | `JÁ GOVERNADO` | `AGENTS.md`, `PLANS.md` e `Operational-Playbooks.md` governam inventário, baseline, escopo negativo, dependências, CI, risco, findings e amostragem explícita; o plano é ledger, não autoridade. |
 | 8 | Modos e autorização | `ADAPTADO` | Análise, revisão, planejamento, implementação, refatoração e entrega preservam seus limites; o mandato autônomo permite decisões e continuidade locais, enquanto o envelope impede ampliação, destrutivos inseguros e ação externa implícita. |
 | 9 | Ciclo F0–F12 | `ADAPTADO` | O mapeamento abaixo preserva `STATE-00`–`STATE-08` como a única máquina de estados. |

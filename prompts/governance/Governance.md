@@ -20,6 +20,12 @@ A
 recomendação de raciocínio do Codex, paralelismo, ownership e integração. Ela
 não altera a autoridade, os estados ou os gates definidos aqui.
 
+A autoridade temática de
+[`Melhoria Contínua`](Continuous-Improvement.md) especializa fingerprints,
+ledger append-only, tentativa, quarentena, promoção, observação, rollback e
+métricas. Ela não cria requisito de produto, autoridade externa, transição de
+lifecycle ou permissão para ultrapassar escopo, WIP protegido ou clean-room.
+
 ## Autonomia prospectiva
 
 Os objetivos e requisitos canônicos do produto são entradas estabelecidas. A
@@ -84,18 +90,21 @@ IDs não podem ser reutilizados com outro significado.
    estado, histórico, ADR ou gate.
 6. Selecionar o menor incremento coerente que ataque a causa raiz e definir a
    regressão capaz de provar o comportamento alterado.
-7. Implementar somente o escopo autorizado, com um writer por boundary e
+7. Em loop de melhoria contínua, consumir um evento imutável, deduplicar pelo
+   fingerprint estável e executar no máximo uma próxima ação bounded conforme
+   [`Continuous-Improvement.md`](Continuous-Improvement.md).
+8. Implementar somente o escopo autorizado, com um writer por boundary e
    validação focal contínua após cada incremento.
-8. Revisar diff, claims, segurança, compatibilidade e evidência; usar revisão
+9. Revisar diff, claims, segurança, compatibilidade e evidência; usar revisão
    independente quando o risco ou a amplitude exigirem.
-9. Integrar resultados de forma serial e determinística. Workers entregam
+10. Integrar resultados de forma serial e determinística. Workers entregam
    candidatos; a coordenadora preserva a custódia da integração.
-10. Executar os checks reais do repositório. `Quick` é somente feedback
+11. Executar os checks reais do repositório. `Quick` é somente feedback
     `NON_GATE`; `Full` chama uma vez o gate canônico. Preservar a disposição
     factual `PASS`, `FAIL`, `BLOCKED`, `PARTIAL` ou `NOT_RUN`.
-11. Atualizar estado e histórico somente depois da mudança factual e sem
+12. Atualizar estado e histórico somente depois da mudança factual e sem
     reescrever evidência anterior.
-12. Encerrar o lote com diff/staged diff revisados, commit focal quando exigido,
+13. Encerrar o lote com diff/staged diff revisados, commit focal quando exigido,
     limitações, trabalho restante e despacho interno governado para o próximo
     lote seguro.
 
@@ -103,7 +112,7 @@ O fluxo operacional padrão é:
 
 ```text
 canonical objectives → baseline → scope → preflight → live plan → small increments →
-focused regressions → independent review → serial integration → aggregate
+stable finding → causal delta → focused regressions → independent review → serial integration → aggregate
 gate → Agent Gate → factual state/history → automatic dispatch
 ```
 
@@ -195,6 +204,8 @@ proprietário um payload que uma ferramenta disponível possa executar.
 ## Memória do projeto
 
 - `../../PLANS.md`: plano vivo não autorizante do incremento amplo corrente.
+- `../state/Continuous-Improvement-Backlog.md`: fila factual de melhorias, não
+  autoridade nem ledger operacional mutável.
 - `../state/Current-State.md`: somente presente factual.
 - `../state/State-Transition-Log.md`: histórico append-only.
 - ADRs: decisões arquiteturais e substituições.

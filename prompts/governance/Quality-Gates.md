@@ -142,9 +142,10 @@ mesmo quando todos os checks executáveis passam. Não há retry automático nem
 correção em linha de uma falha.
 
 `scripts/verify-development-flow.ps1` e
-`tests/DBNotifier.DevelopmentFlow.Tests.ps1` verificam o plano vivo, a
+`tests/DBNotifier.DevelopmentFlow.Tests.ps1`, junto de
+`tests/DBNotifier.ContinuousImprovement.Tests.ps1`, verificam o plano vivo, a
 delegação de CI, as invariantes `Quick`/`Full`, o isolamento de credenciais e o
-plano determinístico. Esses testes de política não substituem build, teste de
+plano determinístico, além do loop bounded, ledger e promotion contract. Esses testes de política não substituem build, teste de
 produto, revisão semântica independente ou Agent Gate.
 
 ## Severidade de achados
@@ -251,6 +252,57 @@ conforme
 Overlap, baseline incerta ou isolamento insuficiente registra
 `AUTOMATED_GATE_FAIL` e força `SEQUENTIAL_ONLY`. O gate avalia coordenação e
 despacho; não concede autoridade externa nem enfraquece segurança.
+
+## Gate de melhoria contínua
+
+Aplicar este gate a todo candidato regido por
+[`Continuous-Improvement.md`](Continuous-Improvement.md):
+
+1. Validar fingerprint, execution key e dispatch key estáveis e versionados.
+   Para cada evento com identidade de execução, persistir scope e acceptance
+   digests e recomputar a key a partir de improvement, baseline e inputs no
+   append, recovery, admission e replay integral. SHA-256 arbitrário, input
+   ausente ou drift deve falhar fechado sem quebrar recovery idempotente.
+2. Validar ledger bounded, path regular sem reparse, lock exclusivo, UTF-8 sem
+   BOM, sequência, timestamp UTC, schema, hash chain, linha LF completa e
+   evidência sanitizada. Exercitar journal `.pending.new`/`.pending` flushed,
+   recuperação idempotente antes/depois do append, prefixo truncado recuperável,
+   pending corrupto preservado e cleanup somente do sidecar exato. Após
+   recuperar A, uma requisição idêntica retorna A idempotentemente; uma
+   requisição distinta B deve gravar e devolver B depois de A sob o mesmo lock.
+3. Reprovar retry do mesmo candidate digest. Após `GATE_FAILED`, exigir
+   candidate digest diferente e causal delta derivado de fatos de candidate,
+   dependência, ambiente ou control plane com receipts SHA; raw digest ou GUID
+   fornecido pelo chamador não é causalidade e registra `QUARANTINED`.
+4. Derivar candidate-scope digest, mudança de governança e risco a partir dos
+   paths e fatos contratuais. Reprovar `false`/`STANDARD` caller-supplied sobre
+   path governado. Executar regressão table-driven para a matriz exata de 28
+   autoridades, estados e development controls definida na autoridade de
+   melhoria contínua, incluindo os 11 antigos falsos `STANDARD`, e confirmar
+   que paths de produto não autoritativos continuam `STANDARD` na ausência de
+   outro domínio. Confirmar writer único e roles disjuntos.
+5. Executar o gate antigo contra a baseline inalterada e o gate novo com as
+   regressões candidatas. Ambos preservam `PASS` literal; qualquer falha produz
+   `AUTOMATED_GATE_FAIL`. `GATE_FAILED` conserva `FAIL` literal e pelo menos um
+   resultado aplicável antigo/novo em `FAIL`; mudança de governança conserva os
+   dois resultados e rejeita `PASS`/`PASS`.
+6. Exigir um evento `REVIEW_RECORDED`, resultado e receipt SHA derivado por
+   revisor. Lista declarativa não conta. Mudança de governança ou risco elevado
+   exige dois revisores factuais com zero P0/P1; verifier e integrator são
+   independentes de autores e revisores tanto no gate falho quanto no aprovado.
+7. Provar root, baseline, index e changed paths exatos sem abrir overlay
+   ignorado ou boundary protegido para demonstrar exclusão.
+8. Resolver no Git real os commits e trees de candidate, baseline/LKG e
+   promotion preimage; recusar revisão opaca. Vincular promoção ao execution
+   key, candidate digest, promotion ID e evidência exatos.
+9. Não avançar LKG antes de fechar a janela de observação. O observer é também
+   independente do promotion integrator. Regressão preserva `FAIL`; rollback
+   resolve e prova commit/tree iguais ao LKG anterior antes do pós-gate.
+10. Recomputar métricas somente do ledger validado, com numerador, denominador e
+   `null` para denominador zero; excluir promoção não observada do escape rate.
+
+Uma mutable dashboard, aggregate fornecido pelo chamador, finding removido,
+retry relabelado ou janela aberta nunca constitui evidência de melhoria.
 
 ## Gates de segurança destrutiva e ação externa
 

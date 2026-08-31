@@ -49,18 +49,41 @@ proprietários.
 
 ## Sistema de instruções e coordenação
 
-- O corpus vigente é `9.0.0`, com 16 arquivos ativos. A
+- O corpus vigente neste candidato isolado é `9.1.0`, com 18 arquivos ativos. A
   [Política de Idioma](../governance/Language-Policy.md), revisão `1.0.0`, é a
   autoridade temática única para comunicação com o proprietário, idioma dos
   artefatos, preservação de conteúdo existente, convenções externas e
   separação do idioma da interface.
 - A
   [Coordenação de Conversas e Trabalho Paralelo Seguro](../governance/Conversation-Coordination-Prompt.md),
-  revisão `2.0.0`, é a autoridade temática de despacho automático, receipts,
+  revisão `2.1.0`, é a autoridade temática de despacho automático, receipts,
   deduplicação, fallback, paralelismo, ownership exclusivo e integração
-  coordenada. As duas
-  autoridades ficam em `prompts/governance/`; `Governance.md` conserva
+  coordenada. As autoridades especializadas ficam em `prompts/governance/`;
+  `Governance.md` conserva
   autoridade, execução controlada e lifecycle.
+- A autoridade de
+  [Melhoria Contínua](../governance/Continuous-Improvement.md), revisão `1.0.0`,
+  e o
+  [backlog factual](Continuous-Improvement-Backlog.md) materializam o loop
+  event-driven bounded, fingerprints/keys estáveis, pending append recuperável,
+  UTF-8 sem BOM e sem propriedades JSON duplicadas, raiz operacional confinada,
+  retry zero do mesmo candidato, delta causal e risco derivados, findings P0-P3
+  com dispositions P2/P3, reviews/receipts factuais, roles disjuntos, meta-gate
+  antigo/novo e promoção, preimage, LKG, observação e rollback provados por Git.
+  O successor mais recente aplica a mesma separação de verifier no gate falho e
+  aprovado, não devolve um pending A como sucesso para um pedido B, exige
+  `GATE_FAILED` factual, recompõe toda execution key de improvement, baseline,
+  scope e acceptance no append/recovery/admission/replay e classifica como
+  governança `HIGH` a matriz exata de 28 autoridades, estados e development
+  controls. Produto não autoritativo continua `STANDARD` quando nenhum outro
+  domínio elevado se aplica.
+  A regressão comportamental passou 140 assertivas, a política de development
+  flow 112, o verificador completo 160, AST nos cinco arquivos PowerShell e o
+  gate de links 1007 links em 233 arquivos. Os reviews `P0=0`, `P1=5`, `P2=2`,
+  `P3=0`, depois `P0=0`, `P1=3`, `P2=0`, `P3=0`, e por fim `P0=0`, `P1=2`,
+  `P2=0`, `P3=0` permanecem `FAIL` factuais. Os dois contraexemplos mais recentes
+  estão corrigidos localmente, mas nova revisão sucessora independente e
+  promoção ainda são evidências separadas.
 - O
   [relatório `GOV-MN-RESTORE-01`](../../docs/STATE-06-MySQL-Notifier-Functional-Reference-Restoration-Report.md)
   registra a intenção corrigida do proprietário: MySQL Notifier 1.1.8 volta a

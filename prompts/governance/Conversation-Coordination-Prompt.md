@@ -1,9 +1,9 @@
 # DB-Notifier — Coordenação Autônoma e Trabalho Paralelo Seguro
 
 - Status: autoridade temática normativa
-- Revisão: `2.0.0`
+- Revisão: `2.1.0`
 - Versão de introdução no corpus: `6.2.0`
-- Versão desta revisão no corpus: `9.0.0`
+- Versão desta revisão no corpus: `9.1.0`
 - Projeto: `DB-Notifier`
 - Workspace: raiz confirmada do repositório ou do worktree atribuído à tarefa
 
@@ -88,6 +88,11 @@ Cada rota registra internamente:
 - horário e ferramenta;
 - resultado factual da ferramenta;
 - estado atual e cursor quando aplicável.
+
+Em melhoria contínua, a chave de deduplicação do despacho é o dispatch key
+estável definido em [`Continuous-Improvement.md`](Continuous-Improvement.md),
+derivado do execution key, rota, origem e destino exatos. Trocar rótulo,
+timestamp ou conversa não cria novo intento nem autoriza retry do candidato.
 
 `CONTINUE_CURRENT` usa um registro local factual no plano e não inventa
 ferramenta ou receipt. `DELEGATE_SUBAGENT`, `RETURN_TO_EXISTING` e
@@ -282,7 +287,19 @@ quando não houver progresso material possível. A comunicação usa `pt-BR` e
 informa fatos, validações, limitações e riscos; não pede preferência técnica,
 aprovação rotineira, navegação, criação de tarefa ou encaminhamento de payload.
 
-## 15. Validação e mudança desta política
+## 15. Integração com melhoria contínua
+
+Um evento de finding não cria automaticamente uma tarefa ou writer. A
+coordenadora deduplica o fingerprint no backlog factual, escolhe uma única rota
+e despacha no máximo uma ação bounded. `ATTEMPT_STARTED` exige ownership e
+candidate digest exatos; um `GATE_FAILED` retorna primeiro à análise causal, não
+à repetição do mesmo payload.
+
+Implementador, revisores, integrador e observador seguem a separação de roles
+da autoridade de melhoria contínua. Receipt de despacho, evento de ledger e
+resultado de gate são evidências distintas e não se substituem.
+
+## 16. Validação e mudança desta política
 
 Após alteração, validar:
 
