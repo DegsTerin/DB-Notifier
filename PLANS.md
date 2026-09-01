@@ -8,6 +8,176 @@ increment. It records execution intent and evidence; it does not replace
 append-only history, a Quality Gate, an Agent Gate or a preserved historical
 Human Gate.
 
+## Portfolio preview publication record
+
+- Plan ID: `PORTFOLIO-PREVIEW-01`
+- Status: `LOCAL_COMPLETE`; the local portfolio candidate, demonstration media
+  independent review and final exact-candidate validation are complete, with
+  external publication pending
+- Created: `2026-09-01`
+- Baseline: `codex/portfolio-preview@492c1b3b7ee8d0374ddd16dd3d3e9af213e7bbe9`
+- Authority: the owner's current request to publish DB-Notifier as an honest
+  work-in-progress full-stack portfolio, with a professional README, a real
+  demonstration GIF and a Render-hosted static preview
+- Lifecycle state: `STATE-06 INTEGRATION`; unchanged
+- Execution mode: `SEQUENTIAL_ONLY` / `SINGLE_OWNER`
+- Writer: the coordinating task owns the isolated portfolio worktree and every
+  path in the candidate write set; all reviews remain read-only
+- Rollback: remove only the isolated `codex/portfolio-preview` worktree and
+  branch before publication, or revert a later focused portfolio commit; never
+  reset, clean or overwrite the protected principal worktree
+
+### Objective and public truth boundary
+
+Publish a polished source portfolio and static Web Dashboard preview that
+demonstrate full-stack engineering without claiming production readiness,
+live database monitoring, provider homologation, administrative execution or
+external data. The hosted Dashboard and recorded media use deterministic local
+demonstration data only. API, Agent and WPF deployment remain outside Render.
+
+### Positive scope and candidate write set
+
+1. `PLANS.md`
+2. `README.md`
+3. `SECURITY.md`
+4. `render.yaml`
+5. `docs/assets/db-notifier-demo.gif`
+6. `docs/assets/db-notifier-demo.png`
+7. `src/DBNotifier.Dashboard.Web/index.html`
+8. `src/DBNotifier.Dashboard.Web/public/robots.txt`
+9. `src/DBNotifier.Dashboard.Web/src/generated/localisation.ts`
+10. `src/DBNotifier.Desktop.Wpf/Generated/Localisation.pt-BR.xaml`
+11. `src/DBNotifier.Desktop.Wpf/Generated/Localisation.en-GB.xaml`
+12. `src/DBNotifier.Dashboard.Web/src/generated/design-tokens.css`
+13. `src/DBNotifier.Desktop.Wpf/Generated/DesignTokens.Core.xaml`
+14. `src/DBNotifier.Desktop.Wpf/Generated/DesignTokens.Light.xaml`
+15. `src/DBNotifier.Desktop.Wpf/Generated/DesignTokens.Dark.xaml`
+
+The dependency manifests and lockfiles may enter the write set only if a
+current security check proves a directly relevant, minimally correctable
+public-preview blocker. Every additional path requires this record to be
+updated before mutation.
+
+### Negative scope and protected work
+
+- The dirty principal worktree, its uncommitted `S06-DFR-03-AUTH-01 v1.1`
+  candidate, all untracked files and every pre-existing user change are
+  protected and remain untouched.
+- The prohibited `mysql-notifier-1.1.8-src` tree is not enumerated, searched,
+  read, copied or exposed as metadata.
+- No API, Agent, WPF, provider, database, migration, authentication, secret,
+  administrative action, production topology or lifecycle state is activated.
+- No generated source, immutable report or historical evidence is rewritten.
+- GitHub and Render publication occur only after local validation, public
+  history review, exact authenticated account discovery and a zero-cost target
+  are proved. No paid resource, custom domain or production database is in
+  scope.
+
+### Definition of Ready
+
+- Shutdown preflight passes with zero matching process and owned listener.
+- The isolated branch and worktree start clean at the frozen baseline.
+- The principal worktree and prohibited source boundary remain untouched.
+- The README, media and hosted preview are explicitly labelled as synthetic,
+  work-in-progress portfolio evidence.
+- One writer owns every mutable path and local runtime used for capture.
+
+### Definition of Done
+
+- The first README screen communicates value, stack, work-in-progress status
+  and the deterministic-data boundary to recruiters and developers.
+- The README contains a real, sanitised GIF plus a static fallback image,
+  architecture, demonstrated capabilities, local preview instructions, status,
+  roadmap, security and licence links.
+- `render.yaml` defines only a static Dashboard service with safe response
+  headers and no API, database, secret or operational integration.
+- The Dashboard build, focused tests, link/media checks, secret checks and a
+  dedicated-browser visual review pass on the exact candidate.
+- The canonical repository gate is run once when its declared prerequisites
+  are ready; any failure remains factual and prevents a readiness claim.
+- The focused candidate is independently reviewed at `P0=0` and `P1=0` before
+  a local commit or external publication.
+- Any GitHub or Render publication records the exact account, repository,
+  branch, public URL and observed remote result without implying production.
+
+### Stop codes
+
+- `BASELINE_DRIFT`: the isolated baseline, branch or candidate paths diverge.
+- `PROTECTED_WORK_OVERLAP`: the principal worktree or another owner's path
+  would be changed.
+- `ISOLATION_FAILURE`: shutdown, browser, filesystem or prohibited-tree
+  isolation cannot be proved.
+- `PUBLIC_TRUTH_FAILURE`: media or prose implies live or production behaviour.
+- `SECRET_OR_PROVENANCE_FAILURE`: public history, media, notices or licences
+  cannot be shown safe.
+- `AUTOMATED_GATE_FAIL`: an applicable local or remote check fails.
+- `EXTERNAL_PREREQUISITE`: an exact account, valid credential, free resource or
+  safe publication mechanism is unavailable.
+
+### Increment plan
+
+1. `COMPLETE` — freeze authority, baseline, protected work and public truth.
+2. `COMPLETE` — implement the portfolio README, security policy and Render
+   Static Site definition; reconcile the deterministic generated adapters
+   exposed by the first focused test run.
+3. `COMPLETE` — build the Dashboard and capture sanitised real demonstration
+   media in a dedicated browser. The eight-frame GIF and static fallback are
+   entirely Dark theme, use `en-GB`, contain deterministic synthetic data only
+   and expose no console warning, console error or external connection.
+4. `COMPLETE` — execute focused checks, canonical validation and independent
+   review on the frozen candidate. Focused checks, `Doctor`, `Quick` and the
+   online canonical `Full` gate passed. The first independent review found one
+   `P1` incorrect media-format defect and one `P2` reporting-route gap; both
+   were corrected, and focused re-review passed at `P0=0`, `P1=0`, `P2=0`,
+   `P3=0`.
+5. `IN_PROGRESS` — commit the focused branch and publish only when every external
+   prerequisite and zero-cost boundary is proved.
+
+### Validation evidence
+
+- Dashboard toolchain verification, type checking, build, `74/74` Web tests,
+  Markdown links, code-documentation policy, brand verification and npm audit
+  passed; the npm audit reported zero vulnerabilities.
+- The initial generated-adapter test exposed canonical localisation and token
+  drift, which was reconciled from the owning sources. The first canonical
+  `Doctor` then reported the expected missing restored assets in the clean
+  worktree; `Setup` completed locked restores for `19` projects and the next
+  `Doctor` passed.
+- The first `Quick` preserved a development-flow policy failure caused by an
+  omitted exact governance literal in the new README. After the README restored
+  that literal, the focused policy check passed `160` assertions and the next
+  `Quick` passed.
+- The canonical online `Full` gate passed through secret scanning, policy and
+  syntax checks, locked restore and build with zero warnings or errors, `825`
+  .NET tests, `74` Web tests, line coverage `83.39%`, branch coverage `56.46%`,
+  NuGet and npm vulnerability checks, legacy compatibility, browser
+  accessibility samples and the consolidated `STATE-06` harness.
+- Dedicated-browser media review confirmed `en-GB`, Dark theme and a
+  `1280x720` rendering viewport. The final GIF contains eight normalised
+  `1120x630` frames, is approximately `1.3 MB`, loops without external data and
+  has a matching genuine `1120x630` PNG fallback selected for reduced-motion
+  readers.
+- The first independent review closed at `P0=0`, `P1=1`, `P2=1`, `P3=0`.
+  The `P1` identified a JPEG payload incorrectly named `.png`; the fallback was
+  re-exported with the PNG signature `89504E470D0A1A0A` and referenced through
+  a reduced-motion `<picture>` source. The `P2` identified a conditional private
+  vulnerability-reporting dead end; `SECURITY.md` now supplies a
+  non-disclosing public-contact fallback. Independent focused re-review passed
+  at `P0=0`, `P1=0`, `P2=0`, `P3=0`; it also confirmed the PNG is
+  pixel-identical to the GIF's first frame and contains no embedded metadata or
+  detected local-path marker.
+- Local YAML parser validation is `NOT_RUN` because neither `ConvertFrom-Yaml`
+  nor PyYAML is installed. `render.yaml` was checked against the current Render
+  Static Site schema and remains subject to Render's remote Blueprint
+  validation before publication.
+- The final online canonical `Full` execution on the completed local candidate
+  returned `DISPOSITION|PASS|stage=All`. It reconfirmed the secret scan, the
+  `825` .NET and `74` Web tests, line coverage `83.39%`, branch coverage
+  `56.46%`, zero NuGet/npm vulnerability findings, `128` viewport samples,
+  `96` forced-colour route/page-scale samples, `24` focal zoom/reflow samples
+  and the consolidated `STATE-06` harness. Closing shutdown reported zero
+  matching process and zero owned listener.
+
 ## Active continuous-improvement control record
 
 - Plan ID: `GOV-CONTINUOUS-IMPROVEMENT-01`
