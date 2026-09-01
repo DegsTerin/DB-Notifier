@@ -132,7 +132,8 @@ try {
         RepositoryRoot = $worktreeRoot
         NodePath = (Get-Command node -CommandType Application -ErrorAction Stop).Source
     }
-    Assert-Condition $validResult.Succeeded 'Valid tracked and untracked fixtures did not pass.'
+    Assert-Condition $validResult.Succeeded (
+        "Valid tracked and untracked fixtures did not pass. Sanitised gate classification: $($validResult.Output.Trim())")
     Assert-Condition (
         $validResult.Output -match "powershell=$expectedPowerShellInventory" -and
         $validResult.Output -match 'node=1'

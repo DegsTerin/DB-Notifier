@@ -11,11 +11,13 @@ Human Gate.
 ## Portfolio preview publication record
 
 - Plan ID: `PORTFOLIO-PREVIEW-01`
-- Status: `LOCAL_COMPLETE`; the local portfolio candidate, demonstration media
-  independent review and final exact-candidate validation are complete, with
-  external publication pending
+- Status: `AUTOMATED_GATE_FAIL`; the exact local portfolio candidate passed its
+  local gates and was published to GitHub, but the first remote GitHub Actions
+  execution exposed one Windows script-syntax fixture incompatibility and one
+  Linux reparse-fixture incompatibility; Render publication remains stopped
 - Created: `2026-09-01`
 - Baseline: `codex/portfolio-preview@492c1b3b7ee8d0374ddd16dd3d3e9af213e7bbe9`
+- Published candidate: `main@8c7d5d36ad2bcdad124c74a426840c0c4f439027`
 - Authority: the owner's current request to publish DB-Notifier as an honest
   work-in-progress full-stack portfolio, with a professional README, a real
   demonstration GIF and a Render-hosted static preview
@@ -52,6 +54,9 @@ demonstration data only. API, Agent and WPF deployment remain outside Render.
 13. `src/DBNotifier.Desktop.Wpf/Generated/DesignTokens.Core.xaml`
 14. `src/DBNotifier.Desktop.Wpf/Generated/DesignTokens.Light.xaml`
 15. `src/DBNotifier.Desktop.Wpf/Generated/DesignTokens.Dark.xaml`
+16. `scripts/verify-script-syntax.ps1`
+17. `tests/DBNotifier.ScriptSyntax.Tests.ps1`
+18. `tests/DBNotifier.ContinuousImprovement.Tests.ps1`
 
 The dependency manifests and lockfiles may enter the write set only if a
 current security check proves a directly relevant, minimally correctable
@@ -68,6 +73,9 @@ updated before mutation.
 - No API, Agent, WPF, provider, database, migration, authentication, secret,
   administrative action, production topology or lifecycle state is activated.
 - No generated source, immutable report or historical evidence is rewritten.
+- The remote correction does not weaken, skip or pin around either safety gate;
+  it is limited to portable fixtures, fail-closed child-process validation and
+  sanitised failure classification.
 - GitHub and Render publication occur only after local validation, public
   history review, exact authenticated account discovery and a zero-cost target
   are proved. No paid resource, custom domain or production database is in
@@ -130,8 +138,16 @@ updated before mutation.
    `P1` incorrect media-format defect and one `P2` reporting-route gap; both
    were corrected, and focused re-review passed at `P0=0`, `P1=0`, `P2=0`,
    `P3=0`.
-5. `IN_PROGRESS` — commit the focused branch and publish only when every external
-   prerequisite and zero-cost boundary is proved.
+5. `AUTOMATED_GATE_FAIL` — commit and publish the focused branch to the public
+   GitHub repository. The first exact-commit workflow failed in the Windows
+   script-syntax fixture and Linux reparse fixture; no Render resource was
+   created after that failure.
+6. `LOCAL_COMPLETE` — correct only the two remote fixture incompatibilities and
+   repeat the applicable local gates and independent review. The correction
+   passed focused tests, `Quick`, the canonical `Full` gate and independent
+   review at `P0=0`, `P1=0`, `P2=0`, `P3=0`.
+7. `IN_PROGRESS` — publish the successor commit and require both GitHub Actions
+   jobs to pass before creating the zero-cost Render Static Site.
 
 ### Validation evidence
 
@@ -177,6 +193,39 @@ updated before mutation.
   `96` forced-colour route/page-scale samples, `24` focal zoom/reflow samples
   and the consolidated `STATE-06` harness. Closing shutdown reported zero
   matching process and zero owned listener.
+- GitHub publication created the public repository
+  `https://github.com/DegsTerin/DB-Notifier` and pushed the exact candidate as
+  `main@8c7d5d36ad2bcdad124c74a426840c0c4f439027`. Private vulnerability reporting
+  is enabled; the default branch, description and portfolio topics were
+  verified through the authenticated GitHub CLI account `DegsTerin`.
+- GitHub Actions run `33562428994` preserved two remote failures. The Windows
+  canonical job passed the repository gate until
+  `DBNotifier.ScriptSyntax.Tests.ps1`, where its valid path-with-spaces fixture
+  failed under Node `24.20.0`. The Linux Dashboard job reached
+  `DBNotifier.ContinuousImprovement.Tests.ps1`, where PowerShell `7.6.5` did not
+  create the requested `Junction` fixture on Unix and the test subsequently
+  exercised a missing path instead of a real reparse-backed path.
+- Read-only diagnosis classified the Linux result as a fixture false positive,
+  not evidence that the controller read or hashed the external receipt. The
+  Windows result remains a strong bounded inference because the captured child
+  classification was omitted from the failing assertion; the correction must
+  therefore retain a sanitised classification in any successor failure.
+- The focused correction uses a Windows junction or Unix symbolic link and
+  proves the resulting path has `ReparsePoint` before exercising the unchanged
+  fail-closed controller. The Node gate independently requires a fully
+  qualified existing leaf, retains `ProcessStartInfo.ArgumentList` and passes
+  the absolute path as the sole `--check` operand without a command shell.
+- Focused validation passed the script-syntax regression with `13` assertions
+  and zero disposable residue, the continuous-improvement regression with
+  `141` assertions, the `50` PowerShell / `14` Node repository syntax inventory,
+  development-flow policy with `160` assertions, development-flow tests with
+  `112` assertions and the documentation gate over `450` source files.
+- `Quick` passed as non-gate feedback. The canonical online `Full` gate then
+  returned `DISPOSITION|PASS|stage=All`, reconfirming zero secret and dependency
+  findings, `825` .NET tests, `74` Web tests, line coverage `83.39%`, branch
+  coverage `56.46%`, the accessibility sample matrix and the consolidated
+  `STATE-06` harness. Independent static review passed at `P0=0`, `P1=0`,
+  `P2=0`, `P3=0`.
 
 ## Active continuous-improvement control record
 

@@ -1358,7 +1358,13 @@ try {
         [System.Text.UTF8Encoding]::new($false))
     $junctionPath = Join-Path $fixtureRoot 'reparse-candidate'
     try {
-        [void](New-Item -ItemType Junction -Path $junctionPath -Target $junctionTarget)
+        # Unix PowerShell cannot create junctions; a directory symbolic link exercises the same reparse boundary.
+        $reparseItemType = if ($IsWindows) { 'Junction' } else { 'SymbolicLink' }
+        [void](New-Item -ItemType $reparseItemType -Path $junctionPath -Target $junctionTarget)
+        $reparseAttributes = [System.IO.File]::GetAttributes($junctionPath)
+        Assert-Condition (
+            ($reparseAttributes -band [System.IO.FileAttributes]::ReparsePoint) -ne 0
+        ) 'The reparse-backed candidate fixture was not created.'
         Assert-Throws {
             Assert-CIPathContained `
                 -Path (Join-Path $junctionPath 'receipt.txt') `
