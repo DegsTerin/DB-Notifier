@@ -128,9 +128,17 @@ try {
     & git -C $worktreeRoot add -- 'valid script.ps1' 'valid script.mjs'
     if ($LASTEXITCODE -ne 0) { throw 'The disposable syntax fixtures could not be staged.' }
 
+    # Hosted runners may expose multiple Node applications; the fixture exercises one deterministic executable.
+    $nodeApplication = Get-Command node -CommandType Application -ErrorAction Stop |
+        Select-Object -First 1
+    $nodePath = [string]$nodeApplication.Source
+    Assert-Condition (
+        -not [string]::IsNullOrWhiteSpace($nodePath)
+    ) 'The disposable syntax fixture could not resolve one Node application.'
+
     $validResult = Invoke-GateCapture -GateParameters @{
         RepositoryRoot = $worktreeRoot
-        NodePath = (Get-Command node -CommandType Application -ErrorAction Stop).Source
+        NodePath = $nodePath
     }
     Assert-Condition $validResult.Succeeded (
         "Valid tracked and untracked fixtures did not pass. Sanitised gate classification: $($validResult.Output.Trim())")
@@ -194,7 +202,7 @@ try {
         [System.Text.UTF8Encoding]::new($false))
     $brokenNodeResult = Invoke-GateCapture -GateParameters @{
         RepositoryRoot = $worktreeRoot
-        NodePath = (Get-Command node -CommandType Application -ErrorAction Stop).Source
+        NodePath = $nodePath
     }
     Assert-Condition (-not $brokenNodeResult.Succeeded) 'An invalid Node fixture did not fail closed.'
     Assert-Condition (

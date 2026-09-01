@@ -18,6 +18,7 @@ Human Gate.
 - Created: `2026-09-01`
 - Baseline: `codex/portfolio-preview@492c1b3b7ee8d0374ddd16dd3d3e9af213e7bbe9`
 - Published candidate: `main@8c7d5d36ad2bcdad124c74a426840c0c4f439027`
+- First corrective successor: `main@6956f88d13ffef3d2e5236dd0ba5b25fa41ffd45`
 - Authority: the owner's current request to publish DB-Notifier as an honest
   work-in-progress full-stack portfolio, with a professional README, a real
   demonstration GIF and a Render-hosted static preview
@@ -142,12 +143,17 @@ updated before mutation.
    GitHub repository. The first exact-commit workflow failed in the Windows
    script-syntax fixture and Linux reparse fixture; no Render resource was
    created after that failure.
-6. `LOCAL_COMPLETE` — correct only the two remote fixture incompatibilities and
-   repeat the applicable local gates and independent review. The correction
-   passed focused tests, `Quick`, the canonical `Full` gate and independent
-   review at `P0=0`, `P1=0`, `P2=0`, `P3=0`.
-7. `IN_PROGRESS` — publish the successor commit and require both GitHub Actions
-   jobs to pass before creating the zero-cost Render Static Site.
+6. `AUTOMATED_GATE_FAIL` — publish the first corrective successor after focused
+   tests, `Quick`, the canonical `Full` gate and independent review passed. The
+   second remote run proved the Linux reparse correction and exposed one exact
+   shared script-syntax fixture defect before the Node child was invoked.
+7. `LOCAL_COMPLETE` — remove the disproved speculative Node invocation change,
+   select exactly one discovered Node application in the disposable fixture and
+   repeat the applicable local gates and independent review. Focused tests,
+   `Quick`, the canonical `Full` gate and review at `P0=0`, `P1=0`, `P2=0`,
+   `P3=0` passed.
+8. `IN_PROGRESS` — publish the exact root-cause successor and require both
+   GitHub Actions jobs to pass before creating the zero-cost Render Static Site.
 
 ### Validation evidence
 
@@ -205,16 +211,18 @@ updated before mutation.
   `DBNotifier.ContinuousImprovement.Tests.ps1`, where PowerShell `7.6.5` did not
   create the requested `Junction` fixture on Unix and the test subsequently
   exercised a missing path instead of a real reparse-backed path.
-- Read-only diagnosis classified the Linux result as a fixture false positive,
-  not evidence that the controller read or hashed the external receipt. The
-  Windows result remains a strong bounded inference because the captured child
-  classification was omitted from the failing assertion; the correction must
-  therefore retain a sanitised classification in any successor failure.
-- The focused correction uses a Windows junction or Unix symbolic link and
+- Read-only diagnosis classified the first Linux result as a fixture false
+  positive, not evidence that the controller read or hashed the external
+  receipt. Its correction uses a Windows junction or Unix symbolic link and
   proves the resulting path has `ReparsePoint` before exercising the unchanged
-  fail-closed controller. The Node gate independently requires a fully
-  qualified existing leaf, retains `ProcessStartInfo.ArgumentList` and passes
-  the absolute path as the sole `--check` operand without a command shell.
+  fail-closed controller.
+- GitHub Actions run `33565126622` passed the continuous-improvement regression
+  with `141` assertions on both runners, confirming that correction remotely.
+  Both jobs then failed in the script-syntax fixture because `Get-Command node`
+  returned multiple applications and the fixture supplied their complete
+  `.Source` collection to the scalar `NodePath` parameter. The sanitised failure
+  proved the Node child was never invoked, disproving the earlier spaced-path
+  inference; the original gate invocation must therefore be restored.
 - Focused validation passed the script-syntax regression with `13` assertions
   and zero disposable residue, the continuous-improvement regression with
   `141` assertions, the `50` PowerShell / `14` Node repository syntax inventory,
@@ -226,6 +234,17 @@ updated before mutation.
   coverage `56.46%`, the accessibility sample matrix and the consolidated
   `STATE-06` harness. Independent static review passed at `P0=0`, `P1=0`,
   `P2=0`, `P3=0`.
+- The exact root-cause correction restored `verify-script-syntax.ps1` byte-for-
+  byte to its pre-correction state and changed only the disposable test to
+  select the first discovered Node `ApplicationInfo`, validate its non-empty
+  `Source` and reuse that scalar path. The focused fixture passed `14`
+  assertions with zero residue; `Quick` passed as non-gate feedback.
+- The subsequent canonical online `Full` gate returned
+  `DISPOSITION|PASS|stage=All` and repeated the complete secret, policy, build,
+  `825` .NET test, `74` Web test, coverage, dependency, browser-accessibility and
+  consolidated `STATE-06` evidence. Independent static review passed at
+  `P0=0`, `P1=0`, `P2=0`, `P3=0` and confirmed the production gate is identical
+  to `main@8c7d5d36ad2bcdad124c74a426840c0c4f439027`.
 
 ## Active continuous-improvement control record
 

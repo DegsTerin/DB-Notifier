@@ -210,7 +210,6 @@ function Invoke-NodeSyntaxCheck {
 
     .NOTES
     Requires ProcessStartInfo.ArgumentList and therefore runs only in the primary PowerShell 7 gate.
-    The caller confines the path before invocation; this function independently requires a fully qualified existing leaf.
     Child diagnostics are consumed but never echoed because they may contain source text.
     #>
     [OutputType([bool])]
@@ -226,16 +225,13 @@ function Invoke-NodeSyntaxCheck {
     if ($null -eq $startInfo.PSObject.Properties['ArgumentList']) {
         throw 'Node syntax validation requires a PowerShell host backed by modern .NET.'
     }
-    if (-not [System.IO.Path]::IsPathFullyQualified($ScriptPath) -or
-        -not (Test-Path -LiteralPath $ScriptPath -PathType Leaf)) {
-        throw 'Node syntax validation requires an existing fully qualified script path.'
-    }
     $startInfo.FileName = $NodeExecutable
     $startInfo.UseShellExecute = $false
     $startInfo.RedirectStandardOutput = $true
     $startInfo.RedirectStandardError = $true
     $startInfo.CreateNoWindow = $true
     $startInfo.ArgumentList.Add('--check')
+    $startInfo.ArgumentList.Add('--')
     $startInfo.ArgumentList.Add($ScriptPath)
 
     $process = [System.Diagnostics.Process]::new()
