@@ -64,7 +64,7 @@ function Invoke-GateCapture {
     PSCustomObject containing success and combined output.
 
     .NOTES
-    The helper never prints fixture content and resets the error collection for each invocation.
+    The helper never prints fixture content and retains sanitised stream items emitted before a terminating exception.
     #>
     [OutputType([pscustomobject])]
     param(
@@ -73,13 +73,14 @@ function Invoke-GateCapture {
     )
 
     $succeeded = $true
-    $captured = @()
+    $captured = [System.Collections.Generic.List[object]]::new()
     try {
-        $captured = @(& $gatePath @GateParameters *>&1)
+        & $gatePath @GateParameters *>&1 |
+            ForEach-Object { [void]$captured.Add($_) }
     }
     catch {
         $succeeded = $false
-        $captured += $_
+        [void]$captured.Add($_)
     }
     return [pscustomobject]@{
         Succeeded = $succeeded
@@ -187,6 +188,10 @@ try {
         (ConvertTo-SanitisedDisplayPath -Path "broken`nINJECTED") -ceq
         'broken\u000aINJECTED'
     ) 'A control character in a Git-provided path was not escaped for diagnostics.'
+    $expectedSanitisedPowerShellLeaf = ConvertTo-SanitisedDisplayPath -Path $brokenPowerShellLeaf
+    Assert-Condition (
+        $brokenPowerShellResult.Output -match [regex]::Escape($expectedSanitisedPowerShellLeaf)
+    ) 'The gate capture did not retain the sanitised failure path emitted before termination.'
     if ([System.IO.Path]::DirectorySeparatorChar -ne '\') {
         Assert-Condition (
             $brokenPowerShellResult.Output -match 'broken\\u000aINJECTED' -and

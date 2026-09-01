@@ -19,6 +19,7 @@ Human Gate.
 - Baseline: `codex/portfolio-preview@492c1b3b7ee8d0374ddd16dd3d3e9af213e7bbe9`
 - Published candidate: `main@8c7d5d36ad2bcdad124c74a426840c0c4f439027`
 - First corrective successor: `main@6956f88d13ffef3d2e5236dd0ba5b25fa41ffd45`
+- Exact root-cause successor: `main@e17293c1b9830836f99d9a036441a0a155d294c0`
 - Authority: the owner's current request to publish DB-Notifier as an honest
   work-in-progress full-stack portfolio, with a professional README, a real
   demonstration GIF and a Render-hosted static preview
@@ -58,6 +59,7 @@ demonstration data only. API, Agent and WPF deployment remain outside Render.
 16. `scripts/verify-script-syntax.ps1`
 17. `tests/DBNotifier.ScriptSyntax.Tests.ps1`
 18. `tests/DBNotifier.ContinuousImprovement.Tests.ps1`
+19. `.gitattributes`
 
 The dependency manifests and lockfiles may enter the write set only if a
 current security check proves a directly relevant, minimally correctable
@@ -152,8 +154,15 @@ updated before mutation.
    repeat the applicable local gates and independent review. Focused tests,
    `Quick`, the canonical `Full` gate and review at `P0=0`, `P1=0`, `P2=0`,
    `P3=0` passed.
-8. `IN_PROGRESS` — publish the exact root-cause successor and require both
-   GitHub Actions jobs to pass before creating the zero-cost Render Static Site.
+8. `AUTOMATED_GATE_FAIL` — publish the exact root-cause successor. The third
+   remote run proved the scalar Node resolution on Windows and exposed two
+   later cross-platform harness/checkout defects.
+9. `LOCAL_COMPLETE` — preserve pre-throw sanitised test evidence incrementally,
+   enforce deterministic LF checkouts for CSS/XAML and repeat the applicable
+   local gates and independent review. Focused tests, `Quick`, the canonical
+   `Full` gate and review at `P0=0`, `P1=0`, `P2=0`, `P3=0` passed.
+10. `IN_PROGRESS` — publish the cross-platform successor and require both GitHub
+    Actions jobs to pass before creating the zero-cost Render Static Site.
 
 ### Validation evidence
 
@@ -245,6 +254,28 @@ updated before mutation.
   consolidated `STATE-06` evidence. Independent static review passed at
   `P0=0`, `P1=0`, `P2=0`, `P3=0` and confirmed the production gate is identical
   to `main@8c7d5d36ad2bcdad124c74a426840c0c4f439027`.
+- GitHub Actions run `33566535592` passed the corrected script-syntax fixture
+  with `14` assertions on Windows and advanced the canonical job through the
+  complete .NET build/test/coverage, dependency, runtime and legacy gates. The
+  Linux job also passed scalar Node binding, then exposed that the test helper's
+  atomic assignment discarded a sanitised `ErrorRecord` emitted before the
+  expected terminating exception.
+- The same run reached `tokens:verify` on Windows and found the generated CSS
+  stale. Read-only byte comparison proved that `core.autocrlf=true` added only
+  carriage returns because `.gitattributes` did not declare CSS or XAML EOLs;
+  the canonical checksum and LF blobs remained correct. The next correction
+  preserves incremental test output and aligns CSS/XAML checkout bytes with the
+  repository-wide LF rule without normalising or weakening generated-content
+  verification.
+- The incremental-capture regression passed locally with `15` assertions and
+  zero disposable residue. Git attributes resolved all six generated CSS/XAML
+  artefacts to `text eol=lf`, while both token and localisation verification
+  passed without changing either generator.
+- `Quick` passed as non-gate feedback. The subsequent canonical online `Full`
+  gate returned `DISPOSITION|PASS|stage=All` and repeated the complete secret,
+  policy, build, `825` .NET test, `74` Web test, coverage, dependency,
+  browser-accessibility and consolidated `STATE-06` evidence. Independent
+  static review passed at `P0=0`, `P1=0`, `P2=0`, `P3=0`.
 
 ## Active continuous-improvement control record
 
