@@ -1,4 +1,4 @@
-/** Generated from dbnotifier.localisation.v1; source sha256:b7b12d65cb6734522517c7635b9c4ee59c414b73ee715d735fa1da36d8317964. Do not edit directly. */
+/** Generated from dbnotifier.localisation.v1; source sha256:b7aeb39f3508fdf033e99d630bb0fd1f28f0a2d8c21826cd4a0152337e3ed5d1. Do not edit directly. */
 const ptBRMessages = {
   "Action.Restart": "Reiniciar",
   "Action.Start": "Iniciar",

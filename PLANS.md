@@ -11,15 +11,17 @@ Human Gate.
 ## Portfolio preview publication record
 
 - Plan ID: `PORTFOLIO-PREVIEW-01`
-- Status: `AUTOMATED_GATE_FAIL`; the exact local portfolio candidate passed its
-  local gates and was published to GitHub, but the first remote GitHub Actions
-  execution exposed one Windows script-syntax fixture incompatibility and one
-  Linux reparse-fixture incompatibility; Render publication remains stopped
+- Status: `AUTOMATED_GATE_FAIL`; the exact local portfolio candidate and each
+  corrective successor passed their local gates and were published to GitHub,
+  but the latest remote GitHub Actions execution exposed one line-ending-
+  dependent localisation provenance hash on Linux and one bounded synthetic-
+  process startup timeout on Windows; Render publication remains stopped
 - Created: `2026-09-01`
 - Baseline: `codex/portfolio-preview@492c1b3b7ee8d0374ddd16dd3d3e9af213e7bbe9`
 - Published candidate: `main@8c7d5d36ad2bcdad124c74a426840c0c4f439027`
 - First corrective successor: `main@6956f88d13ffef3d2e5236dd0ba5b25fa41ffd45`
 - Exact root-cause successor: `main@e17293c1b9830836f99d9a036441a0a155d294c0`
+- Cross-platform harness successor: `main@c14c95db8e5dcf23896a52023c664df04eba13bf`
 - Authority: the owner's current request to publish DB-Notifier as an honest
   work-in-progress full-stack portfolio, with a professional README, a real
   demonstration GIF and a Render-hosted static preview
@@ -60,6 +62,8 @@ demonstration data only. API, Agent and WPF deployment remain outside Render.
 17. `tests/DBNotifier.ScriptSyntax.Tests.ps1`
 18. `tests/DBNotifier.ContinuousImprovement.Tests.ps1`
 19. `.gitattributes`
+20. `scripts/generate-localisation.mjs`
+21. `tests/DBNotifier.UnitTests/PostgreSqlProviderTests.cs`
 
 The dependency manifests and lockfiles may enter the write set only if a
 current security check proves a directly relevant, minimally correctable
@@ -161,8 +165,16 @@ updated before mutation.
    enforce deterministic LF checkouts for CSS/XAML and repeat the applicable
    local gates and independent review. Focused tests, `Quick`, the canonical
    `Full` gate and review at `P0=0`, `P1=0`, `P2=0`, `P3=0` passed.
-10. `IN_PROGRESS` — publish the cross-platform successor and require both GitHub
-    Actions jobs to pass before creating the zero-cost Render Static Site.
+10. `AUTOMATED_GATE_FAIL` — publish the cross-platform harness successor. The
+    fourth remote run proved every earlier fixture correction, then exposed one
+    raw-source line-ending dependency in localisation provenance on Linux and a
+    five-second synthetic process startup deadline under Windows runner load.
+11. `LOCAL_COMPLETE` — make localisation generation independent of checkout
+    line endings and retain the real Windows process-tree regression with a
+    bounded fixture-only startup allowance. The focused checks, `Quick` and the
+    canonical `Full` gate passed, and independent review closed at `P0=0`,
+    `P1=0`, `P2=0`, `P3=0`; a new exact-commit GitHub Actions result remains
+    required before the zero-cost Render Static Site can be created.
 
 ### Validation evidence
 
@@ -276,6 +288,38 @@ updated before mutation.
   policy, build, `825` .NET test, `74` Web test, coverage, dependency,
   browser-accessibility and consolidated `STATE-06` evidence. Independent
   static review passed at `P0=0`, `P1=0`, `P2=0`, `P3=0`.
+- GitHub Actions run `33568867344` proved the preceding script, reparse,
+  incremental-capture and generated-token corrections on both runners. The
+  Linux job passed all policy and fixture checks, then `localisation:verify`
+  found that the generated provenance checksum had been calculated from CRLF
+  catalogue bytes while the Linux checkout supplied canonical LF bytes. The
+  Windows job independently passed the same corrected fixtures, restored and
+  built all `19` projects with zero warnings or errors, passed architecture,
+  WPF and integration tests, then one process-tree theory case exhausted its
+  five-second synthetic PowerShell startup deadline before emitting the child
+  PID. Both job failures remain the exact first remote results; neither job was
+  rerun.
+- The fourth-run remediation normalises catalogue line endings before both
+  validation and provenance hashing, declares the canonical XML inputs as LF
+  and regenerates all three adapters with source checksum
+  `b7aeb39f3508fdf033e99d630bb0fd1f28f0a2d8c21826cd4a0152337e3ed5d1`.
+  It changes no localisation text. The Windows fixture now allows `15` seconds
+  only for its synthetic PowerShell process to publish a child PID; the real
+  `50` millisecond timeout, cancellation, process-tree termination and cleanup
+  assertions remain unchanged.
+- Focused localisation verification and both real process-tree theory cases
+  passed, followed by a closing shutdown with zero matching processes and zero
+  owned listeners. `Quick` passed as non-gate feedback. The sole canonical
+  `Full` execution returned `DISPOSITION|PASS|stage=All`: secret and dependency
+  scans passed, all `825` .NET and `74` Web tests passed, coverage remained
+  `83.39%` lines and `56.46%` branches, the `128` viewport, `96` forced-colour
+  and `24` zoom/reflow samples passed, and the consolidated `STATE-06` harness
+  passed with local test data only. Closing shutdown again found zero matching
+  processes and zero owned listeners.
+- Independent read-only review of the seven-path candidate passed at `P0=0`,
+  `P1=0`, `P2=0`, `P3=0`. It confirmed cross-platform hash determinism, exact
+  provenance-only generated changes, unchanged product timeout and termination
+  semantics, en-GB documentation and absence of secrets or protected material.
 
 ## Active continuous-improvement control record
 

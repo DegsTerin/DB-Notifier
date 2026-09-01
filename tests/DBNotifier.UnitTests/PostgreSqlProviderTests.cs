@@ -11,6 +11,9 @@ namespace DBNotifier.UnitTests;
 
 public sealed class PostgreSqlProviderTests
 {
+    /// <summary>Bounds only the synthetic Windows process fixture startup under concurrent runner load.</summary>
+    private static readonly TimeSpan SyntheticProcessStartupTimeout = TimeSpan.FromSeconds(15);
+
     [Fact]
     public void EndpointValidationIsTypedAndRejectsUnknownProperties()
     {
@@ -332,7 +335,7 @@ public sealed class PostgreSqlProviderTests
         Process? child = null;
         try
         {
-            string? childLine = await root.StandardOutput.ReadLineAsync().WaitAsync(TimeSpan.FromSeconds(5));
+            string? childLine = await root.StandardOutput.ReadLineAsync().WaitAsync(SyntheticProcessStartupTimeout);
             Assert.True(int.TryParse(childLine, NumberStyles.None, CultureInfo.InvariantCulture, out int childId));
             child = Process.GetProcessById(childId);
             root.Refresh();

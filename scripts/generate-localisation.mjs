@@ -30,9 +30,14 @@ function encodeXml(value) {
   return value.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
 }
 
+/** Normalises platform line endings before validation and provenance hashing. */
+function normaliseLineEndings(value) {
+  return value.replace(/\r\n?/g, "\n");
+}
+
 /** Reads and validates one canonical catalogue without relying on an external XML package. */
 function readCatalogue(culture, path) {
-  const source = readFileSync(path, "utf8");
+  const source = normaliseLineEndings(readFileSync(path, "utf8"));
   const rootMatch = source.match(/<localisation\s+schemaVersion="([^"]+)"\s+culture="([^"]+)">/);
   if (!rootMatch || rootMatch[1] !== schemaVersion || rootMatch[2] !== culture) {
     throw new Error(`${path}: invalid localisation envelope.`);
@@ -102,7 +107,7 @@ const generated = new Map([
 const verify = process.argv.includes("--verify");
 for (const [path, content] of generated) {
   if (verify) {
-    if (readFileSync(path, "utf8").replaceAll("\r\n", "\n") !== content) {
+    if (normaliseLineEndings(readFileSync(path, "utf8")) !== content) {
       throw new Error(`${path}: generated localisation adapter has drifted.`);
     }
   } else {

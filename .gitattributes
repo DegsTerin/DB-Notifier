@@ -21,6 +21,7 @@
 *.tsx text eol=lf
 *.py text eol=lf
 *.svg text eol=lf
+localisation/*.xml text eol=lf
 design-system/provider-icons/skill-icons/LICENSE text eol=lf
 src/DBNotifier.Dashboard.Web/public/provider-icons/SkillIcons.LICENSE.txt text eol=lf
 src/DBNotifier.Dashboard.Web/src/generated/design-tokens.css text eol=lf
