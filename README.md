@@ -16,6 +16,10 @@
   <a href="LICENSE"><img alt="MIT licence" src="https://img.shields.io/badge/licence-MIT-16A34A" /></a>
 </p>
 
+<p align="center">
+  <a href="https://db-notifier-demo.onrender.com"><strong>Open the live Dashboard demonstration on Render</strong></a>
+</p>
+
 > [!IMPORTANT]
 > **Portfolio preview — work in progress.** The hosted Dashboard and the demonstration below use deterministic synthetic data. Live database monitoring, provider homologation, administrative execution and production operation are not enabled.
 
