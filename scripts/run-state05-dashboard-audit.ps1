@@ -27,7 +27,8 @@ $semanticBrandSourcePath = Join-Path $dashboard 'src\semanticBrand.ts'
 $semanticBrandSource = Get-Content -LiteralPath $semanticBrandSourcePath -Raw -Encoding UTF8
 $brandRevisionMatch = [regex]::Match($semanticBrandSource, 'export const designSystemVersion = "(\d+\.\d+\.\d+)";')
 if (-not $brandRevisionMatch.Success) { throw 'The canonical semantic brand revision could not be read from semanticBrand.ts.' }
-$expectedCriticalFavicon = "/dbnotifier-favicon.critical.ico?v=$($brandRevisionMatch.Groups[1].Value)-critical"
+$expectedCriticalIcon = "/dbnotifier-icon.attention.svg?v=$($brandRevisionMatch.Groups[1].Value)-attention"
+$expectedCriticalFavicon = "/dbnotifier-favicon.attention.ico?v=$($brandRevisionMatch.Groups[1].Value)-attention"
 $dashboardUri = "http://127.0.0.1:$PreviewPort/"
 $debugUri = "http://127.0.0.1:$DebugPort"
 $temporaryRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("DBNotifier-Dashboard-Runner-{0}" -f [Guid]::NewGuid().ToString('N'))
@@ -289,7 +290,15 @@ try {
                 @($_.statusLayout.rows | Where-Object { $_.statusClass -match '(^|\s)disabled(\s|$)' -and $_.statusText -eq $expectedDisabledStatus }).Count -ne 1
             }).Count -gt 0 -or ($actualFocalStatusKeys -join '|') -ne ($expectedFocalStatusKeys -join '|')) { $failures.Add('The focal forced-colour Overview status matrix was incomplete, inactive, duplicated, or lost system-colour boundaries or containment.') }
             if (@($forcedColours | Where-Object { $null -ne $_.performanceChart -and $_.performanceChart.clipped }).Count -gt 0) { $failures.Add('A forced-colour performance chart was clipped or overflowed its owning card.') }
-            if ($report.semanticBrand.candidateCount -ne 1 -or $report.semanticBrand.aggregateState -ne 'critical' -or [string]$report.semanticBrand.href -ne $expectedCriticalFavicon) { $failures.Add("The runtime favicon did not expose the canonical brand revision $($brandRevisionMatch.Groups[1].Value) Critical candidate.") }
+            if (
+                $report.semanticBrand.candidateCount -ne 1 -or
+                $report.semanticBrand.aggregateState -ne 'critical' -or
+                [string]$report.semanticBrand.href -ne $expectedCriticalFavicon -or
+                [string]$report.semanticBrand.headerSrc -ne $expectedCriticalIcon -or
+                -not $report.semanticBrand.headerComplete -or
+                $report.semanticBrand.headerNaturalWidth -le 0 -or
+                $report.semanticBrand.headerNaturalHeight -le 0
+            ) { $failures.Add("The runtime brand did not expose one loaded revision $($brandRevisionMatch.Groups[1].Value) Critical candidate through its browser-safe public assets.") }
             if ($report.browser.product -ne $BrowserProduct -or $report.browser.version -ne $browserVersion) { $failures.Add('Browser product/version provenance was not preserved in the report.') }
             if (@($report.keyboard).Count -ne 12 -or @($report.keyboard | Where-Object { -not $_.visible }).Count -gt 0) { $failures.Add('Keyboard traversal did not preserve twelve visible focus targets.') }
             $languageCycle = @($report.preferenceCycles.language)

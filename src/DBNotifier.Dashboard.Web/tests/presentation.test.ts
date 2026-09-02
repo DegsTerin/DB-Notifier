@@ -1,7 +1,7 @@
 /** Module purpose: Verifies presentation test behaviour and protects the documented project contract. */
 import assert from "node:assert/strict";
 import test from "node:test";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { inflateSync } from "node:zlib";
 import {
   buildDemonstrationSnapshot,
@@ -225,10 +225,17 @@ test("invalid, future and unrecognised evidence fails safely to unknown", () => 
 });
 
 test("semantic brand replacement keeps header and favicon on the same aggregate without reusing the old node", () => {
+  const publicSlugs = {
+    healthy: "healthy",
+    warning: "warning",
+    critical: "attention",
+    unknown: "unknown",
+  } as const;
   for (const state of ["healthy", "warning", "critical", "unknown"] as const) {
     const stateAssets = semanticBrandAssets(state);
-    assert.equal(stateAssets.iconPath, `/dbnotifier-icon.${state}.svg?v=2.6.13-${state}`);
-    assert.equal(stateAssets.faviconPath, `/dbnotifier-favicon.${state}.ico?v=2.6.13-${state}`);
+    const publicSlug = publicSlugs[state];
+    assert.equal(stateAssets.iconPath, `/dbnotifier-icon.${publicSlug}.svg?v=2.6.13-${publicSlug}`);
+    assert.equal(stateAssets.faviconPath, `/dbnotifier-favicon.${publicSlug}.ico?v=2.6.13-${publicSlug}`);
   }
 
   const assets = semanticBrandAssets("critical");
@@ -269,8 +276,10 @@ test("semantic brand replacement keeps header and favicon on the same aggregate 
   replaceSemanticFavicon(ownerDocument, assets.faviconPath, "critical");
 
   assert.equal(designSystemVersion, "2.6.13");
-  assert.equal(assets.iconPath, "/dbnotifier-icon.critical.svg?v=2.6.13-critical");
-  assert.equal(assets.faviconPath, "/dbnotifier-favicon.critical.ico?v=2.6.13-critical");
+  assert.equal(assets.iconPath, "/dbnotifier-icon.attention.svg?v=2.6.13-attention");
+  assert.equal(assets.faviconPath, "/dbnotifier-favicon.attention.ico?v=2.6.13-attention");
+  assert.doesNotMatch(assets.iconPath, /critical/);
+  assert.doesNotMatch(assets.faviconPath, /critical/);
   assert.equal(replacement?.id, semanticFaviconId);
   assert.equal(replacement?.href, assets.faviconPath);
   assert.equal(replacement?.dataset.aggregateState, "critical");
@@ -513,7 +522,7 @@ test("provider-neutral database mark is shared by active Web and Windows surface
   const dashboardSvg = readFileSync(new URL("../public/dbnotifier-icon.svg", import.meta.url));
   const healthySvg = readFileSync(new URL("../public/dbnotifier-icon.healthy.svg", import.meta.url));
   const warningSvg = readFileSync(new URL("../public/dbnotifier-icon.warning.svg", import.meta.url));
-  const criticalSvg = readFileSync(new URL("../public/dbnotifier-icon.critical.svg", import.meta.url));
+  const criticalSvg = readFileSync(new URL("../public/dbnotifier-icon.attention.svg", import.meta.url));
   const unknownSvg = readFileSync(new URL("../public/dbnotifier-icon.unknown.svg", import.meta.url));
   const designSystemSvg = readFileSync(new URL("../../../design-system/assets/dbnotifier-database.svg", import.meta.url));
   const windowsIcon = readFileSync(new URL("../../DBNotifier.Desktop.Wpf/Assets/DBNotifier.ico", import.meta.url));
@@ -524,7 +533,7 @@ test("provider-neutral database mark is shared by active Web and Windows surface
   const favicon = readFileSync(new URL("../public/dbnotifier-favicon.ico", import.meta.url));
   const healthyFavicon = readFileSync(new URL("../public/dbnotifier-favicon.healthy.ico", import.meta.url));
   const warningFavicon = readFileSync(new URL("../public/dbnotifier-favicon.warning.ico", import.meta.url));
-  const criticalFavicon = readFileSync(new URL("../public/dbnotifier-favicon.critical.ico", import.meta.url));
+  const criticalFavicon = readFileSync(new URL("../public/dbnotifier-favicon.attention.ico", import.meta.url));
   const unknownFavicon = readFileSync(new URL("../public/dbnotifier-favicon.unknown.ico", import.meta.url));
   const desktopProject = readFileSync(new URL("../../DBNotifier.Desktop.Wpf/DBNotifier.Desktop.Wpf.csproj", import.meta.url), "utf8");
   const desktopXaml = readFileSync(new URL("../../DBNotifier.Desktop.Wpf/MainWindow.xaml", import.meta.url), "utf8");
@@ -552,6 +561,8 @@ test("provider-neutral database mark is shared by active Web and Windows surface
   assert.notDeepEqual(healthySvg, warningSvg);
   assert.notDeepEqual(warningSvg, criticalSvg);
   assert.notDeepEqual(criticalSvg, unknownSvg);
+  assert.equal(existsSync(new URL("../public/dbnotifier-icon.critical.svg", import.meta.url)), false);
+  assert.equal(existsSync(new URL("../public/dbnotifier-favicon.critical.ico", import.meta.url)), false);
   assert.deepEqual([...windowsIcon.subarray(0, 6)], [0, 0, 1, 0, 9, 0]);
   assert.deepEqual(windowsIcon, unknownIcon);
   const semanticWindowsIcons = [healthyIcon, warningIcon, criticalIcon, unknownIcon];

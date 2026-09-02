@@ -238,19 +238,22 @@ therefore also owns:
 ## Portfolio preview publication record
 
 - Plan ID: `PORTFOLIO-PREVIEW-01`
-- Status: `LOCAL_COMPLETE`; GitHub Actions run `33571153478` on the latest
-  published baseline exposed a Windows STATE-05 runner/evidence-root authority
-  mismatch. Its exact bounded successor passed the focused, `Quick` and
-  canonical `Full` local gates and awaits publication and remote verification;
-  Render publication remains stopped
+- Status: `LOCAL_COMPLETE`; GitHub Actions run `33577376535` passed on the
+  published predecessor and its Render Static Site is live. The exact
+  browser-safe semantic-brand successor passed focused checks, independent
+  review and the canonical local `Full`; GitHub and Render verification of that
+  successor remain pending
 - Created: `2026-09-01`
 - Baseline: `codex/portfolio-preview@492c1b3b7ee8d0374ddd16dd3d3e9af213e7bbe9`
 - Published candidate: `main@8c7d5d36ad2bcdad124c74a426840c0c4f439027`
 - First corrective successor: `main@6956f88d13ffef3d2e5236dd0ba5b25fa41ffd45`
 - Exact root-cause successor: `main@e17293c1b9830836f99d9a036441a0a155d294c0`
 - Cross-platform harness successor: `main@c14c95db8e5dcf23896a52023c664df04eba13bf`
-- Latest published baseline: `main@8a936b889d43ac4d93f1b965a5a2c5f13ecf24c7`
-- Pending successor: the staged candidate on `codex/portfolio-preview`
+- Latest published baseline: `main@ce131af5c27c9a72d6f9a8020f56b0bae784d65a`
+- Latest GitHub Actions result: run `33577376535`, `PASS`
+- Render preview: `https://db-notifier-demo.onrender.com`, live on `ce131af`
+- Pending successor: the browser-safe semantic-brand candidate on
+  `codex/portfolio-preview`
 - Authority: the owner's current request to publish DB-Notifier as an honest
   work-in-progress full-stack portfolio, with a professional README, a real
   demonstration GIF and a Render-hosted static preview
@@ -298,6 +301,13 @@ demonstration data only. API, Agent and WPF deployment remain outside Render.
 24. `scripts/state05-audit-evidence-root.mjs`
 25. `src/DBNotifier.Dashboard.Web/tests/state05AuditEvidenceRoot.test.ts`
 26. `tests/DBNotifier.Architecture.Tests/State06ConsolidatedHarnessIsolationTests.cs`
+27. `src/DBNotifier.Dashboard.Web/src/semanticBrand.ts`
+28. `scripts/generate-brand-assets.mjs`
+29. `src/DBNotifier.Dashboard.Web/tests/presentation.test.ts`
+30. `src/DBNotifier.Dashboard.Web/public/dbnotifier-icon.attention.svg`
+31. `src/DBNotifier.Dashboard.Web/public/dbnotifier-favicon.attention.ico`
+32. `src/DBNotifier.Dashboard.Web/public/dbnotifier-icon.critical.svg`
+33. `src/DBNotifier.Dashboard.Web/public/dbnotifier-favicon.critical.ico`
 
 The dependency manifests and lockfiles may enter the write set only if a
 current security check proves a directly relevant, minimally correctable
@@ -586,6 +596,48 @@ updated before mutation.
   matrix of `128` viewport, `96` forced-colour and `24` zoom/reflow samples, and
   the consolidated `STATE-06` harness. Closing shutdown found zero matching
   process and zero owned listener.
+- GitHub Actions run `33577376535` passed on the exact published commit
+  `ce131af5c27c9a72d6f9a8020f56b0bae784d65a`: the canonical Windows gate passed
+  in `12m15s` and the supplemental Linux Dashboard job passed in `2m30s`.
+- Render Blueprint `db-notifier-demo` created only Static Site
+  `srv-dabnfq8n74is73fpqfsg` and deployed `ce131af` live at
+  `https://db-notifier-demo.onrender.com` in `12.5s`. HTTP verification returned
+  `200`, the configured CSP, permissions, referrer, MIME-sniffing and framing
+  headers, and `200 image/svg+xml` for the aggregate brand asset.
+- The dedicated Chrome review changed the live interface to en-GB and Dark and
+  then preserved the first factual visual failure: the critical aggregate
+  header image had zero natural dimensions and direct navigation returned
+  `ERR_BLOCKED_BY_CLIENT`, while the otherwise equivalent healthy asset loaded.
+  Independent review classified the browser-visible missing mark as `P1` and
+  the absent load assertion in the STATE-05 audit as `P2`. The authorised
+  successor retains the domain and DOM state `critical`, replaces only the
+  public Web slug with `attention`, regenerates the two owned Web assets and
+  requires a real loaded-image assertion before republication.
+- The bounded browser-safe candidate passed deterministic brand verification,
+  all `79` Web tests and the production Dashboard build. Its strengthened
+  STATE-05 audit passed `128` viewport, `96` forced-colour and `24` focal
+  zoom/reflow samples across pt-BR/en-GB and Light/Dark while requiring the
+  critical aggregate's `attention` header asset to be complete with positive
+  natural dimensions. `Quick` then passed as `NON_GATE` feedback with zero
+  build warnings or errors, `543` unit tests, `101` architecture tests, all
+  `79` Web tests, `453` documented files, `992` Markdown links in `235` files,
+  and the development-flow, script-syntax and runner-process regressions.
+  Closing shutdown found zero matching process and zero owned listener.
+- Independent final review of the exact staged browser-safe candidate passed at
+  `P0=0`, `P1=0`, `P2=0`, `P3=0`. It confirmed that `critical` remains the
+  canonical functional and DOM state, `attention` is limited to the two public
+  Web asset slugs, the renamed files are byte-identical, WPF and colour/geometry
+  contracts are unchanged, obsolete Web names are absent, and STATE-05 now
+  fails for a missing, incomplete or zero-dimension header mark.
+- The single canonical `Full` run for the exact executable successor returned
+  `DISPOSITION|PASS|stage=All`. It passed the secret scan, `160` development,
+  `141` continuous-improvement and `112` development-flow assertions, script
+  and runner-process gates, locked restore, a zero-warning/error build, all
+  `825` .NET and `79` Web tests, `83.39%` line and `56.46%` branch coverage,
+  NuGet and npm vulnerability gates, fail-closed runtime audit, the legacy
+  suite, STATE-05 `128/96/24` samples and the consolidated STATE-06 harness.
+  The closing shutdown preflight again found zero matching process and zero
+  owned listener.
 
 ## Active continuous-improvement control record
 

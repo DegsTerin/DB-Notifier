@@ -56,14 +56,14 @@ const outputs = {
     Default: join(root, "src/DBNotifier.Dashboard.Web/public/dbnotifier-icon.svg"),
     Healthy: join(root, "src/DBNotifier.Dashboard.Web/public/dbnotifier-icon.healthy.svg"),
     Warning: join(root, "src/DBNotifier.Dashboard.Web/public/dbnotifier-icon.warning.svg"),
-    Critical: join(root, "src/DBNotifier.Dashboard.Web/public/dbnotifier-icon.critical.svg"),
+    Critical: join(root, "src/DBNotifier.Dashboard.Web/public/dbnotifier-icon.attention.svg"),
     Unknown: join(root, "src/DBNotifier.Dashboard.Web/public/dbnotifier-icon.unknown.svg"),
   },
   dashboardFavicons: {
     Default: join(root, "src/DBNotifier.Dashboard.Web/public/dbnotifier-favicon.ico"),
     Healthy: join(root, "src/DBNotifier.Dashboard.Web/public/dbnotifier-favicon.healthy.ico"),
     Warning: join(root, "src/DBNotifier.Dashboard.Web/public/dbnotifier-favicon.warning.ico"),
-    Critical: join(root, "src/DBNotifier.Dashboard.Web/public/dbnotifier-favicon.critical.ico"),
+    Critical: join(root, "src/DBNotifier.Dashboard.Web/public/dbnotifier-favicon.attention.ico"),
     Unknown: join(root, "src/DBNotifier.Dashboard.Web/public/dbnotifier-favicon.unknown.ico"),
   },
   windowsIcons: {

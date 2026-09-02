@@ -94,15 +94,20 @@ async function evaluate(call, expression) {
   return result.result.value;
 }
 
-/** Captures the single runtime favicon candidate so browser evidence cannot drift from the visible aggregate. */
+/** Captures the loaded header mark and single favicon candidate so browser evidence cannot drift from the visible aggregate. */
 async function auditSemanticBrand(call) {
   return evaluate(call, `(() => {
     const candidates = [...document.querySelectorAll('link[rel~="icon"]')];
     const active = candidates.find((candidate) => candidate.id === "dbnotifier-favicon");
+    const headerMark = document.querySelector(".brand-mark img");
     return {
       candidateCount: candidates.length,
       href: active?.getAttribute("href") ?? null,
       aggregateState: active?.dataset.aggregateState ?? null,
+      headerSrc: headerMark?.getAttribute("src") ?? null,
+      headerComplete: headerMark?.complete ?? false,
+      headerNaturalWidth: headerMark?.naturalWidth ?? 0,
+      headerNaturalHeight: headerMark?.naturalHeight ?? 0,
     };
   })()`);
 }

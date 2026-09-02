@@ -7,6 +7,14 @@ export const designSystemVersion = "2.6.13";
 /** Stable DOM identity shared by the fail-safe HTML node and runtime semantic replacement. */
 export const semanticFaviconId = "dbnotifier-favicon";
 
+/** Browser-safe public slugs that preserve the canonical aggregate state outside asset URLs. */
+const publicAssetSlugs: Readonly<Record<FleetAggregateState, string>> = Object.freeze({
+  healthy: "healthy",
+  warning: "warning",
+  critical: "attention",
+  unknown: "unknown",
+});
+
 /** Generated header and favicon paths that represent one provider-neutral aggregate. */
 export type SemanticBrandAssets = Readonly<{
   iconPath: string;
@@ -19,10 +27,11 @@ export type SemanticBrandAssets = Readonly<{
  * @returns Versioned asset paths that share the same semantic bell state.
  */
 export function semanticBrandAssets(state: FleetAggregateState): SemanticBrandAssets {
-  const revision = `${designSystemVersion}-${state}`;
+  const publicSlug = publicAssetSlugs[state];
+  const revision = `${designSystemVersion}-${publicSlug}`;
   return {
-    iconPath: `/dbnotifier-icon.${state}.svg?v=${revision}`,
-    faviconPath: `/dbnotifier-favicon.${state}.ico?v=${revision}`,
+    iconPath: `/dbnotifier-icon.${publicSlug}.svg?v=${revision}`,
+    faviconPath: `/dbnotifier-favicon.${publicSlug}.ico?v=${revision}`,
   };
 }
 
