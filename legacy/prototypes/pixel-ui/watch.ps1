@@ -11,7 +11,8 @@ $root = Split-Path -Path $PSCommandPath -Parent
 $app = Join-Path -Path $root -ChildPath "app.py"
 
 function Start-Preview {
-    return Start-Process -FilePath $Python -ArgumentList @('"{0}"' -f $app) -PassThru
+    param([string]$PythonCommand)
+    return Start-Process -FilePath $PythonCommand -ArgumentList @('"{0}"' -f $app) -PassThru
 }
 
 function Stop-Preview {
@@ -21,34 +22,26 @@ function Stop-Preview {
     }
 }
 
-if (-not (Test-Path -LiteralPath (Join-Path $root "assets\postgres.png"))) {
-    throw "The historical prototype asset is missing. Automatic vendor-asset download is retired."
-}
-
 $script:lastRestart = Get-Date
-$script:preview = Start-Preview
+$script:preview = Start-Preview -PythonCommand $Python
 
 $watcher = New-Object System.IO.FileSystemWatcher
 $watcher.Path = $root
-$watcher.IncludeSubdirectories = $true
+$watcher.Filter = "*.py"
+$watcher.IncludeSubdirectories = $false
 $watcher.NotifyFilter = [System.IO.NotifyFilters]'LastWrite, Size, FileName'
 $watcher.EnableRaisingEvents = $true
 
 $action = {
-    $name = $Event.SourceEventArgs.Name
-    if ($name -notmatch '\.(py|png)$') {
-        return
-    }
-
-    if (((Get-Date) - $script:lastRestart).TotalMilliseconds -lt 500) {
+    if (((Get-Date) - $script:lastRestart).TotalMilliseconds -lt 450) {
         return
     }
 
     $script:lastRestart = Get-Date
     Stop-Preview -Process $script:preview
-    Start-Sleep -Milliseconds 150
-    $script:preview = Start-Preview
-    Write-Host ("Reloaded tray preview after change: {0}" -f $name)
+    Start-Sleep -Milliseconds 120
+    $script:preview = Start-Preview -PythonCommand $using:Python
+    Write-Host ("Reloaded Pixel UI preview: {0}" -f $Event.SourceEventArgs.Name)
 }
 
 $subscriptions = @()
@@ -57,15 +50,15 @@ $subscriptions += Register-ObjectEvent -InputObject $watcher -EventName Created 
 $subscriptions += Register-ObjectEvent -InputObject $watcher -EventName Deleted -Action $action
 $subscriptions += Register-ObjectEvent -InputObject $watcher -EventName Renamed -Action $action
 
-Write-Host "DB-Notifier tray live preview is running."
-Write-Host "Edit tray-app/app.py or assets to restart automatically."
+Write-Host "Pixel UI live preview is running."
+Write-Host "Edit legacy/prototypes/pixel-ui/app.py and save to reload automatically."
 Write-Host "Press Ctrl+C to stop."
 
 try {
     while ($true) {
         Start-Sleep -Seconds 1
         if ($script:preview.HasExited) {
-            $script:preview = Start-Preview
+            $script:preview = Start-Preview -PythonCommand $Python
         }
     }
 }

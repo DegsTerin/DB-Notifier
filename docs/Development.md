@@ -192,7 +192,7 @@ they do not replace `./scripts/development.ps1 Full`. From Windows PowerShell,
 use the compatible `dotnet` host selected through `PATH` and `global.json`:
 
 ```powershell
-$dotnet = "dotnet"
+$dotnet = (Get-Command dotnet -CommandType Application | Select-Object -First 1 -ExpandProperty Source)
 & $dotnet --info
 & $dotnet restore .\DBNotifier.sln --locked-mode
 & $dotnet build .\DBNotifier.sln --configuration Release --no-restore
@@ -287,7 +287,9 @@ apply a migration or homologate PostgreSQL/provider support generally.
 ## Legacy checks
 
 ```powershell
-powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File .\scripts\run-legacy-tests.ps1
+$dotnet = (Get-Command dotnet -CommandType Application | Select-Object -First 1 -ExpandProperty Source)
+powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass `
+  -File .\scripts\run-legacy-tests.ps1 -DotNetPath $dotnet
 ```
 
 These tests characterize the only functional legacy provider behavior under its new canonical DB-Notifier paths. Deprecated PgNotifier shims are covered separately and must not be confused with new provider support.

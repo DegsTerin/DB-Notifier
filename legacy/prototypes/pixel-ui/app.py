@@ -3,6 +3,7 @@
 import math
 import tkinter as tk
 from dataclasses import dataclass
+from pathlib import Path
 
 
 WINDOW_W = 386
@@ -22,6 +23,13 @@ YELLOW = "#ffd24b"
 RED = "#ff6656"
 TRAY = "#0c1926"
 TRAY_ACTIVE = "#1c3447"
+PRODUCT_MARK_PATH = (
+    Path(__file__).resolve().parents[3]
+    / "src"
+    / "DBNotifier.Desktop.Wpf"
+    / "NotificationAssets"
+    / "DBNotifier.Availability.png"
+)
 
 
 @dataclass
@@ -131,18 +139,39 @@ def draw_background(canvas: tk.Canvas):
     canvas.create_line(0, 439, WINDOW_W, 439, fill="#253749")
 
 
-def draw_postgres_logo(canvas: tk.Canvas, x: int, y: int, scale: float = 1.0):
-    s = scale
-    canvas.create_oval(x + 3 * s, y + 2 * s, x + 26 * s, y + 26 * s, fill=GREEN, outline="")
-    canvas.create_arc(x + 7 * s, y + 7 * s, x + 16 * s, y + 21 * s, start=90, extent=230, outline="#eaffef", width=max(1, int(2 * s)), style=tk.ARC)
-    canvas.create_arc(x + 14 * s, y + 7 * s, x + 24 * s, y + 21 * s, start=220, extent=230, outline="#eaffef", width=max(1, int(2 * s)), style=tk.ARC)
-    canvas.create_line(x + 14 * s, y + 17 * s, x + 14 * s, y + 27 * s, fill="#eaffef", width=max(1, int(2 * s)))
-    canvas.create_line(x + 14 * s, y + 27 * s, x + 20 * s, y + 24 * s, fill="#eaffef", width=max(1, int(2 * s)))
-    canvas.create_text(x + 12 * s, y + 14 * s, text="P", fill="#08111a", font=("Segoe UI", max(7, int(8 * s)), "bold"))
+def draw_product_mark(canvas: tk.Canvas, x: int, y: int, target_size: int):
+    """Place the canonical DB Notifier mark without altering its semantic colours.
+
+    Args:
+        canvas: Canvas that owns the image lifetime and rendered item.
+        x: Left coordinate for the mark.
+        y: Top coordinate for the mark.
+        target_size: Approximate square size in logical pixels.
+
+    Returns:
+        The identifier of the image item created on the canvas.
+
+    Raises:
+        tkinter.TclError: If the canonical PNG cannot be loaded by Tk.
+    """
+    marks = getattr(canvas, "_dbnotifier_product_marks", None)
+    if marks is None:
+        marks = {}
+        canvas._dbnotifier_product_marks = marks
+
+    mark = marks.get(target_size)
+    if mark is None:
+        source = tk.PhotoImage(file=str(PRODUCT_MARK_PATH))
+        divisor = max(1, round(max(source.width(), source.height()) / target_size))
+        mark = source.subsample(divisor, divisor)
+        marks[target_size] = mark
+
+    return canvas.create_image(x, y, anchor="nw", image=mark)
 
 
 def draw_header(canvas: tk.Canvas):
-    draw_postgres_logo(canvas, 21, 21, 0.86)
+    """Draw the provider-neutral health header with the canonical product mark."""
+    draw_product_mark(canvas, 21, 19, 28)
     canvas.create_text(73, 35, anchor="w", text="All instances are healthy", fill=GREEN, font=("Segoe UI", 11, "normal"))
     canvas.create_line(24, 56, 336, 56, fill=RULE)
 
@@ -213,8 +242,9 @@ def draw_panel(canvas: tk.Canvas, hover_index: int | None = None):
 
 
 def draw_tray_footer(canvas: tk.Canvas):
+    """Draw the simulated Windows notification-area footer."""
     rounded_rect(canvas, 163, 406, 204, 445, 9, fill=TRAY_ACTIVE, outline="")
-    draw_postgres_logo(canvas, 174, 415, 0.72)
+    draw_product_mark(canvas, 173, 414, 21)
     canvas.create_text(223, 424, text="⌃", fill=TEXT, font=("Segoe UI", 15, "normal"))
     canvas.create_rectangle(248, 417, 260, 430, outline=MUTED, width=1)
     canvas.create_line(246, 432, 262, 432, fill=MUTED)

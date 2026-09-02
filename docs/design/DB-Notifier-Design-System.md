@@ -782,7 +782,7 @@ The implementation MUST remain deterministic and disconnected from real database
 - Raw visual values require a documented, narrow exception and a follow-up token decision.
 - Feature teams MUST NOT fork token names or create provider-specific themes.
 - Screenshots are evidence, not token sources.
-- Legacy prototypes under `desktop-wpf/`, `pixel-ui/` and `tray-app/` are references only and do not override this specification.
+- Legacy prototypes under `desktop-wpf/` and `legacy/prototypes/` are references only and do not override this specification.
 - A change that reduces contrast, hides support truth, bypasses focus behaviour or introduces an unsafe action is rejected regardless of visual appeal.
 
 ## 18. Definition of Done for Design System implementation

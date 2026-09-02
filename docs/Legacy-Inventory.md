@@ -27,6 +27,11 @@ The product owner records the conceptual lineage as `MySQL Notifier` → inspira
 
 The root README previously referenced `build/build.ps1`, but that file and directory are absent. A clean legacy package cannot be reproduced from the checked-in workspace as it stands.
 
+Current-location note (2026-09-01): the portfolio root organisation moved the
+two historical prototypes to `legacy/prototypes/pixel-ui/` and
+`legacy/prototypes/tray-app/`. The table above deliberately retains the paths
+observed on 2026-07-11.
+
 ## Observed behavior
 
 ### Configuration

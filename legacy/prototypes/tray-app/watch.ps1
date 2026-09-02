@@ -1,4 +1,4 @@
-# Module purpose: Provides watch for the legacy-compatible DB-Notifier tooling without changing database services implicitly.
+# Module purpose: Watches the retained Tray prototype while preserving its canonical product-mark boundary and avoiding database-service side effects.
 [CmdletBinding()]
 param(
     [string]$Python = "python"
@@ -9,10 +9,11 @@ $ErrorActionPreference = "Stop"
 
 $root = Split-Path -Path $PSCommandPath -Parent
 $app = Join-Path -Path $root -ChildPath "app.py"
+$repositoryRoot = (Resolve-Path -LiteralPath (Join-Path $root "..\..\..")).Path
+$productMark = Join-Path $repositoryRoot "src\DBNotifier.Desktop.Wpf\NotificationAssets\DBNotifier.Availability.png"
 
 function Start-Preview {
-    param([string]$PythonCommand)
-    return Start-Process -FilePath $PythonCommand -ArgumentList @('"{0}"' -f $app) -PassThru
+    return Start-Process -FilePath $Python -ArgumentList @('"{0}"' -f $app) -PassThru
 }
 
 function Stop-Preview {
@@ -22,26 +23,34 @@ function Stop-Preview {
     }
 }
 
+if (-not (Test-Path -LiteralPath $productMark)) {
+    throw "The canonical DB Notifier product mark is missing. Automatic vendor-asset download is retired."
+}
+
 $script:lastRestart = Get-Date
-$script:preview = Start-Preview -PythonCommand $Python
+$script:preview = Start-Preview
 
 $watcher = New-Object System.IO.FileSystemWatcher
 $watcher.Path = $root
-$watcher.Filter = "*.py"
-$watcher.IncludeSubdirectories = $false
+$watcher.IncludeSubdirectories = $true
 $watcher.NotifyFilter = [System.IO.NotifyFilters]'LastWrite, Size, FileName'
 $watcher.EnableRaisingEvents = $true
 
 $action = {
-    if (((Get-Date) - $script:lastRestart).TotalMilliseconds -lt 450) {
+    $name = $Event.SourceEventArgs.Name
+    if ($name -notmatch '\.(py|png)$') {
+        return
+    }
+
+    if (((Get-Date) - $script:lastRestart).TotalMilliseconds -lt 500) {
         return
     }
 
     $script:lastRestart = Get-Date
     Stop-Preview -Process $script:preview
-    Start-Sleep -Milliseconds 120
-    $script:preview = Start-Preview -PythonCommand $using:Python
-    Write-Host ("Reloaded pixel UI preview: {0}" -f $Event.SourceEventArgs.Name)
+    Start-Sleep -Milliseconds 150
+    $script:preview = Start-Preview
+    Write-Host ("Reloaded tray preview after change: {0}" -f $name)
 }
 
 $subscriptions = @()
@@ -50,15 +59,15 @@ $subscriptions += Register-ObjectEvent -InputObject $watcher -EventName Created 
 $subscriptions += Register-ObjectEvent -InputObject $watcher -EventName Deleted -Action $action
 $subscriptions += Register-ObjectEvent -InputObject $watcher -EventName Renamed -Action $action
 
-Write-Host "Pixel UI live preview is running."
-Write-Host "Edit pixel-ui/app.py and save to reload automatically."
+Write-Host "DB-Notifier tray live preview is running."
+Write-Host "Edit legacy/prototypes/tray-app/app.py to restart automatically."
 Write-Host "Press Ctrl+C to stop."
 
 try {
     while ($true) {
         Start-Sleep -Seconds 1
         if ($script:preview.HasExited) {
-            $script:preview = Start-Preview -PythonCommand $Python
+            $script:preview = Start-Preview
         }
     }
 }

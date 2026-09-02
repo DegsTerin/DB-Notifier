@@ -8,20 +8,249 @@ increment. It records execution intent and evidence; it does not replace
 append-only history, a Quality Gate, an Agent Gate or a preserved historical
 Human Gate.
 
+## Public repository root organisation record
+
+- Plan ID: `PUBLIC-ROOT-ORGANISATION-01`
+- Status: `LOCAL_COMPLETE`; the exact organised candidate passed its canonical
+  local gate and independent review, while remote publication verification
+  remains in progress
+- Created: `2026-09-01`
+- Initial baseline: `codex/portfolio-preview@8a936b889d43ac4d93f1b965a5a2c5f13ecf24c7`
+- Authority: the owner's current request to retain only genuinely essential
+  files at the repository root, organise remaining shared material under the
+  appropriate directories, prioritise Markdown documents, and improve
+  `.gitignore` for content that must not be published
+- Lifecycle state: `STATE-06 INTEGRATION`; unchanged
+- Execution mode: `SEQUENTIAL_ONLY` / `SINGLE_OWNER`
+- Writer: the coordinating task owns the isolated portfolio worktree; every
+  delegated inventory and review lane is read-only
+- Rollback: revert only the focused root-organisation commit in the isolated
+  branch; never reset, clean, overwrite or reorganise the protected principal
+  worktree
+
+### Objective and source-control boundary
+
+Make the public repository root concise and professional without breaking
+automatic .NET, Node.js, GitHub, Render, editor, package-manager or repository-
+policy discovery. Keep runtime source, build and test inputs, shared
+documentation, security and licensing material versioned. Use `.gitignore`
+only for generated, local, private, sensitive or disposable content; it does
+not replace the removal or relocation of an already tracked path.
+
+### Initial positive scope and candidate write set
+
+1. `PLANS.md`
+2. `.gitignore`
+3. `PROMPTS-MIGRATION-REPORT.md` ->
+   `docs/history/Prompt-Migration-Report.md`
+4. `SECURITY.md` -> `.github/SECURITY.md`
+5. `docs/README.md`
+6. `README.md`
+7. `.github/FUNDING.yml`, limited to correcting the current duplicate-key
+   template while preserving the owner's GitHub Sponsors username
+8. `pixel-ui/` -> `legacy/prototypes/pixel-ui/`
+9. `tray-app/` -> `legacy/prototypes/tray-app/`, excluding the retired
+   vendor-specific `assets/postgres.png`
+10. `legacy/prototypes/README.md`
+11. `legacy/prototypes/tray-app/app.py` and `watch.ps1`, limited to consuming
+    the existing canonical
+    `src/DBNotifier.Desktop.Wpf/NotificationAssets/DBNotifier.Availability.png`
+12. `docs/Legacy-Inventory.md`
+13. `docs/design/DB-Notifier-Design-System.md`
+14. `tests/DBNotifier.Legacy.Tests.ps1`
+15. `docs/Development.md`, limited to supplying the absolute compatible
+    `DotNetPath` already required by the legacy runner
+
+Any additional move, removal, ignore rule or consumer update must be added to
+this record before mutation.
+
+### Reviewed successor delta
+
+The first independent review found one blocking historical-evidence defect and
+three non-blocking public-presentation defects. The bounded corrective successor
+therefore also owns:
+
+1. `docs/Legacy-Inventory.md`, limited to restoring the paths observed on
+   2026-07-11 and adding a separately dated current-location note
+2. `legacy/prototypes/pixel-ui/app.py`, limited to replacing its alternate
+   provider-specific mark with the existing canonical DB Notifier product mark
+3. `README.md` and the three `legacy/prototypes/**/README.md` files, limited to
+   distinguishing MIT-licensed source from intentionally unavailable executable
+   packaging
+4. `docs/Development.md`, limited to making the legacy-check example
+   independently runnable by resolving its compatible `dotnet` host locally
+
+### Negative scope and protected work
+
+- The dirty principal worktree, all of its uncommitted and untracked content,
+  and every unrelated owner change remain untouched.
+- The prohibited `mysql-notifier-1.1.8-src` tree is not enumerated, searched,
+  read, moved, ignored as a discovered target or exposed as metadata.
+- Root files required by automatic discovery, dependency locking, build, CI,
+  Render, GitHub community health, licence or security remain at their
+  conventional locations unless a current consumer audit proves an exact safe
+  alternative.
+- `THIRD-PARTY-NOTICES.md` remains at the root beside `LICENSE`: the README,
+  provider-icon maintenance documentation and WPF presentation contract consume
+  that exact public notice boundary.
+- `prompts/` remains tracked while it is the active instruction, governance,
+  factual-state and repository-policy corpus. An ignore rule alone would not
+  remove its existing tracked content and must not create a false public-
+  repository claim.
+- No product runtime behaviour, lifecycle state, dependency version, generated
+  source, immutable historical evidence, remote Render resource or protected
+  Git history is changed by this increment.
+
+### Audit findings and dispositions
+
+- `P1` — `.github/FUNDING.yml` contains two `github` keys; keep the single
+  owner-supplied `DegsTerin` entry in GitHub's documented syntax.
+- `P1` — `tray-app/assets/postgres.png` is described by its own README as
+  vendor-specific and non-distributable, has no entry in
+  `THIRD-PARTY-NOTICES.md`, and must not remain in the public portfolio. Remove
+  only that tracked asset and make the retained historical prototype consume
+  the canonical DB Notifier availability mark already owned by the WPF source,
+  preserving its RGBA colours instead of applying the prototype's former green
+  recolouring. This removes the asset from the current tree only; the blob
+  remains in already published history, whose destructive rewrite is outside
+  this increment.
+- `P2` — none of the active `prompts/` corpus is disposable: root instructions,
+  policy tests, current factual state and Markdown consumers depend on its
+  tracked paths. It remains public and versioned; adding it to `.gitignore`
+  would neither remove existing Git content nor preserve the current gate.
+- `P3` — the prompt migration report is the sole historical Markdown report at
+  the root without an exact-location consumer; move it under `docs/history/`.
+- `P3` — GitHub recognises `SECURITY.md` under `.github/`; moving it there keeps
+  community-health discovery while reducing root noise.
+- `P3` — local macOS metadata and Python prototype caches/environments are not
+  currently covered. Add only the evidence-backed ignore patterns; do not hide
+  source, shared documentation, lockfiles, policy inputs or current tests.
+- `P2` — the documented direct legacy command omits the runner's mandatory
+  absolute `DotNetPath`; the first focused invocation therefore executed no
+  tests. Align the existing developer command with the current fail-closed
+  runner before using it as focused evidence.
+- `P1` — the first independent review found that updating the dated legacy
+  inventory table would rewrite immutable 2026-07-11 evidence. Restore the
+  observed root paths and record only the 2026-09-01 destinations in a separate
+  current-location note.
+- `P2` — the retained Pixel prototype draws an alternate PostgreSQL-style mark.
+  Load the canonical DB Notifier availability mark without colour changes, as
+  the Tray prototype already does.
+- `P2` — describing MIT-licensed prototype source as “non-distributable” is
+  ambiguous. State that the source remains MIT-licensed while executable
+  packaging is intentionally unavailable because its toolchain is not owned,
+  pinned and approved.
+- `P3` — the legacy-check example depends on a variable declared much earlier
+  in the document. Resolve `dotnet` inside that example so it can be copied as a
+  self-contained command.
+
+### Definition of Ready
+
+- Shutdown preflight passes with zero matching process and owned listener.
+- The isolated branch is clean at the frozen baseline and includes the owner's
+  latest public GitHub commit without rewriting it.
+- Every tracked root file and top-level directory is classified by automatic
+  consumer, public value and safe destination.
+- Every planned move has an exact source, destination, consumer update and
+  rollback, and no protected-tree inspection is required.
+
+### Definition of Done
+
+- The root contains only conventional discovery, repository-community,
+  licence, security, build and current execution-ledger files with a documented
+  reason for each retained item.
+- Shared Markdown material selected for relocation has valid links and an
+  unambiguous owner under `docs/`.
+- `.gitignore` covers relevant local/generated/private artefacts without hiding
+  tracked source, lockfiles, migrations, shared documentation or policy inputs.
+- Focused repository-policy, Markdown, build/discovery and Git hygiene checks
+  pass, followed by the proportionate canonical gate and independent review.
+- The resulting focused commit is published only after exact local evidence;
+  Render remains paused until the reorganised GitHub baseline is green.
+
+### Stop codes
+
+- `BASELINE_DRIFT`: the isolated branch or owner baseline changes during the
+  envelope.
+- `CONSUMER_DEPENDENCY`: a proposed move or ignore rule breaks an automatic or
+  governed consumer and no narrow compatible update is available.
+- `PROTECTED_WORK_OVERLAP`: any change would touch the principal worktree,
+  prohibited source or unrelated owner content.
+- `DISCOVERY_CONVENTION`: a root file is required at that exact location by a
+  tool, platform or GitHub convention.
+- `AUTOMATED_GATE_FAIL`: an applicable focused, canonical or remote check
+  fails.
+- `EXTERNAL_PREREQUISITE`: an exact authorised publication mechanism is the
+  sole remaining blocker after safe local work is complete.
+
+### Increment plan
+
+1. `COMPLETE` — classify the tracked root, top-level directories and every
+   consumer of the proposed Markdown and `.gitignore` changes.
+2. `COMPLETE` — freeze the smallest safe relocation and ignore-rule set, then
+   update this candidate write set before mutation.
+3. `COMPLETE` — perform the relocations and focused GitHub metadata
+   correction.
+4. `COMPLETE` — run focused checks, canonical validation and independent
+   review.
+5. `IN_PROGRESS` — commit and publish the exact reviewed candidate, verify GitHub
+   Actions, then resume the zero-cost Render publication flow.
+
+### Validation evidence
+
+- The resulting root contains `15` tracked files. They are limited to editor
+  and Git conventions, dependency/build discovery, licence/notices, repository
+  instructions, the public README, Render definition and the live execution
+  ledger.
+- Focused structure checks passed for all six destinations, five retired paths
+  and the single GitHub Sponsors key. Direct ignore checks passed for Python
+  caches/environments and macOS metadata, while `prompts/Start-Here.md` remained
+  admitted. A first aggregate ignore harness result was a PowerShell CR input
+  false negative and was not reused as evidence.
+- Markdown verification passed `992` local links across `235` files. The code-
+  documentation gate passed `451` comment-capable files, development-flow policy
+  passed `160` assertions and script syntax passed `50` PowerShell plus `14`
+  Node.js files.
+- `Doctor` passed after a transient child from an earlier uncertain diagnostic
+  ended and shutdown was freshly proved. `Quick` passed with zero build warnings
+  or errors, `543` unit tests, `101` architecture tests and `74` Web tests;
+  `Quick` remains `NON_GATE`.
+- The online canonical `Full` gate passed both the first organised candidate and
+  the exact corrective successor. The final execution returned
+  `DISPOSITION|PASS|stage=All`, with zero build warnings or errors, `825` .NET
+  tests, `74` Web tests, line coverage `83.39%`, branch coverage `56.46%`, zero
+  reported NuGet/npm vulnerabilities, the legacy suite, `128` viewport samples,
+  `96` forced-colour samples, `24` zoom/reflow samples and the consolidated
+  `STATE-06` harness.
+- The first independent review reported one blocking `P1` because the candidate
+  rewrote dated legacy paths. After correction, full re-review passed at
+  `P0=0`, `P1=0`, with two `P2` and one `P3` presentation improvements retained
+  as the bounded corrective successor above.
+- The corrective Python validation parsed both retained prototype modules and
+  loaded the canonical product mark through the Pixel prototype's real Tk image
+  path. Closing shutdown reported zero matching process and zero owned listener.
+- Independent final review of the exact staged corrective successor passed at
+  `P0=0`, `P1=0`, `P2=0`, `P3=0`. It confirmed the canonical Pixel mark,
+  unambiguous MIT/packaging language, self-contained legacy command, preserved
+  historical inventory, root notice consumers, old-path retirement, ignore
+  scope, GitHub metadata and en-GB artefact language.
+
 ## Portfolio preview publication record
 
 - Plan ID: `PORTFOLIO-PREVIEW-01`
-- Status: `AUTOMATED_GATE_FAIL`; the exact local portfolio candidate and each
-  corrective successor passed their local gates and were published to GitHub,
-  but the latest remote GitHub Actions execution exposed one line-ending-
-  dependent localisation provenance hash on Linux and one bounded synthetic-
-  process startup timeout on Windows; Render publication remains stopped
+- Status: `LOCAL_COMPLETE`; GitHub Actions run `33571153478` on the latest
+  published baseline exposed a Windows STATE-05 runner/evidence-root authority
+  mismatch. Its exact bounded successor passed the focused, `Quick` and
+  canonical `Full` local gates and awaits publication and remote verification;
+  Render publication remains stopped
 - Created: `2026-09-01`
 - Baseline: `codex/portfolio-preview@492c1b3b7ee8d0374ddd16dd3d3e9af213e7bbe9`
 - Published candidate: `main@8c7d5d36ad2bcdad124c74a426840c0c4f439027`
 - First corrective successor: `main@6956f88d13ffef3d2e5236dd0ba5b25fa41ffd45`
 - Exact root-cause successor: `main@e17293c1b9830836f99d9a036441a0a155d294c0`
 - Cross-platform harness successor: `main@c14c95db8e5dcf23896a52023c664df04eba13bf`
+- Latest published baseline: `main@8a936b889d43ac4d93f1b965a5a2c5f13ecf24c7`
+- Pending successor: the staged candidate on `codex/portfolio-preview`
 - Authority: the owner's current request to publish DB-Notifier as an honest
   work-in-progress full-stack portfolio, with a professional README, a real
   demonstration GIF and a Render-hosted static preview
@@ -64,6 +293,11 @@ demonstration data only. API, Agent and WPF deployment remain outside Render.
 19. `.gitattributes`
 20. `scripts/generate-localisation.mjs`
 21. `tests/DBNotifier.UnitTests/PostgreSqlProviderTests.cs`
+22. `scripts/run-state05-dashboard-audit.ps1`
+23. `scripts/audit-state05-dashboard.mjs`
+24. `scripts/state05-audit-evidence-root.mjs`
+25. `src/DBNotifier.Dashboard.Web/tests/state05AuditEvidenceRoot.test.ts`
+26. `tests/DBNotifier.Architecture.Tests/State06ConsolidatedHarnessIsolationTests.cs`
 
 The dependency manifests and lockfiles may enter the write set only if a
 current security check proves a directly relevant, minimally correctable
@@ -175,6 +409,11 @@ updated before mutation.
     canonical `Full` gate passed, and independent review closed at `P0=0`,
     `P1=0`, `P2=0`, `P3=0`; a new exact-commit GitHub Actions result remains
     required before the zero-cost Render Static Site can be created.
+12. `LOCAL_COMPLETE` — replace the STATE-05 Node auditor's independent
+    temporary-directory inference with the exact PowerShell runner root, require
+    the precise `evidence` child and add an executable cross-platform regression.
+    Focused, `Quick` and canonical `Full` validation passed; a new exact-commit
+    remote result remains required before Render publication.
 
 ### Validation evidence
 
@@ -320,6 +559,33 @@ updated before mutation.
   `P1=0`, `P2=0`, `P3=0`. It confirmed cross-platform hash determinism, exact
   provenance-only generated changes, unchanged product timeout and termination
   semantics, en-GB documentation and absence of secrets or protected material.
+- GitHub Actions run `33571153478` passed the supplemental Linux Dashboard job
+  and advanced the Windows canonical job through build, `825` .NET tests,
+  coverage, dependencies, runtime and legacy gates. The first STATE-05 sample
+  then failed before browser inspection because the Node auditor independently
+  inferred its permitted temporary root through `os.tmpdir()` instead of using
+  the exact root created by the PowerShell runner. Sanitised uploaded evidence
+  recorded `The runner-owned STATE-05 evidence root is required.`; the run was
+  not retried.
+- The bounded successor passes the exact runner root and evidence child as two
+  explicit environment values, validates their absolute paths, GUID-shaped
+  identity and exact parent/child relationship, applies Windows case-insensitive
+  comparison and removes both values during cleanup. It does not broaden the
+  permitted directory or weaken cleanup ownership.
+- The executable path regression passed `5/5` cases covering divergent
+  `TEMP`/`TMP`, Windows capitalisation, sibling/external paths, missing values
+  and invalid identity. The focused architecture contract passed `1/1` and
+  `Quick` passed as `NON_GATE` feedback with zero build warnings or errors,
+  `543` unit tests, `101` architecture tests and `79` Web tests. Script syntax
+  passed `50` PowerShell and `15` Node files; documentation covered `453`
+  comment-capable files and Markdown covered `992` local links in `235` files.
+- The single canonical `Full` execution on this exact successor returned
+  `DISPOSITION|PASS|stage=All`. It passed secret and dependency scans, zero-
+  warning/error build, all `825` .NET and `79` Web tests, `83.39%` line and
+  `56.46%` branch coverage, the legacy suite, the previously failing STATE-05
+  matrix of `128` viewport, `96` forced-colour and `24` zoom/reflow samples, and
+  the consolidated `STATE-06` harness. Closing shutdown found zero matching
+  process and zero owned listener.
 
 ## Active continuous-improvement control record
 

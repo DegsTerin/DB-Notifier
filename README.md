@@ -114,7 +114,7 @@ src/
 ├── DBNotifier.Domain/                    Core domain model
 ├── DBNotifier.Application/               Use cases and policies
 ├── DBNotifier.Provider.Abstractions/      Versioned provider SDK
-├── DBNotifier.Agent/                      Edge monitoring agent
+├── DBNotifier.Agent.Worker/               Edge monitoring agent
 ├── DBNotifier.Server.Api/                 Central ASP.NET Core API
 ├── DBNotifier.Persistence.*/              SQLite and PostgreSQL adapters
 ├── DBNotifier.Desktop.Wpf/                Windows desktop and tray client
@@ -122,7 +122,8 @@ src/
 
 tests/                                     Unit, integration and architecture checks
 docs/                                      Architecture, design and factual evidence
-prompts/                                   Governed requirements and current state
+legacy/prototypes/                         Retained UI prototypes; packaging unavailable
+prompts/                                   Project governance, requirements and factual state
 scripts/                                   Deterministic development and CI entry points
 ```
 
@@ -146,7 +147,7 @@ DB-Notifier is the independent successor to PgNotifier. Under `GOV-MN-RESTORE-01
 
 ## Security
 
-This is not a production service. Please read [`SECURITY.md`](SECURITY.md) before reporting a vulnerability, and never include credentials, connection strings or other secret material in an issue.
+This is not a production service. Please read the [security policy](.github/SECURITY.md) before reporting a vulnerability, and never include credentials, connection strings or other secret material in an issue.
 
 ## Licence
 

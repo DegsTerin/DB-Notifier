@@ -57,6 +57,13 @@ node_modules/
 **/dist/
 *.tsbuildinfo
 
+# Python prototype caches and local virtual environments
+**/__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+
 # PowerShell/editor/user state
 *.user
 *.suo
@@ -82,6 +89,9 @@ secrets.json
 # Windows noise
 Thumbs.db
 Desktop.ini
+
+# macOS noise
+.DS_Store
 
 # External reference source excluded from the clean-room project inventory
 mysql-notifier-*-src/

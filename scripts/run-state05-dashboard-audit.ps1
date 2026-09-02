@@ -212,6 +212,7 @@ try {
             $env:DBNOTIFIER_AUDIT_DASHBOARD_URL = $dashboardUri
             $env:DBNOTIFIER_AUDIT_BROWSER_PRODUCT = $BrowserProduct
             $env:DBNOTIFIER_AUDIT_BROWSER_VERSION = $browserVersion
+            $env:DBNOTIFIER_AUDIT_RUNNER_ROOT = $temporaryRoot
             $env:DBNOTIFIER_AUDIT_EVIDENCE_ROOT = $evidenceRoot
             $nodeHost = Get-Command node -CommandType Application -ErrorAction Stop | Select-Object -First 1
             $nodeErrorLog = Join-Path $temporaryRoot "$locale-$theme.node.stderr.log"
@@ -372,7 +373,7 @@ catch {
     throw
 }
 finally {
-    Remove-Item Env:DBNOTIFIER_AUDIT_LOCALE, Env:DBNOTIFIER_AUDIT_THEME, Env:DBNOTIFIER_AUDIT_CDP_ENDPOINT, Env:DBNOTIFIER_AUDIT_DASHBOARD_URL, Env:DBNOTIFIER_AUDIT_BROWSER_PRODUCT, Env:DBNOTIFIER_AUDIT_BROWSER_VERSION, Env:DBNOTIFIER_AUDIT_EVIDENCE_ROOT -ErrorAction SilentlyContinue
+    Remove-Item Env:DBNOTIFIER_AUDIT_LOCALE, Env:DBNOTIFIER_AUDIT_THEME, Env:DBNOTIFIER_AUDIT_CDP_ENDPOINT, Env:DBNOTIFIER_AUDIT_DASHBOARD_URL, Env:DBNOTIFIER_AUDIT_BROWSER_PRODUCT, Env:DBNOTIFIER_AUDIT_BROWSER_VERSION, Env:DBNOTIFIER_AUDIT_RUNNER_ROOT, Env:DBNOTIFIER_AUDIT_EVIDENCE_ROOT -ErrorAction SilentlyContinue
     $cleanupFailures = [System.Collections.Generic.List[string]]::new()
     foreach ($cleanup in @(
         { Stop-ProcessTree $nodeProcess },

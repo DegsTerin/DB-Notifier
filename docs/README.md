@@ -8,7 +8,7 @@ Selected normative, current and historical documents:
 - [`Legacy-Inventory.md`](Legacy-Inventory.md): verified PgNotifier behavior, limitations, and capability truth.
 - [`Legacy-Migration-Plan.md`](Legacy-Migration-Plan.md): incremental PgNotifier → DB-Notifier milestones, compatibility, verification, and rollback.
 - [`Legacy-Compatibility.md`](Legacy-Compatibility.md): canonical names, deprecated shims, configuration preservation, and removal gate.
-- [`../PROMPTS-MIGRATION-REPORT.md`](../PROMPTS-MIGRATION-REPORT.md): historical, non-authoritative record of the 2026-07-11 prompt migration; the active corpus is routed by `prompts/Start-Here.md`.
+- [`history/Prompt-Migration-Report.md`](history/Prompt-Migration-Report.md): historical, non-authoritative record of the 2026-07-11 prompt migration; the active corpus is routed by `prompts/Start-Here.md`.
 - [`STATE-00-Discovery-Report.md`](STATE-00-Discovery-Report.md): checks, findings, limitations and the original Human Gate record, now retrospectively ratified by the current addendum.
 - [`Development.md`](Development.md): `STATE-01` scaffold, tool baseline, checks, and onboarding.
 - [`Code-Documentation-Standards.md`](Code-Documentation-Standards.md): project-wide British English documentation policy, review requirements, automated gate, and narrow format exceptions.

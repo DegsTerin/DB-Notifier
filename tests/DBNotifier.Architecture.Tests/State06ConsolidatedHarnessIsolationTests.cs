@@ -111,13 +111,14 @@ public sealed class State06ConsolidatedHarnessIsolationTests
         Assert.DoesNotContain("ConsolidatedHarnessRateLimit", production, StringComparison.Ordinal);
     }
 
-    /// <summary>Confirms browser runners bound Node/CDP work while the canonical gate owns one sanitised diagnostic root.</summary>
+    /// <summary>Confirms browser runners bound Node/CDP work and propagate one exact runner-owned evidence root.</summary>
     [Fact]
     public void BrowserRunnersBoundWorkAndCleanupExactOwnedResources()
     {
         string state05 = Read("scripts", "run-state05-dashboard-audit.ps1");
         string state06 = Read("scripts", "run-state06-consolidated-e2e.ps1");
         string state05Auditor = Read("scripts", "audit-state05-dashboard.mjs");
+        string state05EvidenceRoot = Read("scripts", "state05-audit-evidence-root.mjs");
         string state06Auditor = Read("scripts", "audit-state06-consolidated-e2e.mjs");
         string canonicalGate = Read("scripts", "ci.ps1");
         string workflow = Read(".github", "workflows", "ci.yml");
@@ -125,6 +126,7 @@ public sealed class State06ConsolidatedHarnessIsolationTests
         Assert.Contains("NodeTimeoutSeconds", state05, StringComparison.Ordinal);
         Assert.Contains("Stop-OwnedBrowserResidue", state05, StringComparison.Ordinal);
         Assert.Contains("DBNOTIFIER_AUDIT_EVIDENCE_ROOT", state05, StringComparison.Ordinal);
+        Assert.Contains("DBNOTIFIER_AUDIT_RUNNER_ROOT", state05, StringComparison.Ordinal);
         Assert.Contains("--disable-background-networking", state05, StringComparison.Ordinal);
         Assert.Contains("--proxy-server=127.0.0.1:9", state05, StringComparison.Ordinal);
         Assert.Contains("--proxy-bypass-list=127.0.0.1", state05, StringComparison.Ordinal);
@@ -133,6 +135,8 @@ public sealed class State06ConsolidatedHarnessIsolationTests
         Assert.Contains("ownedAgentRootPrefix", state06, StringComparison.Ordinal);
         Assert.DoesNotContain("agentRootsBefore", state06, StringComparison.Ordinal);
         Assert.Contains("CDP command exceeded its deadline", state05Auditor, StringComparison.Ordinal);
+        Assert.Contains("resolveState05AuditEvidenceRoot(process.env)", state05Auditor, StringComparison.Ordinal);
+        Assert.Contains("exact runner-owned child", state05EvidenceRoot, StringComparison.Ordinal);
         Assert.Contains("CDP command exceeded its deadline", state06Auditor, StringComparison.Ordinal);
         Assert.Contains("state05-dashboard-failure.json", state05, StringComparison.Ordinal);
         Assert.Contains("state06-consolidated-failure.json", state06, StringComparison.Ordinal);

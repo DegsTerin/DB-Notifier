@@ -1,14 +1,12 @@
 """Prototype the legacy-compatible DB-Notifier tray interface without database control side effects."""
 
 import math
-import os
-import sys
 import threading
 import tkinter as tk
 from dataclasses import dataclass
 from pathlib import Path
 
-from PIL import Image, ImageEnhance, ImageOps, ImageTk
+from PIL import Image, ImageTk
 import pystray
 from pystray import Menu, MenuItem
 
@@ -28,8 +26,8 @@ RED = "#ff6758"
 HOVER = "#1b3348"
 
 BASE_DIR = Path(__file__).resolve().parent
-ASSETS_DIR = BASE_DIR / "assets"
-POSTGRES_ICON = ASSETS_DIR / "postgres.png"
+PROJECT_ROOT = BASE_DIR.parents[2]
+PRODUCT_ICON = PROJECT_ROOT / "src" / "DBNotifier.Desktop.Wpf" / "NotificationAssets" / "DBNotifier.Availability.png"
 
 
 @dataclass
@@ -55,12 +53,6 @@ ACTION_ROWS = [
     (15, 316, 329, 342, "Reload configuration"),
     (15, 358, 329, 383, "Exit"),
 ]
-
-
-def resource_path(path: Path) -> Path:
-    if hasattr(sys, "_MEIPASS"):
-        return Path(sys._MEIPASS) / path.relative_to(BASE_DIR)
-    return path
 
 
 def hex_to_rgb(value: str) -> tuple[int, int, int]:
@@ -114,26 +106,26 @@ def draw_vertical_gradient(canvas: tk.Canvas, x1: int, y1: int, x2: int, y2: int
         canvas.create_line(x1, y, x2, y, fill=blend(top, bottom, (y - y1) / height))
 
 
-def load_official_icon(size: int, green: bool = True) -> Image.Image:
-    source = resource_path(POSTGRES_ICON)
+def load_product_icon(size: int) -> Image.Image:
+    """Load and centre the canonical DB Notifier mark without recolouring it.
+
+    Args:
+        size: Target square size in pixels.
+
+    Returns:
+        A transparent RGBA image containing the proportionally scaled mark.
+
+    Raises:
+        FileNotFoundError: The canonical generated product mark is unavailable.
+    """
+    source = PRODUCT_ICON
     if not source.exists():
-        raise FileNotFoundError(f"PostgreSQL icon not found: {source}")
+        raise FileNotFoundError(f"Canonical DB Notifier product mark not found: {source}")
 
     image = Image.open(source).convert("RGBA")
     image.thumbnail((size, size), Image.LANCZOS)
-
-    if not green:
-        canvas = Image.new("RGBA", (size, size), (0, 0, 0, 0))
-        canvas.alpha_composite(image, ((size - image.width) // 2, (size - image.height) // 2))
-        return canvas
-
-    alpha = image.getchannel("A")
-    grey = ImageOps.grayscale(image)
-    tinted = ImageOps.colorize(grey, black="#0a2617", white=GREEN).convert("RGBA")
-    tinted.putalpha(alpha)
-    tinted = ImageEnhance.Contrast(tinted).enhance(1.18)
     canvas = Image.new("RGBA", (size, size), (0, 0, 0, 0))
-    canvas.alpha_composite(tinted, ((size - tinted.width) // 2, (size - tinted.height) // 2))
+    canvas.alpha_composite(image, ((size - image.width) // 2, (size - image.height) // 2))
     return canvas
 
 
@@ -167,7 +159,10 @@ def icon_exit(canvas: tk.Canvas, x: int, y: int, color: str = TEXT):
 
 
 class DBNotifierTrayApp:
+    """Run the retained non-distributable Tray prototype with mock data."""
+
     def __init__(self):
+        """Initialise the mock window and tray boundary with the canonical mark."""
         self.root = tk.Tk()
         self.root.withdraw()
         self.root.title("DB Notifier")
@@ -175,8 +170,8 @@ class DBNotifierTrayApp:
         self.popup: tk.Toplevel | None = None
         self.canvas: tk.Canvas | None = None
         self.hover_index: int | None = None
-        self.header_icon = ImageTk.PhotoImage(load_official_icon(30, green=True))
-        self.tray_icon_image = load_official_icon(64, green=True)
+        self.header_icon = ImageTk.PhotoImage(load_product_icon(30))
+        self.tray_icon_image = load_product_icon(64)
 
         self.tray_icon = pystray.Icon(
             "DBNotifier",

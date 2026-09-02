@@ -3,8 +3,8 @@
  * The script records viewport, semantic-brand, accessibility-tree, keyboard and modal-focus evidence without mutating product state.
  */
 import { mkdirSync, writeFileSync } from "node:fs";
-import { join, resolve, sep } from "node:path";
-import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { resolveState05AuditEvidenceRoot } from "./state05-audit-evidence-root.mjs";
 
 const endpoint = process.env.DBNOTIFIER_AUDIT_CDP_ENDPOINT ?? "http://127.0.0.1:9224";
 const dashboardUrl = process.env.DBNOTIFIER_AUDIT_DASHBOARD_URL ?? "http://127.0.0.1:4173/";
@@ -15,12 +15,7 @@ const theme = requestedTheme === "dark" ? "dark" : "light";
 const browserProduct = process.env.DBNOTIFIER_AUDIT_BROWSER_PRODUCT;
 const browserVersion = process.env.DBNOTIFIER_AUDIT_BROWSER_VERSION;
 if (!browserProduct || !browserVersion) throw new Error("Browser product and version provenance are required.");
-const configuredEvidenceRoot = process.env.DBNOTIFIER_AUDIT_EVIDENCE_ROOT;
-const systemTempRoot = resolve(tmpdir());
-const evidenceRoot = configuredEvidenceRoot ? resolve(configuredEvidenceRoot) : "";
-if (!evidenceRoot.startsWith(`${systemTempRoot}${sep}`) || !evidenceRoot.includes("DBNotifier-Dashboard-Runner-")) {
-  throw new Error("The runner-owned STATE-05 evidence root is required.");
-}
+const evidenceRoot = resolveState05AuditEvidenceRoot(process.env);
 const evidenceDirectory = join(evidenceRoot, locale, theme);
 mkdirSync(evidenceDirectory, { recursive: true });
 

@@ -3,8 +3,8 @@
 > **Registro histórico, não autoritativo.** Este relatório preserva a migração
 > executada em 2026-07-11 e o significado que os números tinham naquela data.
 > O corpus ativo vigente possui 14 arquivos e é definido por
-> [`prompts/Start-Here.md`](prompts/Start-Here.md); sua evolução é registrada em
-> [`prompts/system/Prompt-System-Change-Log.md`](prompts/system/Prompt-System-Change-Log.md).
+> [`prompts/Start-Here.md`](../../prompts/Start-Here.md); sua evolução é registrada em
+> [`prompts/system/Prompt-System-Change-Log.md`](../../prompts/system/Prompt-System-Change-Log.md).
 
 ## Resumo
 

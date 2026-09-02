@@ -555,10 +555,10 @@ Describe "DB-Notifier legacy compatibility" {
         $compatibilityBuild = Get-Content -LiteralPath (Join-Path $PSScriptRoot "..\build\build.ps1") -Raw
         $prototypeBuilds = @(
             (Join-Path $PSScriptRoot "..\desktop-wpf\build-desktop.ps1"),
-            (Join-Path $PSScriptRoot "..\pixel-ui\build-exe.ps1"),
-            (Join-Path $PSScriptRoot "..\tray-app\build-exe.ps1")
+            (Join-Path $PSScriptRoot "..\legacy\prototypes\pixel-ui\build-exe.ps1"),
+            (Join-Path $PSScriptRoot "..\legacy\prototypes\tray-app\build-exe.ps1")
         )
-        $downloadSource = Get-Content -LiteralPath (Join-Path $PSScriptRoot "..\tray-app\download-postgres-icon.ps1") -Raw
+        $downloadSource = Get-Content -LiteralPath (Join-Path $PSScriptRoot "..\legacy\prototypes\tray-app\download-postgres-icon.ps1") -Raw
 
         $toolchain.status | Should Be "blocked"
         $toolchain.schemaVersion | Should Be "dbnotifier.compatibility-toolchain.v2"
