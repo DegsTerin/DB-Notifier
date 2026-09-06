@@ -110,6 +110,246 @@ function Assert-Plan {
         -Message "$Task PlanOnly is not deterministic."
 }
 
+function Invoke-ShutdownOwnershipRegressions {
+    <#
+    .SYNOPSIS
+    Exercises shared-host recognition using synthetic identities without starting or stopping a process.
+    .PARAMETER ShutdownSource
+    Trusted candidate script parsed solely for its classification and digest function definitions.
+    .PARAMETER RepositoryRoot
+    Existing workspace argument used to distinguish incidental text from product ownership.
+    .PARAMETER KernelLauncher
+    Synthetic prefix by default; a supplemental in-memory replay may supply the historical observed prefix.
+    .PARAMETER WorkerLauncher
+    Synthetic prefix by default; no vendor bootstrap expression is persisted in this test.
+    .OUTPUTS
+    None. Assertion failures stop the test; function-local OS mocks do not affect the live regression.
+    #>
+    param(
+        [string]$ShutdownSource,
+        [string]$RepositoryRoot,
+        [string]$KernelLauncher = '--synthetic-kernel-bootstrap',
+        [string]$WorkerLauncher = '--synthetic-worker-bootstrap'
+    )
+
+    $tokens = $null
+    $errors = $null
+    $ast = [Management.Automation.Language.Parser]::ParseInput($ShutdownSource, [ref]$tokens, [ref]$errors)
+    Assert-Condition ($errors.Count -eq 0) 'Shutdown classification syntax is invalid.'
+    Assert-Condition ((@($ast.ParamBlock.Parameters.Name.VariablePath.UserPath) -join ',') -ceq 'RepositoryRoot') 'The shutdown entry point must not expose process exclusions.'
+    foreach ($name in @('Get-CuaLauncherPrefixDigest', 'Test-SharedCodexCuaHost', 'Test-ProjectOwnedProcess')) {
+        $definitions = @($ast.FindAll({
+                    param($node)
+                    $node -is [Management.Automation.Language.FunctionDefinitionAst]
+                }, $true) | Where-Object Name -CEQ $name)
+        Assert-Condition ($definitions.Count -eq 1) 'The expected classification definition is not unique.'
+        . ([scriptblock]::Create($definitions[0].Extent.Text))
+    }
+    Assert-Condition ((Get-CuaLauncherPrefixDigest -Prefix '') -ceq 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855') 'Prefix hashing must preserve the canonical empty UTF-8 digest.'
+    $realPrefixDigest = (Get-Command Get-CuaLauncherPrefixDigest -CommandType Function).ScriptBlock
+    function Get-CuaLauncherPrefixDigest {
+        <#
+        .SYNOPSIS
+        Separates pure identity tests from third-party bootstrap expression.
+        .PARAMETER Prefix
+        Synthetic approved role marker or an actual prefix for supplementary historical replay.
+        .OUTPUTS
+        Fixture identity only for the two explicit synthetic markers; otherwise the real candidate digest.
+        .NOTES
+        This function-local seam is not present in production or any preflight entry point.
+        #>
+        param([AllowEmptyString()][string]$Prefix)
+        if ($Prefix -ceq '--synthetic-kernel-bootstrap') { return '10dc4b048f490fea8d9cdb44d640234ba19fac540457f6f4242daec28c11a900' }
+        if ($Prefix -ceq '--synthetic-worker-bootstrap') { return 'd3a43d6ad401c9f35e84c69aefdbf807f49f26da612b9be008a11f63b63ba205' }
+        return & $realPrefixDigest -Prefix $Prefix
+    }
+
+    $mode = 'Healthy'
+    $nodePath = Join-Path ([Environment]::GetFolderPath(
+            [Environment+SpecialFolder]::LocalApplicationData)) 'OpenAI/Codex/runtimes/cua_node/0123456789abcdef/bin/node.exe'
+    $parentPath = Join-Path (Split-Path $nodePath) 'node_repl.exe'
+    $entryRoot = Join-Path ([IO.Path]::GetTempPath()) '.tmpSynthetic'
+    $record = [pscustomobject]@{
+        ProcessId = 41001
+        ParentProcessId = 41002
+        Name = 'node.exe'
+        ExecutablePath = $nodePath
+        CommandLine = ''
+        CreationDate = [DateTime]::Parse('2026-09-01T00:00:00Z').ToUniversalTime()
+    }
+    $parent = [pscustomobject]@{
+        ProcessId = 41002
+        Name = 'node_repl.exe'
+        ExecutablePath = $parentPath
+        CommandLine = '"' + $parentPath + '"'
+    }
+
+    function Get-CimInstance {
+        <#
+        .SYNOPSIS
+        Supplies synthetic parent/child identities or controlled missing, denied and drifted results.
+        .PARAMETER ClassName
+        Expected Windows process inventory class.
+        .PARAMETER Filter
+        Exact parent or child lookup; no arbitrary inventory is permitted.
+        .OUTPUTS
+        Synthetic identity records or a controlled metadata failure.
+        #>
+        [CmdletBinding()]
+        param([string]$ClassName, [string]$Filter)
+        if ($ClassName -cne 'Win32_Process' -or $Filter -cnotin @('ProcessId = 41001', 'ProcessId = 41002')) { throw 'Unexpected identity lookup.' }
+        if ($Filter -ceq 'ProcessId = 41001') {
+            if ($mode -ceq 'ChildDenied') { throw 'Synthetic child denial.' }
+            if ($mode -ceq 'ChildMissing') { return }
+            $child = $record.PSObject.Copy()
+            if ($mode -ceq 'ChildDuplicate') { return @($child, $child) }
+            if ($mode -ceq 'ChildParentDrift') { $child.ParentProcessId = 41003 }
+            if ($mode -ceq 'ChildCommandDrift') { $child.CommandLine += ' changed' }
+            if ($mode -ceq 'ChildExecutableDrift') { $child.ExecutablePath = 'C:/outside/node.exe' }
+            if ($mode -ceq 'ChildNameDrift') { $child.Name = 'other.exe' }
+            if ($mode -ceq 'ChildCreatedDrift') { $child.CreationDate = $record.CreationDate.AddSeconds(1) }
+            return $child
+        }
+        if ($mode -ceq 'ParentDenied') { throw 'Synthetic metadata denial.' }
+        if ($mode -ceq 'ParentMissing') { return }
+        if ($mode -ceq 'ParentDuplicate') { return @($parent, $parent) }
+        return $parent
+    }
+
+    function Get-Item {
+        <#
+        .SYNOPSIS
+        Models ordinary runtime ancestry and deliberate missing or redirected metadata.
+        .PARAMETER LiteralPath
+        Candidate file or ancestor whose attributes are requested.
+        .PARAMETER Force
+        Mirrors the production metadata call; it grants no additional fixture access.
+        .OUTPUTS
+        Synthetic attributes or a controlled failure; no file content is read.
+        #>
+        [CmdletBinding()]
+        param([string]$LiteralPath, [switch]$Force)
+        if ($mode -ceq 'FileMissing') { throw 'Synthetic missing file.' }
+        $attributes = if ($LiteralPath -match '(?i)[.](exe|js)$') {
+            [IO.FileAttributes]::Normal
+        } else { [IO.FileAttributes]::Directory }
+        if ($mode -ceq 'PathReparse') { $attributes = $attributes -bor [IO.FileAttributes]::ReparsePoint }
+        return [pscustomobject]@{ Attributes = $attributes }
+    }
+
+    function Get-Process {
+        <#
+        .SYNOPSIS
+        Models the live identity and window proof for the synthetic CUA child.
+        .PARAMETER Id
+        Exact synthetic child identity.
+        .OUTPUTS
+        Disposable synthetic process metadata or a controlled denial.
+        #>
+        [CmdletBinding()]
+        param([int]$Id)
+        if ($Id -ne 41001 -or $mode -ceq 'ProcessDenied') { throw 'Synthetic process denial.' }
+        $value = [pscustomobject]@{
+            Id = $Id
+            Path = if ($mode -ceq 'LivePathMismatch') { 'C:/outside/node.exe' } else { $record.ExecutablePath }
+            HasExited = $mode -ceq 'ProcessExited'
+            MainWindowHandle = if ($mode -ceq 'Window') { [IntPtr]::new(1) } else { [IntPtr]::Zero }
+        }
+        $value | Add-Member -MemberType ScriptMethod -Name Dispose -Value { }
+        return $value
+    }
+
+    function Get-NetTCPConnection {
+        <#
+        .SYNOPSIS
+        Models the listener query with empty, owned, unrelated and denied results.
+        .PARAMETER State
+        The production query must inspect listening sockets only.
+        .OUTPUTS
+        Synthetic listener records or a controlled denial.
+        #>
+        [CmdletBinding()]
+        param([string]$State)
+        if ($State -cne 'Listen' -or $mode -ceq 'ListenerDenied') { throw 'Synthetic listener denial.' }
+        if ($mode -ceq 'Listener') { return [pscustomobject]@{ OwningProcess = 41001 } }
+        if ($mode -ceq 'OtherListener') { return [pscustomobject]@{ OwningProcess = 41003 } }
+    }
+
+    $kernelCommand = '"' + $nodePath + '" ' + $KernelLauncher + ' "' +
+        (Join-Path $entryRoot 'kernel.js') + '" --session-id ' + ('a' * 32) +
+        ' --working-dir "' + $RepositoryRoot + '"'
+    $workerCommand = '"' + $nodePath + '" ' + $WorkerLauncher + ' "' +
+        (Join-Path $entryRoot 'trusted-worker.js') + '" "' + $RepositoryRoot + '"'
+    $record.CommandLine = $kernelCommand
+
+    if ($IsWindows) {
+        foreach ($command in @($kernelCommand, $workerCommand)) {
+            $record.CommandLine = $command
+            Assert-Condition (-not (Test-ProjectOwnedProcess $record $RepositoryRoot)) 'A coherent windowless, non-listening CUA role was misclassified from its workspace argument.'
+        }
+        $record.CommandLine = $kernelCommand
+        $mode = 'OtherListener'
+        Assert-Condition (-not (Test-ProjectOwnedProcess $record $RepositoryRoot)) 'An unrelated listener must not be attributed to the CUA child.'
+        foreach ($mode in @('ParentMissing', 'ParentDenied', 'ParentDuplicate', 'FileMissing',
+                'PathReparse', 'ProcessDenied', 'ProcessExited', 'LivePathMismatch',
+                'Window', 'Listener', 'ListenerDenied', 'ChildDenied', 'ChildMissing',
+                'ChildDuplicate', 'ChildParentDrift', 'ChildCommandDrift', 'ChildExecutableDrift',
+                'ChildNameDrift', 'ChildCreatedDrift')) {
+            Assert-Condition (Test-ProjectOwnedProcess $record $RepositoryRoot) "Conflicting or unavailable CUA evidence did not fail closed: $mode."
+        }
+        $mode = 'Healthy'
+        # Historical replay must reject slash-altered bootstrap text, even when path matching normalises it.
+        foreach ($sample in @(
+                @{ Command = $kernelCommand; Prefix = $KernelLauncher },
+                @{ Command = $workerCommand; Prefix = $WorkerLauncher })) {
+            $alteredPrefix = $sample.Prefix.Replace('\', '/')
+            if ($alteredPrefix -cne $sample.Prefix) {
+                $record.CommandLine = $sample.Command.Replace($sample.Prefix, $alteredPrefix)
+                Assert-Condition (Test-ProjectOwnedProcess $record $RepositoryRoot) 'Slash-altered bootstrap text must not inherit an approved prefix identity.'
+            }
+        }
+        $record.CommandLine = $kernelCommand
+        foreach ($property in @('Name', 'ExecutablePath', 'CommandLine')) {
+            $original = $parent.$property
+            $parent.$property = 'unrelated'
+            Assert-Condition (Test-ProjectOwnedProcess $record $RepositoryRoot) 'An inconsistent parent was accepted as a shared host.'
+            $parent.$property = $original
+        }
+        foreach ($command in @(
+                $kernelCommand.Replace('kernel.js', 'server.js'),
+                $kernelCommand.Replace('--session-id', '--other-id'),
+                $kernelCommand.Replace(('a' * 32), 'invalid'),
+                ($workerCommand + ' --serve'),
+                $kernelCommand.Replace($KernelLauncher, 'C:/outside/DBNotifier.Agent.js'),
+                $kernelCommand.Replace($KernelLauncher, '--require C:/outside/DBNotifier.Agent.js'),
+                $kernelCommand.Replace($KernelLauncher, '--eval "arbitrary"'),
+                $kernelCommand.Replace($KernelLauncher, '--experimental-vm-modules'),
+                $workerCommand.Replace($WorkerLauncher, ''),
+                ('"C:/outside/node.exe" "' + (Join-Path $entryRoot 'trusted-worker.js') + '" "' + $RepositoryRoot + '"'))) {
+            $record.CommandLine = $command
+            Assert-Condition (Test-ProjectOwnedProcess $record $RepositoryRoot) 'An unrecognised or ambiguous Node entry point was excluded.'
+        }
+    }
+    else {
+        Assert-Condition (Test-ProjectOwnedProcess $record $RepositoryRoot) 'Windows CUA recognition must not apply on another operating system.'
+    }
+
+    $mode = 'Healthy'
+    $record.CommandLine = $kernelCommand
+    foreach ($path in @(
+            'C:/outside/node.exe',
+            $nodePath.Replace('cua_node', 'cua_node_extra'),
+            (Join-Path $RepositoryRoot 'node.exe'),
+            'C:/outside/DBNotifier.Agent.exe')) {
+        $record.ExecutablePath = $path
+        Assert-Condition (Test-ProjectOwnedProcess $record $RepositoryRoot) 'Strong product evidence or an ordinary Node workload was suppressed.'
+    }
+    $record.ExecutablePath = 'C:/outside/node.exe'
+    $record.CommandLine = 'unrelated'
+    Assert-Condition (-not (Test-ProjectOwnedProcess $record $RepositoryRoot)) 'A neutral unrelated process should not become product-owned.'
+    Write-Output 'PASS|shutdown-ownership-regressions'
+}
+
 $developmentScript = Get-Content -LiteralPath $developmentPath -Raw
 $ciScript = Get-Content -LiteralPath $ciPath -Raw
 $legacyRunnerScript = Get-Content -LiteralPath $legacyRunnerPath -Raw
@@ -514,6 +754,8 @@ Assert-Plan -Task 'Full' -Offline -Expected @(
 
 # Prove that the preflight blocks a disposable, exactly attributable helper
 # and returns to a clean result after that owned child has ended.
+Invoke-ShutdownOwnershipRegressions -ShutdownSource $shutdownScript -RepositoryRoot $repositoryRoot
+
 $ownedHelper = [System.Diagnostics.Process]::new()
 $ownedHelperStartInfo = [System.Diagnostics.ProcessStartInfo]::new()
 $ownedHelperStartInfo.FileName = (Get-Process -Id $PID).Path

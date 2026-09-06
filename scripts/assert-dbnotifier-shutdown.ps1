@@ -40,6 +40,7 @@ function Get-WindowsProcessInventory {
                     Name = [string]$_.Name
                     ExecutablePath = [string]$_.ExecutablePath
                     CommandLine = [string]$_.CommandLine
+                    CreationDate = $_.CreationDate
                 }
             })
     }
@@ -175,6 +176,158 @@ function Get-AncestorProcessIds {
     return @($ancestors)
 }
 
+function Get-CuaLauncherPrefixDigest {
+    <#
+    .SYNOPSIS
+    Computes the non-expressive identity of an exact CUA launch prefix.
+    .PARAMETER Prefix
+    Raw executable-to-entry-point span with surrounding whitespace removed; internal bytes are preserved.
+    .OUTPUTS
+    Lowercase SHA-256 of UTF-8 prefix bytes. No command text is retained, logged or executed.
+    #>
+    [OutputType([string])]
+    param([Parameter(Mandatory)][AllowEmptyString()][string]$Prefix)
+
+    return [Convert]::ToHexString(
+        [Security.Cryptography.SHA256]::HashData([Text.Encoding]::UTF8.GetBytes($Prefix))).ToLowerInvariant()
+}
+
+function Test-SharedCodexCuaHost {
+    <#
+    .SYNOPSIS
+    Recognises a windowless, non-listening Windows CUA host from coherent runtime and live identity evidence.
+
+    .PARAMETER ProcessRecord
+    Inventory record whose incidental workspace argument would otherwise imply project ownership.
+
+    .OUTPUTS
+    System.Boolean. False retains normal fail-closed ownership checks on missing or conflicting evidence.
+
+    .NOTES
+    This is not a caller-configurable process exemption. Commands remain in memory and are never executed
+    or logged. Strong product-path evidence is evaluated before this helper is called.
+    #>
+    [OutputType([bool])]
+    param([Parameter(Mandatory)][pscustomobject]$ProcessRecord)
+
+    if (-not $IsWindows -or $ProcessRecord.Name -ine 'node.exe') {
+        return $false
+    }
+
+    $liveProcess = $null
+    try {
+        $executable = ([string]$ProcessRecord.ExecutablePath).Replace('\', '/')
+        $localData = [Environment]::GetFolderPath(
+            [Environment+SpecialFolder]::LocalApplicationData).Replace('\', '/').TrimEnd('/')
+        $runtimePrefix = "$localData/OpenAI/Codex/runtimes/cua_node/"
+        if ([string]::IsNullOrWhiteSpace($localData) -or
+            -not $executable.StartsWith($runtimePrefix, [StringComparison]::OrdinalIgnoreCase) -or
+            $executable.Substring($runtimePrefix.Length) -notmatch '^[a-fA-F0-9]{16}/bin/node[.]exe$') {
+            return $false
+        }
+
+        $parentId = [int]$ProcessRecord.ParentProcessId
+        $processId = [int]$ProcessRecord.ProcessId
+        if ($parentId -le 0 -or $processId -le 0 -or $parentId -eq $processId) {
+            return $false
+        }
+        $parents = @(Get-CimInstance Win32_Process -Filter "ProcessId = $parentId" -ErrorAction Stop)
+        $parentExecutable = $executable.Substring(0, $executable.Length - 'node.exe'.Length) + 'node_repl.exe'
+        if ($parents.Count -ne 1 -or $parents[0].ProcessId -ne $parentId -or
+            $parents[0].Name -ine 'node_repl.exe' -or
+            ([string]$parents[0].ExecutablePath).Replace('\', '/') -ine $parentExecutable -or
+            ([string]$parents[0].CommandLine).Replace('\', '/').Trim().Trim('"') -ine $parentExecutable) {
+            return $false
+        }
+
+        $rawCommand = [string]$ProcessRecord.CommandLine
+        $command = $rawCommand.Replace('\', '/')
+        $quotedExecutable = [regex]::Escape($executable)
+        $executableMatch = [regex]::Match(
+            $command, '^(?i:"' + $quotedExecutable + '"|' + $quotedExecutable + ')(?=\s+)')
+        if (-not $executableMatch.Success) {
+            return $false
+        }
+
+        # Accept only the two observed entry-point contracts, not arbitrary Node scripts or trailing options.
+        $temporaryRoot = [IO.Path]::GetTempPath().Replace('\', '/').TrimEnd('/') + '/'
+        $entryPrefix = [regex]::Escape($temporaryRoot) + '[.]tmp[a-zA-Z0-9]+/'
+        $workspace = '(?:"(?<workspace>[a-zA-Z]:/[^"\r\n]+)"|(?<workspace>[a-zA-Z]:/[^"\r\n]+))\s*$'
+        $kernel = '(?i)(?:^|\s)(?:"(?<entry>' + $entryPrefix + 'kernel[.]js)"|(?<entry>' +
+            $entryPrefix + 'kernel[.]js))\s+--session-id\s+[a-f0-9]{32}\s+--working-dir\s+' + $workspace
+        $worker = '(?i)(?:^|\s)(?:"(?<entry>' + $entryPrefix + 'trusted-worker[.]js)"|(?<entry>' +
+            $entryPrefix + 'trusted-worker[.]js))\s+' + $workspace
+        $role = [regex]::Match($command, $kernel)
+        if (-not $role.Success) {
+            $role = [regex]::Match($command, $worker)
+        }
+        if (-not $role.Success -or -not [IO.Directory]::Exists($role.Groups['workspace'].Value.TrimEnd())) {
+            return $false
+        }
+
+        # Whole-prefix digests identify the two observed bootstrap shapes without copying vendor code.
+        # Unknown scripts, preloads, eval bodies or options require a separately reviewed update.
+        if ($role.Index -lt $executableMatch.Length) {
+            return $false
+        }
+        $launcherPrefix = $rawCommand.Substring(
+            $executableMatch.Length, $role.Index - $executableMatch.Length).Trim()
+        $kernelRole = $role.Groups['entry'].Value.EndsWith('/kernel.js', [StringComparison]::OrdinalIgnoreCase)
+        $expectedDigest = if ($kernelRole) {
+            '10dc4b048f490fea8d9cdb44d640234ba19fac540457f6f4242daec28c11a900'
+        } else {
+            'd3a43d6ad401c9f35e84c69aefdbf807f49f26da612b9be008a11f63b63ba205'
+        }
+        if ((Get-CuaLauncherPrefixDigest -Prefix $launcherPrefix) -cne $expectedDigest) {
+            return $false
+        }
+
+        # Redirected or missing runtime/entry-point files cannot establish shared-host provenance.
+        foreach ($file in @($executable, $parentExecutable, $role.Groups['entry'].Value)) {
+            $cursor = [IO.Path]::GetFullPath($file)
+            $leaf = $true
+            while (-not [string]::IsNullOrEmpty($cursor)) {
+                $item = Get-Item -LiteralPath $cursor -Force -ErrorAction Stop
+                if (($item.Attributes -band [IO.FileAttributes]::ReparsePoint) -ne 0 -or
+                    ($leaf -and ($item.Attributes -band [IO.FileAttributes]::Directory) -ne 0)) {
+                    return $false
+                }
+                $leaf = $false
+                $cursor = [IO.Path]::GetDirectoryName($cursor)
+            }
+        }
+
+        # Re-read the complete child identity so a recycled PID cannot inherit an old CUA role.
+        $children = @(Get-CimInstance Win32_Process -Filter "ProcessId = $processId" -ErrorAction Stop)
+        if ($children.Count -ne 1 -or $children[0].ProcessId -ne $processId -or
+            $children[0].ParentProcessId -ne $parentId -or
+            $children[0].Name -ine $ProcessRecord.Name -or
+            $children[0].ExecutablePath -ine $ProcessRecord.ExecutablePath -or
+            $children[0].CommandLine -cne $ProcessRecord.CommandLine -or
+            $null -eq $ProcessRecord.CreationDate -or $null -eq $children[0].CreationDate -or
+            $children[0].CreationDate -ne $ProcessRecord.CreationDate) {
+            return $false
+        }
+        $liveProcess = Get-Process -Id $processId -ErrorAction Stop
+        if ($liveProcess.Id -ne $processId -or $liveProcess.HasExited -or
+            ([string]$liveProcess.Path).Replace('\', '/') -ine $executable -or
+            $liveProcess.MainWindowHandle -ne [IntPtr]::Zero) {
+            return $false
+        }
+        $listeners = @(Get-NetTCPConnection -State Listen -ErrorAction Stop |
+                Where-Object { [int]$_.OwningProcess -eq $processId })
+        return $listeners.Count -eq 0
+    }
+    catch {
+        return $false
+    }
+    finally {
+        if ($null -ne $liveProcess) {
+            $liveProcess.Dispose()
+        }
+    }
+}
+
 function Test-ProjectOwnedProcess {
     <#
     .SYNOPSIS
@@ -190,7 +343,8 @@ function Test-ProjectOwnedProcess {
     System.Boolean indicating whether the process is project-owned.
 
     .NOTES
-    Common IDE, terminal and Codex hosts are never classified by name or workspace text alone.
+    Strong product paths take precedence over shared-host recognition. CUA identity requires
+    matching installed-runtime, parent, entry-point and windowless, non-listening evidence.
     #>
     [OutputType([bool])]
     param(
@@ -230,6 +384,10 @@ function Test-ProjectOwnedProcess {
     }
 
     if ($processNameLeaf -match '^(?i:code|devenv|rider64|codex|windowsterminal|openai)$') {
+        return $false
+    }
+
+    if (Test-SharedCodexCuaHost -ProcessRecord $ProcessRecord) {
         return $false
     }
 
