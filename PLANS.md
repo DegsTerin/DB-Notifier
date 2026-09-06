@@ -8,6 +8,82 @@ increment. It records execution intent and evidence; it does not replace
 append-only history, a Quality Gate, an Agent Gate or a preserved historical
 Human Gate.
 
+## Isolated shutdown ownership repair — 5 September 2026
+
+- Route CONTINUE_CURRENT; repair ID SHUTDOWN-CUA-01, initial candidate 01,
+  maximum three distinct candidates. This is separate from the MN007 chain.
+- Baseline: codex/shutdown-cua-20260905 at public commit
+  1a07fcd24d58941b06954c8415fa4862e902d077; clean worktree
+  C:/Projects/Temp/DB-Notifier-Shutdown-20260905.
+- Authority: the owner explicitly approved a narrow exception to the blocked
+  preflight, solely to correct its false positive after independent manual
+  process ownership verification. The prior BLOCKED receipts stay immutable.
+- Exactly four tracked paths: scripts/assert-dbnotifier-shutdown.ps1,
+  tests/DBNotifier.DevelopmentFlow.Tests.ps1, PLANS.md and
+  docs/Development-Shutdown-Report.md. The coordinator is the sole writer;
+  lifecycle and security/quality reviewers remain read-only.
+- Preserve MAIN's protected work and all MN007 candidates, including the five
+  uncommitted failure-closeout documents. Do not change product code, runners,
+  fixtures, manifests, lockfiles, policy verifiers or the functional matrix.
+  No reference tree, vendor source, secret, process termination or external
+  action is an input or consequence of this repair.
+- Independent manual ownership evidence identified only two external Codex
+  CUA workers with their matching runtime parent, kernel/trusted-worker roles,
+  no main window and no TCP listener. Their workspace argument caused the
+  old false positive; PID or generic Node exemptions are prohibited.
+- Definition of Ready: exact clean baseline, exclusive scope and manual
+  independent ownership proof. These were met before implementation.
+- Implementation contract: preserve strong product-executable and repository
+  path ownership checks. Only a Windows CUA host with an exact installed
+  runtime path, matching parent, recognised entry-point role and proved lack
+  of window/listener may be excluded from incidental command-line matching.
+  Missing, denied, inconsistent or mixed identity remains project-owned.
+  No caller-controlled exclusion parameter or environment variable is added.
+- Definition of Done: AST and focused synthetic positive/negative regression
+  checks; unchanged existing policy regressions; an actual corrected canonical
+  preflight; independent reviews without P0/P1; online locked Setup, Quick
+  (NON_GATE) and canonical Full on the exact committed candidate, followed by
+  a focused factual commit and authorised non-forced feature-branch publication.
+  Each check is distinct; none is inferred from another.
+- Stop on the first native/check failure, ambiguity, drift, scope overlap,
+  unresolved review finding or real runtime residue. Preserve the first result;
+  any successor needs a causal delta and a distinct candidate within budget.
+- Rollback: retain the clean public parent and isolated candidate; do not reset
+  MAIN, overwrite protected work, force-push or terminate unrelated processes.
+- Evidence root: C:/Projects/Temp/DB-Notifier-Shutdown-Evidence-20260905.
+  Future task-owned auxiliary directories use C:/Projects/Temp.
+- Lifecycle remains STATE-06 INTEGRATION. This repair does not complete MN007,
+  provider homologation or release. Render is not applicable to this tooling
+  change because the static Dashboard build inputs are unchanged.
+- Current disposition: LOCAL_COMPLETE for the isolated repair and its local
+  quality validation. Candidate 01 implementation and
+  independent code reviews are complete with no unresolved findings. The
+  first synthetic classifier check passed 46 assertions; the historical
+  in-memory replay passed 48 assertions, including altered-prefix rejection.
+  Three preceding replay-preparation failures occurred before classification
+  (file sharing, transcript content type and empty-object property lookup).
+  Their first receipts and helpers remain immutable; they are not product
+  candidate attempts or passing evidence. The actual corrected preflight
+  passed with zero matching processes/listeners. Existing development-flow
+  tests passed 158 assertions and its policy verifier passed 160 assertions,
+  with clean preflight and shutdown closure. Locked Setup passed. The first
+  Quick returned exit 0 (NON_GATE); its separate first closure was BLOCKED by
+  an unattributed transient PowerShell match. That result stays preserved.
+  A new serial preflight passed after the PID disappeared; Quick was not
+  rerun. The first canonical Full passed on commit
+  e24329559eabeea6003309722ab9c9525cdc43ab, tree
+  00f136bef59de31b2034c958e8b2ac12259f702f, with final shutdown 0/0 and clean
+  status. Its receipt is full-first.json in the evidence root, SHA-256
+  3be36401710ec4882c33837619a35bbfc15689fbcadfe8c0a14bb87823621f68.
+- Final documentation-only closeout changes this ledger and the scoped report;
+  the other 851 validated tracked inputs remain byte-identical. Documentation,
+  link and diff checks are separate evidence, not a new Full on the later tree.
+- Publication route: non-forced feature branch codex/shutdown-cua-20260905 in
+  DegsTerin/DB-Notifier, subject to immediate account, credential, target and
+  remote identity checks. The exact remote result is recorded separately in
+  publication-first.json and verified-ref-first.json in the evidence root;
+  local completion never implies remote CI, merge, main promotion or Render.
+
 ## Public repository root organisation record
 
 - Plan ID: `PUBLIC-ROOT-ORGANISATION-01`
