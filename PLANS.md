@@ -55,7 +55,8 @@ Human Gate.
 - Lifecycle remains STATE-06 INTEGRATION. This repair does not complete MN007,
   provider homologation or release. Render is not applicable to this tooling
   change because the static Dashboard build inputs are unchanged.
-- Current disposition: AGENT_DECIDED; candidate 01 implementation and
+- Current disposition: LOCAL_COMPLETE for the isolated repair and its local
+  quality validation. Candidate 01 implementation and
   independent code reviews are complete with no unresolved findings. The
   first synthetic classifier check passed 46 assertions; the historical
   in-memory replay passed 48 assertions, including altered-prefix rejection.
@@ -65,8 +66,23 @@ Human Gate.
   candidate attempts or passing evidence. The actual corrected preflight
   passed with zero matching processes/listeners. Existing development-flow
   tests passed 158 assertions and its policy verifier passed 160 assertions,
-  with clean preflight and shutdown closure. Locked Setup, Quick, Full and
-  feature-branch publication remain pending. See the scoped repair report.
+  with clean preflight and shutdown closure. Locked Setup passed. The first
+  Quick returned exit 0 (NON_GATE); its separate first closure was BLOCKED by
+  an unattributed transient PowerShell match. That result stays preserved.
+  A new serial preflight passed after the PID disappeared; Quick was not
+  rerun. The first canonical Full passed on commit
+  e24329559eabeea6003309722ab9c9525cdc43ab, tree
+  00f136bef59de31b2034c958e8b2ac12259f702f, with final shutdown 0/0 and clean
+  status. Its receipt is full-first.json in the evidence root, SHA-256
+  3be36401710ec4882c33837619a35bbfc15689fbcadfe8c0a14bb87823621f68.
+- Final documentation-only closeout changes this ledger and the scoped report;
+  the other 851 validated tracked inputs remain byte-identical. Documentation,
+  link and diff checks are separate evidence, not a new Full on the later tree.
+- Publication route: non-forced feature branch codex/shutdown-cua-20260905 in
+  DegsTerin/DB-Notifier, subject to immediate account, credential, target and
+  remote identity checks. The exact remote result is recorded separately in
+  publication-first.json and verified-ref-first.json in the evidence root;
+  local completion never implies remote CI, merge, main promotion or Render.
 
 ## Public repository root organisation record
 
