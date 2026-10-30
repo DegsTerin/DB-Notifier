@@ -26,6 +26,7 @@
 <picture>
   <source media="(prefers-reduced-motion: reduce)" srcset="docs/assets/db-notifier-demo.png" />
   <img src="docs/assets/db-notifier-demo.gif" alt="DB-Notifier Dashboard demonstration using deterministic synthetic data" />
+  <img src="docs/assets/DB-Notifier.png" />
 </picture>
 
 <p align="center"><em>Demonstration mode using deterministic local data. No external database or personal data is shown.</em></p>
