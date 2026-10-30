@@ -23,11 +23,20 @@
 > [!IMPORTANT]
 > **Portfolio preview — work in progress.** The hosted Dashboard and the demonstration below use deterministic synthetic data. Live database monitoring, provider homologation, administrative execution and production operation are not enabled.
 
-<picture>
-  <source media="(prefers-reduced-motion: reduce)" srcset="docs/assets/db-notifier-demo.png" />
-  <img src="docs/assets/db-notifier-demo.gif" alt="DB-Notifier Dashboard demonstration using deterministic synthetic data" />
-  <img src="docs/assets/DB-Notifier.png" />
-</picture>
+<p align="center">
+  <img src="docs/assets/DB-Notifier.png" alt="DB-Notifier" />
+  &nbsp;&nbsp;
+  <picture>
+    <source
+      media="(prefers-reduced-motion: reduce)"
+      srcset="docs/assets/db-notifier-demo.png"
+    />
+    <img
+      src="docs/assets/db-notifier-demo.gif"
+      alt="DB-Notifier Dashboard demonstration using deterministic synthetic data"
+    />
+  </picture>
+</p>
 
 <p align="center"><em>Demonstration mode using deterministic local data. No external database or personal data is shown.</em></p>
 
